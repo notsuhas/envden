@@ -1,3 +1,5 @@
+import { setUntrustedRoots } from "@envden/core/process";
+import { loadState } from "./state/store/repository.ts";
 import { shellCommand } from "./commands/shell/shell.ts";
 import { untrackCommand } from "./commands/checkouts/untrack.ts";
 import { sanitizeTerminal } from "./output/sanitize.ts";
@@ -39,6 +41,8 @@ export function createProgram() {
   let active: CommandUnknownOpts | undefined;
 
   program.hook("preAction", async (_program, command) => {
+    const state = await loadState(createAdapters().home);
+    setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);
     active = command;
     if (command.name() === "status") return;
 

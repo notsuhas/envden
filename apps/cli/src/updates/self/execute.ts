@@ -1,6 +1,6 @@
 import { access } from "node:fs/promises";
 import { constants } from "node:fs";
-import { posix } from "node:path";
+import { dirname, posix } from "node:path";
 import { spawnTrusted, sanitizedEnvironment, insideWorkingTree } from "@envden/core/process";
 import { mkdtemp, writeFile, rm, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,9 +9,14 @@ import { pinnedInstall } from "./paths.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { consent } from "../../output/questions.ts";
 
-async function runCommand(command: string[], env: Record<string, string> = {}) {
+async function runCommand(
+  command: string[],
+  env: Record<string, string> = {},
+  managerBin?: string,
+) {
   const status = await spawnTrusted(command[0]!, command.slice(1), {
     env,
+    ...(managerBin ? { managerBin } : {}),
     stdin: "inherit",
     stdout: "inherit",
     stderr: "inherit",
@@ -54,7 +59,8 @@ export async function managerUpdate(
     return { kind: "manual" as const };
   }
 
-  const env = sanitizedEnvironment();
+  const managerBin = dirname(pinned.manager);
+  const env = sanitizedEnvironment({}, process.env, managerBin);
   const absolute = [...installer, ...command.slice(1)];
   if (!(await confirm(absolute.join(" ")))) return { kind: "cancelled" as const };
   const config = await mkdtemp(join(temp, "envden-manager-"));
@@ -68,7 +74,7 @@ export async function managerUpdate(
 
     // Homebrew reads system and prefix brew.env files even with an isolated user config.
     if (command[0] === "brew") env.HOMEBREW_XDG_CONFIG_HOME = config;
-    await run(absolute, env);
+    await run(absolute, env, managerBin);
     await run([pinned.binary, "update", "--post-install"], sanitizedEnvironment());
   } finally {
     await rm(config, { recursive: true, force: true });

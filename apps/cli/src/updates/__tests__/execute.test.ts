@@ -120,8 +120,9 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
         [manager, "upgrade", "envden"],
         binaries[manager]!,
         async () => true,
-        async (args, env) => {
+        async (args, env, managerBin) => {
           calls++;
+          expect(Boolean(managerBin)).toBe(calls === 1);
           expect(env).toBeDefined();
           if (!env) throw new Error("Expected sanitized environment");
 
