@@ -175,6 +175,7 @@ export function fixture(serverKeys: IServerKeys, registrationRecord?: string) {
       "Content-Type": "application/json",
       "Envden-Request": text(p.encode(p.RequestCodec, r)),
       "Envden-Device": text(r.device),
+      "Envden-Body-Hash": text(r.bodyHash),
       "Envden-Time": String(r.time),
       "Envden-Nonce": text(r.nonce),
       "Envden-Signature": text(p.signRequest(r, who.keys.reqSk).signature),
@@ -187,6 +188,7 @@ export function fixture(serverKeys: IServerKeys, registrationRecord?: string) {
       send: () =>
         app.request(path, { method, headers, ...(serialized ? { body: serialized } : {}) }),
       r,
+      headers,
     };
   }
 

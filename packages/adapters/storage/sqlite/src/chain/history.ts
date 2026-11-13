@@ -1,11 +1,9 @@
-import { existsSync, unlinkSync } from "node:fs";
-import { join } from "node:path";
+import { collectGarbage } from "../blobs/garbage.ts";
 import type { IHistoryPolicy } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
-import { hex } from "../db/values.ts";
 
 export function createHistory(context: TContext) {
-  const { db, bytes, run, dataDir } = context;
+  const { db, bytes, run } = context;
 
   function prune(vault: Uint8Array, policy: IHistoryPolicy, now: number) {
     if (
@@ -17,7 +15,6 @@ export function createHistory(context: TContext) {
       throw new Error("Invalid history policy");
 
     if (db.inTransaction) throw new Error("Pruning must run outside an application transaction");
-    const garbage: Uint8Array[] = [];
 
     const result = db
       .transaction(() => {
@@ -58,7 +55,7 @@ export function createHistory(context: TContext) {
             continue;
 
           run("DELETE FROM blob_usage WHERE vault=? AND hash=?", vault, candidate.hash);
-          garbage.push(candidate.hash);
+          run("INSERT OR IGNORE INTO blob_garbage VALUES(?,?)", vault, candidate.hash);
           blobs += run("DELETE FROM blobs WHERE vault=? AND hash=?", vault, candidate.hash);
         }
 
@@ -66,15 +63,7 @@ export function createHistory(context: TContext) {
       })
       .immediate();
 
-    db.transaction(() => {
-      for (const hash of garbage) {
-        if (bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", vault, hash))
-          continue;
-
-        const path = join(dataDir, "blobs", hex(vault) || "empty", hex(hash) || "empty");
-        if (existsSync(path)) unlinkSync(path);
-      }
-    }).immediate();
+    collectGarbage(context);
 
     return result;
   }

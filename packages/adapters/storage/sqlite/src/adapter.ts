@@ -1,3 +1,4 @@
+import { collectGarbage } from "./blobs/garbage.ts";
 import { recoverBlobs } from "./blobs/recovery.ts";
 import { createDevices } from "./access/devices.ts";
 import { createCredentials } from "./access/credentials.ts";
@@ -33,7 +34,10 @@ export function createSqliteStorageAdapter(dataDir: string, now: number): IStora
   const storage = {
     id: "sqlite",
     transaction<T>(run: () => T): T {
-      return context.db.transaction(run).immediate();
+      const result = context.db.transaction(run).immediate();
+      collectGarbage(context);
+
+      return result;
     },
     close() {
       context.db.close();

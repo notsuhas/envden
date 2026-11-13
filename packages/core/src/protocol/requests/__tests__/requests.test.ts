@@ -29,6 +29,14 @@ test("request signature, time, nonce and body bindings", () => {
     false,
   );
 
+  expect(
+    p.verifyRequest(signed, keys.reqPub, pin, { bodyHash: request.bodyHash }, 1000000n, false).ok,
+  ).toBe(true);
+
+  expect(p.verifyRequest(signed, keys.reqPub, pin, { bodyHash: z }, 1000000n, false).ok).toBe(
+    false,
+  );
+
   expect(p.requestTimeValid(700000n, 1000000n)).toBe(true);
   expect(p.nonceStillLive(400000n, 1000000n)).toBe(false);
 });

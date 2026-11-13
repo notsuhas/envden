@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readBody } from "../middleware/body.ts";
 
-for (const path of ["/v1/opaque/login/start", "/v1/pairing/mailboxes"])
+for (const path of ["/v1/opaque/login/start", "/v1/pairing/mailboxes", "/v1/vault"])
   test(`stream cap cancels oversized ${path}`, async () => {
     let cancelled = false;
 

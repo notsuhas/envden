@@ -1,4 +1,6 @@
-import { readBody } from "./body.ts";
+import { reserveBody } from "./body-budget.ts";
+import { authorizeBody } from "./access/body.ts";
+import { readBody, bodyLimit } from "./body.ts";
 import { verifyAccess } from "./access/verify.ts";
 import type { Context } from "hono";
 import type { IRequest } from "@envden/core/protocol";
@@ -10,7 +12,6 @@ import {
   equal,
   RequestCodec,
   serverPin,
-  sha256,
   verifyRequest,
   compareSemver,
 } from "@envden/core/protocol";
@@ -24,17 +25,9 @@ export function verification(options: IAppOptions) {
     const raw = c.req.raw;
     const request = input(() => decode(RequestCodec, binary(c.req.header("Envden-Request"))));
     const signature = binary(c.req.header("Envden-Signature"), 64);
-    const body = await readBody(raw);
-
-    c.req.raw = new Request(raw.url, {
-      method: raw.method,
-      headers: raw.headers,
-      ...(!["GET", "HEAD"].includes(raw.method) ? { body } : {}),
-    });
-
     const url = new URL(raw.url);
 
-    verifyBinding(c, request, body);
+    verifyBinding(c, request);
 
     const member = membership(storage, request.vaultId, request.device);
 
@@ -48,7 +41,7 @@ export function verification(options: IAppOptions) {
         { body: request, signature },
         supplied.reqPub,
         serverPin(options.serverKeys.publicKey),
-        body,
+        { bodyHash: request.bodyHash },
         BigInt(now()),
         false,
       ).ok
@@ -63,11 +56,27 @@ export function verification(options: IAppOptions) {
 
     verifyAccess(c, options, request, !!member, url.pathname);
 
-    await next();
+    authorizeBody(c, options);
+    const limit = bodyLimit(raw);
+    const release = reserveBody(limit * 2);
+
+    try {
+      const body = await readBody(raw, limit, request.bodyHash);
+
+      c.req.raw = new Request(raw.url, {
+        method: raw.method,
+        headers: raw.headers,
+        ...(!["GET", "HEAD"].includes(raw.method) ? { body } : {}),
+      });
+
+      await next();
+    } finally {
+      release();
+    }
   });
 }
 
-function verifyBinding(c: Context<TServerEnv>, request: IRequest, body: Uint8Array) {
+function verifyBinding(c: Context<TServerEnv>, request: IRequest) {
   const raw = c.req.raw;
   const url = new URL(raw.url);
 
@@ -77,7 +86,7 @@ function verifyBinding(c: Context<TServerEnv>, request: IRequest, body: Uint8Arr
     !equal(request.nonce, binary(c.req.header("Envden-Nonce"), 16)) ||
     request.method !== raw.method ||
     request.pathAndQuery !== url.pathname + url.search ||
-    !equal(request.bodyHash, sha256(body))
+    !equal(request.bodyHash, binary(c.req.header("Envden-Body-Hash"), 32))
   )
     throw new EnvdenError("UNAUTHORIZED", "Request binding mismatch");
 }

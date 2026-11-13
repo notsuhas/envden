@@ -1,3 +1,4 @@
+import { HTTPException } from "hono/http-exception";
 import { ErrorResponseSchema } from "@envden/core/protocol";
 import type { ErrorHandler } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
@@ -27,6 +28,9 @@ const statuses = {
 } satisfies Record<TErrorCode, ContentfulStatusCode>;
 
 export const onError: ErrorHandler = (error, c) => {
+  if (error instanceof HTTPException && error.status === 503)
+    return c.json({ error: "INTERNAL" }, 503);
+
   const code =
     error instanceof EnvdenError
       ? error.code

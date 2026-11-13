@@ -62,6 +62,7 @@ export function createClient(options: IClientOptions): IClient {
       "Content-Type": "application/json",
       "Envden-Request": text(p.encode(p.RequestCodec, value)),
       "Envden-Device": text(value.device),
+      "Envden-Body-Hash": text(value.bodyHash),
       "Envden-Time": String(value.time),
       "Envden-Nonce": text(value.nonce),
       "Envden-Signature": text(p.signRequest(value, options.identity.keys.reqSk).signature),

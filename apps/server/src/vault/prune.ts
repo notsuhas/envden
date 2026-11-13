@@ -1,6 +1,12 @@
 import type { IAppOptions } from "../http/types.ts";
 
 function pruneHistory(options: IAppOptions) {
+  options.storage.prune(
+    new Uint8Array(32),
+    { maxAge: 90 * 86400000, minVersions: 20 },
+    options.now(),
+  );
+
   return options.storage
     .vaultIds()
     .map((vaultId) =>

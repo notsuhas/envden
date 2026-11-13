@@ -1,5 +1,8 @@
 import type { TFetch } from "../fetch.ts";
-import { test, expect } from "bun:test";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, test, expect } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { deviceIdentity } from "../../identity/device.ts";
@@ -7,12 +10,20 @@ import { createClient } from "../request.ts";
 import { hello } from "../hello.ts";
 import { text, binary } from "../encoding.ts";
 
+const homes: string[] = [];
+
+afterEach(async () => {
+  for (const home of homes.splice(0)) await rm(home, { recursive: true, force: true });
+});
+
 async function fixture() {
+  const home = await mkdtemp(join(tmpdir(), "envden-request-"));
+  homes.push(home);
   const server = p.generateRecoveryKeys();
 
   const identity = await deviceIdentity(
     createMemoryKeychainAdapter(["get", "set"]),
-    "test",
+    home,
     "device",
   );
 
@@ -44,6 +55,7 @@ test("request signs the exact body, query and pin; locked retries once", async (
       attempts++;
       const headers = new Headers(init?.headers);
       const request = p.decode(p.RequestCodec, binary(headers.get("Envden-Request")!));
+      expect(binary(headers.get("Envden-Body-Hash")!)).toEqual(request.bodyHash);
       expect(request.pathAndQuery).toBe("/v1/test?q=1");
 
       expect(

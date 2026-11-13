@@ -43,6 +43,10 @@ export function openDatabase(dataDir: string, now: number): Database {
       "CREATE TABLE IF NOT EXISTS blob_usage (vault BLOB NOT NULL, hash BLOB NOT NULL, size INTEGER NOT NULL, at REAL NOT NULL, PRIMARY KEY(vault,hash))",
     );
 
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS blob_garbage (vault BLOB NOT NULL, hash BLOB NOT NULL, PRIMARY KEY(vault,hash))",
+    );
+
     pruneBackups(dataDir, now);
 
     return db;

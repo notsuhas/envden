@@ -368,7 +368,7 @@ ServerHello (0x0A) { type, version, challenge b32, host str, serverSignPub b32, 
 - The client checks the signature, that `challenge` and `host` are its own, and that `H("server-pin", serverSignPub)` is the pin it expects.
 - The pin catches talking to the wrong server. Confidentiality in transit relies on TLS from `tailscale serve`, which is why secrets never travel as bearer values.
 
-**Requests.** Every request carries the headers `Envden-Device`, `Envden-Time`, `Envden-Nonce` (16 bytes), `Envden-Signature` and, when needed, `Envden-Proof`. Binary header values are base64url. The signature is `Sign(reqSk, "request", R)` over:
+**Requests.** Every request carries the headers `Envden-Device`, `Envden-Time`, `Envden-Nonce` (16 bytes), `Envden-Body-Hash` (SHA-256 of the body), `Envden-Signature` and, when needed, `Envden-Proof`. Binary header values are base64url. The signature is `Sign(reqSk, "request", R)` over:
 
 ```
 Request (0x09) { type, version, serverPin b32, vaultId b32 (zeros if none), method str, pathAndQuery str, bodyHash b32 = SHA-256(body), time time, nonce b16, device b16, clientVersion str }

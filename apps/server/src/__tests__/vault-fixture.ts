@@ -149,6 +149,7 @@ export async function vaultFixture() {
       headers: {
         "Envden-Request": text(p.RequestCodec.write(r)),
         "Envden-Device": text(r.device),
+        "Envden-Body-Hash": text(r.bodyHash),
         "Envden-Time": String(r.time),
         "Envden-Nonce": text(r.nonce),
         "Envden-Signature": text(p.signRequest(r, who.keys.reqSk).signature),

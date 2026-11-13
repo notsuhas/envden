@@ -1,3 +1,4 @@
+import { collectGarbage } from "../blobs/garbage.ts";
 import type { IStorageAdapter, IStoredVault, IStateWrite } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
 import { equal } from "../db/values.ts";
@@ -84,6 +85,8 @@ export function createVaults(
     db.transaction(() => {
       if (readVault(vault)?.active) throw new Error("Cannot discard an active vault");
 
+      run("INSERT OR IGNORE INTO blob_garbage SELECT vault,hash FROM blobs WHERE vault=?", vault);
+
       for (const table of [
         "headers",
         "entries",
@@ -102,6 +105,8 @@ export function createVaults(
 
       run("DELETE FROM vaults WHERE id=?", vault);
     }).immediate();
+
+    collectGarbage(context);
   }
 
   function vaultIds(): Uint8Array[] {

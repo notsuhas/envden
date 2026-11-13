@@ -27,7 +27,7 @@ export function openMailbox(options: IAppOptions, auth: IAuth) {
   return MailboxOpenedSchema.parse({ number: box.number, expiresAt: box.expiresAt });
 }
 
-function accessible(
+export function accessible(
   options: IAppOptions,
   auth: IAuth,
   number: number,

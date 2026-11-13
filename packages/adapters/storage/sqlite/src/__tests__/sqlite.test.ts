@@ -176,3 +176,56 @@ test("startup repairs existing directory, database and sidecar modes", () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("discard commits durable blob garbage and pruning retries failed deletion", () => {
+  const dir = temp();
+  const storage = createSqliteStorageAdapter(dir, 0);
+  const vault = new Uint8Array([1]);
+  const hash = new Uint8Array([2]);
+  const path = join(dir, "blobs", "01", "02");
+
+  try {
+    storage.configureVault(vault, {
+      active: false,
+      frozen: false,
+      skRefused: false,
+      unlockPeriod: null,
+    });
+
+    storage.putBlob(vault, hash, new Uint8Array([3]));
+    rmSync(path);
+    mkdirSync(path);
+    storage.transaction(() => storage.discardInactiveVault(vault));
+    expect(storage.hasVault(vault)).toBe(false);
+    const db = new Database(join(dir, "envden.sqlite"));
+
+    expect(
+      db.query<{ count: number }, []>("SELECT COUNT(*) AS count FROM blob_garbage").get()?.count,
+    ).toBe(1);
+
+    rmSync(path, { recursive: true });
+    writeFileSync(path, new Uint8Array([3]));
+    storage.prune(vault, { maxAge: 0, minVersions: 1 }, 0);
+    expect(existsSync(path)).toBe(false);
+
+    expect(
+      db.query<{ count: number }, []>("SELECT COUNT(*) AS count FROM blob_garbage").get()?.count,
+    ).toBe(0);
+
+    db.close();
+
+    storage.configureVault(vault, {
+      active: false,
+      frozen: false,
+      skRefused: false,
+      unlockPeriod: null,
+    });
+
+    storage.putBlob(vault, hash, new Uint8Array([3]));
+    storage.discardInactiveVault(vault);
+    expect(existsSync(path)).toBe(false);
+  } finally {
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

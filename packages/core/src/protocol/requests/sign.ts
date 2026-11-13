@@ -14,11 +14,14 @@ export function verifyRequest(
   value: ISigned<IRequest>,
   pub: Uint8Array,
   pin: Uint8Array,
-  body: Uint8Array,
+  body: Uint8Array | Pick<IRequest, "bodyHash">,
   now: bigint,
   nonceSeen: boolean,
 ): TVerification<IRequest> {
-  if (!equal(value.body.serverPin, pin) || !equal(value.body.bodyHash, sha256(body)))
+  if (
+    !equal(value.body.serverPin, pin) ||
+    !equal(value.body.bodyHash, body instanceof Uint8Array ? sha256(body) : body.bodyHash)
+  )
     return { ok: false, reason: "Request binding mismatch" };
 
   if (!requestTimeValid(value.body.time, now) || nonceSeen)

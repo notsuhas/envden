@@ -1,6 +1,6 @@
 # Server HTTP reference
 
-All routes except hello use phase-1 signed request headers. Vault ID is in `Envden-Request`, not the URL. Hash path parameters and binary JSON fields are base64url. Binary bodies use the existing core codecs. Errors are `{ error: TErrorCode }` with the status from `http/errors.ts`.
+All routes except hello use phase-1 signed request headers. `Envden-Body-Hash` carries the base64url SHA-256 of the body. Vault ID is in `Envden-Request`, not the URL. Hash path parameters and binary JSON fields are base64url. Binary bodies use the existing core codecs. Errors are `{ error: TErrorCode }` with the status from `http/errors.ts`.
 
 | Method and path | Request | Response | Authorization |
 |---|---|---|---|
