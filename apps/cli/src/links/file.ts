@@ -1,4 +1,4 @@
-import { select } from "@clack/prompts";
+import { choose } from "../output/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { readFile, lstat } from "node:fs/promises";
 import { join } from "node:path";
@@ -6,7 +6,7 @@ import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
-import { atomicWrite } from "../state/files.ts";
+import { atomicWrite } from "../state/store/files.ts";
 import { storePath } from "../store/path.ts";
 import type { IPlacementAdapter } from "@envden/core/adapters";
 
@@ -26,7 +26,13 @@ export async function linkFile(
     if (existing.localOnly) return;
     const current = adapters.placement(existing.mode, checkout.root);
     const status = await current.inspect(existing.store, destination);
-    if (status === "relinkable") await current.place(existing.store, destination);
+
+    if (status === "relinkable" || status === "linked") {
+      if (existing.mode !== placement.mode) {
+        await placement.place(existing.store, destination);
+        existing.mode = placement.mode;
+      } else if (status === "relinkable") await current.place(existing.store, destination);
+    }
 
     return;
   }
@@ -54,15 +60,10 @@ export async function linkFile(
 async function chooseVersion(path: string): Promise<"separate" | "store" | "skip"> {
   if (!process.stdin.isTTY) return "skip";
 
-  const choice = await select({
-    message: `${sanitizeTerminal(path)} differs from the store`,
-    options: [
-      { value: "separate" as const, label: "Keep separate (local only)" },
-      { value: "store" as const, label: "Use the store version" },
-    ],
-  });
-
-  if (typeof choice === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+  const choice = await choose(`${path} differs from the store`, [
+    { value: "separate" as const, label: "Keep separate (local only)" },
+    { value: "store" as const, label: "Use the store version" },
+  ]);
 
   return choice;
 }

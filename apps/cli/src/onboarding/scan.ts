@@ -1,11 +1,12 @@
-import { multiselect } from "@clack/prompts";
+import { readConfig } from "../settings/config.ts";
+import { chooseMany } from "../output/questions.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { vaultRepos, offerForkAlias } from "../links/fork.ts";
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
-import { saveState } from "../state/repository.ts";
+import { saveState } from "../state/store/repository.ts";
 import { discoverRepos } from "../links/discovery.ts";
 import { linkCheckout } from "../links/place.ts";
 import { approvalPrompt } from "../links/approval.ts";
@@ -17,6 +18,7 @@ async function lockedsetupCheckouts(
   adapters: TAdapters,
   state: ILocalState,
   options: {
+    copy?: boolean;
     scanRoot?: string[];
     excludeRoot?: string[];
     approve?: (checkout: ICheckout) => Promise<boolean>;
@@ -41,7 +43,13 @@ async function lockedsetupCheckouts(
 
     await saveState(adapters.home, state);
 
-    await linkCheckout(adapters, state, checkout, options.approve ?? (async () => true));
+    await linkCheckout(
+      adapters,
+      state,
+      checkout,
+      options.approve ?? (async () => true),
+      options.copy,
+    );
 
     await saveState(adapters.home, state);
   }
@@ -78,16 +86,13 @@ async function chooseCheckouts(state: ILocalState, repos: ICheckout[]) {
       "Approve checkouts in your own terminal with envden track",
     );
 
-  const roots = await multiselect({
-    message: "Approve checkouts to track",
-    required: false,
-    options: repos.map((repo) => ({
+  const roots = await chooseMany(
+    "Approve checkouts to track",
+    repos.map((repo) => ({
       value: repo.root,
       label: sanitizeTerminal(approvalPrompt(state, repo)),
     })),
-  });
-
-  if (typeof roots === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+  );
 
   return repos.filter((repo) => roots.includes(repo.root));
 }
@@ -102,7 +107,8 @@ async function eligibleCheckouts(
 
   for (const checkout of repos) {
     if (
-      (await adapters.repo.envFiles(checkout)).length ||
+      (await adapters.repo.envFiles(checkout, (await readConfig(adapters.home))["env-files"]))
+        .length ||
       storedRepos.has(state.aliases[checkout.repoId] ?? checkout.repoId)
     )
       eligible.push(checkout);

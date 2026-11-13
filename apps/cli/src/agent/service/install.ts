@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { atomicWrite } from "../../state/files.ts";
+import type { atomicWrite } from "../../state/store/files.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { serviceDefinition } from "./generate.ts";
 

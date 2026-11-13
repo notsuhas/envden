@@ -1,4 +1,4 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -9,7 +9,7 @@ import { createClient } from "../client/request.ts";
 import { text } from "../client/encoding.ts";
 import { registerPassword } from "../session/registration.ts";
 import { emptyState } from "../state/model.ts";
-import { saveState, loadState } from "../state/repository.ts";
+import { saveState, loadState } from "../state/store/repository.ts";
 import { createGenesis } from "./genesis.ts";
 import { createVaultSwap } from "./creation.ts";
 import { VERSION } from "../version.ts";

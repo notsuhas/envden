@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import * as p from "@envden/core/protocol";
 import { chooseRecoveryCandidate } from "@envden/core/chain";
 import type { THistory } from "../../vault/history.ts";

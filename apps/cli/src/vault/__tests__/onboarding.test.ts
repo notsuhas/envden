@@ -1,4 +1,4 @@
-import { loadState } from "../../state/repository.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { listDevices } from "../../admin/devices/list.ts";
 import { test, expect, spyOn, setSystemTime } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { serve } from "@envden/server";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { linkCheckout } from "../../links/place.ts";
 import { pushInitialFiles } from "../initial/push.ts";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";

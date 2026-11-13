@@ -1,7 +1,8 @@
+import { UnlockPeriodSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import { requireConfigured } from "../state/configured.ts";
-import { loadState } from "../state/repository.ts";
+import { loadState } from "../state/store/repository.ts";
 import { vaultConnection } from "../vault/connection.ts";
 import { login } from "../session/login.ts";
 
@@ -31,4 +32,13 @@ export async function setUnlockPeriod(
   const { client, vaultId } = await vaultConnection(adapters, state, now, fetch);
   await login(client, vaultId, password);
   await client.request("/v1/settings/unlock-period", "PUT", { period });
+}
+
+export async function getUnlockPeriod(adapters: TAdapters, now: () => number) {
+  const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
+  const { client } = await vaultConnection(adapters, state, now, fetch);
+
+  return UnlockPeriodSchema.parse(
+    await (await client.request("/v1/settings/unlock-period")).json(),
+  );
 }

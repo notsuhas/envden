@@ -1,7 +1,7 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { currentMaterial } from "../admin/shared/material.ts";
 import { checkFloor } from "../admin/shared/history.ts";
-import { loadState } from "../state/repository.ts";
+import { loadState } from "../state/store/repository.ts";
 import { retryHead } from "../client/retry.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";

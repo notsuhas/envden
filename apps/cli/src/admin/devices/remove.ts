@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { revocationSwap } from "./revocation.ts";
 import { retryHead } from "../../client/retry.ts";
 import { exposedNames } from "./exposure.ts";

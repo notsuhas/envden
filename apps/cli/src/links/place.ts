@@ -1,4 +1,6 @@
-import { withStateLock } from "../state/lock.ts";
+import { checkoutPlacement } from "./checkout/mode.ts";
+import { readConfig } from "../settings/config.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { linkFile } from "./file.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
@@ -11,6 +13,7 @@ async function lockedlinkCheckout(
   state: ILocalState,
   checkout: ICheckout,
   approve: (checkout: ICheckout) => Promise<boolean>,
+  copy = false,
 ): Promise<void> {
   const approval = checkoutApproval(state, checkout);
 
@@ -23,12 +26,18 @@ async function lockedlinkCheckout(
 
   if (!state.approved.some((item) => item.root === checkout.root)) state.approved.push(checkout);
 
-  let placement = adapters.placement("link", checkout.root);
+  let placement = adapters.placement(
+    await checkoutPlacement(adapters, checkout.root, copy),
+    checkout.root,
+  );
 
   if (!(await placement.supported(checkout.root)))
     placement = adapters.placement("copy", checkout.root);
 
-  for (const path of await adapters.repo.envFiles(checkout))
+  for (const path of await adapters.repo.envFiles(
+    checkout,
+    (await readConfig(adapters.home))["env-files"],
+  ))
     await linkFile(adapters, state, checkout, placement, path);
 }
 

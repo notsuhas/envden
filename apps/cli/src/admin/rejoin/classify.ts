@@ -4,8 +4,8 @@ import { classifyNonMember } from "@envden/core/chain";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { THistory } from "../../vault/history.ts";
-import { loadState, saveState } from "../../state/repository.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { loadState, saveState } from "../../state/store/repository.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { binary } from "../../client/encoding.ts";
 import { deviceIdentity } from "../../identity/device.ts";
 

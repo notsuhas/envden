@@ -5,8 +5,8 @@ import type { TErrorCode } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import { readConfig } from "../settings/config.ts";
 import { telemetryEnabled } from "../settings/privacy.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
-import { withStateLock } from "../state/lock.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { VERSION } from "../version.ts";
 
 interface IEvent {
@@ -47,7 +47,7 @@ export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
 
   try {
     const config = await readConfig(adapters.home);
-    if (!telemetryEnabled(config.telemetry, false)) return;
+    if (!telemetryEnabled(config.telemetry)) return;
 
     const id = await withStateLock(adapters.home, async () => {
       const path = join(adapters.home, "state", "install-id");

@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { sealRecoveryEnvelope } from "./envelope.ts";
 import { retryHead } from "../../client/retry.ts";
 import * as p from "@envden/core/protocol";

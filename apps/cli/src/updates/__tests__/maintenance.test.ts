@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { refreshInstallation } from "../self/maintenance.ts";
 import { releasePlatform } from "../self/platform.ts";
 import { restartHostService } from "../../agent/service/restart.ts";

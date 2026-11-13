@@ -55,3 +55,25 @@ test("terminal error sink sanitizes scan diagnostics and thrown error text", asy
     report.mockRestore();
   }
 });
+
+test("selection wrappers reject unattended approval and file choices", async () => {
+  const { choose, chooseMany } = await import("../questions.ts");
+  const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  try {
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: false });
+
+    await Promise.resolve(
+      expect(choose("Version", [{ value: "store", label: "Use store" }])).rejects.toMatchObject({
+        code: "INVALID_INPUT",
+      }),
+    );
+
+    await Promise.resolve(
+      expect(chooseMany("Approve", [])).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+    );
+  } finally {
+    if (descriptor) Object.defineProperty(process.stdin, "isTTY", descriptor);
+    else Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+});

@@ -1,4 +1,4 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import type { IKeychainAdapter } from "@envden/core/adapters";
 import {
   generateDeviceKeys,

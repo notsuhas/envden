@@ -1,7 +1,8 @@
+import { readConfig } from "../settings/config.ts";
 import { join } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 
 export async function cacheOffers(
@@ -20,7 +21,8 @@ export async function cacheOffers(
       checkout &&
       safeRoot(checkout.root) &&
       !state.approved.some((item) => item.root === checkout.root) &&
-      (await adapters.repo.envFiles(checkout)).length
+      (await adapters.repo.envFiles(checkout, (await readConfig(adapters.home))["env-files"]))
+        .length
     )
       roots.add(checkout.root);
   }

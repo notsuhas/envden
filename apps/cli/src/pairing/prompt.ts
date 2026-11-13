@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { atomicWrite } from "../state/files.ts";
-import { withStateLock } from "../state/lock.ts";
+import { atomicWrite } from "../state/store/files.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";

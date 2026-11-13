@@ -4,10 +4,10 @@ import { selfUpdateDecision } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import type { TFetch } from "../client/fetch.ts";
-import { withStateLock } from "../state/lock.ts";
-import { loadState, saveState } from "../state/repository.ts";
+import { withStateLock } from "../state/lock/lock.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { emptyState } from "../state/model.ts";
-import { refreshInstallation } from "./self/maintenance.ts";
+import { postInstall, managerUpdate } from "./self/execute.ts";
 import { currentReleasePlatform } from "./self/platform.ts";
 import { VERSION } from "../version.ts";
 import { checkRelease } from "./check.ts";
@@ -21,48 +21,49 @@ export async function selfUpdate(
     now: number;
     fetcher: TFetch;
     binary: string;
+    confirm?: (command: string) => Promise<boolean>;
+    run?: (command: string[]) => Promise<void>;
   },
 ) {
-  return withStateLock(adapters.home, async () => {
-    const method = await installMethod(adapters.home, undefined, options.binary);
+  const method = await installMethod(adapters.home, undefined, options.binary);
 
-    if (method.kind === "manager") {
-      return { kind: "manual" as const, command: method.command.join(" ") };
-    } else {
-      if (["bun", "node", "bun.exe", "node.exe"].includes(basename(options.binary)))
-        throw new EnvdenError("INVALID_INPUT", "Self-update requires the installed envden binary");
+  if (method.kind === "manager")
+    return managerUpdate(method.command, options.binary, options.confirm, options.run);
 
-      const { state, result, buildUrl } = await authorizedRelease(adapters, options);
+  await withStateLock(adapters.home, async () => {
+    if (["bun", "node", "bun.exe", "node.exe"].includes(basename(options.binary)))
+      throw new EnvdenError("INVALID_INPUT", "Self-update requires the installed envden binary");
 
-      const platform = currentReleasePlatform();
+    const { state, result, buildUrl } = await authorizedRelease(adapters, options);
 
-      const response = await options.fetcher(buildUrl(result.latest, platform), {
-        redirect: "error",
-        signal: AbortSignal.timeout(30000),
-      });
+    const platform = currentReleasePlatform();
 
-      if (!response.ok) throw new EnvdenError("INVALID_DATA", "Build download failed");
-      const bytes = new Uint8Array(await response.arrayBuffer());
+    const response = await options.fetcher(buildUrl(result.latest, platform), {
+      redirect: "error",
+      signal: AbortSignal.timeout(30000),
+    });
 
-      const decision = selfUpdateDecision(
-        result.release,
-        VERSION,
-        platform,
-        state.release?.unsafe ?? [],
-        BigInt(options.now),
-        bytes,
-      );
+    if (!response.ok) throw new EnvdenError("INVALID_DATA", "Build download failed");
+    const bytes = new Uint8Array(await response.arrayBuffer());
 
-      if (!decision.ok)
-        throw new EnvdenError("INVALID_DATA", "Build is not authorized for self-update");
+    const decision = selfUpdateDecision(
+      result.release,
+      VERSION,
+      platform,
+      state.release?.unsafe ?? [],
+      BigInt(options.now),
+      bytes,
+    );
 
-      await replaceBinary(options.binary, bytes, process.platform === "win32");
-    }
+    if (!decision.ok)
+      throw new EnvdenError("INVALID_DATA", "Build is not authorized for self-update");
 
-    await refreshInstallation(adapters, options.binary);
-
-    return { kind: "updated" as const };
+    await replaceBinary(options.binary, bytes, process.platform === "win32");
   });
+
+  await postInstall(options.binary, options.run);
+
+  return { kind: "updated" as const };
 }
 
 async function authorizedRelease(adapters: TAdapters, options: Parameters<typeof selfUpdate>[1]) {

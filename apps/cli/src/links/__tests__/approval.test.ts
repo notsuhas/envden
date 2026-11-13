@@ -17,14 +17,14 @@ test("approval binds git directory and remote, including worktrees", () => {
 
   expect(
     approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
-  ).toBe("Approve worktree /code/forged of example/repo? [Y/n]");
+  ).toBe("Approve worktree /code/forged of example/repo?");
 
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("changed");
   state.aliases["host/other"] = checkout.repoId;
 
   expect(
     approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
-  ).toBe("Approve worktree /code/forged of example/repo? [Y/n]");
+  ).toBe("Approve worktree /code/forged of example/repo?");
 
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("approved");
 });

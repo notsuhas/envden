@@ -4,7 +4,7 @@ import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
-import { atomicWrite, optionalRead } from "../../state/files.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { binary, text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { readHistory } from "../../vault/history.ts";

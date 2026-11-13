@@ -1,4 +1,4 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";

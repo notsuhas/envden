@@ -1,5 +1,5 @@
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
-import { atomicWrite } from "./state/files.ts";
+import { atomicWrite } from "./state/store/files.ts";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createOsKeychainAdapter } from "@envden/adapter-keychain-os";
@@ -20,7 +20,8 @@ export function createAdapters(
     userHome,
     keychain: options.keychain ?? createOsKeychainAdapter({ home }),
     repo: createGitRepoAdapter(),
-    placement: (mode: TPlacementMode, root: string) => createFsPlacementAdapter(mode, root),
+    placement: (mode: TPlacementMode, root: string) =>
+      createFsPlacementAdapter(mode, root, join(home, "conflicts")),
     shell: (shell: "zsh" | "bash" | "fish" | "powershell") =>
       createRcShellAdapter(shell, userHome, home),
     network: createTailscaleNetworkAdapter(),

@@ -8,6 +8,7 @@ export function createFakePlacementAdapter(
     mode: operations.mode ?? "copy",
     supported: operations.supported?.bind(operations) ?? unexpected("placement.supported"),
     place: operations.place?.bind(operations) ?? unexpected("placement.place"),
+    remove: operations.remove?.bind(operations) ?? unexpected("placement.remove"),
     inspect: operations.inspect?.bind(operations) ?? unexpected("placement.inspect"),
   };
 }

@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { optionalRead } from "../state/files.ts";
+import { optionalRead } from "../state/store/files.ts";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";

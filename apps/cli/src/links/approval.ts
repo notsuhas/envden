@@ -33,6 +33,6 @@ export function approvalPrompt(state: ILocalState, checkout: ICheckout): string 
     );
 
   return worktree
-    ? `Approve worktree ${checkout.root} of ${checkout.repoId}? [Y/n]`
+    ? `Approve worktree ${checkout.root} of ${checkout.repoId}?`
     : `Approve env files in ${checkout.root}?`;
 }

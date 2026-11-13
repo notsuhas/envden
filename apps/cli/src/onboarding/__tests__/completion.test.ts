@@ -19,8 +19,19 @@ test("completed setup skips credentials, kit and certificate prompts", async () 
       return { log: "test", path: "test" };
     };
 
-    await runSetup(f.first, { hostServer: true, scanRoot: [] }, f.now);
+    await runSetup(
+      f.first,
+      { hostServer: true, scanRoot: [], telemetry: "on", updateCheck: "off" },
+      f.now,
+    );
+
     expect(hosted).toBe(1);
+    const { readConfig } = await import("../../settings/config.ts");
+
+    expect(await readConfig(f.first.home)).toMatchObject({
+      telemetry: true,
+      "update-check": false,
+    });
   } finally {
     await f.close();
   }
@@ -33,6 +44,9 @@ test("completeJoin scans before first sync and wires first-run choices", async (
     const calls: string[] = [];
 
     await completeJoin(f.first, f.now, {
+      setupPreferences: async () => {
+        calls.push("preferences");
+      },
       setupCheckouts: async (adapters, state, options) => {
         expect(adapters).toBe(f.first);
         expect(state.vaultId).toBe(f.result.state.vaultId);
@@ -49,7 +63,7 @@ test("completeJoin scans before first sync and wires first-run choices", async (
       },
     });
 
-    expect(calls).toEqual(["scan", "sync"]);
+    expect(calls).toEqual(["preferences", "scan", "sync"]);
   } finally {
     await f.close();
   }
@@ -64,7 +78,7 @@ test("setup preferences persist only in config", async () => {
   try {
     const state = emptyState("test");
     const before = structuredClone(state);
-    await setupPreferences(f.first, state, { telemetry: "on", updateCheck: "off", yes: true });
+    await setupPreferences(f.first, { telemetry: "on", updateCheck: "off", yes: true });
     expect(state).toEqual(before);
 
     expect(await readConfig(f.first.home)).toMatchObject({
@@ -81,8 +95,8 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
   const { mkdir } = await import("node:fs/promises");
   const { setupCheckouts } = await import("../scan.ts");
   const { pushInitialFiles } = await import("../../vault/initial/push.ts");
-  const { saveState } = await import("../../state/repository.ts");
-  const { atomicWrite } = await import("../../state/files.ts");
+  const { saveState } = await import("../../state/store/repository.ts");
+  const { atomicWrite } = await import("../../state/store/files.ts");
   const f = await fixture();
 
   try {

@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { moveCredentials } from "./credentials.ts";
 import { abortMove } from "./abort.ts";
 import { resumeMoveAddress } from "./resume.ts";
@@ -12,7 +12,7 @@ import { createClient } from "../../client/request.ts";
 import { hello } from "../../client/hello.ts";
 import { login } from "../../session/login.ts";
 import { registerPassword } from "../../session/registration.ts";
-import { atomicWrite, optionalRead } from "../../state/files.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";

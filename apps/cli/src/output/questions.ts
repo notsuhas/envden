@@ -1,4 +1,4 @@
-import { confirm, password, text, select } from "@clack/prompts";
+import { confirm, password, text, select, multiselect } from "@clack/prompts";
 import { sanitizeTerminal } from "./sanitize.ts";
 import { EnvdenError } from "@envden/core/errors";
 
@@ -59,4 +59,35 @@ export async function shellChoice(): Promise<"zsh" | "bash" | "fish" | "powershe
       ],
     }),
   );
+}
+
+export async function choose(
+  message: string,
+  options: { value: "separate" | "store"; label: string }[],
+): Promise<"separate" | "store"> {
+  terminal();
+
+  return answer<"separate" | "store">(
+    await select({
+      message: sanitizeTerminal(message),
+      options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
+    }),
+  );
+}
+
+export async function chooseMany(
+  message: string,
+  options: { value: string; label: string }[],
+): Promise<string[]> {
+  terminal();
+
+  const result = await multiselect({
+    message: sanitizeTerminal(message),
+    required: false,
+    options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
+  });
+
+  if (typeof result === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+
+  return result;
 }

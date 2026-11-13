@@ -1,12 +1,11 @@
+import { EnvdenError } from "@envden/core/errors";
 import { deriveConsent, deriveShell, deriveAgent } from "./decisions.ts";
-import { setConfig } from "../settings/config.ts";
+import { readConfig, setConfig } from "../settings/config.ts";
 import type { TAdapters } from "../adapters.ts";
 import { installAgent } from "../agent/install.ts";
 import { consent, shellChoice } from "../output/questions.ts";
 
-import type { ILocalState } from "../state/model.ts";
-
-type TOptions = {
+export type TPreferenceOptions = {
   telemetry?: string;
   updateCheck?: string;
   yes?: boolean;
@@ -14,11 +13,18 @@ type TOptions = {
   agent?: string;
 };
 
-export async function setupPreferences(
-  adapters: TAdapters,
-  _state: ILocalState,
-  options: TOptions,
-) {
+export async function setupPreferences(adapters: TAdapters, options: TPreferenceOptions) {
+  for (const value of [options.telemetry, options.updateCheck, options.agent])
+    if (value !== undefined && value !== "on" && value !== "off")
+      throw new EnvdenError("INVALID_INPUT", "Expected on or off");
+
+  if (
+    options.shell !== undefined &&
+    options.shell !== "none" &&
+    deriveShell(options.shell).kind !== "install"
+  )
+    throw new EnvdenError("INVALID_INPUT", "Unknown shell");
+
   const telemetry = await consentPreference(
     options.telemetry,
     options.yes,
@@ -46,24 +52,36 @@ async function consentPreference(
   fallback: boolean,
   question: string,
 ) {
-  const decision = deriveConsent(value, yes, fallback);
+  const decision = deriveConsent(value, yes || !process.stdin.isTTY, fallback);
 
   return decision.kind === "selected" ? decision.value : consent(question);
 }
 
-async function installShell(adapters: TAdapters, options: TOptions) {
-  const shell = options.shell ?? (options.yes ? "none" : await shellChoice());
+async function installShell(adapters: TAdapters, options: TPreferenceOptions) {
+  const shell =
+    options.shell ?? (options.yes || !process.stdin.isTTY ? "none" : await shellChoice());
 
   const selection = deriveShell(shell);
   if (selection.kind === "install") await adapters.shell(selection.shell).install(process.execPath);
 }
 
-async function installAgentPreference(adapters: TAdapters, options: TOptions) {
-  const agent = deriveAgent(options.agent, options.yes);
+async function installAgentPreference(adapters: TAdapters, options: TPreferenceOptions) {
+  const agent = deriveAgent(options.agent, options.yes || !process.stdin.isTTY);
 
   if (
     agent.kind === "install" ||
     (agent.kind === "ask" && (await consent("Install the agent skill?")))
   )
     await installAgent(adapters.userHome);
+}
+
+export async function updatePreferences(adapters: TAdapters, options: TPreferenceOptions) {
+  const config = await readConfig(adapters.home);
+
+  await setupPreferences(adapters, {
+    ...options,
+    yes: options.yes ?? true,
+    telemetry: options.telemetry ?? (config.telemetry ? "on" : "off"),
+    updateCheck: options.updateCheck ?? (config["update-check"] ? "on" : "off"),
+  });
 }

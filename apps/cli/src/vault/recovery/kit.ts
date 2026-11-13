@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { recoveryEpochKey } from "./key.ts";
 import {
   rejoinIdentity,

@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
@@ -6,7 +6,7 @@ import type { TFetch } from "../../client/fetch.ts";
 import { createClient } from "../../client/request.ts";
 import { hello } from "../../client/hello.ts";
 import { readHistory } from "../../vault/history.ts";
-import { saveState } from "../../state/repository.ts";
+import { saveState } from "../../state/store/repository.ts";
 import { text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { checkFloor } from "../shared/history.ts";

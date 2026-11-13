@@ -1,5 +1,5 @@
 import { chmod, rename, rm, lstat } from "node:fs/promises";
-import { atomicWrite } from "../state/files.ts";
+import { atomicWrite } from "../state/store/files.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 export async function replaceBinary(path: string, bytes: Uint8Array, windows: boolean) {

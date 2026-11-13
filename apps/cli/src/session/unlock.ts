@@ -1,9 +1,9 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { requireConfigured } from "../state/configured.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../adapters.ts";
-import { loadState, saveState } from "../state/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { deviceIdentity } from "../identity/device.ts";
 import { createClient } from "../client/request.ts";
 import { binary } from "../client/encoding.ts";

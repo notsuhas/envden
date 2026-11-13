@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { unlink } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { acceptJoin } from "../../vault/join/accept.ts";
 import { readHistory } from "../../vault/history.ts";
 import type { TAdminContext } from "./context.ts";

@@ -1,9 +1,9 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
-import { saveState } from "../state/repository.ts";
+import { saveState } from "../state/store/repository.ts";
 
 async function lockedmarkLocalOnly(
   adapters: TAdapters,

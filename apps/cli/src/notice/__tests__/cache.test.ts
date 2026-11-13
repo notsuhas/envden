@@ -3,7 +3,7 @@ import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { emptyState } from "../../state/model.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { noticeStatus, refreshNotice, cachedNotice } from "../cache.ts";
 
 test("notice lists approved changed repos without reading values into output", async () => {
@@ -28,7 +28,7 @@ test("notice lists approved changed repos without reading values into output", a
 
 test("command notice honors environment opt-out without persisting it", async () => {
   const { commandNotice } = await import("../command.ts");
-  const { saveState, loadState } = await import("../../state/repository.ts");
+  const { saveState, loadState } = await import("../../state/store/repository.ts");
   const { createAdapters } = await import("../../adapters.ts");
   const { createMemoryKeychainAdapter } = await import("@envden/testing/keychain");
   const home = await mkdtemp(join(tmpdir(), "envden-notice-opt-"));

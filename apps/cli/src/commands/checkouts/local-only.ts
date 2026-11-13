@@ -1,10 +1,10 @@
 import { Command } from "@commander-js/extra-typings";
 import { resolve, relative } from "node:path";
 import { createAdapters } from "../../adapters.ts";
-import { loadState } from "../../state/repository.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { requireConfigured } from "../../state/configured.ts";
 import { markLocalOnly } from "../../links/local-only.ts";
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 export const localOnlyCommand = new Command("local-only")

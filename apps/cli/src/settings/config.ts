@@ -1,9 +1,11 @@
 import { EnvdenError } from "@envden/core/errors";
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { ensurePaths, paths } from "./paths.ts";
 
 interface IConfig {
+  placement?: Record<string, "link" | "copy">;
+  "env-files"?: { include?: string[]; exclude?: string[]; extraSkipped?: string[] };
   telemetry: boolean;
   "update-check": boolean;
   "agent-merge": boolean;
@@ -14,16 +16,7 @@ export function parseConfig(value: unknown): IConfig {
   if (typeof value !== "object" || value === null || Array.isArray(value))
     throw new EnvdenError("INVALID_INPUT", "Invalid config object");
 
-  for (const [key, item] of Object.entries(value)) {
-    if (key === "allow-version") {
-      if (typeof item !== "string" || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(item))
-        throw new EnvdenError("INVALID_INPUT", "Invalid allow-version");
-    } else if (
-      !["telemetry", "update-check", "agent-merge"].includes(key) ||
-      typeof item !== "boolean"
-    )
-      throw new EnvdenError("INVALID_INPUT", "Invalid config key or value");
-  }
+  for (const [key, item] of Object.entries(value)) validateSetting(key, item);
 
   return { telemetry: false, "update-check": true, "agent-merge": false, ...value };
 }
@@ -46,7 +39,12 @@ export async function setConfig(key: string, value: string, home: string) {
 
     const next = parseConfig({
       ...current,
-      [key]: key === "allow-version" ? value : parseToggle(value),
+      [key]:
+        key === "placement" || key === "env-files"
+          ? parseStructured(value)
+          : key === "allow-version"
+            ? value
+            : parseToggle(value),
     });
 
     const location = await ensurePaths(home);
@@ -63,4 +61,54 @@ function parseToggle(value: string) {
     throw new EnvdenError("INVALID_INPUT", "Expected on or off");
 
   return value === "on";
+}
+
+function parseEnvFileRules(value: unknown) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    Object.entries(value).some(
+      ([key, patterns]) =>
+        !["include", "exclude", "extraSkipped"].includes(key) ||
+        !Array.isArray(patterns) ||
+        patterns.some((pattern) => typeof pattern !== "string" || !pattern.length),
+    )
+  )
+    throw new EnvdenError("INVALID_INPUT", "Invalid env-file rules");
+}
+
+function parseStructured(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch (cause) {
+    throw new EnvdenError("INVALID_INPUT", "Expected a JSON settings object", { cause });
+  }
+}
+
+function validateSetting(key: string, item: unknown) {
+  switch (key) {
+    case "placement":
+      return validatePlacement(item);
+    case "env-files":
+      return parseEnvFileRules(item);
+    case "allow-version":
+      if (typeof item === "string" && /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(item)) return;
+      throw new EnvdenError("INVALID_INPUT", "Invalid allow-version");
+    default:
+      if (["telemetry", "update-check", "agent-merge"].includes(key) && typeof item === "boolean")
+        return;
+
+      throw new EnvdenError("INVALID_INPUT", "Invalid config key or value");
+  }
+}
+
+function validatePlacement(item: unknown) {
+  if (
+    !item ||
+    typeof item !== "object" ||
+    Array.isArray(item) ||
+    Object.values(item).some((mode) => mode !== "link" && mode !== "copy")
+  )
+    throw new EnvdenError("INVALID_INPUT", "Invalid placement settings");
 }

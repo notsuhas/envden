@@ -1,9 +1,9 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { readRemoteNotice } from "./remote.ts";
 import { join } from "node:path";
 import type { ILocalState } from "../state/model.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { basePath, readBytes, same } from "../sync/local/files.ts";
 
 export async function noticeStatus(home: string, state: ILocalState) {

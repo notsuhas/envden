@@ -1,12 +1,12 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, readFile, unlink } from "node:fs/promises";
+import { mkdtemp, rm, readFile, unlink, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createAdapters } from "../../adapters.ts";
 import { emptyState } from "../../state/model.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { linkCheckout } from "../place.ts";
 import { markLocalOnly } from "../local-only.ts";
 
@@ -62,6 +62,65 @@ test("placement requires approval, relinks equal detached copies and preserves d
     await markLocalOnly(adapters, state, checkout.root, ".env");
     expect(link.localOnly).toBe(true);
     expect(await readFile(destination, "utf8")).toBe("PORT=4000\n");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("copy flag and container offer persist once per canonical checkout", async () => {
+  const { checkoutPlacement } = await import("../checkout/mode.ts");
+  const { readConfig, setConfig } = await import("../../settings/config.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-copy-"));
+
+  const adapters = createAdapters({
+    home: join(root, "home"),
+    userHome: root,
+    keychain: createMemoryKeychainAdapter([]),
+  });
+
+  const checkout = {
+    root: join(root, "checkout"),
+    gitDir: join(root, "checkout", ".git"),
+    repoId: "host/repo",
+  };
+
+  try {
+    await atomicWrite(join(checkout.root, ".env"), "A=1");
+    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch");
+    let offered = 0;
+
+    const ask = async () => {
+      offered++;
+
+      return false;
+    };
+
+    expect(await checkoutPlacement(adapters, checkout.root, false, ask, true)).toBe("link");
+    expect(await checkoutPlacement(adapters, checkout.root, false, ask, true)).toBe("link");
+    expect(offered).toBe(1);
+    const rules = { include: [".env"], exclude: [], extraSkipped: ["generated"] };
+    await setConfig("env-files", JSON.stringify(rules), adapters.home);
+
+    adapters.repo = createFakeRepoAdapter({
+      envFiles: async (_checkout, options) => {
+        expect(options).toEqual(rules);
+
+        return [".env"];
+      },
+      ensureIgnored: async () => {},
+    });
+
+    const state = emptyState("test");
+    await linkCheckout(adapters, state, checkout, async () => true, true);
+    expect(state.links[0]?.mode).toBe("copy");
+    expect((await lstat(join(checkout.root, ".env"))).isSymbolicLink()).toBe(false);
+    expect((await readConfig(adapters.home)).placement?.[checkout.root]).toBe("copy");
+    const { setCheckoutPlacement } = await import("../../settings/placement.ts");
+    adapters.repo.checkoutAt = async () => checkout;
+    await setCheckoutPlacement(adapters, join(checkout.root, "nested"), "link");
+    await linkCheckout(adapters, state, checkout, async () => true);
+    expect(state.links[0]?.mode).toBe("link");
+    expect((await lstat(join(checkout.root, ".env"))).isSymbolicLink()).toBe(true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

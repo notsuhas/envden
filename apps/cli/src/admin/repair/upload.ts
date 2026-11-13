@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { localRepairChain } from "./chain.ts";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";

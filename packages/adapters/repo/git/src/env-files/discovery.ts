@@ -1,5 +1,6 @@
 import type { Dirent } from "node:fs";
 import type { ICheckout } from "@envden/core/adapters";
+import { Glob } from "bun";
 import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { tracked } from "./tracked.ts";
@@ -20,9 +21,9 @@ const skipped = new Set([
 
 export async function envFiles(
   checkout: ICheckout,
-  extraSkipped: string[] = [],
+  options: { include?: string[]; exclude?: string[]; extraSkipped?: string[] } = {},
 ): Promise<string[]> {
-  const skip = new Set([...skipped, ...extraSkipped]);
+  const skip = new Set([...skipped, ...(options.extraSkipped ?? [])]);
   const files: string[] = [];
 
   async function walk(dir: string): Promise<void> {
@@ -34,7 +35,7 @@ export async function envFiles(
         continue;
       }
 
-      if (!isEnvFile(entry)) continue;
+      if (!isEnvFile(entry, path, options)) continue;
 
       if (await tracked(checkout, path)) continue;
       if (await isIgnored(checkout, path)) files.push(path);
@@ -46,10 +47,23 @@ export async function envFiles(
   return files.sort();
 }
 
-function isEnvFile(entry: Dirent) {
+function isEnvFile(
+  entry: Dirent,
+  path: string,
+  options: { include?: string[]; exclude?: string[] },
+) {
   return (
     (entry.isFile() || entry.isSymbolicLink()) &&
-    /^\.env(?:\..+)?$/.test(entry.name) &&
-    !/\.(example|sample|template|defaults)$/.test(entry.name)
+    entry.name !== ".envrc" &&
+    (options.include
+      ? matches(options.include, path, entry.name)
+      : /^\.env(?:\..+)?$/.test(entry.name)) &&
+    !(options.exclude
+      ? matches(options.exclude, path, entry.name)
+      : /\.(example|sample|template|defaults)$/.test(entry.name))
   );
+}
+
+function matches(patterns: string[], path: string, name: string) {
+  return patterns.some((pattern) => new Glob(pattern).match(pattern.includes("/") ? path : name));
 }

@@ -11,7 +11,7 @@ import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { rotateVault } from "../../devices/rotate.ts";
 import { uploadRepair } from "../upload.ts";
 import { finishRepair } from "../finish.ts";
-import { saveState, loadState } from "../../../state/repository.ts";
+import { saveState, loadState } from "../../../state/store/repository.ts";
 
 for (const mode of ["rotate", "password", "missing-envelope"] as const)
   for (const crash of ["none", "before-close", "after-close", "adoption"] as const)

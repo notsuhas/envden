@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { initialEntries } from "./entries.ts";
 import { vaultConnection } from "../connection.ts";
 import { retryHead } from "../../client/retry.ts";
@@ -8,7 +8,7 @@ import type { TAdapters } from "../../adapters.ts";
 import type { ILocalState } from "../../state/model.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../history.ts";
-import { saveState } from "../../state/repository.ts";
+import { saveState } from "../../state/store/repository.ts";
 
 async function attemptPushInitialFiles(
   adapters: TAdapters,

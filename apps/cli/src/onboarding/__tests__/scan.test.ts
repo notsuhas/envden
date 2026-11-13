@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { emptyState } from "../../state/model.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { setupCheckouts } from "../scan.ts";
 
 test("differing worktree env files do not abort unrelated linking", async () => {

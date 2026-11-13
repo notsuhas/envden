@@ -1,4 +1,5 @@
-import { setUnlockPeriod } from "../../settings/unlock-period.ts";
+import { setCheckoutPlacement } from "../../settings/placement.ts";
+import { getUnlockPeriod, setUnlockPeriod } from "../../settings/unlock-period.ts";
 import { secret } from "../../output/questions.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { createAdapters } from "../../adapters.ts";
@@ -8,9 +9,28 @@ import { readConfig, setConfig } from "../../settings/config.ts";
 
 export const configCommand = new Command("config")
   .argument("[key]")
-  .argument("[value]")
-  .description("Get/set telemetry, update-check, agent-merge or allow-version")
-  .action(async (key, value) => {
+  .argument("[values...]")
+  .description(
+    "Get/set telemetry, update-check, agent-merge, allow-version, unlock-period, placement <path> link|copy or env-files <JSON>",
+  )
+  .action(async (key, values) => {
+    const value = values?.[0];
+
+    if (key === "placement" && value !== undefined) {
+      if (values?.length !== 2)
+        throw new EnvdenError("INVALID_INPUT", "Expected placement <checkout> link|copy");
+
+      console.log(JSON.stringify(await setCheckoutPlacement(createAdapters(), value, values[1])));
+
+      return;
+    }
+
+    if (key === "unlock-period" && value === undefined) {
+      console.log(JSON.stringify(await getUnlockPeriod(createAdapters(), () => Date.now())));
+
+      return;
+    }
+
     if (value !== undefined && key !== undefined) {
       if (key === "unlock-period") {
         await setUnlockPeriod(createAdapters(), value, await secret("Master password"), () =>
@@ -34,7 +54,16 @@ export const configCommand = new Command("config")
 
 function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: string | undefined) {
   if (key) {
-    if (!["telemetry", "update-check", "agent-merge", "allow-version"].includes(key))
+    if (
+      ![
+        "telemetry",
+        "update-check",
+        "agent-merge",
+        "allow-version",
+        "placement",
+        "env-files",
+      ].includes(key)
+    )
       throw new EnvdenError("INVALID_INPUT", "Unknown config key");
 
     console.log(JSON.stringify(Reflect.get(config, key) ?? null));
@@ -44,7 +73,7 @@ function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: strin
         {
           ...config,
           effective: {
-            telemetry: telemetryEnabled(config.telemetry, !!process.stdin.isTTY),
+            telemetry: telemetryEnabled(config.telemetry),
             "update-check": updateCheckEnabled(config["update-check"]),
           },
         },

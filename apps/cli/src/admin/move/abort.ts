@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
@@ -6,7 +6,7 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
 import { createClient } from "../../client/request.ts";
-import { optionalRead } from "../../state/files.ts";
+import { optionalRead } from "../../state/store/files.ts";
 import { binary } from "../../client/encoding.ts";
 import { currentHistory } from "../shared/history.ts";
 

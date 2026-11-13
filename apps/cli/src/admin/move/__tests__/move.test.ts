@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { serve } from "@envden/server";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 import { moveServer } from "../run.ts";
-import { loadState } from "../../../state/repository.ts";
+import { loadState } from "../../../state/store/repository.ts";
 import { kitJoin } from "../../../vault/recovery/kit.ts";
 
 for (const crash of [false, true])

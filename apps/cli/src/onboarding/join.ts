@@ -1,4 +1,5 @@
-import { withStateLock } from "../state/lock.ts";
+import type { TPreferenceOptions } from "./preferences.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { completeJoin } from "./complete-join.ts";
 import { rm } from "node:fs/promises";
 import { defaultInput } from "../output/default-input.ts";
@@ -10,13 +11,18 @@ import type { TAdapters } from "../adapters.ts";
 import { deviceIdentity } from "../identity/device.ts";
 import { hello } from "../client/hello.ts";
 import { createClient } from "../client/request.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { VERSION } from "../version.ts";
 
 async function lockedrunJoin(
   adapters: TAdapters,
   address: string,
-  options: { recoveryKit?: string; recovery?: boolean; name?: string; resume?: boolean },
+  options: TPreferenceOptions & {
+    recoveryKit?: string;
+    recovery?: boolean;
+    name?: string;
+    resume?: boolean;
+  },
   now: () => number,
 ): Promise<void> {
   const name = await defaultInput(options.name, "Device name");
@@ -24,7 +30,7 @@ async function lockedrunJoin(
   if (options.recoveryKit || options.recovery) {
     await recoveryJoin(adapters, address, name, options.recoveryKit, now);
 
-    await completeJoin(adapters, now);
+    await completeJoin(adapters, now, undefined, options);
 
     return;
   }
@@ -56,7 +62,7 @@ async function lockedrunJoin(
 
   await finishPairing(adapters, client, identity, address, server.pin, now);
   await rm(join(adapters.home, "state", "pair-pin"), { force: true });
-  await completeJoin(adapters, now);
+  await completeJoin(adapters, now, undefined, options);
   console.log("Joined");
 }
 

@@ -1,16 +1,16 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
 import { confirmedPassword } from "./password.ts";
 import { defaultInput } from "../output/default-input.ts";
 import { setupCheckouts } from "./scan.ts";
-import { setupPreferences } from "./preferences.ts";
+import { setupPreferences, updatePreferences } from "./preferences.ts";
 import type { TAdapters } from "../adapters.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { pushInitialFiles } from "../vault/initial/push.ts";
 import { setupVault } from "../vault/setup.ts";
 import { readFile } from "node:fs/promises";
-import { loadState, saveState } from "../state/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { secret, input, consent } from "../output/questions.ts";
 
@@ -41,6 +41,8 @@ async function lockedrunSetup(
   if (existing?.vaultId && !existing.creationPending) {
     if (options.hostServer) await adapters.hostServer();
     state = existing;
+
+    await updatePreferences(adapters, options);
   } else state = await createState(adapters, options, now, existing?.vaultId);
 
   await setupCheckouts(adapters, state, { ...options, now });
@@ -78,7 +80,7 @@ async function createState(
     "Store this recovery kit like a passport. Writing the password on it gives it full vault access.",
   );
 
-  await setupPreferences(adapters, result.state, options);
+  await setupPreferences(adapters, options);
 
   await saveState(adapters.home, result.state);
 

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { emptyState } from "../../state/model.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { storePath } from "../../store/path.ts";
 import { linkFile } from "../file.ts";
 

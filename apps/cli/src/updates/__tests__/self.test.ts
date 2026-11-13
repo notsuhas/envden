@@ -5,8 +5,8 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
-import { atomicWrite } from "../../state/files.ts";
-import { loadState } from "../../state/repository.ts";
+import { atomicWrite } from "../../state/store/files.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { releaseConfig } from "../release-config.ts";
 import { runUpdateCheck } from "../run.ts";
 import { selfUpdate } from "../self.ts";
@@ -68,6 +68,9 @@ for (const valid of [true, false])
 
       const action = selfUpdate(adapters, {
         binary,
+        run: async (command) => {
+          expect(command).toEqual([binary, "update", "--post-install"]);
+        },
         now: 200,
         fetcher: async (input) =>
           new Response(

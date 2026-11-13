@@ -44,6 +44,7 @@ test("command help and shared stub exit", async () => {
     "update",
     "config",
     "agent",
+    "shell",
     "doctor",
     "version",
   ])

@@ -1,5 +1,6 @@
+import { setupPreferences, type TPreferenceOptions } from "./preferences.ts";
 import type { TAdapters } from "../adapters.ts";
-import { loadState } from "../state/repository.ts";
+import { loadState } from "../state/store/repository.ts";
 import { requireConfigured } from "../state/configured.ts";
 import { setupCheckouts } from "./scan.ts";
 import { firstRun } from "../sync/first-run.ts";
@@ -9,9 +10,11 @@ import { EnvdenError } from "@envden/core/errors";
 export async function completeJoin(
   adapters: TAdapters,
   now: () => number,
-  effects = { setupCheckouts, firstRun },
+  effects = { setupCheckouts, firstRun, setupPreferences },
+  options: TPreferenceOptions = {},
 ) {
   const state = requireConfigured(await loadState(adapters.home), "Join did not configure a vault");
+  await effects.setupPreferences(adapters, options);
   await effects.setupCheckouts(adapters, state, { now });
 
   await effects.firstRun(adapters, {

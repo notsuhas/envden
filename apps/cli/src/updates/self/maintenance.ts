@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { TAdapters } from "../../adapters.ts";
-import { optionalRead } from "../../state/files.ts";
+import { optionalRead } from "../../state/store/files.ts";
 import { installAgent } from "../../agent/install.ts";
 import { restartHostService } from "../../agent/service/restart.ts";
 

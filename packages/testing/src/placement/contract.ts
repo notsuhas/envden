@@ -1,6 +1,6 @@
 import { rejects } from "node:assert/strict";
 import { describe, expect, test } from "bun:test";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IPlacementAdapter } from "@envden/core/adapters";
 import { withDirectory } from "../fixtures/directory.ts";
@@ -29,7 +29,8 @@ export function placementContract(
         expect(await adapter.inspect(store, checkout)).toBe("linked");
         await adapter.place(store, checkout);
         expect(await adapter.inspect(store, checkout)).toBe("linked");
-        await rm(checkout);
+        await adapter.remove(store, checkout);
+        await adapter.remove(store, checkout);
         expect(await adapter.inspect(store, checkout)).toBe("missing");
       }));
 
@@ -58,6 +59,7 @@ export function placementContract(
         await writeFile(store, "A=1\n");
         await rejects(adapter.place(store, join(root, "outside")));
         await rejects(adapter.inspect(store, join(root, "outside")));
+        await rejects(adapter.remove(store, join(root, "outside")));
         await mkdir(join(checkout, ".env"));
         await rejects(adapter.place(store, join(checkout, ".env")));
       }));

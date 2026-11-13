@@ -10,7 +10,7 @@ import { createClient } from "../../client/request.ts";
 import { binary } from "../../client/encoding.ts";
 import { openPairing, approvePairing } from "../approver.ts";
 import { exchangeJoiner, resumeJoiner } from "../joiner.ts";
-import { loadState } from "../../state/repository.ts";
+import { loadState } from "../../state/store/repository.ts";
 
 function signal() {
   let resolve = () => {};

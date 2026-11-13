@@ -1,7 +1,7 @@
 import { lstat, mkdir, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import { atomicWrite } from "../state/files.ts";
+import { atomicWrite } from "../state/store/files.ts";
 
 const skill = `---
 name: envden

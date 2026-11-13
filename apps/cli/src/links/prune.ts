@@ -1,7 +1,7 @@
 import { lstat } from "node:fs/promises";
 import type { ILocalState } from "../state/model.ts";
-import { withStateLock } from "../state/lock.ts";
-import { saveState } from "../state/repository.ts";
+import { withStateLock } from "../state/lock/lock.ts";
+import { saveState } from "../state/store/repository.ts";
 
 export async function pruneMissingCheckouts(
   home: string,

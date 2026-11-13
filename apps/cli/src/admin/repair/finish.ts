@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { availableBlobs } from "./completion/blobs.ts";
 import { missingBlobNames } from "./completion/names.ts";
 import { repairFiles } from "./completion/files.ts";

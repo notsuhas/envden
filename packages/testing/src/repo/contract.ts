@@ -17,18 +17,42 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
       withDirectory(async (directory) => {
         const { repo, root, outside } = await factory(directory);
         await mkdir(join(root, "nested"));
-        const checkout = await repo.checkoutAt(root);
-        if (!checkout) throw new Error("Expected checkout");
+        const checkout = await requireCheckout(repo, root);
         expect(await repo.checkoutAt(join(root, "nested"))).toEqual(checkout);
         expect(await repo.checkoutAt(outside)).toBeUndefined();
         expect(await repo.worktrees(checkout)).toContain(await realpath(root));
       }));
 
+    test("env file rules configure include, exclude and skipped directories", () =>
+      withDirectory(async (directory) => {
+        const { repo, root } = await factory(directory);
+        const checkout = await requireCheckout(repo, root);
+        await mkdir(join(root, "generated"));
+
+        for (const path of [".env", ".env.local", "secrets.conf", ".envrc", "generated/.env"]) {
+          await writeFile(join(root, path), "A=1\n");
+          await repo.ensureIgnored(checkout, path);
+        }
+
+        expect(await repo.envFiles(checkout, { include: ["secrets.*", ".envrc"] })).toEqual([
+          "secrets.conf",
+        ]);
+
+        expect(await repo.envFiles(checkout, { exclude: ["*.local"] })).toEqual([
+          ".env",
+          "generated/.env",
+        ]);
+
+        expect(await repo.envFiles(checkout, { extraSkipped: ["generated"] })).toEqual([
+          ".env",
+          ".env.local",
+        ]);
+      }));
+
     test("ignores exact env paths idempotently and discovers only eligible files", () =>
       withDirectory(async (directory) => {
         const { repo, root } = await factory(directory);
-        const checkout = await repo.checkoutAt(root);
-        if (!checkout) throw new Error("Expected checkout");
+        const checkout = await requireCheckout(repo, root);
 
         for (const path of [".env", ".env.local", ".env.example", ".envrc", ".env.visible"]) {
           await writeFile(join(root, path), "A=1\n");
@@ -47,4 +71,11 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
         await rejects(repo.ensureIgnored(checkout, "../outside"));
       }));
   });
+}
+
+async function requireCheckout(repo: IRepoAdapter, root: string) {
+  const checkout = await repo.checkoutAt(root);
+  if (!checkout) throw new Error("Expected checkout");
+
+  return checkout;
 }

@@ -1,3 +1,4 @@
+import { shellCommand } from "./commands/shell/shell.ts";
 import { untrackCommand } from "./commands/checkouts/untrack.ts";
 import { sanitizeTerminal } from "./output/sanitize.ts";
 import { reportTelemetry, commandOutcome } from "./output/telemetry.ts";
@@ -49,6 +50,7 @@ export function createProgram() {
     }
   });
 
+  program.addCommand(shellCommand);
   program.addCommand(trackCommand);
   program.addCommand(untrackCommand);
   program.addCommand(localOnlyCommand);

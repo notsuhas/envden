@@ -2,7 +2,7 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
-import { optionalRead } from "../../state/files.ts";
+import { optionalRead } from "../../state/store/files.ts";
 import { binary } from "../../client/encoding.ts";
 
 export async function moveCredentials(

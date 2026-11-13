@@ -8,7 +8,7 @@ import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../../vault/history.ts";
-import { saveState } from "../../state/repository.ts";
+import { saveState } from "../../state/store/repository.ts";
 import { VERSION } from "../../version.ts";
 
 export async function followServerMove(

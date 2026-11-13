@@ -1,7 +1,7 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
-import { loadState, saveState } from "../state/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 
 async function lockedAliasRepo(adapters: TAdapters, source: string, target: string): Promise<void> {
   const state = await loadState(adapters.home);

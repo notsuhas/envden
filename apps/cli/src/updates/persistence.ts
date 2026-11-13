@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { ObjectsResponseSchema, acceptRelease, initialReleaseState } from "@envden/core/protocol";
 import type { IReleaseTrust } from "@envden/core/protocol";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { binary, text } from "../client/encoding.ts";
 
 async function releaseHistory(home: string) {

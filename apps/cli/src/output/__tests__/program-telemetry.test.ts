@@ -62,7 +62,7 @@ test("runtime environment cannot enable telemetry in an unconfigured build", asy
 });
 
 test("status succeeds while another command owns the state lock", async () => {
-  const { withStateLock } = await import("../../state/lock.ts");
+  const { withStateLock } = await import("../../state/lock/lock.ts");
   const root = await mkdtemp(join(tmpdir(), "envden-busy-status-"));
   const previous = process.env.ENVDEN_HOME;
   const log = spyOn(console, "log").mockImplementation(() => {});
@@ -100,7 +100,7 @@ test("status succeeds while another command owns the state lock", async () => {
 });
 
 test("ordinary status reads cached notices without a network request", async () => {
-  const { saveState } = await import("../../state/repository.ts");
+  const { saveState } = await import("../../state/store/repository.ts");
   const { emptyState } = await import("../../state/model.ts");
   const { releaseConfig } = await import("../../updates/release-config.ts");
   const trust = releaseConfig.trust;
@@ -140,7 +140,7 @@ test("ordinary status reads cached notices without a network request", async () 
 });
 
 test("shell cache refresh records an unapproved cwd without terminal output", async () => {
-  const { saveState } = await import("../../state/repository.ts");
+  const { saveState } = await import("../../state/store/repository.ts");
   const { emptyState } = await import("../../state/model.ts");
   const { writeFile, readFile, mkdir, realpath } = await import("node:fs/promises");
   const root = await mkdtemp(join(tmpdir(), "envden-shell-offer-"));

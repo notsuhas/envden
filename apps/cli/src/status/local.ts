@@ -5,7 +5,7 @@ import { hello } from "../client/hello.ts";
 import { binary } from "../client/encoding.ts";
 import type { TFetch } from "../client/fetch.ts";
 import type { TAdapters } from "../adapters.ts";
-import { loadState } from "../state/repository.ts";
+import { loadState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
 import { VERSION } from "../version.ts";

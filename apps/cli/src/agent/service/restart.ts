@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { optionalRead } from "../../state/files.ts";
+import { optionalRead } from "../../state/store/files.ts";
 import { runServiceCommand } from "./install.ts";
 
 export async function restartHostService(

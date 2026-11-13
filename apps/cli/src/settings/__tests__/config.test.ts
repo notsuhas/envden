@@ -29,11 +29,31 @@ test("config validates, persists and uses private paths", async () => {
 });
 
 test("privacy overrides and defaults", () => {
-  expect(telemetryEnabled(undefined, false, {})).toBe(false);
-  expect(telemetryEnabled(undefined, true, {})).toBe(false);
-  expect(telemetryEnabled(true, false, {})).toBe(true);
-  expect(telemetryEnabled(true, true, { DO_NOT_TRACK: "1" })).toBe(false);
-  expect(telemetryEnabled(true, true, { ENVDEN_TELEMETRY: "0" })).toBe(false);
+  expect(telemetryEnabled(undefined, {})).toBe(false);
+  expect(telemetryEnabled(undefined, {})).toBe(false);
+  expect(telemetryEnabled(true, {})).toBe(true);
+  expect(telemetryEnabled(true, { DO_NOT_TRACK: "1" })).toBe(false);
+  expect(telemetryEnabled(true, { ENVDEN_TELEMETRY: "0" })).toBe(false);
   expect(updateCheckEnabled(true, { ENVDEN_NO_UPDATE_CHECK: "1" })).toBe(false);
   expect(updateCheckEnabled(true, {})).toBe(true);
+});
+
+test("structured placement and env-file rules persist and reject invalid values", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-rules-"));
+
+  try {
+    const rules = { include: [".env*"], exclude: ["*.example"], extraSkipped: ["generated"] };
+    await setConfig("env-files", JSON.stringify(rules), home);
+    await setConfig("placement", JSON.stringify({ "/checkout": "copy" }), home);
+
+    expect(await readConfig(home)).toMatchObject({
+      "env-files": rules,
+      placement: { "/checkout": "copy" },
+    });
+
+    expect(() => parseConfig({ "env-files": { include: "*" } })).toThrow();
+    expect(() => parseConfig({ placement: { "/checkout": "bad" } })).toThrow();
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
 });

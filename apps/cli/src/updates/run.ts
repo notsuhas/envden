@@ -1,9 +1,9 @@
 import { restoreReleases, rememberRelease } from "./persistence.ts";
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { readConfig } from "../settings/config.ts";
 import { updateCheckEnabled } from "../settings/privacy.ts";
 import type { TAdapters } from "../adapters.ts";
-import { loadState, saveState } from "../state/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { emptyState } from "../state/model.ts";
 import { releaseConfig } from "./release-config.ts";
 import { checkRelease } from "./check.ts";

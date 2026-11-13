@@ -15,7 +15,11 @@ export function createGitRepoAdapter(
     checkoutAt: (path) =>
       checkoutAt(path, options.resolveSshHost ?? resolveSshHost).catch(repoFailure),
     worktrees: (checkout) => worktrees(checkout).catch(repoFailure),
-    envFiles: (checkout) => envFiles(checkout, options.skipFolders).catch(repoFailure),
+    envFiles: (checkout, rules) =>
+      envFiles(checkout, {
+        ...rules,
+        extraSkipped: [...(options.skipFolders ?? []), ...(rules?.extraSkipped ?? [])],
+      }).catch(repoFailure),
     isIgnored: (checkout, path) => isIgnored(checkout, path).catch(repoFailure),
     ensureIgnored: (checkout, path) => ensureIgnored(checkout, path).catch(repoFailure),
   };

@@ -2,12 +2,12 @@ import { cacheOffers } from "./offers.ts";
 import { compareSemver } from "@envden/core/protocol";
 import { rememberRelease, restoreReleases } from "../updates/persistence.ts";
 import { cleanupOldBinary } from "../updates/replace.ts";
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { sep, resolve } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import type { TFetch } from "../client/fetch.ts";
-import { loadState, saveState } from "../state/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { checkRelease } from "../updates/check.ts";
 import { releaseConfig } from "../updates/release-config.ts";
 import { readConfig } from "../settings/config.ts";
@@ -33,9 +33,7 @@ async function lockedcommandNotice(
 
   if (!refresh && !localOnly) await refreshRelease(adapters, state, now, fetcher);
 
-  const remote = localOnly
-    ? await readRemoteNotice(adapters.home)
-    : await refreshedRemote(adapters, state, now, fetcher, refresh);
+  const remote = await readRemoteNotice(adapters.home);
 
   await refreshNotice(adapters.home, state);
   await cacheOffers(adapters, state, cwd, updateNotice(state, config));
@@ -53,6 +51,11 @@ async function lockedcommandNotice(
 
 export async function commandNotice(...args: Parameters<typeof lockedcommandNotice>) {
   try {
+    if (!args[5]) {
+      const state = await loadState(args[0].home);
+      if (state) await refreshedRemote(args[0], state, args[1], args[2], !args[3]);
+    }
+
     return await withStateLock(args[0].home, () => lockedcommandNotice(...args));
   } catch {
     return { repos: [], update: { available: false, required: false } };
@@ -64,11 +67,11 @@ async function refreshedRemote(
   state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
   now: number,
   fetcher: TFetch,
-  refresh: boolean,
+  force: boolean,
 ) {
   let remote = await readRemoteNotice(adapters.home);
 
-  if (refresh && state.checkpoint && (!remote || now - remote.checkedAt >= 60000)) {
+  if (state.checkpoint && (force || !remote || now - remote.checkedAt >= 60000)) {
     try {
       remote = await remoteNotice(adapters, { now: () => now, fetcher, all: true });
     } catch {

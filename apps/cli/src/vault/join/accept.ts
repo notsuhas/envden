@@ -1,4 +1,4 @@
-import { withStateLock } from "../../state/lock.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
 import { deviceWrap } from "../keys/wrap.ts";
 import { joinMembership, requireLocalFloor, verifiedBlob } from "./validation.ts";
 import * as p from "@envden/core/protocol";
@@ -9,7 +9,7 @@ import type { TClient } from "../../client/request.ts";
 import type { THistory } from "../history.ts";
 import { text } from "../../client/encoding.ts";
 import { emptyState } from "../../state/model.ts";
-import { saveState, loadState } from "../../state/repository.ts";
+import { saveState, loadState } from "../../state/store/repository.ts";
 
 async function lockedacceptJoin(
   adapters: TAdapters,

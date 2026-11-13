@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { text } from "../../client/encoding.ts";
 import { currentHistory } from "../shared/history.ts";
 
