@@ -1,3 +1,4 @@
+import { addPendingJoins } from "./pending.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { appliedFiles } from "../sync/local/applied.ts";
 import { text } from "../client/encoding.ts";
@@ -32,12 +33,10 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   await withStateLock(adapters.home, async () => {
     await atomicWrite(join(adapters.home, "state", "remote-notice.json"), JSON.stringify(result));
 
-    await atomicWrite(
-      join(adapters.home, "state", "pending-recovery.json"),
-      JSON.stringify({
-        entries: context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
-        ownId: text(context.identity.record.id),
-      }),
+    await addPendingJoins(
+      adapters.home,
+      context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
+      context.identity.record.id,
     );
   });
 

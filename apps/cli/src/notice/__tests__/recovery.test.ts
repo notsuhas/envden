@@ -1,3 +1,4 @@
+import type { TFetch } from "../../client/fetch.ts";
 import { requireConfigured } from "../../state/configured.ts";
 import { test, expect, spyOn } from "bun:test";
 import * as p from "@envden/core/protocol";
@@ -72,20 +73,61 @@ test("the next foreground command reports a kit join even with a fresh notice ca
   const output = spyOn(console, "error").mockImplementation(() => {});
 
   try {
-    await commandNotice(f.first, f.now(), fetch, false);
+    const responses = new Map<
+      string,
+      { body: ArrayBuffer; status: number; headers: [string, string][] }
+    >();
+
+    const capture: TFetch = async (input, init) => {
+      const response = await fetch(input, init);
+
+      responses.set(
+        typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+        {
+          body: await response.clone().arrayBuffer(),
+          status: response.status,
+          headers: [...response.headers],
+        },
+      );
+
+      return response;
+    };
+
+    await commandNotice(f.first, f.now(), capture, false);
+
+    const replay: TFetch = async (input) => {
+      const response = responses.get(
+        typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
+      );
+
+      if (!response) throw new Error("Unexpected replay request");
+
+      return new Response(response.body, { status: response.status, headers: response.headers });
+    };
+
     await f.joinHome("second");
     const { remoteNotice } = await import("../remote.ts");
     await remoteNotice(f.first, { now: f.now, fetcher: fetch, all: true });
     expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
 
+    await remoteNotice(f.first, { now: f.now, fetcher: replay, all: true });
+
+    let printedBeforeRefresh: boolean | undefined;
+
     await commandNotice(
       f.first,
       f.now(),
-      async () => {
-        throw new Error("offline");
+      async (input, init) => {
+        printedBeforeRefresh ??= output.mock.calls
+          .flat()
+          .includes("envden: second joined with the recovery kit");
+
+        return replay(input, init);
       },
       false,
     );
+
+    expect(printedBeforeRefresh).toBe(true);
 
     expect(output.mock.calls.flat()).toContain("envden: second joined with the recovery kit");
     output.mockClear();

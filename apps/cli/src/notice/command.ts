@@ -35,7 +35,7 @@ async function lockedcommandNotice(
 
   if (!refresh && !localOnly) await refreshRelease(adapters, state, now, fetcher);
 
-  if (!refresh) await reportPendingJoins(adapters.home, state);
+  if (!refresh) await reportPendingJoins(adapters.home);
   const remote = await readRemoteNotice(adapters.home);
 
   await refreshNotice(adapters.home, state);
@@ -63,6 +63,10 @@ export async function commandNotice(
   const fetchNotice = boundedFetch(fetcher);
 
   try {
+    if (!refresh) {
+      await withStateLock(adapters.home, () => reportPendingJoins(adapters.home));
+    }
+
     if (!localOnly) {
       const state = await loadState(adapters.home);
       if (state) await refreshedRemote(adapters, state, now, fetchNotice, !refresh);
