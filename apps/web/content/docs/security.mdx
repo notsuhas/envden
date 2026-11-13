@@ -1,0 +1,89 @@
+---
+title: Security and threat model
+description: What envden protects, what it doesn't, and what the server can still see.
+---
+
+<Callout type="warn" title="Not reviewed yet">
+  The protocol and its implementation get a separate review before release. That review hasn't
+  happened yet. Don't rely on envden for real secrets until it has.
+</Callout>
+
+## Who is trusted
+
+**The server is not trusted** to keep files secret or intact. It may read, drop, replay, reorder or forge anything it stores or relays. Files are encrypted on your devices, and devices verify what the server returns.
+
+**The network is transport only.** Tailscale carries the traffic. envden trusts no identity it reports, and every request is signed by a device.
+
+**Devices are trusted while they are members.**
+
+**Checkouts are not trusted automatically.** A folder that claims a repo's remote gets no env files until you approve it once.
+
+## What the server can still do
+
+- Deny service. It can always refuse to answer.
+- Choose not to enforce unlock expiry.
+- Show different devices different branches of history. Each device stops as soon as it sees the other branch.
+- With the help of a removed device or an old recovery key, fork history.
+
+## What the server can see
+
+File contents, file names and Repo IDs are encrypted. The server still sees:
+
+- rough file sizes
+- timing
+- the number of devices
+- device names
+
+## Lost or stolen device
+
+After the device's unlock expires, it can't fetch anything new.
+
+Files already on its disk are protected by OS login and disk encryption, not by envden.
+
+## Removed device
+
+A removed device keeps whatever it already pulled. envden can't revoke that.
+
+It can also decrypt older ciphertext it gets hold of, including history it never pulled. When you remove a device, envden lists every file and key name it could have read so you can rotate those credentials.
+
+## Unlock expiry
+
+Expiry relies on an honest server.
+
+- A hacked server can keep serving a stolen device.
+- Expiry means nothing if the stolen laptop is the server.
+
+## The master password, the secret key and the recovery kit
+
+- The **master password** is the one password you remember. The server never sees it.
+- The **secret key** is random, generated when the vault is created, printed in the recovery kit and never stored on any device.
+- Opening the vault without a device needs both.
+
+A hacked server can guess passwords offline against the record it holds. A correct guess alone doesn't open the vault, which also needs the secret key.
+
+A **recovery kit** with the password written on it opens the vault on its own. Store it like a passport.
+
+| You lost            | You still have       | What to do                                         |
+| ------------------- | -------------------- | -------------------------------------------------- |
+| The master password | A device and the kit | Reset the password with the kit.                   |
+| The kit             | The master password  | Replace the recovery key, which prints a new kit.  |
+| Both                | A device             | Create a new vault from that device's local store. |
+
+Changing the master password needs the old password and the kit.
+
+## Server backups
+
+A backup of the server holds ciphertext, and also the record of your master password that guesses can be tested against. Protect backups like a password database. See [Server](/docs/server#backups).
+
+## Cryptography
+
+envden doesn't hand-roll primitives. It uses pinned libraries:
+
+- `@noble/ciphers`, `@noble/curves` and `@noble/hashes`
+- Argon2id from `hash-wasm`
+- OPAQUE from `@serenity-kit/opaque`
+- HPKE from `@hpke/core`
+
+Files are encrypted with XChaCha20-Poly1305 and padded to 256-byte steps.
+
+The protocol that combines these is envden's own. It is specified in `PROTOCOL.md` with test vectors.

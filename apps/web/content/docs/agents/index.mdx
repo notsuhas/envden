@@ -1,0 +1,41 @@
+---
+title: Agents
+description: What a coding agent can do with envden, and what it always hands back to you.
+---
+
+## Install the skill
+
+```sh
+envden agent install
+```
+
+This puts one skill in `~/.agents/skills/envden/`, the shared format most coding agents read, and links it into `~/.claude/skills/` for Claude Code.
+
+## What an agent can do
+
+Setup can be driven by an agent:
+
+- Every question has a flag.
+- `--yes` takes the defaults.
+- With no terminal and a missing choice, envden stops and lists the flags it needs.
+- `envden status --json` and `envden doctor --json` report state.
+
+## What an agent never does
+
+Agents never handle secrets or approvals. For the master password, a pairing code, or approving a checkout, envden tells the agent to ask you to run that step in your own terminal.
+
+- A push without a terminal requires `--yes`.
+- Conflicts are never resolved automatically for an agent.
+- An agent may run `envden update --check`, but asks you before updating.
+
+## Help with conflicts
+
+With `envden config agent-merge on`, the skill may help edit a conflict file. This is a convention, not a security boundary.
+
+## Telemetry
+
+Runs without a terminal leave telemetry off. See [Telemetry](/docs/telemetry).
+
+## Next
+
+[Set up envden with your agent](/docs/agents/setup-prompt) has one prompt to paste.

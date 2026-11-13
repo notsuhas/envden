@@ -1,0 +1,30 @@
+---
+title: Getting started
+description: Pick where the server runs, then set up your first device.
+---
+
+<Callout type="warn" title="Not released yet">
+  None of the install channels below are published. This page describes how setup will work in v1.
+</Callout>
+
+## What you need
+
+- A Tailscale tailnet with HTTPS certificates enabled. Setup checks this.
+- A machine to run the server: a home-lab host, or one of your own devices.
+
+## Pick a path
+
+- **[Home lab first](/docs/getting-started/home-lab-first).** The server runs in Docker on an always-on host. Setup recommends this.
+- **[Laptop first](/docs/getting-started/laptop-first).** The server runs on your laptop as a login service. You can move it to an always-on host later.
+
+Two laptops only sync while the laptop running the server is awake, which is why an always-on host is the recommendation.
+
+## Install channels
+
+The CLI will ship through Homebrew, a `curl | sh` script, an `irm | iex` script for PowerShell, npm, winget and Scoop. The server image will be on GHCR.
+
+{/* TODO: add the exact install commands and the server image name once the channels are published. */}
+
+## After the first device
+
+[Join your other devices](/docs/joining-devices) with a pairing code, or with the master password and the recovery kit.

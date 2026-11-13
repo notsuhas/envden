@@ -1,0 +1,24 @@
+---
+title: Laptop first
+description: Run the server on your laptop now and move it to an always-on host later.
+---
+
+## Set up
+
+On your laptop, run:
+
+```sh
+envden setup
+```
+
+Setup finds no server and offers to run one on this laptop as a login service (launchd, systemd or a Windows login service). The rest is the same as [home lab first](/docs/getting-started/home-lab-first#2-set-up-your-first-device): create the vault, keep the recovery kit, approve your repos, link and push.
+
+## What to expect
+
+- Your other devices only sync while this laptop is awake.
+- An unreachable server never blocks local work. Your env files stay in place, and status shows "server unknown".
+- Unlock expiry is enforced by the server. If the stolen laptop is the server, expiry means nothing. See [Security](/docs/security#unlock-expiry).
+
+## Move to an always-on host later
+
+When you have a host that stays on, run `envden server move`. See [Server](/docs/server#moving-the-server).

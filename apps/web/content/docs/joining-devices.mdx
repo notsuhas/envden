@@ -1,0 +1,64 @@
+---
+title: Joining devices
+description: Add a device with a pairing code, or with the master password and the recovery kit.
+---
+
+A device is a machine that has joined your vault. Each one has its own keys, so you can add and remove devices one at a time.
+
+## With a pairing code
+
+On a device that is already in the vault:
+
+```sh
+envden device add
+```
+
+It asks for the master password, then shows a code like `3-K7QF-2MXP`. The code works once and is valid for 10 minutes.
+
+On the new device:
+
+```sh
+envden join <server>
+```
+
+Type the code. The existing device then asks you to confirm the new device by name. Answer yes and the new device is in.
+
+What the code protects:
+
+- No keys travel through the pairing channel. The new device checks everything it gets from the server against what the existing device sent it.
+- The new device stops if the server it reached isn't the one the existing device pinned.
+- A bad server can only relay or block the pairing. It gets one live guess at the code against each side.
+
+A paired device inherits the remaining unlock time of the device that approved it, not a fresh period.
+
+## With the master password and recovery kit
+
+If you have no other device at hand, run `envden join <server>` and use the master password and the recovery kit.
+
+Every other device shows that a device joined with the recovery kit on its next command, so a join you didn't make doesn't go unnoticed.
+
+## The first run on a new device
+
+If the new device already has env files that differ from the vault, envden asks for each one: keep mine, take the server's, or merge. It never overwrites silently.
+
+Checkouts on the new device need your approval before they receive env files, as on the first device.
+
+On Windows, setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and uses [copy mode](/docs/placement#copy-mode).
+
+## Unlock
+
+A device must log in with the master password at least once per unlock period: 1 day, 7 days, 30 days (the default) or never. After the period, the server refuses that device's pulls and pushes until it logs in again.
+
+Some actions always need a fresh password login: adding or removing a device, replacing the recovery key, changing the password or the unlock period, and moving the server.
+
+## Removing a device
+
+```sh
+envden device rm
+```
+
+It asks for the master password, removes the device and starts a new encryption key for new writes. Nothing is re-encrypted.
+
+A removed device keeps whatever it already pulled. envden can't revoke that, so it lists every file and key name the device could have read, and you rotate those credentials.
+
+`envden device ls` shows your devices and the envden version each one last used.

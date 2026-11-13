@@ -1,0 +1,68 @@
+---
+title: Placement modes
+description: How env files from the store appear in a checkout, as links or as copies.
+---
+
+## The store
+
+Each device keeps the real env files in a store in your home folder:
+
+```text
+~/.envden/store/<repo-id>/<path-in-repo>/<file>
+```
+
+Folders are `0700` and files are `0600` (ACLs on Windows). In a monorepo, `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
+
+Placement is how a store file appears in a checkout.
+
+## Repo ID
+
+A repo's identity comes from its remote, as `host/path`. envden reads `git remote get-url origin`, falls back to the only remote, and otherwise asks. Every checkout with the same Repo ID shares env files.
+
+The Repo ID is never sent to the server in the clear.
+
+## Link mode
+
+The default. The env file in a checkout is a symlink into the store, so every clone and worktree of a repo reads the same file.
+
+Before linking, envden checks that git ignores the path. If it doesn't, envden adds the path to the checkout's exclude file.
+
+## Copy mode
+
+The env file is a real copy. Each copy tracks the last version it agreed with the server, and push detects changes against that.
+
+envden uses copy mode automatically when symlinks aren't available, and offers it when it detects a container bind mount.
+
+## Local only
+
+You can mark a file in one checkout as deliberately different, for example a per-worktree `PORT`. It becomes a copy that is never pushed or pulled, and envden doesn't nag about it.
+
+## Detached checkouts
+
+Some tools replace a link with a regular file: an atomic save, `sed -i`, or `cp .env.example .env`.
+
+- If the new file matches the store, or an older synced version, envden relinks it.
+- Otherwise the checkout is marked detached. envden keeps both versions and asks you on the next interactive command.
+
+This is never silent, and the shell line never does it.
+
+## Approved checkouts
+
+A checkout receives env files only after you approve it once, in the terminal. `--yes` doesn't skip the question.
+
+- Worktrees that share the git directory of an approved checkout are approved automatically.
+- A changed remote never silently remaps an approved checkout.
+
+## Forks and moved repos
+
+When a checkout has an `upstream` remote whose Repo ID already has env files, envden asks once whether to share them. `envden alias` does the same by hand, and also fixes a renamed or moved repo.
+
+## Docker builds
+
+Keep env files out of the build context with `.dockerignore`, and pass secrets with BuildKit secret mounts. Copy mode is not recommended for builds.
+
+{/* TODO: add the .dockerignore and BuildKit secret mount examples. */}
+
+## Windows
+
+Setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and uses copy mode.

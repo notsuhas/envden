@@ -1,0 +1,63 @@
+---
+title: Updates
+description: How the CLI and server update, and when an update is required.
+---
+
+## One version for both
+
+The CLI and the server ship together under one version number. Each release says the oldest server the CLI works with, and the oldest client the server accepts.
+
+## When an update is required
+
+**Forced updates come from your own server.** Updating the server can raise the oldest client it accepts. Older clients then get a clear "update envden" error on their next sync. Nothing else breaks: your placed files are links into the local store and keep working.
+
+You can raise the minimum by hand with `envden serve --min-client <version>`.
+
+**An old server.** A client that needs a newer server says so and prints the update command for it: `docker compose pull && docker compose up -d`, or `envden update` on a laptop server.
+
+## Updating
+
+```sh
+envden update
+```
+
+It uses the install method that the installer recorded:
+
+- `brew upgrade`
+- `npm i -g envden@latest`
+- `scoop update`
+- `winget upgrade`
+- For the script install, a download checked against the hash in the signed release feed. It's refused if it isn't newer.
+
+It then refreshes the shell line and the agent skill, and restarts the service on a laptop server.
+
+`envden update --check` only reports.
+
+## The update check
+
+Once a day, the CLI fetches a signed release feed from GitHub Releases. It sends nothing but the request.
+
+Setup asks once, and the default is on. Turn it off with `envden config update-check off` or `ENVDEN_NO_UPDATE_CHECK=1`.
+
+The shell line shows "update available" at most once a day, and "update required" whenever a sync was refused.
+
+## Security releases
+
+The release feed can mark a version as unsafe. An unsafe version warns on every command, and push and pull stop until you update.
+
+To keep using that one version, run `envden config allow-version <version>` in a terminal.
+
+## Data migrations
+
+The server's database and the local store each carry a format number.
+
+- A newer binary migrates forward on start, after copying the old data to a `pre-<version>` backup.
+- An older binary refuses newer data and tells you to update.
+- Downgrades work only before any new-format data exists.
+
+`pre-<version>` backups are deleted after 30 days.
+
+## Checking versions
+
+- `envden device ls` shows the version each device last used.
+- `envden status --json` reports `update.available` and `update.required`.

@@ -1,0 +1,48 @@
+---
+title: Telemetry
+description: Opt-in, CLI only, and a fixed list of what is sent.
+---
+
+## Off unless you turn it on
+
+Telemetry is opt-in and comes from the CLI only. The server never sends telemetry.
+
+Interactive setup asks once. Runs without a terminal (`--yes`, agents, `join` without a terminal) leave it off.
+
+Change it any time:
+
+```sh
+envden config telemetry on
+envden config telemetry off
+```
+
+`ENVDEN_TELEMETRY=0` and `DO_NOT_TRACK=1` always win.
+
+## What is sent
+
+- envden version
+- OS
+- command name
+- success or failure
+- an error code from a fixed list
+- counts
+- a random install ID
+
+## What is never sent
+
+- raw error text or stack traces
+- Repo IDs
+- file names or key names
+- values
+- the server address
+- network identity
+
+Nothing is sent from the shell line.
+
+## Where it goes
+
+Events go to PostHog with a plain `fetch`, with no SDK. The PostHog project is set to discard IP addresses and skip GeoIP. PostHog still sees the IP address of the connection.
+
+## The update check is separate
+
+The daily update check fetches a signed release feed from GitHub Releases and sends nothing but the request. It has its own switch. See [Updates](/docs/updates#the-update-check).

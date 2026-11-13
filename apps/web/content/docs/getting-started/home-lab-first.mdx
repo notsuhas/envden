@@ -1,0 +1,54 @@
+---
+title: Home lab first
+description: Run the server in Docker on an always-on host, then set up a laptop.
+---
+
+## 1. Run the server
+
+Start the server container with `docker run`, giving it a Tailscale auth key and a data volume. The logs print a one-time **setup token**.
+
+{/* TODO: add the exact docker run command (image name, variables, volume path) once the image is published. */}
+
+The server listens on localhost behind `tailscale serve`. It stores ciphertext and opaque IDs only.
+
+The server image is tagged by exact version, by minor (`:1.4`) and by major (`:1`). Pin the major.
+
+## 2. Set up your first device
+
+On a laptop, run:
+
+```sh
+envden setup
+```
+
+Setup walks through these steps:
+
+1. **Takes the setup token and pins the server.** The token embeds the fingerprint of the server's key. Your device checks a signed challenge from the server before it sends the token or anything else.
+2. **Creates the vault.** You choose a master password and get a recovery kit.
+3. **Asks about telemetry and update checks.** See [Telemetry](/docs/telemetry) and [Updates](/docs/updates).
+4. **Offers the shell line and the agent skill.** Both are optional.
+5. **Finds your repos.** It walks your scan roots for git repos and lists the ones with env files as a checklist.
+6. **Asks you to approve them,** then links their env files into the store and pushes.
+
+## The recovery kit
+
+The kit holds the vault's secret key and has a space to write the master password. The secret key is never stored on any device.
+
+A kit with the password written on it opens the vault on its own. Store it like a passport.
+
+## Finding repos
+
+- The default scan root is your home folder. You can add or remove roots.
+- Junk folders are skipped, and worktrees are listed with `git worktree list`.
+- macOS may ask for folder access during the scan.
+- Later, the shell line offers once to track a repo that the scan missed.
+
+## Approving checkouts
+
+The first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip this question. A folder that claims a repo's remote gets nothing until you approve it once.
+
+Worktrees that share the git directory of an approved checkout are approved automatically.
+
+## Next
+
+[Join your other devices](/docs/joining-devices).

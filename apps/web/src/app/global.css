@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+:root {
+  --den-ground: rgba(232, 237, 238, 1);
+  --den-surface: rgba(244, 247, 247, 1);
+  --den-ink: rgba(21, 30, 40, 1);
+  --den-muted: rgba(78, 92, 104, 1);
+  --den-line: rgba(21, 30, 40, 0.14);
+  --den-lantern: rgba(150, 88, 0, 1);
+  --den-on-lantern: rgba(255, 250, 240, 1);
+  --den-cipher: rgba(92, 80, 160, 1);
+
+  --color-fd-muted: rgba(221, 228, 230, 1);
+  --color-fd-secondary: rgba(221, 228, 230, 1);
+  --color-fd-accent: rgba(21, 30, 40, 0.08);
+}
+
+.dark {
+  --den-ground: rgba(18, 22, 29, 1);
+  --den-surface: rgba(26, 32, 42, 1);
+  --den-ink: rgba(226, 231, 224, 1);
+  --den-muted: rgba(150, 162, 172, 1);
+  --den-line: rgba(226, 231, 224, 0.13);
+  --den-lantern: rgba(246, 196, 92, 1);
+  --den-on-lantern: rgba(24, 20, 8, 1);
+  --den-cipher: rgba(164, 156, 222, 1);
+
+  --color-fd-muted: rgba(32, 39, 51, 1);
+  --color-fd-secondary: rgba(32, 39, 51, 1);
+  --color-fd-accent: rgba(226, 231, 224, 0.08);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: rgba(32, 39, 51, 1);
+  --color-fd-secondary: rgba(38, 46, 60, 1);
+}
+
+@theme inline {
+  --font-sans: var(--ff-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--ff-code), ui-monospace, "SFMono-Regular", monospace;
+  --font-display: var(--ff-display), var(--ff-body), ui-sans-serif, sans-serif;
+
+  --color-den-ground: var(--den-ground);
+  --color-den-surface: var(--den-surface);
+  --color-den-ink: var(--den-ink);
+  --color-den-muted: var(--den-muted);
+  --color-den-line: var(--den-line);
+  --color-den-lantern: var(--den-lantern);
+  --color-den-on-lantern: var(--den-on-lantern);
+  --color-den-cipher: var(--den-cipher);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0 !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--den-lantern);
+  outline-offset: 2px;
+}
+
+:root,
+.dark {
+  --color-fd-background: var(--den-ground);
+  --color-fd-foreground: var(--den-ink);
+  --color-fd-muted-foreground: var(--den-muted);
+  --color-fd-popover: var(--den-surface);
+  --color-fd-popover-foreground: var(--den-ink);
+  --color-fd-card: var(--den-surface);
+  --color-fd-card-foreground: var(--den-ink);
+  --color-fd-border: var(--den-line);
+  --color-fd-primary: var(--den-lantern);
+  --color-fd-primary-foreground: var(--den-on-lantern);
+  --color-fd-secondary-foreground: var(--den-ink);
+  --color-fd-accent-foreground: var(--den-ink);
+  --color-fd-ring: var(--den-lantern);
+}

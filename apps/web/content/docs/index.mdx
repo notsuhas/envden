@@ -1,0 +1,42 @@
+---
+title: What envden is
+description: Sync whole .env files across your own machines, end-to-end encrypted, through a server you host, over Tailscale.
+---
+
+<Callout type="warn" title="Work in progress">
+  envden isn't released yet. These pages describe the v1 design, and commands or wording may change
+  before release.
+</Callout>
+
+## The problem
+
+You keep env files in many repos and worktrees, on several machines. They're gitignored, and they often carry comments.
+
+Secrets managers store keys, not files, so comments, order and blank lines are lost. envden syncs the whole file, byte for byte.
+
+## What it does
+
+- **Whole files.** A `.env` or `.env.<name>` file is synced exactly as written: comments, order and blank lines.
+- **Your machines only.** A vault belongs to one person. v1 has no sharing.
+- **A server you host.** One Docker container on a home lab, or `envden serve` on one of your devices. It stores ciphertext and opaque IDs only.
+- **End-to-end encrypted.** Files are encrypted on the device before upload. The server is not trusted to keep them secret or intact.
+- **Over Tailscale.** Devices reach the server over your tailnet. Tailscale is transport only: envden trusts no identity it reports.
+- **Push and pull by hand.** Nothing syncs on a timer.
+
+## The pieces
+
+| Piece    | What it is                                                                                                                             |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Server   | Holds the ciphertext for a vault. One server per vault, and a server can hold many vaults, one owner each.                             |
+| Device   | A machine that joined the vault. It runs the `envden` CLI, a single binary for macOS, Linux and Windows. There's no background daemon. |
+| Store    | A folder in your home directory that holds the real env files for every repo.                                                          |
+| Checkout | A clone or worktree of a repo. Its env files are links into the store, or copies where links aren't available.                         |
+
+## Not in v1
+
+Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers and a web UI.
+
+## Where to start
+
+- [Getting started](/docs/getting-started) with a home lab or a laptop.
+- [Security and threat model](/docs/security) for what envden protects and what it doesn't.

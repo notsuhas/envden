@@ -1,0 +1,67 @@
+---
+title: "Server: move, backups and restore"
+description: What the server holds, how to move it, and how to restore it from a backup.
+---
+
+## What the server is
+
+The server holds the ciphertext for your vault. It runs as one Docker container, or as `envden serve` on one of your devices.
+
+- It listens on localhost behind `tailscale serve`.
+- Every request is signed by a device. Tailscale identity headers aren't used.
+- Devices pin the server's key at setup or join, and store its address separately.
+- Creating a vault needs a one-time setup token from the server logs (`docker logs`, or the `envden serve` output). After that, only device signatures count.
+
+A laptop can host the server. Setup recommends an always-on host, because two laptops only sync while the server laptop is awake. An unreachable server never blocks local work.
+
+## History
+
+The server keeps every version for 90 days, and at least the last 20 versions of each file. Deletes are kept beyond that, so an offline device can't bring a deleted file back without an explicit restore.
+
+## Moving the server
+
+```sh
+envden server move
+```
+
+The move:
+
+1. Opens a move session on the new server, using its setup token.
+2. Freezes the old server. Any member device can unfreeze it before the switch.
+3. Copies and verifies everything.
+4. Registers the master password on the new server. You type it.
+5. Records the move on the old server, which turns read-only, and then on the new one.
+
+Every step can resume after a crash, from any member device if the one doing the move is lost. You can abort until the final step.
+
+The move is signed by a member device, never by a server. Devices that see it switch to the new server and never accept the old one again, even if it's restored from a backup.
+
+## Backups
+
+File contents in a backup are ciphertext. The data folder also holds the server's record of your master password, which someone could guess passwords against offline.
+
+Protect server backups like a password database.
+
+A guessed password alone doesn't open the vault. That also needs the secret key from the recovery kit.
+
+## Restoring from a backup
+
+A restored server is behind your devices, so the devices repair it.
+
+1. Start the restored server once, by hand:
+
+   ```sh
+   envden serve --restored
+   ```
+
+   It prints a repair token for each vault and accepts nothing but repairs.
+
+2. On each device, run `envden server repair` with the token. The device re-uploads its newer signed history and its repos' files.
+
+3. Finish with `--finish`. It needs every device to have repaired, or to be dropped with `--without`. A dropped device rejoins later as a new device and keeps its local files.
+
+Don't put `--restored` in the service definition. Running it again mints a new token, which voids the repairs made with the old one.
+
+If no device holds the newest version of a file, envden lists the file by name. With `--accept-lost`, the file goes back to the newest verified older version, or is marked lost, and every device reports it.
+
+{/* TODO: confirm the full command forms for --finish, --without and --accept-lost once the CLI exists. */}

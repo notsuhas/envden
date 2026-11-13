@@ -1,0 +1,80 @@
+---
+title: Push, pull and merging
+description: Sync is explicit. Pull never overwrites unpushed edits, and anything ambiguous becomes a conflict you resolve.
+---
+
+## Push and pull
+
+Sync is explicit only. Nothing runs on a timer.
+
+```sh
+envden push   # send this repo's env files to the server
+envden pull   # bring the server's versions into this repo
+```
+
+Inside a checkout, both commands act on that checkout's repo. Add `--all` to act on every repo in one step.
+
+A push names the server state it was based on. If another device pushed first, the server rejects it, and you pull and push again. Requests are safe to retry.
+
+## Which files are synced
+
+- `.env` and `.env.<name>`.
+- Not templates: `.example`, `.sample`, `.template` and `.defaults` are excluded. `.envrc` is never synced.
+- Only files that git ignores. envden refuses tracked files.
+- Build output folders such as `node_modules`, `.next`, `dist` and `build` are skipped.
+- A file can be at most 1 MiB.
+
+The file rules are configurable.
+
+## Pull never overwrites your edits
+
+If you have unpushed local edits, a pull goes through a merge. envden keeps a backup before any overwrite. Backups live in `~/.envden/conflicts/` and are deleted after 30 days.
+
+## How merging works
+
+envden merges by key, comparing the raw bytes of each key's assignment, including its comments. It never compares parsed values.
+
+- Your local file sets the layout.
+- Keys added on the server go at the end, in the server's order.
+- A key changed on one side only merges cleanly.
+
+A clean merge is shown to you, key names only, and you confirm it.
+
+Anything ambiguous becomes a conflict for the whole file:
+
+- a key changed on both sides
+- a key deleted on one side and edited on the other
+- duplicate keys
+- unterminated quotes
+- multi-line values
+- `export` or quote-style changes
+- a comment toggled on one side against an edit on the other
+
+## Conflicts
+
+A conflict goes to a conflict file in the store, never inside a checkout. Resolve it with:
+
+```sh
+envden resolve --keep-mine
+envden resolve --take-server
+```
+
+Or edit the conflict file yourself.
+
+## What you see
+
+Status and diff output never show values, only key names and change markers.
+
+Every `envden` command also reports other repos that are out of sync. `envden status --json` gives the same state to tools.
+
+## The shell line
+
+With your consent, setup adds one line to your shell rc (zsh, bash, fish or PowerShell). On shell start and on `cd`, it tells you if the checkout you're in is out of sync.
+
+It reads a cache file and matches the current folder against your approved checkouts. It never runs git and never writes to a checkout. When the cache is older than 60 seconds, it starts a refresh in the background.
+
+## History and deletes
+
+The server keeps every version for 90 days, and at least the last 20 versions of each file.
+
+A delete is recorded and outlives history pruning, so a device that was offline can't bring a deleted file back without an explicit restore.
