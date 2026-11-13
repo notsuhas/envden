@@ -1,7 +1,7 @@
-PackageIdentifier: REPLACE_PUBLISHER.envden
+PackageIdentifier: notsuhas.envden
 PackageVersion: 0.1.0
 PackageLocale: en-US
-Publisher: REPLACE_PUBLISHER
+Publisher: notsuhas
 PackageName: envden
 License: MIT
 ShortDescription: Self-hosted encrypted environment sync

@@ -73,7 +73,7 @@ const unsafe = [
 
 const builds = await Promise.all(
   targets.map(async (platform) => ({
-    platform: platform.replace("windows-", "win32-"),
+    platform,
     sha256: new Bun.CryptoHasher("sha256")
       .update(await Bun.file(join(directory, assetName(platform))).arrayBuffer())
       .digest(),
