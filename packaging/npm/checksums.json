@@ -1,10 +1,10 @@
 {
-  "darwin-x64": "REPLACE_SHA256",
-  "darwin-arm64": "REPLACE_SHA256",
-  "linux-x64": "REPLACE_SHA256",
-  "linux-arm64": "REPLACE_SHA256",
-  "linux-x64-musl": "REPLACE_SHA256",
-  "linux-arm64-musl": "REPLACE_SHA256",
-  "windows-x64": "REPLACE_SHA256",
-  "windows-arm64": "REPLACE_SHA256"
+  "darwin-x64": "{{SHA256_DARWIN_X64}}",
+  "darwin-arm64": "{{SHA256_DARWIN_ARM64}}",
+  "linux-x64": "{{SHA256_LINUX_X64}}",
+  "linux-arm64": "{{SHA256_LINUX_ARM64}}",
+  "linux-x64-musl": "{{SHA256_LINUX_X64_MUSL}}",
+  "linux-arm64-musl": "{{SHA256_LINUX_ARM64_MUSL}}",
+  "windows-x64": "{{SHA256_WINDOWS_X64}}",
+  "windows-arm64": "{{SHA256_WINDOWS_ARM64}}"
 }

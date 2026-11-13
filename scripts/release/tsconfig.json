@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@envden/core/protocol": ["../../packages/core/src/protocol/index.ts"],
+      "@envden/core/process": ["../../packages/core/src/process/index.ts"]
+    }
+  },
+  "include": ["**/*.ts"]
+}

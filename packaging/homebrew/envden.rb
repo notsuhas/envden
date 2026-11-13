@@ -1,24 +1,24 @@
 class Envden < Formula
   desc "Self-hosted encrypted environment sync"
   homepage "https://envden.theclau.de"
-  version "0.1.0"
+  version "{{VERSION}}"
   license "MIT"
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-arm64"
-      sha256 "REPLACE_DARWIN_ARM64_SHA256"
+      sha256 "{{SHA256_DARWIN_ARM64}}"
     else
       url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-x64"
-      sha256 "REPLACE_DARWIN_X64_SHA256"
+      sha256 "{{SHA256_DARWIN_X64}}"
     end
   end
   on_linux do
     if Hardware::CPU.arm?
       url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-arm64"
-      sha256 "REPLACE_LINUX_ARM64_SHA256"
+      sha256 "{{SHA256_LINUX_ARM64}}"
     else
       url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-x64"
-      sha256 "REPLACE_LINUX_X64_SHA256"
+      sha256 "{{SHA256_LINUX_X64}}"
     end
   end
   def install

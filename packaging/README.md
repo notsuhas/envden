@@ -14,7 +14,6 @@ Done:
 Still needed:
 
 - npm: log in (`npm login`), add an `NPM_TOKEN` or publish by hand, and drop `private` from `packaging/npm/package.json` when publishing.
-- After each release, fill the SHA256 placeholders in the Homebrew, Scoop, winget and npm templates from the release's `SHA256SUMS`, then push the formula to the tap and the manifest to the bucket, and submit the winget manifest.
 - After the first image push, make the GHCR package public.
 - `ENVDEN_TELEMETRY_KEY` (repository variable): a PostHog project key. Empty disables telemetry.
 - `TS_AUTHKEY` at deployment, never at build time. Enable HTTPS certificates and Serve in the tailnet.
@@ -27,6 +26,18 @@ Still needed:
 3. Enable first-release mode and push the approved tag. Verify all eight binaries, SHA256SUMS, release.bin and release-g<n>.bin. GHCR receives amd64/arm64 images tagged exact, minor and major version.
 4. Remove first-release mode. Independently verify signatures and binaries. Populate package-manager hashes from the verified feed, publish templates through maintainer accounts, and test fresh installation and update.
 5. Confirm the weekly job increments seq and refreshes the 30-day expiry. It reuses release binaries and replaces only feeds. Do not manually publish feeds while CI runs.
+
+## Publish package channels
+
+After verifying a release, run from the repository root with `gh` authenticated and Git push access to both channel repositories:
+
+```sh
+bun scripts/release/publish-channels.ts <version>
+```
+
+Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads `SHA256SUMS`, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. npm publishing remains manual.
+
+winget manifests go to `packaging/dist/winget/<version>/`. Follow the printed instructions to open the PR in `microsoft/winget-pkgs` yourself. Dry runs keep winget manifests in the temporary directory too.
 
 ## Offline backup and rotation
 

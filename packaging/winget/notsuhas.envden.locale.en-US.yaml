@@ -1,5 +1,5 @@
 PackageIdentifier: notsuhas.envden
-PackageVersion: 0.1.0
+PackageVersion: "{{VERSION}}"
 PackageLocale: en-US
 Publisher: notsuhas
 PackageName: envden

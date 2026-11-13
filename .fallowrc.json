@@ -1,7 +1,11 @@
 {
   "$schema": "./node_modules/fallow/schema.json",
   "includeEntryExports": true,
-  "entry": ["apps/cli/scripts/*.ts", "tools/*/index.ts"],
+  "entry": [
+    "apps/cli/scripts/*.ts",
+    "tools/*/index.ts",
+    "scripts/release/{checksums,publish-channels,sign}.ts"
+  ],
   "rules": {
     "circular-dependencies": "error",
     "stale-suppressions": "error"
