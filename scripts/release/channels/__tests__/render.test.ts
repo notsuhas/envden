@@ -31,7 +31,9 @@ describe("SHA256SUMS", () => {
   });
 
   test("accepts CRLF and binary checksum markers", () => {
-    expect(parseChecksums(fixture.replaceAll("  ", " *").replaceAll("\n", "\r\n"))).toEqual(hashes);
+    expect(parseChecksums(fixture.replaceAll("  ", " *").replace(/\r?\n/g, "\r\n"))).toEqual(
+      hashes,
+    );
   });
 });
 
