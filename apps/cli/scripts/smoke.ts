@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
@@ -7,9 +8,8 @@ const home = await mkdtemp(join(tmpdir(), "envden-smoke-"));
 
 try {
   for (const args of [["--version"], ["--help"], ["doctor", "--json"]]) {
-    const child = Bun.spawn([binary, ...args], {
+    const child = spawnTrusted(binary, args, {
       env: {
-        ...process.env,
         ENVDEN_HOME: home,
         ENVDEN_NO_UPDATE_CHECK: "1",
         ENVDEN_TELEMETRY: "0",

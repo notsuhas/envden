@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm, mkdir, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -110,7 +111,7 @@ test("sync reclaims the state lock of a killed process", async () => {
   const { withSyncLock } = await import("../../sync/local/files.ts");
   const home = await mkdtemp(join(tmpdir(), "envden-killed-sync-"));
 
-  const child = Bun.spawn(
+  const child = spawnTrusted(
     [
       "bun",
       "--eval",
@@ -234,14 +235,14 @@ for (const crash of ["guard", "renamed"])
 test("importing the lock does not probe process start", async () => {
   const path = new URL("../lock/lock.ts", import.meta.url).pathname;
 
-  const child = Bun.spawn(
+  const child = spawnTrusted(
     [
       process.execPath,
       "--eval",
       `
     import { spyOn } from 'bun:test';
-    import * as processes from 'node:child_process';
-    const probe = spyOn(processes, 'execFile');
+    import * as processes from ${JSON.stringify(import.meta.resolve("@envden/core/process"))};
+    const probe = spyOn(processes, 'execTrusted');
     await import(${JSON.stringify(path)});
     if (probe.mock.calls.length) throw new Error('Import probed processes');
   `,

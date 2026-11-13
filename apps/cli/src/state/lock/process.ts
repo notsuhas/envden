@@ -1,8 +1,5 @@
-import { execFile } from "node:child_process";
+import { execTrusted as exec } from "@envden/core/process";
 import { readFile } from "node:fs/promises";
-import { promisify } from "node:util";
-
-const exec = promisify(execFile);
 
 type TProcess = { kind: "live"; startedAt: string } | { kind: "dead" | "unknown" };
 
@@ -35,7 +32,7 @@ export async function processStart(
               `(Get-Process -Id ${pid} -ErrorAction Stop).StartTime.ToUniversalTime().Ticks`,
             ])
           : await exec("ps", ["-p", String(pid), "-o", "lstart="], {
-              env: { ...process.env, LC_ALL: "C" },
+              env: { LC_ALL: "C" },
             });
 
       startedAt = result.stdout.trim();

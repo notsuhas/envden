@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { resolutionChoice } from "../sync/resolve.ts";
 import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -7,7 +8,7 @@ import { join } from "node:path";
 async function cli(args: string[]) {
   const home = await mkdtemp(join(tmpdir(), "envden-command-"));
 
-  const child = Bun.spawn([process.execPath, join(import.meta.dir, "../../main.ts"), ...args], {
+  const child = spawnTrusted([process.execPath, join(import.meta.dir, "../../main.ts"), ...args], {
     env: { ...process.env, ENVDEN_HOME: home },
     stdout: "pipe",
     stderr: "pipe",

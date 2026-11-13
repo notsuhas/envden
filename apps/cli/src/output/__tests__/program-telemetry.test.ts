@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { test, expect, spyOn } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -154,7 +155,11 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
       ["init", "--quiet"],
       ["remote", "add", "origin", "https://example.com/team/repo.git"],
     ]) {
-      const git = Bun.spawn(["git", "-C", checkout, ...args], { stdout: "ignore", stderr: "pipe" });
+      const git = spawnTrusted(["git", "-C", checkout, ...args], {
+        stdout: "ignore",
+        stderr: "pipe",
+      });
+
       expect(await git.exited).toBe(0);
     }
 
@@ -162,7 +167,7 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
     await writeFile(join(checkout, ".env"), "KEY=value\n");
     await saveState(home, emptyState("test"));
 
-    const cli = Bun.spawn(
+    const cli = spawnTrusted(
       ["bun", new URL("../../main.ts", import.meta.url).pathname, "status", "--refresh-cache"],
       { cwd: checkout, env: { ...process.env, ENVDEN_HOME: home }, stdout: "pipe", stderr: "pipe" },
     );

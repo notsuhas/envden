@@ -1,10 +1,11 @@
+import { spawnTrusted } from "@envden/core/process";
 import { test, expect } from "bun:test";
 import { TELEMETRY_KEY } from "../build-config.ts";
 
 test("unconfigured builds disable telemetry despite runtime environment", async () => {
   expect(TELEMETRY_KEY).toBe("");
 
-  const child = Bun.spawn(
+  const child = spawnTrusted(
     [
       process.execPath,
       "-e",
@@ -33,7 +34,7 @@ for (const key of ["", "phc_build-key"])
     expect(build.success).toBe(true);
     const source = await build.outputs[0]!.text();
 
-    const child = Bun.spawn(
+    const child = spawnTrusted(
       [process.execPath, "-e", source + "\nprocess.stdout.write(TELEMETRY_KEY);"],
       {
         env: { ...process.env, ENVDEN_TELEMETRY_KEY: "runtime-only" },

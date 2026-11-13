@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -15,7 +16,7 @@ test("real git worktree requires approval and records its root once", async () =
   const branch = join(root, "branch");
 
   const git = async (cwd: string, args: string[]) => {
-    const process = Bun.spawn(["git", "-C", cwd, ...args], { stdout: "ignore", stderr: "pipe" });
+    const process = spawnTrusted(["git", "-C", cwd, ...args], { stdout: "ignore", stderr: "pipe" });
     if (await process.exited) throw new Error(await new Response(process.stderr).text());
   };
 
@@ -92,7 +93,7 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
   const root = await mkdtemp(join(tmpdir(), "envden-scan-"));
 
   const git = async (cwd: string, args: string[]) => {
-    const child = Bun.spawn(["git", "-C", cwd, ...args], { stdout: "ignore", stderr: "ignore" });
+    const child = spawnTrusted(["git", "-C", cwd, ...args], { stdout: "ignore", stderr: "ignore" });
     if (await child.exited) throw new Error("Git fixture failed");
   };
 

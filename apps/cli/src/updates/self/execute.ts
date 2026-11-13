@@ -1,13 +1,16 @@
 import { access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { posix } from "node:path";
-import { managerEnvironment } from "./environment.ts";
+import { spawnTrusted, sanitizedEnvironment, insideWorkingTree } from "@envden/core/process";
+import { mkdtemp, writeFile, rm, realpath } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { pinnedInstall } from "./paths.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { consent } from "../../output/questions.ts";
 
-async function runCommand(command: string[], env = process.env) {
-  const status = await Bun.spawn(command, {
+async function runCommand(command: string[], env: Record<string, string> = {}) {
+  const status = await spawnTrusted(command[0]!, command.slice(1), {
     env,
     stdin: "inherit",
     stdout: "inherit",
@@ -27,6 +30,20 @@ export async function managerUpdate(
   confirm = (line: string) => consent(`Run ${line}?`),
   run = runCommand,
 ) {
+  const home = process.env.HOME ?? process.env.USERPROFILE;
+  const temp = await realpath(tmpdir());
+
+  if (
+    (home && insideWorkingTree(await realpath(home).catch(() => home))) ||
+    insideWorkingTree(temp)
+  ) {
+    console.error(
+      `envden: HOME or temp directory is inside a checkout. Run manually: ${command.join(" ")}`,
+    );
+
+    return { kind: "manual" as const };
+  }
+
   const pinned = pinnedInstall(command[0] ?? "", binary);
 
   const installer = pinned && (await installerCommand(command[0]!, pinned.manager));
@@ -37,11 +54,25 @@ export async function managerUpdate(
     return { kind: "manual" as const };
   }
 
-  const env = managerEnvironment(pinned.manager);
+  const env = sanitizedEnvironment();
   const absolute = [...installer, ...command.slice(1)];
   if (!(await confirm(absolute.join(" ")))) return { kind: "cancelled" as const };
-  await run(absolute, env);
-  await run([pinned.binary, "update", "--post-install"], env);
+  const config = await mkdtemp(join(temp, "envden-manager-"));
+
+  try {
+    if (command[0] === "npm") {
+      const userconfig = join(config, "npmrc");
+      await writeFile(userconfig, "", { mode: 0o600 });
+      absolute.push("--userconfig", userconfig);
+    }
+
+    // Homebrew reads system and prefix brew.env files even with an isolated user config.
+    if (command[0] === "brew") env.HOMEBREW_XDG_CONFIG_HOME = config;
+    await run(absolute, env);
+    await run([pinned.binary, "update", "--post-install"], sanitizedEnvironment());
+  } finally {
+    await rm(config, { recursive: true, force: true });
+  }
 
   return { kind: "updated" as const };
 }

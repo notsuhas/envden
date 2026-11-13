@@ -27,7 +27,7 @@ test("private recovery export round trips into join and never overwrites", async
 
 test("Windows recovery export removes inherited ACLs", async () => {
   if (process.platform !== "win32") return;
-  const { execFileSync } = await import("node:child_process");
+  const { execTrustedSync: execFileSync } = await import("@envden/core/process");
   const root = await mkdtemp(join(tmpdir(), "envden-kit-acl-"));
 
   try {

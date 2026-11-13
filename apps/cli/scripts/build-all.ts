@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { targets, assetName } from "./targets.ts";
@@ -10,9 +11,9 @@ await mkdir(join(root, "dist"), { recursive: true });
 
 for (const platform of platforms) {
   if (!targets.includes(platform)) throw new Error(`Unsupported target: ${platform}`);
-  const child = Bun.spawn(
+  const child = spawnTrusted(
+    "bun",
     [
-      "bun",
       "build",
       "--compile",
       "--define",

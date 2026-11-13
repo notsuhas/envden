@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { join } from "node:path";
 import type { atomicWrite } from "../../state/store/files.ts";
 import { EnvdenError } from "@envden/core/errors";
@@ -50,7 +51,8 @@ export async function installHostService(options: {
 }
 
 export async function runServiceCommand(args: string[]) {
-  const result = await Bun.spawn(args, { stdout: "ignore", stderr: "ignore" }).exited;
+  const result = await spawnTrusted(args[0]!, args.slice(1), { stdout: "ignore", stderr: "ignore" })
+    .exited;
 
   if (result !== 0)
     throw new EnvdenError("INVALID_INPUT", "Could not install the envden login service");

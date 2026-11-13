@@ -1,4 +1,5 @@
-import { mkdtemp, mkdir, writeFile, rm, symlink } from "node:fs/promises";
+import { spawnTrusted } from "@envden/core/process";
+import { mkdtemp, mkdir, writeFile, rm, symlink, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test, expect, spyOn } from "bun:test";
@@ -84,11 +85,14 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
     try {
       const marker = join(root, "executed");
 
-      await writeFile(join(root, "node"), `#!/bin/sh\necho compromised > "${marker}"\n`, {
+      const checkout = join(root, "checkout");
+      await mkdir(join(checkout, ".git"), { recursive: true });
+
+      await writeFile(join(checkout, "node"), `#!/bin/sh\necho compromised > "${marker}"\n`, {
         mode: 0o755,
       });
 
-      process.env.PATH = `${root}:${before.PATH}`;
+      process.env.PATH = `${checkout}:${before.PATH}`;
       process.env.NODE_OPTIONS = "--require=checkout";
       process.env.BUN_OPTIONS = "--preload=checkout";
       process.env.npm_config_prefix = root;
@@ -122,26 +126,35 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
           if (!env) throw new Error("Expected sanitized environment");
 
           expect(
-            Object.keys(env ?? {}).some((key) =>
-              /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(key),
-            ),
+            Object.keys(env ?? {})
+              .filter((key) => key !== "HOMEBREW_XDG_CONFIG_HOME")
+              .some((key) =>
+                /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(
+                  key,
+                ),
+              ),
           ).toBe(false);
 
-          expect(env?.PATH).not.toContain(root + ":");
+          expect(env?.PATH).not.toContain(checkout);
+
+          if (manager === "brew" && calls === 1) {
+            expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeDefined();
+            expect((await stat(env.HOMEBREW_XDG_CONFIG_HOME!)).mode & 0o777).toBe(0o700);
+          }
 
           if (manager === "npm" && calls === 1) {
             expect(args.slice(0, 2)).toEqual([join(bin, "node"), cli]);
-            expect(await Bun.spawn(args.slice(0, 2), { env }).exited).toBe(0);
+            const config = args[args.indexOf("--userconfig") + 1]!;
+            expect(await readFile(config, "utf8")).toBe("");
+            expect((await stat(config)).mode & 0o777).toBe(0o600);
+            expect(args).not.toContain("--ignore-scripts");
+            expect(await spawnTrusted(args.slice(0, 2), { env }).exited).toBe(0);
           } else {
-            await Bun.spawn(["/usr/bin/env", "node", "--version"], {
+            await spawnTrusted(["/usr/bin/env", "node", "--version"], {
               env,
               stdout: "ignore",
               stderr: "ignore",
             }).exited;
-
-            if (manager === "scoop" || manager === "winget") {
-              expect(env.PATH).toMatch(/;[^;]+[\\/]System32$/i);
-            }
           }
         },
       );
@@ -188,3 +201,63 @@ for (const missing of ["node", "cli"]) {
     }
   });
 }
+
+for (const variable of ["HOME", "TMPDIR"])
+  test(`manager updates refuse checkout ${variable} before consent or execution`, async () => {
+    const root = await mkdtemp(join(tmpdir(), "envden-home-"));
+    const before = process.env[variable];
+    const output = spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await mkdir(join(root, ".git"));
+      await mkdir(join(root, "home"));
+
+      if (variable === "TMPDIR") {
+        const child = spawnTrusted(
+          [
+            process.execPath,
+            "-e",
+            `
+          const { managerUpdate } = await import(${JSON.stringify(import.meta.resolve("../self/execute.ts"))});
+          const result = await managerUpdate(["brew", "upgrade", "envden"], "/opt/homebrew/bin/envden", async () => { throw new Error("must not ask"); });
+          if (result.kind !== "manual") throw new Error("must refuse");
+        `,
+          ],
+          { env: { TMPDIR: join(root, "home") } },
+        );
+
+        expect(await child.exited).toBe(0);
+
+        expect(await new Response(child.stderr).text()).toContain(
+          "Run manually: brew upgrade envden",
+        );
+
+        return;
+      }
+
+      process.env[variable] = join(root, "home");
+
+      for (const manager of ["brew", "npm"]) {
+        expect(
+          await managerUpdate(
+            [manager, "upgrade", "envden"],
+            "/opt/homebrew/bin/envden",
+            async () => {
+              throw new Error("must not ask");
+            },
+            async () => {
+              throw new Error("must not execute");
+            },
+          ),
+        ).toEqual({ kind: "manual" });
+
+        expect(output.mock.calls.flat()).toContain(
+          `envden: HOME or temp directory is inside a checkout. Run manually: ${manager} upgrade envden`,
+        );
+      }
+    } finally {
+      process.env[variable] = before;
+      output.mockRestore();
+      await rm(root, { recursive: true, force: true });
+    }
+  });
