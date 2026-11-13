@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "includeEntryExports": true,
+  "entry": ["apps/cli/scripts/*.ts", "tools/*/index.ts"],
+  "rules": {
+    "circular-dependencies": "error",
+    "stale-suppressions": "error"
+  },
+  "boundaries": {
+    "zones": [
+      {
+        "name": "core",
+        "patterns": ["packages/core/src/**"]
+      },
+      {
+        "name": "testing",
+        "patterns": ["packages/testing/src/**"]
+      },
+      {
+        "name": "adapters",
+        "patterns": ["packages/adapters/**/src/**"]
+      },
+      {
+        "name": "apps",
+        "patterns": ["apps/*/src/**"]
+      }
+    ],
+    "rules": [
+      {
+        "from": "core",
+        "allow": []
+      },
+      {
+        "from": "testing",
+        "allow": ["core"]
+      },
+      {
+        "from": "adapters",
+        "allow": ["core", "testing"]
+      },
+      {
+        "from": "apps",
+        "allow": ["core", "adapters", "testing"]
+      }
+    ]
+  },
+  "ignoreBinaries": ["tailscale"],
+  "ignoreDependencies": ["oxlint"]
+}

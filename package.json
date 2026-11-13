@@ -1,0 +1,26 @@
+{
+  "name": "envden",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/core",
+    "packages/testing",
+    "packages/adapters/*/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "prepare": "vp config --no-agent",
+    "check": "vp check",
+    "fix": "vp check --fix",
+    "test": "bun test",
+    "fallow": "fallow",
+    "ci": "vp check && bun test && fallow --fail-on-issues"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "fallow": "3.42.0",
+    "typescript": "7.0.2",
+    "vite-plus": "1.6.0"
+  },
+  "packageManager": "bun@1.4.0"
+}
