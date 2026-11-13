@@ -19,3 +19,41 @@ test("only the core process module and its tests may spawn directly", () => {
     }).diagnostics,
   ).toHaveLength(1);
 });
+
+for (const source of [
+  'import { spawn as run } from "bun"; run(["git"]);',
+  'import { spawnSync } from "bun";',
+  'import { $ } from "bun";',
+  'import * as runtime from "bun"; runtime.spawn(["git"]);',
+  'import runtime from "bun"; runtime.spawnSync(["git"]);',
+  'const runtime = Bun; runtime.spawnSync(["git"]);',
+  "const { spawn } = Bun;",
+  'require("child_process");',
+  'require("node:child_process");',
+  'import("node:child_process");',
+  'import("child_process");',
+  'import { execa } from "execa";',
+  'import { $ } from "zx";',
+  'require("execa");',
+  'import("zx");',
+  'process.binding("spawn_sync");',
+  'Bun.spawnSync(["git"]);',
+])
+  test(`rejects bypass ${source}`, () => {
+    for (const directory of ["apps/cli/src", "tools/runner", "scripts"]) {
+      expect(
+        runFixture("trusted-process", { [`${directory}/unsafe.ts`]: source }).diagnostics.length,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+test("only named test helpers bypass the boundary", () => {
+  expect(
+    runFixture("trusted-process", {
+      "tools/oxlint-plugin-envden/__tests__/utils.ts": 'require("child_process");',
+      "scripts/release/__tests__/sign.test.ts": 'Bun.spawn(["git"]);',
+      "scripts/release/__tests__/other.test.ts": 'Bun.spawn(["git"]);',
+      "tools/other/__tests__/utils.ts": 'Bun.spawn(["git"]);',
+    }).diagnostics,
+  ).toHaveLength(2);
+});
