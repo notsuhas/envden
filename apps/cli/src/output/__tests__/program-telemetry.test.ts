@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { spawnTrusted } from "@envden/core/process";
 import { test, expect, spyOn } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -168,7 +169,12 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
     await saveState(home, emptyState("test"));
 
     const cli = spawnTrusted(
-      ["bun", new URL("../../main.ts", import.meta.url).pathname, "status", "--refresh-cache"],
+      [
+        "bun",
+        fileURLToPath(new URL("../../main.ts", import.meta.url)),
+        "status",
+        "--refresh-cache",
+      ],
       { cwd: checkout, env: { ...process.env, ENVDEN_HOME: home }, stdout: "pipe", stderr: "pipe" },
     );
 

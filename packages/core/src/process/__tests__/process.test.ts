@@ -66,39 +66,42 @@ test("registry rejects symlink targets and child directories without git markers
   }
 });
 
-test("env shebang searches fixed system directories before user symlink payloads", async () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), "envden-shebang-")));
-  const system = join(root, "system");
-  const user = join(root, "user");
-  const checkout = join(root, "checkout");
-  for (const dir of [system, user, checkout]) mkdirSync(dir);
-  writeFileSync(join(system, "git"), "#!/bin/sh\nprintf system", { mode: 0o755 });
-  writeFileSync(join(checkout, "git"), "#!/bin/sh\nprintf compromised", { mode: 0o755 });
-  symlinkSync(join(checkout, "git"), join(user, "git"));
-  const script = join(root, "script");
-  writeFileSync(script, "#!/usr/bin/env git\n", { mode: 0o755 });
-  setUntrustedRoots([checkout]);
+test.skipIf(process.platform === "win32")(
+  "env shebang searches fixed system directories before user symlink payloads",
+  async () => {
+    const root = realpathSync(mkdtempSync(join(tmpdir(), "envden-shebang-")));
+    const system = join(root, "system");
+    const user = join(root, "user");
+    const checkout = join(root, "checkout");
+    for (const dir of [system, user, checkout]) mkdirSync(dir);
+    writeFileSync(join(system, "git"), "#!/bin/sh\nprintf system", { mode: 0o755 });
+    writeFileSync(join(checkout, "git"), "#!/bin/sh\nprintf compromised", { mode: 0o755 });
+    symlinkSync(join(checkout, "git"), join(user, "git"));
+    const script = join(root, "script");
+    writeFileSync(script, "#!/usr/bin/env git\n", { mode: 0o755 });
+    setUntrustedRoots([checkout]);
 
-  expect(fixedDirectories("darwin").slice(0, 4)).toEqual([
-    "/usr/bin",
-    "/bin",
-    "/usr/sbin",
-    "/sbin",
-  ]);
+    expect(fixedDirectories("darwin").slice(0, 4)).toEqual([
+      "/usr/bin",
+      "/bin",
+      "/usr/sbin",
+      "/sbin",
+    ]);
 
-  expect(fixedDirectories("linux")).not.toContain("/opt/homebrew/bin");
-  const policy = spyOn(directoryPolicy, "fixedDirectories").mockReturnValue([system, user]);
+    expect(fixedDirectories("linux")).not.toContain("/opt/homebrew/bin");
+    const policy = spyOn(directoryPolicy, "fixedDirectories").mockReturnValue([system, user]);
 
-  try {
-    const child = spawnTrusted(script, []);
-    expect(await new Response(child.stdout).text()).toBe("system");
-    expect(await child.exited).toBe(0);
-  } finally {
-    policy.mockRestore();
-    setUntrustedRoots([]);
-    rmSync(root, { recursive: true, force: true });
-  }
-});
+    try {
+      const child = spawnTrusted(script, []);
+      expect(await new Response(child.stdout).text()).toBe("system");
+      expect(await child.exited).toBe(0);
+    } finally {
+      policy.mockRestore();
+      setUntrustedRoots([]);
+      rmSync(root, { recursive: true, force: true });
+    }
+  },
+);
 
 test("environment drops code loading variables and only keeps explicit git settings", () => {
   const env = sanitizedEnvironment(
@@ -135,7 +138,10 @@ test("writable directories, git files, and symlinks into checkouts are rejected"
     mkdirSync(bin);
     writeFileSync(join(bin, "tool"), "#!/bin/sh\nexit 0", { mode: 0o755 });
     chmodSync(bin, 0o777);
-    expect(() => resolveTrustedExecutable(join(bin, "tool"))).toThrow();
+
+    if (process.platform !== "win32")
+      expect(() => resolveTrustedExecutable(join(bin, "tool"))).toThrow();
+
     chmodSync(bin, 0o700);
     writeFileSync(join(root, ".git"), "gitdir: elsewhere");
     const link = mkdtempSync(join(tmpdir(), "envden-link-"));
@@ -156,7 +162,11 @@ test("sync subprocesses use the same executable and environment policy", () => {
 
   try {
     process.env.NODE_PATH = "payload";
-    const result = spawnTrusted("sh", ["-c", 'test -z "$NODE_PATH"'], { sync: true });
+
+    const result = spawnTrusted("bun", ["-e", "process.exit(process.env.NODE_PATH ? 1 : 0)"], {
+      sync: true,
+    });
+
     expect(result.exitCode).toBe(0);
   } finally {
     process.env.NODE_PATH = before;
@@ -192,9 +202,9 @@ test("group write is trusted only for privileged groups", () => {
 
   expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 80 }, "linux")).toBe(false);
   expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 80 }, "darwin")).toBe(true);
-  expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 0 })).toBe(true);
-  expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 20 })).toBe(false);
-  expect(trustedOwnerAndMode({ mode: 0o40777, uid, gid: 80 })).toBe(false);
+  expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 0 }, "linux")).toBe(true);
+  expect(trustedOwnerAndMode({ mode: 0o40775, uid, gid: 20 }, "linux")).toBe(false);
+  expect(trustedOwnerAndMode({ mode: 0o40777, uid, gid: 80 }, "linux")).toBe(false);
 });
 
 test("manager bin is appended to fixed child PATH and rejected inside registered roots", () => {
@@ -229,7 +239,7 @@ test("Windows fixed directories use canonical drive paths", () => {
 
 test("a fake Homebrew root on Linux is still a checkout", () => {
   const filesystemPolicy = spyOn(filesystem, "existsSync").mockImplementation(
-    (path) => String(path) === "/opt/homebrew/.git",
+    (path) => String(path) === join("/opt/homebrew", ".git"),
   );
 
   try {
@@ -238,4 +248,12 @@ test("a fake Homebrew root on Linux is still a checkout", () => {
   } finally {
     filesystemPolicy.mockRestore();
   }
+});
+
+test("the running runtime is trusted without trusting its directory or PATH", async () => {
+  expect(resolveTrustedExecutable("bun")).toBe(process.execPath);
+  expect(resolveTrustedExecutable(process.execPath)).toBe(process.execPath);
+  const child = spawnTrusted("bun", ["-e", "process.stdout.write('runtime')"]);
+  expect(await new Response(child.stdout).text()).toBe("runtime");
+  expect(await child.exited).toBe(0);
 });

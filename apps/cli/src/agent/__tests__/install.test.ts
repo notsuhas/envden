@@ -29,7 +29,7 @@ test("agent install refuses an existing real destination folder", async () => {
   try {
     const { mkdir } = await import("node:fs/promises");
     await mkdir(join(home, ".claude", "skills", "envden"), { recursive: true });
-    expect(installAgent(home)).rejects.toThrow("existing folder or file");
+    await Promise.resolve(expect(installAgent(home)).rejects.toThrow("existing folder or file"));
   } finally {
     await rm(home, { recursive: true, force: true });
   }

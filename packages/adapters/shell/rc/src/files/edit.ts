@@ -2,6 +2,7 @@ import { constants } from "node:fs";
 import { mkdir, open, realpath } from "node:fs/promises";
 import { dirname } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
+import { verifyWindowsOwner } from "./windows.ts";
 import { backupRc } from "./backup.ts";
 
 interface IEditHooks {
@@ -35,8 +36,13 @@ export async function editRc(
   try {
     const stat = await file.stat();
 
-    if (!stat.isFile() || stat.uid !== process.getuid?.() || stat.nlink !== 1)
+    if (
+      !stat.isFile() ||
+      (process.platform !== "win32" && (stat.uid !== process.getuid?.() || stat.nlink !== 1))
+    )
       throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
+
+    if (process.platform === "win32") await verifyWindowsOwner(resolved);
 
     await hooks.opened?.();
     const original = await file.readFile();

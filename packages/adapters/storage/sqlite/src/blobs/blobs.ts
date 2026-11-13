@@ -1,3 +1,4 @@
+import { syncDirectory } from "../db/directory.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TContext } from "../db/context.ts";
 import { equal, hex } from "../db/values.ts";
@@ -73,13 +74,7 @@ export function createBlobs(context: TContext) {
             throw new Error("Conflicting content for blob hash");
         }
 
-        const dirFd = openSync(dir, "r");
-
-        try {
-          fsyncSync(dirFd);
-        } finally {
-          closeSync(dirFd);
-        }
+        syncDirectory(dir);
 
         run("INSERT OR IGNORE INTO blobs VALUES(?,?)", vault, hash);
         run("INSERT OR IGNORE INTO blob_usage VALUES(?,?,?,?)", vault, hash, bytes.length, now);

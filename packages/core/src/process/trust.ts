@@ -41,6 +41,8 @@ export function trustedDirectories(
 }
 
 export function resolveTrustedExecutable(name: string): string {
+  if (name === "bun" || name === process.execPath) return process.execPath;
+
   const candidates = isAbsolute(name)
     ? [name]
     : trustedDirectories().flatMap((dir) =>

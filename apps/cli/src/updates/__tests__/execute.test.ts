@@ -1,7 +1,7 @@
 import { spawnTrusted } from "@envden/core/process";
 import { mkdtemp, mkdir, writeFile, rm, symlink, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, delimiter } from "node:path";
 import { test, expect, spyOn } from "bun:test";
 import { managerUpdate } from "../self/execute.ts";
 import { pinnedInstall } from "../self/paths.ts";
@@ -92,7 +92,7 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
         mode: 0o755,
       });
 
-      process.env.PATH = `${checkout}:${before.PATH}`;
+      process.env.PATH = `${checkout}${delimiter}${before.PATH}`;
       process.env.NODE_OPTIONS = "--require=checkout";
       process.env.BUN_OPTIONS = "--preload=checkout";
       process.env.npm_config_prefix = root;
@@ -100,10 +100,16 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
       process.env.NODE_PATH = root;
       process.env.GIT_EXEC_PATH = root;
       process.env.NPM_CONFIG_USERCONFIG = join(root, "npmrc");
-      const bin = join(root, "prefix", "bin");
+      const bin = process.platform === "win32" ? join(root, "npm") : join(root, "prefix", "bin");
+      const node = join(bin, process.platform === "win32" ? "node.exe" : "node");
       await mkdir(bin, { recursive: true });
-      await symlink(process.execPath, join(bin, "node"));
-      const cli = join(root, "prefix", "lib", "node_modules", "npm", "bin", "npm-cli.js");
+      await symlink(process.execPath, node);
+
+      const cli =
+        process.platform === "win32"
+          ? join(bin, "node_modules", "npm", "bin", "npm-cli.js")
+          : join(root, "prefix", "lib", "node_modules", "npm", "bin", "npm-cli.js");
+
       await mkdir(join(cli, ".."), { recursive: true });
       await writeFile(cli, "process.exit(0)");
 
@@ -140,18 +146,22 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
 
           if (manager === "brew" && calls === 1) {
             expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeDefined();
-            expect((await stat(env.HOMEBREW_XDG_CONFIG_HOME!)).mode & 0o777).toBe(0o700);
+
+            await expectPrivateMode(env.HOMEBREW_XDG_CONFIG_HOME!, 0o700);
           }
 
           if (manager === "npm" && calls === 1) {
-            expect(args.slice(0, 2)).toEqual([join(bin, "node"), cli]);
+            expect(args.slice(0, 2).map((path) => path.replaceAll("\\", "/"))).toEqual(
+              [node, cli].map((path) => path.replaceAll("\\", "/")),
+            );
+
             const config = args[args.indexOf("--userconfig") + 1]!;
             expect(await readFile(config, "utf8")).toBe("");
-            expect((await stat(config)).mode & 0o777).toBe(0o600);
+            await expectPrivateMode(config, 0o600);
             expect(args).not.toContain("--ignore-scripts");
             expect(await spawnTrusted(args.slice(0, 2), { env }).exited).toBe(0);
           } else {
-            await spawnTrusted(["/usr/bin/env", "node", "--version"], {
+            await spawnTrusted(["bun", "--version"], {
               env,
               stdout: "ignore",
               stderr: "ignore",
@@ -203,7 +213,7 @@ for (const missing of ["node", "cli"]) {
   });
 }
 
-for (const variable of ["HOME", "TMPDIR"])
+for (const variable of ["HOME", process.platform === "win32" ? "TEMP" : "TMPDIR"])
   test(`manager updates refuse checkout ${variable} before consent or execution`, async () => {
     const root = await mkdtemp(join(tmpdir(), "envden-home-"));
     const before = process.env[variable];
@@ -213,7 +223,7 @@ for (const variable of ["HOME", "TMPDIR"])
       await mkdir(join(root, ".git"));
       await mkdir(join(root, "home"));
 
-      if (variable === "TMPDIR") {
+      if (variable !== "HOME") {
         const child = spawnTrusted(
           [
             process.execPath,
@@ -224,7 +234,9 @@ for (const variable of ["HOME", "TMPDIR"])
           if (result.kind !== "manual") throw new Error("must refuse");
         `,
           ],
-          { env: { TMPDIR: join(root, "home") } },
+          {
+            env: { TMPDIR: join(root, "home"), TEMP: join(root, "home"), TMP: join(root, "home") },
+          },
         );
 
         expect(await child.exited).toBe(0);
@@ -262,3 +274,7 @@ for (const variable of ["HOME", "TMPDIR"])
       await rm(root, { recursive: true, force: true });
     }
   });
+
+async function expectPrivateMode(path: string, mode: number) {
+  if (process.platform !== "win32") expect((await stat(path)).mode & 0o777).toBe(mode);
+}

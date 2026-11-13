@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { spawnTrusted } from "@envden/core/process";
 import { Worker } from "node:worker_threads";
 import { describe, expect, test } from "bun:test";
@@ -85,7 +86,12 @@ describe("SQLite durability", () => {
 
       try {
         const child = spawnTrusted(
-          [process.execPath, new URL("./blob-crash.ts", import.meta.url).pathname, dir, stage],
+          [
+            process.execPath,
+            fileURLToPath(new URL("./blob-crash.ts", import.meta.url)),
+            dir,
+            stage,
+          ],
           { stdout: "ignore", stderr: "pipe" },
         );
 
@@ -167,10 +173,10 @@ test("startup repairs existing directory, database and sidecar modes", () => {
     chmodSync(join(dir, "envden.sqlite"), 0o644);
     chmodSync(join(dir, "identity.json"), 0o644);
     const reopened = createSqliteStorageAdapter(dir, 0);
-    expect(statSync(dir).mode & 0o777).toBe(0o700);
+    if (process.platform !== "win32") expect(statSync(dir).mode & 0o777).toBe(0o700);
 
     for (const name of ["identity.json", "envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"])
-      expect(statSync(join(dir, name)).mode & 0o777).toBe(0o600);
+      if (process.platform !== "win32") expect(statSync(join(dir, name)).mode & 0o777).toBe(0o600);
 
     reopened.close();
   } finally {

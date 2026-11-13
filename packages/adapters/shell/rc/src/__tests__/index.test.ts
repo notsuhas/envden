@@ -24,7 +24,10 @@ for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
   });
 }
 
-for (const shell of ["bash", "zsh"] as const) {
+for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as readonly (
+  | "bash"
+  | "zsh"
+)[]) {
   test.skipIf(process.platform === "win32" || !Bun.which(shell))(
     `${shell} prints only inside an approved checkout and sanitizes refresh`,
     async () => {
@@ -94,7 +97,10 @@ test("PowerShell gates notices on a directory change", () => {
   expect(snippet).toContain("if ($changed)");
 });
 
-for (const shell of ["bash", "zsh"] as const)
+for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as readonly (
+  | "bash"
+  | "zsh"
+)[])
   test(`${shell} caches track offers and update days`, async () => {
     const home = await realpath(await mkdtemp(join(tmpdir(), "envden-offer-")));
     const { mkdir } = await import("node:fs/promises");

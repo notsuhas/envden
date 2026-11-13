@@ -40,8 +40,8 @@ for (const operation of ["install", "uninstall"] as const) {
       expect(names).toHaveLength(1);
       const backup = join(backups, names[0]!);
       expect(await readFile(backup, "utf8")).toBe(original);
-      expect((await stat(backup)).mode & 0o777).toBe(0o600);
-      expect((await stat(backups)).mode & 0o777).toBe(0o700);
+      if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
+      if (process.platform !== "win32") expect((await stat(backups)).mode & 0o777).toBe(0o700);
     } finally {
       await rm(home, { recursive: true, force: true });
     }

@@ -22,7 +22,9 @@ for (const mode of ["copy", "link"] as const)
     await remove(checkout, store, destination, fallback);
     expect(await readdir(join(checkout, "nested"))).toEqual([]);
     await remove(checkout, store, destination, fallback);
-    expect((await lstat(join(checkout, "nested"))).mode & 0o777).toBe(0o700);
+
+    if (process.platform !== "win32")
+      expect((await lstat(join(checkout, "nested"))).mode & 0o777).toBe(0o700);
   });
 
 test("fallback refuses unsafe roots, parents, sources and destinations without changing contents", async () => {

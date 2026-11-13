@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { spawnTrusted } from "@envden/core/process";
 import { test, expect } from "bun:test";
 import { TELEMETRY_KEY } from "../build-config.ts";
@@ -12,7 +13,7 @@ test("unconfigured builds disable telemetry despite runtime environment", async 
       'const { TELEMETRY_KEY } = await import("./apps/cli/src/settings/build-config.ts"); process.stdout.write(TELEMETRY_KEY)',
     ],
     {
-      cwd: new URL("../../../../../", import.meta.url).pathname,
+      cwd: fileURLToPath(new URL("../../../../../", import.meta.url)),
       env: { ...process.env, ENVDEN_TELEMETRY_KEY: "runtime-only" },
       stdout: "pipe",
       stderr: "pipe",
@@ -26,7 +27,7 @@ test("unconfigured builds disable telemetry despite runtime environment", async 
 for (const key of ["", "phc_build-key"])
   test(`bundled telemetry key is fixed at build time: ${key || "absent"}`, async () => {
     const build = await Bun.build({
-      entrypoints: [new URL("../build-config.ts", import.meta.url).pathname],
+      entrypoints: [fileURLToPath(new URL("../build-config.ts", import.meta.url))],
       target: "bun",
       define: { __ENVDEN_TELEMETRY_KEY__: JSON.stringify(key) },
     });

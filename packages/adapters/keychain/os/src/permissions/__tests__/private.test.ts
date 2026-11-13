@@ -15,7 +15,9 @@ test("private keychain files and directories get POSIX modes or explicit non-inh
       else await writeFile(path, "secret", { mode: 0o644 });
 
       await restrictAccess(path, directory);
-      expect((await stat(path)).mode & 0o777).toBe(directory ? 0o700 : 0o600);
+
+      if (process.platform !== "win32")
+        expect((await stat(path)).mode & 0o777).toBe(directory ? 0o700 : 0o600);
 
       await restrictAccess(path, directory, {
         platform: "win32",

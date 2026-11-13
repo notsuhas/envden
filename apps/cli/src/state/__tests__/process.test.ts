@@ -9,7 +9,9 @@ test("Linux starttime handles spaces and parentheses in process names", () => {
 });
 
 test("process identity is observable without GNU ps", async () => {
-  expect(await processStart(process.pid)).toMatchObject({ kind: "live" });
+  const identity = await processStart(process.pid);
+  expect(identity).toMatchObject({ kind: "live" });
+  expect(await processStart(process.pid)).toEqual(identity);
   expect(await processStart(2147483647)).toEqual({ kind: "dead" });
 });
 

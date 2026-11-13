@@ -54,11 +54,12 @@ export function spawnTrusted(
 export async function execTrusted(name: string, args: string[], options: TOptions = {}) {
   const child = spawnTrusted(name, args, options);
 
-  const [stdout, stderr, status] = await Promise.all([
+  const [stdout, stderr] = await Promise.all([
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
-    child.exited,
   ]);
+
+  const status = await child.exited;
 
   if (status !== 0)
     throw new EnvdenError("INVALID_INPUT", "Subprocess failed", { cause: { exitCode: status } });

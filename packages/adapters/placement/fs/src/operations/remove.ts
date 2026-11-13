@@ -31,7 +31,12 @@ export async function remove(
     return;
   }
 
-  const parents = await parentIdentity(root, checkoutPath);
+  await removeFallback(root, storePath, checkoutPath);
+}
+
+async function removeFallback(root: string, storePath: string | undefined, checkoutPath: string) {
+  const parents = await removalParents(root, checkoutPath);
+  if (!parents) return;
   const existing = await statOrMissing(checkoutPath);
   if (!existing) return;
 
@@ -43,4 +48,13 @@ export async function remove(
 
   await verifyParents(parents, checkoutPath);
   await unlink(checkoutPath);
+}
+
+async function removalParents(root: string, path: string) {
+  try {
+    return await parentIdentity(root, path);
+  } catch (cause) {
+    if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return undefined;
+    throw cause;
+  }
 }

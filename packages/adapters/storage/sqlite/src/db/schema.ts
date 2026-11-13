@@ -1,3 +1,4 @@
+import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
 import { Database } from "bun:sqlite";
 import {
@@ -79,13 +80,7 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
         closeSync(fd);
       }
 
-      const dirFd = openSync(dataDir, "r");
-
-      try {
-        fsyncSync(dirFd);
-      } finally {
-        closeSync(dirFd);
-      }
+      syncDirectory(dataDir);
     }
 
     migrateV1(db);

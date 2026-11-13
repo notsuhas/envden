@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { spawnTrusted } from "@envden/core/process";
 import * as lockOwners from "../lock/owner.ts";
 import { test, expect, spyOn } from "bun:test";
@@ -148,7 +149,7 @@ test("sync reclaims the state lock of a killed process", async () => {
     [
       "bun",
       "--eval",
-      `import { withSyncLock } from ${JSON.stringify(new URL("../../sync/local/files.ts", import.meta.url).pathname)}; await withSyncLock(${JSON.stringify(home)}, async () => { console.log('locked'); await new Promise(() => {}); });`,
+      `import { withSyncLock } from ${JSON.stringify(fileURLToPath(new URL("../../sync/local/files.ts", import.meta.url)))}; await withSyncLock(${JSON.stringify(home)}, async () => { console.log('locked'); await new Promise(() => {}); });`,
     ],
     { stdout: "pipe", stderr: "pipe" },
   );
@@ -268,7 +269,7 @@ for (const crash of ["guard", "renamed"])
   });
 
 test("importing the lock does not probe process start", async () => {
-  const path = new URL("../lock/lock.ts", import.meta.url).pathname;
+  const path = fileURLToPath(new URL("../lock/lock.ts", import.meta.url));
 
   const child = spawnTrusted(
     [

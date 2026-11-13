@@ -16,8 +16,12 @@ test("atomic state stays private and replaces old bytes", async () => {
     state.telemetry = true;
     await saveState(home, state);
     expect(await loadState(home)).toEqual(state);
-    expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
-    expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
+
+    if (process.platform !== "win32")
+      expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
+
+    if (process.platform !== "win32")
+      expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
   } finally {
     await rm(home, { recursive: true, force: true });
   }

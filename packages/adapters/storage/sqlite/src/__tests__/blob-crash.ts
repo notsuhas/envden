@@ -2,13 +2,11 @@ import { mock } from "bun:test";
 import * as fs from "node:fs";
 
 const originalWrite = fs.writeFileSync;
-const originalSync = fs.fsyncSync;
+const originalLink = fs.linkSync;
 const dir = process.argv[2];
 const stage = process.argv[3];
 
 if (!dir) throw new Error("Missing data directory");
-
-let syncs = 0;
 
 await mock.module("node:fs", () => ({
   ...fs,
@@ -20,9 +18,9 @@ await mock.module("node:fs", () => ({
 
     return originalWrite(...args);
   },
-  fsyncSync(fd: number) {
-    originalSync(fd);
-    if (++syncs === 2) process.exit(77);
+  linkSync(...args: Parameters<typeof fs.linkSync>) {
+    originalLink(...args);
+    process.exit(77);
   },
 }));
 

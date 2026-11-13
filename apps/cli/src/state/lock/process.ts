@@ -18,22 +18,20 @@ export async function processStart(
   read = (path: string) => readFile(path, "utf8"),
 ): Promise<TProcess> {
   try {
+    if (platform === "win32") {
+      const { windowsStart } = await import("./windows.ts");
+
+      return windowsStart(pid);
+    }
+
     let startedAt: string | undefined;
 
     if (platform === "linux") {
       startedAt = linuxStart(await read(`/proc/${pid}/stat`));
     } else {
-      const result =
-        platform === "win32"
-          ? await exec("powershell.exe", [
-              "-NoProfile",
-              "-NonInteractive",
-              "-Command",
-              `(Get-Process -Id ${pid} -ErrorAction Stop).StartTime.ToUniversalTime().Ticks`,
-            ])
-          : await exec("ps", ["-p", String(pid), "-o", "lstart="], {
-              env: { LC_ALL: "C" },
-            });
+      const result = await exec("ps", ["-p", String(pid), "-o", "lstart="], {
+        env: { LC_ALL: "C" },
+      });
 
       startedAt = result.stdout.trim();
     }

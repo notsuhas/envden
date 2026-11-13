@@ -15,9 +15,11 @@ test("server signing key and OPAQUE setup persist privately", async () => {
     chmodSync(dir, 0o755);
     chmodSync(join(dir, "identity.json"), 0o644);
     const second = await loadServerKeys(dir);
-    expect(statSync(dir).mode & 0o777).toBe(0o700);
+    if (process.platform !== "win32") expect(statSync(dir).mode & 0o777).toBe(0o700);
     expect(second).toEqual(first);
-    expect(statSync(join(dir, "identity.json")).mode & 0o777).toBe(0o600);
+
+    if (process.platform !== "win32")
+      expect(statSync(join(dir, "identity.json")).mode & 0o777).toBe(0o600);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
