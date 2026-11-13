@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { SECURITY_POINTS } from "@/components/landing/security/points.ts";
+import { RecoveryArt } from "@/components/landing/security/recovery-art.tsx";
+import { cipherLine } from "@/components/landing/content/cipher.ts";
 import { Accent } from "@/components/landing/ui/accent.tsx";
-import { Glyph } from "@/components/landing/ui/glyph.tsx";
 import { Section } from "@/components/landing/ui/section.tsx";
+import { Window } from "@/components/landing/ui/window/window.tsx";
 import { DOCS_ROUTE } from "@/lib/routes.ts";
 
 export function Security() {
@@ -14,27 +16,38 @@ export function Security() {
           The server <Accent>can't read</Accent> your files.
         </>
       }
-    >
-      <ul className="den-cells border-t border-den-line sm:grid-cols-2 lg:grid-cols-3">
-        {SECURITY_POINTS.map((point) => (
-          <li key={point.tag} className="den-cell px-5 py-6 sm:px-8 sm:py-7">
-            <p className="den-label flex items-center gap-2 text-den-lantern">
-              <Glyph name="check" className="h-3.5 w-3.5" />
-              {point.tag}
-            </p>
-            <p className="mt-3 text-base leading-relaxed text-pretty text-den-ink">{point.text}</p>
-          </li>
-        ))}
-      </ul>
-      <p className="border-t border-den-line px-5 py-5 sm:px-8">
+      aside={
         <Link
+          className="den-link inline-flex min-h-11 items-center text-sm text-den-ink"
           href={`${DOCS_ROUTE}/security`}
-          className="inline-flex items-center gap-2 text-[15px] font-medium text-den-ink underline decoration-den-line-strong underline-offset-[5px] transition-[text-decoration-color] duration-150 ease-out hover:decoration-den-lantern"
         >
-          Read the threat model
-          <Glyph name="arrow" className="den-nudge h-4 w-4 text-den-lantern" />
+          Read the threat model →
         </Link>
-      </p>
+      }
+    >
+      <div className="den-dots grid gap-6 border-t border-den-line p-3 sm:p-6 lg:grid-cols-[2fr_3fr] lg:p-8">
+        <Window title="server.sqlite">
+          <div className="overflow-hidden p-4 font-mono text-[13px] leading-6 text-den-cipher">
+            {[17, 83, 149].map((seed) => (
+              <div key={seed} className="mb-3">
+                <p className="text-den-muted">id: {cipherLine(18, seed)}</p>
+                <p className="den-fade-right whitespace-nowrap">{cipherLine(64, seed + 1)}</p>
+              </div>
+            ))}
+          </div>
+          <RecoveryArt />
+        </Window>
+        <Window title="threat-model.txt">
+          <ul className="space-y-3 p-4 font-mono text-[13px] leading-6 text-den-ink sm:p-6">
+            {SECURITY_POINTS.map((point) => (
+              <li key={point.tag} className="flex gap-3">
+                <span className="text-den-lantern">[x]</span>
+                <span>{point.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Window>
+      </div>
     </Section>
   );
 }

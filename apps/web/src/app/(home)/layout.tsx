@@ -20,7 +20,12 @@ export default function Layout(props: IHomeLayout) {
         { text: "Security", url: `${DOCS_ROUTE}/security` },
         {
           type: "button",
-          text: "Star on GitHub",
+          text: (
+            <span className="inline-flex items-center gap-2">
+              <GithubMark />
+              Star
+            </span>
+          ),
           url: GITHUB_URL,
           icon: <GithubMark />,
           external: true,

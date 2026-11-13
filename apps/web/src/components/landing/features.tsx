@@ -1,3 +1,4 @@
+import { RecoveryArt } from "@/components/landing/security/recovery-art.tsx";
 import { FeatureCell } from "@/components/landing/features/cell.tsx";
 import { AgentPreview } from "@/components/landing/features/previews/agent.tsx";
 import { MergePreview } from "@/components/landing/features/previews/merge.tsx";
@@ -18,7 +19,7 @@ export function Features() {
         </>
       }
     >
-      <div className="den-cells border-t border-den-line sm:grid-cols-2 lg:grid-cols-3">
+      <div className="den-cells border-t border-den-line sm:grid-cols-2 den-bento lg:grid-cols-6">
         <FeatureCell
           title="One file, every worktree."
           body="Each repo's env lives in one place, and every checkout links to it."
@@ -53,6 +54,11 @@ export function Features() {
           title="Built for coding agents."
           body="Agents can check status and run setup. You still type the password."
           preview={<AgentPreview />}
+        />
+        <FeatureCell
+          title="Keep a recovery kit."
+          body="Store your recovery kit like a passport."
+          preview={<RecoveryArt />}
         />
       </div>
     </Section>

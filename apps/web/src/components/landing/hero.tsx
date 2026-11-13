@@ -8,7 +8,7 @@ import { GETTING_STARTED_ROUTE } from "@/lib/routes.ts";
 import { GITHUB_URL } from "@/lib/site.ts";
 
 function riseDelay(step: number): CSSProperties {
-  return { "--rise-delay": `${step * 80}ms` } as CSSProperties;
+  return { "--rise-delay": `${step * 60}ms` } as CSSProperties;
 }
 
 export function Hero() {
@@ -45,8 +45,8 @@ export function Hero() {
       </div>
       <div className="relative h-64 sm:h-80 lg:h-auto">
         <HeroDen />
-        <span className="den-ruler absolute inset-x-0 bottom-0" aria-hidden="true" />
       </div>
+      <span className="den-ruler absolute inset-x-0 bottom-0" aria-hidden="true" />
     </section>
   );
 }

@@ -42,7 +42,7 @@ function serverLayer(layout: IMeshLayout): TShader {
 function devicesLayer(layout: IMeshLayout): TShader {
   return (x, y) => {
     for (const device of layout.devices) {
-      const shade = screenShade(x - device.x, y - (device.y - SCREEN_TALL / 2), 4);
+      const shade = screenShade(x - device.x, y - (device.y - Math.floor(SCREEN_TALL / 2)), 4);
       if (shade !== SKIP) return shade;
     }
 
@@ -97,7 +97,7 @@ export const meshScene: IScene = {
       })),
       ...devices.map((device) => ({
         x: device.x - SCREEN_HALF,
-        y: device.y - SCREEN_TALL / 2,
+        y: device.y - Math.floor(SCREEN_TALL / 2),
         width: SCREEN_HALF * 2 + 1,
         height: SCREEN_TALL + 1,
       })),

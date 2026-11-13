@@ -18,6 +18,7 @@ export function Window(props: IWindow) {
     <figure
       className={`den-window flex min-w-0 flex-col border border-den-ink bg-den-ground ${className}`}
       data-lit={lit}
+      data-area={area}
       style={area ? { gridArea: area } : undefined}
     >
       <figcaption className="flex h-7 items-center gap-2 border-b border-den-ink px-1.5">

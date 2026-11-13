@@ -9,7 +9,8 @@
   --den-line-strong: rgba(237, 233, 224, 0.24);
   --den-lantern: rgba(247, 190, 84, 1);
   --den-on-lantern: rgba(22, 16, 4, 1);
-  --den-cipher: rgba(247, 190, 84, 1);
+  --den-cipher: rgba(237, 233, 224, 0.55);
+  --den-alarm: rgba(235, 104, 65, 1);
   --den-paper: rgba(236, 228, 208, 1);
   --den-on-paper: rgba(34, 30, 22, 1);
   --den-frame: 84rem;
@@ -53,6 +54,7 @@
   --color-den-lantern: var(--den-lantern);
   --color-den-on-lantern: var(--den-on-lantern);
   --color-den-cipher: var(--den-cipher);
+  --color-den-alarm: var(--den-alarm);
   --color-den-paper: var(--den-paper);
   --color-den-on-paper: var(--den-on-paper);
 

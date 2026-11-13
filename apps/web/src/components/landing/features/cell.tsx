@@ -11,11 +11,11 @@ export function FeatureCell(props: IFeatureCell) {
   const { title, body, preview } = props;
 
   return (
-    <InView className="den-cell flex flex-col p-5 sm:p-8">
+    <InView className="den-feature den-cell min-w-0 flex flex-col p-5 sm:p-8">
       <div className="flex flex-1 items-center pb-6 sm:pb-8">
         <div className="w-full">{preview}</div>
       </div>
-      <h3 className="den-heading text-xl text-den-ink">{title}</h3>
+      <h3 className="den-heading min-h-[3.05rem] text-xl text-den-ink">{title}</h3>
       <p className="mt-2 text-[15px] leading-relaxed text-pretty text-den-muted">{body}</p>
     </InView>
   );

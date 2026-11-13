@@ -1,6 +1,7 @@
 "use client";
 
-import { useInView, useReducedMotion } from "motion/react";
+import { useInView } from "motion/react";
+import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
 import { useRef } from "react";
 import { sessionFrame, sessionTicks } from "@/components/landing/ui/typed/frame.ts";
 import type { ISessionLine } from "@/components/landing/ui/typed/frame.ts";
@@ -9,6 +10,7 @@ import { useTicks } from "@/components/landing/ui/typed/use-ticks.ts";
 interface ITypedSession {
   lines: ISessionLine[];
   className?: string;
+  sharedTick?: number;
 }
 
 const LINE_CLASS = {
@@ -21,12 +23,12 @@ const LINE_CLASS = {
 const LEAD = { command: "$ ", prompt: "◆ ", answer: "│ ", output: "" };
 
 export function TypedSession(props: ITypedSession) {
-  const { lines, className = "" } = props;
+  const { lines, className = "", sharedTick } = props;
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
   const reduced = useReducedMotion() === true;
   const total = sessionTicks(lines);
-  const tick = useTicks(total, inView && !reduced);
+  const tick = useTicks(total, inView && !reduced, 55, sharedTick);
   const frame = reduced ? { lines, typing: false } : sessionFrame(lines, tick);
 
   return (
@@ -51,7 +53,10 @@ export function TypedSession(props: ITypedSession) {
               <span className="text-den-muted select-none">{LEAD[line.kind]}</span>
               {line.text}
               {index === frame.lines.length - 1 ? (
-                <span className="den-caret ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-den-lantern" />
+                <span
+                  key={line.text.length}
+                  className="den-caret ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-den-lantern"
+                />
               ) : null}
             </p>
           ))}

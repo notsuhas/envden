@@ -38,7 +38,9 @@ export function denLayout(frame: ISceneFrame): IDenLayout {
     doorTop: 0,
     laptopX: Math.max(20, width * 0.11),
     desktopX: Math.min(width - 20, width * 0.9),
-    breath: 0.8 + 0.2 * Math.sin(seconds * 1.3),
+    breath:
+      (0.8 + 0.2 * Math.sin(seconds * 1.3)) * (1 - (frame.excitement ?? 0)) +
+      (frame.excitement ?? 0),
   };
 
   layout.doorBase = Math.round(groundAt(layout, moundX));

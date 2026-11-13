@@ -1,5 +1,6 @@
 "use client";
 
+import { echoAction } from "@/components/landing/chrome/action.ts";
 import { useState, useSyncExternalStore } from "react";
 import type { KeyboardEvent } from "react";
 import { INSTALL_CHANNELS, defaultChannel } from "@/components/landing/install/channels.ts";
@@ -45,7 +46,7 @@ export function CommandBox(props: ICommandBox) {
         aria-label="Install with"
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        className="flex w-fit max-w-full overflow-x-auto border border-b-0 border-den-line-strong [scrollbar-width:none]"
+        className="den-tabs den-fade-right flex w-fit max-w-full overflow-x-auto border border-b-0 border-den-line-strong [scrollbar-width:none]"
       >
         {INSTALL_CHANNELS.map((item, index) => (
           <button
@@ -56,8 +57,11 @@ export function CommandBox(props: ICommandBox) {
             aria-selected={index === active}
             aria-controls={`${name}-panel-${item.id}`}
             tabIndex={index === active ? 0 : -1}
-            onClick={() => setPicked(index)}
-            className="h-7 shrink-0 border-r border-den-line-strong px-2.5 font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out last:border-r-0 hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-selected:bg-den-lantern aria-selected:text-den-on-lantern"
+            onClick={() => {
+              setPicked(index);
+              echoAction(`channel: ${item.label}`);
+            }}
+            className="den-tab h-11 min-w-11 shrink-0 border-r border-den-line-strong px-2.5 font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out last:border-r-0 hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-selected:text-den-on-lantern"
           >
             {item.label}
           </button>

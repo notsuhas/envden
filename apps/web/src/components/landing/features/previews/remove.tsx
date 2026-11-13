@@ -21,7 +21,7 @@ export function RemovePreview() {
               className={`flex items-center justify-between border-b border-den-line px-3 py-1.5 ${device.removed ? GONE_CLASS : ""}`}
             >
               <span className="text-den-ink">{device.name}</span>
-              <span className={device.removed ? "text-den-cipher" : "text-den-muted"}>
+              <span className={device.removed ? "text-den-alarm" : "text-den-muted"}>
                 {device.removed ? "removed" : "member"}
               </span>
             </li>

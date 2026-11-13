@@ -9,7 +9,7 @@ export function ShellPreview() {
           <span className="text-den-muted select-none">$ </span>
           <span className="den-typed inline-block align-bottom">cd ~/code/shop</span>
         </p>
-        <p className="break-all text-den-lantern opacity-0 transition-opacity delay-[1300ms] duration-300 ease-out group-data-[seen=true]:opacity-100">
+        <p className="den-fade-right overflow-hidden whitespace-nowrap text-den-alarm opacity-0 transition-opacity delay-[1300ms] duration-300 ease-out group-data-[seen=true]:opacity-100">
           envden: github.com/you/shop out of sync
         </p>
       </InView>

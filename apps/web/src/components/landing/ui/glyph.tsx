@@ -1,3 +1,5 @@
+import { pixelPath } from "@/components/landing/ui/icons/pixels.ts";
+
 const GLYPH_PATHS = {
   laptop: "M5 5.5h14a1 1 0 0 1 1 1V15H4V6.5a1 1 0 0 1 1-1Z M2.5 18.5h19",
   desktop:
@@ -20,6 +22,22 @@ interface IGlyph {
 
 export function Glyph(props: IGlyph) {
   const { name, className = "h-4 w-4" } = props;
+
+  const pixels = pixelPath(name);
+
+  if (pixels) {
+    return (
+      <svg
+        viewBox="0 0 16 16"
+        fill="currentColor"
+        shapeRendering="crispEdges"
+        className={`shrink-0 ${className}`}
+        aria-hidden="true"
+      >
+        <path d={pixels} />
+      </svg>
+    );
+  }
 
   return (
     <svg

@@ -1,4 +1,6 @@
 import { expect, test } from "bun:test";
+import { finaleScene } from "../objects/finale.ts";
+import { recoveryScene } from "../objects/recovery.ts";
 import { denScene } from "../den/scene.ts";
 import { denLayout } from "../den/layout.ts";
 import { antennaLayer } from "../den/antenna.ts";
@@ -32,6 +34,8 @@ for (const width of [80, 220]) {
 
       const shaders = [
         denScene.shade(frame),
+        finaleScene.shade(frame),
+        recoveryScene.shade(frame),
         meshScene.shade(frame),
         pressScene.shade(frame),
         antennaLayer(layout),

@@ -1,3 +1,6 @@
+"use client";
+
+import { echoAction } from "@/components/landing/chrome/action.ts";
 import { TRIP_STEPS } from "@/components/landing/trip/steps/content.ts";
 import type { TTripPhase } from "@/components/landing/trip/state/phases.ts";
 
@@ -16,14 +19,17 @@ export function StepRail(props: IStepRail) {
 
   return (
     <div className="mt-3 sm:mt-6">
-      <ol className="grid grid-cols-5 border border-den-ink bg-den-ground">
+      <ol className="den-tabs grid grid-cols-5 border border-den-ink bg-den-ground">
         {TRIP_STEPS.map((step, index) => (
           <li key={step.phase} className="border-l border-den-line-strong first:border-l-0">
             <button
               type="button"
-              onClick={() => onJump(step.phase)}
+              onClick={() => {
+                onJump(step.phase);
+                echoAction(`step ${index + 1}/5: ${step.label.toLowerCase()}`);
+              }}
               aria-current={index === current ? "step" : undefined}
-              className="relative flex h-9 w-full items-center justify-center gap-2 overflow-hidden font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-[current=step]:text-den-lantern sm:text-xs"
+              className="den-tab relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-[current=step]:text-den-lantern sm:text-xs"
             >
               {index === current && !showAll ? (
                 <span
@@ -49,7 +55,10 @@ export function StepRail(props: IStepRail) {
           ))}
         </ol>
       ) : (
-        <p className="mt-3 h-20 max-w-2xl text-sm text-pretty text-den-muted sm:h-14 sm:text-base">
+        <p
+          key={phase}
+          className="den-caption mt-3 h-20 max-w-2xl text-sm text-pretty text-den-muted sm:h-14 sm:text-base"
+        >
           {TRIP_STEPS[current]?.caption}
         </p>
       )}

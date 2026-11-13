@@ -2,6 +2,8 @@ export interface ISceneFrame {
   width: number;
   height: number;
   seconds: number;
+  excitement?: number;
+  packetSeconds?: number;
 }
 
 export interface IRegion {

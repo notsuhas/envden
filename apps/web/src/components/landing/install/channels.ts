@@ -9,8 +9,7 @@ export const INSTALL_CHANNELS = [
     id: "scoop",
     label: "scoop",
     commands: [
-      "scoop bucket add envden https://github.com/notsuhas/scoop-bucket",
-      "scoop install envden",
+      "scoop bucket add envden https://github.com/notsuhas/scoop-bucket; scoop install envden",
     ],
   },
   { id: "docker", label: "docker", commands: ["docker pull ghcr.io/notsuhas/envden:0.1"] },

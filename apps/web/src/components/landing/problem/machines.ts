@@ -17,6 +17,6 @@ export const DRIFT_MACHINES = [
   },
   {
     name: "new worktree",
-    lines: SAME.map((same) => ({ same, drifted: "" })),
+    lines: SAME.map((same, row) => ({ same, drifted: row === 0 ? "# no .env yet" : "" })),
   },
 ];

@@ -22,6 +22,7 @@ export function useWordmark(ref: RefObject<HTMLCanvasElement | null>, running: b
     let grid = wordmarkGrid(1);
     let frame = 0;
     let lastDraw = 0;
+    let started = 0;
 
     const fit = () => {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
@@ -48,13 +49,14 @@ export function useWordmark(ref: RefObject<HTMLCanvasElement | null>, running: b
       lastDraw = now;
       context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
       context.drawImage(settled, 0, 0, canvas.clientWidth, grid.rows * grid.cellHeight);
-      drawScramble(context, grid, family, now / 1000);
+      drawScramble(context, grid, family, (now - started) / 1000);
     };
 
     return observeCanvas(
       canvas,
       fit,
       () => {
+        if (!started) started = performance.now();
         frame = requestAnimationFrame(tick);
       },
       () => cancelAnimationFrame(frame),

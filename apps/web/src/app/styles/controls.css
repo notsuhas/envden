@@ -1,0 +1,111 @@
+.den-caption {
+  transition:
+    opacity 180ms var(--ease-den-out),
+    transform 180ms var(--ease-den-out);
+}
+@starting-style {
+  .den-caption {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.den-copy-icon {
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out,
+    filter 150ms ease-out;
+}
+.den-copy-icon[data-visible="false"] {
+  opacity: 0;
+  transform: scale(0.8);
+  filter: blur(2px);
+}
+:is(.den-deferred-trip, .den-deferred-drift) > * {
+  transition: opacity 300ms ease-out;
+}
+@starting-style {
+  :is(.den-deferred-trip, .den-deferred-drift) > * {
+    opacity: 0;
+  }
+}
+.den-tab {
+  position: relative;
+  isolation: isolate;
+}
+.den-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--den-lantern);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 220ms var(--ease-den-out);
+  pointer-events: none;
+}
+.den-tab:is([aria-current="true"], [aria-selected="true"])::before {
+  clip-path: inset(0);
+}
+.den-tab[aria-current="step"]::before {
+  clip-path: inset(0);
+  background: rgba(247, 190, 84, 0.08);
+}
+.den-tabs:has(:focus-visible) .den-tab::before {
+  transition: none;
+}
+.den-button {
+  box-shadow: 3px 3px 0 var(--den-line-strong);
+  transition:
+    transform 100ms ease-out,
+    box-shadow 100ms ease-out;
+}
+.den-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--den-line-strong);
+}
+.den-feature {
+  opacity: 1;
+  transform: translateY(0);
+}
+.den-feature[data-entered="true"] {
+  animation: den-feature-in 400ms var(--ease-den-out) both;
+}
+.den-feature:nth-child(2) {
+  animation-delay: 50ms;
+}
+.den-feature:nth-child(3) {
+  animation-delay: 100ms;
+}
+.den-feature:nth-child(4) {
+  animation-delay: 150ms;
+}
+.den-feature:nth-child(5) {
+  animation-delay: 200ms;
+}
+.den-feature:nth-child(6) {
+  animation-delay: 250ms;
+}
+.den-feature:nth-child(7) {
+  animation-delay: 300ms;
+}
+@keyframes den-feature-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .den-caption,
+  .den-copy-icon,
+  .den-tab::before,
+  .den-button,
+  :is(.den-deferred-trip, .den-deferred-drift) > * {
+    transition: none;
+  }
+  .den-feature[data-entered="true"],
+  .den-rise {
+    animation: none;
+  }
+  .den-button:active {
+    transform: none;
+  }
+}

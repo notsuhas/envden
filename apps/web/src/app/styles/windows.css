@@ -1,0 +1,74 @@
+@layer components {
+  .den-hatch {
+    background-image: repeating-linear-gradient(180deg, var(--den-ink) 0 1px, transparent 1px 3px);
+    background-position: center;
+  }
+
+  .den-window {
+    position: relative;
+    box-shadow: 3px 3px 0 0 var(--den-line-strong);
+    transition:
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out;
+  }
+
+  .den-window[data-lit="true"] {
+    box-shadow: 3px 3px 0 0 var(--den-lantern);
+  }
+
+  .den-ruler {
+    height: 9px;
+    background-image:
+      repeating-linear-gradient(90deg, var(--den-line-strong) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(90deg, var(--den-line-strong) 0 1px, transparent 1px 120px);
+    background-size:
+      100% 5px,
+      100% 9px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+  }
+
+  .den-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--den-ink);
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--den-ink);
+    box-shadow: 2px 2px 0 0 var(--den-line-strong);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .den-window[data-interactive="true"]:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 0 var(--den-lantern);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .den-window[data-interactive="true"]:hover {
+      transform: none;
+    }
+  }
+}
+
+@layer components {
+  .den-window-still:hover {
+    transform: none;
+    box-shadow: 3px 3px 0 0 var(--den-line-strong);
+  }
+
+  .den-corners::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--den-line-strong);
+    border-radius: 9999px;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}

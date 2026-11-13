@@ -4,7 +4,7 @@ import { WORDMARK_ROWS, wordmarkBitmap } from "@/components/landing/chrome/wordm
 const BITMAP = wordmarkBitmap("envden");
 const BITMAP_COLUMNS = BITMAP[0]?.length ?? 0;
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_=#";
-const SCRAMBLE_ODDS = 0.04;
+const SCRAMBLE_ODDS = 0.025;
 const SCRAMBLE_SECONDS = 0.45;
 
 const INK = "rgba(237, 233, 224, 0.9)";
@@ -17,18 +17,32 @@ export interface IWordmarkGrid {
   cellWidth: number;
   cellHeight: number;
   block: number;
+  stacked: boolean;
 }
 
 export function wordmarkGrid(width: number): IWordmarkGrid {
-  const block = width > 720 ? 3 : width > 420 ? 2 : 1;
-  const columns = BITMAP_COLUMNS * block;
+  const stacked = width < 420;
+  const block = width > 720 ? 3 : 2;
+  const columns = (stacked ? 17 : BITMAP_COLUMNS) * block;
   const cellWidth = width / columns;
 
-  return { columns, rows: WORDMARK_ROWS * block, cellWidth, cellHeight: cellWidth * 1.7, block };
+  return {
+    columns,
+    rows: (stacked ? WORDMARK_ROWS * 2 + 1 : WORDMARK_ROWS) * block,
+    cellWidth,
+    cellHeight: cellWidth * 1.7,
+    block,
+    stacked,
+  };
 }
 
 function inked(grid: IWordmarkGrid, row: number, column: number): boolean {
-  return BITMAP[Math.floor(row / grid.block)]?.charAt(Math.floor(column / grid.block)) === "#";
+  const bitmapRow = Math.floor(row / grid.block);
+  const lower = grid.stacked && bitmapRow > WORDMARK_ROWS;
+  const sourceRow = lower ? bitmapRow - WORDMARK_ROWS - 1 : bitmapRow;
+  const sourceColumn = Math.floor(column / grid.block) + (lower ? 18 : 0);
+
+  return BITMAP[sourceRow]?.charAt(sourceColumn) === "#";
 }
 
 function glyphAt(row: number, column: number, epoch: number): string {
@@ -71,15 +85,34 @@ export function drawScramble(
 
   for (let row = 0; row < grid.rows; row += 1) {
     for (let column = 0; column < grid.columns; column += 1) {
-      if (cellNoise(row, column, beat + 7) > SCRAMBLE_ODDS) continue;
+      const resolving = resolvingCell(seconds, column, grid.columns);
+      if (skipCell(resolving, row, column, beat)) continue;
 
-      const x = column * grid.cellWidth;
-      const y = row * grid.cellHeight;
-
-      context.fillStyle = GROUND;
-      context.fillRect(x, y, grid.cellWidth, grid.cellHeight);
-      context.fillStyle = LANTERN;
-      context.fillText(glyphAt(row, column, beat + Math.floor(seconds * 12)), x, y);
+      paintScrambleCell(context, grid, row, column, beat + Math.floor(seconds * 12));
     }
   }
+}
+
+function paintScrambleCell(
+  context: CanvasRenderingContext2D,
+  grid: IWordmarkGrid,
+  row: number,
+  column: number,
+  epoch: number,
+): void {
+  const x = column * grid.cellWidth;
+  const y = row * grid.cellHeight;
+
+  context.fillStyle = GROUND;
+  context.fillRect(x, y, grid.cellWidth, grid.cellHeight);
+  context.fillStyle = inked(grid, row, column) ? LANTERN : "rgba(237,233,224,0.3)";
+  context.fillText(glyphAt(row, column, epoch), x, y);
+}
+
+function resolvingCell(seconds: number, column: number, columns: number): boolean {
+  return seconds < 0.9 && column / columns > seconds / 0.9;
+}
+
+function skipCell(resolving: boolean, row: number, column: number, beat: number): boolean {
+  return !resolving && cellNoise(row, column, beat + 7) > SCRAMBLE_ODDS;
 }

@@ -46,4 +46,5 @@ export const JOINER_SESSION: ISessionLine[] = [
   { kind: "prompt", text: "Pairing code" },
   { kind: "answer", text: "•••••••••••" },
   { kind: "output", text: "Waiting for the approving device" },
+  { kind: "output", text: "" },
 ];

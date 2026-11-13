@@ -53,7 +53,7 @@ function machineShade(layout: IDenLayout, x: number, y: number, centre: number, 
 
 // a laptop and a desktop wired to the den, with a packet riding each cable
 export function machinesLayer(layout: IDenLayout): TShader {
-  const { seconds } = layout.frame;
+  const seconds = layout.frame.packetSeconds ?? layout.frame.seconds;
   const laptop = layout.laptopX;
   const desktop = layout.desktopX;
   const phase = (seconds % PACKET_SECONDS) / PACKET_SECONDS;

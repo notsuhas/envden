@@ -1,18 +1,17 @@
+import { TypedSession } from "@/components/landing/ui/typed/session.tsx";
 import { Window } from "@/components/landing/ui/window/window.tsx";
+import type { ISessionLine } from "@/components/landing/ui/typed/frame.ts";
 
-const LINES = ["envden agent install", "envden status --json", "envden doctor --json"];
+const SESSION: ISessionLine[] = [
+  { kind: "command", text: "envden agent install" },
+  { kind: "command", text: "envden status --json" },
+  { kind: "command", text: "envden doctor --json" },
+];
 
 export function AgentPreview() {
   return (
     <Window title="agent">
-      <pre className="overflow-x-auto p-3 font-mono text-[11.5px] leading-6 text-den-ink">
-        {LINES.map((line) => (
-          <span key={line} className="block">
-            <span className="text-den-muted select-none">$ </span>
-            {line}
-          </span>
-        ))}
-      </pre>
+      <TypedSession lines={SESSION} className="p-3" />
     </Window>
   );
 }

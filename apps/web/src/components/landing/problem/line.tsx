@@ -23,10 +23,11 @@ export function DriftLine(props: IDriftLine) {
       <span
         data-synced={synced}
         data-changed={changed}
-        className={`${LAYER_CLASS} opacity-100 data-[synced=true]:opacity-0 data-[changed=true]:bg-[rgba(247,190,84,0.16)] data-[changed=true]:text-den-cipher`}
+        data-empty={!line.drifted}
+        className={`${LAYER_CLASS} opacity-100 data-[synced=true]:opacity-0 data-[changed=true]:text-den-alarm data-[empty=true]:shadow-[inset_2px_0_0_var(--den-alarm)]`}
         aria-hidden={synced}
       >
-        {!changed ? <EnvLine text={line.drifted} /> : line.drifted}
+        {!changed || line.drifted.startsWith("#") ? <EnvLine text={line.drifted} /> : line.drifted}
       </span>
     </li>
   );

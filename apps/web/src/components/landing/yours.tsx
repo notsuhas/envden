@@ -2,7 +2,11 @@ import { Accent } from "@/components/landing/ui/accent.tsx";
 import { Reveal } from "@/components/landing/ui/motion/reveal.tsx";
 import { DeferredArt } from "@/components/landing/art/deferred.tsx";
 
-const POINTS = ["Free and MIT", "No account", "Runs on your hardware"];
+const POINTS = [
+  { value: "0 accounts", label: "self-hosted" },
+  { value: "1 binary", label: "your hardware" },
+  { value: "$0", label: "free and MIT" },
+];
 
 export function Yours() {
   return (
@@ -21,14 +25,16 @@ export function Yours() {
             it over Tailscale. There's no account to sign up for and nothing to pay.
           </p>
         </Reveal>
-        <ul className="den-cells border-t border-den-line sm:grid-cols-3">
+        <ul className="den-cells border-t border-den-line min-[420px]:grid-cols-3">
           {POINTS.map((point) => (
             <li
-              key={point}
-              className="den-cell flex items-center gap-2.5 px-5 py-4 text-sm text-den-ink sm:px-8"
+              key={point.value}
+              className="den-cell min-w-0 px-5 py-4 text-sm text-den-ink sm:px-8"
             >
-              <span className="h-1.5 w-1.5 shrink-0 bg-den-lantern" aria-hidden="true" />
-              {point}
+              <p className="font-mono text-[2.5rem] text-den-lantern tabular-nums leading-tight">
+                {point.value}
+              </p>
+              <p className="mt-2 font-mono text-[11px] text-den-muted">{point.label}</p>
             </li>
           ))}
         </ul>

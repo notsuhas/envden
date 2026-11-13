@@ -4,6 +4,7 @@ import { Window } from "@/components/landing/ui/window/window.tsx";
 const SIDES = [
   { name: "laptop", rows: ["API_KEY", "DB_URL", "~ PORT"], result: false },
   { name: "desktop", rows: ["API_KEY", "DB_URL", "PORT", "+ REDIS_URL"], result: false },
+  { name: "base", rows: ["API_KEY", "DB_URL", "PORT"], result: false },
   { name: "merged", rows: ["API_KEY", "DB_URL", "~ PORT", "+ REDIS_URL"], result: true },
 ];
 
@@ -16,7 +17,7 @@ function rowClass(row: string): string {
 export function MergePreview() {
   return (
     <Window title="envden pull">
-      <InView className="group grid grid-cols-3 font-mono text-[11.5px]">
+      <InView className="group grid grid-cols-2 lg:grid-cols-4 font-mono text-[11.5px]">
         {SIDES.map((side) => (
           <div key={side.name} className="border-l border-den-line px-2.5 py-2 first:border-l-0">
             <p className="text-den-ink">{side.name}</p>

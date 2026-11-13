@@ -23,7 +23,7 @@ export function ButtonLink(props: IButtonLink) {
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noreferrer" : undefined}
-      className={`inline-flex h-11 items-center gap-2 px-5 text-[15px] font-medium whitespace-nowrap transition-[background-color,border-color] duration-150 ease-out ${VARIANT_CLASS[variant]}`}
+      className={`den-button inline-flex h-11 items-center gap-2 px-5 text-[15px] font-medium whitespace-nowrap transition-[background-color,border-color] duration-150 ease-out ${VARIANT_CLASS[variant]}`}
     >
       {children}
     </Link>

@@ -4,7 +4,9 @@
 @import "./styles/tokens.css";
 @import "./styles/states.css";
 @import "./styles/motion.css";
+@import "./styles/controls.css";
 @import "./styles/frame.css";
+@import "./styles/windows.css";
 @import "./styles/trip.css";
 @import "./styles/docs.css";
 
