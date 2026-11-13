@@ -219,6 +219,7 @@ test("Windows fixed directories use canonical drive paths", () => {
   expect(fixedDirectories("win32")).toEqual(
     [
       "C:/Windows/System32",
+      "C:/Windows/System32/OpenSSH",
       "C:/Windows/System32/WindowsPowerShell/v1.0",
       "C:/Program Files/Git/cmd",
       "C:/Program Files/Tailscale",
