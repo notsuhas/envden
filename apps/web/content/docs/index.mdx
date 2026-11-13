@@ -1,42 +1,31 @@
 ---
-title: What envden is
-description: Sync whole .env files across your own machines, end-to-end encrypted, through a server you host, over Tailscale.
+title: Introduction
+description: Keep whole env files in sync across your machines with a server you host.
 ---
 
-<Callout type="warn" title="Work in progress">
-  envden isn't released yet. These pages describe the v1 design, and commands or wording may change
-  before release.
-</Callout>
+<AlphaNote />
 
-## The problem
+envden syncs your `.env` files across your own machines. It preserves comments, key order and blank lines. Files are encrypted on your device before they reach a server you run over Tailscale.
 
-You keep env files in many repos and worktrees, on several machines. They're gitignored, and they often carry comments.
+## Start syncing
 
-Secrets managers store keys, not files, so comments, order and blank lines are lost. envden syncs the whole file, byte for byte.
+[Install envden](/docs/getting-started), then run `envden setup` on your first machine. Setup creates your vault, gives you a recovery kit and asks which checkouts may receive env files.
 
-## What it does
+Once you've [joined another device](/docs/joining-devices), run these commands inside a tracked checkout:
 
-- **Whole files.** A `.env` or `.env.<name>` file is synced exactly as written: comments, order and blank lines.
-- **Your machines only.** A vault belongs to one person. v1 has no sharing.
-- **A server you host.** One Docker container on a home lab, or `envden serve` on one of your devices. It stores ciphertext and opaque IDs only.
-- **End-to-end encrypted.** Files are encrypted on the device before upload. The server is not trusted to keep them secret or intact.
-- **Over Tailscale.** Devices reach the server over your tailnet. Tailscale is transport only: envden trusts no identity it reports.
-- **Push and pull by hand.** Nothing syncs on a timer.
+```sh
+envden pull
+envden status
+# edit your env files, then send the changes
+envden push
+```
 
-## The pieces
+Sync happens when you push or pull. Your local files keep working while the server is unreachable.
 
-| Piece    | What it is                                                                                                                             |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Server   | Holds the ciphertext for a vault. One server per vault, and a server can hold many vaults, one owner each.                             |
-| Device   | A machine that joined the vault. It runs the `envden` CLI, a single binary for macOS, Linux and Windows. There's no background daemon. |
-| Store    | A folder in your home directory that holds the real env files for every repo.                                                          |
-| Checkout | A clone or worktree of a repo. Its env files are links into the store, or copies if you choose copy mode.                              |
+## How your files are stored
 
-## Not in v1
+Each device keeps a store in `~/.envden/store`. By default, approved checkouts link their env files to that store. Clones and worktrees of the same repo share a file after you approve each checkout. Choose [copy mode](/docs/placement#copy-mode) when your tools need regular files.
 
-Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers and a web UI.
+Your server holds encrypted files and signed history. It can host several vaults, each owned by one person. envden doesn't share a vault with a team.
 
-## Where to start
-
-- [Getting started](/docs/getting-started) with a home lab or a laptop.
-- [Security and threat model](/docs/security) for what envden protects and what it doesn't.
+Read [Security](/docs/security) for the encryption model and its limits, or [compare envden with other tools](/docs/compare).

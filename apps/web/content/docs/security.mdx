@@ -1,89 +1,41 @@
 ---
-title: Security and threat model
-description: What envden protects, what it doesn't, and what the server can still see.
+title: Security
+description: How envden protects files, verifies history and limits checkout access.
 ---
 
-<Callout type="warn" title="Not reviewed yet">
-  The protocol and its implementation get a separate review before release. That review hasn't
-  happened yet. Don't rely on envden for real secrets until it has.
-</Callout>
+## Files are encrypted on your devices
 
-## Who is trusted
+Your device encrypts files with XChaCha20-Poly1305 before upload. File names and Repo IDs are encrypted too. Files are padded in 256-byte steps to reduce size precision.
 
-**The server is not trusted** to keep files secret or intact. It may read, drop, replay, reorder or forge anything it stores or relays. Files are encrypted on your devices, and devices verify what the server returns.
+Each file's encryption binds it to the vault, encryption epoch, file ID and version. A signed manifest binds the ciphertext hashes. Devices verify the manifest and the signed device-membership history before accepting changes.
 
-**The network is transport only.** Tailscale carries the traffic. envden trusts no identity it reports, and every request is signed by a device.
+A device remembers the last history checkpoint it accepted. It rejects rollback and stops when it encounters a conflicting branch. The server can't add a device on its own. Tailscale carries traffic, but envden doesn't use Tailscale identity headers to authorize requests.
 
-**Devices are trusted while they are members.**
+## Checkouts need your approval
 
-**Checkouts are not trusted automatically.** A folder that claims a repo's remote gets no env files until you approve it once.
+A folder doesn't receive secrets just because its git remote matches a repo. You approve each checkout in your terminal, including every new worktree. Approval lives outside the checkout, and `--yes` doesn't bypass it.
 
-## What the server can still do
+Pulled paths are checked for traversal and symlinks escaping the checkout. Placement uses directory handles on macOS and Linux when FFI is available.
 
-- Deny service. It can always refuse to answer.
-- Choose not to enforce unlock expiry.
-- Show different devices different branches of history. Each device stops as soon as it sees the other branch.
-- With the help of a removed device or an old recovery key, fork history.
+## Protect your password and recovery kit
 
-## What the server can see
+The master password and a random secret key protect the recovery envelope. Argon2id derives password material; the random secret key is printed in your kit and isn't saved on devices. Recovery requires both. Password login uses OPAQUE.
 
-File contents, file names and Repo IDs are encrypted. The server still sees:
+Keep the kit somewhere safe and separate from your devices. Writing the password on it makes the kit sufficient to open the vault. See [device and recovery commands](/docs/joining-devices#manage-vault-keys-and-recovery).
 
-- rough file sizes
-- timing
-- the number of devices
-- device names
+Device keys use the OS keychain adapter, with a `0600` file fallback where needed. Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
 
-## Lost or stolen device
+## What envden can't protect against
 
-After the device's unlock expires, it can't fetch anything new.
+- A compromised member device can read the files and keys it has access to. Removing it doesn't erase downloaded files or prevent decryption of older ciphertext with keys it kept. Rotate exposed credentials after removal.
+- Files already on disk depend on your OS login and disk encryption. Unlock expiry only limits new server access, and a malicious server can ignore it. A stolen laptop hosting the server can bypass expiry too.
+- The server can deny service or show devices separate branches of history. A device stops when it sees the other branch. A server colluding with a removed device or an old recovery key can fork history.
+- Encryption doesn't hide rough file sizes, timing, device count or device names from the server.
+- A stolen server password record permits offline password guessing. A correct guess still needs the kit's secret key to open the recovery envelope. Protect server backups like a password database.
+- On Windows, or when FFI is unavailable, a local process can race a parent-directory replacement after the final path check.
 
-Files already on its disk are protected by OS login and disk encryption, not by envden.
+## Cryptographic implementation
 
-## Removed device
+The protocol uses pinned versions of `@noble/ciphers`, `@noble/curves`, `@noble/hashes`, `hash-wasm`, `@serenity-kit/opaque` and `@hpke/*`. envden's protocol combines these primitives; its encodings and test vectors are in [PROTOCOL.md](https://github.com/notsuhas/envden/blob/main/docs/PROTOCOL.md).
 
-A removed device keeps whatever it already pulled. envden can't revoke that.
-
-It can also decrypt older ciphertext it gets hold of, including history it never pulled. When you remove a device, envden lists every file and key name it could have read so you can rotate those credentials.
-
-## Unlock expiry
-
-Expiry relies on an honest server.
-
-- A hacked server can keep serving a stolen device.
-- Expiry means nothing if the stolen laptop is the server.
-
-## The master password, the secret key and the recovery kit
-
-- The **master password** is the one password you remember. The server never sees it.
-- The **secret key** is random, generated when the vault is created, printed in the recovery kit and never stored on any device.
-- Opening the vault without a device needs both.
-
-A hacked server can guess passwords offline against the record it holds. A correct guess alone doesn't open the vault, which also needs the secret key.
-
-A **recovery kit** with the password written on it opens the vault on its own. Store it like a passport.
-
-| You lost            | You still have       | What to do                                         |
-| ------------------- | -------------------- | -------------------------------------------------- |
-| The master password | A device and the kit | Reset the password with the kit.                   |
-| The kit             | The master password  | Replace the recovery key, which prints a new kit.  |
-| Both                | A device             | Create a new vault from that device's local store. |
-
-Changing the master password needs the old password and the kit.
-
-## Server backups
-
-A backup of the server holds ciphertext, and also the record of your master password that guesses can be tested against. Protect backups like a password database. See [Server](/docs/server#backups).
-
-## Cryptography
-
-envden doesn't hand-roll primitives. It uses pinned libraries:
-
-- `@noble/ciphers`, `@noble/curves` and `@noble/hashes`
-- Argon2id from `hash-wasm`
-- OPAQUE from `@serenity-kit/opaque`
-- HPKE from `@hpke/core`
-
-Files are encrypted with XChaCha20-Poly1305 and padded to 256-byte steps.
-
-The protocol that combines these is envden's own. It is specified in `PROTOCOL.md` with test vectors.
+The [threat model](https://github.com/notsuhas/envden/blob/main/docs/DESIGN.md#threat-model) describes the trust assumptions behind these protections.

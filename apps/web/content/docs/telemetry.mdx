@@ -1,48 +1,37 @@
 ---
-title: Telemetry
-description: Opt-in, CLI only, and a fixed list of what is sent.
+title: Control telemetry
+description: Choose whether the CLI sends usage events and see what they contain.
 ---
 
-## Off unless you turn it on
+## Turn telemetry on or off
 
-Telemetry is opt-in and comes from the CLI only. The server never sends telemetry.
+Telemetry is off by default. Interactive setup asks whether you want to enable it. Setup with `--yes` or without a terminal leaves it off unless you explicitly choose `--telemetry on`.
 
-Interactive setup asks once. Runs without a terminal (`--yes`, agents, `join` without a terminal) leave it off.
-
-Change it any time:
+Change the preference at any time:
 
 ```sh
 envden config telemetry on
 envden config telemetry off
 ```
 
-`ENVDEN_TELEMETRY=0` and `DO_NOT_TRACK=1` always win.
+`ENVDEN_TELEMETRY=0` and `DO_NOT_TRACK=1` override the saved preference and disable events.
 
-## What is sent
+Read the saved preference:
 
-- envden version
-- OS
-- command name
-- success or failure
-- an error code from a fixed list
-- counts
-- a random install ID
+```sh
+envden config telemetry
+```
 
-## What is never sent
+This prints `true` or `false`. Run `envden config` to see the saved settings and effective telemetry and update-check preferences.
 
-- raw error text or stack traces
-- Repo IDs
-- file names or key names
-- values
-- the server address
-- network identity
+## What an event contains
 
-Nothing is sent from the shell line.
+Events include the envden version, OS, command name, success or failure, a fixed error code, counts and a random install ID.
 
-## Where it goes
+They exclude raw errors, stack traces, Repo IDs, file names, key names, values, server addresses and network identity. The shell notice and server send no telemetry.
 
-Events go to PostHog with a plain `fetch`, with no SDK. The PostHog project is set to discard IP addresses and skip GeoIP. PostHog still sees the IP address of the connection.
+## Where events go
 
-## The update check is separate
+The CLI sends events to PostHog using `fetch`. The PostHog project is configured to discard IP addresses and skip GeoIP, but PostHog still sees the connection's IP address.
 
-The daily update check fetches a signed release feed from GitHub Releases and sends nothing but the request. It has its own switch. See [Updates](/docs/updates#the-update-check).
+The [daily update check](/docs/updates#control-automatic-checks) is separate. It fetches a signed release feed from GitHub Releases and has its own setting.

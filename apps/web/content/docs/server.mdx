@@ -1,95 +1,95 @@
 ---
-title: "Server: move, backups and restore"
-description: What the server holds, how to move it, and how to restore it from a backup.
+title: Run, move and restore the server
+description: Host encrypted vault data, migrate servers and repair a restored backup.
 ---
 
-## What the server is
+## Run a server
 
-The server holds the ciphertext for your vault. It runs as one Docker container, or as `envden serve` on one of your devices.
+Use the [Docker setup](/docs/getting-started/home-lab-first) or let [laptop setup](/docs/getting-started/laptop-first) install a login service. To run it in the foreground:
 
-- It listens on localhost behind `tailscale serve`.
-- Every request is signed by a device. Tailscale identity headers aren't used.
-- Devices pin the server's key at setup or join, and store its address separately.
-- Creating a vault needs a one-time setup token from the server logs (`docker logs`, or the `envden serve` output). After that, only device signatures count.
+```sh
+envden serve --data-dir /path/to/data
+```
 
-A laptop can host the server. Setup recommends an always-on host, because two laptops only sync while the server laptop is awake. An unreachable server never blocks local work.
-
-## History
-
-The server keeps every version for 90 days, and at least the last 20 versions of each file. Deletes are kept beyond that, so an offline device can't bring a deleted file back without an explicit restore.
+The server listens on localhost behind `tailscale serve`. Its first-start output includes a setup token. Devices use the token's fingerprint to pin the server key before creating a vault. Store files on your devices keep working if the server goes offline.
 
 ## Moving the server
 
+Start the destination server and read its setup token. From an existing member device, run:
+
 ```sh
-envden server move
+envden server move https://new-envden.your-tailnet.ts.net
 ```
 
-The move:
+Enter the destination setup token and master password when prompted. You can pass the token with `--setup-token <token>`.
 
-1. Opens a move session on the new server, using its setup token.
-2. Freezes the old server. Any member device can unfreeze it before the switch.
-3. Copies and verifies everything.
-4. Registers the master password on the new server. You type it.
-5. Records the move on the old server, which turns read-only, and then on the new one.
+The move freezes the old server, copies and verifies the vault, registers your password on the destination, and records a signed move. The old server becomes read-only. Success prints `Move complete`.
 
-Every step can resume after a crash, from any member device if the one doing the move is lost. You can abort until the final step.
+Resume an interrupted move or abort before the final switch:
 
-The move is signed by a member device, never by a server. Devices that see it switch to the new server and never accept the old one again, even if it's restored from a backup.
+```sh
+envden server move --resume
+envden server move --abort
+```
+
+A member device can resume a move if the device that started it is lost. Devices follow the signed move on sync and won't accept the old server again.
+
+If the old server is unreachable, point a device at the destination:
+
+```sh
+envden server switch https://new-envden.your-tailnet.ts.net
+```
+
+`switch` verifies the signed move before saving the address. It prints `Server switched`. It doesn't authorize an arbitrary replacement server.
 
 ## Backups
 
-File contents in a backup are ciphertext. The data folder also holds the server's record of your master password, which someone could guess passwords against offline.
+Back up the server data volume. It contains ciphertext and the server's password record. Someone with that record can test password guesses offline, so protect the backup like a password database. A password guess alone doesn't decrypt the recovery envelope; it also needs the recovery secret key.
 
-Protect server backups like a password database.
+Keep device checkpoint state separate from store backups. Rolling back a device's checkpoints would remove its record of accepted history.
 
-A guessed password alone doesn't open the vault. That also needs the secret key from the recovery kit.
+The server retains every file version for 90 days and at least 20 versions per file. Deletion records survive pruning.
 
-## Restoring from a backup
+## Restore a backup
 
-A restored server is behind your devices, so the devices repair it.
+Stop the normal server before starting the restored data. Run restored mode once by hand:
 
-1. Start the restored server once, by hand:
+```sh
+envden serve --data-dir /path/to/restored-data --restored
+```
 
-   ```sh
-   envden serve --restored
-   ```
+It prints a repair token for each vault and accepts repair operations only. With the Docker image, arguments after the image name are passed to `envden serve`.
 
-   It prints a vault ID and a repair token for each vault, and accepts nothing but repairs. With the Docker image, arguments after the image name go to `envden serve`.
+Don't add `--restored` to a service definition. Running it again creates new tokens and invalidates reports uploaded with the old ones.
 
-2. On each device, upload what it has:
+On each member device, run:
 
-   ```sh
-   envden server repair
-   ```
+```sh
+envden server repair
+```
 
-   It asks for the repair token, or takes it from `--repair-token <token>`. The device re-uploads its newer signed history and its repos' files.
+Enter the repair token. The device uploads its signed history and cached ciphertext for the repos it uses. Success prints `Repair material uploaded`. You can also pass `--repair-token <token>`.
 
-3. On one device, finish the repair:
+When every device has uploaded, finish from one device:
 
-   ```sh
-   envden server repair --finish
-   ```
+```sh
+envden server repair --finish
+```
 
-   It asks for the repair token and the master password. If a device hasn't repaired yet, it stops and names that device.
+Enter the repair token and master password. The finishing device verifies the signed reports itself. It stops if a member hasn't repaired or if the newest version of a file is unavailable.
 
-Don't put `--restored` in the service definition. Running it again mints a new token, which voids the repairs made with the old one.
-
-### A device that can't repair
-
-Drop it by name or device ID. You can list several:
+### Drop an unavailable device
 
 ```sh
 envden server repair --finish --without old-laptop
 ```
 
-A dropped device rejoins later as a new device and keeps its local files.
+You can list several names or IDs after `--without`. Dropped devices keep their local files and must rejoin as new devices.
 
-### A file no device has
-
-If no device holds the newest version of a file, `--finish` stops and lists the file by name. To go on without it:
+### Accept a missing file version
 
 ```sh
 envden server repair --finish --accept-lost
 ```
 
-The file goes back to the newest verified older version, or is marked lost, and every device reports it.
+This accepts the newest verified older version, or marks the file lost if none is available. Every device reports the loss. Review the named files before accepting it.

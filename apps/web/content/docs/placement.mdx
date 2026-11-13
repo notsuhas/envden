@@ -1,70 +1,90 @@
 ---
-title: Placement modes
-description: How env files from the store appear in a checkout, as links or as copies.
+title: Track checkouts and place files
+description: Approve a checkout, choose links or copies, and keep a file local.
 ---
 
-## The store
+## Track a checkout
 
-Each device keeps the real env files in a store in your home folder:
+```sh
+envden track /path/to/checkout
+```
+
+You can also pass a scan root to find several repos. Without a path, `track` starts in the current directory.
+
+Approve each checkout in your terminal before envden places files there. Every worktree needs its own approval, even if its repo is already approved. `--yes` on setup doesn't bypass this step. Approval is stored outside the checkout, and a changed remote doesn't silently change its repo identity.
+
+## Link mode
+
+By default, envden places a symlink into your device's store:
 
 ```text
 ~/.envden/store/<repo-id>/<path-in-repo>/<file>
 ```
 
-Folders are `0700` and files are `0600` (ACLs on Windows). In a monorepo, `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
+Approved clones and worktrees of the same repo share that store file. In a monorepo, `apps/web/.env` keeps its path under the repo's store directory.
 
-Placement is how a store file appears in a checkout.
+Repo identity comes from the `origin` remote, or the only remote if there is no `origin`. envden asks when the choice is ambiguous. The Repo ID is encrypted before upload.
 
-## Repo ID
-
-A repo's identity comes from its remote, as `host/path`. envden reads `git remote get-url origin`, falls back to the only remote, and otherwise asks. Every checkout with the same Repo ID shares env files.
-
-The Repo ID is never sent to the server in the clear.
-
-## Link mode
-
-The default. The env file in a checkout is a symlink into the store, so every clone and worktree of a repo reads the same file.
-
-Before linking, envden checks that git ignores the path. If it doesn't, envden adds the path to the checkout's exclude file.
+Store directories use `0700` permissions and files use `0600`, with ACLs on Windows. Before placement, envden checks git's ignore rules and adds a missing exclusion to the checkout's git exclude file. It refuses tracked files.
 
 ## Copy mode
 
-The env file is a real copy. Each copy tracks the last version it agreed with the server, and push detects changes against that.
+Choose copies when a tool or container needs a regular file:
 
-envden never switches to copy mode on its own:
+```sh
+envden track /path/to/checkout --copy
+```
 
-- When symlinks aren't available, it explains why and asks before placing copies.
-- When a checkout's root contains `.devcontainer/`, a `docker-compose*.yml` file or a `Dockerfile`, it offers copy mode once, in an interactive terminal.
-- `envden track --copy` chooses it for the checkouts it tracks.
-- `envden config placement <path> link|copy` saves the choice for one checkout.
+Each copy has its own sync base. Edits in one checkout don't immediately change another checkout's file.
 
-## Local only
+If symlinks aren't available, envden asks for consent before placing copies. It also offers copy mode once per checkout when the root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`.
 
-You can mark a file in one checkout as deliberately different, for example a per-worktree `PORT`. It becomes a copy that is never pushed or pulled, and envden doesn't nag about it.
+Save a placement preference for a checkout:
 
-## Detached checkouts
+```sh
+envden config placement /path/to/checkout copy
+envden config placement /path/to/checkout link
+```
 
-Some tools replace a link with a regular file: an atomic save, `sed -i`, or `cp .env.example .env`.
+This saves the preference; it doesn't immediately convert existing files. Placement uses the choice when you track the checkout.
 
-- If the new file matches the store, or an older synced version, envden relinks it.
-- Otherwise the checkout is marked detached. envden keeps both versions and asks you on the next interactive command.
+## Keep a file local
 
-This is never silent, and the shell line never does it.
+For a per-worktree setting such as `PORT`, mark the managed file local-only before editing it:
 
-## Approved checkouts
+```sh
+envden local-only /path/to/checkout/.env
+```
 
-A checkout receives env files only after you approve it once, in the terminal. `--yes` doesn't skip the question.
+It becomes a regular copy in that checkout. envden skips it during push and pull and suppresses sync notices for it. Other checkouts keep syncing their versions.
 
-- A worktree of an approved repo gets a shorter question, but is never approved automatically.
-- A changed remote never silently remaps an approved checkout.
+## Stop tracking a checkout
 
-## Forks and moved repos
+```sh
+envden untrack /path/to/checkout
+```
 
-When a checkout has an `upstream` remote whose Repo ID already has env files, envden asks once whether to share them. `envden alias` does the same by hand, and also fixes a renamed or moved repo.
+This removes the checkout's approval and tracking records and restores regular files in place of managed links. It doesn't delete the vault's files or untrack other checkouts.
 
-## Docker builds
+## Recover a replaced link
 
-A build doesn't need env files in its context. Keep them out with `.dockerignore`:
+An atomic editor save, `sed -i` or `cp .env.example .env` can replace a symlink with a regular file. envden relinks a file that matches the store or an older synced version.
+
+If it differs, envden marks the checkout detached, keeps both versions and asks you what to do on the next interactive command. The shell notice doesn't repair files.
+
+## Share files with a fork or renamed repo
+
+When an `upstream` remote already has env files, envden offers to alias the fork. You can also map identities yourself:
+
+```sh
+envden alias github.com/you/fork github.com/org/original
+```
+
+Use the normalized Repo IDs for your repos. If the source repo already has placed files, untrack its checkouts first, then alias and track them again. Success prints `Alias saved`.
+
+## Use env files in Docker builds
+
+Exclude env files from the build context:
 
 ```text title=".dockerignore"
 .env
@@ -72,7 +92,7 @@ A build doesn't need env files in its context. Keep them out with `.dockerignore
 !.env.example
 ```
 
-Give a build step the file with a BuildKit secret mount. The file is mounted for that one `RUN` step and never lands in an image layer:
+Pass the file to the build as a BuildKit secret:
 
 ```dockerfile title="Dockerfile"
 # syntax=docker/dockerfile:1
@@ -86,8 +106,4 @@ RUN --mount=type=secret,id=dotenv,target=/app/.env npm run build
 docker build --secret id=dotenv,src=.env .
 ```
 
-Copy mode is not recommended for builds, because a real file in the build context can end up in an image layer.
-
-## Windows
-
-Setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and asks before using copy mode.
+The mount exists for that `RUN` step. Copy mode isn't a build secret mechanism; a copied file included in the build context can land in an image layer. Your build command must also avoid embedding secret values in its output.

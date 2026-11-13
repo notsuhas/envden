@@ -1,4 +1,6 @@
 {
-  "title": "Comparisons",
-  "pages": ["infisical", "dotenv-vault", "dotveil"]
+  "title": "Compare",
+  "pages": [
+    "index"
+  ]
 }

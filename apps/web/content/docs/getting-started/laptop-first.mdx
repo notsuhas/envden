@@ -1,24 +1,28 @@
 ---
 title: Laptop first
-description: Run the server on your laptop now and move it to an always-on host later.
+description: Host the server on your laptop and move it later.
 ---
 
-## Set up
+## Start setup
 
-On your laptop, run:
+[Install the CLI](/docs/getting-started) and connect to Tailscale. Enable HTTPS certificates for your tailnet, then run:
 
 ```sh
-envden setup
+envden setup --host-server
 ```
 
-Setup finds no server and offers to run one on this laptop as a login service (launchd, systemd or a Windows login service). The rest is the same as [home lab first](/docs/getting-started/home-lab-first#2-set-up-your-first-device): create the vault, keep the recovery kit, approve your repos, link and push.
+This installs a login service using launchd on macOS, systemd on Linux or a Windows login service. Setup prints the log path where you can read its setup token.
 
-## What to expect
+Enter the token in your terminal, choose a master password and save the recovery kit. Then approve the checkouts you want to sync. Setup places their files and pushes them.
 
-- Your other devices only sync while this laptop is awake.
-- An unreachable server never blocks local work. Your env files stay in place, and status shows "server unknown".
-- Unlock expiry is enforced by the server. If the stolen laptop is the server, expiry means nothing. See [Security](/docs/security#unlock-expiry).
+Running `envden setup` without `--server` also offers to host the server on this machine.
 
-## Move to an always-on host later
+## Work while offline
 
-When you have a host that stays on, run `envden server move`. See [Server](/docs/server#moving-the-server).
+Your env files stay on disk when the server is unreachable. Other devices can sync only while this laptop is awake and reachable over Tailscale.
+
+Use `envden status` to check the connection. An unreachable server is reported as `envden: server unknown`.
+
+## Move the server later
+
+Start a server on your always-on host, then use [server move](/docs/server#moving-the-server). Your vault and device memberships move with it.

@@ -1,68 +1,54 @@
 ---
 title: Home lab first
-description: Run the server in Docker on an always-on host, then set up a laptop.
+description: Start the Docker server, then connect your first laptop.
 ---
 
 ## 1. Run the server
 
-Start the server container. It needs a Tailscale auth key and two volumes: one for envden's data and one for Tailscale's state.
+Create a Tailscale auth key for the server. On your Docker host, run:
 
 ```sh
 docker run -d --name envden --restart unless-stopped \
   -e TS_AUTHKEY="tskey-auth-..." \
   -v envden-data:/data \
   -v tailscale-state:/var/lib/tailscale \
-  ghcr.io/notsuhas/envden:1
+  ghcr.io/notsuhas/envden:0.1.0
 ```
 
-The container joins your tailnet as `envden`. Set `TS_HOSTNAME` to use another name. `packaging/docker/compose.yml` in the repo has the same settings for Compose.
+Replace `tskey-auth-...` with your auth key. The volumes keep envden data and Tailscale state across container replacements. The container joins your tailnet as `envden`; set `TS_HOSTNAME` to choose another name.
 
-The logs print a one-time **setup token**:
+The container uses userspace Tailscale. You don't need privileged mode, a TUN device or a published host port. `tailscale serve` exposes the localhost server over HTTPS.
+
+Read the setup token:
 
 ```sh
 docker logs envden
 ```
 
-No port is published. The server listens on localhost inside the container, behind `tailscale serve`. It stores ciphertext and opaque IDs only.
-
-The server image is tagged by exact version, by minor (`:1.4`) and by major (`:1`). Pin the major.
+Keep the token for the next step. It includes the server key's fingerprint so your laptop can verify the server before creating a vault.
 
 ## 2. Set up your first device
 
-On a laptop, run:
+[Install the CLI](/docs/getting-started) on your laptop. Use the server's full Tailscale HTTPS address:
 
 ```sh
-envden setup
+envden setup --server https://envden.your-tailnet.ts.net
 ```
 
-Setup walks through these steps:
+Replace the example hostname with yours. In your terminal, enter the setup token, name this device and choose a master password.
 
-1. **Takes the setup token and pins the server.** The token embeds the fingerprint of the server's key. Your device checks a signed challenge from the server before it sends the token or anything else.
-2. **Creates the vault.** You choose a master password and get a recovery kit.
-3. **Asks about telemetry and update checks.** See [Telemetry](/docs/telemetry) and [Updates](/docs/updates).
-4. **Offers the shell line and the agent skill.** Both are optional.
-5. **Finds your repos.** It walks your scan roots for git repos and lists the ones with env files as a checklist.
-6. **Asks you to approve them,** then links their env files into the store and pushes.
+Setup prints a recovery kit. Store it somewhere you can recover without this laptop. You can write it directly to a private file with `--kit-out /path/to/kit.json`. A kit with the master password written on it gives full access to the vault.
 
-## The recovery kit
+Setup also asks about telemetry, update checks, the shell notice and the agent skill. It scans your home folder for repos, asks you to approve checkouts, places their env files and pushes them.
 
-The kit holds the vault's secret key and has a space to write the master password. The secret key is never stored on any device.
+To scan a smaller folder:
 
-A kit with the password written on it opens the vault on its own. Store it like a passport.
+```sh
+envden setup --server https://envden.your-tailnet.ts.net --scan-root ~/Work
+```
 
-## Finding repos
+Each checkout needs approval, including each worktree of a repo you've already approved. `--yes` doesn't skip approval. macOS may ask for folder access during the scan.
 
-- The default scan root is your home folder. You can add or remove roots.
-- Junk folders are skipped, and worktrees are listed with `git worktree list`.
-- macOS may ask for folder access during the scan.
-- Later, the shell line offers once to track a repo that the scan missed.
+## 3. Add another machine
 
-## Approving checkouts
-
-The first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip this question. A folder that claims a repo's remote gets nothing until you approve it once.
-
-A worktree of an approved repo gets a shorter question, but is never approved automatically.
-
-## Next
-
-[Join your other devices](/docs/joining-devices).
+[Join your other devices](/docs/joining-devices) with a pairing code or your recovery kit.

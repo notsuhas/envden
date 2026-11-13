@@ -1,6 +1,6 @@
 {
   "title": "envden",
-  "description": "Sync whole .env files across your own machines, end-to-end encrypted, through a server you host, over Tailscale. Work in progress, not released yet.",
+  "description": "Sync whole env files across your machines, encrypted end to end.",
   "pages": [
     "index",
     "---Start---",
@@ -9,14 +9,15 @@
     "---Use---",
     "push-pull-merge",
     "placement",
+    "vault",
     "agents",
     "---Run---",
     "server",
     "updates",
-    "---Trust---",
+    "---Reference---",
+    "cli",
     "security",
     "telemetry",
-    "---Compare---",
     "compare"
   ]
 }

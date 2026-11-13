@@ -1,0 +1,36 @@
+---
+title: Compare envden with other tools
+description: Choose between whole-file sync on your machines and a hosted or team secrets workflow.
+---
+
+envden is for one person's env files across several machines. You host the server, reach it over Tailscale, and push or pull whole files. Comments, order and blank lines stay with the file. The project is MIT licensed, and you run the hosting infrastructure yourself.
+
+## Infisical
+
+{/* Sources: https://infisical.com/docs/self-hosting/overview and https://github.com/Infisical/cli */}
+Infisical supports both cloud and self-hosted deployments. Its CLI can inject secrets into applications and export secrets as dotenv, JSON or YAML.
+
+Choose based on the workflow you want. envden keeps your existing env files in sync between approved checkouts. If you want to fetch secrets into an application's environment, look at [Infisical's CLI](https://github.com/Infisical/cli).
+
+## dotenv-vault
+
+{/* Source: https://github.com/dotenv-org/dotenv-vault */}
+dotenv-vault is a paid cloud service for syncing env files. Its documented workflow uses `npx dotenv-vault@latest push` and `pull`, with encrypted `.env.vault` files for deployment.
+
+{/* Source: https://www.dotenv.org/vault/pricing */}
+The published pricing lists Solo at $10 per user per month and Team at $18 per user per month. The Team plan includes access controls and audit logs.
+
+Both tools work with env files. envden gives you a server on your own network; dotenv-vault provides a hosted service. Check the [current pricing](https://www.dotenv.org/vault/pricing) before choosing a plan.
+
+## DotVeil
+
+{/* Source: https://www.dotveil.com/docs */}
+DotVeil documents client-side encryption, team secret sharing and service tokens for CI/CD.
+
+{/* Source: https://www.dotveil.com/docs/cli-reference */}
+Its CLI includes push and pull commands.
+
+{/* Source: https://www.dotveil.com/docs/team */}
+Its team workflow includes project roles and invitations.
+
+If you need team access, compare [DotVeil's workflow](https://www.dotveil.com/docs) with your requirements. envden vaults have one owner and focus on preserving whole files across that owner's machines.

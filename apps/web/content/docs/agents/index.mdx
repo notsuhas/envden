@@ -1,6 +1,6 @@
 ---
-title: Agents
-description: What a coding agent can do with envden, and what it always hands back to you.
+title: Use envden with an agent
+description: Install the skill and let an agent inspect sync state while you control access.
 ---
 
 ## Install the skill
@@ -9,33 +9,32 @@ description: What a coding agent can do with envden, and what it always hands ba
 envden agent install
 ```
 
-This puts one skill in `~/.agents/skills/envden/`, the shared format most coding agents read, and links it into `~/.claude/skills/` for Claude Code.
+Success prints `Agent skill installed`. The skill lives in `~/.agents/skills/envden/` and is linked into `~/.claude/skills/` for Claude Code.
 
-## What an agent can do
+## Inspect state
 
-Setup can be driven by an agent:
+An agent can read machine-readable reports:
 
-- Every question has a flag.
-- `--yes` takes the defaults.
-- With no terminal and a missing choice, envden stops and lists the flags it needs.
-- `envden status --json` and `envden doctor --json` report state.
+```sh
+envden status --json
+envden doctor --json
+envden update --check
+```
 
-## What an agent never does
+Setup choices have flags. If a non-interactive run is missing a choice, envden lists the flags it needs. `--yes` takes defaults; it doesn't supply passwords or approve checkouts.
 
-Agents never handle secrets or approvals. For the master password, a pairing code, or approving a checkout, envden tells the agent to ask you to run that step in your own terminal.
+## Keep access decisions in your terminal
 
-- A push without a terminal requires `--yes`.
-- Conflicts are never resolved automatically for an agent.
-- An agent may run `envden update --check`, but asks you before updating.
+Enter master passwords, pairing codes and recovery secrets yourself. Approve each checkout yourself, including each worktree. The skill tells the agent to hand these steps back to you.
 
-## Help with conflicts
+A non-interactive push requires `--yes`. Conflicts still need resolution. Agents may check for updates, but the skill asks them to get your permission before installing one.
 
-With `envden config agent-merge on`, the skill may help edit a conflict file. This is a convention, not a security boundary.
+## Allow help editing conflicts
 
-## Telemetry
+```sh
+envden config agent-merge on
+```
 
-Runs without a terminal leave telemetry off. See [Telemetry](/docs/telemetry).
+This lets the skill help edit conflict files. It is an agent convention, not an access control boundary. To turn it off, run `envden config agent-merge off`.
 
-## Next
-
-[Set up envden with your agent](/docs/agents/setup-prompt) has one prompt to paste.
+[Use the setup prompt](/docs/agents/setup-prompt) to start a guided setup with your agent.

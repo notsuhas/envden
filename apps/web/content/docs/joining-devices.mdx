@@ -1,64 +1,87 @@
 ---
-title: Joining devices
-description: Add a device with a pairing code, or with the master password and the recovery kit.
+title: Join and manage devices
+description: Pair a machine, unlock it or remove one you no longer use.
 ---
 
-A device is a machine that has joined your vault. Each one has its own keys, so you can add and remove devices one at a time.
+## Pair a new device
 
-## With a pairing code
-
-On a device that is already in the vault:
+On a device already in the vault, run:
 
 ```sh
 envden device add
 ```
 
-It asks for the master password, then shows a code like `3-K7QF-2MXP`. The code works once and is valid for 10 minutes.
+Enter your master password. envden shows a single-use code such as `3-K7QF-2MXP`, valid for 10 minutes. Keep this terminal open.
 
-On the new device:
-
-```sh
-envden join <server>
-```
-
-Type the code. The existing device then asks you to confirm the new device by name. Answer yes and the new device is in.
-
-What the code protects:
-
-- No keys travel through the pairing channel. The new device checks everything it gets from the server against what the existing device sent it.
-- The new device stops if the server it reached isn't the one the existing device pinned.
-- A bad server can only relay or block the pairing. It gets one live guess at the code against each side.
-
-A paired device inherits the remaining unlock time of the device that approved it, not a fresh period.
-
-## With the master password and recovery kit
-
-If you have no other device at hand, run `envden join <server>` and use the master password and the recovery kit.
-
-Every other device shows that a device joined with the recovery kit on its next command, so a join you didn't make doesn't go unnoticed.
-
-## The first run on a new device
-
-If the new device already has env files that differ from the vault, envden asks for each one: keep mine, take the server's, or merge. It never overwrites silently.
-
-Checkouts on the new device need your approval before they receive env files, as on the first device.
-
-On Windows, setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and asks before using [copy mode](/docs/placement#copy-mode).
-
-## Unlock
-
-A device must log in with the master password at least once per unlock period: 1 day, 7 days, 30 days (the default) or never. After the period, the server refuses that device's pulls and pushes until it logs in again.
-
-Some actions always need a fresh password login: adding or removing a device, replacing the recovery key, changing the password or the unlock period, and moving the server.
-
-## Removing a device
+On the new device, run:
 
 ```sh
-envden device rm
+envden join https://envden.your-tailnet.ts.net
 ```
 
-It asks for the master password, removes the device and starts a new encryption key for new writes. Nothing is re-encrypted.
+Use your server's address and enter the pairing code. On the existing device, confirm the new device's name. The new device verifies the server pin and inherits the approver's remaining unlock time.
 
-A removed device keeps whatever it already pulled. envden can't revoke that, so it lists every file and key name the device could have read, and you rotate those credentials.
+If the join was interrupted after approval, use `envden join <server> --resume` to fetch the committed approval message.
 
-`envden device ls` shows your devices and the envden version each one last used.
+## Join with your recovery kit
+
+If another device isn't available, use your master password and kit:
+
+```sh
+envden join https://envden.your-tailnet.ts.net --recovery-kit /path/to/kit.json
+```
+
+Or use `--recovery` to enter the recovery secret key and vault ID yourself. Other devices report the recovery-kit join on their next command.
+
+## Approve checkouts on the new machine
+
+Every checkout needs approval on this machine, including worktrees. If a local env file differs from the vault, choose whether to keep yours, take the server version or merge.
+
+If Windows can't create symlinks, envden asks for consent before using copies. See [Placement](/docs/placement).
+
+## Unlock a device
+
+```sh
+envden unlock
+```
+
+Enter your master password. A successful unlock prints `Unlocked`.
+
+The default unlock period is 30 days. To read or change the vault's period:
+
+```sh
+envden config unlock-period
+envden config unlock-period 7d
+```
+
+The accepted values are `1d`, `7d`, `30d` and `never`. Changing the period requires a fresh password login. The read command returns JSON with a `period` field in milliseconds, or `null` for never.
+
+Expiry stops pushes and pulls until you unlock again. It relies on the server enforcing it; see [Security](/docs/security).
+
+## Remove a device
+
+List devices, then pass the device name or ID to `rm`:
+
+```sh
+envden device ls
+envden device rm old-laptop
+```
+
+The list includes the envden version each device last used. Removal asks for your password, reports the file and key names the device could read, and asks for confirmation. It starts a new encryption epoch for future writes. Success prints `Device removed`.
+
+Rotate the exposed credentials at their providers. Removing a device cannot erase files or keys it already has. Use `--new-kit` to replace the recovery kit in the same removal.
+
+## Manage vault keys and recovery
+
+```sh
+envden vault rotate
+envden vault kit replace
+envden vault password change
+envden vault password reset
+```
+
+`rotate` asks for your master password and starts a new epoch. It prints `Epoch rotated`; old files aren't re-encrypted.
+
+Use `kit replace` if you've lost the kit but still know the password. It replaces the recovery key and prints a new kit. Keep the replacement and discard the old one.
+
+`password change` needs the old password and the recovery secret key. If you've forgotten the password, `password reset` needs an existing device and the recovery secret key. Both keep the current kit valid. If you've lost both the password and kit, create a new vault from a device's local store.

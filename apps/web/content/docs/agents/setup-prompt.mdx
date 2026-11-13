@@ -1,27 +1,14 @@
 ---
-title: Set up envden with your agent
-description: One prompt to paste into your coding agent.
+title: Set up with your agent
+description: Paste a prompt that keeps passwords and checkout approval in your terminal.
 ---
 
 import { AgentPrompt } from "@/components/docs/agent-prompt.tsx";
 
-<Callout type="warn" title="Not released yet">
-  envden isn't published, so the prompt can't finish a setup today. It's here so the flow is ready
-  at release.
-</Callout>
-
-Paste this into your coding agent, in a terminal on the machine you want to set up:
+[Install envden](/docs/getting-started) on the machine first. Then paste this prompt into your coding agent:
 
 <AgentPrompt />
 
-## What you still do yourself
+Run the commands it hands back in your own terminal. You enter passwords and pairing codes, save the recovery kit, approve checkouts and resolve conflicts. Don't paste secrets into the agent conversation.
 
-The agent stops and hands these to you:
-
-- Typing the master password.
-- Reading or typing a pairing code.
-- Approving each checkout before it receives env files.
-- Keeping the recovery kit.
-- Resolving conflicts.
-
-See [Agents](/docs/agents) for the rules behind this.
+See [Agents](/docs/agents) for the installed skill and its settings.

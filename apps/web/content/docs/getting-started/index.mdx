@@ -1,32 +1,76 @@
 ---
-title: Getting started
-description: Pick where the server runs, then set up your first device.
+title: Install envden
+description: Install the CLI and choose where to run your server.
 ---
 
-<Callout type="warn" title="Not released yet">
-  None of the install channels below are published. This page describes how setup will work in v1.
-</Callout>
+## Install the CLI
 
-## What you need
+Choose one method. The CLI runs on macOS, Linux and Windows.
 
-- A Tailscale tailnet with HTTPS certificates enabled. Setup checks this.
-- A machine to run the server: a home-lab host, or one of your own devices.
+### macOS and Linux
 
-## Pick a path
+```sh
+curl -fsSL https://envden.theclau.de/install.sh | sh
+```
 
-- **[Home lab first](/docs/getting-started/home-lab-first).** The server runs in Docker on an always-on host. Setup recommends this.
-- **[Laptop first](/docs/getting-started/laptop-first).** The server runs on your laptop as a login service. You can move it to an always-on host later.
+### Windows PowerShell
 
-Two laptops only sync while the laptop running the server is awake, which is why an always-on host is the recommendation.
+```powershell
+irm https://envden.theclau.de/install.ps1 | iex
+```
 
-## Install channels
+These scripts check the binary against `SHA256SUMS` over HTTPS. They don't verify the signed release feed. Later script-installed updates through `envden update` verify that feed.
 
-The CLI will ship through Homebrew, a `curl | sh` script, an `irm | iex` script for PowerShell, npm, winget and Scoop. The server image will be on GHCR, and [Home lab first](/docs/getting-started/home-lab-first#1-run-the-server) shows how to run it.
+### Homebrew
 
-The `curl | sh` and `irm | iex` scripts check the binary against `SHA256SUMS` over HTTPS. They don't check the signed release feed.
+```sh
+brew install notsuhas/tap/envden
+```
 
-{/* TODO(maintainer): add the exact install commands. They need names that only the maintainer can reserve: the GitHub owner and repo, the Homebrew tap, the Scoop bucket, the npm package name and the winget publisher (packaging/README.md). */}
+### npm
 
-## After the first device
+```sh
+npm i -g envden
+```
 
-[Join your other devices](/docs/joining-devices) with a pairing code, or with the master password and the recovery kit.
+### Scoop
+
+```powershell
+scoop bucket add envden https://github.com/notsuhas/scoop-bucket
+scoop install envden
+```
+
+Check the installation:
+
+```sh
+envden version
+```
+
+For v0.1.0, this prints:
+
+```text
+0.1.0
+```
+
+## Choose a server
+
+Your devices need Tailscale, with HTTPS certificates enabled for the tailnet. Setup checks this.
+
+- [Home lab first](/docs/getting-started/home-lab-first): run `ghcr.io/notsuhas/envden` in Docker on an always-on host.
+- [Laptop first](/docs/getting-started/laptop-first): run the server as a login service on this machine.
+
+Use an always-on host if you have one. Other devices can sync with a laptop server only while that laptop is awake.
+
+## For contributors
+
+To build the CLI from source, install Bun 1.4 and run:
+
+```sh
+git clone https://github.com/notsuhas/envden.git
+cd envden
+bun install
+bun run --cwd apps/cli build
+./apps/cli/dist/envden --help
+```
+
+The compiled binary includes `envden serve`.
