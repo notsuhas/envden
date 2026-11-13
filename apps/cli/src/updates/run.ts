@@ -6,7 +6,7 @@ import type { TAdapters } from "../adapters.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { emptyState } from "../state/model.ts";
 import { releaseConfig } from "./release-config.ts";
-import { checkRelease } from "./check.ts";
+import { checkRelease, releaseCheckSummary } from "./check.ts";
 
 async function lockedrunUpdateCheck(adapters: TAdapters, now: number, force = true) {
   const existing = await loadState(adapters.home);
@@ -19,7 +19,7 @@ async function lockedrunUpdateCheck(adapters: TAdapters, now: number, force = tr
   if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
   if (existing) await saveState(adapters.home, state);
 
-  return result;
+  return releaseCheckSummary(result);
 }
 
 export function runUpdateCheck(...args: Parameters<typeof lockedrunUpdateCheck>) {

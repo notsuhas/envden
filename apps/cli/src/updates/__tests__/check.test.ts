@@ -1,7 +1,7 @@
 import type { TFetch } from "../../client/fetch.ts";
 import { test, expect } from "bun:test";
 import * as p from "@envden/core/protocol";
-import { checkRelease } from "../check.ts";
+import { checkRelease, releaseCheckSummary } from "../check.ts";
 import { emptyState } from "../../state/model.ts";
 
 test("signed feed applies unsafe versions, refuses replay and skips daily fetches", async () => {
@@ -36,7 +36,17 @@ test("signed feed applies unsafe versions, refuses replay and skips daily fetche
     return new Response(bytes);
   };
 
-  expect((await checkRelease(state, trust, 2000, fetcher)).kind).toBe("checked");
+  const result = await checkRelease(state, trust, 2000, fetcher);
+  expect(result.kind).toBe("checked");
+
+  expect(JSON.parse(JSON.stringify(releaseCheckSummary(result)))).toEqual({
+    kind: "checked",
+    latest: "1.0.0",
+    available: true,
+    required: false,
+    expired: false,
+  });
+
   expect(state.release?.unsafe).toEqual(["0.0.0"]);
   expect((await checkRelease(state, trust, 3000, fetcher)).kind).toBe("skipped");
   expect(calls).toBe(1);

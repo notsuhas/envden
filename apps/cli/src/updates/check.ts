@@ -56,3 +56,11 @@ export async function checkRelease(
     state.lastFeedCheck = now;
   }
 }
+
+export function releaseCheckSummary(result: Awaited<ReturnType<typeof checkRelease>>) {
+  if (result.kind !== "checked") return result;
+
+  const { kind, latest, available, required, expired } = result;
+
+  return { kind, latest, available, required, expired };
+}
