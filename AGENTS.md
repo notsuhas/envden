@@ -33,7 +33,7 @@ Tests use `bun:test` and live in a `__tests__/` folder next to the code they tes
 
 ## Commits and reviews
 
-- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, or an adapter such as `adapter-storage-sqlite`. Mark breaking changes with `!`.
+- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, `testing`, `tools`, or an adapter such as `adapter-storage-sqlite`. Use `adapters` for a change spanning several adapters. Mark breaking changes with `!`.
 - **Review comments follow [Conventional Comments](https://conventionalcomments.org):** `label (decorations): subject`, using labels such as `issue`, `suggestion`, `nitpick`, `question` and `praise`, and decorations such as `(blocking)` or `(non-blocking)`.
 
 ## Packages and imports
