@@ -7,7 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "bun build --compile --no-compile-autoload-dotenv --no-compile-autoload-bunfig ./src/main.ts --outfile dist/envden",
+    "build": "bun build --define __ENVDEN_TELEMETRY_KEY__=\"$(bun -e 'process.stdout.write(JSON.stringify(process.env.ENVDEN_TELEMETRY_KEY ?? \"\"))')\" --compile --no-compile-autoload-dotenv --no-compile-autoload-bunfig ./src/main.ts --outfile dist/envden",
     "build:all": "bun scripts/build-all.ts",
     "release:sign": "bun --tsconfig-override ../../scripts/tsconfig.json ../../scripts/release/sign.ts",
     "release:checksums": "bun ../../scripts/release/checksums.ts",

@@ -28,7 +28,10 @@ export async function noticeStatus(home: string, state: ILocalState) {
 }
 
 async function lockedrefreshNotice(home: string, state: ILocalState): Promise<void> {
-  const roots = state.approved.map((item) => item.root).filter((root) => !/[\r\n]/.test(root));
+  const roots = state.approved
+    .map((item) => item.root)
+    .filter((root) => sanitizeTerminal(root) === root && !/[\r\n]/.test(root));
+
   await atomicWrite(join(home, "state", "approved-checkouts"), roots.join("\n") + "\n");
   const local = await noticeStatus(home, state);
   const remote = await readRemoteNotice(home);

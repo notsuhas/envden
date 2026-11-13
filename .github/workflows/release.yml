@@ -40,6 +40,8 @@ jobs:
         shell: bash
         run: bun -e 'if ("v" + (await Bun.file("apps/cli/package.json").json()).version !== process.env.GITHUB_REF_NAME || "v" + (await Bun.file("apps/server/package.json").json()).version !== process.env.GITHUB_REF_NAME) throw new Error("Tag/version mismatch")'
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.targets }}
+        env:
+          ENVDEN_TELEMETRY_KEY: ${{ vars.ENVDEN_TELEMETRY_KEY }}
       - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
       - uses: actions/upload-artifact@v4
         with:

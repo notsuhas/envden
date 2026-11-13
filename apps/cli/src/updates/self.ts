@@ -7,7 +7,8 @@ import type { TFetch } from "../client/fetch.ts";
 import { withStateLock } from "../state/lock.ts";
 import { loadState, saveState } from "../state/repository.ts";
 import { emptyState } from "../state/model.ts";
-import { installAgent } from "../agent/install.ts";
+import { refreshInstallation } from "./self/maintenance.ts";
+import { currentReleasePlatform } from "./self/platform.ts";
 import { VERSION } from "../version.ts";
 import { checkRelease } from "./check.ts";
 import { releaseConfig } from "./release-config.ts";
@@ -33,7 +34,7 @@ export async function selfUpdate(
 
       const { state, result, buildUrl } = await authorizedRelease(adapters, options);
 
-      const platform = `${process.platform}-${process.arch}`;
+      const platform = currentReleasePlatform();
 
       const response = await options.fetcher(buildUrl(result.latest, platform), {
         redirect: "error",
@@ -58,12 +59,7 @@ export async function selfUpdate(
       await replaceBinary(options.binary, bytes, process.platform === "win32");
     }
 
-    for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
-      const adapter = adapters.shell(shell);
-      if (await adapter.installed()) await adapter.install(options.binary);
-    }
-
-    await installAgent(adapters.userHome);
+    await refreshInstallation(adapters, options.binary);
 
     return { kind: "updated" as const };
   });

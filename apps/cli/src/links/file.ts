@@ -1,3 +1,5 @@
+import { select } from "@clack/prompts";
+import { sanitizeTerminal } from "../output/sanitize.ts";
 import { readFile, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
@@ -14,6 +16,7 @@ export async function linkFile(
   checkout: ICheckout,
   placement: IPlacementAdapter,
   path: string,
+  choose: (path: string) => Promise<"separate" | "store" | "skip"> = chooseVersion,
 ) {
   const destination = join(checkout.root, path);
   const store = storePath(adapters.home, state.aliases[checkout.repoId] ?? checkout.repoId, path);
@@ -28,6 +31,47 @@ export async function linkFile(
     return;
   }
 
+  const choice = await storeChoice(store, destination, choose);
+
+  if (choice === "skip") {
+    console.error(`envden: ${sanitizeTerminal(destination)} differs from store; skipped`);
+
+    return;
+  }
+
+  await adapters.repo.ensureIgnored(checkout, path);
+
+  if (choice === "separate") {
+    state.links.push({ root: checkout.root, path, store, mode: "copy", localOnly: true });
+
+    return;
+  }
+
+  await placement.place(store, destination);
+  state.links.push({ root: checkout.root, path, store, mode: placement.mode });
+}
+
+async function chooseVersion(path: string): Promise<"separate" | "store" | "skip"> {
+  if (!process.stdin.isTTY) return "skip";
+
+  const choice = await select({
+    message: `${sanitizeTerminal(path)} differs from the store`,
+    options: [
+      { value: "separate" as const, label: "Keep separate (local only)" },
+      { value: "store" as const, label: "Use the store version" },
+    ],
+  });
+
+  if (typeof choice === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+
+  return choice;
+}
+
+async function storeChoice(
+  store: string,
+  destination: string,
+  choose: (path: string) => Promise<"separate" | "store" | "skip">,
+) {
   const content = await readFile(destination);
 
   try {
@@ -36,18 +80,12 @@ export async function linkFile(
     if (!stat.isFile() || stat.isSymbolicLink())
       throw new EnvdenError("INVALID_DATA", "Unsafe store file");
 
-    if (!(await readFile(store)).equals(content))
-      throw new EnvdenError(
-        "CONFLICT",
-        "Checkout differs from the store; choose which version to keep",
-      );
+    if (!(await readFile(store)).equals(content)) return choose(destination);
   } catch (cause) {
     if (cause instanceof Error && "code" in cause && cause.code === "ENOENT")
       await atomicWrite(store, content);
     else throw cause;
   }
 
-  await adapters.repo.ensureIgnored(checkout, path);
-  await placement.place(store, destination);
-  state.links.push({ root: checkout.root, path, store, mode: placement.mode });
+  return "store";
 }

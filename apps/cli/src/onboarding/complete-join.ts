@@ -6,11 +6,15 @@ import { firstRun } from "../sync/first-run.ts";
 import { input } from "../output/questions.ts";
 import { EnvdenError } from "@envden/core/errors";
 
-export async function completeJoin(adapters: TAdapters, now: () => number) {
+export async function completeJoin(
+  adapters: TAdapters,
+  now: () => number,
+  effects = { setupCheckouts, firstRun },
+) {
   const state = requireConfigured(await loadState(adapters.home), "Join did not configure a vault");
-  await setupCheckouts(adapters, state, {});
+  await effects.setupCheckouts(adapters, state, { now });
 
-  await firstRun(adapters, {
+  await effects.firstRun(adapters, {
     now,
     fetcher: fetch,
     all: true,

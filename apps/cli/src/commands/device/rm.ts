@@ -11,14 +11,20 @@ export const deviceRmCommand = new Command("rm")
     const result = await removeDevice(
       createAdapters(),
       device,
-      await secret("Master password"),
+      () => secret("Master password"),
       () => Date.now(),
       fetch,
       options.newKit,
       () => consent("This device held recovery keys. Replace the recovery kit in this removal?"),
+      async (exposure) => {
+        console.log(terminalJson(exposure));
+
+        return consent(
+          "Remove this device and rotate keys? Previously exposed values need rotation.",
+        );
+      },
     );
 
-    console.log(terminalJson(result.exposure));
     if (result.kit) console.log(terminalJson(result.kit));
     console.log("Device removed");
   });

@@ -12,7 +12,7 @@ import { setupVault } from "../vault/setup.ts";
 import { readFile } from "node:fs/promises";
 import { loadState, saveState } from "../state/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
-import { secret, input } from "../output/questions.ts";
+import { secret, input, consent } from "../output/questions.ts";
 
 interface ISetupOptions {
   server?: string;
@@ -34,30 +34,34 @@ async function lockedrunSetup(
   options: ISetupOptions,
   now: () => number,
 ): Promise<void> {
-  if (!(await adapters.network.checkHttpsCertificate()))
-    throw new EnvdenError("INVALID_INPUT", "Enable Tailscale HTTPS certificates before setup");
+  const existing = await loadState(adapters.home);
 
-  let hostedAddress: string | undefined;
+  let state;
 
-  if (options.hostServer) {
-    const installed = await adapters.hostServer();
-    console.log(`Server installed. Read its setup token from ${installed.log}`);
-    hostedAddress = await adapters.network.expose(4783);
-  }
+  if (existing?.vaultId && !existing.creationPending) {
+    if (options.hostServer) await adapters.hostServer();
+    state = existing;
+  } else state = await createState(adapters, options, now, existing?.vaultId);
+
+  await setupCheckouts(adapters, state, { ...options, now });
+  await pushInitialFiles(adapters, state, now);
+  await refreshNotice(adapters.home, state);
+}
+
+async function createState(
+  adapters: TAdapters,
+  options: ISetupOptions,
+  now: () => number,
+  vaultId?: string,
+) {
+  const hostedAddress = await hostAddress(adapters, options);
 
   const address = options.server ?? hostedAddress ?? (await input("Server URL"));
   const token = options.setupToken ?? (await secret("Server setup token"));
   const name = await defaultInput(options.name, "Device name");
   const password = await confirmedPassword(secret);
 
-  const existing = await loadState(adapters.home);
-
-  const resumeSecretKey = await resumeKey(existing?.vaultId, options.kitOut);
-
-  const reportKit = async (kit: unknown) => {
-    if (options.kitOut) await writeKit(options.kitOut, kit);
-    else console.log(JSON.stringify(kit, null, 2));
-  };
+  const resumeSecretKey = await resumeKey(vaultId, options.kitOut);
 
   const result = await setupVault(adapters, {
     address,
@@ -67,7 +71,7 @@ async function lockedrunSetup(
     now,
     fetcher: fetch,
     ...(resumeSecretKey ? { resumeSecretKey } : {}),
-    onKit: reportKit,
+    onKit: (kit) => reportKit(options.kitOut, kit),
   });
 
   console.log(
@@ -78,10 +82,7 @@ async function lockedrunSetup(
 
   await saveState(adapters.home, result.state);
 
-  await setupCheckouts(adapters, result.state, options);
-
-  await pushInitialFiles(adapters, result.state, now);
-  await refreshNotice(adapters.home, result.state);
+  return result.state;
 }
 
 export function runSetup(...args: Parameters<typeof lockedrunSetup>) {
@@ -93,4 +94,26 @@ async function resumeKey(vaultId: string | undefined, kitOut: string | undefined
   if (kitOut) return parseKit(JSON.parse(await readFile(kitOut, "utf8"))).secretKey;
 
   return secret("Recovery secret key issued before creation");
+}
+
+async function hostAddress(adapters: TAdapters, options: ISetupOptions) {
+  if (!(await adapters.network.checkHttpsCertificate()))
+    throw new EnvdenError("INVALID_INPUT", "Enable Tailscale HTTPS certificates before setup");
+
+  const host =
+    options.hostServer ||
+    (!options.server &&
+      process.stdin.isTTY &&
+      (await consent("Host the server on this machine? An always-on host is recommended.")));
+
+  if (!host) return undefined;
+  const installed = await adapters.hostServer();
+  console.log(`Server installed. Read its setup token from ${installed.log}`);
+
+  return adapters.network.expose(4783);
+}
+
+async function reportKit(path: string | undefined, kit: unknown) {
+  if (path) await writeKit(path, kit);
+  else console.log(JSON.stringify(kit, null, 2));
 }

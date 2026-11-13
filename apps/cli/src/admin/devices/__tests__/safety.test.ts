@@ -66,3 +66,69 @@ test("exposure downloads identical historical file lists once", async () => {
     await f.close();
   }
 });
+
+test("unknown device does not ask for credentials and confirmation precedes removal", async () => {
+  const f = await fixture();
+
+  try {
+    let passwords = 0;
+
+    await Promise.resolve(
+      expect(
+        removeDevice(
+          f.first,
+          "missing",
+          async () => {
+            passwords++;
+
+            return "old password";
+          },
+          f.now,
+        ),
+      ).rejects.toMatchObject({ code: "NOT_FOUND" }),
+    );
+
+    expect(passwords).toBe(0);
+    const second = f.home("second");
+
+    await kitJoin(second, {
+      address: f.result.kit.server,
+      name: "second",
+      ...f.result.kit,
+      password: "old password",
+      now: f.now,
+      fetcher: fetch,
+    });
+
+    let confirmed = false;
+
+    await Promise.resolve(
+      expect(
+        removeDevice(
+          second,
+          "first",
+          async () => "old password",
+          f.now,
+          fetch,
+          false,
+          undefined,
+          async (exposure) => {
+            confirmed = true;
+            expect(exposure.files).toEqual([]);
+
+            expect(
+              (await listDevices(second, f.now)).some((device) => device.name === "first"),
+            ).toBe(true);
+
+            return false;
+          },
+        ),
+      ).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+    );
+
+    expect(confirmed).toBe(true);
+    expect((await listDevices(second, f.now)).some((device) => device.name === "first")).toBe(true);
+  } finally {
+    await f.close();
+  }
+});

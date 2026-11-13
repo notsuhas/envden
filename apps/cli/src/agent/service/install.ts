@@ -26,15 +26,22 @@ export async function installHostService(options: {
   if (definition.kind === "launchd") {
     path = join(options.userHome, "Library", "LaunchAgents", "com.envden.server.plist");
     await options.write(path, definition.content);
+
+    await options
+      .run(["launchctl", "bootout", `gui/${options.uid}/com.envden.server`])
+      .catch(() => {});
+
     await options.run(["launchctl", "bootstrap", `gui/${options.uid}`, path]);
   } else if (definition.kind === "systemd") {
     path = join(options.userHome, ".config", "systemd", "user", "envden.service");
     await options.write(path, definition.content);
     await options.run(["systemctl", "--user", "daemon-reload"]);
-    await options.run(["systemctl", "--user", "enable", "--now", "envden.service"]);
+    await options.run(["systemctl", "--user", "enable", "envden.service"]);
+    await options.run(["systemctl", "--user", "restart", "envden.service"]);
   } else {
     path = join(options.home, "envden-task.xml");
     await options.write(path, new Uint8Array(Buffer.from(definition.content, "utf16le")));
+    await options.run(["schtasks", "/End", "/TN", "envden"]).catch(() => {});
     await options.run(["schtasks", "/Create", "/TN", "envden", "/XML", path, "/F"]);
     await options.run(["schtasks", "/Run", "/TN", "envden"]);
   }

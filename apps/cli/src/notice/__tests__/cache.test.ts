@@ -64,3 +64,42 @@ test("command notice honors environment opt-out without persisting it", async ()
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("notice caches missed env checkouts and sanitized update text", async () => {
+  const { cacheOffers } = await import("../offers.ts");
+  const { createAdapters } = await import("../../adapters.ts");
+  const { createMemoryKeychainAdapter } = await import("@envden/testing/keychain");
+  const home = await mkdtemp(join(tmpdir(), "envden-offers-"));
+
+  try {
+    const adapters = createAdapters({
+      home,
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    const checkout = {
+      root: join(home, "repo"),
+      gitDir: join(home, "repo", ".git"),
+      repoId: "host/repo",
+    };
+
+    adapters.repo.checkoutAt = async () => checkout;
+    adapters.repo.envFiles = async () => [".env"];
+    const state = emptyState("test");
+    await atomicWrite(join(home, "state", "track-offers"), "/bad\u001b[31m\n");
+    await cacheOffers(adapters, state, checkout.root, { available: true, required: true });
+    expect(await readFile(join(home, "state", "track-offers"), "utf8")).toBe(checkout.root + "\n");
+
+    expect(await readFile(join(home, "state", "notice-update"), "utf8")).toContain(
+      "update required",
+    );
+
+    state.approved.push(checkout);
+    await cacheOffers(adapters, state, checkout.root, { available: false, required: false });
+    expect(await readFile(join(home, "state", "track-offers"), "utf8")).toBe("");
+    expect(await readFile(join(home, "state", "notice-update"), "utf8")).toBe("");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

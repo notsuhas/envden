@@ -24,9 +24,32 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   while IFS= read -r root; do
     [ -n "$root" ] || continue
     case "$PWD/" in "$root/"*) approved=1; break ;; esac
-  done < ${quote(join(state, "approved-checkouts"))} 2>/dev/null
-  [ "$approved" = 1 ] || return 0
-  [ ! -f "$cache" ] || cat -- "$cache"
+  done 2>/dev/null < ${quote(join(state, "approved-checkouts"))}
+  local offered=${quote(join(state, "track-offered"))} root_seen=0 day line
+  while IFS= read -r root; do
+    [ -n "$root" ] || continue
+    case "$PWD/" in "$root/"*)
+      root_seen=0
+      while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
+      if [ "$root_seen" = 0 ]; then
+        printf '%s\\n' 'envden: env files found; run envden track'
+        printf '%s\\n' "$root" >> "$offered"
+      fi
+      break ;;
+    esac
+  done 2>/dev/null < ${quote(join(state, "track-offers"))}
+  day=$(date +%Y-%m-%d)
+  while IFS= read -r line; do
+    case "$line" in
+      'envden: update required; run envden update') printf '%s\\n' "$line" ;;
+      'envden: update available; run envden update')
+        if [ "$(cat -- ${quote(join(state, "update-offered-day"))} 2>/dev/null)" != "$day" ]; then
+          printf '%s\\n' "$line"
+          printf '%s\\n' "$day" > ${quote(join(state, "update-offered-day"))}
+        fi ;;
+    esac
+  done 2>/dev/null < ${quote(join(state, "notice-update"))}
+  if [ "$approved" = 1 ] && [ -f "$cache" ]; then LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"; fi
   now=$(date +%s)
   modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=$(stat -f %m "$cache" 2>/dev/null) || modified=0
   if [ "$((now - modified))" -gt 60 ]; then
@@ -55,8 +78,36 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
       end
     end < ${quote(join(state, "approved-checkouts"))}
   end
-  test "$approved" = 1; or return
-  test ! -f "$cache"; or cat -- "$cache"
+  set -l offered ${quote(join(state, "track-offered"))}
+  if test -f ${quote(join(state, "track-offers"))}
+    while read -l root
+      set -l prefix (string sub -l (string length -- "$root/") -- "$PWD/")
+      if test -n "$root"; and test "$prefix" = "$root/"
+        if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
+          printf '%s\\n' 'envden: env files found; run envden track'
+          printf '%s\\n' "$root" >> "$offered"
+        end
+        break
+      end
+    end < ${quote(join(state, "track-offers"))}
+  end
+  set -l day (date +%Y-%m-%d)
+  if test -f ${quote(join(state, "notice-update"))}
+    while read -l line
+      switch "$line"
+        case 'envden: update required; run envden update'
+          printf '%s\\n' "$line"
+        case 'envden: update available; run envden update'
+          if test (cat -- ${quote(join(state, "update-offered-day"))} 2>/dev/null; or echo missing) != "$day"
+            printf '%s\\n' "$line"
+            printf '%s\\n' "$day" > ${quote(join(state, "update-offered-day"))}
+          end
+      end
+    end < ${quote(join(state, "notice-update"))}
+  end
+  if test "$approved" = 1; and test -f "$cache"
+    env LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"
+  end
   set -l modified (stat -c %Y "$cache" 2>/dev/null; or stat -f %m "$cache" 2>/dev/null; or echo 0)
   if test (math (date +%s) - "$modified") -gt 60
     ${command} </dev/null >/dev/null 2>&1 &
@@ -73,8 +124,27 @@ function global:prompt {
   $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($PWD.Path.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
   $changed = $global:EnvdenLastDirectory -cne $PWD.Path
   $global:EnvdenLastDirectory = $PWD.Path
-  if ($approved -and $changed) {
-    if (Test-Path -LiteralPath $cache) { Get-Content -LiteralPath $cache | Out-Host }
+  if ($changed) {
+    $offered = ${psQuote(join(state, "track-offered"))}
+    foreach ($root in @(Get-Content -LiteralPath ${psQuote(join(state, "track-offers"))} -ErrorAction SilentlyContinue)) {
+      if ($root -and (($PWD.Path.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($root.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })))) {
+        if (@(Get-Content -LiteralPath $offered -ErrorAction SilentlyContinue) -cnotcontains $root) {
+          Write-Host 'envden: env files found; run envden track'
+          Add-Content -LiteralPath $offered -Value $root
+        }
+        break
+      }
+    }
+    $day = (Get-Date).ToString('yyyy-MM-dd')
+    $dayFile = ${psQuote(join(state, "update-offered-day"))}
+    foreach ($line in @(Get-Content -LiteralPath ${psQuote(join(state, "notice-update"))} -ErrorAction SilentlyContinue)) {
+      if ($line -ceq 'envden: update required; run envden update') { Write-Host $line }
+      if ($line -ceq 'envden: update available; run envden update' -and (Get-Content -LiteralPath $dayFile -ErrorAction SilentlyContinue) -cne $day) {
+        Write-Host $line
+        Set-Content -LiteralPath $dayFile -Value $day
+      }
+    }
+    if ($approved -and (Test-Path -LiteralPath $cache)) { Get-Content -LiteralPath $cache | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host }
     if (!(Test-Path -LiteralPath $cache) -or ((Get-Date) - (Get-Item -LiteralPath $cache).LastWriteTime).TotalSeconds -gt 60) {
       $info = [Diagnostics.ProcessStartInfo]::new(${psQuote(binaryPath)})
       $info.ArgumentList.Add('status'); $info.ArgumentList.Add('--refresh-cache')

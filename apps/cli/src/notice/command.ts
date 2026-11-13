@@ -1,3 +1,4 @@
+import { cacheOffers } from "./offers.ts";
 import { compareSemver } from "@envden/core/protocol";
 import { rememberRelease, restoreReleases } from "../updates/persistence.ts";
 import { cleanupOldBinary } from "../updates/replace.ts";
@@ -21,6 +22,7 @@ async function lockedcommandNotice(
   fetcher: TFetch,
   refresh = false,
   cwd?: string,
+  localOnly = false,
 ) {
   await cleanupOldBinary(process.execPath, process.platform === "win32");
   const state = await loadState(adapters.home);
@@ -29,18 +31,14 @@ async function lockedcommandNotice(
   if (stored) state.release = stored;
   const config = await readConfig(adapters.home);
 
-  if (!refresh) {
-    if (updateCheckEnabled(config["update-check"])) {
-      const result = await checkRelease(state, releaseConfig.trust, now, fetcher);
-      if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
-    }
+  if (!refresh && !localOnly) await refreshRelease(adapters, state, now, fetcher);
 
-    await saveState(adapters.home, state);
-  }
-
-  const remote = await refreshedRemote(adapters, state, now, fetcher, refresh);
+  const remote = localOnly
+    ? await readRemoteNotice(adapters.home)
+    : await refreshedRemote(adapters, state, now, fetcher, refresh);
 
   await refreshNotice(adapters.home, state);
+  await cacheOffers(adapters, state, cwd, updateNotice(state, config));
   const local = await noticeStatus(adapters.home, state);
 
   const currentRepo = currentRepoId(state, cwd);
@@ -53,8 +51,12 @@ async function lockedcommandNotice(
   };
 }
 
-export function commandNotice(...args: Parameters<typeof lockedcommandNotice>) {
-  return withStateLock(args[0].home, () => lockedcommandNotice(...args));
+export async function commandNotice(...args: Parameters<typeof lockedcommandNotice>) {
+  try {
+    return await withStateLock(args[0].home, () => lockedcommandNotice(...args));
+  } catch {
+    return { repos: [], update: { available: false, required: false } };
+  }
 }
 
 async function refreshedRemote(
@@ -98,4 +100,20 @@ function updateNotice(
     required:
       (state.release?.unsafe.includes(VERSION) ?? false) && config["allow-version"] !== VERSION,
   };
+}
+
+async function refreshRelease(
+  adapters: TAdapters,
+  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
+  now: number,
+  fetcher: TFetch,
+) {
+  const config = await readConfig(adapters.home);
+
+  if (updateCheckEnabled(config["update-check"])) {
+    const result = await checkRelease(state, releaseConfig.trust, now, fetcher);
+    if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+  }
+
+  await saveState(adapters.home, state);
 }

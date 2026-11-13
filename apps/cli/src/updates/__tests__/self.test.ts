@@ -24,8 +24,10 @@ for (const valid of [true, false])
 
     adapters.shell = (shell) => ({
       id: shell,
-      installed: async () => false,
-      install: async () => {},
+      installed: async () => valid,
+      install: async () => {
+        throw new Error("Shell refresh failed after swap");
+      },
       uninstall: async () => {},
       rcPath: () => "",
       hookSnippet: () => "",
@@ -82,6 +84,10 @@ for (const valid of [true, false])
 
       expect(await readFile(binary, "utf8")).toBe(valid ? "new binary" : "old binary");
       expect(await loadState(adapters.home)).toBeUndefined();
+
+      expect(await Bun.file(join(root, ".agents", "skills", "envden", "SKILL.md")).exists()).toBe(
+        false,
+      );
     } finally {
       releaseConfig.trust = original.trust;
       releaseConfig.buildUrl = original.buildUrl;

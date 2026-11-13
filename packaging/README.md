@@ -11,7 +11,7 @@ Publishing stops until the maintainer configures these values. Backup seeds neve
 - Set ENVDEN_FIRST_RELEASE=1 only for a repository with zero releases. Remove immediately after publishing. Later runs require the previous authenticated feed. ENVDEN_UNSAFE_VERSIONS optionally adds comma-separated versions; old unsafe entries are preserved.
 - Reserve REPLACE_NPM_PACKAGE_NAME, replace it and remove `private`. Fill npm/checksums.json from the verified signed release. Configure npm publishing credentials separately. If the name differs from envden, change the CLI npm update command too.
 - Create REPLACE_HOMEBREW_TAP and REPLACE_SCOOP_BUCKET. Replace template URLs, REPLACE_SITE_HOST and every SHA256 placeholder. Claim REPLACE_PUBLISHER for winget, replacing identifiers and hashes. Publishing through these maintainer accounts is a separate step.
-- Configure the production PostHog project key in the app's opt-in telemetry settings; no telemetry key is invented here.
+- Set repository variable `ENVDEN_TELEMETRY_KEY` to the public PostHog project key baked into release binaries. Leave it empty to disable telemetry.
 - Supply TS_AUTHKEY at deployment, never build time. Enable HTTPS certificates and Serve in the tailnet; authorize hostname/tag policy.
 
 ## First release order

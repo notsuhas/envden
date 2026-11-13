@@ -44,6 +44,28 @@ test("service installer writes and enables through supplied effects", async () =
 
   expect(commands).toEqual([
     ["systemctl", "--user", "daemon-reload"],
-    ["systemctl", "--user", "enable", "--now", "envden.service"],
+    ["systemctl", "--user", "enable", "envden.service"],
+    ["systemctl", "--user", "restart", "envden.service"],
   ]);
 });
+
+for (const platform of ["darwin", "win32"])
+  test(`${platform} service install stops before replacing`, async () => {
+    const commands: string[][] = [];
+
+    for (let pass = 0; pass < 2; pass++)
+      await installHostService({
+        platform,
+        executable: "/bin/envden",
+        userHome: "/test",
+        home: "/test/envden",
+        uid: 1,
+        write: async () => {},
+        run: async (args) => {
+          commands.push(args);
+        },
+      });
+
+    expect(commands[0]?.[1]).toBe(platform === "darwin" ? "bootout" : "/End");
+    expect(commands[1]?.[1]).toBe(platform === "darwin" ? "bootstrap" : "/Create");
+  });

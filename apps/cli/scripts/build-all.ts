@@ -15,6 +15,8 @@ for (const platform of platforms) {
       "bun",
       "build",
       "--compile",
+      "--define",
+      `__ENVDEN_TELEMETRY_KEY__=${JSON.stringify(process.env.ENVDEN_TELEMETRY_KEY ?? "")}`,
       "--no-compile-autoload-dotenv",
       "--no-compile-autoload-bunfig",
       `--target=bun-${platform}`,

@@ -106,5 +106,45 @@ test("fish tries GNU stat before the BSD fallback", () => {
 test("PowerShell gates notices on a directory change", () => {
   const snippet = createRcShellAdapter("powershell").hookSnippet(join(tmpdir(), "envden"));
   expect(snippet).toContain("$global:EnvdenLastDirectory -cne $PWD.Path");
-  expect(snippet).toContain("$approved -and $changed");
+  expect(snippet).toContain("if ($changed)");
 });
+
+for (const shell of ["bash", "zsh"] as const)
+  test(`${shell} caches track offers and update days`, async () => {
+    const home = await realpath(await mkdtemp(join(tmpdir(), "envden-offer-")));
+    const { mkdir } = await import("node:fs/promises");
+
+    try {
+      const state = join(home, ".envden", "state");
+      await mkdir(state, { recursive: true });
+      await writeFile(join(state, "track-offers"), home + "\n");
+
+      await writeFile(
+        join(state, "notice-update"),
+        "envden: update available; run envden update\nenvden: update required; run envden update\nmalicious\x1b[31m\n",
+      );
+
+      await writeFile(join(state, "notice"), "");
+      const snippet = createRcShellAdapter(shell, home).hookSnippet("/bin/true");
+
+      const run = async () => {
+        const child = Bun.spawn([shell, "-c", snippet], {
+          cwd: home,
+          stdout: "pipe",
+          stderr: "pipe",
+        });
+
+        expect(await child.exited).toBe(0);
+
+        return new Response(child.stdout).text();
+      };
+
+      const first = await run();
+      expect(first).toContain("run envden track");
+      expect(first).toContain("update available");
+      expect(first).not.toContain("malicious");
+      expect(await run()).toBe("envden: update required; run envden update\n");
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });

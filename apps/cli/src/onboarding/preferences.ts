@@ -14,23 +14,27 @@ type TOptions = {
   agent?: string;
 };
 
-export async function setupPreferences(adapters: TAdapters, state: ILocalState, options: TOptions) {
-  state.telemetry = await consentPreference(
+export async function setupPreferences(
+  adapters: TAdapters,
+  _state: ILocalState,
+  options: TOptions,
+) {
+  const telemetry = await consentPreference(
     options.telemetry,
     options.yes,
     false,
     "Enable anonymous telemetry?",
   );
 
-  state.updateCheck = await consentPreference(
+  const updateCheck = await consentPreference(
     options.updateCheck,
     options.yes,
     true,
     "Check for updates daily?",
   );
 
-  await setConfig("telemetry", state.telemetry ? "on" : "off", adapters.home);
-  await setConfig("update-check", state.updateCheck ? "on" : "off", adapters.home);
+  await setConfig("telemetry", telemetry ? "on" : "off", adapters.home);
+  await setConfig("update-check", updateCheck ? "on" : "off", adapters.home);
   await installShell(adapters, options);
 
   await installAgentPreference(adapters, options);

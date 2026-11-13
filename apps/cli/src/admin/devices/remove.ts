@@ -16,26 +16,25 @@ import { replaceKit } from "../recovery/credentials.ts";
 async function attemptRemoveDevice(
   adapters: TAdapters,
   name: string,
-  password: string,
+  password: string | (() => Promise<string>),
   now: () => number,
   fetcher: TFetch = fetch,
   newKit = false,
   recommend?: () => Promise<boolean>,
+  confirm?: (exposure: Awaited<ReturnType<typeof exposedNames>>) => Promise<boolean>,
 ) {
   const context = await adminContext(adapters, now, fetcher);
-  await login(context.client, context.vaultId, password);
   const history = await currentHistory(context);
 
-  const device = [...history.state.devices.values()].find(
-    (item) => item.name === name || p.base32(item.id) === name,
-  );
+  const device = removableDevice(history, context.identity.record.id, name);
 
-  if (!device) throw new EnvdenError("NOT_FOUND", "Device not found");
-
-  if (p.equal(device.id, context.identity.record.id) || history.state.devices.size === 1)
-    throw new EnvdenError("INVALID_INPUT", "Cannot remove this device or the last device");
-
+  const credential = typeof password === "string" ? password : await password();
+  await login(context.client, context.vaultId, credential);
   const exposure = await exposedNames(context, history);
+
+  if (confirm && !(await confirm(exposure)))
+    throw new EnvdenError("INVALID_INPUT", "Device removal cancelled");
+
   const recommendNewKit = recoveryHolders(history).has(p.base32(device.id));
 
   const replace = newKit || (recommendNewKit && recommend ? await recommend() : false);
@@ -44,7 +43,7 @@ async function attemptRemoveDevice(
     return {
       recommendNewKit,
       exposure,
-      kit: await replaceKit(adapters, password, now, fetcher, device.id),
+      kit: await replaceKit(adapters, credential, now, fetcher, device.id),
     };
 
   await commitAdmin(context, await revocationSwap(context, history, device, now()));
@@ -54,4 +53,21 @@ async function attemptRemoveDevice(
 
 export function removeDevice(...args: Parameters<typeof attemptRemoveDevice>) {
   return withStateLock(args[0].home, () => retryHead(() => attemptRemoveDevice(...args)));
+}
+
+function removableDevice(
+  history: Awaited<ReturnType<typeof currentHistory>>,
+  ownId: Uint8Array,
+  name: string,
+) {
+  const device = [...history.state.devices.values()].find(
+    (item) => item.name === name || p.base32(item.id) === name,
+  );
+
+  if (!device) throw new EnvdenError("NOT_FOUND", "Device not found");
+
+  if (p.equal(device.id, ownId) || history.state.devices.size === 1)
+    throw new EnvdenError("INVALID_INPUT", "Cannot remove this device or the last device");
+
+  return device;
 }

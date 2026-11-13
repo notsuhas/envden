@@ -9,7 +9,16 @@ export const statusCommand = new Command("status")
   .addOption(new Option("--refresh-cache").hideHelp())
   .action(async (options) => {
     const adapters = createAdapters();
-    const notice = await commandNotice(adapters, Date.now(), fetch, !!options.refreshCache);
+
+    const notice = await commandNotice(
+      adapters,
+      Date.now(),
+      fetch,
+      !!options.refreshCache,
+      process.cwd(),
+      !options.refreshCache,
+    );
+
     const status = { ...(await localStatus(adapters)), ...notice };
 
     if (!options.refreshCache)
