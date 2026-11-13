@@ -1,3 +1,5 @@
+import { reportPendingJoins } from "./pending.ts";
+import { boundedFetch } from "./fetch.ts";
 import { cacheOffers } from "./offers.ts";
 import { compareSemver } from "@envden/core/protocol";
 import { rememberRelease, restoreReleases } from "../updates/persistence.ts";
@@ -33,6 +35,7 @@ async function lockedcommandNotice(
 
   if (!refresh && !localOnly) await refreshRelease(adapters, state, now, fetcher);
 
+  if (!refresh) await reportPendingJoins(adapters.home, state);
   const remote = await readRemoteNotice(adapters.home);
 
   await refreshNotice(adapters.home, state);
@@ -49,14 +52,25 @@ async function lockedcommandNotice(
   };
 }
 
-export async function commandNotice(...args: Parameters<typeof lockedcommandNotice>) {
+export async function commandNotice(
+  adapters: TAdapters,
+  now: number,
+  fetcher: TFetch,
+  refresh = false,
+  cwd?: string,
+  localOnly = false,
+) {
+  const fetchNotice = boundedFetch(fetcher);
+
   try {
-    if (!args[5]) {
-      const state = await loadState(args[0].home);
-      if (state) await refreshedRemote(args[0], state, args[1], args[2], !args[3]);
+    if (!localOnly) {
+      const state = await loadState(adapters.home);
+      if (state) await refreshedRemote(adapters, state, now, fetchNotice, !refresh);
     }
 
-    return await withStateLock(args[0].home, () => lockedcommandNotice(...args));
+    return await withStateLock(adapters.home, () =>
+      lockedcommandNotice(adapters, now, fetchNotice, refresh, cwd, localOnly),
+    );
   } catch {
     return { repos: [], update: { available: false, required: false } };
   }

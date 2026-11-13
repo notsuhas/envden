@@ -74,7 +74,19 @@ test("the next foreground command reports a kit join even with a fresh notice ca
   try {
     await commandNotice(f.first, f.now(), fetch, false);
     await f.joinHome("second");
-    await commandNotice(f.first, f.now(), fetch, false);
+    const { remoteNotice } = await import("../remote.ts");
+    await remoteNotice(f.first, { now: f.now, fetcher: fetch, all: true });
+    expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
+
+    await commandNotice(
+      f.first,
+      f.now(),
+      async () => {
+        throw new Error("offline");
+      },
+      false,
+    );
+
     expect(output.mock.calls.flat()).toContain("envden: second joined with the recovery kit");
     output.mockClear();
     await commandNotice(f.first, f.now(), fetch, false);

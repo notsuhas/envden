@@ -130,7 +130,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - Monorepos: `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
 - Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias. `envden alias` also fixes renamed or moved repos.
 - **Link mode** (default): a symlink into the store. All links to one store file share one base.
-- **Copy mode**: real copies, each with its own base; push detects changes against it. Used automatically when symlinks aren't available, and offered once per checkout, interactively, when its root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`. `envden track --copy` selects it explicitly; `envden config placement <path> link|copy` saves the checkout preference.
+- **Copy mode**: real copies, each with its own base; push detects changes against it. Requires explicit consent when symlinks aren't available, and is offered once per checkout, interactively, when its root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`. `envden track --copy` selects it explicitly; `envden config placement <path> link|copy` saves the checkout preference.
 - **Local only**: a checkout can mark a file as deliberately different (e.g. `PORT` per worktree). It becomes a copy that is never pushed or pulled, with no nagging.
 - **Detached checkouts**: if a link was replaced by a regular file (atomic save, `sed -i`, `cp .env.example .env`), envden relinks if the content matches the store or an older synced version. Otherwise it marks the checkout detached, keeps both versions, and asks on the next interactive command. Never silently. The shell line never does this.
 - Docker builds: docs show `.dockerignore` and BuildKit secret mounts. Copy mode is not recommended for builds.
@@ -166,7 +166,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - **Laptop first**: `envden setup` finds no server and offers to run one here as a login service. Later `envden server move`.
 - **Other devices**: `envden join <server>` with a pairing code, or master password + recovery kit.
 - **Repo discovery**: walk the chosen scan roots (default: home folder; add or remove roots) for `.git` directories, skipping junk folders; list worktrees with `git worktree list`. Warns that macOS may ask for folder access. Shows repos with env files as a checklist to approve. Later, the shell line offers once to track a repo it missed.
-- Windows: setup tries to create a symlink; if that fails (no Developer Mode, admin-locked), it explains and uses copy mode.
+- Windows: setup tries to create a symlink; if that fails (no Developer Mode, admin-locked), it explains and offers copy mode with explicit consent.
 
 ## Updates
 

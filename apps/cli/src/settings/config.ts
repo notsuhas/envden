@@ -3,9 +3,11 @@ import { withStateLock } from "../state/lock/lock.ts";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { ensurePaths, paths } from "./paths.ts";
 
+import type { IEnvFileRules } from "@envden/core/adapters";
+
 interface IConfig {
   placement?: Record<string, "link" | "copy">;
-  "env-files"?: { include?: string[]; exclude?: string[]; extraSkipped?: string[] };
+  "env-files"?: IEnvFileRules;
   telemetry: boolean;
   "update-check": boolean;
   "agent-merge": boolean;

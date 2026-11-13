@@ -1,3 +1,4 @@
+import { basePath, readBytes, writeBytes } from "../sync/local/files.ts";
 import { choose } from "../output/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { readFile, lstat } from "node:fs/promises";
@@ -30,6 +31,8 @@ export async function linkFile(
     if (status === "relinkable" || status === "linked") {
       if (existing.mode !== placement.mode) {
         await placement.place(existing.store, destination);
+
+        await copyBase(adapters.home, existing.store, checkout.root, placement.mode);
         existing.mode = placement.mode;
       } else if (status === "relinkable") await current.place(existing.store, destination);
     }
@@ -89,4 +92,14 @@ async function storeChoice(
   }
 
   return "store";
+}
+
+async function copyBase(
+  home: string,
+  store: string,
+  root: string,
+  mode: IPlacementAdapter["mode"],
+) {
+  if (mode !== "copy") return;
+  await writeBytes(basePath(home, store, root), await readBytes(basePath(home, store)));
 }

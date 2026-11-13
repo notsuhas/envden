@@ -13,7 +13,10 @@ export async function acquireLock(path: string, timing: ILockTiming) {
   for (let attempt = 0; ; attempt++) {
     if (await tryAcquire(path, timing.now())) return;
     const delay = timing.delays[attempt];
-    if (delay === undefined) throw new EnvdenError("CONFLICT", `State is locked: ${path}`);
+
+    if (delay === undefined)
+      throw new EnvdenError("CONFLICT", "State is locked; retry after the other command finishes");
+
     await timing.wait(delay);
   }
 }
@@ -27,7 +30,7 @@ async function tryAcquire(path: string, now: number): Promise<boolean> {
   const previous = await owner(path);
 
   if (!(await expiredOwner(path, previous, now))) return false;
-  if (!(await reclaimLock(path, previous?.token))) return false;
+  if (!(await reclaimLock(path, previous?.token, now))) return false;
 
   return tryAcquire(path, now);
 }

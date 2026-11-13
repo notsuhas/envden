@@ -1,4 +1,4 @@
-import { checkoutPlacement } from "../../../links/checkout/mode.ts";
+import { supportedPlacement } from "../../../links/checkout/supported.ts";
 import type { TSyncContext } from "../../remote/context.ts";
 
 export async function reconciliationTargets(
@@ -17,7 +17,7 @@ export async function reconciliationTargets(
     if (context.state.links.some((link) => link.root === approved.root && link.path === name.path))
       continue;
 
-    const preferred = await checkoutPlacement(
+    const placement = await supportedPlacement(
       context.adapters,
       approved.root,
       false,
@@ -25,15 +25,11 @@ export async function reconciliationTargets(
       false,
     );
 
-    const supported =
-      preferred === "link" &&
-      (await context.adapters.placement("link", approved.root).supported(approved.root));
-
     targets.push({
       root: approved.root,
       path: name.path,
       store,
-      mode: supported ? "link" : "copy",
+      mode: placement.mode,
     });
   }
 

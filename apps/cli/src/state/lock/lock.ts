@@ -10,7 +10,8 @@ import { owner } from "./owner.ts";
 import { acquireLock, type ILockTiming } from "./acquire.ts";
 
 const held = new AsyncLocalStorage<ReadonlySet<string>>();
-const ownStart = processStart(process.pid);
+
+let ownStart: ReturnType<typeof processStart> | undefined;
 
 const timing: ILockTiming = {
   now: () => performance.timeOrigin + performance.now(),
@@ -28,7 +29,7 @@ export async function withStateLock<T>(
   if (current?.has(path)) return fn();
   await privateDirectory(join(resolve(home), "state"));
   const token = crypto.randomUUID();
-  const observed = await ownStart;
+  const observed = await (ownStart ??= processStart(process.pid));
   if (observed.kind !== "live") throw new EnvdenError("INTERNAL", "Cannot identify lock owner");
 
   await acquireLock(path, clock);

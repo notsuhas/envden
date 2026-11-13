@@ -35,7 +35,7 @@ test("owned lock rejects concurrent writers, nests and reclaims a dead owner", a
     await Promise.resolve(
       expect(
         withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
-      ).rejects.toThrow(path),
+      ).rejects.toThrow("State is locked; retry after the other command finishes"),
     );
 
     release();
@@ -205,4 +205,50 @@ test("owner publication exposes complete metadata and never overwrites an owner"
   } finally {
     await rm(home, { recursive: true, force: true });
   }
+});
+
+for (const crash of ["guard", "renamed"])
+  test(`reclaim recovers after a crash at ${crash}`, async () => {
+    const { lstat, rename } = await import("node:fs/promises");
+    const home = await mkdtemp(join(tmpdir(), "envden-reclaim-"));
+    const path = join(home, "state", "write.lock");
+
+    try {
+      await mkdir(join(path, "reclaim"), { recursive: true });
+      await writeFile(join(path, "owner.json"), JSON.stringify({ pid: 2147483647, token: "dead" }));
+      const created = (await lstat(join(path, "reclaim"))).mtimeMs;
+      if (crash === "renamed") await rename(path, `${path}.interrupted.abandoned`);
+
+      expect(
+        await withStateLock(home, async () => "recovered", {
+          now: () => created + 30001,
+          wait: async () => {},
+          delays: [],
+        }),
+      ).toBe("recovered");
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });
+
+test("importing the lock does not probe process start", async () => {
+  const path = new URL("../lock/lock.ts", import.meta.url).pathname;
+
+  const child = Bun.spawn(
+    [
+      process.execPath,
+      "--eval",
+      `
+    import { spyOn } from 'bun:test';
+    import * as processes from 'node:child_process';
+    const probe = spyOn(processes, 'execFile');
+    await import(${JSON.stringify(path)});
+    if (probe.mock.calls.length) throw new Error('Import probed processes');
+  `,
+    ],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+
+  expect(await new Response(child.stderr).text()).toBe("");
+  expect(await child.exited).toBe(0);
 });

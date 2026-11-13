@@ -2,8 +2,7 @@ import type { TPreferenceOptions } from "../../onboarding/preferences.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
 import { finishPairing } from "../../pairing/finish.ts";
 import { promptPairing } from "../../pairing/prompt.ts";
-import { parseKit } from "../../vault/recovery/input.ts";
-import { readFile } from "node:fs/promises";
+import { readKit } from "../../vault/recovery/read.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { input, secret } from "../../output/questions.ts";
 import { completeJoin } from "../../onboarding/complete-join.ts";
@@ -18,6 +17,7 @@ async function lockedrunRejoin(
   address: string,
   options: TPreferenceOptions & {
     recoveryKit?: string;
+    recovery?: boolean;
     name?: string;
     resume?: boolean;
   },
@@ -25,8 +25,8 @@ async function lockedrunRejoin(
 ) {
   const name = options.name ?? (await input("Device name"));
 
-  if (options.recoveryKit) {
-    const kit = parseKit(JSON.parse(await readFile(options.recoveryKit, "utf8")));
+  if (options.recoveryKit || options.recovery) {
+    const kit = await readKit(options.recoveryKit);
 
     await kitRejoin(adapters, {
       address,

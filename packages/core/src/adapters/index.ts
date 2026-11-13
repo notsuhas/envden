@@ -1,5 +1,5 @@
 export type { INetworkAdapter, INetworkStatus } from "./network.ts";
-export type { ICheckout, IRepoAdapter } from "./repo.ts";
+export type { ICheckout, IRepoAdapter, IEnvFileRules } from "./repo.ts";
 export type * from "./storage.ts";
 export type { IKeychainAdapter } from "./keychain.ts";
 export type { IPlacementAdapter, TPlacementMode } from "./placement.ts";

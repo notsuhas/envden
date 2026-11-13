@@ -1,4 +1,4 @@
-import { checkoutPlacement } from "./checkout/mode.ts";
+import { supportedPlacement } from "./checkout/supported.ts";
 import { readConfig } from "../settings/config.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { linkFile } from "./file.ts";
@@ -26,13 +26,7 @@ async function lockedlinkCheckout(
 
   if (!state.approved.some((item) => item.root === checkout.root)) state.approved.push(checkout);
 
-  let placement = adapters.placement(
-    await checkoutPlacement(adapters, checkout.root, copy),
-    checkout.root,
-  );
-
-  if (!(await placement.supported(checkout.root)))
-    placement = adapters.placement("copy", checkout.root);
+  const placement = await supportedPlacement(adapters, checkout.root, copy);
 
   for (const path of await adapters.repo.envFiles(
     checkout,

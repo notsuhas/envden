@@ -1,5 +1,5 @@
 import type { Dirent } from "node:fs";
-import type { ICheckout } from "@envden/core/adapters";
+import type { ICheckout, IEnvFileRules } from "@envden/core/adapters";
 import { Glob } from "bun";
 import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -21,7 +21,7 @@ const skipped = new Set([
 
 export async function envFiles(
   checkout: ICheckout,
-  options: { include?: string[]; exclude?: string[]; extraSkipped?: string[] } = {},
+  options: IEnvFileRules = {},
 ): Promise<string[]> {
   const skip = new Set([...skipped, ...(options.extraSkipped ?? [])]);
   const files: string[] = [];
@@ -47,11 +47,7 @@ export async function envFiles(
   return files.sort();
 }
 
-function isEnvFile(
-  entry: Dirent,
-  path: string,
-  options: { include?: string[]; exclude?: string[] },
-) {
+function isEnvFile(entry: Dirent, path: string, options: IEnvFileRules) {
   return (
     (entry.isFile() || entry.isSymbolicLink()) &&
     entry.name !== ".envrc" &&

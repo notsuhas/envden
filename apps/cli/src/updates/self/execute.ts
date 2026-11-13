@@ -1,3 +1,4 @@
+import { pinnedInstall } from "./paths.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { consent } from "../../output/questions.ts";
 
@@ -20,11 +21,19 @@ export async function managerUpdate(
   binary: string,
   confirm = (line: string) => consent(`Run ${line}?`),
   run = runCommand,
-  resolveBinary = (previous: string) => Bun.which("envden") ?? previous,
 ) {
-  if (!(await confirm(command.join(" ")))) return { kind: "cancelled" as const };
-  await run(command);
-  await postInstall(resolveBinary(binary), run);
+  const pinned = pinnedInstall(command[0] ?? "", binary);
+
+  if (!pinned) {
+    console.error(`envden: Cannot pin installer path. Run manually: ${command.join(" ")}`);
+
+    return { kind: "manual" as const };
+  }
+
+  const absolute = [pinned.manager, ...command.slice(1)];
+  if (!(await confirm(absolute.join(" ")))) return { kind: "cancelled" as const };
+  await run(absolute);
+  await postInstall(pinned.binary, run);
 
   return { kind: "updated" as const };
 }

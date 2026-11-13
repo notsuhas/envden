@@ -1,8 +1,6 @@
 import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
-import { pruneBackups as prunePlacementBackups } from "@envden/adapter-placement-fs";
-import { join } from "node:path";
 import { pruneBackups } from "./local/retention.ts";
 import { entryName } from "./remote/content.ts";
 import { EnvdenError } from "@envden/core/errors";
@@ -73,7 +71,7 @@ async function sync(
 
       if (result.kind !== "retry") {
         await pruneBackups(adapters.home, options.now());
-        await prunePlacementBackups(join(adapters.home, "conflicts"), options.now(), 30);
+        await adapters.prunePlacementBackups(options.now());
 
         return { ...result, changed };
       }

@@ -1,13 +1,19 @@
-import { closeSync, fchmodSync, mkdirSync, realpathSync } from "node:fs";
+import {
+  closeSync,
+  fchmodSync,
+  mkdirSync,
+  realpathSync,
+  writeFileSync,
+  chmodSync,
+  lstatSync,
+} from "node:fs";
 import { randomUUID } from "node:crypto";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { isAbsolute, relative, resolve, sep, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { openParent, writeAt } from "../native/directory.ts";
 import { libc } from "../native/libc.ts";
-import { writeFileSync, chmodSync, lstatSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { userInfo } from "node:os";
-import { join } from "node:path";
 
 export function backupContents(root: string, directory: string | undefined, contents: Uint8Array) {
   if (!directory) throw new EnvdenError("INVALID_INPUT", "Backup directory is required");

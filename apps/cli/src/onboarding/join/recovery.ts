@@ -1,7 +1,6 @@
-import { readFile } from "node:fs/promises";
 import type { TAdapters } from "../../adapters.ts";
-import { secret, input } from "../../output/questions.ts";
-import { parseKit } from "../../vault/recovery/input.ts";
+import { secret } from "../../output/questions.ts";
+import { readKit } from "../../vault/recovery/read.ts";
 import { kitJoin } from "../../vault/recovery/kit.ts";
 
 export async function recoveryJoin(
@@ -11,12 +10,7 @@ export async function recoveryJoin(
   kitPath: string | undefined,
   now: () => number,
 ) {
-  const kit = kitPath
-    ? parseKit(JSON.parse(await readFile(kitPath, "utf8")))
-    : parseKit({
-        secretKey: await secret("Recovery secret key"),
-        vaultId: await input("Vault ID"),
-      });
+  const kit = await readKit(kitPath);
 
   await kitJoin(adapters, {
     address,

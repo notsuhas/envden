@@ -120,8 +120,64 @@ test("copy flag and container offer persist once per canonical checkout", async 
     await setCheckoutPlacement(adapters, join(checkout.root, "nested"), "link");
     await linkCheckout(adapters, state, checkout, async () => true);
     expect(state.links[0]?.mode).toBe("link");
+    const { basePath } = await import("../../sync/local/files.ts");
+    const store = state.links[0]!.store;
+    await atomicWrite(basePath(adapters.home, store), "A=1");
+    await setCheckoutPlacement(adapters, checkout.root, "copy");
+    await linkCheckout(adapters, state, checkout, async () => true);
+    expect(await readFile(basePath(adapters.home, store, checkout.root), "utf8")).toBe("A=1");
+    await setCheckoutPlacement(adapters, checkout.root, "link");
+    await linkCheckout(adapters, state, checkout, async () => true);
     expect((await lstat(join(checkout.root, ".env"))).isSymbolicLink()).toBe(true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+for (const interactive of [false, true])
+  test(`unavailable links require explicit copy consent: interactive=${interactive}`, async () => {
+    const { supportedPlacement } = await import("../checkout/supported.ts");
+    const { readConfig } = await import("../../settings/config.ts");
+    const root = await mkdtemp(join(tmpdir(), "envden-unsupported-"));
+
+    const adapters = createAdapters({
+      home: join(root, "home"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    const placement = adapters.placement;
+
+    adapters.placement = (mode, checkout) => ({
+      ...placement(mode, checkout),
+      supported: async () => false,
+    });
+
+    try {
+      await Promise.resolve(
+        expect(
+          supportedPlacement(adapters, root, false, async () => false, interactive),
+        ).rejects.toThrow("Links unavailable"),
+      );
+
+      expect((await readConfig(adapters.home)).placement?.[root]).toBeUndefined();
+
+      if (interactive) {
+        expect((await supportedPlacement(adapters, root, false, async () => true, true)).mode).toBe(
+          "copy",
+        );
+
+        expect((await readConfig(adapters.home)).placement?.[root]).toBe("copy");
+      } else {
+        const checkout = { root, gitDir: join(root, ".git"), repoId: "host/repo" };
+
+        await Promise.resolve(
+          expect(
+            linkCheckout(adapters, emptyState("test"), checkout, async () => true),
+          ).rejects.toThrow("Links unavailable"),
+        );
+      }
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
