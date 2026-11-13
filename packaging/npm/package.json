@@ -1,0 +1,21 @@
+{
+  "name": "REPLACE_NPM_PACKAGE_NAME",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "bin": {
+    "envden": "bin/launch.js"
+  },
+  "files": [
+    "bin",
+    "install.js",
+    "checksums.json"
+  ],
+  "type": "module",
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

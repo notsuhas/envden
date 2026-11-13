@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@envden/core/protocol": ["../packages/core/src/protocol/index.ts"]
+    }
+  },
+  "include": ["release"]
+}

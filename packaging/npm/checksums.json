@@ -1,0 +1,10 @@
+{
+  "darwin-x64": "REPLACE_SHA256",
+  "darwin-arm64": "REPLACE_SHA256",
+  "linux-x64": "REPLACE_SHA256",
+  "linux-arm64": "REPLACE_SHA256",
+  "linux-x64-musl": "REPLACE_SHA256",
+  "linux-arm64-musl": "REPLACE_SHA256",
+  "windows-x64": "REPLACE_SHA256",
+  "windows-arm64": "REPLACE_SHA256"
+}

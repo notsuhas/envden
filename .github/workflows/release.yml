@@ -1,0 +1,143 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: release-feed
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, targets: "darwin-x64 darwin-arm64", smoke: envden-darwin-arm64 }
+          - {
+              os: ubuntu-24.04,
+              targets: "linux-x64 linux-arm64 linux-x64-musl linux-arm64-musl",
+              smoke: envden-linux-x64,
+            }
+          - {
+              os: windows-2025,
+              targets: "windows-x64 windows-arm64",
+              smoke: envden-windows-x64.exe,
+            }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - name: Check tag version
+        shell: bash
+        run: bun -e 'if ("v" + (await Bun.file("apps/cli/package.json").json()).version !== process.env.GITHUB_REF_NAME || "v" + (await Bun.file("apps/server/package.json").json()).version !== process.env.GITHUB_REF_NAME) throw new Error("Tag/version mismatch")'
+      - run: bun apps/cli/scripts/build-all.ts ${{ matrix.targets }}
+      - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ runner.os }}
+          path: apps/cli/dist/envden-*
+          if-no-files-found: error
+  image:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require image namespace
+        env:
+          NAMESPACE: ${{ vars.ENVDEN_GHCR_NAMESPACE }}
+        run: test -n "$NAMESPACE" && ! echo "$NAMESPACE" | grep -qi REPLACE
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+  publish:
+    if: always() && (github.event_name != 'push' || (needs.build.result == 'success' && needs.image.result == 'success'))
+    needs: [build, image]
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      ENVDEN_RELEASE_GENERATION: ${{ vars.ENVDEN_RELEASE_GENERATION }}
+      ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX: ${{ vars.ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+          path: release
+      - name: Load previous feed and release assets
+        env:
+          FIRST_RELEASE: ${{ vars.ENVDEN_FIRST_RELEASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release previous
+          if [ "$FIRST_RELEASE" = 1 ]; then
+            test "$GITHUB_EVENT_NAME" = push
+            count=$(gh api "repos/$GH_REPO/releases" --jq 'length')
+            test "$count" = 0
+            echo ENVDEN_FIRST_RELEASE=1 >> "$GITHUB_ENV"
+          else
+            tag=$(gh release view --json tagName --jq .tagName)
+            gh release download "$tag" -p "release-g${ENVDEN_RELEASE_GENERATION}.bin" -D previous
+            echo "ENVDEN_PREVIOUS_FEED=previous/release-g${ENVDEN_RELEASE_GENERATION}.bin" >> "$GITHUB_ENV"
+            if [ "$GITHUB_EVENT_NAME" != push ]; then
+              gh release download "$tag" -p 'envden-*' -D release
+              echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+            fi
+          fi
+          if [ "$GITHUB_EVENT_NAME" = push ]; then echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"; fi
+      - name: Hash and sign
+        env:
+          ENVDEN_RELEASE_PRIMARY_SEED_HEX: ${{ secrets.ENVDEN_RELEASE_PRIMARY_SEED_HEX }}
+          ENVDEN_UNSAFE_VERSIONS: ${{ vars.ENVDEN_UNSAFE_VERSIONS }}
+        run: |
+          export ENVDEN_RELEASE_VERSION="${RELEASE_TAG#v}"
+          bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
+          bun --tsconfig-override scripts/tsconfig.json scripts/release/sign.ts release
+      - name: Publish new release
+        if: github.event_name == 'push'
+        run: gh release create "$RELEASE_TAG" release/* --verify-tag --generate-notes
+      - name: Refresh signed feed
+        if: github.event_name != 'push'
+        run: gh release upload "$RELEASE_TAG" release/release*.bin --clobber

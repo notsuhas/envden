@@ -1,0 +1,35 @@
+# Release runbook
+
+Publishing stops until the maintainer configures these values. Backup seeds never belong in CI.
+
+## Maintainer placeholders
+
+- Replace GitHub owner/repository in both installers, npm downloader and all manager templates.
+- Set repository variable ENVDEN_GHCR_NAMESPACE and replace REPLACE_GHCR_NAMESPACE in Compose. Confirm package ownership and public visibility.
+- Create protected GitHub environment `release`. Add secret ENVDEN_RELEASE_PRIMARY_SEED_HEX, a 32-byte Ed25519 seed as 64 hex characters. Set variables ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX and ENVDEN_RELEASE_GENERATION. GITHUB_TOKEN is the built-in release/GHCR credential.
+- Generate the backup key offline. Pin both public keys and generation in the CLI release trust configuration, configure its generation feed URL and build download mapping. Current app placeholders deliberately refuse self-update. Map win32-* feed names to windows-* assets and select linux-*-musl on musl hosts.
+- Set ENVDEN_FIRST_RELEASE=1 only for a repository with zero releases. Remove immediately after publishing. Later runs require the previous authenticated feed. ENVDEN_UNSAFE_VERSIONS optionally adds comma-separated versions; old unsafe entries are preserved.
+- Reserve REPLACE_NPM_PACKAGE_NAME, replace it and remove `private`. Fill npm/checksums.json from the verified signed release. Configure npm publishing credentials separately. If the name differs from envden, change the CLI npm update command too.
+- Create REPLACE_HOMEBREW_TAP and REPLACE_SCOOP_BUCKET. Replace template URLs, REPLACE_SITE_HOST and every SHA256 placeholder. Claim REPLACE_PUBLISHER for winget, replacing identifiers and hashes. Publishing through these maintainer accounts is a separate step.
+- Configure the production PostHog project key in the app's opt-in telemetry settings; no telemetry key is invented here.
+- Supply TS_AUTHKEY at deployment, never build time. Enable HTTPS certificates and Serve in the tailnet; authorize hostname/tag policy.
+
+## First release order
+
+1. Independently review PROTOCOL and its implementation, and finish DESIGN's editor/tool link-mode matrix. Configure public trust roots and accounts above.
+2. Match CLI and server versions to the stable vX.Y.Z tag. Run three-OS CI and compiled smoke tests. Test installers on disposable Windows, macOS, glibc and musl hosts.
+3. Enable first-release mode and push the approved tag. Verify all eight binaries, SHA256SUMS, release.bin and release-g<n>.bin. GHCR receives amd64/arm64 images tagged exact, minor and major version.
+4. Remove first-release mode. Independently verify signatures and binaries. Populate package-manager hashes from the verified feed, publish templates through maintainer accounts, and test fresh installation and update.
+5. Confirm the weekly job increments seq and refreshes the 30-day expiry. It reuses release binaries and replaces only feeds. Do not manually publish feeds while CI runs.
+
+## Offline backup and rotation
+
+The signer uses @envden/core/protocol codecs and Sign/Verify, verifies the previous primary signature, preserves unsafe entries and increments seq. It refuses revocation/rotation feeds.
+
+Disable automated signing for backup recovery. On an offline machine independently verify the last trusted feed. Using core codecs, preserve unsafe entries, bump seq above every backup-signed feed, set revokePrimary=1 and/or next={primary,backup}, then Sign(backupSeed, "release", body) with signature key=1. Independently verify the output. Transfer only signed bytes for publishing as release-g<n>.bin; never transfer the backup seed to CI. Keep all older generation chain feeds available side by side and publish the new generation feed too. Update CI generation and primary only after testing the full rotation chain. The workflow handles one active generation; carrying forward older chain assets on every new release is a maintainer-managed step during rotation.
+
+## Installer and container limits
+
+Bootstrap shell/PowerShell installers verify SHA256SUMS over HTTPS, not the signed feed. State that limit beside published bootstrap commands. Later self-update requires the pinned feed verifier in the CLI. npm downloads its exact package version and checks package-pinned hashes, without runtime dependencies. Its launcher sets ENVDEN_INSTALL_METHOD=npm. Scoop records its marker. Homebrew and winget cannot safely write per-user state during installation; set ENVDEN_INSTALL_METHOD=brew/winget or provide manual manager instructions if no marker exists.
+
+The container uses userspace Tailscale, with no TUN device, privileged mode or published host port. Root manages tailscaled and volume ownership; envden runs as uid 10001. The shell supervises and shuts down both children. Application and Tailscale state use separate volumes. Update with docker compose pull && docker compose up -d. Review and pin base-image digests before production.

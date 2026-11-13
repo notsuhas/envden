@@ -1,0 +1,9 @@
+PackageIdentifier: REPLACE_PUBLISHER.envden
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: REPLACE_PUBLISHER
+PackageName: envden
+License: MIT
+ShortDescription: Self-hosted encrypted environment sync
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0

@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun run fallow --fail-on-issues
@@ -33,5 +35,28 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh fish
       - run: bun test
+
+  compile:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, target: linux-x64, asset: envden-linux-x64 }
+          - { os: macos-15, target: darwin-arm64, asset: envden-darwin-arm64 }
+          - { os: windows-2025, target: windows-x64, asset: envden-windows-x64.exe }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bun apps/cli/scripts/build-all.ts ${{ matrix.target }}
+      - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.asset }}

@@ -1,6 +1,6 @@
 {
   "name": "@envden/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "bin": {
     "envden": "./src/main.ts"
@@ -8,7 +8,11 @@
   "type": "module",
   "scripts": {
     "build": "bun build --compile --no-compile-autoload-dotenv --no-compile-autoload-bunfig ./src/main.ts --outfile dist/envden",
-    "build:all": "bun scripts/build-all.ts"
+    "build:all": "bun scripts/build-all.ts",
+    "release:sign": "bun --tsconfig-override ../../scripts/tsconfig.json ../../scripts/release/sign.ts",
+    "release:checksums": "bun ../../scripts/release/checksums.ts",
+    "packaging:npm:install": "node ../../packaging/npm/install.js",
+    "packaging:npm:smoke": "node ../../packaging/npm/bin/launch.js --version"
   },
   "dependencies": {
     "@clack/prompts": "1.9.0",
