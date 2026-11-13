@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createAdapters } from "../../adapters.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { emptyState } from "../../state/model.ts";
 import { basePath, readBytes, same, withSyncLock } from "../local/files.ts";
 import { selectedRepos } from "../local/selection.ts";
@@ -88,6 +88,7 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
   test(`resolve ${choice} keeps the server base and clears only its conflict`, async () => {
     const home = await mkdtemp(join(tmpdir(), "envden-resolve-"));
     const adapters = createAdapters({ home, keychain: createMemoryKeychainAdapter([]) });
+    const checkout = join(home, "checkout");
 
     try {
       const store = join(home, "store", ".env");
@@ -102,7 +103,7 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
       await saveConflicts(home, [
         {
           store,
-          root: home,
+          root: checkout,
           path: ".env",
           mode: "copy",
           file,
@@ -114,7 +115,7 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
         },
       ]);
 
-      await atomicWrite(join(home, ".env"), "unrelated checkout bytes");
+      await atomicWrite(join(checkout, ".env"), "unrelated checkout bytes");
       await resolveConflict(adapters, { choice, now: () => 10 });
       const backups = await readdir(join(home, "conflicts", "backups"));
 
@@ -177,7 +178,7 @@ test("repair hazards survive a scoped pull until a conflict is saved", async () 
 
 test("alias refuses existing placed files before changing their identity", async () => {
   const { aliasUnlinkedRepo } = await import("../alias.ts");
-  const { saveState, loadState } = await import("../../state/repository.ts");
+  const { saveState, loadState } = await import("../../state/store/repository.ts");
   const home = await mkdtemp(join(tmpdir(), "envden-alias-"));
 
   try {

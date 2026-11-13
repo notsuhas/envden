@@ -1,4 +1,4 @@
-import { withStateLock } from "../state/lock.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { join } from "node:path";
 import { diffEnvKeys } from "@envden/core/merge";
 import type { TAdapters } from "../adapters.ts";

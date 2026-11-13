@@ -1,7 +1,7 @@
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
-import { withStateLock } from "../state/lock.ts";
-import { loadState } from "../state/repository.ts";
+import { withStateLock } from "../state/lock/lock.ts";
+import { loadState } from "../state/store/repository.ts";
 import { aliasRepo } from "../links/alias.ts";
 
 export async function aliasUnlinkedRepo(adapters: TAdapters, source: string, target: string) {

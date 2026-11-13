@@ -1,4 +1,4 @@
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import * as p from "@envden/core/protocol";
 import { join } from "node:path";
 import type { TSyncContext } from "./context.ts";

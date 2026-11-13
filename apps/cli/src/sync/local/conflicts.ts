@@ -2,7 +2,7 @@ import { sanitizeTerminal } from "../../output/sanitize.ts";
 import { sha256, base32 } from "@envden/core/protocol";
 import { join } from "node:path";
 import type { TSyncContext } from "../remote/context.ts";
-import { atomicWrite, optionalRead } from "../../state/files.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { readBytes, writeBytes } from "./files.ts";
 
 export interface IConflictRecord {

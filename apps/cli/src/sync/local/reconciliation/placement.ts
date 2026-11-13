@@ -1,5 +1,5 @@
 import { saveBase } from "./history.ts";
-import { journalPlacement } from "../../../state/placement.ts";
+import { journalPlacement } from "../../../state/journal/placement.ts";
 import type { TSyncContext } from "../../remote/context.ts";
 import { readBytes, same, writeBytes } from "../files.ts";
 import { backup } from "../conflicts.ts";
@@ -44,8 +44,7 @@ export async function applyTarget(
 
     if (!linked) context.state.links.push(target);
   } else if (target.mode === "copy" || status === "linked") {
-    const { rm } = await import("node:fs/promises");
-    await rm(destination, { force: true });
+    await placement.remove(store, destination);
   }
 
   await journalPlacement(context.adapters.home, context.state);

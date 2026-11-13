@@ -1,9 +1,9 @@
-import { restorePlacement, clearPlacement } from "./placement.ts";
+import { restorePlacement, clearPlacement } from "../journal/placement.ts";
 import { storeHeaders, restoreHeaders } from "./headers.ts";
-import { withStateLock } from "./lock.ts";
+import { withStateLock } from "../lock/lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import type { ILocalState } from "./model.ts";
+import type { ILocalState } from "../model.ts";
 import { atomicWrite, optionalRead, privateDirectory } from "./files.ts";
 
 function replacer(_key: string, value: unknown): unknown {

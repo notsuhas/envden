@@ -5,7 +5,7 @@ import { verifyChain } from "@envden/core/chain";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { ISyncOptions } from "../model.ts";
-import { loadState } from "../../state/repository.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { binary } from "../../client/encoding.ts";
 import { VERSION } from "../../version.ts";
 

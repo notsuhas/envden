@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
-import type { ILocalState } from "./model.ts";
-import { atomicWrite, optionalRead } from "./files.ts";
+import type { ILocalState } from "../model.ts";
+import { atomicWrite, optionalRead } from "../store/files.ts";
 
 export async function journalPlacement(home: string, state: ILocalState) {
   await atomicWrite(

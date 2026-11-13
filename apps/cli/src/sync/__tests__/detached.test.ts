@@ -4,7 +4,7 @@ import { cp, readFile, mkdir } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { syncContext } from "../remote/context.ts";
 import { sealUpload } from "../remote/seal.ts";
 import { reconcileTarget } from "../local/reconciliation/target.ts";
@@ -85,7 +85,7 @@ for (const detached of [true, false])
 test.if(process.platform !== "win32")(
   "each placed file survives an interrupted pull in state",
   async () => {
-    const { loadState } = await import("../../state/repository.ts");
+    const { loadState } = await import("../../state/store/repository.ts");
     const f = await fixture();
 
     try {

@@ -3,8 +3,8 @@ import { mkdtemp, rm, stat, symlink, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { emptyState } from "../model.ts";
-import { saveState, loadState } from "../repository.ts";
-import { atomicWrite } from "../files.ts";
+import { saveState, loadState } from "../store/repository.ts";
+import { atomicWrite } from "../store/files.ts";
 
 test("atomic state stays private and replaces old bytes", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-state-"));

@@ -3,7 +3,7 @@ import { EnvdenError } from "@envden/core/errors";
 import { join } from "node:path";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 export function entryName(context: TSyncContext, entry: p.IFileEntry) {
   const key = context.keys.get(entry.epoch);

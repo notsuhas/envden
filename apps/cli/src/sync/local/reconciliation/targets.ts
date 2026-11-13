@@ -1,3 +1,4 @@
+import { checkoutPlacement } from "../../../links/checkout/mode.ts";
 import type { TSyncContext } from "../../remote/context.ts";
 
 export async function reconciliationTargets(
@@ -16,9 +17,17 @@ export async function reconciliationTargets(
     if (context.state.links.some((link) => link.root === approved.root && link.path === name.path))
       continue;
 
-    const supported = await context.adapters
-      .placement("link", approved.root)
-      .supported(approved.root);
+    const preferred = await checkoutPlacement(
+      context.adapters,
+      approved.root,
+      false,
+      undefined,
+      false,
+    );
+
+    const supported =
+      preferred === "link" &&
+      (await context.adapters.placement("link", approved.root).supported(approved.root));
 
     targets.push({
       root: approved.root,

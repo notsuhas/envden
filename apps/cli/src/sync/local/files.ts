@@ -2,8 +2,8 @@ import { sha256, base32 } from "@envden/core/protocol";
 import { readFile, lstat, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import { withStateLock } from "../../state/lock.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 export async function readBytes(path: string): Promise<Uint8Array | undefined> {
   try {

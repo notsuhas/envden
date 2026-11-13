@@ -1,0 +1,32 @@
+import { expect, test } from "bun:test";
+import { lstat, utimes } from "node:fs/promises";
+import { join } from "node:path";
+import { setConfig } from "../../settings/config.ts";
+import { atomicWrite } from "../../state/store/files.ts";
+import { loadState } from "../../state/store/repository.ts";
+import { pull } from "../engine.ts";
+import { syncFixture } from "./flows.ts";
+
+test("sync honors copy preference and prunes adapter backups after placement", async () => {
+  const fixture = await syncFixture();
+  const { second, checkoutB, opts } = fixture;
+
+  const expired = join(
+    second.home,
+    "conflicts",
+    ".envden-backup-00000000-0000-0000-0000-000000000000",
+  );
+
+  try {
+    await setConfig("placement", JSON.stringify({ [checkoutB.root]: "copy" }), second.home);
+    await atomicWrite(expired, "old backup");
+    const old = new Date(opts.now() - 31 * 86400000);
+    await utimes(expired, old, old);
+    await pull(second, opts);
+    expect((await loadState(second.home))!.links[0]!.mode).toBe("copy");
+    expect((await lstat(join(checkoutB.root, ".env"))).isSymbolicLink()).toBe(false);
+    expect(await Bun.file(expired).exists()).toBe(false);
+  } finally {
+    await fixture.cleanup();
+  }
+});

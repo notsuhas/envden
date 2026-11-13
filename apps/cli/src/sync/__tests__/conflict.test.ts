@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 
-import { loadState } from "../../state/repository.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { loadState } from "../../state/store/repository.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 import { push, pull } from "../engine.ts";
 

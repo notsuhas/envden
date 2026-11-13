@@ -164,3 +164,60 @@ test("wire errors use the shared code schema", async () => {
 
   expect((await responseError(Response.json({ error: "MADE_UP" }))).code).toBe("INVALID_DATA");
 });
+
+for (const recover of [true, false])
+  test(`BUSY retries use fresh signatures and bounded backoff; recover=${recover}`, async () => {
+    const { options } = await fixture();
+    const nonces = new Set<string>();
+    const delays: number[] = [];
+    let attempts = 0;
+
+    const client = createClient({
+      ...options,
+      backoff: async (ms) => {
+        delays.push(ms);
+      },
+      fetcher: async (_input, init) => {
+        const headers = new Headers(init?.headers);
+        nonces.add(headers.get("Envden-Nonce")!);
+        attempts++;
+
+        return recover && attempts === 3
+          ? Response.json({ ok: true })
+          : Response.json({ error: "BUSY" }, { status: 503 });
+      },
+    });
+
+    if (recover) expect((await client.request("/v1/head")).status).toBe(200);
+    else
+      await Promise.resolve(
+        expect(client.request("/v1/head")).rejects.toMatchObject({ code: "BUSY" }),
+      );
+
+    expect(attempts).toBe(3);
+    expect(nonces.size).toBe(3);
+    expect(delays).toEqual([100, 200]);
+  });
+
+test("every signed request installs a bounded timeout signal", async () => {
+  const { spyOn } = await import("bun:test");
+  const { options } = await fixture();
+  const signal = new AbortController().signal;
+  const timeout = spyOn(AbortSignal, "timeout").mockReturnValue(signal);
+
+  try {
+    const client = createClient({
+      ...options,
+      fetcher: async (_url, init) => {
+        expect(init?.signal).toBe(signal);
+
+        return Response.json({ kind: "ok" });
+      },
+    });
+
+    await client.request("/v1/head");
+    expect(timeout).toHaveBeenCalledWith(15000);
+  } finally {
+    timeout.mockRestore();
+  }
+});

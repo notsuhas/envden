@@ -1,6 +1,5 @@
 import { saveBase } from "./local/reconciliation/history.ts";
 import { resolve } from "node:path";
-import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
@@ -50,7 +49,7 @@ export function resolveConflict(
       (await adapters.placement(record.mode, record.root).inspect(record.store, destination)) ===
         "linked"
     )
-      await rm(destination, { force: true });
+      await placement.remove(record.store, destination);
 
     await saveBase(record.base, server);
 

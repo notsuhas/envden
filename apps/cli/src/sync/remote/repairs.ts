@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { atomicWrite, optionalRead } from "../../state/files.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 
 export async function pendingRepairs(home: string): Promise<Set<string>> {
   return new Set(

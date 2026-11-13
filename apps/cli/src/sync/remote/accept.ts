@@ -8,10 +8,10 @@ import { acceptManifest, verifyChain } from "@envden/core/chain";
 import { EnvdenError } from "@envden/core/errors";
 import type { TSyncContext } from "./context.ts";
 import { text, binary } from "../../client/encoding.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { join } from "node:path";
 
-export async function acceptHead(context: TSyncContext, history?: THistory) {
+export async function acceptHead(context: TSyncContext, history?: THistory, readOnly = false) {
   const { client, checkpoint, identity, adapters, vaultId } = context;
   const pending = await pendingRepairs(adapters.home);
 
@@ -130,11 +130,14 @@ export async function acceptHead(context: TSyncContext, history?: THistory) {
     for (const item of ring.older) context.keys.set(item.epoch, item.key);
     context.state.keyring = text(keyring);
 
-    await adapters.keychain.set(
-      `envden/${adapters.home}/epoch/${head.body.epoch}`,
-      context.keys.get(head.body.epoch)!,
-    );
+    if (!readOnly)
+      await adapters.keychain.set(
+        `envden/${adapters.home}/epoch/${head.body.epoch}`,
+        context.keys.get(head.body.epoch)!,
+      );
   }
+
+  if (readOnly) return { repairs: result.repairs, noFastForward: pending };
 
   for (const [hash, files] of fileLists)
     await atomicWrite(join(adapters.home, "state", "file-lists", hash), p.FilesCodec.write(files));

@@ -10,8 +10,8 @@ import { setupVault } from "../../vault/setup.ts";
 import { kitJoin } from "../../vault/recovery/kit.ts";
 import { linkCheckout } from "../../links/place.ts";
 import { pushInitialFiles } from "../../vault/initial/push.ts";
-import { saveState, loadState } from "../../state/repository.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { saveState, loadState } from "../../state/store/repository.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 export async function syncFixture() {
   const root = await mkdtemp(join(tmpdir(), "envden-sync-"));

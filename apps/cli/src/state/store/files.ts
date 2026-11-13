@@ -27,6 +27,16 @@ export async function atomicWrite(path: string, bytes: string | Uint8Array): Pro
     }
 
     await rename(temporary, path);
+
+    if (process.platform !== "win32") {
+      const directory = await open(dirname(path), "r");
+
+      try {
+        await directory.sync();
+      } finally {
+        await directory.close();
+      }
+    }
   } finally {
     await rm(temporary, { force: true });
   }

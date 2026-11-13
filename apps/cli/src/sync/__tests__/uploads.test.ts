@@ -2,7 +2,7 @@ import { storePath } from "../../store/path.ts";
 import { test, expect } from "bun:test";
 import { join } from "node:path";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { syncContext } from "../remote/context.ts";
 import { uploadLink } from "../remote/upload.ts";
 import type { IFiles } from "@envden/core/protocol";

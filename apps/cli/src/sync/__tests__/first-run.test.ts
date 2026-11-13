@@ -4,8 +4,8 @@ import { join } from "node:path";
 
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 
-import { loadState, saveState } from "../../state/repository.ts";
-import { atomicWrite } from "../../state/files.ts";
+import { loadState, saveState } from "../../state/store/repository.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 import { firstRun } from "../first-run.ts";
 

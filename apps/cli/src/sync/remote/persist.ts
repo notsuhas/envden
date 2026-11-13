@@ -1,7 +1,7 @@
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
-import { saveState } from "../../state/repository.ts";
+import { saveState } from "../../state/store/repository.ts";
 
 export async function persistCheckpoint(context: TSyncContext): Promise<void> {
   context.state.checkpoint = text(

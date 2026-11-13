@@ -1,6 +1,8 @@
 import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
+import { pruneBackups as prunePlacementBackups } from "@envden/adapter-placement-fs";
+import { join } from "node:path";
 import { pruneBackups } from "./local/retention.ts";
 import { entryName } from "./remote/content.ts";
 import { EnvdenError } from "@envden/core/errors";
@@ -25,7 +27,6 @@ async function sync(
     throw new EnvdenError("INVALID_INPUT", "Non-interactive push requires --yes");
 
   return withSyncLock(adapters.home, async () => {
-    await pruneBackups(adapters.home, options.now());
     const context = await syncContext(adapters, options);
 
     let history = await readHistory(context.client, context.vaultId, context.state);
@@ -69,7 +70,13 @@ async function sync(
       );
 
       changed += result.changed;
-      if (result.kind !== "retry") return { ...result, changed };
+
+      if (result.kind !== "retry") {
+        await pruneBackups(adapters.home, options.now());
+        await prunePlacementBackups(join(adapters.home, "conflicts"), options.now(), 30);
+
+        return { ...result, changed };
+      }
     }
 
     throw new EnvdenError("HEAD_MOVED", "Head kept moving; retry envden push");
@@ -119,6 +126,7 @@ async function syncAttempt(
   choose: Parameters<typeof reconcile>[4],
 ) {
   const adapters = context.adapters;
+  await persistCheckpoint(context);
   const result = await reconcile(context, repos, old, noFastForward, choose);
 
   await persistCheckpoint(context);

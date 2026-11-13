@@ -2,7 +2,7 @@ import { test, expect } from "bun:test";
 import { mkdtemp, rm, mkdir, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { withStateLock } from "../lock.ts";
+import { withStateLock } from "../lock/lock.ts";
 
 test("owned lock rejects concurrent writers, nests and reclaims a dead owner", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-lock-"));
@@ -31,7 +31,13 @@ test("owned lock rejects concurrent writers, nests and reclaims a dead owner", a
     });
 
     await ready;
-    await Promise.resolve(expect(withStateLock(home, async () => {})).rejects.toThrow(path));
+
+    await Promise.resolve(
+      expect(
+        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
+      ).rejects.toThrow(path),
+    );
+
     release();
     await running;
     await mkdir(path);
@@ -78,12 +84,23 @@ test("lock directories and owner files cannot be symlinks", async () => {
     await mkdir(join(home, "state"));
     await mkdir(join(home, "outside"));
     await symlink(join(home, "outside"), path);
-    await Promise.resolve(expect(withStateLock(home, async () => {})).rejects.toThrow());
+
+    await Promise.resolve(
+      expect(
+        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
+      ).rejects.toThrow(),
+    );
+
     await rm(path);
     await mkdir(path);
     await writeFile(join(home, "owner"), JSON.stringify({ pid: 2147483647, token: "dead" }));
     await symlink(join(home, "owner"), join(path, "owner.json"));
-    await Promise.resolve(expect(withStateLock(home, async () => {})).rejects.toThrow());
+
+    await Promise.resolve(
+      expect(
+        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
+      ).rejects.toThrow(),
+    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }
@@ -110,6 +127,82 @@ test("sync reclaims the state lock of a killed process", async () => {
     expect(await withSyncLock(home, async () => "resumed")).toBe("resumed");
   } finally {
     child.kill();
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("a writer retries contention and enters after the owner releases", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-retry-"));
+  const path = join(home, "state", "write.lock");
+  let waits = 0;
+
+  try {
+    await mkdir(path, { recursive: true });
+    const { processStart } = await import("../lock/process.ts");
+    const observed = await processStart(process.pid);
+    if (observed.kind !== "live") throw new Error("Missing process start");
+
+    await writeFile(
+      join(path, "owner.json"),
+      JSON.stringify({ pid: process.pid, startedAt: observed.startedAt, token: "other" }),
+    );
+
+    expect(
+      await withStateLock(home, async () => "entered", {
+        now: () => 0,
+        delays: [50],
+        wait: async () => {
+          waits++;
+          await rm(path, { recursive: true });
+        },
+      }),
+    ).toBe("entered");
+
+    expect(waits).toBe(1);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("ownerless initialization recovers only after its grace period", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-orphan-"));
+  const path = join(home, "state", "write.lock");
+  const { lstat } = await import("node:fs/promises");
+
+  try {
+    await mkdir(path, { recursive: true });
+    const created = (await lstat(path)).mtimeMs;
+    const clock = { now: () => created, wait: async () => {}, delays: [] };
+
+    await Promise.resolve(
+      expect(withStateLock(home, async () => {}, clock)).rejects.toMatchObject({
+        code: "CONFLICT",
+      }),
+    );
+
+    expect(
+      await withStateLock(home, async () => "recovered", { ...clock, now: () => created + 30001 }),
+    ).toBe("recovered");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("owner publication exposes complete metadata and never overwrites an owner", async () => {
+  const { publishOwner } = await import("../lock/publish.ts");
+  const home = await mkdtemp(join(tmpdir(), "envden-publication-"));
+  const first = { pid: process.pid, token: "first", startedAt: "start" };
+
+  try {
+    await publishOwner(home, first);
+    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
+
+    await Promise.resolve(
+      expect(publishOwner(home, { ...first, token: "second" })).rejects.toThrow(),
+    );
+
+    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
+  } finally {
     await rm(home, { recursive: true, force: true });
   }
 });

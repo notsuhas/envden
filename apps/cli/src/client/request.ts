@@ -1,3 +1,4 @@
+import { retryBusy } from "./retry.ts";
 import { serverFetch } from "./fetch.ts";
 import { hc } from "hono/client";
 import type { AppType } from "@envden/server";
@@ -20,6 +21,7 @@ export interface IClientOptions {
   fetcher: TFetch;
   proof?: (request: p.IRequest) => Uint8Array;
   unlock?: () => Promise<void>;
+  backoff?: (ms: number) => Promise<void>;
 }
 
 type TRpc = ReturnType<typeof hc<AppType>>;
@@ -31,7 +33,7 @@ export interface IClient {
 }
 
 export function createClient(options: IClientOptions): IClient {
-  async function request(
+  async function signedRequest(
     path: string,
     method = "GET",
     body?: unknown,
@@ -76,6 +78,7 @@ export function createClient(options: IClientOptions): IClient {
       headers,
       ...(serialized ? { body: serialized } : {}),
       redirect: "error",
+      signal: AbortSignal.timeout(15000),
     });
 
     await checkServerMinimum(response, options);
@@ -86,7 +89,7 @@ export function createClient(options: IClientOptions): IClient {
       if (error.code === "LOCKED" && retry && options.unlock) {
         await options.unlock();
 
-        return request(path, method, body, false);
+        return signedRequest(path, method, body, false);
       }
 
       throw error;
@@ -94,6 +97,9 @@ export function createClient(options: IClientOptions): IClient {
 
     return response;
   }
+
+  const request: IClient["request"] = (path, method, body, retry) =>
+    retryBusy(() => signedRequest(path, method, body, retry), options.backoff);
 
   const rpc = hc<AppType>(options.address, {
     fetch: async (input: string | Request | URL, init?: RequestInit) => {

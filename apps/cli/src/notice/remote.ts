@@ -1,4 +1,5 @@
-import { withStateLock } from "../state/lock.ts";
+import { reportRecoveryJoins } from "./recovery.ts";
+import { withStateLock } from "../state/lock/lock.ts";
 import { appliedFiles } from "../sync/local/applied.ts";
 import { text } from "../client/encoding.ts";
 import { join } from "node:path";
@@ -8,12 +9,12 @@ import type { ISyncOptions } from "../sync/model.ts";
 import { syncContext } from "../sync/remote/context.ts";
 import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName } from "../sync/remote/content.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 
-async function lockedremoteNotice(adapters: TAdapters, options: ISyncOptions) {
+export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
   const applied = await appliedFiles(adapters.home);
-  await acceptHead(context);
+  await acceptHead(context, undefined, true);
 
   const approved = new Set(
     context.state.approved.map((item) => context.state.aliases[item.repoId] ?? item.repoId),
@@ -28,7 +29,19 @@ async function lockedremoteNotice(adapters: TAdapters, options: ISyncOptions) {
   }
 
   const result = { checkedAt: options.now(), repos: [...repos] };
-  await atomicWrite(join(adapters.home, "state", "remote-notice.json"), JSON.stringify(result));
+
+  await withStateLock(adapters.home, async () => {
+    await atomicWrite(join(adapters.home, "state", "remote-notice.json"), JSON.stringify(result));
+
+    await reportRecoveryJoins(
+      adapters.home,
+      {
+        ...context.state,
+        entries: context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
+      },
+      context.identity.record.id,
+    );
+  });
 
   return result;
 }
@@ -39,8 +52,4 @@ export async function readRemoteNotice(
   const value = await optionalRead(join(home, "state", "remote-notice.json"));
 
   return value ? JSON.parse(value) : undefined;
-}
-
-export function remoteNotice(...args: Parameters<typeof lockedremoteNotice>) {
-  return withStateLock(args[0].home, () => lockedremoteNotice(...args));
 }
