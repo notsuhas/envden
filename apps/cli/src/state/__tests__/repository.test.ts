@@ -28,3 +28,24 @@ test("atomic state stays private and replaces old bytes", async () => {
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("headers live in immutable objects outside device.json", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-headers-"));
+
+  try {
+    const state = emptyState("test");
+    state.headers = ["first-header"];
+    await saveState(home, state);
+    const record = JSON.parse(await readFile(join(home, "state", "device.json"), "utf8"));
+    expect(record.headers).toBeUndefined();
+    expect(record.headerRefs).toHaveLength(1);
+    const path = join(home, "state", "headers", record.headerRefs[0]);
+    const before = (await stat(path)).mtimeMs;
+    state.headers.push("second-header");
+    await saveState(home, state);
+    expect((await stat(path)).mtimeMs).toBe(before);
+    expect((await loadState(home))!.headers).toEqual(state.headers);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

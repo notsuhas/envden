@@ -9,7 +9,7 @@ import { linkCheckout } from "../place.ts";
 import { pruneMissingCheckouts } from "../prune.ts";
 import { discoverRepos } from "../discovery.ts";
 
-test("real git worktree inherits approval and records its root once", async () => {
+test("real git worktree requires approval and records its root once", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-worktree-"));
   const main = join(root, "main");
   const branch = join(root, "branch");
@@ -52,6 +52,24 @@ test("real git worktree inherits approval and records its root once", async () =
     const worktree = (await adapters.repo.checkoutAt(branch))!;
     expect(worktree.registeredWorktree).toBe(true);
     await linkCheckout(adapters, state, checkout, async () => true);
+
+    let approvals = 0;
+
+    await linkCheckout(adapters, state, worktree, async () => {
+      approvals++;
+
+      return false;
+    });
+
+    expect(state.approved).toEqual([checkout]);
+
+    await linkCheckout(adapters, state, worktree, async () => {
+      approvals++;
+
+      return true;
+    });
+
+    expect(approvals).toBe(2);
 
     for (let pass = 0; pass < 2; pass++)
       await linkCheckout(adapters, state, worktree, async () => {
@@ -121,7 +139,7 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
   }
 });
 
-test("scan approves a checkout without local env files so it can receive server files", async () => {
+test("scan omits an empty checkout absent from the vault", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-empty-checkout-"));
 
   try {
@@ -144,7 +162,7 @@ test("scan approves a checkout without local env files so it can receive server 
     adapters.repo.envFiles = async () => [];
     const state = emptyState("test");
     await setupCheckouts(adapters, state, { scanRoot: [root], approve: async () => true });
-    expect(state.approved).toHaveLength(1);
+    expect(state.approved).toHaveLength(0);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

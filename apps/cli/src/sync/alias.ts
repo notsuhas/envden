@@ -13,7 +13,10 @@ export async function aliasUnlinkedRepo(adapters: TAdapters, source: string, tar
     );
 
     if (state?.links.some((item) => roots.has(item.root)))
-      throw new EnvdenError("CONFLICT", "Cannot alias a repo with placed files; unlink them first");
+      throw new EnvdenError(
+        "CONFLICT",
+        "Cannot alias a repo with placed files; run envden untrack <path> first",
+      );
 
     await aliasRepo(adapters, source, target);
   });

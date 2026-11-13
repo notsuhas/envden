@@ -16,11 +16,23 @@ export function checkoutApproval(
 
   return state.approved.some(
     (item) =>
-      (item.root === checkout.root || checkout.registeredWorktree === true) &&
+      item.root === checkout.root &&
       item.gitDir === checkout.gitDir &&
       (state.aliases[item.repoId] ?? item.repoId) ===
         (state.aliases[checkout.repoId] ?? checkout.repoId),
   )
     ? "approved"
     : "ask";
+}
+
+export function approvalPrompt(state: ILocalState, checkout: ICheckout): string {
+  const worktree =
+    checkout.registeredWorktree &&
+    state.approved.some(
+      (item) => item.gitDir === checkout.gitDir && item.repoId === checkout.repoId,
+    );
+
+  return worktree
+    ? `Approve worktree ${checkout.root} of ${checkout.repoId}? [Y/n]`
+    : `Approve env files in ${checkout.root}?`;
 }

@@ -1,3 +1,5 @@
+import { restorePlacement, clearPlacement } from "./placement.ts";
+import { storeHeaders, restoreHeaders } from "./headers.ts";
 import { withStateLock } from "./lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
@@ -29,7 +31,15 @@ function reviver(_key: string, value: unknown): unknown {
 export async function saveState(home: string, state: ILocalState): Promise<void> {
   await withStateLock(home, async () => {
     await privateDirectory(home);
-    await atomicWrite(join(home, "state", "device.json"), JSON.stringify(state, replacer));
+    const headerRefs = await storeHeaders(home, state.headers);
+    const { headers: _headers, ...record } = state;
+
+    await atomicWrite(
+      join(home, "state", "device.json"),
+      JSON.stringify({ ...record, headerRefs }, replacer),
+    );
+
+    await clearPlacement(home);
   });
 }
 
@@ -38,7 +48,12 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
   if (text === undefined) return undefined;
 
   try {
-    const value: ILocalState = JSON.parse(text, reviver);
+    const value: ILocalState & { headerRefs?: string[] } = JSON.parse(text, reviver);
+
+    if (Array.isArray(value.headerRefs)) {
+      value.headers = await restoreHeaders(home, value.headerRefs);
+      delete value.headerRefs;
+    }
 
     if (
       value.format !== 1 ||
@@ -49,6 +64,8 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
       typeof value.deviceName !== "string"
     )
       throw new Error("Invalid state");
+
+    await restorePlacement(home, value);
 
     return value;
   } catch (cause) {

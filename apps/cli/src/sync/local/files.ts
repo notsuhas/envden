@@ -1,5 +1,5 @@
 import { sha256, base32 } from "@envden/core/protocol";
-import { readFile, lstat, rm, mkdir } from "node:fs/promises";
+import { readFile, lstat, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { withStateLock } from "../../state/lock.ts";
@@ -35,22 +35,5 @@ export async function writeBytes(path: string, bytes: Uint8Array | undefined): P
 }
 
 export async function withSyncLock<T>(home: string, action: () => Promise<T>): Promise<T> {
-  const path = join(home, "state", "sync.lock");
-  await mkdir(join(home, "state"), { recursive: true, mode: 0o700 });
-
-  try {
-    await mkdir(path, { mode: 0o700 });
-  } catch (cause) {
-    throw new EnvdenError(
-      "CONFLICT",
-      "Another sync is running; remove state/sync.lock only if it stopped",
-      { cause },
-    );
-  }
-
-  try {
-    return await withStateLock(home, action);
-  } finally {
-    await rm(path, { recursive: true, force: true });
-  }
+  return withStateLock(home, action);
 }

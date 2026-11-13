@@ -24,3 +24,17 @@ test("private recovery export round trips into join and never overwrites", async
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("Windows recovery export removes inherited ACLs", async () => {
+  if (process.platform !== "win32") return;
+  const { execFileSync } = await import("node:child_process");
+  const root = await mkdtemp(join(tmpdir(), "envden-kit-acl-"));
+
+  try {
+    const path = join(root, "kit.json");
+    await writeKit(path, {});
+    expect(execFileSync("icacls", [path], { encoding: "utf8" })).not.toContain("(I)");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

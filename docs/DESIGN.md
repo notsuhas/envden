@@ -122,10 +122,11 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 
 - Store: `~/.envden/store/<repo-id>/<path-in-repo>/<file>`; checkpoint, history and release state in `~/.envden/state/` (never rolled back by a store backup); bases in `~/.envden/base/`, conflict files and pre-overwrite backups in `~/.envden/conflicts/` (backups deleted after 30 days). Folders 0700, files 0600 (ACLs on Windows).
 - **Repo ID**: from `git remote get-url origin` (falls back to the only remote, else asks). Host aliases resolved with `ssh -G`, host lowercased, path lowercased for hosts with case-insensitive paths (GitHub, GitLab), full path kept (subgroups, Azure DevOps), `.git` stripped. Ships with test vectors.
-- **Approved checkouts**: the first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip it. Worktrees sharing the git directory of an approved checkout are approved automatically. A changed remote never silently remaps an approved checkout.
+- **Approved checkouts**: the first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip it. Every new canonical checkout root needs explicit approval saved outside the checkout in envden state. Worktrees of an approved repository get a shorter prompt but are never approved automatically. A changed remote never silently remaps an approved checkout.
 - **Env files**: `.env` and `.env.<name>`, excluding templates (`.example`, `.sample`, `.template`, `.defaults`) and never `.envrc`. Only files git ignores; skips build output folders (`node_modules`, `.next`, `dist`, `build`, …). Configurable. Refuses tracked files.
 - Before linking, `git check-ignore` must pass, else envden adds the path to the checkout's exclude file (resolved through git, so worktrees work).
 - Pulled paths are validated: no `..`, no absolute paths, `lstat` before writing, no following symlinks out of the checkout.
+- Placement uses directory handles on macOS/Linux; Windows or unavailable FFI retains a parent-swap race after the final path check.
 - Monorepos: `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
 - Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias. `envden alias` also fixes renamed or moved repos.
 - **Link mode** (default): a symlink into the store. All links to one store file share one base.

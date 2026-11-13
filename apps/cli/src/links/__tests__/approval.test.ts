@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { checkoutApproval } from "../approval.ts";
+import { approvalPrompt, checkoutApproval } from "../approval.ts";
 import { emptyState } from "../../state/model.ts";
 import { storePath } from "../../store/path.ts";
 
@@ -13,10 +13,19 @@ test("approval binds git directory and remote, including worktrees", () => {
 
   expect(
     checkoutApproval(state, { ...checkout, root: "/code/branch", registeredWorktree: true }),
-  ).toBe("approved");
+  ).toBe("ask");
+
+  expect(
+    approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
+  ).toBe("Approve worktree /code/forged of example/repo? [Y/n]");
 
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("changed");
   state.aliases["host/other"] = checkout.repoId;
+
+  expect(
+    approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
+  ).toBe("Approve worktree /code/forged of example/repo? [Y/n]");
+
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("approved");
 });
 

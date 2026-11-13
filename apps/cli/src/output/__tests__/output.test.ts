@@ -38,3 +38,20 @@ test("telemetry selects only allowed fields and valid counts", () => {
 
   expect(JSON.stringify(payload)).not.toContain("secret");
 });
+
+test("terminal error sink sanitizes scan diagnostics and thrown error text", async () => {
+  const { spyOn } = await import("bun:test");
+  const { withTerminalErrors } = await import("../errors.ts");
+  const report = spyOn(console, "error").mockImplementation(() => {});
+
+  try {
+    await withTerminalErrors(async () => {
+      console.error("%s: skipped: %s", "repo\x1b\x07", "failure\u202e");
+      console.error(new Error("bad\x1b\x07").message);
+    });
+
+    expect(report.mock.calls).toEqual([["repo: skipped: failure"], ["bad"]]);
+  } finally {
+    report.mockRestore();
+  }
+});

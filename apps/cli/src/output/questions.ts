@@ -38,12 +38,10 @@ export async function input(message: string, required = true): Promise<string> {
   );
 }
 
-export async function consent(message: string): Promise<boolean> {
+export async function consent(message: string, initialValue = false): Promise<boolean> {
   terminal();
 
-  return answer<boolean>(
-    await confirm({ message: sanitizeTerminal(message), initialValue: false }),
-  );
+  return answer<boolean>(await confirm({ message: sanitizeTerminal(message), initialValue }));
 }
 
 export async function shellChoice(): Promise<"zsh" | "bash" | "fish" | "powershell" | "none"> {

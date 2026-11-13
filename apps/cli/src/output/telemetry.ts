@@ -1,3 +1,4 @@
+import { TELEMETRY_KEY } from "../settings/build-config.ts";
 import { join } from "node:path";
 import { ErrorCodeSchema, isEnvdenError } from "@envden/core/errors";
 import type { TErrorCode } from "@envden/core/errors";
@@ -41,7 +42,7 @@ export function telemetryPayload(id: string, event: IEvent) {
 }
 
 export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
-  const projectKey = process.env.ENVDEN_TELEMETRY_KEY;
+  const projectKey = TELEMETRY_KEY;
   if (!projectKey) return;
 
   try {

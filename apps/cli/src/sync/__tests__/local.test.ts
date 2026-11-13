@@ -35,14 +35,9 @@ test("bases distinguish copies, fit long paths, and reads refuse symlinks", asyn
 
     expect(await readBytes(join(home, "missing"))).toBeUndefined();
 
-    await withSyncLock(home, async () => {
-      try {
-        await withSyncLock(home, async () => {});
-        throw new Error("Lock was not held");
-      } catch (error) {
-        expect(error).toMatchObject({ code: "CONFLICT" });
-      }
-    });
+    expect(await withSyncLock(home, async () => withSyncLock(home, async () => "nested"))).toBe(
+      "nested",
+    );
 
     await withSyncLock(home, async () => {});
   } finally {

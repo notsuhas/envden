@@ -1,3 +1,5 @@
+import { untrackCommand } from "./commands/checkouts/untrack.ts";
+import { sanitizeTerminal } from "./output/sanitize.ts";
 import { reportTelemetry, commandOutcome } from "./output/telemetry.ts";
 import { commandCounts } from "./output/counts.ts";
 import { trackCommand } from "./commands/checkouts/track.ts";
@@ -30,19 +32,25 @@ export function createProgram() {
   const program = new Command()
     .name("envden")
     .description("Encrypted whole-file env sync over your private network")
-    .version(VERSION);
+    .version(VERSION)
+    .configureOutput({ outputError: (message, write) => write(sanitizeTerminal(message) + "\n") });
 
   let active: CommandUnknownOpts | undefined;
 
   program.hook("preAction", async (_program, command) => {
     active = command;
-    if (command.name() === "status" && command.opts().refreshCache) return;
-    const notice = await commandNotice(createAdapters(), Date.now(), fetch, false, process.cwd());
+    if (command.name() === "status") return;
 
-    reportCommandNotice(notice);
+    try {
+      const notice = await commandNotice(createAdapters(), Date.now(), fetch, false, process.cwd());
+      reportCommandNotice(notice);
+    } catch {
+      // Notices must never prevent a command from running.
+    }
   });
 
   program.addCommand(trackCommand);
+  program.addCommand(untrackCommand);
   program.addCommand(localOnlyCommand);
   program.addCommand(setupCommand);
   program.addCommand(unlockCommand);
