@@ -39,3 +39,72 @@ test("blob endpoints allow bodies larger than the auth cap", async () => {
     await readBody(new Request("http://server/v1/blobs/hash", { method: "PUT", body })),
   ).toEqual(body);
 });
+
+test("trickling cannot reset the absolute body deadline and cancels the reader", async () => {
+  let expire = () => {};
+  let cancelled = false;
+  let stopped = false;
+  let signal = () => {};
+
+  const reading = new Promise<void>((resolve) => {
+    signal = resolve;
+  });
+
+  let pulls = 0;
+
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        if (pulls++ === 0) controller.enqueue(new Uint8Array([1]));
+        else signal();
+      },
+      cancel() {
+        cancelled = true;
+      },
+    },
+    { highWaterMark: 0 },
+  );
+
+  const result = readBody(
+    new Request("http://server/v1/swap", { method: "POST", body: stream }),
+    65536,
+    undefined,
+    (callback) => {
+      expire = callback;
+
+      return () => {
+        stopped = true;
+      };
+    },
+  );
+
+  await reading;
+  expire();
+  await Promise.resolve(expect(result).rejects.toThrow("Body read deadline exceeded"));
+  expect(cancelled).toBe(true);
+  expect(stopped).toBe(true);
+});
+
+test("read routes reject bodies even when the final segment looks like an upload route", async () => {
+  const { bodyLimit } = await import("../middleware/body.ts");
+
+  expect(() =>
+    bodyLimit(new Request("http://server/v1/files/vault", { method: "POST", body: "x" })),
+  ).toThrow("Unknown route");
+
+  expect(() =>
+    bodyLimit(new Request("http://server/v1/head", { headers: { "Content-Length": "1" } })),
+  ).toThrow("Request body not allowed");
+});
+
+test("public hello rejects a declared read body", async () => {
+  const { fixture, identity } = await import("./fixture.ts");
+  const f = fixture(await identity());
+
+  try {
+    const response = await f.app.request("/v1/hello", { headers: { "Content-Length": "1" } });
+    expect(response.status).toBe(400);
+  } finally {
+    f.close();
+  }
+});

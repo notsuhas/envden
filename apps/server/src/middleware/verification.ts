@@ -1,6 +1,5 @@
-import { reserveBody } from "./body-budget.ts";
-import { authorizeBody } from "./access/body.ts";
-import { readBody, bodyLimit } from "./body.ts";
+import { requestRoute } from "../routes/policy.ts";
+import { verifiedBody } from "./access/read.ts";
 import { verifyAccess } from "./access/verify.ts";
 import type { Context } from "hono";
 import type { IRequest } from "@envden/core/protocol";
@@ -23,6 +22,7 @@ export function verification(options: IAppOptions) {
   return createMiddleware<TServerEnv>(async (c, next) => {
     const { storage, now, config } = options;
     const raw = c.req.raw;
+    const route = requestRoute(raw);
     const request = input(() => decode(RequestCodec, binary(c.req.header("Envden-Request"))));
     const signature = binary(c.req.header("Envden-Signature"), 64);
     const url = new URL(raw.url);
@@ -56,19 +56,9 @@ export function verification(options: IAppOptions) {
 
     verifyAccess(c, options, request, !!member, url.pathname);
 
-    authorizeBody(c, options);
-    const limit = bodyLimit(raw);
-    const release = reserveBody(limit * 2);
+    const release = await verifiedBody(c, options, route);
 
     try {
-      const body = await readBody(raw, limit, request.bodyHash);
-
-      c.req.raw = new Request(raw.url, {
-        method: raw.method,
-        headers: raw.headers,
-        ...(!["GET", "HEAD"].includes(raw.method) ? { body } : {}),
-      });
-
       await next();
     } finally {
       release();

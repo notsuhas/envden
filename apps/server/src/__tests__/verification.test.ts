@@ -4,7 +4,6 @@ import { fixture, identity, vaultId } from "./fixture.ts";
 import type { IServerKeys } from "../http/types.ts";
 import { text } from "../http/encoding.ts";
 import { hasProof } from "../auth/token.ts";
-import { gateMiddleware } from "../middleware/gates.ts";
 import { nonMemberPolicy } from "../routes/policy.ts";
 
 let keys: IServerKeys;
@@ -151,13 +150,9 @@ test("signature, replay, required headers and non-member gating", async () => {
 test("fresh and unlocked gates enforce boundaries and never period", async () => {
   const f = fixture(keys);
 
-  f.app.get("/v1/test-unlocked", gateMiddleware(f.options, "unlocked"), (c) =>
-    c.json({ ok: true }),
-  );
-
   try {
     expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(403);
-    expect((await f.request("/v1/test-unlocked").send()).status).toBe(403);
+    expect((await f.request("/v1/devices").send()).status).toBe(403);
     f.fresh();
     const prior = f.storage.device(vaultId, f.member.record.id)!;
 
@@ -180,7 +175,7 @@ test("fresh and unlocked gates enforce boundaries and never period", async () =>
     expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(200);
     f.advance(10000);
     expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(403);
-    expect((await f.request("/v1/test-unlocked").send()).status).toBe(200);
+    expect((await f.request("/v1/devices").send()).status).toBe(200);
   } finally {
     f.close();
   }
@@ -230,12 +225,12 @@ test("internal failures never expose their message", async () => {
   const f = fixture(keys);
   const log = spyOn(console, "error").mockImplementation(() => {});
 
-  f.app.get("/v1/test-error", () => {
+  spyOn(f.storage, "hasVault").mockImplementation(() => {
     throw new Error("private database detail");
   });
 
   try {
-    const response = await f.request("/v1/test-error").send();
+    const response = await f.request("/v1/devices").send();
     expect(response.status).toBe(500);
     expect(await response.text()).toBe('{"error":"INTERNAL"}');
     expect(log).toHaveBeenCalledWith("envden request failed", { code: "INTERNAL", method: "GET" });

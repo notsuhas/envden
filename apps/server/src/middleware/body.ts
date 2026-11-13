@@ -1,24 +1,24 @@
+import { requestRoute } from "../routes/policy.ts";
 import { equal, sha256 } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 
 export const maxRequestBodySize = 33554432;
 
 export function bodyLimit(request: Request): number {
-  const path = new URL(request.url).pathname;
+  return requestRoute(request).limit;
+}
 
-  return path === "/v1/vault"
-    ? 65536
-    : path.startsWith("/v1/blobs/")
-      ? 16777216
-      : /\/(history|chain|material|swap|vault)(\/|$)/.test(path)
-        ? maxRequestBodySize
-        : 65536;
+function scheduleDeadline(expire: () => void): () => void {
+  const timer = setTimeout(expire, 10000);
+
+  return () => clearTimeout(timer);
 }
 
 export async function readBody(
   request: Request,
   limit = bodyLimit(request),
   expectedHash?: Uint8Array,
+  schedule = scheduleDeadline,
 ): Promise<Uint8Array> {
   const hasher = sha256.create();
   const length = request.headers.get("Content-Length");
@@ -31,9 +31,15 @@ export async function readBody(
   const chunks: Uint8Array[] = [];
   let size = 0;
 
+  let stop = () => {};
+
+  const deadline = new Promise<never>((_resolve, reject) => {
+    stop = schedule(() => reject(new EnvdenError("INVALID_INPUT", "Body read deadline exceeded")));
+  });
+
   try {
     while (true) {
-      const chunk = await reader?.read();
+      const chunk = await Promise.race([reader?.read(), deadline]);
       if (!chunk || chunk.done) break;
       size += chunk.value.length;
       if (size > limit) throw new EnvdenError("INVALID_INPUT", "Request too large");
@@ -41,7 +47,8 @@ export async function readBody(
       chunks.push(chunk.value);
     }
   } finally {
-    await reader?.cancel();
+    stop();
+    void reader?.cancel().catch(() => {});
     reader?.releaseLock();
   }
 

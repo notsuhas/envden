@@ -21,6 +21,7 @@ export const ErrorCodeSchema = z.enum([
   "NOT_IMPLEMENTED",
   "INTERNAL",
   "SERVER_UNREACHABLE",
+  "BUSY",
 ]);
 
 export type TErrorCode = z.infer<typeof ErrorCodeSchema>;

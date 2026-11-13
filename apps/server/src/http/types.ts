@@ -21,6 +21,7 @@ export interface IAuth {
   request: IRequest;
   member: boolean;
   proof?: Uint8Array;
+  rateReceipt?: string;
 }
 
 export type TServerEnv = { Variables: { auth: IAuth } };

@@ -1,26 +1,103 @@
-export function nonMemberPolicy(
-  method: string,
-  path: string,
-): "data" | "registration" | "kit" | "mailbox" | "approver" | undefined {
+import { EnvdenError } from "@envden/core/errors";
+
+type TPolicy = "data" | "registration" | "kit" | "mailbox" | "approver";
+
+interface IRoute {
+  method: string;
+  path: RegExp;
+  limit: number;
+  policy?: TPolicy;
+  charge?: true;
+}
+
+const routes: IRoute[] = [
+  { method: "GET", path: /^\/v1\/hello$/, limit: 0 },
+  { method: "POST", path: /^\/v1\/vault$/, limit: 65536, policy: "data" },
+  { method: "POST", path: /^\/v1\/swap$/, limit: 33554432, policy: "data" },
+  { method: "GET", path: /^\/v1\/(head|headers|entries|envelope)$/, limit: 0, policy: "data" },
+  { method: "GET", path: /^\/v1\/(devices|blobs)$/, limit: 0 },
+  { method: "GET", path: /^\/v1\/(files|keyrings|blobs)\/[^/]+$/, limit: 0, policy: "data" },
+  { method: "PUT", path: /^\/v1\/blobs\/[^/]+$/, limit: 16777216, policy: "data" },
+  {
+    method: "POST",
+    path: /^\/v1\/opaque\/login\/start$/,
+    limit: 65536,
+    policy: "kit",
+    charge: true,
+  },
+  { method: "POST", path: /^\/v1\/opaque\/login\/finish$/, limit: 65536, policy: "kit" },
+  {
+    method: "POST",
+    path: /^\/v1\/opaque\/registration\/start$/,
+    limit: 65536,
+    policy: "registration",
+    charge: true,
+  },
+  {
+    method: "POST",
+    path: /^\/v1\/opaque\/registration\/finish$/,
+    limit: 65536,
+    policy: "registration",
+  },
+  { method: "POST", path: /^\/v1\/pairing\/mailboxes$/, limit: 65536 },
+  {
+    method: "GET",
+    path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}\/(KE1|KE2|KE3|PairJoiner)$/,
+    limit: 0,
+    policy: "mailbox",
+  },
+  {
+    method: "PUT",
+    path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}\/(KE1|KE2|KE3|PairJoiner)$/,
+    limit: 65536,
+    policy: "mailbox",
+  },
+  { method: "DELETE", path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}$/, limit: 0 },
+  { method: "GET", path: /^\/v1\/pairing\/approver$/, limit: 0, policy: "approver" },
+  { method: "GET", path: /^\/v1\/settings\/unlock-period$/, limit: 0 },
+  { method: "PUT", path: /^\/v1\/settings\/unlock-period$/, limit: 65536 },
+  {
+    method: "POST",
+    path: /^\/v1\/move\/(discard|session|freeze|unfreeze)$/,
+    limit: 65536,
+    policy: "data",
+  },
+  { method: "GET", path: /^\/v1\/move\/(sk-pub|period)$/, limit: 0, policy: "data" },
+  { method: "PUT", path: /^\/v1\/move\/period$/, limit: 65536, policy: "data" },
+  {
+    method: "POST",
+    path: /^\/v1\/(move|repair)\/(history|chain)$/,
+    limit: 33554432,
+    policy: "data",
+  },
+  {
+    method: "PUT",
+    path: /^\/v1\/(move|repair)\/material\/[^/]+\/[^/]+$/,
+    limit: 33554432,
+    policy: "data",
+  },
+  { method: "POST", path: /^\/v1\/repair\/finish$/, limit: 65536, policy: "data" },
+  { method: "PUT", path: /^\/v1\/repair\/report$/, limit: 65536, policy: "data" },
+  { method: "GET", path: /^\/v1\/repair\/(status|reports)$/, limit: 0, policy: "data" },
+];
+
+function matchRoute(method: string, path: string) {
+  return routes.find((route) => route.method === method && route.path.test(path));
+}
+
+export function requestRoute(request: Request): IRoute {
+  const route = matchRoute(request.method, new URL(request.url).pathname);
+  if (!route) throw new EnvdenError("NOT_FOUND", "Unknown route");
+
   if (
-    /^\/v1\/(vault|swap|head|headers|entries|files\/[^/]+|keyrings\/[^/]+|envelope|move\/.*|repair\/.*|blobs\/[^/]+)$/.test(
-      path,
-    )
+    route.limit === 0 &&
+    (request.body !== null || Number(request.headers.get("Content-Length")) > 0)
   )
-    return "data";
+    throw new EnvdenError("INVALID_INPUT", "Request body not allowed");
 
-  if (method === "POST" && /^\/v1\/opaque\/registration\/(start|finish)$/.test(path))
-    return "registration";
+  return route;
+}
 
-  if (method === "POST" && /^\/v1\/opaque\/login\/(start|finish)$/.test(path)) return "kit";
-
-  if (
-    ["GET", "PUT"].includes(method) &&
-    /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}\/(KE1|KE2|KE3|PairJoiner)$/.test(path)
-  )
-    return "mailbox";
-
-  if (method === "GET" && path === "/v1/pairing/approver") return "approver";
-
-  return undefined;
+export function nonMemberPolicy(method: string, path: string): TPolicy | undefined {
+  return matchRoute(method, path)?.policy;
 }

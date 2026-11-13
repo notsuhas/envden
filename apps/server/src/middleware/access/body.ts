@@ -20,7 +20,10 @@ export function authorizeBody(c: Context<TServerEnv>, options: IAppOptions): voi
   else if (path.startsWith("/v1/repair/")) requireRepair(options, auth);
   else if (path.startsWith("/v1/blobs/") && c.req.method === "PUT") authorizeBlob(options, auth);
   else if (!auth.member && path === "/v1/swap") requireJoinTicket(options, auth);
-  else if (path === "/v1/settings/unlock-period" || path === "/v1/pairing/mailboxes")
+  else if (
+    (path === "/v1/settings/unlock-period" && c.req.method === "PUT") ||
+    path === "/v1/pairing/mailboxes"
+  )
     requireGate(options, auth, "fresh");
   else if (c.req.method === "PUT" && path.startsWith("/v1/pairing/mailboxes/"))
     authorizeMailbox(c, options);

@@ -1,3 +1,4 @@
+import { requestRoute } from "./policy.ts";
 import {
   HelloResponseSchema,
   buildHello,
@@ -26,7 +27,11 @@ function hello(options: IAppOptions, challenge: Uint8Array, host: string) {
 }
 
 export function registerHello(app: Hono<TServerEnv>, options: IAppOptions) {
-  return app.get("/v1/hello", (c) =>
-    c.json(hello(options, binary(c.req.query("challenge"), 32), new URL(c.req.url).hostname)),
-  );
+  return app.get("/v1/hello", (c) => {
+    requestRoute(c.req.raw);
+
+    return c.json(
+      hello(options, binary(c.req.query("challenge"), 32), new URL(c.req.url).hostname),
+    );
+  });
 }
