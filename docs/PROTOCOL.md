@@ -700,7 +700,7 @@ Shipped as JSON in `packages/core/test-vectors/`, and run in CI against every pl
   - a server move where D disappears before and after O commits
   - a member lockout attempt from a stolen device
 - **Versions**: a client below `minClient` gets `426` and re-checks the signed hello; a server below `minServer` is refused; a new entry kind is rejected while `minClient` is too low; an unknown entry kind with a valid signature reports "update required", and one with a bad signature reports "invalid data".
-- **Releases** (§ 15): an older `seq`, an expired feed for self-update, a wrong build hash, an unsafe version, a downgrade, a backup-only feed revoking the primary, a huge primary `seq` followed by a backup feed, a stripped signature, a dual-signed feed with unequal stored `seq`s, `revokePrimary = 2`, a generation tie, a primary-only rotation (rejected), an identical re-fetch, and a generation rotation.
+- **Releases** (§ 15): an older `seq`, an expired feed for self-update, a wrong build hash, an unsafe version, a downgrade, a backup-only feed revoking the primary, a huge primary `seq` followed by a backup feed, a stripped signature, a dual-signed feed with unequal stored `seq`s, `revokePrimary = 2`, a generation tie, a primary-only rotation (`next` ignored), an identical re-fetch, and a generation rotation.
 - **Repo ID** normalization (DESIGN § Store).
 
 ## 15. Releases

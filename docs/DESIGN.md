@@ -19,7 +19,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 - **Server**: one Docker container, or `envden serve` on one of the user's devices (launchd / systemd / Windows login service). Stores ciphertext and opaque IDs only. One server per vault, no peer-to-peer (ADR 0001). Many vaults per server, one owner each.
 - **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
 - **Stack**: TypeScript monorepo on Bun (ADR 0002). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
-  - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests. Lint and format: Biome. Wire messages validated with Zod.
+  - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
   - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in `Bun.secrets` behind the keychain adapter, git via the `git` command.
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
   - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
