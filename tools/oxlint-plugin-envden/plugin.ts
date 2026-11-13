@@ -8,9 +8,12 @@ import paddingLines from "./rules/padding-lines.ts";
 import folderSize from "./rules/folder-size.ts";
 import noGroupPrefixFilenames from "./rules/no-group-prefix-filenames.ts";
 
+import trustedProcess from "./rules/trusted-process.ts";
+
 export default definePlugin({
   meta: { name: "envden" },
   rules: {
+    "trusted-process": trustedProcess,
     "tests-in-tests-folder": testsInTestsFolder,
     "index-reexports-only": indexReexportsOnly,
     "type-name-prefix": typeNamePrefix,

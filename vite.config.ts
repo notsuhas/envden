@@ -27,6 +27,7 @@ export default defineConfig({
       reportUnusedDisableDirectives: "error",
     },
     rules: {
+      "envden/trusted-process": "error",
       "no-console": "off",
       "typescript/no-explicit-any": "error",
       "typescript/no-floating-promises": "error",
