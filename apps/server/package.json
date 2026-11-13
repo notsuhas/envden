@@ -1,0 +1,14 @@
+{
+  "name": "@envden/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@envden/adapter-storage-sqlite": "workspace:*",
+    "@envden/core": "workspace:*",
+    "hono": "4.13.18"
+  }
+}
