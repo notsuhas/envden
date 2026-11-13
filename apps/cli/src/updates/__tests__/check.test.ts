@@ -44,7 +44,7 @@ test("signed feed applies unsafe versions, refuses replay and skips daily fetche
   expect(state.release?.primary?.seq).toBe(1n);
 });
 
-test("disabled or unconfigured checks never use the network", async () => {
+test("unconfigured checks never use the network", async () => {
   const state = emptyState("test");
 
   const network: TFetch = async () => {
@@ -52,6 +52,6 @@ test("disabled or unconfigured checks never use the network", async () => {
   };
 
   state.updateCheck = false;
-  expect((await checkRelease(state, undefined, 1, network)).kind).toBe("skipped");
+  expect((await checkRelease(state, undefined, 1, network)).kind).toBe("unavailable");
   expect((await checkRelease(state, undefined, 1, network, true)).kind).toBe("unavailable");
 });

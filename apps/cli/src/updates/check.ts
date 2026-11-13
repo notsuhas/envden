@@ -17,22 +17,17 @@ export async function checkRelease(
   fetcher: TFetch,
   force = false,
 ) {
-  if (
-    !force &&
-    (!state.updateCheck ||
-      (state.lastFeedCheck !== undefined && now - state.lastFeedCheck < 86400000))
-  )
+  if (!force && state.lastFeedCheck !== undefined && now - state.lastFeedCheck < 86400000)
     return { kind: "skipped" as const };
-
-  state.lastFeedCheck = now;
 
   if (!trust)
     return { kind: "unavailable" as const, message: "Release signing keys are not configured" };
 
-  state.lastFeedCheck = now;
-
   try {
-    const response = await fetcher(releaseConfig.url, { redirect: "error" });
+    const response = await fetcher(releaseConfig.url, {
+      redirect: "error",
+      signal: AbortSignal.timeout(2000),
+    });
 
     if (!response.ok)
       return { kind: "unavailable" as const, message: "Cannot confirm envden is up to date" };
@@ -52,8 +47,12 @@ export async function checkRelease(
       available: compareSemver(state.latest, VERSION) > 0,
       required: state.release.unsafe.includes(VERSION),
       expired: accepted.value.expired,
+      release: accepted.value.release,
+      feed: bytes,
     };
   } catch {
     return { kind: "unavailable" as const, message: "Cannot confirm envden is up to date" };
+  } finally {
+    state.lastFeedCheck = now;
   }
 }

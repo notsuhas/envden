@@ -1,3 +1,5 @@
+import { restoreReleases, rememberRelease } from "./persistence.ts";
+import { withStateLock } from "../state/lock.ts";
 import { readConfig } from "../settings/config.ts";
 import { updateCheckEnabled } from "../settings/privacy.ts";
 import type { TAdapters } from "../adapters.ts";
@@ -6,12 +8,20 @@ import { emptyState } from "../state/model.ts";
 import { releaseConfig } from "./release-config.ts";
 import { checkRelease } from "./check.ts";
 
-export async function runUpdateCheck(adapters: TAdapters, now: number, force = true) {
-  const state = (await loadState(adapters.home)) ?? emptyState("device");
+async function lockedrunUpdateCheck(adapters: TAdapters, now: number, force = true) {
+  const existing = await loadState(adapters.home);
+  const state = existing ?? emptyState("device");
+  const stored = await restoreReleases(adapters.home, releaseConfig.trust, now);
+  if (stored) state.release = stored;
   const config = await readConfig(adapters.home);
   if (!updateCheckEnabled(config["update-check"])) return { kind: "skipped" as const };
   const result = await checkRelease(state, releaseConfig.trust, now, fetch, force);
-  await saveState(adapters.home, state);
+  if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+  if (existing) await saveState(adapters.home, state);
 
   return result;
+}
+
+export function runUpdateCheck(...args: Parameters<typeof lockedrunUpdateCheck>) {
+  return withStateLock(args[0].home, () => lockedrunUpdateCheck(...args));
 }
