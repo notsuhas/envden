@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { rejects } from "node:assert/strict";
 import { afterEach, expect, test } from "bun:test";
 import {

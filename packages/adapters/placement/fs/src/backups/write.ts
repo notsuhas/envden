@@ -12,7 +12,7 @@ import { isAbsolute, relative, resolve, sep, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { openParent, writeAt } from "../native/directory.ts";
 import { libc } from "../native/libc.ts";
-import { execFileSync } from "node:child_process";
+import { spawnTrusted } from "@envden/core/process";
 import { userInfo } from "node:os";
 
 export function backupContents(root: string, directory: string | undefined, contents: Uint8Array) {
@@ -39,12 +39,14 @@ export function backupContents(root: string, directory: string | undefined, cont
 
     chmodSync(path, 0o700);
 
-    execFileSync("icacls", [
-      path,
-      "/inheritance:r",
-      "/grant:r",
-      `${userInfo().username}:(OI)(CI)F`,
-    ]);
+    const result = spawnTrusted(
+      "icacls",
+      [path, "/inheritance:r", "/grant:r", `${userInfo().username}:(OI)(CI)F`],
+      { sync: true },
+    );
+
+    if (result.exitCode !== 0)
+      throw new EnvdenError("INVALID_INPUT", "Could not restrict backup access");
 
     writeFileSync(join(path, name), contents, { flag: "wx", mode: 0o600 });
   }

@@ -1,8 +1,5 @@
 import { EnvdenError } from "@envden/core/errors";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
-const exec = promisify(execFile);
+import { execTrusted as exec } from "@envden/core/process";
 
 export async function resolveSshHost(host: string): Promise<string> {
   if (host.startsWith("-") || !/^[A-Za-z0-9._-]+$/.test(host))

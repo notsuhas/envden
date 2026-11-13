@@ -1,9 +1,6 @@
-import { execFile } from "node:child_process";
+import { execTrusted as exec } from "@envden/core/process";
 import { chmod } from "node:fs/promises";
 import { userInfo } from "node:os";
-import { promisify } from "node:util";
-
-const exec = promisify(execFile);
 
 export async function privateFile(path: string): Promise<void> {
   if (process.platform === "win32") {

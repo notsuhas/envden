@@ -1,6 +1,6 @@
 import { rejects } from "node:assert/strict";
 import { EnvdenError } from "@envden/core/errors";
-import { execFileSync } from "node:child_process";
+import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { expect, spyOn, test } from "bun:test";
 import { mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { expect, test } from "bun:test";
 import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -60,7 +61,7 @@ for (const shell of ["bash", "zsh"] as const) {
         const snippet = createRcShellAdapter(shell, home).hookSnippet(binary);
 
         const run = async (cwd: string) => {
-          const child = Bun.spawn([shell, "-c", `${snippet}\n_envden_notice\n_envden_notice`], {
+          const child = spawnTrusted([shell, "-c", `${snippet}\n_envden_notice\n_envden_notice`], {
             cwd,
             stdout: "pipe",
             stderr: "pipe",
@@ -128,7 +129,7 @@ for (const shell of ["bash", "zsh"] as const)
       const snippet = createRcShellAdapter(shell, home).hookSnippet("/bin/true");
 
       const run = async () => {
-        const child = Bun.spawn([shell, "-c", snippet], {
+        const child = spawnTrusted([shell, "-c", snippet], {
           cwd: home,
           stdout: "pipe",
           stderr: "pipe",

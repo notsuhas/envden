@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { Worker } from "node:worker_threads";
 import { describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
@@ -83,7 +84,7 @@ describe("SQLite durability", () => {
       const dir = temp();
 
       try {
-        const child = Bun.spawn(
+        const child = spawnTrusted(
           [process.execPath, new URL("./blob-crash.ts", import.meta.url).pathname, dir, stage],
           { stdout: "ignore", stderr: "pipe" },
         );

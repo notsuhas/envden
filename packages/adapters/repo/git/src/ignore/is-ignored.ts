@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
 import { git } from "../exec/git.ts";
 import { tracked } from "../env-files/tracked.ts";
@@ -12,7 +13,15 @@ export async function isIgnored(checkout: ICheckout, path: string): Promise<bool
 
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === 1) return false;
+    if (
+      error instanceof EnvdenError &&
+      error.cause &&
+      typeof error.cause === "object" &&
+      "exitCode" in error.cause &&
+      error.cause.exitCode === 1
+    )
+      return false;
+
     throw error;
   }
 }

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { repoContract } from "@envden/testing/repo";

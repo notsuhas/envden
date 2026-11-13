@@ -1,3 +1,4 @@
+import { spawnTrusted } from "@envden/core/process";
 import { EnvdenError } from "@envden/core/errors";
 import { parseStatus } from "./status/parse.ts";
 import type { INetworkAdapter, INetworkStatus } from "@envden/core/adapters";
@@ -11,7 +12,7 @@ interface ICommandResult {
 type TRunner = (args: string[]) => Promise<ICommandResult>;
 
 async function run(args: string[]): Promise<ICommandResult> {
-  const child = Bun.spawn(["tailscale", ...args], { stdout: "pipe", stderr: "pipe" });
+  const child = spawnTrusted("tailscale", args, { stdout: "pipe", stderr: "pipe" });
 
   const [stdout, stderr, exitCode] = await Promise.all([
     new Response(child.stdout).text(),
