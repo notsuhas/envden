@@ -1,3 +1,4 @@
+import { repoFailure } from "./failures/operation.ts";
 import type { IRepoAdapter } from "@envden/core/adapters";
 import { checkoutAt } from "./checkout/checkout.ts";
 import { envFiles } from "./env-files/discovery.ts";
@@ -11,10 +12,11 @@ export function createGitRepoAdapter(
 ): IRepoAdapter {
   return {
     id: "git",
-    checkoutAt: (path) => checkoutAt(path, options.resolveSshHost ?? resolveSshHost),
-    worktrees,
-    envFiles: (checkout) => envFiles(checkout, options.skipFolders),
-    isIgnored,
-    ensureIgnored,
+    checkoutAt: (path) =>
+      checkoutAt(path, options.resolveSshHost ?? resolveSshHost).catch(repoFailure),
+    worktrees: (checkout) => worktrees(checkout).catch(repoFailure),
+    envFiles: (checkout) => envFiles(checkout, options.skipFolders).catch(repoFailure),
+    isIgnored: (checkout, path) => isIgnored(checkout, path).catch(repoFailure),
+    ensureIgnored: (checkout, path) => ensureIgnored(checkout, path).catch(repoFailure),
   };
 }

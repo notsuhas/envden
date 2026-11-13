@@ -1,3 +1,4 @@
+import { shellFailure } from "./failures/operation.ts";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -83,5 +84,14 @@ export function createRcShellAdapter(
   home?: string,
   envdenHome?: string,
 ): IShellAdapter {
-  return new RcShellAdapter(shell, home, envdenHome);
+  const adapter = new RcShellAdapter(shell, home, envdenHome);
+
+  return {
+    id: adapter.id,
+    rcPath: () => adapter.rcPath(),
+    hookSnippet: (binaryPath) => adapter.hookSnippet(binaryPath),
+    installed: () => adapter.installed().catch(shellFailure),
+    install: (binaryPath) => adapter.install(binaryPath).catch(shellFailure),
+    uninstall: () => adapter.uninstall().catch(shellFailure),
+  };
 }

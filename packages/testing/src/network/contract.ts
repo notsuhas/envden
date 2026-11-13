@@ -21,6 +21,7 @@ export function networkContract(
       expect(status.running).toBe(true);
       expect(status.loggedIn).toBe(true);
       expect(status.httpsEnabled).toBe(true);
+      expect(await adapter.checkHttpsCertificate()).toBe(true);
       expect(status.hostname).toBeTruthy();
       expect(await adapter.expose(8080)).toBe(`https://${status.hostname}`);
     });

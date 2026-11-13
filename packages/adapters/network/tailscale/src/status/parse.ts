@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import type { INetworkStatus } from "@envden/core/adapters";
 
 export function parseStatus(stdout: string): INetworkStatus {
@@ -9,7 +10,7 @@ export function parseStatus(stdout: string): INetworkStatus {
     !("BackendState" in data) ||
     typeof data.BackendState !== "string"
   )
-    throw new Error("Invalid Tailscale status");
+    throw new EnvdenError("INVALID_DATA", "Invalid Tailscale status");
 
   const running = data.BackendState === "Running";
   const loggedIn = !["NeedsLogin", "NoState"].includes(data.BackendState);

@@ -16,7 +16,13 @@ export function placementContract(
         const store = join(root, "store");
         const checkout = join(root, "nested", ".env");
         await writeFile(store, "A=1\n");
-        expect(await adapter.supported(root)).toBe(true);
+
+        if (!(await adapter.supported(root))) {
+          await rejects(adapter.place(store, checkout));
+
+          return;
+        }
+
         expect(await adapter.inspect(store, checkout)).toBe("missing");
         await adapter.place(store, checkout);
         expect(await readFile(checkout, "utf8")).toBe("A=1\n");

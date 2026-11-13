@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import type { IPlacementAdapter, TPlacementMode } from "@envden/core/adapters";
 import { statOrMissing } from "./stat.ts";
 import { isStoreLink } from "./link.ts";
@@ -13,7 +14,10 @@ export async function inspect(
 ): ReturnType<IPlacementAdapter["inspect"]> {
   const path = checkoutRelative(root, checkoutPath);
   const rootStat = await lstat(root);
-  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error("Unsafe checkout root");
+
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink())
+    throw new EnvdenError("INVALID_INPUT", "Unsafe checkout root");
+
   // Inspect parents without creating missing checkout folders.
   let parent = root;
 
@@ -21,7 +25,9 @@ export async function inspect(
     parent = join(parent, part);
     const stat = await statOrMissing(parent);
     if (!stat) return "missing";
-    if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("Unsafe checkout parent");
+
+    if (!stat.isDirectory() || stat.isSymbolicLink())
+      throw new EnvdenError("INVALID_INPUT", "Unsafe checkout parent");
   }
 
   const stat = await statOrMissing(checkoutPath);

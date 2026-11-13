@@ -1,3 +1,4 @@
+import { placementFailure } from "./failures/operation.ts";
 import type { IPlacementAdapter, TPlacementMode } from "@envden/core/adapters";
 import { resolve } from "node:path";
 import { supported } from "./operations/supported.ts";
@@ -12,8 +13,10 @@ export function createFsPlacementAdapter(
 
   return {
     mode,
-    supported: (dir) => supported(mode, dir),
-    place: (storePath, checkoutPath) => place(mode, root, storePath, checkoutPath),
-    inspect: (storePath, checkoutPath) => inspect(mode, root, storePath, checkoutPath),
+    supported: (dir) => supported(mode, dir).catch(placementFailure),
+    place: (storePath, checkoutPath) =>
+      place(mode, root, storePath, checkoutPath).catch(placementFailure),
+    inspect: (storePath, checkoutPath) =>
+      inspect(mode, root, storePath, checkoutPath).catch(placementFailure),
   };
 }

@@ -19,6 +19,7 @@ test("status and serve use the recorded JSON and current CLI syntax", async () =
     hostname: "laptop.tail.example",
   });
 
+  expect(await adapter.checkHttpsCertificate()).toBe(true);
   expect(await adapter.expose(3000)).toBe("https://laptop.tail.example");
   expect(calls.at(-1)).toEqual(["serve", "--bg", "--https=443", "http://127.0.0.1:3000"]);
   expect(adapter.expose(0)).rejects.toThrow("Invalid port");
@@ -37,6 +38,7 @@ test("missing certificates, logged-out, malformed and unavailable status fail cl
       stderr: "",
     }));
 
+    expect(await adapter.checkHttpsCertificate()).toBe(false);
     expect((await adapter.status()).ready).toBe(false);
     expect(adapter.expose(8080)).rejects.toThrow();
   }

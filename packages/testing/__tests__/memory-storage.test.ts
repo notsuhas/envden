@@ -3,6 +3,10 @@ import { storageContract, createMemoryStorageAdapter } from "../src/storage/inde
 
 storageContract("Memory storage", () => {
   const storage = createMemoryStorageAdapter([
+    "vaultIds",
+    "capUnlocks",
+    "hasBlob",
+    "findCommitted",
     "close",
     "transaction",
     "hasVault",

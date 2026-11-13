@@ -1,10 +1,14 @@
+import { EnvdenError } from "@envden/core/errors";
 import { lstat, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { statOrMissing } from "../operations/stat.ts";
 
 export async function safeParents(root: string, path: string): Promise<void> {
   const rootStat = await lstat(root);
-  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error("Unsafe checkout root");
+
+  if (!rootStat.isDirectory() || rootStat.isSymbolicLink())
+    throw new EnvdenError("INVALID_INPUT", "Unsafe checkout root");
+
   let current = root;
 
   for (const part of path.split("/").slice(0, -1)) {
@@ -13,7 +17,8 @@ export async function safeParents(root: string, path: string): Promise<void> {
 
     if (!stat) stat = await createParent(current);
 
-    if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error("Unsafe checkout parent");
+    if (!stat.isDirectory() || stat.isSymbolicLink())
+      throw new EnvdenError("INVALID_INPUT", "Unsafe checkout parent");
   }
 }
 

@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { isAbsolute, join } from "node:path";
 import { start, end } from "./markers.ts";
 import type { TShell } from "./shell.ts";
@@ -7,7 +8,7 @@ const psQuote = (value: string) => `'${value.replaceAll("'", "''")}'`;
 
 export function renderHook(shell: TShell, binaryPath: string, envdenHome: string) {
   if (!isAbsolute(binaryPath) || /[\r\n]/.test(binaryPath + envdenHome))
-    throw new Error("Hook paths must be absolute and single-line");
+    throw new EnvdenError("INVALID_INPUT", "Hook paths must be absolute and single-line");
 
   const state = join(envdenHome, "state");
   const command = `env -u BUN_OPTIONS -u BUN_BE_BUN ${quote(binaryPath)} status --refresh-cache`;
@@ -17,6 +18,8 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     case "bash":
     case "zsh": {
       body = `_envden_notice() {
+  [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
+  _envden_last_pwd="$PWD"
   local root approved=0 cache=${quote(join(state, "notice"))} now modified
   while IFS= read -r root; do
     [ -n "$root" ] || continue
@@ -25,7 +28,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   [ "$approved" = 1 ] || return 0
   [ ! -f "$cache" ] || cat -- "$cache"
   now=$(date +%s)
-  modified=$(stat -f %m "$cache" 2>/dev/null) || modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=0
+  modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=$(stat -f %m "$cache" 2>/dev/null) || modified=0
   if [ "$((now - modified))" -gt 60 ]; then
     (${command} </dev/null >/dev/null 2>&1 &)
   fi
@@ -45,16 +48,17 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   set -l approved 0
   if test -f ${quote(join(state, "approved-checkouts"))}
     while read -l root
-      if test -n "$root"; and test (string sub -l (string length -- "$root/") -- "$PWD/") = "$root/"
+      set -l prefix (string sub -l (string length -- "$root/") -- "$PWD/")
+      if test -n "$root"; and test "$prefix" = "$root/"
         set approved 1
         break
       end
     end < ${quote(join(state, "approved-checkouts"))}
   end
-  test $approved = 1; or return
+  test "$approved" = 1; or return
   test ! -f "$cache"; or cat -- "$cache"
-  set -l modified (stat -f %m "$cache" 2>/dev/null; or stat -c %Y "$cache" 2>/dev/null; or echo 0)
-  if test (math (date +%s) - $modified) -gt 60
+  set -l modified (stat -c %Y "$cache" 2>/dev/null; or stat -f %m "$cache" 2>/dev/null; or echo 0)
+  if test (math (date +%s) - "$modified") -gt 60
     ${command} </dev/null >/dev/null 2>&1 &
     disown
   end
@@ -67,7 +71,9 @@ _envden_notice`;
 function global:prompt {
   $cache = ${psQuote(join(state, "notice"))}
   $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($PWD.Path.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
-  if ($approved) {
+  $changed = $global:EnvdenLastDirectory -cne $PWD.Path
+  $global:EnvdenLastDirectory = $PWD.Path
+  if ($approved -and $changed) {
     if (Test-Path -LiteralPath $cache) { Get-Content -LiteralPath $cache | Out-Host }
     if (!(Test-Path -LiteralPath $cache) -or ((Get-Date) - (Get-Item -LiteralPath $cache).LastWriteTime).TotalSeconds -gt 60) {
       $info = [Diagnostics.ProcessStartInfo]::new(${psQuote(binaryPath)})

@@ -1,4 +1,7 @@
-import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { keychainFailure } from "./failures/operation.ts";
+import { EnvdenError } from "@envden/core/errors";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { restrictAccess } from "./permissions/private.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { IKeychainAdapter } from "@envden/core/adapters";
@@ -88,11 +91,12 @@ class OsKeychainAdapter implements IKeychainAdapter {
     }
 
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
-    await chmod(this.directory, 0o700);
+    await restrictAccess(this.directory, true);
     const temporary = join(this.directory, `${crypto.randomUUID()}.tmp`);
 
     try {
       await writeFile(temporary, value, { mode: 0o600, flag: "wx" });
+      await restrictAccess(temporary);
       await rename(temporary, this.path(name));
     } finally {
       await rm(temporary, { force: true });
@@ -104,7 +108,10 @@ class OsKeychainAdapter implements IKeychainAdapter {
       try {
         await Bun.secrets.delete(this.options(name));
       } catch {
-        throw new Error("Keychain unavailable; key deletion could not be confirmed");
+        throw new EnvdenError(
+          "INVALID_INPUT",
+          "Keychain unavailable; key deletion could not be confirmed",
+        );
       }
     }
 
@@ -113,5 +120,13 @@ class OsKeychainAdapter implements IKeychainAdapter {
 }
 
 export function createOsKeychainAdapter(options: IOptions = {}): IKeychainAdapter {
-  return new OsKeychainAdapter(options);
+  const adapter = new OsKeychainAdapter(options);
+
+  return {
+    id: adapter.id,
+    available: () => adapter.available().catch(keychainFailure),
+    get: (name) => adapter.get(name).catch(keychainFailure),
+    set: (name, value) => adapter.set(name, value).catch(keychainFailure),
+    delete: (name) => adapter.delete(name).catch(keychainFailure),
+  };
 }

@@ -7,6 +7,9 @@ export function createFakeNetworkAdapter(
   return {
     id: operations.id ?? "fake-network",
     status: operations.status?.bind(operations) ?? unexpected("network.status"),
+    checkHttpsCertificate:
+      operations.checkHttpsCertificate?.bind(operations) ??
+      unexpected("network.checkHttpsCertificate"),
     expose: operations.expose?.bind(operations) ?? unexpected("network.expose"),
   };
 }
