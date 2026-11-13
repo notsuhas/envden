@@ -1,0 +1,142 @@
+import { deviceWrap } from "../../vault/keys/wrap.ts";
+import { pendingRepairs, savePendingRepairs } from "./repairs.ts";
+import * as p from "@envden/core/protocol";
+import { acceptManifest, verifyChain } from "@envden/core/chain";
+import { EnvdenError } from "@envden/core/errors";
+import type { TSyncContext } from "./context.ts";
+import { text, binary } from "../../client/encoding.ts";
+import { atomicWrite } from "../../state/files.ts";
+import { join } from "node:path";
+
+export async function acceptHead(context: TSyncContext) {
+  const { client, checkpoint, identity, adapters, vaultId } = context;
+  const pending = await pendingRepairs(adapters.home);
+
+  const head = p.decode(
+    p.signedCodec(p.ManifestHeaderCodec),
+    new Uint8Array(await (await client.rpc.v1.head.$get()).arrayBuffer()),
+  );
+
+  const headers = p.ObjectsResponseSchema.parse(
+    await (await client.rpc.v1.headers.$get()).json(),
+  ).objects.map((value) => p.decode(p.signedCodec(p.ManifestHeaderCodec), binary(value)));
+
+  const entries = p.ObjectsResponseSchema.parse(
+    await (await client.rpc.v1.entries.$get()).json(),
+  ).objects.map((value) => p.decode(p.signedCodec(p.EntryCodec), binary(value)));
+
+  const fileLists = new Map<string, p.IFiles>();
+  let keyring: Uint8Array | undefined;
+
+  const source = {
+    header: (hash: Uint8Array) =>
+      headers.find((item) => p.equal(p.objectHash(p.ManifestHeaderCodec, item, "manifest"), hash)),
+    entry: (hash: Uint8Array) =>
+      entries.find((item) => p.equal(p.objectHash(p.EntryCodec, item, "entry"), hash)),
+    files: async (hash: Uint8Array) => {
+      try {
+        const files = p.decode(
+          p.FilesCodec,
+          new Uint8Array(
+            await (
+              await client.rpc.v1.files[":hash"].$get({ param: { hash: text(hash) } })
+            ).arrayBuffer(),
+          ),
+        );
+
+        fileLists.set(text(hash), files);
+
+        return files;
+      } catch (error) {
+        if (error instanceof EnvdenError && error.code === "NOT_FOUND") return undefined;
+        throw error;
+      }
+    },
+    keyring: async (hash: Uint8Array) => {
+      keyring = new Uint8Array(
+        await (
+          await client.rpc.v1.keyrings[":hash"].$get({ param: { hash: text(hash) } })
+        ).arrayBuffer(),
+      );
+
+      return keyring;
+    },
+    epochKey: async (epoch: number) => {
+      const chain = verifyChain(entries.filter((item) => item.body.seq <= head.body.listSeq));
+      if (chain.kind !== "valid") return undefined;
+      const wrap = deviceWrap(entries, identity.record.id, head.body.listSeq);
+
+      const commit = chain.state.commits.get(epoch);
+      if (!wrap || !commit) return undefined;
+
+      const key = await p.openWrap(
+        wrap,
+        identity.keys.encSk,
+        identity.record.encPub,
+        vaultId,
+        epoch,
+        commit,
+      );
+
+      context.keys.set(epoch, key);
+
+      return key;
+    },
+  };
+
+  const result = await acceptManifest({
+    checkpoint,
+    head,
+    storedHeaders: context.headers,
+    source,
+    localFileIds: new Set(checkpoint.files.entries.map((item) => p.base32(item.fileId))),
+  });
+
+  if (result.kind === "unchanged") return { repairs: [], noFastForward: pending };
+
+  if (result.kind === "rollback")
+    throw new EnvdenError("ROLLBACK", "Server rolled back; run envden server repair");
+
+  if (result.kind === "fork") {
+    context.options.report?.(
+      `Local head: ${text(p.objectHash(p.ManifestHeaderCodec, checkpoint.header, "manifest"))}; server head: ${text(p.objectHash(p.ManifestHeaderCodec, head, "manifest"))}`,
+    );
+
+    throw new EnvdenError(
+      "FORK",
+      "Server history forked; create a new vault from a trusted device's store",
+    );
+  }
+
+  if (result.kind !== "accepted") throw new EnvdenError("INVALID_DATA", "Invalid manifest history");
+  context.checkpoint = result.checkpoint;
+  context.headers.push(...result.headers);
+  context.entries = entries.filter((item) => item.body.seq <= head.body.listSeq);
+
+  if (keyring) {
+    const ring = p.openKeyring(
+      keyring,
+      context.keys.get(head.body.epoch)!,
+      vaultId,
+      head.body.epoch,
+      result.checkpoint.state.commits,
+      checkpoint.idKey,
+    );
+
+    for (const item of ring.older) context.keys.set(item.epoch, item.key);
+    context.state.keyring = text(keyring);
+
+    await adapters.keychain.set(
+      `envden/${adapters.home}/epoch/${head.body.epoch}`,
+      context.keys.get(head.body.epoch)!,
+    );
+  }
+
+  for (const [hash, files] of fileLists)
+    await atomicWrite(join(adapters.home, "state", "file-lists", hash), p.FilesCodec.write(files));
+
+  for (const id of result.noFastForward) pending.add(id);
+  await savePendingRepairs(adapters.home, pending);
+
+  return { repairs: result.repairs, noFastForward: pending };
+}

@@ -1,0 +1,30 @@
+import { test, expect } from "bun:test";
+import { mkdtemp, rm, stat, symlink, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { emptyState } from "../model.ts";
+import { saveState, loadState } from "../repository.ts";
+import { atomicWrite } from "../files.ts";
+
+test("atomic state stays private and replaces old bytes", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-state-"));
+
+  try {
+    expect(await loadState(home)).toBeUndefined();
+    const state = emptyState("test");
+    await saveState(home, state);
+    state.telemetry = true;
+    await saveState(home, state);
+    expect(await loadState(home)).toEqual(state);
+    expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
+    expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
+    await atomicWrite(join(home, "target"), "original");
+    await symlink(join(home, "target"), join(home, "link"));
+    await atomicWrite(join(home, "link"), "new");
+    expect(await readFile(join(home, "target"), "utf8")).toBe("original");
+    await atomicWrite(join(home, "state", "device.json"), "{}");
+    expect(loadState(home)).rejects.toMatchObject({ code: "INVALID_DATA" });
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

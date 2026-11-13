@@ -1,0 +1,29 @@
+{
+  "name": "@envden/cli",
+  "version": "0.0.0",
+  "private": true,
+  "bin": {
+    "envden": "./src/main.ts"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile --no-compile-autoload-dotenv --no-compile-autoload-bunfig ./src/main.ts --outfile dist/envden",
+    "build:all": "bun scripts/build-all.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "1.9.0",
+    "@commander-js/extra-typings": "15.1.0",
+    "@envden/adapter-keychain-os": "workspace:*",
+    "@envden/adapter-network-tailscale": "workspace:*",
+    "@envden/adapter-placement-fs": "workspace:*",
+    "@envden/adapter-repo-git": "workspace:*",
+    "@envden/adapter-shell-rc": "workspace:*",
+    "@envden/core": "workspace:*",
+    "@envden/server": "workspace:*",
+    "commander": "15.1.0",
+    "hono": "4.13.18"
+  },
+  "devDependencies": {
+    "@envden/testing": "workspace:*"
+  }
+}
