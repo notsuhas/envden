@@ -1,15 +1,19 @@
 import { closeSync, constants, fstatSync, fsyncSync, readFileSync, writeSync } from "node:fs";
-import { randomUUID } from "node:crypto";
 import { EnvdenError } from "@envden/core/errors";
 import { checked, cstring, directoryFlags, identity, libc, openAt } from "./libc.ts";
 
-export function openParent(root: string, path: string) {
+export function openParent(root: string, path: string, create = true) {
   let fd = checked(libc!.symbols.open(cstring(root), directoryFlags, 0));
 
   try {
     for (const part of path.split("/").slice(0, -1)) {
-      libc!.symbols.mkdirat(fd, cstring(part), 0o700);
-      const next = openAt(fd, part, directoryFlags);
+      if (create) libc!.symbols.mkdirat(fd, cstring(part), 0o700);
+      const next = libc!.symbols.openat(fd, cstring(part), directoryFlags, 0, 0, 0, 0, 0, 0);
+
+      if (next < 0 && !create && libc!.errno() === 2)
+        throw new EnvdenError("NOT_FOUND", "Checkout parent is missing");
+
+      checked(next);
       closeSync(fd);
       fd = next;
     }
@@ -17,6 +21,7 @@ export function openParent(root: string, path: string) {
     return fd;
   } catch (cause) {
     closeSync(fd);
+    if (cause instanceof EnvdenError && cause.code === "NOT_FOUND") throw cause;
     throw new EnvdenError("CONFLICT", "Unsafe checkout parent", { cause });
   }
 }
@@ -62,13 +67,6 @@ export function linkTarget(fd: number, name: string) {
   const length = Number(libc!.symbols.readlinkat(fd, cstring(name), buffer, buffer.length));
 
   return length < 0 ? undefined : buffer.subarray(0, length).toString();
-}
-
-export function backupAt(fd: number, name: string, before: Buffer | undefined, store: Uint8Array) {
-  if (!before) return;
-  const contents = linkTarget(fd, name) === undefined ? readAt(fd, name) : store;
-  assertIdentity(fd, name, before);
-  writeAt(fd, `.envden-backup-${randomUUID()}`, contents);
 }
 
 export function assertIdentity(fd: number, name: string, before: Buffer | undefined) {

@@ -1,9 +1,9 @@
 import { constants } from "node:fs";
 import { EnvdenError } from "@envden/core/errors";
 
-async function loadFfi() {
+export async function loadFfi(importFfi = () => import("bun:ffi")) {
   try {
-    return await import("bun:ffi");
+    return await importFfi();
   } catch {
     return undefined;
   }
@@ -32,15 +32,15 @@ const libraryPaths: Partial<Record<typeof process.platform, string[]>> = {
   ],
 };
 
-function loadLibc() {
+export function loadLibc(bind = bindLibc) {
   const candidates = libraryPaths[process.platform];
   if (!ffi || !candidates || !["arm64", "x64"].includes(process.arch)) return undefined;
 
   for (const path of candidates) {
     try {
-      return bindLibc(path);
+      return bind(path);
     } catch {
-      // FFI is optional; unsupported runtimes retain the checked JS path.
+      // Try the next libc candidate; callers reject missing native support.
     }
   }
 

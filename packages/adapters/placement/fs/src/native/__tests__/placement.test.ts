@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { libc, identity } from "../libc.ts";
 import { openParent, writeAt } from "../directory.ts";
+import { removeNative } from "../remove.ts";
 import { placeNative } from "../place.ts";
 
 const roots: string[] = [];
@@ -75,3 +76,45 @@ test.skipIf(!libc)(
     }
   },
 );
+
+test.skipIf(!libc)("unlink stays anchored after a parent swap", async () => {
+  const { checkout, outside, store } = await setup();
+  const parent = join(checkout, "nested");
+  await mkdir(parent);
+  await writeFile(join(parent, ".env"), "inside");
+  await writeFile(join(outside, ".env"), "outside");
+
+  removeNative(checkout, "nested/.env", store, () => {
+    renameSync(parent, join(checkout, "moved"));
+    symlinkSync(outside, parent);
+  });
+
+  expect(await readdir(join(checkout, "moved"))).toEqual([]);
+  expect(await readFile(join(outside, ".env"), "utf8")).toBe("outside");
+});
+
+test.skipIf(!libc)("backup reads stay anchored after a parent swap", async () => {
+  const { root, checkout, outside, store } = await setup();
+  const parent = join(checkout, "nested");
+  await mkdir(parent);
+  await writeFile(join(parent, ".env"), "inside");
+  await writeFile(join(outside, ".env"), "outside");
+  const backups = join(root, "conflicts");
+
+  placeNative(
+    "copy",
+    checkout,
+    "nested/.env",
+    store,
+    () => {
+      renameSync(parent, join(checkout, "moved"));
+      symlinkSync(outside, parent);
+    },
+    backups,
+  );
+
+  const names = await readdir(backups);
+  expect(names).toHaveLength(1);
+  expect(await readFile(join(backups, names[0]!), "utf8")).toBe("inside");
+  expect(await readFile(join(outside, ".env"), "utf8")).toBe("outside");
+});

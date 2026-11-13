@@ -1,3 +1,5 @@
+import { requireNativePlacement } from "../native/required.ts";
+import { backupContents } from "../backups/write.ts";
 import { libc } from "../native/libc.ts";
 import { placeNative } from "../native/place.ts";
 import { constants } from "node:fs";
@@ -18,11 +20,14 @@ export async function place(
   root: string,
   storePath: string,
   checkoutPath: string,
+  backupDirectory?: string,
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
 
+  requireNativePlacement(process.platform, libc);
+
   if (libc) {
-    placeNative(mode, root, path, storePath);
+    placeNative(mode, root, path, storePath, undefined, backupDirectory);
 
     return;
   }
@@ -76,7 +81,7 @@ export async function place(
     }
 
     await verifyParents(parents, destination);
-    await backupDestination(destination, existing, storePath, parents);
+    await backupDestination(root, backupDirectory, destination, existing, storePath, parents);
     await verifyParents(parents, destination);
 
     if (!sameIdentity(existing, await statOrMissing(destination)))
@@ -87,7 +92,7 @@ export async function place(
     if (staged?.dev !== current.dev || staged.ino !== current.ino)
       throw new EnvdenError("CONFLICT", "Staged file changed");
 
-    // Windows or unavailable FFI: parent replacement after this check remains possible.
+    // Windows: parent replacement after this check remains possible.
     await rename(temporary, destination);
   } finally {
     await verifyParents(parents, destination);
@@ -110,6 +115,8 @@ function sameIdentity(
 }
 
 async function backupDestination(
+  root: string,
+  backupDirectory: string | undefined,
   destination: string,
   existing: Awaited<ReturnType<typeof statOrMissing>>,
   storePath: string,
@@ -126,20 +133,14 @@ async function backupDestination(
     if (!existing.isSymbolicLink() && !sameIdentity(existing, await source.stat()))
       throw new EnvdenError("CONFLICT", "Destination changed before backup");
 
-    const backup = join(dirname(destination), `.envden-backup-${randomUUID()}`);
-
-    const file = await open(
-      backup,
-      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
-      0o600,
-    );
+    const contents = await source.readFile();
+    const store = await open(storePath, constants.O_RDONLY | constants.O_NOFOLLOW);
 
     try {
       await verifyParents(parents, destination);
-      await privateFile(backup);
-      await file.writeFile(await source.readFile());
+      if (!contents.equals(await store.readFile())) backupContents(root, backupDirectory, contents);
     } finally {
-      await file.close();
+      await store.close();
     }
   } finally {
     await source.close();

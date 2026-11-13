@@ -3,7 +3,8 @@ import { basename, dirname, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { EnvdenError } from "@envden/core/errors";
 import type { TPlacementMode } from "@envden/core/adapters";
-import { assertIdentity, backupAt, linkTarget, openParent, readAt, writeAt } from "./directory.ts";
+import { assertIdentity, linkTarget, openParent, readAt, writeAt } from "./directory.ts";
+import { backupContents } from "../backups/write.ts";
 import { checked, cstring, identity, libc } from "./libc.ts";
 
 export function placeNative(
@@ -12,6 +13,7 @@ export function placeNative(
   path: string,
   storePath: string,
   beforeRename?: () => void,
+  backupDirectory?: string,
 ) {
   const fd = openParent(root, path);
   const name = basename(path);
@@ -20,6 +22,7 @@ export function placeNative(
 
   try {
     const before = identity(fd, name);
+    let previous: Buffer | undefined;
 
     if (before) {
       const target = linkTarget(fd, name);
@@ -27,7 +30,7 @@ export function placeNative(
       if (target !== undefined && resolve(root, dirname(path), target) !== resolve(storePath))
         throw new EnvdenError("INVALID_INPUT", "Refusing an unrelated symlink");
 
-      if (target === undefined) readAt(fd, name);
+      if (target === undefined) previous = readAt(fd, name);
     }
 
     const contents = readStore(storePath);
@@ -37,7 +40,8 @@ export function placeNative(
     else writeAt(fd, temporary, contents);
 
     staged = identity(fd, temporary);
-    backupAt(fd, name, before, contents);
+    assertIdentity(fd, name, before);
+    if (previous && !previous.equals(contents)) backupContents(root, backupDirectory, previous);
     assertIdentity(fd, name, before);
     assertIdentity(fd, temporary, staged);
     beforeRename?.();
