@@ -15,7 +15,7 @@ export function HowItWorks() {
       <div className="mt-12">
         <FeatureRow
           title="The store and links"
-          body="Each device keeps the real env files in a store in your home folder. Every clone and worktree of a repo gets a symlink to the same file, so they never drift apart. Where symlinks aren't available, envden places a real copy instead."
+          body="Each device keeps the real env files in a store in your home folder. Every clone and worktree of a repo gets a symlink to the same file, so they never drift apart. Where symlinks aren't available, envden asks before placing a real copy instead."
           figure={<StoreFigure />}
         />
         <FeatureRow

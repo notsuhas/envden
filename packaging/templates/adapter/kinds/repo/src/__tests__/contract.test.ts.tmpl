@@ -1,0 +1,12 @@
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { repoContract } from "@envden/testing/repo";
+import { create{{Impl}}RepoAdapter } from "../index.ts";
+
+repoContract("{{Impl}}", async (directory) => {
+  const root = join(directory, "repo");
+  // Turn root into a checkout with a remote before returning.
+  await mkdir(root);
+
+  return { repo: create{{Impl}}RepoAdapter(), root, outside: directory };
+});

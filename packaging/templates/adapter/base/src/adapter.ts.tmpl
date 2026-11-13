@@ -1,0 +1,6 @@
+import type { I{{Kind}}Adapter } from "@envden/core/adapters";
+import { EnvdenError } from "@envden/core/errors";
+
+export function create{{Impl}}{{Kind}}Adapter(): I{{Kind}}Adapter {
+  throw new EnvdenError("NOT_IMPLEMENTED", "{{Impl}} {{kind}} adapter is not implemented");
+}

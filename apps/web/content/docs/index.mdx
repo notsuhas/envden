@@ -30,7 +30,7 @@ Secrets managers store keys, not files, so comments, order and blank lines are l
 | Server   | Holds the ciphertext for a vault. One server per vault, and a server can hold many vaults, one owner each.                             |
 | Device   | A machine that joined the vault. It runs the `envden` CLI, a single binary for macOS, Linux and Windows. There's no background daemon. |
 | Store    | A folder in your home directory that holds the real env files for every repo.                                                          |
-| Checkout | A clone or worktree of a repo. Its env files are links into the store, or copies where links aren't available.                         |
+| Checkout | A clone or worktree of a repo. Its env files are links into the store, or copies if you choose copy mode.                              |
 
 ## Not in v1
 

@@ -54,14 +54,42 @@ A restored server is behind your devices, so the devices repair it.
    envden serve --restored
    ```
 
-   It prints a repair token for each vault and accepts nothing but repairs.
+   It prints a vault ID and a repair token for each vault, and accepts nothing but repairs. With the Docker image, arguments after the image name go to `envden serve`.
 
-2. On each device, run `envden server repair` with the token. The device re-uploads its newer signed history and its repos' files.
+2. On each device, upload what it has:
 
-3. Finish with `--finish`. It needs every device to have repaired, or to be dropped with `--without`. A dropped device rejoins later as a new device and keeps its local files.
+   ```sh
+   envden server repair
+   ```
+
+   It asks for the repair token, or takes it from `--repair-token <token>`. The device re-uploads its newer signed history and its repos' files.
+
+3. On one device, finish the repair:
+
+   ```sh
+   envden server repair --finish
+   ```
+
+   It asks for the repair token and the master password. If a device hasn't repaired yet, it stops and names that device.
 
 Don't put `--restored` in the service definition. Running it again mints a new token, which voids the repairs made with the old one.
 
-If no device holds the newest version of a file, envden lists the file by name. With `--accept-lost`, the file goes back to the newest verified older version, or is marked lost, and every device reports it.
+### A device that can't repair
 
-{/* TODO: confirm the full command forms for --finish, --without and --accept-lost once the CLI exists. */}
+Drop it by name or device ID. You can list several:
+
+```sh
+envden server repair --finish --without old-laptop
+```
+
+A dropped device rejoins later as a new device and keeps its local files.
+
+### A file no device has
+
+If no device holds the newest version of a file, `--finish` stops and lists the file by name. To go on without it:
+
+```sh
+envden server repair --finish --accept-lost
+```
+
+The file goes back to the newest verified older version, or is marked lost, and every device reports it.

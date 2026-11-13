@@ -21,9 +21,11 @@ Two laptops only sync while the laptop running the server is awake, which is why
 
 ## Install channels
 
-The CLI will ship through Homebrew, a `curl | sh` script, an `irm | iex` script for PowerShell, npm, winget and Scoop. The server image will be on GHCR.
+The CLI will ship through Homebrew, a `curl | sh` script, an `irm | iex` script for PowerShell, npm, winget and Scoop. The server image will be on GHCR, and [Home lab first](/docs/getting-started/home-lab-first#1-run-the-server) shows how to run it.
 
-{/* TODO: add the exact install commands and the server image name once the channels are published. */}
+The `curl | sh` and `irm | iex` scripts check the binary against `SHA256SUMS` over HTTPS. They don't check the signed release feed.
+
+{/* TODO(maintainer): add the exact install commands. They need names that only the maintainer can reserve: the GitHub owner and repo, the Homebrew tap, the Scoop bucket, the npm package name and the winget publisher (packaging/README.md). */}
 
 ## After the first device
 

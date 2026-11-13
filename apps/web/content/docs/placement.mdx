@@ -31,7 +31,12 @@ Before linking, envden checks that git ignores the path. If it doesn't, envden a
 
 The env file is a real copy. Each copy tracks the last version it agreed with the server, and push detects changes against that.
 
-envden uses copy mode automatically when symlinks aren't available, and offers it when it detects a container bind mount.
+envden never switches to copy mode on its own:
+
+- When symlinks aren't available, it explains why and asks before placing copies.
+- When a checkout's root contains `.devcontainer/`, a `docker-compose*.yml` file or a `Dockerfile`, it offers copy mode once, in an interactive terminal.
+- `envden track --copy` chooses it for the checkouts it tracks.
+- `envden config placement <path> link|copy` saves the choice for one checkout.
 
 ## Local only
 
@@ -50,7 +55,7 @@ This is never silent, and the shell line never does it.
 
 A checkout receives env files only after you approve it once, in the terminal. `--yes` doesn't skip the question.
 
-- Worktrees that share the git directory of an approved checkout are approved automatically.
+- A worktree of an approved repo gets a shorter question, but is never approved automatically.
 - A changed remote never silently remaps an approved checkout.
 
 ## Forks and moved repos
@@ -59,10 +64,30 @@ When a checkout has an `upstream` remote whose Repo ID already has env files, en
 
 ## Docker builds
 
-Keep env files out of the build context with `.dockerignore`, and pass secrets with BuildKit secret mounts. Copy mode is not recommended for builds.
+A build doesn't need env files in its context. Keep them out with `.dockerignore`:
 
-{/* TODO: add the .dockerignore and BuildKit secret mount examples. */}
+```text title=".dockerignore"
+.env
+.env.*
+!.env.example
+```
+
+Give a build step the file with a BuildKit secret mount. The file is mounted for that one `RUN` step and never lands in an image layer:
+
+```dockerfile title="Dockerfile"
+# syntax=docker/dockerfile:1
+FROM node:22
+WORKDIR /app
+COPY . .
+RUN --mount=type=secret,id=dotenv,target=/app/.env npm run build
+```
+
+```sh
+docker build --secret id=dotenv,src=.env .
+```
+
+Copy mode is not recommended for builds, because a real file in the build context can end up in an image layer.
 
 ## Windows
 
-Setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and uses copy mode.
+Setup tries to create a symlink. If that fails (no Developer Mode, or it's locked by an admin), it explains why and asks before using copy mode.

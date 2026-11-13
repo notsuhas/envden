@@ -5,5 +5,5 @@
       "@envden/core/protocol": ["../packages/core/src/protocol/index.ts"]
     }
   },
-  "include": ["release"]
+  "include": ["release", "adapter", "new-adapter.ts"]
 }

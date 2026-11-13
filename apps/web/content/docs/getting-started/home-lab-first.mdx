@@ -5,11 +5,27 @@ description: Run the server in Docker on an always-on host, then set up a laptop
 
 ## 1. Run the server
 
-Start the server container with `docker run`, giving it a Tailscale auth key and a data volume. The logs print a one-time **setup token**.
+Start the server container. It needs a Tailscale auth key and two volumes: one for envden's data and one for Tailscale's state.
 
-{/* TODO: add the exact docker run command (image name, variables, volume path) once the image is published. */}
+```sh
+docker run -d --name envden --restart unless-stopped \
+  -e TS_AUTHKEY="tskey-auth-..." \
+  -v envden-data:/data \
+  -v tailscale-state:/var/lib/tailscale \
+  ghcr.io/REPLACE_GHCR_NAMESPACE/envden:1
+```
 
-The server listens on localhost behind `tailscale serve`. It stores ciphertext and opaque IDs only.
+{/* TODO(maintainer): replace REPLACE_GHCR_NAMESPACE once the GHCR namespace exists. It is a maintainer placeholder in packaging/README.md, and packaging/docker/compose.yml carries the same one. */}
+
+The container joins your tailnet as `envden`. Set `TS_HOSTNAME` to use another name. `packaging/docker/compose.yml` in the repo has the same settings for Compose.
+
+The logs print a one-time **setup token**:
+
+```sh
+docker logs envden
+```
+
+No port is published. The server listens on localhost inside the container, behind `tailscale serve`. It stores ciphertext and opaque IDs only.
 
 The server image is tagged by exact version, by minor (`:1.4`) and by major (`:1`). Pin the major.
 
@@ -47,7 +63,7 @@ A kit with the password written on it opens the vault on its own. Store it like 
 
 The first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip this question. A folder that claims a repo's remote gets nothing until you approve it once.
 
-Worktrees that share the git directory of an approved checkout are approved automatically.
+A worktree of an approved repo gets a shorter question, but is never approved automatically.
 
 ## Next
 
