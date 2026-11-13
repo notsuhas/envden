@@ -1,6 +1,6 @@
 services:
   envden:
-    image: ghcr.io/REPLACE_GHCR_NAMESPACE/envden:1
+    image: ghcr.io/notsuhas/envden:1
     restart: unless-stopped
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:?Set TS_AUTHKEY}

@@ -9,7 +9,7 @@ case "$arch" in x86_64|amd64) arch=x64 ;; arm64|aarch64) arch=arm64 ;; *) echo '
 platform=$os-$arch
 if [ "$os" = linux ] && { ldd --version 2>&1 || true; } | grep -qi musl; then platform=$platform-musl; fi
 if [ "${1:-}" = --platform ]; then echo "$platform"; exit 0; fi
-repo=REPLACE_GITHUB_OWNER/REPLACE_GITHUB_REPO
+repo=notsuhas/envden
 case "$repo" in *REPLACE*) echo 'Maintainer must configure the release repository' >&2; exit 1 ;; esac
 version=${ENVDEN_VERSION:-latest}
 case "$version" in latest) base="https://github.com/$repo/releases/latest/download" ;; v[0-9]*.[0-9]*.[0-9]*)

@@ -12,10 +12,8 @@ docker run -d --name envden --restart unless-stopped \
   -e TS_AUTHKEY="tskey-auth-..." \
   -v envden-data:/data \
   -v tailscale-state:/var/lib/tailscale \
-  ghcr.io/REPLACE_GHCR_NAMESPACE/envden:1
+  ghcr.io/notsuhas/envden:1
 ```
-
-{/* TODO(maintainer): replace REPLACE_GHCR_NAMESPACE once the GHCR namespace exists. It is a maintainer placeholder in packaging/README.md, and packaging/docker/compose.yml carries the same one. */}
 
 The container joins your tailnet as `envden`. Set `TS_HOSTNAME` to use another name. `packaging/docker/compose.yml` in the repo has the same settings for Compose.
 

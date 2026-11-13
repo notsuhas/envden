@@ -5,7 +5,7 @@ if ([Environment]::OSVersion.Platform -ne 'Win32NT') { throw 'Windows required' 
 $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 if ($arch -notin @('x64', 'arm64')) { throw 'Unsupported architecture' }
 if ($Platform) { Write-Output "windows-$arch"; exit 0 }
-$repo = 'REPLACE_GITHUB_OWNER/REPLACE_GITHUB_REPO'
+$repo = 'notsuhas/envden'
 if ($repo.Contains('REPLACE')) { throw 'Maintainer must configure the release repository' }
 $version = $env:ENVDEN_VERSION
 if (!$version -or $version -eq 'latest') { $base = "https://github.com/$repo/releases/latest/download" }

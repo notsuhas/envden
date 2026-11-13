@@ -4,13 +4,12 @@ Publishing stops until the maintainer configures these values. Backup seeds neve
 
 ## Maintainer placeholders
 
-- Replace GitHub owner/repository in both installers, npm downloader and all manager templates.
-- Set repository variable ENVDEN_GHCR_NAMESPACE and replace REPLACE_GHCR_NAMESPACE in Compose. Confirm package ownership and public visibility.
+- The GHCR namespace is `notsuhas` (repository variable `ENVDEN_GHCR_NAMESPACE`). After the first image push, make the package public.
 - Create protected GitHub environment `release`. Add secret ENVDEN_RELEASE_PRIMARY_SEED_HEX, a 32-byte Ed25519 seed as 64 hex characters. Set variables ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX and ENVDEN_RELEASE_GENERATION. GITHUB_TOKEN is the built-in release/GHCR credential.
 - Generate the backup key offline. Pin both public keys and generation in the CLI release trust configuration, configure its generation feed URL and build download mapping. Current app placeholders deliberately refuse self-update. Map win32-* feed names to windows-* assets and select linux-*-musl on musl hosts.
 - Set ENVDEN_FIRST_RELEASE=1 only for a repository with zero releases. Remove immediately after publishing. Later runs require the previous authenticated feed. ENVDEN_UNSAFE_VERSIONS optionally adds comma-separated versions; old unsafe entries are preserved.
 - Reserve REPLACE_NPM_PACKAGE_NAME, replace it and remove `private`. Fill npm/checksums.json from the verified signed release. Configure npm publishing credentials separately. If the name differs from envden, change the CLI npm update command too.
-- Create REPLACE_HOMEBREW_TAP and REPLACE_SCOOP_BUCKET. Replace template URLs, REPLACE_SITE_HOST and every SHA256 placeholder. Claim REPLACE_PUBLISHER for winget, replacing identifiers and hashes. Publishing through these maintainer accounts is a separate step.
+- Create REPLACE_HOMEBREW_TAP and REPLACE_SCOOP_BUCKET. Replace every SHA256 placeholder. Claim REPLACE_PUBLISHER for winget, replacing identifiers and hashes. Publishing through these maintainer accounts is a separate step.
 - Set repository variable `ENVDEN_TELEMETRY_KEY` to the public PostHog project key baked into release binaries. Leave it empty to disable telemetry.
 - Supply TS_AUTHKEY at deployment, never build time. Enable HTTPS certificates and Serve in the tailnet; authorize hostname/tag policy.
 

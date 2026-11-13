@@ -7,9 +7,10 @@
 
 <p align="center">
   <img alt="Status: pre-release" src="https://shieldcn.dev/badge/status-pre--release-orange.svg?variant=secondary" />
-  <a href="LICENSE"><img alt="License: MIT" src="https://shieldcn.dev/badge/license-MIT-blue.svg?variant=secondary" /></a>
-  <a href="https://bun.sh"><img alt="Runtime: Bun" src="https://shieldcn.dev/badge/runtime-Bun-black.svg?variant=secondary&logo=bun" /></a>
-  <a href="https://tailscale.com"><img alt="Network: Tailscale" src="https://shieldcn.dev/badge/network-Tailscale-black.svg?variant=secondary&logo=tailscale" /></a>
+  <a href="https://github.com/notsuhas/envden/actions/workflows/ci.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
+  <a href="LICENSE"><img alt="License" src="https://shieldcn.dev/github/license/notsuhas/envden.svg?variant=secondary" /></a>
+  <a href="https://github.com/notsuhas/envden/stargazers"><img alt="GitHub stars" src="https://shieldcn.dev/github/stars/notsuhas/envden.svg?variant=secondary" /></a>
+  <a href="https://github.com/notsuhas/envden/commits/main"><img alt="Last commit" src="https://shieldcn.dev/github/last-commit/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="docs/PROTOCOL.md"><img alt="End-to-end encrypted" src="https://shieldcn.dev/badge/encryption-end--to--end-green.svg?variant=secondary&logo=ri:LockLine" /></a>
 </p>
 

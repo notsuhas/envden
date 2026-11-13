@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-const repo = "REPLACE_GITHUB_OWNER/REPLACE_GITHUB_REPO";
+const repo = "notsuhas/envden";
 
 if (repo.includes("REPLACE")) throw new Error("Configure release repository before publishing");
 
