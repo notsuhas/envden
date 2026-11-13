@@ -2,9 +2,22 @@ import { EnvdenError } from "@envden/core/errors";
 import { rejects } from "node:assert/strict";
 import { afterEach, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  readFile,
+  realpath,
+  rm,
+  symlink,
+  writeFile,
+  chmod,
+  link,
+  access,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, normalize } from "node:path";
+import { resolveSshHost } from "../repo-id/ssh.ts";
+import { git as hardenedGit } from "../exec/git.ts";
 import vectors from "./repo-id-vectors.json";
 import { createGitRepoAdapter, normalizeRepoId } from "../index.ts";
 
@@ -178,4 +191,58 @@ test("checkout exposes normalized upstream identity alongside the fork", async (
   const checkout = await adapter.checkoutAt(root);
   expect(checkout?.repoId).toBe("github.com/team/repo");
   expect(checkout?.upstreamRepoId).toBe("github.com/upstream/project");
+});
+
+test("git disables executable repository configuration for every read command", async () => {
+  const root = await repo();
+  const marker = join(root, "executed");
+  const script = join(root, "monitor");
+  await writeFile(script, `#!/bin/sh\ntouch '${marker}'\n`);
+  await chmod(script, 0o700);
+  git(root, "config", "core.fsmonitor", script);
+  await writeFile(join(root, ".env"), "secret");
+  await writeFile(join(root, ".gitignore"), ".env\n");
+
+  for (const args of [
+    ["ls-files", "-z", "--", ".env"],
+    ["check-ignore", "--", ".env"],
+    ["rev-parse", "--show-toplevel"],
+    ["worktree", "list", "--porcelain", "-z"],
+    ["remote", "get-url", "origin"],
+    ["config", "--get", "core.fsmonitor"],
+  ]) {
+    await hardenedGit(root, args);
+  }
+
+  await rejects(access(marker));
+});
+
+test("exclude refuses hardlinks without modifying their target", async () => {
+  const root = await repo();
+  const checkout = await adapter.checkoutAt(root);
+  if (!checkout) throw new Error("No checkout");
+  const target = join(root, "protected");
+  await writeFile(target, "keep");
+  const exclude = join(root, ".git/info/exclude");
+  await rm(exclude);
+  await link(target, exclude);
+  await rejects(adapter.ensureIgnored(checkout, ".env"));
+  expect(await readFile(target, "utf8")).toBe("keep");
+});
+
+test("SSH rejects option and shell injection before running host resolution", async () => {
+  const root = await repo();
+  const marker = join(root, "executed");
+
+  for (const host of [
+    "-oProxyCommand=touch",
+    "-Fconfig",
+    `host;touch ${marker}`,
+    `host$(touch ${marker})`,
+    "host\nother",
+    "",
+  ])
+    await rejects(resolveSshHost(host), /Unsafe SSH host/);
+
+  await rejects(access(marker));
 });

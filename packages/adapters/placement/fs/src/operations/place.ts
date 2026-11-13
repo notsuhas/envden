@@ -1,3 +1,5 @@
+import { libc } from "../native/libc.ts";
+import { placeNative } from "../native/place.ts";
 import { constants } from "node:fs";
 import { EnvdenError } from "@envden/core/errors";
 import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
@@ -18,6 +20,13 @@ export async function place(
   checkoutPath: string,
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
+
+  if (libc) {
+    placeNative(mode, root, path, storePath);
+
+    return;
+  }
+
   await safeParents(root, path);
   const destination = resolve(checkoutPath);
   const parents = await parentIdentity(root, destination);
@@ -78,7 +87,7 @@ export async function place(
     if (staged?.dev !== current.dev || staged.ino !== current.ino)
       throw new EnvdenError("CONFLICT", "Staged file changed");
 
-    // Node lacks openat/renameat, so a parent can still change after the final check.
+    // Windows or unavailable FFI: parent replacement after this check remains possible.
     await rename(temporary, destination);
   } finally {
     await verifyParents(parents, destination);

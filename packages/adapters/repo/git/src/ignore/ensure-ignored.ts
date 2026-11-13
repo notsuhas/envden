@@ -40,8 +40,10 @@ export async function ensureIgnored(checkout: ICheckout, path: string): Promise<
   );
 
   try {
-    if (!(await file.stat()).isFile())
-      throw new EnvdenError("INVALID_INPUT", "Exclude is not a regular file");
+    const stat = await file.stat();
+
+    if (!stat.isFile() || stat.nlink !== 1 || (process.getuid && stat.uid !== process.getuid()))
+      throw new EnvdenError("INVALID_INPUT", "Exclude is not a private regular file");
 
     if ((await realpath(dirname(exclude))) !== dirname(exclude))
       throw new EnvdenError("INVALID_INPUT", "Unsafe exclude parent");
