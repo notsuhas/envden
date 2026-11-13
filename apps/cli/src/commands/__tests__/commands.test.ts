@@ -1,3 +1,4 @@
+import { resolutionChoice } from "../sync/resolve.ts";
 import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -67,3 +68,12 @@ test("noninteractive safety gates", async () => {
   expect((await cli(["push"])).stderr).toContain("requires --yes");
   expect((await cli(["config", "allow-version", "1.0.0"])).stderr).toContain("own terminal");
 });
+
+for (const [keep, take, choice] of [
+  [undefined, undefined, "edit"],
+  [true, false, "keep-mine"],
+  [false, true, "take-server"],
+] as const)
+  test(`resolution choice ${keep} ${take}`, () => {
+    expect(resolutionChoice(keep, take)).toBe(choice);
+  });
