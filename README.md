@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img alt="Status: pre-release" src="https://shieldcn.dev/badge/status-pre--release-orange.svg?variant=secondary" />
+  <a href="https://github.com/notsuhas/envden/releases"><img alt="Latest release" src="https://shieldcn.dev/github/release/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/actions/workflows/ci.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="LICENSE"><img alt="License" src="https://shieldcn.dev/github/license/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/stargazers"><img alt="GitHub stars" src="https://shieldcn.dev/github/stars/notsuhas/envden.svg?variant=secondary" /></a>
