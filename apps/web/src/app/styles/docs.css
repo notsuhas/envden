@@ -1,6 +1,22 @@
 #nd-docs-layout {
+  --fd-banner-height: 0px;
   --fd-layout-width: var(--den-frame);
   position: relative;
+}
+
+body:has(#nd-docs-layout) > div:has(> .den-caution) {
+  position: relative;
+}
+
+body:has(#nd-docs-layout) .den-caution,
+body:has(#nd-docs-layout) .den-pulse {
+  animation: none;
+}
+
+@media (width < 80rem) {
+  #nd-page .prose :is(h2, h3, h4, h5, h6)[id] {
+    scroll-margin-top: 10rem;
+  }
 }
 
 /* the frame from the landing page, drawn over the docs columns */
@@ -36,12 +52,28 @@
 #nd-sidebar button,
 #nd-toc a,
 #nd-page button,
-#nd-page [data-card] {
+#nd-page [data-card],
+#nd-page a[class*="rounded"],
+[role="dialog"]:has(#fd-search-list),
+[role="dialog"]:has(#fd-search-list) :is(button, [role="option"]) {
   border-radius: 0;
   transition:
     color 150ms ease-out,
     background-color 150ms ease-out,
     border-color 150ms ease-out;
+}
+
+[role="dialog"]:has(#fd-search-list),
+[role="dialog"]:has(#fd-search-list) *,
+body:has(#nd-docs-layout) [data-state]:has(+ [role="dialog"]) {
+  animation: none;
+  transition: none;
+}
+
+[role="dialog"]:has(#fd-search-list) [role="option"][aria-selected="true"] {
+  background: var(--den-surface);
+  box-shadow: inset 2px 0 0 var(--den-lantern);
+  color: var(--den-lantern);
 }
 
 #nd-sidebar {
@@ -123,6 +155,26 @@
 #nd-page figure.shiki {
   border-color: var(--den-line);
   background: var(--den-surface);
+}
+
+#nd-page figure.shiki > div:has(> figcaption) {
+  border-bottom: 1px solid var(--den-ink);
+  color: var(--den-ink);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+#nd-page figure.shiki > div > figcaption {
+  flex: 0 1 auto;
+}
+
+#nd-page figure.shiki > div:has(> figcaption)::before,
+#nd-page figure.shiki > div:has(> figcaption)::after {
+  content: "";
+  flex: 1;
+  min-width: 0.5rem;
+  height: 0.625rem;
+  background-image: repeating-linear-gradient(180deg, var(--den-ink) 0 1px, transparent 1px 3px);
 }
 
 @media (hover: hover) and (pointer: fine) {
