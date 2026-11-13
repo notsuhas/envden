@@ -38,7 +38,8 @@ export async function editRc(
 
     if (
       !stat.isFile() ||
-      (process.platform !== "win32" && (stat.uid !== process.getuid?.() || stat.nlink !== 1))
+      stat.nlink !== 1 ||
+      (process.platform !== "win32" && stat.uid !== process.getuid?.())
     )
       throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
 

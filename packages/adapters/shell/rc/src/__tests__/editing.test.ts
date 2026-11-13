@@ -79,7 +79,7 @@ for (const step of ["resolved", "opened", "read"] as const) {
         { [step]: swap },
       );
 
-      if (step === "resolved") expect(editing).rejects.toThrow();
+      if (step === "resolved") await Promise.resolve(expect(editing).rejects.toThrow());
       else await editing;
 
       expect(result).not.toContain("PRIVATE BYTES");
@@ -101,8 +101,8 @@ test("rc editing rejects hard links and non-files without changing their content
     const path = join(home, "rc");
     await writeFile(original, "private");
     await link(original, path);
-    expect(editRc(path, () => "replacement")).rejects.toThrow();
-    expect(editRc(home, () => "replacement")).rejects.toThrow();
+    await Promise.resolve(expect(editRc(path, () => "replacement")).rejects.toThrow());
+    await Promise.resolve(expect(editRc(home, () => "replacement")).rejects.toThrow());
     expect(await readFile(original, "utf8")).toBe("private");
   } finally {
     await rm(home, { recursive: true, force: true });
