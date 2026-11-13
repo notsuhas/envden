@@ -1,0 +1,20 @@
+[
+  { "remote": "git@GitHub.com:Owner/Repo.git", "expected": "github.com/owner/repo" },
+  { "remote": "ssh://git@GitLab.com/Group/Sub/Repo.git", "expected": "gitlab.com/group/sub/repo" },
+  { "remote": "https://GitHub.com/Owner/Repo.git", "expected": "github.com/owner/repo" },
+  {
+    "remote": "git@work:Owner/Repo.git",
+    "hostname": "github.com",
+    "expected": "github.com/owner/repo"
+  },
+  {
+    "remote": "git@ssh.dev.azure.com:v3/Org/Project/Repo",
+    "expected": "ssh.dev.azure.com/v3/Org/Project/Repo"
+  },
+  {
+    "remote": "https://dev.azure.com/Org/Project/_git/Repo",
+    "expected": "dev.azure.com/Org/Project/_git/Repo"
+  },
+  { "remote": "ssh://git@HOST.test:2222/Team/Sub/Repo.git", "expected": "host.test/Team/Sub/Repo" },
+  { "remote": "git://HOST.test/Team/Repo.git", "expected": "host.test/Team/Repo" }
+]

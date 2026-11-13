@@ -1,0 +1,39 @@
+import type { ICheckout } from "@envden/core/adapters";
+import { git } from "../exec/git.ts";
+import { lstat, realpath } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { normalizeRepoId } from "../repo-id/normalize.ts";
+import { remoteParts } from "../repo-id/remote.ts";
+
+export async function checkoutAt(
+  path: string,
+  resolveHost: (host: string) => Promise<string>,
+): Promise<ICheckout | undefined> {
+  let root: string;
+
+  try {
+    const stat = await lstat(path);
+
+    root = (
+      await git(stat.isDirectory() ? path : dirname(path), ["rev-parse", "--show-toplevel"])
+    ).trimEnd();
+  } catch {
+    return undefined;
+  }
+
+  const remotes = (await git(root, ["remote"])).trim().split("\n").filter(Boolean);
+
+  const name = remotes.includes("origin")
+    ? "origin"
+    : remotes.length === 1
+      ? remotes[0]
+      : undefined;
+
+  if (!name) throw new Error("Choose a git remote for this checkout");
+  const remote = (await git(root, ["remote", "get-url", name])).trim();
+  const parts = remoteParts(remote);
+  const repoId = normalizeRepoId(remote, parts.ssh ? await resolveHost(parts.host) : undefined);
+  const common = (await git(root, ["rev-parse", "--git-common-dir"])).trimEnd();
+
+  return { root: await realpath(root), repoId, gitDir: await realpath(resolve(root, common)) };
+}
