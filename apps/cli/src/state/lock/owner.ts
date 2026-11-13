@@ -13,7 +13,9 @@ export async function owner(path: string): Promise<IOwner | undefined> {
   try {
     const directory = await lstat(path);
     if (!directory.isDirectory() || directory.isSymbolicLink()) return undefined;
-    const file = await open(join(path, "owner.json"), constants.O_RDONLY | constants.O_NOFOLLOW);
+    const ownerPath = join(path, "owner.json");
+    if ((await lstat(ownerPath)).isSymbolicLink()) return undefined;
+    const file = await open(ownerPath, constants.O_RDONLY | constants.O_NOFOLLOW);
     let value;
 
     try {

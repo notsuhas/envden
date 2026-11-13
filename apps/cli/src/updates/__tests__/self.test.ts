@@ -9,6 +9,7 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
 import { releaseConfig } from "../release-config.ts";
 import { runUpdateCheck } from "../run.ts";
+import { currentReleasePlatform } from "../self/platform.ts";
 import { selfUpdate } from "../self.ts";
 import { replaceBinary, cleanupOldBinary } from "../replace.ts";
 
@@ -45,7 +46,7 @@ for (const valid of [true, false])
       expires: 2592000100n,
       latest: "1.0.0",
       unsafe: [],
-      builds: [{ platform: `${process.platform}-${process.arch}`, sha256: p.sha256(build) }],
+      builds: [{ platform: currentReleasePlatform(), sha256: p.sha256(build) }],
       revokePrimary: 0,
       next: undefined,
     };
