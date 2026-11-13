@@ -1,7 +1,7 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { WipBanner } from "@/components/site/wip-banner.tsx";
+import { AlphaBanner } from "@/components/site/alpha-banner.tsx";
 import { bodyFont, displayFont, monoFont } from "@/lib/fonts.ts";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site.ts";
 import "./global.css";
@@ -17,6 +17,19 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_TAGLINE,
+  openGraph: {
+    siteName: SITE_NAME,
+    type: "website",
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "rgba(12, 12, 11, 1)",
 };
 
 export default function RootLayout(props: IRootLayout) {
@@ -25,12 +38,11 @@ export default function RootLayout(props: IRootLayout) {
   return (
     <html
       lang="en"
-      className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}
-      suppressHydrationWarning
+      className={`dark ${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`}
     >
       <body className="flex min-h-screen flex-col">
-        <RootProvider>
-          <WipBanner />
+        <RootProvider theme={{ enabled: false }}>
+          <AlphaBanner />
           {children}
         </RootProvider>
       </body>

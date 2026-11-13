@@ -2,47 +2,48 @@ import { describe, expect, test } from "bun:test";
 import { deriveTripView } from "../view.ts";
 
 describe("deriveTripView", () => {
-  test("idle shows only the laptop file", () => {
-    expect(deriveTripView("idle")).toEqual({
-      pushActive: false,
+  test("written shows only the laptop file", () => {
+    expect(deriveTripView("written")).toEqual({
+      sealing: false,
+      pushPacket: "waiting",
       serverFilled: false,
-      scrambling: false,
-      pullActive: false,
-      desktopFilled: false,
-      done: false,
+      pullPacket: "waiting",
+      desktopHolds: "nothing",
+      identical: false,
     });
   });
 
-  test("pushing fills the server and scrambles", () => {
-    const view = deriveTripView("pushing");
-    expect(view.pushActive).toBe(true);
-    expect(view.serverFilled).toBe(true);
-    expect(view.scrambling).toBe(true);
-    expect(view.desktopFilled).toBe(false);
+  test("sealed readies the push packet before anything reaches the server", () => {
+    const view = deriveTripView("sealed");
+
+    expect(view.sealing).toBe(true);
+    expect(view.pushPacket).toBe("ready");
+    expect(view.serverFilled).toBe(false);
   });
 
-  test("stored settles the server before the pull", () => {
+  test("stored fills the server and readies the pull", () => {
     const view = deriveTripView("stored");
+
+    expect(view.sealing).toBe(false);
+    expect(view.pushPacket).toBe("sent");
     expect(view.serverFilled).toBe(true);
-    expect(view.scrambling).toBe(false);
-    expect(view.desktopFilled).toBe(false);
+    expect(view.pullPacket).toBe("ready");
+    expect(view.desktopHolds).toBe("nothing");
   });
 
-  test("pulling fills the desktop", () => {
-    const view = deriveTripView("pulling");
-    expect(view.pullActive).toBe(true);
-    expect(view.desktopFilled).toBe(true);
-    expect(view.done).toBe(false);
+  test("pulled leaves ciphertext on the desktop until it is opened", () => {
+    const view = deriveTripView("pulled");
+
+    expect(view.pullPacket).toBe("sent");
+    expect(view.desktopHolds).toBe("ciphertext");
+    expect(view.identical).toBe(false);
   });
 
-  test("done keeps everything filled and idle", () => {
-    expect(deriveTripView("done")).toEqual({
-      pushActive: false,
-      serverFilled: true,
-      scrambling: false,
-      pullActive: false,
-      desktopFilled: true,
-      done: true,
-    });
+  test("opened shows the file and marks both copies identical", () => {
+    const view = deriveTripView("opened");
+
+    expect(view.desktopHolds).toBe("file");
+    expect(view.identical).toBe(true);
+    expect(view.serverFilled).toBe(true);
   });
 });

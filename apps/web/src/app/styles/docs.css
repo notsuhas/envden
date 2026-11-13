@@ -1,0 +1,133 @@
+#nd-docs-layout {
+  --fd-layout-width: var(--den-frame);
+  position: relative;
+}
+
+/* the frame from the landing page, drawn over the docs columns */
+#nd-docs-layout::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: 21;
+  width: min(100%, var(--den-frame));
+  border-inline: 1px solid var(--den-line);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+#nd-home-layout {
+  --fd-layout-width: none;
+}
+
+#nd-home-layout #nd-nav nav {
+  padding-inline: 2rem;
+}
+
+@media (width >= 40rem) {
+  #nd-home-layout #nd-nav nav {
+    padding-inline: max(3.5rem, calc((100% - var(--den-frame)) / 2 + 2rem));
+  }
+}
+
+#nd-nav a,
+#nd-nav button,
+#nd-sidebar a,
+#nd-sidebar button,
+#nd-toc a,
+#nd-page button,
+#nd-page [data-card] {
+  border-radius: 0;
+  transition:
+    color 150ms ease-out,
+    background-color 150ms ease-out,
+    border-color 150ms ease-out;
+}
+
+#nd-sidebar {
+  background: var(--den-ground);
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] p,
+#toc-title {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--den-muted);
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] :is(a, button) {
+  color: var(--den-muted);
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] a[data-active="true"] {
+  background: rgba(247, 190, 84, 0.1);
+  box-shadow: inset 2px 0 0 var(--den-lantern);
+  color: var(--den-lantern);
+}
+
+#nd-toc a[data-active="true"] {
+  color: var(--den-lantern);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #nd-sidebar [data-radix-scroll-area-viewport] :is(a, button):hover {
+    background: var(--den-surface);
+    color: var(--den-ink);
+  }
+
+  #nd-sidebar [data-radix-scroll-area-viewport] a[data-active="true"]:hover {
+    background: rgba(247, 190, 84, 0.16);
+    color: var(--den-lantern);
+  }
+
+  #nd-toc a:hover {
+    color: var(--den-ink);
+  }
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] :is(a, button):active {
+  background: var(--den-raised);
+}
+
+#nd-page h1,
+#nd-page .prose :is(h2, h3, h4) {
+  font-family: var(--font-display);
+  font-weight: 450;
+  letter-spacing: -0.025em;
+}
+
+#nd-page .prose a:not([data-card]) {
+  text-decoration-color: var(--den-line-strong);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 150ms ease-out;
+}
+
+#nd-page .prose a:not([data-card]):hover {
+  text-decoration-color: var(--den-lantern);
+}
+
+#nd-page .prose :not(pre) > code {
+  border-color: var(--den-line);
+  border-radius: 0;
+  background: var(--den-surface);
+  color: var(--den-lantern);
+}
+
+#nd-page figure.shiki,
+#nd-page .prose [class*="rounded"] {
+  border-radius: 0;
+}
+
+#nd-page figure.shiki {
+  border-color: var(--den-line);
+  background: var(--den-surface);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #nd-page [data-card]:hover {
+    border-color: rgba(247, 190, 84, 0.45);
+    background: var(--den-surface);
+  }
+}

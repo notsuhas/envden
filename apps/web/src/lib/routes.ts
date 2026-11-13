@@ -1,6 +1,7 @@
 import { createGetUrl } from "fumadocs-core/source";
 
 export const DOCS_ROUTE = "/docs";
+export const GETTING_STARTED_ROUTE = `${DOCS_ROUTE}/getting-started`;
 export const DOCS_CONTENT_ROUTE = "/llms.mdx/docs";
 
 const MARKDOWN_FILE = "content.md";

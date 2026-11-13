@@ -1,33 +1,43 @@
 import { useCallback, useEffect, useState } from "react";
-import { TRIP_TIMELINE } from "@/components/landing/trip/state/phases.ts";
+import { TRIP_PHASES, nextStep, stepDuration } from "@/components/landing/trip/state/phases.ts";
 import type { TTripPhase } from "@/components/landing/trip/state/phases.ts";
 
-const REDUCED_TIMELINE: typeof TRIP_TIMELINE = [{ phase: "done", at: 0 }];
-
-interface ITripPhase {
+interface ITripLoop {
   phase: TTripPhase;
-  replay: () => void;
+  beat: string;
+  durationMs: number;
+  jump: (phase: TTripPhase) => void;
 }
 
-export function useTripPhase(active: boolean, reduced: boolean): ITripPhase {
-  const [phase, setPhase] = useState<TTripPhase>("idle");
-  const [run, setRun] = useState(0);
+const LAST = TRIP_PHASES.length - 1;
+
+export function useTripLoop(running: boolean, reduced: boolean): ITripLoop {
+  const [cursor, setCursor] = useState({ step: 0, picked: false, turn: 0 });
+  const durationMs = stepDuration(cursor.step, cursor.picked);
 
   useEffect(() => {
-    if (!active) return;
+    if (!running || reduced) return;
 
-    const timeline = reduced ? REDUCED_TIMELINE : TRIP_TIMELINE;
-    const timers = timeline.map((step) => setTimeout(() => setPhase(step.phase), step.at));
+    const timer = setTimeout(() => {
+      setCursor((current) => ({
+        step: nextStep(current.step),
+        picked: false,
+        turn: current.turn + 1,
+      }));
+    }, durationMs);
 
-    return () => {
-      for (const timer of timers) clearTimeout(timer);
-    };
-  }, [active, reduced, run]);
+    return () => clearTimeout(timer);
+  }, [running, reduced, cursor, durationMs]);
 
-  const replay = useCallback(() => {
-    setPhase("idle");
-    setRun((count) => count + 1);
+  const jump = useCallback((phase: TTripPhase) => {
+    setCursor((current) => ({
+      step: TRIP_PHASES.indexOf(phase),
+      picked: true,
+      turn: current.turn + 1,
+    }));
   }, []);
 
-  return { phase, replay };
+  const step = reduced && !cursor.picked ? LAST : cursor.step;
+
+  return { phase: TRIP_PHASES[step] ?? "written", beat: String(cursor.turn), durationMs, jump };
 }

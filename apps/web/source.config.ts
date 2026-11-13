@@ -1,5 +1,7 @@
 import { metaSchema, pageSchema } from "fumadocs-core/source/schema";
-import { defineDocs } from "fumadocs-mdx/config";
+import { defineConfig, defineDocs } from "fumadocs-mdx/config";
+
+const CODE_THEME = "vesper";
 
 // fallow-ignore-next-line unused-export -- read by fumadocs-mdx codegen, not imported
 export const docs = defineDocs({
@@ -12,5 +14,13 @@ export const docs = defineDocs({
   },
   meta: {
     schema: metaSchema,
+  },
+});
+
+export default defineConfig({
+  mdxOptions: {
+    rehypeCodeOptions: {
+      themes: { light: CODE_THEME, dark: CODE_THEME },
+    },
   },
 });

@@ -1,0 +1,151 @@
+@layer components {
+  .den-frame {
+    position: relative;
+    width: calc(100% - 1.5rem);
+    max-width: var(--den-frame);
+    margin-inline: auto;
+    border-inline: 1px solid var(--den-line);
+  }
+
+  .den-section {
+    position: relative;
+    border-bottom: 1px solid var(--den-line);
+  }
+
+  /* crosshair marks where a section rule meets the frame */
+  .den-section::before,
+  .den-section::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    z-index: 1;
+    width: 11px;
+    height: 11px;
+    background:
+      linear-gradient(rgba(237, 233, 224, 0.5), rgba(237, 233, 224, 0.5)) center / 100% 1px
+        no-repeat,
+      linear-gradient(rgba(237, 233, 224, 0.5), rgba(237, 233, 224, 0.5)) center / 1px 100%
+        no-repeat;
+    pointer-events: none;
+  }
+
+  .den-section::before {
+    left: -6px;
+  }
+
+  .den-section::after {
+    right: -6px;
+  }
+
+  .den-cells {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    background: var(--den-line);
+  }
+
+  .den-cells > * {
+    background: var(--den-ground);
+  }
+
+  @media (width >= 40rem) {
+    .den-frame {
+      width: calc(100% - 3rem);
+    }
+  }
+}
+
+@layer components {
+  .den-hatch {
+    background-image: repeating-linear-gradient(180deg, var(--den-ink) 0 1px, transparent 1px 3px);
+    background-position: center;
+  }
+
+  .den-window {
+    position: relative;
+    box-shadow: 3px 3px 0 0 var(--den-line-strong);
+    transition:
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out;
+  }
+
+  .den-window[data-lit="true"] {
+    box-shadow: 3px 3px 0 0 var(--den-lantern);
+  }
+
+  .den-ruler {
+    height: 9px;
+    background-image:
+      repeating-linear-gradient(90deg, var(--den-line-strong) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(90deg, var(--den-line-strong) 0 1px, transparent 1px 120px);
+    background-size:
+      100% 5px,
+      100% 9px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+  }
+
+  .den-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--den-ink);
+    padding: 0.125rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--den-ink);
+    box-shadow: 2px 2px 0 0 var(--den-line-strong);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .den-window:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 0 var(--den-lantern);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .den-window:hover {
+      transform: none;
+    }
+  }
+}
+
+@layer components {
+  .den-window-still:hover {
+    transform: none;
+    box-shadow: 3px 3px 0 0 var(--den-line-strong);
+  }
+
+  .den-corners::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--den-line-strong);
+    border-radius: 9999px;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.den-deferred-trip {
+  min-height: 760px;
+}
+.den-deferred-drift {
+  min-height: 544px;
+}
+@media (width >= 40rem) {
+  .den-deferred-trip {
+    min-height: 640px;
+  }
+  .den-deferred-drift {
+    min-height: 255px;
+  }
+}
+@media (width >= 64rem) {
+  .den-deferred-trip {
+    min-height: 420px;
+  }
+}

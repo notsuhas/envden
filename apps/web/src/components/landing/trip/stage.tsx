@@ -1,48 +1,58 @@
 "use client";
 
-import { useInView, useReducedMotion } from "motion/react";
+import { useInView, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
-import { CipherPane } from "@/components/landing/trip/panes/cipher.tsx";
-import { FilePane } from "@/components/landing/trip/panes/file.tsx";
-import { TripStep } from "@/components/landing/trip/step.tsx";
+import { DesktopPane } from "@/components/landing/trip/panes/desktop.tsx";
+import { LaptopPane } from "@/components/landing/trip/panes/laptop.tsx";
+import { ServerPane } from "@/components/landing/trip/panes/server.tsx";
+import { useTripLoop } from "@/components/landing/trip/state/use-phase.ts";
 import { deriveTripView } from "@/components/landing/trip/state/view.ts";
-import { useTripPhase } from "@/components/landing/trip/state/use-phase.ts";
+import { StepRail } from "@/components/landing/trip/steps/rail.tsx";
+import { Wire } from "@/components/landing/trip/wire/wire.tsx";
 
 export function TripStage() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.3 });
   const reduced = useReducedMotion() === true;
-  const { phase, replay } = useTripPhase(inView, reduced);
+  const running = useInView(ref, { amount: 0.3 });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "end 0.6"] });
+  const pushDraw = useTransform(scrollYProgress, [0, 0.3], [reduced ? 1 : 0, 1]);
+  const pullDraw = useTransform(scrollYProgress, [0.3, 0.6], [reduced ? 1 : 0, 1]);
+  const { phase, beat, durationMs, jump } = useTripLoop(running, reduced);
   const view = deriveTripView(phase);
 
   return (
-    <div ref={ref}>
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center xl:gap-4">
-        <FilePane device="Laptop" location="~/code/shop/.env" footer="What you wrote" filled />
-        <TripStep command="envden push" active={view.pushActive} />
-        <CipherPane filled={view.serverFilled} scrambling={view.scrambling} />
-        <TripStep command="envden pull" active={view.pullActive} />
-        <FilePane
-          device="Desktop"
-          location="~/work/shop/.env"
-          footer={view.done ? "Identical, byte for byte" : "Waiting for a pull"}
-          filled={view.desktopFilled}
+    <div
+      ref={ref}
+      data-playing={running}
+      className="den-dots border-t border-den-line p-3 pb-4 sm:p-6 lg:p-10"
+    >
+      <div className="den-trip">
+        <LaptopPane sealing={view.sealing} lit={view.identical} />
+        <Wire
+          area="push"
+          command="envden push"
+          packet={view.pushPacket}
+          draw={pushDraw}
+          working={view.sealing}
         />
+        <ServerPane filled={view.serverFilled} />
+        <Wire
+          area="pull"
+          command="envden pull"
+          packet={view.pullPacket}
+          draw={pullDraw}
+          working={view.desktopHolds === "ciphertext"}
+        />
+        <DesktopPane holds={view.desktopHolds} />
       </div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-xl text-sm text-den-muted">
-          Comments, order and blank lines arrive exactly as you wrote them. The server in the middle
-          only ever holds ciphertext.
-        </p>
-        <button
-          type="button"
-          onClick={replay}
-          disabled={!view.done}
-          className="rounded-full border border-den-line px-3 py-1 text-xs text-den-muted transition-opacity hover:text-den-ink disabled:opacity-0"
-        >
-          Replay
-        </button>
-      </div>
+      <StepRail
+        phase={phase}
+        beat={beat}
+        durationMs={durationMs}
+        running={running}
+        showAll={reduced}
+        onJump={jump}
+      />
     </div>
   );
 }

@@ -1,8 +1,24 @@
-export type TTripPhase = "idle" | "pushing" | "stored" | "pulling" | "done";
+export const TRIP_PHASES = ["written", "sealed", "stored", "pulled", "opened"] as const;
 
-export const TRIP_TIMELINE: { phase: TTripPhase; at: number }[] = [
-  { phase: "pushing", at: 700 },
-  { phase: "stored", at: 2100 },
-  { phase: "pulling", at: 2700 },
-  { phase: "done", at: 3900 },
-];
+export type TTripPhase = (typeof TRIP_PHASES)[number];
+
+const STEP_MS: Record<TTripPhase, number> = {
+  written: 1600,
+  sealed: 1800,
+  stored: 2200,
+  pulled: 1900,
+  opened: 3200,
+};
+
+const PICKED_HOLD_MS = 2600;
+
+// a step the reader picked stays up a little longer before the loop moves on
+export function stepDuration(step: number, picked: boolean): number {
+  const phase = TRIP_PHASES[step] ?? "written";
+
+  return STEP_MS[phase] + (picked ? PICKED_HOLD_MS : 0);
+}
+
+export function nextStep(step: number): number {
+  return (step + 1) % TRIP_PHASES.length;
+}
