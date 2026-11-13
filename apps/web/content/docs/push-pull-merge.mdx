@@ -17,7 +17,7 @@ envden push
 `diff` reports key names and change markers without values. `push` and `pull` print JSON results. For example, a push that uploads one file without local reconciliation changes prints:
 
 ```json
-{"kind":"pushed","changed":1,"conflicts":0}
+{ "kind": "pushed", "changed": 1, "conflicts": 0 }
 ```
 
 Add `--all` to sync every tracked repo. A push commits its changes in one manifest swap. If another device pushes first, envden retries against the new state. If the head keeps moving, it asks you to retry.
@@ -75,7 +75,7 @@ envden resolve .env --repo /path/to/checkout
 A successful resolution prints:
 
 ```json
-{"kind":"resolved","path":".env"}
+{ "kind": "resolved", "path": ".env" }
 ```
 
 The command must select exactly one conflict. Resolution updates the local file; run `envden push` to publish it.
