@@ -1,0 +1,3 @@
+# Built-in adapters; crypto, sync and merge are not pluggable
+
+Integration points (network, repo, storage, keychain, placement, shell) are adapters: typed interfaces in `packages/core`, one package per implementation under `packages/adapters/`, all passing a shared contract test suite. In v1 adapters are compiled into the binary and added by fork or PR; runtime-loaded third-party plugins are deferred because a plugin in a secrets tool can read every plaintext env file. Encryption, the sync protocol and merging are deliberately not adapters, since a swappable crypto layer is how secrets tools get broken.
