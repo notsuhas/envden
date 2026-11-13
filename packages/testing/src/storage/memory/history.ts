@@ -21,19 +21,7 @@ export function createHistory(context: IMemoryContext): Pick<IStorageAdapter, "p
         ),
       );
 
-      let removedLists = 0;
-
-      for (const [key, list] of lists) {
-        if (
-          list.at < now - policy.maxAge &&
-          !list.permanent &&
-          data.currentFiles.get(hex(vault)) !== key &&
-          ![...retained.values()].includes(key)
-        ) {
-          data.lists.delete(key);
-          removedLists++;
-        }
-      }
+      const removedLists = pruneLists(context, lists, retained, vault, policy, now);
 
       const kept = new Set(
         [...data.lists.values()]
@@ -44,6 +32,10 @@ export function createHistory(context: IMemoryContext): Pick<IStorageAdapter, "p
             ),
           ),
       );
+
+      for (const blob of data.blobs.values())
+        if (blob.vault === hex(vault) && blob.at < now - 86400000 && !kept.has(hex(blob.hash)))
+          candidates.add(hex(blob.hash));
 
       let blobs = 0;
 
@@ -101,4 +93,30 @@ function validatePrune(context: IMemoryContext, policy: Parameters<IStorageAdapt
     throw new Error("Invalid history policy");
 
   if (context.depth) throw new Error("Pruning must run outside an application transaction");
+}
+
+function pruneLists(
+  context: IMemoryContext,
+  lists: TLists,
+  retained: Map<string, string>,
+  vault: Uint8Array,
+  policy: Parameters<IStorageAdapter["prune"]>[1],
+  now: number,
+) {
+  const data = context.data;
+  let removedLists = 0;
+
+  for (const [key, list] of lists) {
+    if (
+      list.at < now - policy.maxAge &&
+      !list.permanent &&
+      data.currentFiles.get(hex(vault)) !== key &&
+      ![...retained.values()].includes(key)
+    ) {
+      data.lists.delete(key);
+      removedLists++;
+    }
+  }
+
+  return removedLists;
 }

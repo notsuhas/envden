@@ -1,4 +1,5 @@
-import type { IStorageAdapter } from "@envden/core/adapters";
+import { EnvdenError } from "@envden/core/errors";
+import type { IStorageAdapter, IStoredHeader } from "@envden/core/adapters";
 import { createData, equal, hex } from "./data.ts";
 import type { IMemoryContext } from "./data.ts";
 import { createAccess } from "./access.ts";
@@ -28,6 +29,15 @@ export function createMemoryStorageAdapter(
         context.depth--;
       }
     },
+    vaultIds: () =>
+      [...context.data.vaults.keys()].map((key) => new Uint8Array(Buffer.from(key, "hex"))),
+    capUnlocks(vault, until) {
+      for (const [key, state] of context.data.devices)
+        if (key.startsWith(`${hex(vault)}:`))
+          state.unlockedUntil = Math.min(state.unlockedUntil, until);
+    },
+    findCommitted: (vault, digest) => context.data.digests.has(`${hex(vault)}:${hex(digest)}`),
+    hasBlob: (vault, hash) => context.data.blobs.has(`${hex(vault)}:${hex(hash)}`),
     hasVault: (vault) => context.data.vaults.has(hex(vault)),
     vault: (vault) => structuredClone(context.data.vaults.get(hex(vault))),
     configureVault(vault, state, writes = [], setupTokenHash) {
@@ -64,22 +74,14 @@ export function createMemoryStorageAdapter(
       discardIndexes(context, prefix);
     },
     head: (vault) => context.data.heads.get(hex(vault))?.slice(),
-    headers: (vault, from, to) =>
-      structuredClone(
-        (context.data.headers.get(hex(vault)) ?? [])
-          .filter((header) => header.seq >= from && header.seq <= to)
-          .sort((a, b) => (a.seq < b.seq ? -1 : a.seq > b.seq ? 1 : 0)),
-      ),
+    headers: (vault, from, to, limit, maxBytes) =>
+      rangeRows(context.data.headers.get(hex(vault)) ?? [], from, to, limit, maxBytes),
     header: (vault, hash) =>
       structuredClone(
         context.data.headers.get(hex(vault))?.find((header) => equal(header.hash, hash)),
       ),
-    entries: (vault, from, to) =>
-      structuredClone(
-        (context.data.entries.get(hex(vault)) ?? [])
-          .filter((entry) => entry.seq >= from && entry.seq <= to)
-          .sort((a, b) => (a.seq < b.seq ? -1 : a.seq > b.seq ? 1 : 0)),
-      ),
+    entries: (vault, from, to, limit, maxBytes) =>
+      rangeRows(context.data.entries.get(hex(vault)) ?? [], from, to, limit, maxBytes),
     fileList: (vault, hash) =>
       context.data.lists.get(`${hex(vault)}:${hex(hash)}`)?.files.bytes.slice(),
     state: (vault, kind, key) =>
@@ -107,12 +109,25 @@ export function createMemoryStorageAdapter(
     putDevice(vault, device, state) {
       context.data.devices.set(`${hex(vault)}:${hex(device)}`, structuredClone(state));
     },
-    putBlob(vault, hash, bytes, verify) {
+    putBlob(vault, hash, bytes, verify, now = 0, quotaBytes = 1073741824) {
       if (verify && !equal(verify(bytes), hash)) throw new Error("Blob hash mismatch");
       const key = `${hex(vault)}:${hex(hash)}`;
       const prior = context.data.blobs.get(key);
       if (prior && !equal(prior.bytes, bytes)) throw new Error("Conflicting blob");
-      context.data.blobs.set(key, { vault: hex(vault), hash: hash.slice(), bytes: bytes.slice() });
+
+      const used = [...context.data.blobs.values()]
+        .filter((blob) => blob.vault === hex(vault))
+        .reduce((size, blob) => size + blob.bytes.length, 0);
+
+      if (used - (prior?.bytes.length ?? 0) + bytes.length > quotaBytes)
+        throw new EnvdenError("LOCKED", "Vault storage quota exceeded");
+
+      context.data.blobs.set(key, {
+        vault: hex(vault),
+        hash: hash.slice(),
+        bytes: bytes.slice(),
+        at: prior?.at ?? now,
+      });
     },
     getBlob: (vault, hash) => context.data.blobs.get(`${hex(vault)}:${hex(hash)}`)?.bytes.slice(),
     blobHashes: (vault) =>
@@ -158,4 +173,35 @@ function discardIndexes(context: IMemoryContext, prefix: string) {
 
   for (const [number, mailbox] of data.mailboxes)
     if (mailbox.vault === prefix) data.mailboxes.delete(number);
+}
+
+function boundedRows<T extends { bytes: Uint8Array }>(
+  rows: T[],
+  maxBytes = Number.MAX_SAFE_INTEGER,
+): T[] {
+  let size = 0;
+
+  return structuredClone(
+    rows.filter((row, index) => {
+      size += row.bytes.length;
+
+      return size <= maxBytes || index === 0;
+    }),
+  );
+}
+
+function rangeRows(
+  rows: IStoredHeader[],
+  from: bigint,
+  to: bigint,
+  limit?: number,
+  maxBytes?: number,
+): IStoredHeader[] {
+  return boundedRows(
+    rows
+      .filter((row) => row.seq >= from && row.seq <= to)
+      .sort((a, b) => (a.seq < b.seq ? -1 : a.seq > b.seq ? 1 : 0))
+      .slice(0, limit),
+    maxBytes,
+  );
 }

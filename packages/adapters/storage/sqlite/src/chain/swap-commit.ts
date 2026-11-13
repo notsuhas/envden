@@ -85,7 +85,11 @@ export function createSwapCommit(
       .immediate();
   }
 
-  return { commitSwap };
+  function findCommitted(vault: Uint8Array, digest: Uint8Array): boolean {
+    return !!bytes("SELECT digest AS bytes FROM digests WHERE vault=? AND digest=?", vault, digest);
+  }
+
+  return { commitSwap, findCommitted };
 }
 
 function writeFiles(

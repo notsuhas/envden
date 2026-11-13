@@ -17,21 +17,40 @@ export function createChain(context: TContext) {
     vault: Uint8Array,
     from: bigint,
     to: bigint,
+    limit = 2147483647,
+    maxBytes = Number.MAX_SAFE_INTEGER,
   ): IStoredHeader[] {
     return db
       .query<IChainRow, SQLQueryBindings[]>(
-        `SELECT hash,bytes,seq FROM ${table} WHERE vault=? AND seq BETWEEN ? AND ? ORDER BY seq`,
+        `SELECT hash,bytes,seq FROM (
+          SELECT hash,bytes,seq,SUM(length(bytes)) OVER (ORDER BY seq) AS total,
+            ROW_NUMBER() OVER (ORDER BY seq) AS position FROM (
+            SELECT hash,bytes,seq FROM ${table} WHERE vault=? AND seq BETWEEN ? AND ? ORDER BY seq LIMIT ?
+          )
+        ) WHERE total<=? OR position=1 ORDER BY seq`,
       )
-      .all(vault, seq(from), seq(to))
+      .all(vault, seq(from), seq(to), limit, maxBytes)
       .map((row) => ({ ...row, seq: BigInt(row.seq) }));
   }
 
-  function headers(vault: Uint8Array, from: bigint, to: bigint): IStoredHeader[] {
-    return chain("headers", vault, from, to);
+  function headers(
+    vault: Uint8Array,
+    from: bigint,
+    to: bigint,
+    limit?: number,
+    maxBytes?: number,
+  ): IStoredHeader[] {
+    return chain("headers", vault, from, to, limit, maxBytes);
   }
 
-  function entries(vault: Uint8Array, from: bigint, to: bigint): IStoredHeader[] {
-    return chain("entries", vault, from, to);
+  function entries(
+    vault: Uint8Array,
+    from: bigint,
+    to: bigint,
+    limit?: number,
+    maxBytes?: number,
+  ): IStoredHeader[] {
+    return chain("entries", vault, from, to, limit, maxBytes);
   }
 
   function header(vault: Uint8Array, hash: Uint8Array): IStoredHeader | undefined {

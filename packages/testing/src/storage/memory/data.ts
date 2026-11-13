@@ -25,7 +25,7 @@ export function createData() {
     currentFiles: new Map<string, string>(),
     states: new Map<string, { vault: string; kind: string; key: Uint8Array; bytes: Uint8Array }>(),
     devices: new Map<string, IStoredDevice>(),
-    blobs: new Map<string, { vault: string; hash: Uint8Array; bytes: Uint8Array }>(),
+    blobs: new Map<string, { vault: string; hash: Uint8Array; bytes: Uint8Array; at: number }>(),
     setup: new Map<string, Uint8Array>(),
     sessions: new Map<string, { bytes: Uint8Array; expires: number }>(),
     nonces: new Map<string, number>(),

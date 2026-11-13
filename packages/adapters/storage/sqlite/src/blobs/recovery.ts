@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, unlinkSync } from "node:fs";
+import { existsSync, statSync, readdirSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import type { TContext } from "../db/context.ts";
 
@@ -31,5 +31,13 @@ function recoverVault(context: TContext, root: string, name: string) {
       !bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", vaultId, hash)
     )
       unlinkSync(join(root, name, file.name));
+    else
+      context.run(
+        "INSERT OR IGNORE INTO blob_usage VALUES(?,?,?,?)",
+        vaultId,
+        hash,
+        statSync(join(root, name, file.name)).size,
+        0,
+      );
   }
 }

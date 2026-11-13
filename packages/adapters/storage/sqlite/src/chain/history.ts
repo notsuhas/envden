@@ -27,6 +27,14 @@ export function createHistory(context: TContext) {
           )
           .all(vault);
 
+        candidates.push(
+          ...db
+            .query<{ hash: Uint8Array }, [Uint8Array, number]>(
+              "SELECT hash FROM blob_usage WHERE vault=? AND at<? AND hash NOT IN (SELECT blob FROM versions WHERE vault=blob_usage.vault AND blob IS NOT NULL)",
+            )
+            .all(vault, now - 86400000),
+        );
+
         const removed = db
           .query<
             { hash: Uint8Array },
@@ -49,6 +57,7 @@ export function createHistory(context: TContext) {
           )
             continue;
 
+          run("DELETE FROM blob_usage WHERE vault=? AND hash=?", vault, candidate.hash);
           garbage.push(candidate.hash);
           blobs += run("DELETE FROM blobs WHERE vault=? AND hash=?", vault, candidate.hash);
         }

@@ -1,3 +1,4 @@
+import { blobStagingContract } from "./staging-contract.ts";
 import { describe, expect, test } from "bun:test";
 import type {
   IStorageAdapter,
@@ -46,9 +47,14 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       const first = { ...swap(1), setupTokenHash: b(90) };
       expect(db.commitSwap(b(1), undefined, first, 0).kind).toBe("committed");
       expect(db.setupToken()).toBeUndefined();
+      expect(db.findCommitted(b(1), first.bodyDigest)).toBe(true);
+      expect(db.findCommitted(b(1), b(100))).toBe(false);
+      expect(db.vaultIds()).toEqual([b(1)]);
       expect(db.commitSwap(b(1), undefined, first, 1).kind).toBe("retry-of-committed");
       expect(db.commitSwap(b(1), undefined, swap(2), 1).kind).toBe("head-moved");
     });
+
+    check("uncommitted blobs expire and obey quota", blobStagingContract);
 
     check("discard removes inactive imports and refuses active vaults", (db) => {
       const session: ISessionKey = { kind: "login", device: b(2), purpose: "registration" };
@@ -95,11 +101,16 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       const next = fixture.reopen();
       expect(next.head(b(1))).toEqual(b(1));
       expect(next.headers(b(1), 0n, 2n)).toEqual([first.header]);
+      expect(next.headers(b(1), 0n, 2n, 0)).toEqual([]);
+      next.capUnlocks(b(1), 70);
+      expect(next.device(b(1), b(3))?.unlockedUntil).toBe(70);
+      next.capUnlocks(b(1), 90);
+      expect(next.device(b(1), b(3))?.unlockedUntil).toBe(70);
       expect(next.header(b(1), b(1))).toEqual(first.header);
       expect(next.entries(b(1), 0n, 1n)).toEqual(first.entries);
       expect(next.fileList(b(1), b(50))).toEqual(b(51));
       expect(next.state(b(1), "opaqueRecord", b(0))).toEqual(b(60));
-      expect(next.device(b(1), b(3))).toEqual(first.devices[0]?.state);
+      expect(next.device(b(1), b(3))).toEqual({ ...first.devices[0]!.state, unlockedUntil: 70 });
       expect(next.head(b(2))).toBeUndefined();
     });
 

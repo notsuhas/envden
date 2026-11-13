@@ -2,6 +2,8 @@ import { Worker } from "node:worker_threads";
 import { describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
 import {
+  chmodSync,
+  statSync,
   mkdtempSync,
   rmSync,
   existsSync,
@@ -151,4 +153,26 @@ describe("SQLite durability", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+});
+
+test("startup repairs existing directory, database and sidecar modes", () => {
+  const dir = temp();
+
+  try {
+    const first = createSqliteStorageAdapter(dir, 0);
+    first.close();
+    writeFileSync(join(dir, "identity.json"), "{}");
+    chmodSync(dir, 0o755);
+    chmodSync(join(dir, "envden.sqlite"), 0o644);
+    chmodSync(join(dir, "identity.json"), 0o644);
+    const reopened = createSqliteStorageAdapter(dir, 0);
+    expect(statSync(dir).mode & 0o777).toBe(0o700);
+
+    for (const name of ["identity.json", "envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"])
+      expect(statSync(join(dir, name)).mode & 0o777).toBe(0o600);
+
+    reopened.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

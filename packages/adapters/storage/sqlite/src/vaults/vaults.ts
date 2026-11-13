@@ -92,6 +92,7 @@ export function createVaults(
         "devices",
         "digests",
         "blobs",
+        "blob_usage",
         "sessions",
         "approvers",
         "mailboxes",
@@ -103,5 +104,24 @@ export function createVaults(
     }).immediate();
   }
 
-  return { hasVault, vault: readVault, configureVault, head, discardInactiveVault };
+  function vaultIds(): Uint8Array[] {
+    return db
+      .query<{ id: Uint8Array }, []>("SELECT id FROM vaults ORDER BY id")
+      .all()
+      .map((row) => row.id);
+  }
+
+  function capUnlocks(vault: Uint8Array, until: number): void {
+    run("UPDATE devices SET unlocked=MIN(unlocked,?) WHERE vault=?", until, vault);
+  }
+
+  return {
+    vaultIds,
+    capUnlocks,
+    hasVault,
+    vault: readVault,
+    configureVault,
+    head,
+    discardInactiveVault,
+  };
 }
