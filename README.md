@@ -16,7 +16,7 @@
 
 envden keeps the `.env` files in your repos the same on every machine you work on. It syncs whole files, byte for byte, so comments, order and blank lines survive. Everything is encrypted on your devices before it leaves them, and it syncs through a small server you run yourself on your Tailscale network.
 
-> **Not released yet.** The code is complete for v1 and reviewed, but there are no published binaries yet. See [Building from source](#building-from-source).
+> **Alpha.** v0.1.0 is the first release. Commands and file formats may still change.
 
 ## Why
 
@@ -31,6 +31,25 @@ Secrets managers store keys, not files, so the layout and comments of a `.env` g
 - **A heads-up in your shell.** An optional line in your shell config tells you when a repo you `cd` into is out of sync.
 - **Works with coding agents.** `envden agent install` adds a skill so agents can check status, while you stay the one typing passwords and approving checkouts.
 
+## Install
+
+```sh
+# macOS and Linux
+curl -fsSL https://raw.githubusercontent.com/notsuhas/envden/main/packaging/install/install.sh | sh
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/notsuhas/envden/main/packaging/install/install.ps1 | iex
+
+# Homebrew
+brew install notsuhas/tap/envden
+
+# Scoop
+scoop bucket add envden https://github.com/notsuhas/scoop-bucket
+scoop install envden
+```
+
+The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
+
 ## Quick start
 
 **On a home server (Docker):**
@@ -40,8 +59,6 @@ export TS_AUTHKEY=tskey-...                            # a Tailscale auth key fo
 docker compose -f packaging/docker/compose.yml up -d
 docker compose -f packaging/docker/compose.yml logs envden   # prints a one-time setup token
 ```
-
-Until the first release publishes the image, build it locally from [apps/server/Dockerfile](apps/server/Dockerfile) and point `compose.yml` at it.
 
 **On your first laptop:**
 
@@ -95,7 +112,7 @@ The server is not trusted with your data: it can't read your files or add device
 
 ## Building from source
 
-Needs [Bun](https://bun.sh) 1.4.
+For contributors. Needs [Bun](https://bun.sh) 1.4.
 
 ```sh
 bun install
