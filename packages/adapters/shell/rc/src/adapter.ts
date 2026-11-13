@@ -1,10 +1,11 @@
 import { shellFailure } from "./failures/operation.ts";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import type { IShellAdapter } from "@envden/core/adapters";
 
 import type { TShell } from "./shell.ts";
+import { editRc } from "./files/edit.ts";
 import { start } from "./markers.ts";
 import { renderHook } from "./render.ts";
 
@@ -22,15 +23,18 @@ class RcShellAdapter implements IShellAdapter {
 
   private readonly home: string;
   private readonly envdenHome: string;
+  private readonly backupDirectory: string | undefined;
 
   constructor(
     shell: TShell,
     home = homedir(),
     envdenHome = process.env.ENVDEN_HOME ?? join(home, ".envden"),
+    backupDirectory?: string,
   ) {
     this.id = shell;
     this.home = home;
     this.envdenHome = envdenHome;
+    this.backupDirectory = backupDirectory;
   }
 
   rcPath() {
@@ -57,21 +61,19 @@ class RcShellAdapter implements IShellAdapter {
   }
 
   async install(binaryPath: string) {
-    const path = this.rcPath();
-    const current = strip(await read(path));
-    await mkdir(dirname(path), { recursive: true });
+    await editRc(
+      this.rcPath(),
+      (value) => {
+        const current = strip(value);
 
-    await writeFile(
-      path,
-      `${current}${current && !current.endsWith("\n") ? "\n" : ""}${this.hookSnippet(binaryPath)}`,
-      { mode: 0o600 },
+        return `${current}${current && !current.endsWith("\n") ? "\n" : ""}${this.hookSnippet(binaryPath)}`;
+      },
+      this.backupDirectory,
     );
   }
 
   async uninstall() {
-    const path = this.rcPath();
-    const current = await read(path);
-    if (current.includes(start)) await writeFile(path, strip(current));
+    await editRc(this.rcPath(), strip, this.backupDirectory);
   }
 }
 
@@ -83,8 +85,9 @@ export function createRcShellAdapter(
   shell: TShell,
   home?: string,
   envdenHome?: string,
+  backupDirectory?: string,
 ): IShellAdapter {
-  const adapter = new RcShellAdapter(shell, home, envdenHome);
+  const adapter = new RcShellAdapter(shell, home, envdenHome, backupDirectory);
 
   return {
     id: adapter.id,
