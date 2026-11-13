@@ -73,14 +73,17 @@ for (const valid of [true, false])
           expect(command).toEqual([binary, "update", "--post-install"]);
         },
         now: 200,
-        fetcher: async (input) =>
-          new Response(
+        fetcher: async (input, options) => {
+          expect(options?.redirect).toBe("follow");
+
+          return new Response(
             (input instanceof Request ? input.url : input.toString()).includes("build.invalid")
               ? valid
                 ? build
                 : new Uint8Array([0])
               : feed,
-          ),
+          );
+        },
       });
 
       if (valid) expect((await action).kind).toBe("updated");

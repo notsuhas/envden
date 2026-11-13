@@ -39,7 +39,7 @@ export async function selfUpdate(
     const platform = currentReleasePlatform();
 
     const response = await options.fetcher(buildUrl(result.latest, platform), {
-      redirect: "error",
+      redirect: "follow",
       signal: AbortSignal.timeout(30000),
     });
 

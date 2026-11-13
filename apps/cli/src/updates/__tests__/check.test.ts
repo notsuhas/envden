@@ -29,7 +29,8 @@ test("signed feed applies unsafe versions, refuses replay and skips daily fetche
 
   let calls = 0;
 
-  const fetcher: TFetch = async () => {
+  const fetcher: TFetch = async (_input, options) => {
+    expect(options?.redirect).toBe("follow");
     calls++;
 
     return new Response(bytes);

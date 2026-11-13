@@ -25,7 +25,7 @@ export async function checkRelease(
 
   try {
     const response = await fetcher(releaseConfig.url, {
-      redirect: "error",
+      redirect: "follow",
       signal: AbortSignal.timeout(2000),
     });
 
