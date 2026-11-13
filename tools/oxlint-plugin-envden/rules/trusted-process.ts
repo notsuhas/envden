@@ -8,6 +8,11 @@ import {
   registerBunImport,
   registerProcessAlias,
   forbiddenMember,
+  registerProcessImport,
+  reexportsSubprocess,
+  memberOwner,
+  loadsBuiltinSubprocess,
+  requiresSubprocess,
 } from "../lib/process.ts";
 
 export default defineRule({
@@ -30,6 +35,7 @@ export default defineRule({
     return {
       ImportDeclaration(node) {
         if (subprocessModule(node.source.value)) report(node);
+        registerProcessImport(node, processAliases).forEach(report);
         if (node.source.value !== "bun") return;
 
         node.specifiers
@@ -39,18 +45,23 @@ export default defineRule({
       VariableDeclarator(node) {
         if (registerProcessAlias(node, [bunAliases, processAliases])) report(node);
       },
+      ExportNamedDeclaration(node) {
+        if (reexportsSubprocess(node.source)) report(node);
+      },
+      ExportAllDeclaration(node) {
+        if (reexportsSubprocess(node.source)) report(node);
+      },
       MemberExpression(node) {
-        if (node.object.type !== "Identifier") return;
+        const owner = memberOwner(node.object);
 
-        if (forbiddenMember(node.object.name, node.property, bunAliases, processAliases))
+        if (owner && forbiddenMember(owner, node.property, bunAliases, processAliases))
           report(node);
       },
       ImportExpression(node) {
         if (loadsSubprocess(node.source)) report(node);
       },
       CallExpression(node) {
-        if (node.callee.type !== "Identifier" || node.callee.name !== "require") return;
-        if (loadsSubprocess(node.arguments[0])) report(node);
+        if (loadsBuiltinSubprocess(node, processAliases) || requiresSubprocess(node)) report(node);
       },
     };
   },

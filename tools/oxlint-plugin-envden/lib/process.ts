@@ -54,6 +54,80 @@ export function registerProcessAlias(
   return false;
 }
 
+function processModule(value: unknown): boolean {
+  return value === "process" || value === "node:process";
+}
+
+// Records default and namespace node:process aliases and returns the named imports to report.
+export function registerProcessImport(
+  node: ESTree.ImportDeclaration,
+  aliases: Set<string>,
+): ESTree.ImportDeclaration["specifiers"] {
+  if (!processModule(node.source.value)) return [];
+
+  return node.specifiers.filter((specifier) => {
+    if (specifier.type !== "ImportSpecifier") {
+      aliases.add(specifier.local.name);
+
+      return false;
+    }
+
+    return ["binding", "getBuiltinModule"].includes(propertyName(specifier.imported) ?? "");
+  });
+}
+
+export function reexportsSubprocess(source: ESTree.Node | null | undefined): boolean {
+  return source?.type === "Literal" && (subprocessModule(source.value) || source.value === "bun");
+}
+
+const GLOBAL_RUNTIMES: Record<string, "bun" | "process"> = { Bun: "bun", process: "process" };
+
+function globalMember(node: ESTree.Node): node is ESTree.MemberExpression {
+  return (
+    node.type === "MemberExpression" &&
+    node.object.type === "Identifier" &&
+    node.object.name === "globalThis"
+  );
+}
+
+function globalRuntime(node: ESTree.Node): "bun" | "process" | undefined {
+  return globalMember(node) ? GLOBAL_RUNTIMES[propertyName(node.property) ?? ""] : undefined;
+}
+
+export function memberOwner(object: ESTree.Node): string | undefined {
+  if (object.type === "Identifier") return object.name;
+
+  const runtime = globalRuntime(object);
+
+  return runtime === "bun" ? "Bun" : runtime;
+}
+
+function processOwner(object: ESTree.Node, aliases: Set<string>): boolean {
+  return object.type === "Identifier"
+    ? aliases.has(object.name)
+    : globalRuntime(object) === "process";
+}
+
+export function loadsBuiltinSubprocess(
+  node: ESTree.CallExpression,
+  processAliases: Set<string>,
+): boolean {
+  const callee = node.callee;
+
+  if (callee.type !== "MemberExpression" || propertyName(callee.property) !== "getBuiltinModule")
+    return false;
+
+  return processOwner(callee.object, processAliases) && loadsSubprocess(node.arguments[0]);
+}
+
+export function requiresSubprocess(node: ESTree.CallExpression): boolean {
+  return (
+    node.callee.type === "Identifier" &&
+    node.callee.name === "require" &&
+    loadsSubprocess(node.arguments[0])
+  );
+}
+
 export function forbiddenMember(
   name: string,
   property: ESTree.Node,

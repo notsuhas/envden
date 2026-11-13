@@ -38,6 +38,15 @@ for (const source of [
   'import("zx");',
   'process.binding("spawn_sync");',
   'Bun.spawnSync(["git"]);',
+  'globalThis.Bun.spawnSync(["git"]);',
+  'globalThis.process.binding("spawn_sync");',
+  'process.getBuiltinModule("child_process").spawnSync("git");',
+  'globalThis.process.getBuiltinModule("node:child_process");',
+  'import proc from "node:process"; proc.getBuiltinModule("child_process");',
+  'import * as proc from "node:process"; proc.binding("spawn_sync");',
+  'import { getBuiltinModule } from "node:process";',
+  'export { spawn } from "node:child_process";',
+  'export * from "child_process";',
 ])
   test(`rejects bypass ${source}`, () => {
     for (const directory of ["apps/cli/src", "tools/runner", "scripts"]) {
