@@ -32,7 +32,7 @@ for (const detached of [true, false])
 
         const context = await syncContext(f.first, {
           now: f.now,
-          fetcher: fetch,
+          fetcher: f.fetcher,
           interactive: false,
           yes: true,
         });
@@ -105,7 +105,7 @@ test.if(process.platform !== "win32")(
         },
       });
 
-      const context = await syncContext(f.first, { now: f.now, fetcher: fetch, yes: true });
+      const context = await syncContext(f.first, { now: f.now, fetcher: f.fetcher, yes: true });
       context.state.approved.push(checkout);
       const server = new TextEncoder().encode("KEY=remote\n");
 

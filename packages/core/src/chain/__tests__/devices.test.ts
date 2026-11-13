@@ -31,7 +31,10 @@ for (const field of ["vaultId", "parent", "seq", "signer", "signature"] as const
     else if (field === "seq") e.body.seq += 1n;
     else e.body[field] = bytes(0, field === "signer" ? 16 : 32);
 
-    expect(applyEntry(f.state, e).kind).toBe("invalid");
+    const key = field === "signer" ? f.recoveryKeys.objSk : f.a.keys.objSk;
+    const signed = field === "signature" ? e : signObject(EntryCodec, e.body, key, "entry");
+
+    expect(applyEntry(f.state, signed).kind).toBe("invalid");
   });
 }
 
@@ -46,6 +49,16 @@ test("first entry must create epoch one, genesis signature and ID are checked", 
     applyEntry(
       initial.state,
       f.entry(initial.state, {
+        kind: 5,
+        payload: { oldPin: initial.state.serverPin, newPin: bytes(20), newAddress: "new.example" },
+      }),
+    ).kind,
+  ).toBe("invalid");
+
+  expect(
+    applyEntry(
+      initial.state,
+      f.entry(initial.state, {
         kind: 3,
         payload: { change: { ...f.change(initial.state), epoch: 2 } },
       }),
@@ -55,7 +68,10 @@ test("first entry must create epoch one, genesis signature and ID are checked", 
   expect(applyEntry(undefined, { ...f.genesis, signature: bytes(0, 64) }).kind).toBe("invalid");
 
   expect(
-    applyEntry(undefined, { ...f.genesis, body: { ...f.genesis.body, vaultId: bytes(2) } }).kind,
+    applyEntry(
+      undefined,
+      signObject(EntryCodec, { ...f.genesis.body, vaultId: bytes(2) }, f.a.keys.objSk, "entry"),
+    ).kind,
   ).toBe("invalid");
 });
 

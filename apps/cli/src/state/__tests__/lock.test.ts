@@ -1,6 +1,7 @@
 import { spawnTrusted } from "@envden/core/process";
-import { test, expect } from "bun:test";
-import { mkdtemp, rm, mkdir, writeFile, readFile } from "node:fs/promises";
+import * as lockOwners from "../lock/owner.ts";
+import { test, expect, spyOn } from "bun:test";
+import { mkdtemp, rm, mkdir, writeFile, readFile, lstat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { withStateLock } from "../lock/lock.ts";
@@ -35,8 +36,14 @@ test("owned lock rejects concurrent writers, nests and reclaims a dead owner", a
 
     await Promise.resolve(
       expect(
-        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
-      ).rejects.toThrow("State is locked; retry after the other command finishes"),
+        withStateLock(home, async () => {}, {
+          now: () => 0,
+          wait: async () => {
+            throw new Error("Unexpected wait without a retry delay");
+          },
+          delays: [],
+        }),
+      ).rejects.toMatchObject({ code: "CONFLICT" }),
     );
 
     release();
@@ -85,22 +92,48 @@ test("lock directories and owner files cannot be symlinks", async () => {
     await mkdir(join(home, "state"));
     await mkdir(join(home, "outside"));
     await symlink(join(home, "outside"), path);
+    const created = (await lstat(path)).mtimeMs;
 
-    await Promise.resolve(
-      expect(
-        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
-      ).rejects.toThrow(),
+    await writeFile(
+      join(home, "outside", "owner.json"),
+      JSON.stringify({ pid: 2147483647, token: "dead" }),
     );
+
+    expect(await lockOwners.owner(path)).toBeUndefined();
+    await rm(join(home, "outside", "owner.json"));
+    expect(await lockOwners.expiredOwner(path, undefined, created + 30001)).toBe(false);
+    const readOwner = spyOn(lockOwners, "owner");
+
+    try {
+      await Promise.resolve(
+        expect(
+          withStateLock(home, async () => {}, {
+            now: () => created + 30001,
+            wait: async () => {},
+            delays: [],
+          }),
+        ).rejects.toMatchObject({ code: "CONFLICT" }),
+      );
+
+      expect(readOwner).not.toHaveBeenCalled();
+    } finally {
+      readOwner.mockRestore();
+    }
 
     await rm(path);
     await mkdir(path);
     await writeFile(join(home, "owner"), JSON.stringify({ pid: 2147483647, token: "dead" }));
     await symlink(join(home, "owner"), join(path, "owner.json"));
+    expect(await lockOwners.owner(path)).toBeUndefined();
 
     await Promise.resolve(
       expect(
-        withStateLock(home, async () => {}, { now: () => 0, wait: async () => {}, delays: [] }),
-      ).rejects.toThrow(),
+        withStateLock(home, async () => {}, {
+          now: () => created + 30001,
+          wait: async () => {},
+          delays: [],
+        }),
+      ).rejects.toMatchObject({ code: "CONFLICT" }),
     );
   } finally {
     await rm(home, { recursive: true, force: true });
@@ -199,7 +232,9 @@ test("owner publication exposes complete metadata and never overwrites an owner"
     expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
 
     await Promise.resolve(
-      expect(publishOwner(home, { ...first, token: "second" })).rejects.toThrow(),
+      expect(publishOwner(home, { ...first, token: "second" })).rejects.toMatchObject({
+        code: "EEXIST",
+      }),
     );
 
     expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);

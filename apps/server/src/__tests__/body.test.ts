@@ -5,18 +5,27 @@ for (const path of ["/v1/opaque/login/start", "/v1/pairing/mailboxes", "/v1/vaul
   test(`stream cap cancels oversized ${path}`, async () => {
     let cancelled = false;
 
-    const stream = new ReadableStream<Uint8Array>({
-      pull(controller) {
-        controller.enqueue(new Uint8Array(65537));
+    let sent = false;
+
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          if (sent) controller.close();
+          else {
+            sent = true;
+            controller.enqueue(new Uint8Array(65537));
+          }
+        },
+        cancel() {
+          cancelled = true;
+        },
       },
-      cancel() {
-        cancelled = true;
-      },
-    });
+      { highWaterMark: 0 },
+    );
 
     expect(
       readBody(new Request(`http://server${path}`, { method: "POST", body: stream })),
-    ).rejects.toThrow("Request too large");
+    ).rejects.toMatchObject({ code: "INVALID_INPUT" });
 
     expect(cancelled).toBe(true);
   });
@@ -28,7 +37,7 @@ test("content length is checked before reading", async () => {
     body: "small",
   });
 
-  expect(readBody(request)).rejects.toThrow("Request too large");
+  expect(readBody(request)).rejects.toMatchObject({ code: "INVALID_INPUT" });
   expect(request.bodyUsed).toBe(false);
 });
 
@@ -78,9 +87,22 @@ test("trickling cannot reset the absolute body deadline and cancels the reader",
     },
   );
 
+  let settled = false;
+
+  void result.then(
+    () => {
+      settled = true;
+    },
+    () => {
+      settled = true;
+    },
+  );
+
   await reading;
   expire();
-  await Promise.resolve(expect(result).rejects.toThrow("Body read deadline exceeded"));
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  expect(settled).toBe(true);
+  await Promise.resolve(expect(result).rejects.toMatchObject({ code: "INVALID_INPUT" }));
   expect(cancelled).toBe(true);
   expect(stopped).toBe(true);
 });
@@ -90,11 +112,11 @@ test("read routes reject bodies even when the final segment looks like an upload
 
   expect(() =>
     bodyLimit(new Request("http://server/v1/files/vault", { method: "POST", body: "x" })),
-  ).toThrow("Unknown route");
+  ).toThrow(expect.objectContaining({ code: "NOT_FOUND" }));
 
   expect(() =>
     bodyLimit(new Request("http://server/v1/head", { headers: { "Content-Length": "1" } })),
-  ).toThrow("Request body not allowed");
+  ).toThrow(expect.objectContaining({ code: "INVALID_INPUT" }));
 });
 
 test("public hello rejects a declared read body", async () => {

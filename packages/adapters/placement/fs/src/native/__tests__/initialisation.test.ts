@@ -9,19 +9,18 @@ test("only Windows may use placement without native support", () => {
   expect(() => requireNativePlacement("win32", undefined)).not.toThrow();
 });
 
-test("FFI import failure cannot enable the fallback on POSIX", async () => {
-  const ffi = await loadFfi(() => Promise.reject(new Error("injected import failure")));
-  expect(ffi).toBeUndefined();
-  expect(() => requireNativePlacement("darwin", ffi)).toThrow("Native placement");
-  expect(() => requireNativePlacement("linux", ffi)).toThrow("Native placement");
-});
+test("FFI import and binding failures cannot enable the POSIX fallback", async () => {
+  const unavailable = [
+    await loadFfi(() => Promise.reject(new Error("injected import failure"))),
+    loadLibc(() => {
+      throw new Error("injected binding failure");
+    }),
+  ];
 
-test("FFI binding failures cannot enable the fallback on POSIX", () => {
-  const library = loadLibc(() => {
-    throw new Error("injected binding failure");
-  });
+  for (const library of unavailable) {
+    expect(library).toBeUndefined();
 
-  expect(library).toBeUndefined();
-  expect(() => requireNativePlacement("darwin", library)).toThrow("Native placement");
-  expect(() => requireNativePlacement("linux", library)).toThrow("Native placement");
+    for (const platform of ["darwin", "linux"] as const)
+      expect(() => requireNativePlacement(platform, library)).toThrow("Native placement");
+  }
 });

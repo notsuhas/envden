@@ -11,7 +11,7 @@ import { VERSION } from "../../version.ts";
 export async function adminContext(
   adapters: TAdapters,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
   proof?: (request: p.IRequest) => Uint8Array,
 ) {
   const local = await loadState(adapters.home);

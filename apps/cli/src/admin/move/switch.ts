@@ -16,7 +16,7 @@ async function lockedswitchServer(
   adapters: TAdapters,
   address: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await adminContext(adapters, now, fetcher);
   const server = await hello(address, undefined, fetcher, VERSION);

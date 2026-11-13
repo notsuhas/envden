@@ -2,7 +2,7 @@ import { spyOn } from "bun:test";
 import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { serve } from "@envden/server";
+import { testNetwork } from "@envden/server/testing";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
@@ -17,6 +17,7 @@ export async function syncFixture() {
   const root = await mkdtemp(join(tmpdir(), "envden-sync-"));
   const now = () => 1800000000000;
   const log = spyOn(console, "log").mockImplementation(() => {});
+  const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
 
   const token = log.mock.calls
@@ -37,6 +38,7 @@ export async function syncFixture() {
 
     const homes = ["first", "second", "third"].map((name) =>
       createAdapters({
+        fetcher,
         home: join(root, name),
         userHome: join(root, name),
         keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
@@ -55,7 +57,7 @@ export async function syncFixture() {
       name: "first",
       password: "master password",
       now,
-      fetcher: fetch,
+      fetcher,
     });
 
     const checkout = {
@@ -86,7 +88,7 @@ export async function syncFixture() {
         password: "master password",
         name,
         now,
-        fetcher: fetch,
+        fetcher,
       });
 
     const checkoutB = {
@@ -106,6 +108,9 @@ export async function syncFixture() {
     await saveState(second.home, bState);
 
     return {
+      serve: (options: Parameters<typeof serve>[0]) =>
+        serve({ ...options, now: options?.now ?? now }),
+      fetcher,
       first,
       second,
       third,
@@ -115,7 +120,7 @@ export async function syncFixture() {
       root,
       now,
       cleanup,
-      opts: { now, fetcher: fetch, all: true, yes: true },
+      opts: { now, fetcher, all: true, yes: true },
     };
   } catch (error) {
     await cleanup();

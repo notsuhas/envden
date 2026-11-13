@@ -1,36 +1,42 @@
 import { test, expect } from "bun:test";
 import * as p from "../../index.ts";
+import pairingVector from "../../__tests__/vectors/pairing.json";
 import vector from "../../__tests__/vectors/opaque.json";
 
 test("OPAQUE stored state finish calls agree", async () => {
-  const result = await p.opaqueFinishLogin({
-    password: "password",
-    clientLoginState: vector.login.clientLoginState,
-    loginResponse: vector.login.loginResponse,
-    identifiers: vector.ids.identifiers,
-  });
+  for (const [sample, password, wrong] of [
+    [vector, "password", "wrong"],
+    [pairingVector, "01234567", "01234568"],
+  ] as const) {
+    const result = await p.opaqueFinishLogin({
+      password,
+      clientLoginState: sample.login.clientLoginState,
+      loginResponse: sample.login.loginResponse,
+      identifiers: sample.ids.identifiers,
+    });
 
-  expect(result?.sessionKey).toBe(vector.login.sessionKey);
+    expect(result?.sessionKey).toBe(sample.login.sessionKey);
 
-  const server = await p.opaqueServerFinishLogin({
-    serverLoginState: vector.login.serverLoginState,
-    finishLoginRequest: vector.login.finishLoginRequest,
-    identifiers: vector.ids.identifiers,
-  });
+    const server = await p.opaqueServerFinishLogin({
+      serverLoginState: sample.login.serverLoginState,
+      finishLoginRequest: sample.login.finishLoginRequest,
+      identifiers: sample.ids.identifiers,
+    });
 
-  expect(result).toBeDefined();
-  if (!result) throw new Error("Login failed");
-  expect(server.sessionKey).toBe(result.sessionKey);
+    expect(result).toBeDefined();
+    if (!result) throw new Error("Login failed");
+    expect(server.sessionKey).toBe(result.sessionKey);
 
-  expect(
-    await p.opaqueFinishLogin({
-      password: "wrong",
-      clientLoginState: vector.login.clientLoginState,
-      loginResponse: vector.login.loginResponse,
-      identifiers: vector.ids.identifiers,
-    }),
-  ).toBeUndefined();
-}, 15000);
+    expect(
+      await p.opaqueFinishLogin({
+        password: wrong,
+        clientLoginState: sample.login.clientLoginState,
+        loginResponse: sample.login.loginResponse,
+        identifiers: sample.ids.identifiers,
+      }),
+    ).toBeUndefined();
+  }
+});
 
 test("OPAQUE registration stored states", async () => {
   const result = await p.opaqueFinishRegistration({
@@ -45,7 +51,7 @@ test("OPAQUE registration stored states", async () => {
   expect(p.opaqueMessage(result.registrationRecord, p.OPAQUE_LENGTHS.registrationRecord)).toBe(
     result.registrationRecord,
   );
-}, 15000);
+});
 
 test("OPAQUE malformed strings never reach WASM", async () => {
   for (const value of ["!", "AA=", "AB", "AAAA"]) {

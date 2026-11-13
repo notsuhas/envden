@@ -14,15 +14,19 @@ import { resolveConflict } from "../resolve.ts";
 
 const bytes = (value: string) => new TextEncoder().encode(value);
 
-test("bases distinguish copies, fit long paths, and reads refuse symlinks", async () => {
-  const home = await mkdtemp(join(tmpdir(), "envden-sync-"));
+test("base paths distinguish copies and fit long paths", () => {
+  const home = "/test/home";
+  const store = join(home, "store", "long".repeat(100));
+  expect(basePath(home, store).split("/").at(-1)!.length).toBeLessThan(100);
+  expect(basePath(home, store, "a")).not.toBe(basePath(home, store, "b"));
+  expect(same(undefined, bytes(""))).toBe(false);
+  expect(same(bytes("x"), bytes("x"))).toBe(true);
+});
+
+test("local reads reject symlinks and distinguish missing files", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-read-"));
 
   try {
-    const store = join(home, "store", "long".repeat(100));
-    expect(basePath(home, store).split("/").at(-1)!.length).toBeLessThan(100);
-    expect(basePath(home, store, "a")).not.toBe(basePath(home, store, "b"));
-    expect(same(undefined, bytes(""))).toBe(false);
-    expect(same(bytes("x"), bytes("x"))).toBe(true);
     await atomicWrite(join(home, "file"), "secret");
 
     if (process.platform !== "win32") {
@@ -34,7 +38,15 @@ test("bases distinguish copies, fit long paths, and reads refuse symlinks", asyn
     }
 
     expect(await readBytes(join(home, "missing"))).toBeUndefined();
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
 
+test("sync locks nest and release between writers", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-sync-lock-"));
+
+  try {
     expect(await withSyncLock(home, async () => withSyncLock(home, async () => "nested"))).toBe(
       "nested",
     );
@@ -56,6 +68,7 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
 
   const adapters = createAdapters({
     home: join(fixture, "home"),
+    userHome: fixture,
     keychain: createMemoryKeychainAdapter([]),
   });
 
@@ -87,7 +100,13 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
 for (const choice of ["keep-mine", "take-server", "edit"] as const) {
   test(`resolve ${choice} keeps the server base and clears only its conflict`, async () => {
     const home = await mkdtemp(join(tmpdir(), "envden-resolve-"));
-    const adapters = createAdapters({ home, keychain: createMemoryKeychainAdapter([]) });
+
+    const adapters = createAdapters({
+      home,
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
     const checkout = join(home, "checkout");
 
     try {
@@ -190,7 +209,7 @@ test("alias refuses existing placed files before changing their identity", async
     await Promise.resolve(
       expect(
         aliasUnlinkedRepo(
-          createAdapters({ home, keychain: createMemoryKeychainAdapter([]) }),
+          createAdapters({ home, userHome: home, keychain: createMemoryKeychainAdapter([]) }),
           "source",
           "target",
         ),

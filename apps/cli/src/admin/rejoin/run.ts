@@ -35,10 +35,10 @@ async function lockedrunRejoin(
       name,
       password: await secret("Master password"),
       now,
-      fetcher: fetch,
+      fetcher: adapters.fetcher,
     });
   } else {
-    const server = await hello(address, undefined, fetch, VERSION);
+    const server = await hello(address, undefined, adapters.fetcher, VERSION);
     const identity = await rejoinIdentity(adapters, name);
 
     const client = createClient({
@@ -48,7 +48,7 @@ async function lockedrunRejoin(
       vaultId: new Uint8Array(32),
       version: VERSION,
       now,
-      fetcher: fetch,
+      fetcher: adapters.fetcher,
     });
 
     if (!options.resume) {

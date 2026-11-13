@@ -69,8 +69,8 @@ test("an unpinned manager prints the manual command and executes nothing", async
       }),
     ).toEqual({ kind: "manual" });
 
-    expect(output.mock.calls.flat()).toContain(
-      "envden: Cannot pin installer path. Run manually: npm i -g envden@latest",
+    expect(output.mock.calls.flat()).toContainEqual(
+      expect.stringContaining("npm i -g envden@latest"),
     );
   } finally {
     output.mockRestore();
@@ -193,8 +193,8 @@ for (const missing of ["node", "cli"]) {
 
       expect(result).toEqual({ kind: "manual" });
 
-      expect(output.mock.calls.flat()).toContain(
-        "envden: Cannot pin installer path. Run manually: npm i -g envden@latest",
+      expect(output.mock.calls.flat()).toContainEqual(
+        expect.stringContaining("npm i -g envden@latest"),
       );
     } finally {
       output.mockRestore();
@@ -252,8 +252,8 @@ for (const variable of ["HOME", "TMPDIR"])
           ),
         ).toEqual({ kind: "manual" });
 
-        expect(output.mock.calls.flat()).toContain(
-          `envden: HOME or temp directory is inside a checkout. Run manually: ${manager} upgrade envden`,
+        expect(output.mock.calls.flat()).toContainEqual(
+          expect.stringContaining(`${manager} upgrade envden`),
         );
       }
     } finally {

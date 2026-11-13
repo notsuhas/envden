@@ -24,7 +24,7 @@ async function attemptPushInitialFiles(
     adapters,
     { ...state, server: state.server, vaultId: state.vaultId },
     now,
-    fetch,
+    adapters.fetcher,
   );
 
   const history = await readHistory(client, vaultId);

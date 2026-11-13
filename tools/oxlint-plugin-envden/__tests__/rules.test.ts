@@ -29,7 +29,12 @@ test("index files contain only source re-exports", () => {
       "index.tsx":
         'import "./foo.ts";\nconst foo = 1;\nexport { foo };\nexport default foo;\nexport interface IFoo {}\nexport type TFoo = string;',
     }).diagnostics,
-  ).toHaveLength(6);
+  ).toMatchObject(
+    [1, 2, 3, 4, 5, 6].map((line) => ({
+      code: "envden(index-reexports-only)",
+      labels: [{ span: { line } }],
+    })),
+  );
 
   expect(
     runFixture("index-reexports-only", { "other.ts": "export const foo = 1;" }).diagnostics,
@@ -49,7 +54,12 @@ test("interface names and exported type names follow the prefix convention", () 
       "bad.ts":
         "interface Foo {}\ninterface Ifoo {}\ninterface IFooProps {}\nexport type Bad = string;\nexport type Tbad = string;\ntype Other = number;\nexport type { Other };",
     }).diagnostics,
-  ).toHaveLength(6);
+  ).toMatchObject(
+    [1, 2, 3, 4, 5, 6].map((line) => ({
+      code: "envden(type-name-prefix)",
+      labels: [{ span: { line } }],
+    })),
+  );
 });
 
 test("comments have one physical line, including consecutive line comments", () => {

@@ -37,7 +37,7 @@ async function lockedrunJoin(
 
   const expected = await pairingPin(adapters.home);
 
-  const server = await hello(address, expected, fetch, VERSION);
+  const server = await hello(address, expected, adapters.fetcher, VERSION);
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, name);
 
@@ -47,7 +47,7 @@ async function lockedrunJoin(
     vaultId: new Uint8Array(32),
     identity,
     now,
-    fetcher: fetch,
+    fetcher: adapters.fetcher,
     version: VERSION,
   });
 

@@ -71,7 +71,7 @@ async function createState(
     name,
     password,
     now,
-    fetcher: fetch,
+    fetcher: adapters.fetcher,
     ...(resumeSecretKey ? { resumeSecretKey } : {}),
     onKit: (kit) => reportKit(options.kitOut, kit),
   });

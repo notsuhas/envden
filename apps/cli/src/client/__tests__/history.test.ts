@@ -10,7 +10,14 @@ test("CLI authenticates unknown entries and header versions before reporting an 
   const material = await createGenesis(identity, new Uint8Array(32), 0);
   const genesis = p.encode(p.signedCodec(p.EntryCodec), material.genesis);
   const body = p.encode(p.EntryCodec, material.epoch.body);
-  body[74] = 99;
+
+  const entryKindOffset =
+    p.header(1).length +
+    material.epoch.body.vaultId.length +
+    p.u64.write(0n).length +
+    material.epoch.body.parent.length;
+
+  body[entryKindOffset] = 99;
   const unknown = p.concat(body, p.Sign(keys.objSk, "entry", body));
 
   expect(() => decodeHistoryEntries([genesis, unknown], [], "999.0.0")).toThrow(
@@ -31,6 +38,6 @@ test("CLI authenticates unknown entries and header versions before reporting an 
   );
 
   expect(() => decodeHistoryHeader(header, [material.genesis], [], VERSION)).toThrow(
-    "Unreadable data from server",
+    expect.objectContaining({ code: "INVALID_DATA" }),
   );
 });

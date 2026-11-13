@@ -64,7 +64,14 @@ async function attemptKitJoin(
   if (!p.equal(p.H("envelope-blob", box), head.body.envelopeHash))
     throw new EnvdenError("INVALID_DATA", "Envelope hash mismatch");
 
-  const envelope = await p.openEnvelope(box, options.password, secret, vaultId);
+  const envelope = await p
+    .openEnvelope(box, options.password, secret, vaultId)
+    .catch((cause: unknown) => {
+      if (cause instanceof EnvdenError) throw cause;
+
+      throw new EnvdenError("INVALID_DATA", "Invalid recovery envelope", { cause });
+    });
+
   secret.fill(0);
   const recoveryKeys = { encSk: envelope.recoveryEncSk, objSk: envelope.recoveryObjSk };
 

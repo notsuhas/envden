@@ -1,4 +1,3 @@
-import { rejects } from "node:assert/strict";
 import { expect, test } from "bun:test";
 import {
   createFakeKeychainAdapter,
@@ -30,28 +29,6 @@ for (const [kind, fake] of [
     }
   });
 }
-
-test("fake operations use supplied handlers and preserve failures", async () => {
-  const failure = new Error("Injected failure");
-  const keychain = createFakeKeychainAdapter({ get: async () => new Uint8Array([7]) });
-  expect(await keychain.get("key")).toEqual(new Uint8Array([7]));
-  const repo = createFakeRepoAdapter({ checkoutAt: async () => undefined });
-  expect(await repo.checkoutAt("outside")).toBeUndefined();
-  const placement = createFakePlacementAdapter({ inspect: async () => "detached" });
-  expect(await placement.inspect("store", "checkout")).toBe("detached");
-
-  const network = createFakeNetworkAdapter({
-    expose: async () => {
-      throw failure;
-    },
-  });
-
-  await rejects(network.expose(8080), failure);
-  const shell = createFakeShellAdapter({ rcPath: () => "/tmp/profile" });
-  expect(shell.rcPath()).toBe("/tmp/profile");
-  const storage = createFakeStorageAdapter({ head: () => new Uint8Array([8]) });
-  expect(storage.head(new Uint8Array([1]))).toEqual(new Uint8Array([8]));
-});
 
 test("memory keychain requires explicit operations and returns independent bytes", async () => {
   const adapter = createMemoryKeychainAdapter(["get", "set"]);

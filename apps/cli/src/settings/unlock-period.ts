@@ -29,14 +29,14 @@ export async function setUnlockPeriod(
 ) {
   const period = unlockPeriod(value);
   const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
-  const { client, vaultId } = await vaultConnection(adapters, state, now, fetch);
+  const { client, vaultId } = await vaultConnection(adapters, state, now, adapters.fetcher);
   await login(client, vaultId, password);
   await client.request("/v1/settings/unlock-period", "PUT", { period });
 }
 
 export async function getUnlockPeriod(adapters: TAdapters, now: () => number) {
   const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
-  const { client } = await vaultConnection(adapters, state, now, fetch);
+  const { client } = await vaultConnection(adapters, state, now, adapters.fetcher);
 
   return UnlockPeriodSchema.parse(
     await (await client.request("/v1/settings/unlock-period")).json(),

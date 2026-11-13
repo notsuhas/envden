@@ -30,7 +30,7 @@ test("background refresh fetches outside the state lock and locks only to write"
         await gate;
       }
 
-      return fetch(...args);
+      return fixture.fetcher(...args);
     },
     true,
   );
@@ -69,7 +69,7 @@ test("foreground commands inspect remote history even while the shell cache is f
     const fetcher = async (...args: Parameters<typeof fetch>) => {
       requests++;
 
-      return fetch(...args);
+      return fixture.fetcher(...args);
     };
 
     await commandNotice(fixture.second, fixture.now(), fetcher, true);

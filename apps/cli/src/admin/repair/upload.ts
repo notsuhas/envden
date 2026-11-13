@@ -50,7 +50,7 @@ async function lockeduploadRepair(
   adapters: TAdapters,
   token: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await repairContext(adapters, token, now, fetcher);
   const remote = await readHistory(context.client, context.vaultId);

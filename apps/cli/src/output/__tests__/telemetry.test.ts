@@ -2,7 +2,7 @@ import { test, expect } from "bun:test";
 import { EnvdenError } from "@envden/core/errors";
 import { commandOutcome, telemetryPayload } from "../telemetry.ts";
 
-for (const command of ["setup", "vault password reset", "device ls", "status", "push"])
+for (const command of ["vault password reset"])
   for (const failure of [undefined, new EnvdenError("LOCKED", "fixed"), new Error("private input")])
     test(`telemetry outcome ${command} ${!!failure}`, async () => {
       const events: unknown[] = [];

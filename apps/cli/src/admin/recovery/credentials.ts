@@ -17,7 +17,7 @@ async function attemptReplaceKit(
   adapters: TAdapters,
   password: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
   removed?: Uint8Array,
 ) {
   const context = await adminContext(adapters, now, fetcher);
@@ -75,7 +75,7 @@ async function attemptChangePassword(
   newPassword: string,
   kit: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await adminContext(adapters, now, fetcher);
   await login(context.client, context.vaultId, oldPassword);

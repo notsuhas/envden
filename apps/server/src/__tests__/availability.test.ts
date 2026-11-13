@@ -78,21 +78,15 @@ test("public login flood is bounded before reading and cannot consume member cap
 
 test("public login starts are charged before reading the body", async () => {
   const f = fixture(await identity());
-  const first = hold(f, "/v1/opaque/login/start");
+  const held = Array.from({ length: 5 }, () => hold(f, "/v1/opaque/login/start", candidate()));
 
   try {
-    await first.reading;
-    let response: Response | undefined;
-
-    for (let attempt = 0; attempt < 30; attempt++) {
-      response = await f.request("/v1/opaque/login/start", {}, { who: candidate() }).send();
-      if (response.status === 429) break;
-    }
-
-    expect(response?.status).toBe(429);
+    await Promise.all(held.map((r) => r.reading));
+    const response = await f.request("/v1/opaque/login/start", {}, { who: candidate() }).send();
+    expect(response.status).toBe(429);
   } finally {
-    first.finish();
-    await first.response;
+    held.forEach((r) => r.finish());
+    await Promise.all(held.map((r) => Promise.resolve(r.response)));
     f.close();
   }
 });

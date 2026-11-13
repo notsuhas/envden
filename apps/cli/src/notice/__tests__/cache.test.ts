@@ -37,7 +37,12 @@ test("command notice honors environment opt-out without persisting it", async ()
   try {
     await saveState(home, emptyState("test"));
     process.env.ENVDEN_NO_UPDATE_CHECK = "1";
-    const adapters = createAdapters({ home, keychain: createMemoryKeychainAdapter([]) });
+
+    const adapters = createAdapters({
+      home,
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    });
 
     const result = await commandNotice(adapters, 100, async () => {
       throw new Error("Unexpected fetch");

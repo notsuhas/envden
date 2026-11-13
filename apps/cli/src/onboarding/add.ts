@@ -25,7 +25,7 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
     vaultId,
     identity,
     now,
-    fetcher: fetch,
+    fetcher: adapters.fetcher,
     version: VERSION,
   });
 

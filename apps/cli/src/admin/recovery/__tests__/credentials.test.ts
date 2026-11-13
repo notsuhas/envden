@@ -1,5 +1,7 @@
 import { fixture } from "./fixture.ts";
-import { test, expect, setSystemTime } from "bun:test";
+import * as protocol from "@envden/core/protocol";
+import { EnvdenError } from "@envden/core/errors";
+import { test, expect, spyOn } from "bun:test";
 import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { adminContext } from "../../shared/context.ts";
 import { login } from "../../../session/login.ts";
@@ -20,7 +22,7 @@ test("rotate and remove revoke the removed device", async () => {
       ...f.result.kit,
       password: "old password",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     await rotateVault(f.first, "old password", f.now);
@@ -30,10 +32,15 @@ test("rotate and remove revoke the removed device", async () => {
     );
 
     const removed = await adminContext(second, f.now);
-    await Promise.resolve(expect(removed.client.request("/v1/head")).rejects.toThrow());
 
     await Promise.resolve(
-      expect(removeDevice(f.first, "first", "old password", f.now)).rejects.toThrow(),
+      expect(removed.client.request("/v1/head")).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
+    );
+
+    await Promise.resolve(
+      expect(removeDevice(f.first, "first", "old password", f.now)).rejects.toMatchObject({
+        code: "INVALID_INPUT",
+      }),
     );
   } finally {
     await f.close();
@@ -45,7 +52,10 @@ test("replace kit invalidates old kit and allows new kit", async () => {
 
   try {
     const kit = await replaceKit(f.first, "old password", f.now);
-    await Promise.resolve(expect(f.joinHome("old-kit")).rejects.toThrow());
+
+    await Promise.resolve(
+      expect(f.joinHome("old-kit")).rejects.toMatchObject({ code: "INVALID_DATA" }),
+    );
 
     const joined = await kitJoin(f.home("new-kit"), {
       address: kit.server,
@@ -53,10 +63,29 @@ test("replace kit invalidates old kit and allows new kit", async () => {
       name: "new-kit",
       password: "old password",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     expect(joined.vaultId).toBe(kit.vaultId);
+    const future = new EnvdenError("UPDATE_REQUIRED", "Future envelope");
+    const open = spyOn(protocol, "openEnvelope").mockRejectedValue(future);
+
+    try {
+      await Promise.resolve(
+        expect(
+          kitJoin(f.home("future"), {
+            address: kit.server,
+            ...kit,
+            name: "future",
+            password: "old password",
+            now: f.now,
+            fetcher: f.fetcher,
+          }),
+        ).rejects.toBe(future),
+      );
+    } finally {
+      open.mockRestore();
+    }
   } finally {
     await f.close();
   }
@@ -68,7 +97,13 @@ test("password change replaces login while preserving the kit", async () => {
   try {
     await changePassword(f.first, "old password", "new password", f.result.kit.secretKey, f.now);
     const c = await adminContext(f.first, f.now);
-    await Promise.resolve(expect(login(c.client, c.vaultId, "old password")).rejects.toThrow());
+
+    await Promise.resolve(
+      expect(login(c.client, c.vaultId, "old password")).rejects.toMatchObject({
+        code: "UNAUTHORIZED",
+      }),
+    );
+
     await login(c.client, c.vaultId, "new password");
     await f.joinHome("new-password", f.result.kit, "new password");
   } finally {
@@ -88,12 +123,13 @@ test("stale locked device resets with the same secret key", async () => {
       name: "second",
       password: "old password",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     await rotateVault(f.first, "old password", f.now);
-    const later = () => f.now() + 31 * 86400000;
-    setSystemTime(later());
+    const laterTime = f.now() + 31 * 86400000;
+    const later = () => laterTime;
+    f.advance(31 * 86400000);
     await resetPassword(second, "reset password", f.result.kit.secretKey, later);
 
     await kitJoin(f.home("reset-kit"), {
@@ -102,7 +138,7 @@ test("stale locked device resets with the same secret key", async () => {
       name: "reset-kit",
       password: "reset password",
       now: later,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
   } finally {
     await f.close();

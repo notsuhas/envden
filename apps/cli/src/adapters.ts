@@ -1,3 +1,4 @@
+import type { TFetch } from "./client/fetch.ts";
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
 import { atomicWrite } from "./state/store/files.ts";
 import { homedir } from "node:os";
@@ -9,17 +10,21 @@ import { createRcShellAdapter } from "@envden/adapter-shell-rc";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
 import type { IKeychainAdapter, TPlacementMode } from "@envden/core/adapters";
 
-export function createAdapters(
-  options: { home?: string; userHome?: string; keychain?: IKeychainAdapter } = {},
-) {
-  const userHome = options.userHome ?? homedir();
-  const home = resolve(options.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
+export function createAdapters(options?: {
+  home?: string;
+  userHome: string;
+  keychain: IKeychainAdapter;
+  fetcher?: TFetch;
+}) {
+  const userHome = options?.userHome ?? homedir();
+  const home = resolve(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
 
   return {
     prunePlacementBackups: (now: number) => pruneBackups(join(home, "conflicts"), now, 30),
     home,
     userHome,
-    keychain: options.keychain ?? createOsKeychainAdapter({ home }),
+    fetcher: options?.fetcher ?? fetch,
+    keychain: options?.keychain ?? createOsKeychainAdapter({ home }),
     repo: createGitRepoAdapter(),
     placement: (mode: TPlacementMode, root: string) =>
       createFsPlacementAdapter(mode, root, join(home, "conflicts")),

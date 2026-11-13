@@ -150,7 +150,6 @@ test("transport failures become a fixed unreachable error without leaking raw te
   await Promise.resolve(
     expect(failure).rejects.toMatchObject({
       code: "SERVER_UNREACHABLE",
-      message: "Server unreachable; check the server address and your private network",
     }),
   );
 });

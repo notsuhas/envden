@@ -19,12 +19,12 @@ test("device removal asks about recovery keys before committing", async () => {
       ...f.result.kit,
       password: "old password",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     let asked = false;
 
-    await removeDevice(second, "first", "old password", f.now, fetch, false, async () => {
+    await removeDevice(second, "first", "old password", f.now, f.fetcher, false, async () => {
       asked = true;
 
       expect((await listDevices(second, f.now)).some((device) => device.name === "first")).toBe(
@@ -97,7 +97,7 @@ test("unknown device does not ask for credentials and confirmation precedes remo
       ...f.result.kit,
       password: "old password",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     let confirmed = false;
@@ -109,7 +109,7 @@ test("unknown device does not ask for credentials and confirmation precedes remo
           "first",
           async () => "old password",
           f.now,
-          fetch,
+          f.fetcher,
           false,
           undefined,
           async (exposure) => {

@@ -34,7 +34,7 @@ test("removed device rejoins through pairing with a new identity and retained fl
       password: "old password",
       name: "second",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     const before = await loadState(second.home);
@@ -49,7 +49,7 @@ test("removed device rejoins through pairing with a new identity and retained fl
         await rotateVault(f.first, "old password", f.now);
       }
 
-      return fetch(input, init);
+      return f.fetcher(input, init);
     };
 
     const context = await adminContext(f.first, f.now, fetcher);
@@ -64,7 +64,7 @@ test("removed device rejoins through pairing with a new identity and retained fl
       identity,
       version: "0.0.0",
       now: f.now,
-      fetcher: fetch,
+      fetcher: f.fetcher,
     });
 
     const ke1 = signal();

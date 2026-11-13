@@ -67,9 +67,8 @@ test("placement requires approval, relinks equal detached copies and preserves d
   }
 });
 
-test("copy flag and container offer persist once per canonical checkout", async () => {
+test("container offers are recorded once per checkout", async () => {
   const { checkoutPlacement } = await import("../checkout/mode.ts");
-  const { readConfig, setConfig } = await import("../../settings/config.ts");
   const root = await mkdtemp(join(tmpdir(), "envden-copy-"));
 
   const adapters = createAdapters({
@@ -98,6 +97,30 @@ test("copy flag and container offer persist once per canonical checkout", async 
     expect(await checkoutPlacement(adapters, checkout.root, false, ask, true)).toBe("link");
     expect(await checkoutPlacement(adapters, checkout.root, false, ask, true)).toBe("link");
     expect(offered).toBe(1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("copy flags and mode switches preserve checkout bases", async () => {
+  const { readConfig, setConfig } = await import("../../settings/config.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-copy-"));
+
+  const adapters = createAdapters({
+    home: join(root, "home"),
+    userHome: root,
+    keychain: createMemoryKeychainAdapter([]),
+  });
+
+  const checkout = {
+    root: join(root, "checkout"),
+    gitDir: join(root, "checkout", ".git"),
+    repoId: "host/repo",
+  };
+
+  try {
+    await atomicWrite(join(checkout.root, ".env"), "A=1");
+    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch");
     const rules = { include: [".env"], exclude: [], extraSkipped: ["generated"] };
     await setConfig("env-files", JSON.stringify(rules), adapters.home);
 
@@ -157,7 +180,7 @@ for (const interactive of [false, true])
       await Promise.resolve(
         expect(
           supportedPlacement(adapters, root, false, async () => false, interactive),
-        ).rejects.toThrow("Links unavailable"),
+        ).rejects.toMatchObject({ code: "INVALID_INPUT" }),
       );
 
       expect((await readConfig(adapters.home)).placement?.[root]).toBeUndefined();
@@ -168,14 +191,6 @@ for (const interactive of [false, true])
         );
 
         expect((await readConfig(adapters.home)).placement?.[root]).toBe("copy");
-      } else {
-        const checkout = { root, gitDir: join(root, ".git"), repoId: "host/repo" };
-
-        await Promise.resolve(
-          expect(
-            linkCheckout(adapters, emptyState("test"), checkout, async () => true),
-          ).rejects.toThrow("Links unavailable"),
-        );
       }
     } finally {
       await rm(root, { recursive: true, force: true });

@@ -34,7 +34,7 @@ test("sync race", async () => {
         await push(first, opts);
       }
 
-      return fetch(input, init);
+      return fixture.fetcher(input, init);
     };
 
     expect((await push(second, { ...opts, fetcher: racingFetch })).kind).toBe("pushed");

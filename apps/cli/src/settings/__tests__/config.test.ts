@@ -30,7 +30,6 @@ test("config validates, persists and uses private paths", async () => {
 
 test("privacy overrides and defaults", () => {
   expect(telemetryEnabled(undefined, {})).toBe(false);
-  expect(telemetryEnabled(undefined, {})).toBe(false);
   expect(telemetryEnabled(true, {})).toBe(true);
   expect(telemetryEnabled(true, { DO_NOT_TRACK: "1" })).toBe(false);
   expect(telemetryEnabled(true, { ENVDEN_TELEMETRY: "0" })).toBe(false);

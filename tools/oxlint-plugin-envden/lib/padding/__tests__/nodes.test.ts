@@ -10,27 +10,27 @@ function node(type: string, extra = {}): ESTree.Node {
   } as ESTree.Node;
 }
 
-test.each([
-  [node("VariableDeclaration", { kind: "const" }), "value"],
-  [node("ExportNamedDeclaration", { exportKind: "type", source: {} }), "type"],
-  [node("ReturnStatement"), undefined],
-] as const)("grouping %j", (value, group) => expect(grouped(value)).toBe(group));
+test("padding helper branches retain direct coverage", () => {
+  for (const [value, group] of [
+    [node("VariableDeclaration", { kind: "const" }), "value"],
+    [node("ExportNamedDeclaration", { exportKind: "type", source: {} }), "type"],
+    [node("ReturnStatement"), undefined],
+  ] as const)
+    expect(grouped(value)).toBe(group);
 
-test.each([
-  [node("ImportDeclaration"), node("VariableDeclaration"), true, true],
-  [
-    node("VariableDeclaration", { kind: "const" }),
-    node("VariableDeclaration", { kind: "const" }),
-    true,
-    false,
-  ],
-  [node("ExpressionStatement"), node("ReturnStatement"), false, true],
-  [node("ExpressionStatement"), node("ExpressionStatement"), false, false],
-] as const)("padding %j %j", (previous, next, topLevel, expected) =>
-  expect(needsPadding(previous, next, topLevel)).toBe(expected),
-);
+  for (const [previous, next, topLevel, expected] of [
+    [node("ImportDeclaration"), node("VariableDeclaration"), true, true],
+    [
+      node("VariableDeclaration", { kind: "const" }),
+      node("VariableDeclaration", { kind: "const" }),
+      true,
+      false,
+    ],
+    [node("ExpressionStatement"), node("ReturnStatement"), false, true],
+    [node("ExpressionStatement"), node("ExpressionStatement"), false, false],
+  ] as const)
+    expect(needsPadding(previous, next, topLevel)).toBe(expected);
 
-test("function ancestry stops at the nearest function", () => {
   expect(insideFunction(node("BlockStatement", { parent: node("ArrowFunctionExpression") }))).toBe(
     true,
   );

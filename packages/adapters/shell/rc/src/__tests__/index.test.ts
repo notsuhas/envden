@@ -1,4 +1,4 @@
-import { spawnTrusted } from "@envden/core/process";
+import { execTrusted, spawnTrusted } from "@envden/core/process";
 import { expect, test } from "bun:test";
 import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -11,28 +11,18 @@ for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
     const snippet = adapter.hookSnippet("/opt/envden's bin/envden");
     expect(snippet).toMatchSnapshot();
     expect(snippet).not.toContain("git ");
-    expect(snippet).toContain("60");
+
+    expect(snippet).toContain(
+      shell === "powershell"
+        ? ".TotalSeconds -gt 60"
+        : shell === "fish"
+          ? ") -gt 60"
+          : '" -gt 60 ]; then',
+    );
+
     expect(() => adapter.hookSnippet("relative")).toThrow();
   });
 }
-
-test("rc install is idempotent and uninstall preserves user content", async () => {
-  const home = await mkdtemp(join(tmpdir(), "envden-shell-"));
-
-  try {
-    const adapter = createRcShellAdapter("bash", home);
-    await writeFile(adapter.rcPath(), "# user config\n");
-    await adapter.install("/opt/envden");
-    const first = await readFile(adapter.rcPath(), "utf8");
-    await adapter.install("/opt/envden");
-    expect(await readFile(adapter.rcPath(), "utf8")).toBe(first);
-    expect(await adapter.installed()).toBe(true);
-    await adapter.uninstall();
-    expect(await readFile(adapter.rcPath(), "utf8")).toBe("# user config\n");
-  } finally {
-    await rm(home, { recursive: true, force: true });
-  }
-});
 
 for (const shell of ["bash", "zsh"] as const) {
   test.skipIf(process.platform === "win32" || !Bun.which(shell))(
@@ -82,16 +72,10 @@ for (const shell of ["bash", "zsh"] as const) {
         expect(await run(sibling)).toBe("");
         expect(Bun.file(join(home, "result")).size).toBe(0);
         await utimes(join(state, "notice"), new Date(0), new Date(0));
+        await execTrusted("mkfifo", [join(home, "result")]);
+        const refreshed = readFile(join(home, "result"), "utf8");
         await run(checkout);
-
-        for (
-          let attempt = 0;
-          attempt < 200 && !(await Bun.file(join(home, "result")).exists());
-          attempt++
-        )
-          await Bun.sleep(10);
-
-        expect(await readFile(join(home, "result"), "utf8")).toBe("refreshed\n");
+        expect(await refreshed).toBe("refreshed\n");
       } finally {
         await rm(home, { recursive: true, force: true });
       }

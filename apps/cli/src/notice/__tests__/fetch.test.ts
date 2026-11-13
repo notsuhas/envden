@@ -19,7 +19,11 @@ test("notice requests share one deadline and preserve upstream cancellation", as
   request.abort();
   expect(observed?.aborted).toBe(true);
   deadline.abort();
-  await Promise.resolve(expect(fetcher("https://server.invalid")).rejects.toThrow());
+
+  await Promise.resolve(
+    expect(fetcher("https://server.invalid")).rejects.toBe(deadline.signal.reason),
+  );
+
   expect(calls).toBe(1);
 });
 

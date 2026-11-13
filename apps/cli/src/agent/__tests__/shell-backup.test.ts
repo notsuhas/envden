@@ -1,3 +1,4 @@
+import { manageShell } from "../shell.ts";
 import { expect, test } from "bun:test";
 import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -17,12 +18,14 @@ test("CLI shell wiring backs up rc files in private conflicts storage", async ()
   try {
     const original = "export LOCAL_CONFIG=1\n";
     await writeFile(join(root, ".zshrc"), original);
-    await adapters.shell("zsh").install("/opt/envden");
+    await manageShell(adapters, "install", "zsh");
     const backups = await readdir(join(adapters.home, "conflicts"));
     expect(backups).toHaveLength(1);
     const backup = join(adapters.home, "conflicts", backups[0]!);
     expect(await readFile(backup, "utf8")).toBe(original);
     if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
+    await manageShell(adapters, "uninstall", "zsh");
+    expect(await readFile(join(root, ".zshrc"), "utf8")).toBe(original);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

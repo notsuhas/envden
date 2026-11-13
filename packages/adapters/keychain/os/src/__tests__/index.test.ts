@@ -20,6 +20,14 @@ test("file fallback preserves bytes, isolates names and deletes", async () => {
       new Uint8Array([0, 255, 128]),
     );
 
+    if (process.platform !== "win32") {
+      const directory = join(home, "state", "keys");
+      expect((await stat(directory)).mode & 0o777).toBe(0o700);
+
+      for (const file of await readdir(directory))
+        expect((await stat(join(directory, file))).mode & 0o777).toBe(0o600);
+    }
+
     await adapter.delete("../name");
     expect(await adapter.get("../name")).toBeUndefined();
   } finally {
@@ -70,24 +78,6 @@ test.skipIf(process.platform !== "win32")(
         const acl = execFileSync("icacls", [join(directory, file)], { encoding: "utf8" });
         expect(acl).not.toContain("(I)");
       }
-    } finally {
-      await rm(home, { recursive: true, force: true });
-    }
-  },
-);
-
-test.skipIf(process.platform === "win32")(
-  "fallback file and directory modes are private",
-  async () => {
-    const home = await mkdtemp(join(tmpdir(), "envden-key-mode-"));
-
-    try {
-      await createOsKeychainAdapter({ home, fileOnly: true }).set("key", new Uint8Array([1]));
-      const directory = join(home, "state", "keys");
-      expect((await stat(directory)).mode & 0o777).toBe(0o700);
-
-      for (const file of await readdir(directory))
-        expect((await stat(join(directory, file))).mode & 0o777).toBe(0o600);
     } finally {
       await rm(home, { recursive: true, force: true });
     }

@@ -36,7 +36,7 @@ test("history requests only pages after the verified checkpoint", async () => {
       if (url.pathname === "/v1/entries" || url.pathname === "/v1/headers")
         requests.push(url.pathname + url.search);
 
-      return fetch(input, init);
+      return fixture.fetcher(input, init);
     };
 
     const context = await syncContext(second, { ...opts, fetcher });

@@ -23,7 +23,7 @@ export function shouldAskAlias(
 
 export async function vaultRepos(adapters: TAdapters, state: ILocalState, now: () => number) {
   if (!state.checkpoint) return new Set<string>();
-  const context = await syncContext(adapters, { now, fetcher: fetch, all: true });
+  const context = await syncContext(adapters, { now, fetcher: adapters.fetcher, all: true });
 
   return new Set(
     context.checkpoint.files.entries

@@ -20,6 +20,6 @@ export async function recoveryJoin(
     name,
     password: await askSecret("Master password"),
     now,
-    fetcher: fetch,
+    fetcher: adapters.fetcher,
   });
 }

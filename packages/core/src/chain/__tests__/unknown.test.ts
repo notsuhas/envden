@@ -43,14 +43,29 @@ test("unknown-data classification compares bytes before signature before format"
 });
 
 import { decodeServerObject } from "../index.ts";
-import { EntryCodec, Sign, concat, encode, verifyRawObject } from "../../protocol/index.ts";
+import {
+  EntryCodec,
+  Sign,
+  concat,
+  encode,
+  verifyRawObject,
+  header,
+  u64,
+} from "../../protocol/index.ts";
 import { fixture } from "./fixtures.ts";
 
 test("unknown entry kind is authenticated over its exact raw bytes", () => {
   const f = fixture();
   const entry = f.entry(f.state, { kind: 3, payload: { change: f.change(f.state) } });
   const body = encode(EntryCodec, entry.body);
-  body[74] = 99;
+
+  const entryKindOffset =
+    header(1).length +
+    entry.body.vaultId.length +
+    u64.write(entry.body.seq).length +
+    entry.body.parent.length;
+
+  body[entryKindOffset] = 99;
   const received = concat(body, Sign(f.a.keys.objSk, "entry", body));
 
   const input = {

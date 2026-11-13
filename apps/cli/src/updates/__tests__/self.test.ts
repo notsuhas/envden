@@ -103,7 +103,7 @@ test("fresh update check does not configure a vault", async () => {
 
   try {
     await runUpdateCheck(
-      createAdapters({ home: root, keychain: createMemoryKeychainAdapter([]) }),
+      createAdapters({ home: root, userHome: root, keychain: createMemoryKeychainAdapter([]) }),
       100,
     );
 

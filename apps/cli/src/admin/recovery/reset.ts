@@ -16,7 +16,7 @@ async function attemptResetPassword(
   password: string,
   kit: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
 ) {
   const secret = p.decodeSecretKey(kit);
   const keys = p.generateRecoveryKeys();

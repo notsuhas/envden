@@ -18,12 +18,31 @@ test("atomic state stays private and replaces old bytes", async () => {
     expect(await loadState(home)).toEqual(state);
     expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
     expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("atomic writes replace a symlink without touching its target", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-atomic-"));
+
+  try {
     await atomicWrite(join(home, "target"), "original");
     await symlink(join(home, "target"), join(home, "link"));
     await atomicWrite(join(home, "link"), "new");
     expect(await readFile(join(home, "target"), "utf8")).toBe("original");
+    expect(await readFile(join(home, "link"), "utf8")).toBe("new");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("state loading rejects an incomplete record", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-invalid-state-"));
+
+  try {
     await atomicWrite(join(home, "state", "device.json"), "{}");
-    expect(loadState(home)).rejects.toMatchObject({ code: "INVALID_DATA" });
+    await Promise.resolve(expect(loadState(home)).rejects.toMatchObject({ code: "INVALID_DATA" }));
   } finally {
     await rm(home, { recursive: true, force: true });
   }

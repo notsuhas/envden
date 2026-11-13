@@ -20,7 +20,7 @@ test("two copies of one store upload one blob and retain both bases", async () =
         const url = new URL(input instanceof Request ? input.url : String(input));
         if (url.pathname.startsWith("/v1/blobs/") && init?.method === "PUT") uploads++;
 
-        return fetch(input, init);
+        return f.fetcher(input, init);
       },
     });
 
@@ -73,7 +73,7 @@ test("an already applied entry reuses its base without downloading its blob", as
         const url = new URL(input instanceof Request ? input.url : String(input));
         if (url.pathname.startsWith("/v1/blobs/") && init?.method === "GET") downloads++;
 
-        return fetch(input, init);
+        return f.fetcher(input, init);
       },
     });
 

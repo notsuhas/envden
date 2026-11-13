@@ -11,7 +11,7 @@ for (const value of [
   { vaultId: "v", secretKey: 1 },
 ])
   test(`rejects invalid kit ${JSON.stringify(value)}`, () => {
-    expect(() => parseKit(value)).toThrow("Invalid recovery kit");
+    expect(() => parseKit(value)).toThrow(expect.objectContaining({ code: "INVALID_INPUT" }));
   });
 
 test("reads kit fields and allows metadata", () => {

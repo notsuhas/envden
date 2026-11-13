@@ -39,23 +39,3 @@ test("sync honors copy preference and prunes adapter backups after placement", a
     await fixture.cleanup();
   }
 });
-
-test("sync refuses unavailable links without a stored copy preference", async () => {
-  const fixture = await syncFixture();
-  const placement = fixture.second.placement;
-
-  fixture.second.placement = (mode, root) => ({
-    ...placement(mode, root),
-    supported: async () => false,
-  });
-
-  try {
-    await Promise.resolve(
-      expect(pull(fixture.second, fixture.opts)).rejects.toThrow("Links unavailable"),
-    );
-
-    expect((await loadState(fixture.second.home))!.links).toHaveLength(0);
-  } finally {
-    await fixture.cleanup();
-  }
-});

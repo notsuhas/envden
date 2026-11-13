@@ -29,7 +29,7 @@ test("envelope fixed salt/nonce and wrong password or secret", async () => {
       () => true,
     ),
   ).toBe(true);
-}, 15000);
+});
 
 test("envelope key derivation vector", async () => {
   const pw = await p.passwordKey("password", secret);

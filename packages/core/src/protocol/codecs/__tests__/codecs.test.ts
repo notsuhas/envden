@@ -165,7 +165,11 @@ test("malformed bytes have coded errors and future operations require an update"
     );
 
   const future = p.ManifestHeaderCodec.write(manifest);
-  future[42] = 13;
+
+  const manifestOperationOffset =
+    p.header(2).length + manifest.vaultId.length + p.u64.write(manifest.seq).length;
+
+  future[manifestOperationOffset] = 13;
 
   expect(() => p.decode(p.ManifestHeaderCodec, future)).toThrow(
     expect.objectContaining({ code: "UPDATE_REQUIRED" }),

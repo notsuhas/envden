@@ -38,13 +38,15 @@ interface ICompletion {
   vaultId: Uint8Array;
   now: () => number;
   root: string;
+  fetcher: TAdapters["fetcher"];
   kit: Awaited<ReturnType<typeof setupVault>>["kit"];
 }
 
 export async function checkCompletion(input: ICompletion) {
-  const { first, client, identity, address, pin, vaultId, now, root, kit } = input;
+  const { first, client, identity, address, pin, vaultId, now, root, kit, fetcher } = input;
 
   const fourth = createAdapters({
+    fetcher,
     home: join(root, "fourth"),
     userHome: root,
     keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
@@ -59,7 +61,7 @@ export async function checkCompletion(input: ICompletion) {
     vaultId: new Uint8Array(32),
     identity: fourthIdentity,
     now,
-    fetcher: fetch,
+    fetcher,
     version: "0.0.0",
   });
 
@@ -116,6 +118,7 @@ export async function checkCompletion(input: ICompletion) {
   await writeFile(kitPath, JSON.stringify(kit));
 
   const fifth = createAdapters({
+    fetcher,
     home: join(root, "fifth"),
     userHome: root,
     keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
@@ -127,12 +130,12 @@ export async function checkCompletion(input: ICompletion) {
   const saved = (await loadState(first.home))!;
   delete saved.session;
   await saveState(first.home, saved);
-  await unlockDevice(first, "master password", now, fetch);
+  await unlockDevice(first, "master password", now, fetcher);
   const unlocked = (await loadState(first.home))!;
   expect(unlocked.session?.unlockedUntil).toBeGreaterThan(now());
 
   await Promise.resolve(
-    expect(unlockDevice(first, "wrong password", now, fetch)).rejects.toMatchObject({
+    expect(unlockDevice(first, "wrong password", now, fetcher)).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     }),
   );

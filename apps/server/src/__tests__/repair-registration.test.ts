@@ -3,7 +3,7 @@ import * as p from "@envden/core/protocol";
 import { vaultFixture } from "./vault-fixture.ts";
 import { startRestored } from "../repair/start.ts";
 
-test("repair enforces re-registration after password change and preserves SK refusal after kit change", async () => {
+async function changedRepair() {
   const f = await vaultFixture();
 
   try {
@@ -100,7 +100,17 @@ test("repair enforces re-registration after password change and preserves SK ref
       [done],
     );
 
-    expect((await f.send(close, f.a, proof)).status).toBe(400);
+    return { f, close, proof };
+  } catch (error) {
+    f.close();
+    throw error;
+  }
+}
+
+async function registeredRepair() {
+  const { f, close, proof } = await changedRepair();
+
+  try {
     const start = await p.opaqueStartRegistration("new password");
     const json = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
 
@@ -144,6 +154,39 @@ test("repair enforces re-registration after password change and preserves SK ref
       close.opaqueRecord,
     );
 
+    return { f, close };
+  } catch (error) {
+    f.close();
+    throw error;
+  }
+}
+
+test("repair requires re-registration after a password change", async () => {
+  const { f, close, proof } = await changedRepair();
+
+  try {
+    expect((await f.send(close, f.a, proof)).status).toBe(400);
+  } finally {
+    f.close();
+  }
+});
+
+test("repair stores the replacement registration", async () => {
+  const { f, close } = await registeredRepair();
+
+  try {
+    expect(f.storage.state(f.vaultId, "opaqueRecord", new Uint8Array())).toEqual(
+      close.opaqueRecord,
+    );
+  } finally {
+    f.close();
+  }
+});
+
+test("repair preserves SK refusal after kit replacement", async () => {
+  const { f } = await registeredRepair();
+
+  try {
     f.storage.putDevice(f.vaultId, f.a.record.id, {
       unlockedUntil: 0,
       freshUntil: 0,

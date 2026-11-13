@@ -1,3 +1,4 @@
+import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { runVaultAdmin } from "../../commands/vault/run.ts";
 import { createAdapters } from "../../adapters.ts";
 import { test, expect } from "bun:test";
@@ -63,7 +64,11 @@ for (const action of ["change", "reset"] as const)
     await Promise.resolve(
       expect(
         runVaultAdmin(
-          createAdapters({ home: "/unused" }),
+          createAdapters({
+            home: "/unused",
+            userHome: "/unused",
+            keychain: createMemoryKeychainAdapter([]),
+          }),
           action,
           () => 0,
           async (label) => {

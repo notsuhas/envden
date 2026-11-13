@@ -10,7 +10,11 @@ import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
 import { VERSION } from "../version.ts";
 
-export async function localStatus(adapters: TAdapters, refresh = false, fetcher: TFetch = fetch) {
+export async function localStatus(
+  adapters: TAdapters,
+  refresh = false,
+  fetcher: TFetch = adapters.fetcher,
+) {
   const state = await loadState(adapters.home);
 
   if (!state?.server || !state.vaultId)

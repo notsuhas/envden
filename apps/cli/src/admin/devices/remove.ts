@@ -18,7 +18,7 @@ async function attemptRemoveDevice(
   name: string,
   password: string | (() => Promise<string>),
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
   newKit = false,
   recommend?: () => Promise<boolean>,
   confirm?: (exposure: Awaited<ReturnType<typeof exposedNames>>) => Promise<boolean>,

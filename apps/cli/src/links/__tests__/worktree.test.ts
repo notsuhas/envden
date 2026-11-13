@@ -139,32 +139,3 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
     await rm(root, { recursive: true, force: true });
   }
 });
-
-test("scan omits an empty checkout absent from the vault", async () => {
-  const root = await mkdtemp(join(tmpdir(), "envden-empty-checkout-"));
-
-  try {
-    const { setupCheckouts } = await import("../../onboarding/scan.ts");
-    await mkdir(join(root, ".git"));
-
-    const adapters = createAdapters({
-      home: join(root, "state"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
-
-    adapters.repo.checkoutAt = async () => ({
-      root,
-      gitDir: join(root, ".git"),
-      repoId: "example/repo",
-    });
-
-    adapters.repo.worktrees = async () => [];
-    adapters.repo.envFiles = async () => [];
-    const state = emptyState("test");
-    await setupCheckouts(adapters, state, { scanRoot: [root], approve: async () => true });
-    expect(state.approved).toHaveLength(0);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});

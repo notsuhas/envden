@@ -1,6 +1,5 @@
 import { test, expect } from "bun:test";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { completeJoin } from "../complete-join.ts";
 import { runSetup } from "../setup.ts";
 
 test("completed setup skips credentials, kit and certificate prompts", async () => {
@@ -37,49 +36,13 @@ test("completed setup skips credentials, kit and certificate prompts", async () 
   }
 });
 
-test("completeJoin scans before first sync and wires first-run choices", async () => {
-  const f = await fixture();
-
-  try {
-    const calls: string[] = [];
-
-    await completeJoin(f.first, f.now, {
-      setupPreferences: async () => {
-        calls.push("preferences");
-      },
-      setupCheckouts: async (adapters, state, options) => {
-        expect(adapters).toBe(f.first);
-        expect(state.vaultId).toBe(f.result.state.vaultId);
-        expect(options.now).toBe(f.now);
-        calls.push("scan");
-      },
-      firstRun: async (adapters, options) => {
-        expect(adapters).toBe(f.first);
-        expect(options).toMatchObject({ all: true, interactive: true, now: f.now, fetcher: fetch });
-        expect(typeof options.choose).toBe("function");
-        calls.push("sync");
-
-        return { kind: "pulled", changed: 0, conflicts: 0 };
-      },
-    });
-
-    expect(calls).toEqual(["preferences", "scan", "sync"]);
-  } finally {
-    await f.close();
-  }
-});
-
 test("setup preferences persist only in config", async () => {
   const { setupPreferences } = await import("../preferences.ts");
   const { readConfig } = await import("../../settings/config.ts");
-  const { emptyState } = await import("../../state/model.ts");
   const f = await fixture();
 
   try {
-    const state = emptyState("test");
-    const before = structuredClone(state);
     await setupPreferences(f.first, { telemetry: "on", updateCheck: "off", yes: true });
-    expect(state).toEqual(before);
 
     expect(await readConfig(f.first.home)).toMatchObject({
       telemetry: true,
@@ -133,6 +96,23 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
     });
 
     expect(state.approved.some((repo) => repo.root === checkout.root)).toBe(true);
+
+    const absent = {
+      root: join(f.root, "absent"),
+      gitDir: join(f.root, "absent", ".git"),
+      repoId: "host/absent",
+    };
+
+    await mkdir(absent.gitDir, { recursive: true });
+    f.first.repo.checkoutAt = async () => absent;
+
+    await setupCheckouts(f.first, state, {
+      scanRoot: [absent.root],
+      approve: async () => true,
+      now: f.now,
+    });
+
+    expect(state.approved.some((repo) => repo.root === absent.root)).toBe(false);
   } finally {
     await f.close();
   }

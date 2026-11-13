@@ -38,8 +38,15 @@ test("missing certificates, logged-out, malformed and unavailable status fail cl
       stderr: "",
     }));
 
-    expect(await adapter.checkHttpsCertificate()).toBe(false);
     expect((await adapter.status()).ready).toBe(false);
-    expect(adapter.expose(8080)).rejects.toThrow();
   }
+
+  const adapter = createTailscaleNetworkAdapter(async () => ({
+    exitCode: 0,
+    stdout: JSON.stringify({ ...fixture, CertDomains: [] }),
+    stderr: "",
+  }));
+
+  expect(await adapter.checkHttpsCertificate()).toBe(false);
+  await Promise.resolve(expect(adapter.expose(8080)).rejects.toBeInstanceOf(Error));
 });

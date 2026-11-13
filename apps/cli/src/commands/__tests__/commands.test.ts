@@ -49,7 +49,7 @@ test("command help and shared stub exit", async () => {
     "doctor",
     "version",
   ])
-    expect(help.stdout).toContain(command);
+    expect(help.stdout).toMatch(new RegExp(`\\b${command}\\b`));
 
   for (const args of [
     ["pull", "--all"],

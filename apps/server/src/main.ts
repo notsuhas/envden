@@ -18,10 +18,14 @@ export async function serve(
     setupToken?: string;
     restored?: boolean;
     now?: () => number;
+    listen?: (app: ReturnType<typeof createApp>) => {
+      url: URL;
+      stop: (close?: boolean) => void | Promise<void>;
+    };
   } = {},
 ) {
   const dataDir = options.dataDir ?? join(homedir(), ".envden", "server");
-  const now = options.now ?? (() => Date.now());
+  const now = options.now ?? Date.now;
   const serverKeys = await loadServerKeys(dataDir);
   const { storage } = createAdapters(dataDir, now());
 
@@ -42,15 +46,17 @@ export async function serve(
 
     const app = createApp(appOptions);
 
-    const pruning = setInterval(() => pruneHistorySafely(appOptions), 3600000);
+    const pruning = setInterval(pruneHistorySafely, 3600000, appOptions);
     pruning.unref();
 
-    const server = Bun.serve({
-      maxRequestBodySize,
-      hostname: "127.0.0.1",
-      port: options.port ?? 4280,
-      fetch: app.fetch,
-    });
+    const server =
+      options.listen?.(app) ??
+      Bun.serve({
+        maxRequestBodySize,
+        hostname: "127.0.0.1",
+        port: options.port ?? 4280,
+        fetch: app.fetch,
+      });
 
     console.log(`envden listening on ${server.url.toString()}`);
 

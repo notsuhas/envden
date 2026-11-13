@@ -14,7 +14,7 @@ async function attemptRotateVault(
   adapters: TAdapters,
   password: string,
   now: () => number,
-  fetcher: TFetch = fetch,
+  fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await adminContext(adapters, now, fetcher);
   await login(context.client, context.vaultId, password);

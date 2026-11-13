@@ -21,7 +21,7 @@ export async function checkCrash(
         throw new Error("Crash before close");
       }
 
-      const response = await fetch(input, init);
+      const response = await options.fetcher(input, init);
       if (path === "/v1/repair/finish") closed = true;
 
       if (!failed && shouldCrashAfter(crash, path, closed)) {

@@ -19,7 +19,7 @@ export async function completeJoin(
 
   await effects.firstRun(adapters, {
     now,
-    fetcher: fetch,
+    fetcher: adapters.fetcher,
     all: true,
     interactive: true,
     choose: chooseFirstRun,

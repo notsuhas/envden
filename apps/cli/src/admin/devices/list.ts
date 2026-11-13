@@ -6,7 +6,11 @@ import { adminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";
 import { recoveryHolders } from "./recovery-holders.ts";
 
-export async function listDevices(adapters: TAdapters, now: () => number, fetcher: TFetch = fetch) {
+export async function listDevices(
+  adapters: TAdapters,
+  now: () => number,
+  fetcher: TFetch = adapters.fetcher,
+) {
   const context = await adminContext(adapters, now, fetcher);
   const history = await currentHistory(context);
   const holders = recoveryHolders(history);

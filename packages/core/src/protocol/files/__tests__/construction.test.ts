@@ -44,6 +44,10 @@ test("file blob and name vectors, bound metadata and identity", () => {
 
 test("paths are portable relative NFC paths before file identity derivation", () => {
   for (const path of [
+    "",
+    "/a",
+    "a/",
+    "../../__tests__/a",
     "/root",
     "a//b",
     "a/./b",
@@ -62,6 +66,8 @@ test("paths are portable relative NFC paths before file identity derivation", ()
     "e\u0301",
   ])
     expect(() => p.fileId(key, "repo", path)).toThrow();
+
+  expect(p.fileId(key, "repo", "A")).not.toEqual(p.fileId(key, "repo", "a"));
 
   for (const path of ["folder/.env", "é/.env", "console.env", "COM10.env"])
     expect(() => p.validatePath(path)).not.toThrow();

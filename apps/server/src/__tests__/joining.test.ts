@@ -26,30 +26,23 @@ test("joiner can pair before learning vault ID and grant is consumed by atomic p
     expect(
       (
         await f
-          .request(`${base}/${number}/KE1`, { message: text(p.randomBytes(96)) }, joiner)
+          .request(`${base}/${number}/KE1`, { message: text(p.randomBytes(4097)) }, joiner)
           .send()
       ).status,
-    ).toBe(200);
+    ).toBe(400);
 
-    expect(
-      (
-        await f
-          .request(
-            `${base}/${number}/KE2`,
-            { message: text(p.randomBytes(320)) },
-            { method: "PUT" },
-          )
-          .send()
-      ).status,
-    ).toBe(200);
-
-    expect(
-      (
-        await f
-          .request(`${base}/${number}/KE3`, { message: text(p.randomBytes(64)) }, joiner)
-          .send()
-      ).status,
-    ).toBe(200);
+    for (const [slot, length, options] of [
+      ["KE1", 96, joiner],
+      ["KE2", 320, { method: "PUT" }],
+      ["KE3", 64, joiner],
+    ] as const)
+      expect(
+        (
+          await f
+            .request(`${base}/${number}/${slot}`, { message: text(p.randomBytes(length)) }, options)
+            .send()
+        ).status,
+      ).toBe(200);
 
     const message = p.sealPairJoiner({ device: f.joiner.record }, p.randomBytes(32));
 
@@ -91,30 +84,6 @@ test("joiner can pair before learning vault ID and grant is consumed by atomic p
 
     expect(response.status).toBe(200);
     expect(p.MessageResponseSchema.parse(await response.json()).message).toBe(text(approver));
-  } finally {
-    f.close();
-  }
-});
-
-test("oversized mailbox payload is rejected", async () => {
-  const f = fixture(await identity());
-
-  try {
-    f.fresh();
-    const response = await f.request(base, {}).send();
-    const { number } = p.MailboxOpenedSchema.parse(await response.json());
-
-    expect(
-      (
-        await f
-          .request(
-            `${base}/${number}/KE1`,
-            { message: text(p.randomBytes(4097)) },
-            { method: "PUT", who: f.joiner },
-          )
-          .send()
-      ).status,
-    ).toBe(400);
   } finally {
     f.close();
   }

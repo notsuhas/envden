@@ -20,7 +20,7 @@ test("accepted recovery-signed joins report once per event and skip the joining 
       f.first,
       requireConfigured(f.result.state, "Expected vault"),
       f.now,
-      fetch,
+      f.fetcher,
     );
 
     const report = async () => {
@@ -79,7 +79,7 @@ test("the next foreground command reports a kit join even with a fresh notice ca
     >();
 
     const capture: TFetch = async (input, init) => {
-      const response = await fetch(input, init);
+      const response = await f.fetcher(input, init);
 
       responses.set(
         typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
@@ -107,7 +107,7 @@ test("the next foreground command reports a kit join even with a fresh notice ca
 
     await f.joinHome("second");
     const { remoteNotice } = await import("../remote.ts");
-    await remoteNotice(f.first, { now: f.now, fetcher: fetch, all: true });
+    await remoteNotice(f.first, { now: f.now, fetcher: f.fetcher, all: true });
     expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
 
     await remoteNotice(f.first, { now: f.now, fetcher: replay, all: true });
@@ -131,7 +131,7 @@ test("the next foreground command reports a kit join even with a fresh notice ca
 
     expect(output.mock.calls.flat()).toContain("envden: second joined with the recovery kit");
     output.mockClear();
-    await commandNotice(f.first, f.now(), fetch, false);
+    await commandNotice(f.first, f.now(), f.fetcher, false);
     expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
   } finally {
     output.mockRestore();

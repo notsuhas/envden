@@ -1,7 +1,6 @@
 import { test, expect, spyOn } from "bun:test";
 import { cp, rm, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { serve } from "@envden/server";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 import { atomicWrite } from "../../../state/store/files.ts";
@@ -43,7 +42,7 @@ for (const recovered of [true, false])
         password: "old password",
         name: "second",
         now: f.now,
-        fetcher: fetch,
+        fetcher: f.fetcher,
       });
 
       const checkoutB = {
@@ -61,7 +60,7 @@ for (const recovered of [true, false])
       const bState = (await loadState(second.home))!;
       bState.approved.push(checkoutB);
       await saveState(second.home, bState);
-      const opts = { now: f.now, fetcher: fetch, all: true, yes: true };
+      const opts = { now: f.now, fetcher: f.fetcher, all: true, yes: true };
       await pull(second, opts);
       const aStore = (await loadState(f.first.home))!.links[0]!.store;
       const bStore = (await loadState(second.home))!.links[0]!.store;
@@ -69,7 +68,7 @@ for (const recovered of [true, false])
       current.stopPruning();
       current.storage.close();
       await cp(join(f.root, "server"), join(f.root, "backup"), { recursive: true });
-      current = await serve({ dataDir: join(f.root, "server"), port: 0 });
+      current = await f.serve({ dataDir: join(f.root, "server"), port: 0 });
 
       const point = async (home: typeof f.first) => {
         const local = (await loadState(home.home))!;
@@ -90,7 +89,7 @@ for (const recovered of [true, false])
       current.storage.close();
       if (!recovered) await rm(join(f.root, "backup", "blobs"), { recursive: true, force: true });
       const log = spyOn(console, "log").mockImplementation(() => {});
-      current = await serve({ dataDir: join(f.root, "backup"), port: 0, restored: true });
+      current = await f.serve({ dataDir: join(f.root, "backup"), port: 0, restored: true });
 
       const token = log.mock.calls
         .flat()
@@ -108,7 +107,7 @@ for (const recovered of [true, false])
         password: "old password",
         acceptLost: true,
         now: f.now,
-        fetcher: fetch,
+        fetcher: f.fetcher,
       });
 
       expect(finish.kind).toBe("finished");
