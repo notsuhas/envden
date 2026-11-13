@@ -2,9 +2,13 @@ import { execTrusted as exec } from "@envden/core/process";
 import { chmod } from "node:fs/promises";
 import { userInfo } from "node:os";
 
-export async function restrictAccess(path: string, directory = false): Promise<void> {
-  if (process.platform === "win32") {
-    await exec("icacls", [
+export async function restrictAccess(
+  path: string,
+  directory = false,
+  runtime = { platform: process.platform, exec },
+): Promise<void> {
+  if (runtime.platform === "win32") {
+    await runtime.exec("icacls", [
       path,
       "/inheritance:r",
       "/grant:r",

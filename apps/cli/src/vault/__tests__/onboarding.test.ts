@@ -220,10 +220,25 @@ test("real server: setup, pair a second home, kit join a third", async () => {
 
     expect(recovered.vaultId).toBe(result.kit.vaultId);
     expect(recovered.entries).toHaveLength(4);
+
+    await checkCompletion({
+      first,
+      client,
+      identity,
+      address,
+      pin,
+      vaultId,
+      now,
+      root,
+      kit: result.kit,
+    });
   } finally {
     await running.server.stop(true);
     running.storage.close();
+    running.stopPruning();
     setSystemTime();
     await rm(root, { recursive: true, force: true });
   }
 });
+
+import { checkCompletion } from "./completion.ts";

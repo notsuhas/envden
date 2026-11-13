@@ -9,6 +9,7 @@ export async function recoveryJoin(
   name: string,
   kitPath: string | undefined,
   now: () => number,
+  askSecret = secret,
 ) {
   const kit = await readKit(kitPath);
 
@@ -17,7 +18,7 @@ export async function recoveryJoin(
     vaultId: kit.vaultId,
     secretKey: kit.secretKey,
     name,
-    password: await secret("Master password"),
+    password: await askSecret("Master password"),
     now,
     fetcher: fetch,
   });

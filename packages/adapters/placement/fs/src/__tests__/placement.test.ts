@@ -1,21 +1,19 @@
 import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { rejects } from "node:assert/strict";
-import { afterEach, expect, test } from "bun:test";
+import { expect, test } from "bun:test";
 import {
   lstat,
-  mkdtemp,
   mkdir,
   readFile,
   readdir,
   realpath,
   rename,
-  rm,
   symlink,
   unlink,
   utimes,
   writeFile,
 } from "node:fs/promises";
-import { tmpdir } from "node:os";
+
 import { join } from "node:path";
 import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
 import {
@@ -25,22 +23,7 @@ import {
   validatePulledPath,
 } from "../index.ts";
 
-const roots: string[] = [];
-
-afterEach(async () => {
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
-
-async function setup() {
-  const root = await mkdtemp(join(tmpdir(), "envden-placement-"));
-  roots.push(root);
-  const checkout = join(root, "checkout");
-  await mkdir(checkout);
-  const store = join(root, "store");
-  await writeFile(store, "A=secret\n");
-
-  return { root, checkout, store };
-}
+import { setup } from "./fixture.ts";
 
 for (const path of [
   "../a",

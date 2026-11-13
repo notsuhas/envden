@@ -72,3 +72,44 @@ test.each(["file.ts", "file.test.ts", "/tmp/__tests__/some-file.ts", "use-value.
     expect(reports).toHaveLength(0);
   },
 );
+
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { sourceSiblings } from "../../siblings.ts";
+
+test("filename grouping counts only sibling source files and reports the shared prefix", () => {
+  const root = mkdtempSync(join(tmpdir(), "envden-siblings-"));
+  const reports: unknown[] = [];
+  const node = {} as ESTree.Program;
+
+  const context = {
+    filename: join(root, "device-add.ts"),
+    report: (report: unknown) => reports.push(report),
+  } as Parameters<typeof checkFilename>[0];
+
+  try {
+    for (const name of [
+      "device-add.ts",
+      "device-rm.test.ts",
+      "device-ls.spec.ts",
+      "index.ts",
+      "notes.md",
+      "other.jsx",
+    ])
+      writeFileSync(join(root, name), "");
+
+    mkdirSync(join(root, "device-folder.ts"));
+    expect(sourceSiblings(context.filename)).toEqual(["device-add.ts", "other.jsx"]);
+    checkFilename(context, node);
+    expect(reports).toEqual([]);
+    writeFileSync(join(root, "device-ls.ts"), "");
+    checkFilename(context, node);
+
+    expect(reports).toEqual([
+      { node, message: "Move related device- files into a device/ folder." },
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

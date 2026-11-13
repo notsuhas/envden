@@ -77,3 +77,11 @@ test("selection wrappers reject unattended approval and file choices", async () 
     else Reflect.deleteProperty(process.stdin, "isTTY");
   }
 });
+
+for (const [code, exit] of [
+  ["INVALID_INPUT", 2],
+  ["NOT_IMPLEMENTED", 2],
+  ["UNAUTHORIZED", 1],
+  ["INTERNAL", 1],
+] as const)
+  test(`exit status for ${code}`, () => expect(errorExitCode(code)).toBe(exit));

@@ -23,3 +23,49 @@ for (const [path, expected] of [
   test(`excluded root ${path}`, () => {
     expect(isWithinRoot("/repos", path)).toBe(expected);
   });
+
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createAdapters } from "../../adapters.ts";
+import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
+import { emptyState } from "../../state/model.ts";
+import { saveState, loadState } from "../../state/store/repository.ts";
+import { aliasRepo } from "../alias.ts";
+
+test("alias updates persist without losing prior aliases and rejected chains leave state unchanged", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-alias-"));
+
+  const adapters = createAdapters({
+    home,
+    userHome: home,
+    keychain: createMemoryKeychainAdapter([]),
+  });
+
+  try {
+    await Promise.resolve(
+      expect(aliasRepo(adapters, "a", "b")).rejects.toMatchObject({ code: "NOT_FOUND" }),
+    );
+
+    const state = emptyState("test");
+    state.aliases = { old: "canonical" };
+    await saveState(home, state);
+    await aliasRepo(adapters, "a", "b");
+    const saved = await loadState(home);
+    expect(saved?.aliases).toEqual({ old: "canonical", a: "b" });
+
+    for (const [source, target, code] of [
+      ["b", "c", "CONFLICT"],
+      ["c", "old", "CONFLICT"],
+      ["a", "a", "INVALID_INPUT"],
+    ]) {
+      await Promise.resolve(
+        expect(aliasRepo(adapters, source!, target!)).rejects.toMatchObject({ code }),
+      );
+
+      expect(await loadState(home)).toEqual(saved);
+    }
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

@@ -15,8 +15,9 @@ export async function promptPairing(
   identity: TDeviceIdentity,
   pin: Uint8Array,
   now: () => number,
+  interaction = { secret, waitMessage },
 ) {
-  const code = await secret("Pairing code");
+  const code = await interaction.secret("Pairing code");
   const mailbox = p.normalizePairingCode(code).mailbox;
 
   await exchangeJoiner(adapters, client, identity, pin, code, async (expiresAt) => {
@@ -24,7 +25,7 @@ export async function promptPairing(
       atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt)),
     );
 
-    await waitMessage(client, `/v1/pairing/mailboxes/${mailbox}/KE2`, now, expiresAt);
+    await interaction.waitMessage(client, `/v1/pairing/mailboxes/${mailbox}/KE2`, now, expiresAt);
   });
 
   console.log("Waiting for the approving device");

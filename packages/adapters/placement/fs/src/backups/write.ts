@@ -15,7 +15,15 @@ import { libc } from "../native/libc.ts";
 import { spawnTrusted } from "@envden/core/process";
 import { userInfo } from "node:os";
 
-export function backupContents(root: string, directory: string | undefined, contents: Uint8Array) {
+export function backupContents(
+  root: string,
+  directory: string | undefined,
+  contents: Uint8Array,
+  runtime = {
+    libc,
+    spawn: (args: string[]) => spawnTrusted("icacls", args, { sync: true }).exitCode,
+  },
+) {
   if (!directory) throw new EnvdenError("INVALID_INPUT", "Backup directory is required");
   const path = resolve(directory);
   assertOutside(root, path);
@@ -24,7 +32,7 @@ export function backupContents(root: string, directory: string | undefined, cont
   assertOutside(realpathSync(root), realpathSync(path));
   const name = `.envden-backup-${randomUUID()}`;
 
-  if (libc) {
+  if (runtime.libc) {
     const fd = openParent(path, name, false);
 
     try {
@@ -39,14 +47,14 @@ export function backupContents(root: string, directory: string | undefined, cont
 
     chmodSync(path, 0o700);
 
-    const result = spawnTrusted(
-      "icacls",
-      [path, "/inheritance:r", "/grant:r", `${userInfo().username}:(OI)(CI)F`],
-      { sync: true },
-    );
+    const result = runtime.spawn([
+      path,
+      "/inheritance:r",
+      "/grant:r",
+      `${userInfo().username}:(OI)(CI)F`,
+    ]);
 
-    if (result.exitCode !== 0)
-      throw new EnvdenError("INVALID_INPUT", "Could not restrict backup access");
+    if (result !== 0) throw new EnvdenError("INVALID_INPUT", "Could not restrict backup access");
 
     writeFileSync(join(path, name), contents, { flag: "wx", mode: 0o600 });
   }

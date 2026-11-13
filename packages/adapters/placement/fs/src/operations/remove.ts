@@ -8,11 +8,16 @@ import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
 import { isStoreLink } from "./link.ts";
 import { statOrMissing } from "./stat.ts";
 
-export async function remove(root: string, storePath: string | undefined, checkoutPath: string) {
+export async function remove(
+  root: string,
+  storePath: string | undefined,
+  checkoutPath: string,
+  runtime = { platform: process.platform, libc },
+) {
   const path = checkoutRelative(root, checkoutPath);
-  requireNativePlacement(process.platform, libc);
+  requireNativePlacement(runtime.platform, runtime.libc);
 
-  if (libc) {
+  if (runtime.libc) {
     // Missing parents need no creation; unsafe existing parents must still fail.
     if (!(await statOrMissing(root))) return;
 

@@ -21,12 +21,13 @@ export async function place(
   storePath: string,
   checkoutPath: string,
   backupDirectory?: string,
+  runtime = { platform: process.platform, libc },
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
 
-  requireNativePlacement(process.platform, libc);
+  requireNativePlacement(runtime.platform, runtime.libc);
 
-  if (libc) {
+  if (runtime.libc) {
     placeNative(mode, root, path, storePath, undefined, backupDirectory);
 
     return;
