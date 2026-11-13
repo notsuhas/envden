@@ -92,6 +92,9 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
       process.env.NODE_OPTIONS = "--require=checkout";
       process.env.BUN_OPTIONS = "--preload=checkout";
       process.env.npm_config_prefix = root;
+      process.env.HOMEBREW_BASH_COMMAND = join(root, "payload.sh");
+      process.env.NODE_PATH = root;
+      process.env.GIT_EXEC_PATH = root;
       process.env.NPM_CONFIG_USERCONFIG = join(root, "npmrc");
       const bin = join(root, "prefix", "bin");
       await mkdir(bin, { recursive: true });
@@ -120,7 +123,7 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
 
           expect(
             Object.keys(env ?? {}).some((key) =>
-              /^(node_options|bun_options|npm_config_.*)$/i.test(key),
+              /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(key),
             ),
           ).toBe(false);
 
