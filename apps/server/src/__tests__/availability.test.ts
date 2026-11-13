@@ -100,7 +100,7 @@ test("public login starts are charged before reading the body", async () => {
 test("bodiless GETs reserve nothing even when both body budgets are full", async () => {
   const f = fixture(await identity());
   const member = reserveBody(134217728);
-  const publicBody = reserveBody(1048576, false);
+  const publicBody = reserveBody(1048576, "public");
   f.fresh();
 
   try {

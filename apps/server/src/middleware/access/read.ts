@@ -16,8 +16,8 @@ export async function verifiedBody(
   if (!auth.member && route.charge) auth.rateReceipt = charge(options, auth);
   const raw = c.req.raw;
   const authorized = route.policy === "data" || route.policy === "registration";
-  const budget = auth.member ? true : authorized ? "authorized" : false;
-  const release = reserveBody(raw.body ? route.limit * 2 : 0, budget);
+  const budget = auth.member ? "member" : authorized ? "authorized" : "public";
+  const release = reserveBody(raw.body ? route.limit * 2 : 0, budget, auth.request);
 
   try {
     const body = await readBody(raw, route.limit, auth.request.bodyHash);

@@ -105,10 +105,13 @@ test("concurrent body reservations return 503 and release after requests finish"
   }
 
   const first = hold();
+  await first.reading;
   const second = hold();
 
   try {
-    await Promise.all([first.reading, second.reading]);
+    expect((await second.response).status).toBe(503);
+    const other = reserveBody(65536, "member", f.request("/v1/swap", {}, { who: f.joiner }).r);
+    other();
     expect((await f.request("/v1/swap", {}).send()).status).toBe(503);
   } finally {
     first.finish();
