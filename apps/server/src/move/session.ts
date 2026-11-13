@@ -1,3 +1,4 @@
+import { initializeSetup } from "../identity/setup.ts";
 import { equal } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../http/types.ts";
@@ -21,14 +22,7 @@ export function openMove(options: IAppOptions, auth: IAuth) {
     storage.configureVault(
       vaultId,
       { active: false, frozen: false, skRefused: false, unlockPeriod: 2592000000 },
-      [
-        { kind: "move-session", key: new Uint8Array(), bytes: device },
-        {
-          kind: "move-session",
-          key: new TextEncoder().encode("setup"),
-          bytes: storage.setupToken()!,
-        },
-      ],
+      [{ kind: "move-session", key: new Uint8Array(), bytes: device }],
       storage.setupToken()!,
     );
 
@@ -36,6 +30,9 @@ export function openMove(options: IAppOptions, auth: IAuth) {
       { kind: "server-identity", key: vaultId, bytes: vaultId },
     ]);
   });
+
+  const token = initializeSetup(storage, options.serverKeys.publicKey);
+  if (token) console.log(token);
 
   return { kind: "moving" };
 }

@@ -8,7 +8,12 @@ test("repair enforces re-registration after password change and preserves SK ref
 
   try {
     await f.initialize();
-    const secret = p.decodeToken("repair", startRestored(f.options)[0]!.token).secret;
+
+    const secret = p.decodeToken(
+      "repair",
+      startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!.token,
+    ).secret;
+
     const proof = (r: p.IRequest) => p.tokenProof("repair", p.tokenKey("repair", secret), r);
     const keys = p.generateRecoveryKeys();
     const recovery = { id: p.recoveryId(keys), encPub: keys.encPub, objPub: keys.objPub };
@@ -53,7 +58,7 @@ test("repair enforces re-registration after password change and preserves SK ref
 
     kit.envelope = envelope;
     kit.keyring = keyring;
-    kit.skPub = p.randomBytes(32);
+    kit.skPub = p.generateRecoveryKeys().objPub;
 
     expect((await f.request("/v1/repair/history", p.SwapCodec.write(kit), f.a, proof)).status).toBe(
       200,

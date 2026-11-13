@@ -20,8 +20,7 @@ export function commit(
   const { vaultId } = auth.request;
   const stored = storedSwap(swap, digest);
   if (!storage.head(vaultId)) throw new EnvdenError("MOVING", "Import required");
-  const retry = storage.commitSwap(vaultId, undefined, stored, now());
-  if (retry.kind === "retry-of-committed") return retry;
+  if (storage.findCommitted(vaultId, digest)) return { kind: "retry-of-committed" as const };
   const vault = storage.vault(vaultId)!;
 
   if (
@@ -36,7 +35,12 @@ export function commit(
 
   const { header: previous, state } = vaultChain(storage, vaultId);
   const files = decode(FilesCodec, storage.fileList(vaultId, previous.body.filesHash)!);
-  const available = new Set(storage.blobHashes(vaultId).map(base32));
+
+  const available = new Set(
+    [...files.entries, ...(swap.files?.entries ?? [])]
+      .filter((entry) => storage.hasBlob(vaultId, entry.blobHash))
+      .map((entry) => base32(entry.blobHash)),
+  );
 
   const result = validateSwap(swap, {
     previous,
@@ -49,7 +53,11 @@ export function commit(
         .map((e) => base32(e.blobHash)),
     ),
     ancestorHeaderHashes: new Set(
-      storage.headers(vaultId, 1n, previous.body.seq).map((h) => base32(h.hash)),
+      swap.entries.flatMap((entry) =>
+        entry.body.kind === 6 && storage.header(vaultId, entry.body.payload.restoredHead)
+          ? [base32(entry.body.payload.restoredHead)]
+          : [],
+      ),
     ),
     repairRegistrationRequired: repairLoginDecision(repairHistory(options, vaultId)) === "register",
     ...(!vault.active ? { destinationPin: serverPin(options.serverKeys.publicKey) } : {}),

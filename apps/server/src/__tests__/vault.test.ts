@@ -9,7 +9,8 @@ test("create, upload, push, head race and digest retry", async () => {
   try {
     expect((await f.initialize()).status).toBe(200);
     expect((await f.initialize()).status).toBe(200);
-    expect(f.storage.setupToken()).toBeUndefined();
+    expect(f.storage.setupToken()).toBeDefined();
+    expect(f.storage.setupToken()).not.toEqual(f.setup);
     expect(membership(f.storage, f.vaultId, f.a.record.id)).toEqual(f.a.record);
     const bytes = p.randomBytes(64);
     const hash = p.H("blob", bytes);

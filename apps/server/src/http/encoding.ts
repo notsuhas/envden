@@ -20,6 +20,9 @@ export function input<T>(parse: () => T): T {
   try {
     return parse();
   } catch (cause) {
+    if (cause instanceof EnvdenError && cause.code === "UPDATE_REQUIRED")
+      throw new EnvdenError("SERVER_TOO_OLD", "Update the server", { cause });
+
     throw new EnvdenError("INVALID_INPUT", "Invalid input", { cause });
   }
 }

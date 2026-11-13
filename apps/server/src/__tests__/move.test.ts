@@ -112,3 +112,24 @@ for (const lostAfterCommit of [false, true])
       n.close();
     }
   });
+
+test("discard never resurrects consumed setup tokens", async () => {
+  const f = await vaultFixture();
+
+  try {
+    const proof = (r: p.IRequest) => p.tokenProof("setup", f.setup, r);
+    expect((await f.request("/v1/move/session", new Uint8Array(), f.a, proof)).status).toBe(200);
+
+    f.storage.writeState(f.vaultId, [
+      { kind: "move-session", key: new TextEncoder().encode("setup"), bytes: f.setup },
+    ]);
+
+    const replacement = p.tokenKey("setup", p.randomBytes(20));
+    f.storage.setSetupToken(replacement);
+    expect((await f.request("/v1/move/discard", new Uint8Array())).status).toBe(200);
+    expect(f.storage.setupToken()).toEqual(replacement);
+    expect(f.storage.setupToken()).not.toEqual(f.setup);
+  } finally {
+    f.close();
+  }
+});

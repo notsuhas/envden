@@ -1,3 +1,4 @@
+import { MessageResponseSchema, RegistrationResponseSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import { opaqueRegistrationResponse, unlockIdentifiers, equal } from "@envden/core/protocol";
 import type { IAppOptions, IAuth } from "../http/types.ts";
@@ -36,7 +37,7 @@ export async function startRegistration(options: IAppOptions, auth: IAuth, messa
     options.now(),
   );
 
-  return { message: result.registrationResponse };
+  return MessageResponseSchema.parse({ message: result.registrationResponse });
 }
 
 export function finishRegistration(options: IAppOptions, auth: IAuth, message: string) {
@@ -97,5 +98,5 @@ export function finishRegistration(options: IAppOptions, auth: IAuth, message: s
     options.storage.refund(new TextDecoder().decode(receipt), options.now());
   });
 
-  return { kind: "registered" };
+  return RegistrationResponseSchema.parse({ kind: "registered" });
 }

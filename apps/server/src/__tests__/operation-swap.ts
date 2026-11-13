@@ -49,7 +49,7 @@ export function operationSwap(
 
   swap.keyring = keyring;
   swap.envelope = envelope;
-  swap.skPub = [5, 7].includes(op) ? p.randomBytes(32) : undefined;
+  swap.skPub = [5, 7].includes(op) ? p.generateRecoveryKeys().objPub : undefined;
   swap.opaqueRecord = [8, 9].includes(op) ? p.randomBytes(192) : undefined;
 
   return swap;

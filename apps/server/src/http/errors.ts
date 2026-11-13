@@ -1,3 +1,4 @@
+import { ErrorResponseSchema } from "@envden/core/protocol";
 import type { ErrorHandler } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { EnvdenError, type TErrorCode } from "@envden/core/errors";
@@ -22,6 +23,7 @@ const statuses = {
   UNSAFE_VERSION: 426,
   NOT_IMPLEMENTED: 501,
   INTERNAL: 500,
+  SERVER_UNREACHABLE: 502,
 } satisfies Record<TErrorCode, ContentfulStatusCode>;
 
 export const onError: ErrorHandler = (error, c) => {
@@ -32,10 +34,13 @@ export const onError: ErrorHandler = (error, c) => {
         ? "INVALID_INPUT"
         : "INTERNAL";
 
+  if (statuses[code] === 500)
+    console.error("envden request failed", { code, method: c.req.method });
+
   const hint =
     code === "UNAUTHORIZED" && c.req.path.startsWith("/v1/opaque/login/")
       ? { hint: "The vault may have moved; try the current server address" }
       : {};
 
-  return c.json({ error: code, ...hint }, statuses[code]);
+  return c.json(ErrorResponseSchema.parse({ error: code, ...hint }), statuses[code]);
 };

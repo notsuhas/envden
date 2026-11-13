@@ -1,3 +1,4 @@
+import { initializeSetup } from "../identity/setup.ts";
 import { requireStagedRecord } from "../auth/staged.ts";
 import { validateCreation } from "./creation/validate.ts";
 import { equal, type ISwap } from "@envden/core/protocol";
@@ -12,8 +13,7 @@ function create(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Arr
   const stored = storedSwap(swap, digest);
 
   if (storage.hasVault(vaultId)) {
-    const result = storage.commitSwap(vaultId, undefined, stored, now());
-    if (result.kind === "retry-of-committed") return result;
+    if (storage.findCommitted(vaultId, digest)) return { kind: "retry-of-committed" as const };
     throw new EnvdenError("CONFLICT", "Vault already exists");
   }
 
@@ -57,5 +57,9 @@ function create(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Arr
 }
 
 export function createVault(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Array) {
-  return options.storage.transaction(() => create(options, auth, swap, digest));
+  const result = options.storage.transaction(() => create(options, auth, swap, digest));
+  const token = initializeSetup(options.storage, options.serverKeys.publicKey);
+  if (token) console.log(token);
+
+  return result;
 }

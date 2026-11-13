@@ -1,4 +1,5 @@
 import { completeLogin } from "./login/complete.ts";
+import { MessageResponseSchema, LoginFinishResponseSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import {
   opaqueServerStartLogin,
@@ -35,7 +36,7 @@ export async function startLogin(
     now(),
   );
 
-  return { message: result.loginResponse };
+  return MessageResponseSchema.parse({ message: result.loginResponse });
 }
 
 export async function finishLogin(
@@ -65,15 +66,15 @@ export async function finishLogin(
 
   storage.transaction(() => completeLogin(options, auth, purpose, session.receipt));
 
-  if (purpose === "kit") return { kind: "ticket" as const };
-  if (storage.vault(vaultId)?.restored) return { kind: "staged" as const };
+  if (purpose === "kit") return LoginFinishResponseSchema.parse({ kind: "ticket" });
+  if (storage.vault(vaultId)?.restored) return LoginFinishResponseSchema.parse({ kind: "staged" });
   const deviceState = storage.device(vaultId, device)!;
 
-  return {
-    kind: "unlocked" as const,
+  return LoginFinishResponseSchema.parse({
+    kind: "unlocked",
     unlockedUntil: storage.vault(vaultId)?.unlockPeriod === null ? null : deviceState.unlockedUntil,
     freshUntil: deviceState.freshUntil,
-  };
+  });
 }
 
 function requireLoginPurpose(auth: IAuth, purpose: "unlock" | "kit") {

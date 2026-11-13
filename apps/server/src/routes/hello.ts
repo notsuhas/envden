@@ -1,4 +1,10 @@
-import { buildHello, signedCodec, ServerHelloCodec, encode } from "@envden/core/protocol";
+import {
+  HelloResponseSchema,
+  buildHello,
+  signedCodec,
+  ServerHelloCodec,
+  encode,
+} from "@envden/core/protocol";
 import type { Hono } from "hono";
 import type { IAppOptions, TServerEnv } from "../http/types.ts";
 import { binary, text } from "../http/encoding.ts";
@@ -16,7 +22,7 @@ function hello(options: IAppOptions, challenge: Uint8Array, host: string) {
     options.serverKeys.secretKey,
   );
 
-  return { hello: text(encode(signedCodec(ServerHelloCodec), signed)) };
+  return HelloResponseSchema.parse({ hello: text(encode(signedCodec(ServerHelloCodec), signed)) });
 }
 
 export function registerHello(app: Hono<TServerEnv>, options: IAppOptions) {

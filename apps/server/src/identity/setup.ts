@@ -18,11 +18,7 @@ export function initializeSetup(
   const identityVault = new Uint8Array(32);
   const issuedKey = new TextEncoder().encode("setup-issued");
 
-  if (
-    !replacement &&
-    (storage.setupToken() || storage.state(identityVault, "server-identity", issuedKey))
-  )
-    return undefined;
+  if (!replacement && storage.setupToken()) return undefined;
 
   const secret = replacement ? decodeToken("setup", replacement).secret : randomBytes(20);
 

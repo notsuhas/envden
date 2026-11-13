@@ -8,17 +8,12 @@ import {
   ObjectsResponseSchema,
   TransferResponseSchema,
   list,
-  RepairReportCodec,
-  signedCodec,
   decode,
   H,
-  base32,
 } from "@envden/core/protocol";
-import { filterRepairReports } from "@envden/core/chain";
-import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth, TServerEnv } from "../../http/types.ts";
 import { requireRepair } from "../../vault/authorization.ts";
-import { vaultChain } from "../../vault/chain.ts";
+import { storeReport } from "../../repair/report.ts";
 import { uploadHistory } from "../../repair/upload.ts";
 import { openMove, requireMove, freezeMove } from "../../move/session.ts";
 import { protocolInput } from "../../http/protocol.ts";
@@ -78,28 +73,7 @@ export function registerRecovery(app: Hono<TServerEnv>, options: IAppOptions) {
       );
     })
     .put("/v1/repair/report", async (c) => {
-      const auth = c.get("auth");
-      requireRepair(options, auth);
-      const bytes = new Uint8Array(await c.req.arrayBuffer());
-      const report = protocolInput(() => decode(signedCodec(RepairReportCodec), bytes));
-      const { storage } = options;
-      const vaultId = auth.request.vaultId;
-
-      const reports = filterRepairReports({
-        reports: [report],
-        repairId: storage.vault(vaultId)!.restored!.finishProgress!,
-        state: vaultChain(storage, vaultId).state,
-        headerHashes: new Set(
-          storage.headers(vaultId, 1n, 0xffffffffffffffffn).map((h) => base32(h.hash)),
-        ),
-      });
-
-      if (!reports.length || base32(report.body.signer) !== base32(auth.request.device))
-        throw new EnvdenError("INVALID_DATA", "Invalid repair report");
-
-      storage.writeState(vaultId, [{ kind: "repair-report", key: report.body.signer, bytes }]);
-
-      return c.json(TransferResponseSchema.parse({ kind: "stored" }));
+      return c.json(storeReport(options, c.get("auth"), new Uint8Array(await c.req.arrayBuffer())));
     })
     .get("/v1/repair/reports", (c) => {
       const auth = c.get("auth");

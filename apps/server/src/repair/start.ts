@@ -4,12 +4,10 @@ import type { IAppOptions } from "../http/types.ts";
 export function startRestored(options: IAppOptions) {
   const { storage } = options;
 
-  const vaults = storage
-    .states(new Uint8Array(32), "server-identity")
-    .filter((s) => s.key.length === 32 && s.bytes.length === 32 && !!storage.head(s.bytes));
+  const vaults = storage.vaultIds().filter((id) => !!storage.head(id));
 
   return storage.transaction(() =>
-    vaults.map(({ bytes: id }) => {
+    vaults.map((id) => {
       const vault = storage.vault(id)!;
       const secret = randomBytes(20);
       const restoredHead = vault.restored?.restoredHead ?? storage.head(id)!;

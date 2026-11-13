@@ -1,3 +1,10 @@
+import {
+  MailboxOpenedSchema,
+  MailboxSlotResponseSchema,
+  MailboxWriteResponseSchema,
+  MailboxClosedSchema,
+  MessageResponseSchema,
+} from "@envden/core/protocol";
 import { mailboxSide } from "./policy/side.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { equal, OPAQUE_LENGTHS, opaqueMessage } from "@envden/core/protocol";
@@ -17,7 +24,7 @@ export function openMailbox(options: IAppOptions, auth: IAuth) {
 
   indexMailbox(options.storage, box.number, vaultId);
 
-  return { number: box.number, expiresAt: box.expiresAt };
+  return MailboxOpenedSchema.parse({ number: box.number, expiresAt: box.expiresAt });
 }
 
 function accessible(
@@ -86,14 +93,18 @@ export function writeSlot(
 
   if (slot === "PairJoiner") indexJoiner(options.storage, auth.request.device, vaultId);
 
-  return { kind: result };
+  return MailboxWriteResponseSchema.parse({ kind: result, expiresAt: box.expiresAt });
 }
 
 export function readSlot(options: IAppOptions, auth: IAuth, number: number, slot: TMailboxSlot) {
   const { box } = accessible(options, auth, number, slot, false);
   const bytes = box.slots[slot];
 
-  return bytes ? { message: text(bytes) } : { kind: "pending" };
+  return MailboxSlotResponseSchema.parse(
+    bytes
+      ? { message: text(bytes), expiresAt: box.expiresAt }
+      : { kind: "pending", expiresAt: box.expiresAt },
+  );
 }
 
 export function closeMailbox(options: IAppOptions, auth: IAuth, number: number) {
@@ -104,7 +115,7 @@ export function closeMailbox(options: IAppOptions, auth: IAuth, number: number) 
 
   options.storage.closeMailbox(auth.request.vaultId, number);
 
-  return { kind: "closed" };
+  return MailboxClosedSchema.parse({ kind: "closed" });
 }
 
 export function fetchApprover(options: IAppOptions, auth: IAuth) {
@@ -116,7 +127,7 @@ export function fetchApprover(options: IAppOptions, auth: IAuth) {
 
   if (!bytes) throw new EnvdenError("NOT_FOUND", "Approver unavailable");
 
-  return { message: text(bytes) };
+  return MessageResponseSchema.parse({ message: text(bytes) });
 }
 
 function requireMailboxSide(owner: boolean, write: boolean, slot: TMailboxSlot) {

@@ -1,3 +1,4 @@
+import { importPeriod } from "../../move/period.ts";
 import { storeMaterial } from "../../repair/material/store.ts";
 import type { Hono, Context } from "hono";
 import { UnlockPeriodSchema } from "@envden/core/protocol";
@@ -11,14 +12,10 @@ export function registerImport(app: Hono<TServerEnv>, options: IAppOptions) {
     .put("/v1/move/material/:kind/:hash", materialHandler(options, requireMove))
     .put("/v1/repair/material/:kind/:hash", materialHandler(options, requireRepair))
     .put("/v1/move/period", async (c) => {
-      const auth = c.get("auth");
-      requireMove(options, auth);
       const raw: unknown = await c.req.json();
       const { period } = input(() => UnlockPeriodSchema.parse(raw));
-      const id = auth.request.vaultId;
-      options.storage.configureVault(id, { ...options.storage.vault(id)!, unlockPeriod: period });
 
-      return c.json({ kind: "updated" });
+      return c.json(importPeriod(options, c.get("auth"), period));
     });
 }
 

@@ -7,6 +7,7 @@ All routes except hello use phase-1 signed request headers. Vault ID is in `Envd
 | GET `/v1/hello?challenge=` | 32-byte challenge | `{ hello }`, signed ServerHello | public |
 | POST `/v1/vault` | binary SwapCodec: op 0, entries `[genesis, entry1]`, empty Files, keyring, envelope, skPub, opaqueRecord; zero expectedHead | `{ kind: "committed" \| "retry-of-committed" }` | setup proof, staged registration |
 | POST `/v1/swap?mailbox=N` | binary SwapCodec; mailbox only for op 2 | `{ kind: "committed" \| "retry-of-committed" }`, or 409 `{ kind: "head-moved", head }` | operation's required authorization |
+| GET `/v1/devices` | empty | `{ devices: [{ id, clientVersion, confirmed }] }` | unlocked member |
 | GET `/v1/head` | empty | binary signed ManifestHeader | read gate |
 | GET `/v1/headers?from=1&to=20` | inclusive decimal sequence range | `{ objects: [base64url signed ManifestHeader] }` | read gate |
 | GET `/v1/entries?from=0&to=20` | inclusive decimal sequence range | `{ objects: [base64url signed Entry] }` | read gate |
@@ -17,6 +18,9 @@ All routes except hello use phase-1 signed request headers. Vault ID is in `Envd
 | GET `/v1/blobs/:hash` | empty | raw ciphertext | unlocked member |
 | PUT `/v1/blobs/:hash` | raw ciphertext, nonempty, at most 16 MiB; H("blob", body) equals hash | `{ kind: "uploaded" }` | unlocked member, repair proof or move owner |
 | POST `/v1/move/session` | empty | `{ kind: "moving" }` | setup proof; retry by session owner |
+| POST `/v1/move/discard` | empty | `{ kind: "unfrozen" }`; consumed setup token stays invalid | move owner |
+| GET `/v1/move/sk-pub` | empty | raw SK public key | fresh member |
+| GET `/v1/move/period` | empty | `{ period }` | fresh member |
 | POST `/v1/move/freeze` | empty | `{ kind: "frozen" }` | fresh member; records move owner |
 | POST `/v1/move/unfreeze` | empty | `{ kind: "unfrozen" }` | fresh member; refused after op 10 |
 | POST `/v1/move/history` | binary SwapCodec containing each historical header and its entries, in order; start with creation | storage commit result | move owner |
@@ -39,6 +43,6 @@ OPAQUE routes remain POST `/v1/opaque/{login,registration}/{start,finish}` with 
 
 Pairing remains POST `/v1/pairing/mailboxes`, GET/PUT `/v1/pairing/mailboxes/:number/:slot`, DELETE `/v1/pairing/mailboxes/:number`, and GET `/v1/pairing/approver`. Slot writes use `{ message }`; reads return `{ message }` or `{ kind: "pending" }`. Pair swaps consume the mailbox and persist the encrypted approver for 24 hours.
 
-Settings retain the phase-1 `/v1/settings/unlock-period` route. Request bodies are capped at 32 MiB. History pruning runs hourly with a 90-day window and at least 20 versions per file, retaining repair lists permanently.
+Settings retain the phase-1 `/v1/settings/unlock-period` route. Auth and pairing bodies are capped at 64 KiB, blobs at 16 MiB, and history, material and swaps at 32 MiB. Content-Length and streamed bytes are checked before buffering. History pages return at most 100 rows and 1 MiB; continue from the last decoded sequence plus one until the page is empty. Blob storage is capped at 1 GiB per vault. Uncommitted uploads expire after 24 hours. History pruning runs hourly with a 90-day window and at least 20 versions per file, retaining repair lists permanently.
 
-Use a repair chain batch when the uploading device was added after the backup. The batch commits atomically and checks membership at its final head. Unknown protocol formats return `SERVER_TOO_OLD` (426).
+Use a repair chain batch when the uploading device was added after the backup. The batch commits atomically and checks membership at its final head. Coded unknown protocol formats return `SERVER_TOO_OLD` (426).

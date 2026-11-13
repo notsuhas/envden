@@ -18,6 +18,8 @@ async function open(f: ReturnType<typeof fixture>) {
   expect(response.status).toBe(200);
   const body = p.MailboxOpenedSchema.parse(await response.json());
 
+  expect(body.expiresAt).toBe(f.storage.mailbox(vaultId, body.number, f.options.now())!.expiresAt);
+
   return Number(body.number);
 }
 
@@ -55,7 +57,12 @@ test("mailbox slots enforce sides, order, identical retries and close on conflic
       ).status,
     ).toBe(409);
 
-    expect((await f.request(`${base}/KE1`).send()).status).toBe(200);
+    const slotResponse = await f.request(`${base}/KE1`).send();
+    expect(slotResponse.status).toBe(200);
+
+    expect(p.MailboxSlotResponseSchema.parse(await slotResponse.json()).expiresAt).toBe(
+      f.storage.mailbox(vaultId, number, f.options.now())!.expiresAt,
+    );
 
     expect(
       (

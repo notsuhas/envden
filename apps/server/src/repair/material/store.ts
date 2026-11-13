@@ -1,5 +1,5 @@
 import { restoreFiles } from "../files.ts";
-import { H, equal } from "@envden/core/protocol";
+import { H, equal, TransferResponseSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../../http/types.ts";
 
@@ -10,7 +10,8 @@ export function storeMaterial(
   hash: Uint8Array,
   bytes: Uint8Array,
 ) {
-  if (kind === "files") return restoreFiles(options, auth.request.vaultId, hash, bytes);
+  if (kind === "files")
+    return TransferResponseSchema.parse(restoreFiles(options, auth.request.vaultId, hash, bytes));
 
   if (bytes.length > 16777216 || !["keyring", "envelope", "skPub"].includes(kind))
     throw new EnvdenError("INVALID_INPUT", "Invalid material");
@@ -30,5 +31,5 @@ export function storeMaterial(
     },
   ]);
 
-  return { kind: "uploaded" as const };
+  return TransferResponseSchema.parse({ kind: "uploaded" });
 }

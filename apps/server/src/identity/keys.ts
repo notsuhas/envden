@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
-  generateRecoveryKeys,
+  generateRecoveryKeys as generateServerIdentityKeys,
   opaqueCreateSetup,
   opaqueMessage,
   OPAQUE_LENGTHS,
@@ -15,8 +15,10 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
   await mkdir(dataDir, { recursive: true, mode: 0o700 });
 
   const path = join(dataDir, "identity.json");
+  if (process.platform !== "win32") await chmod(dataDir, 0o700);
 
   try {
+    if (process.platform !== "win32") await chmod(path, 0o600);
     const data: unknown = JSON.parse(await readFile(path, "utf8"));
 
     if (
@@ -33,7 +35,7 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
 
     const secretKey = binary(data.secretKey, 32);
     const publicKey = binary(data.publicKey, 32);
-    const derived = generateRecoveryKeys(() => secretKey).objPub;
+    const derived = generateServerIdentityKeys(() => secretKey).objPub;
 
     if (!equal(publicKey, derived))
       throw new EnvdenError("INVALID_DATA", "Invalid server identity");
@@ -48,7 +50,7 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
       throw error;
   }
 
-  const keys = generateRecoveryKeys();
+  const keys = generateServerIdentityKeys();
   const opaqueSetup = await opaqueCreateSetup();
   const data = { secretKey: text(keys.objSk), publicKey: text(keys.objPub), opaqueSetup };
   await writeFile(path, JSON.stringify(data), { mode: 0o600, flag: "wx" });

@@ -1,4 +1,4 @@
-import { beforeAll, test, expect } from "bun:test";
+import { beforeAll, test, expect, spyOn } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { fixture, identity, vaultId } from "./fixture.ts";
 import type { IServerKeys } from "../http/types.ts";
@@ -159,12 +159,23 @@ test("fresh and unlocked gates enforce boundaries and never period", async () =>
     expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(403);
     expect((await f.request("/v1/test-unlocked").send()).status).toBe(403);
     f.fresh();
+    const prior = f.storage.device(vaultId, f.member.record.id)!;
+
+    f.storage.putDevice(vaultId, f.member.record.id, {
+      ...prior,
+      unlockedUntil: Number.MAX_SAFE_INTEGER,
+    });
 
     expect((await f.request(path, { period: 86400000 }, { method: "PUT" }).send()).status).toBe(
       200,
     );
 
     expect(f.storage.vault(vaultId)?.unlockPeriod).toBe(86400000);
+
+    expect(f.storage.device(vaultId, f.member.record.id)!.unlockedUntil).toBeLessThanOrEqual(
+      f.options.now() + 86400000,
+    );
+
     expect((await f.request(path, { period: 1 }, { method: "PUT" }).send()).status).toBe(400);
     expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(200);
     f.advance(10000);
@@ -217,6 +228,7 @@ test("non-member policy is closed and method-specific", () => {
 
 test("internal failures never expose their message", async () => {
   const f = fixture(keys);
+  const log = spyOn(console, "error").mockImplementation(() => {});
 
   f.app.get("/v1/test-error", () => {
     throw new Error("private database detail");
@@ -226,6 +238,8 @@ test("internal failures never expose their message", async () => {
     const response = await f.request("/v1/test-error").send();
     expect(response.status).toBe(500);
     expect(await response.text()).toBe('{"error":"INTERNAL"}');
+    expect(log).toHaveBeenCalledWith("envden request failed", { code: "INTERNAL", method: "GET" });
+    log.mockRestore();
   } finally {
     f.close();
   }

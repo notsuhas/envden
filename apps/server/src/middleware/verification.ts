@@ -1,3 +1,4 @@
+import { readBody } from "./body.ts";
 import { verifyAccess } from "./access/verify.ts";
 import type { Context } from "hono";
 import type { IRequest } from "@envden/core/protocol";
@@ -23,8 +24,14 @@ export function verification(options: IAppOptions) {
     const raw = c.req.raw;
     const request = input(() => decode(RequestCodec, binary(c.req.header("Envden-Request"))));
     const signature = binary(c.req.header("Envden-Signature"), 64);
-    const body = new Uint8Array(await raw.clone().arrayBuffer());
-    if (body.length > 33554432) throw new EnvdenError("INVALID_INPUT", "Request too large");
+    const body = await readBody(raw);
+
+    c.req.raw = new Request(raw.url, {
+      method: raw.method,
+      headers: raw.headers,
+      ...(!["GET", "HEAD"].includes(raw.method) ? { body } : {}),
+    });
+
     const url = new URL(raw.url);
 
     verifyBinding(c, request, body);

@@ -8,9 +8,9 @@ test("restored mode, mid-repair restore, final login and token consumption", asy
 
   try {
     await f.initialize();
-    const first = startRestored(f.options)[0]!;
+    const first = startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!;
     const point = f.storage.vault(f.vaultId)!.restored!.restoredHead;
-    const second = startRestored(f.options)[0]!;
+    const second = startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!;
     expect(f.storage.vault(f.vaultId)!.restored!.restoredHead).toEqual(point);
 
     const proofFor = (token: string) => (r: p.IRequest) =>

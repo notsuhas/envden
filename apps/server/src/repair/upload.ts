@@ -24,8 +24,7 @@ export function uploadHistory(
   const current = storage.head(vaultId);
 
   if (current) {
-    const retry = storage.commitSwap(vaultId, undefined, stored, now());
-    if (retry.kind === "retry-of-committed") return retry;
+    if (storage.findCommitted(vaultId, digest)) return { kind: "retry-of-committed" as const };
   }
 
   if (!current) {

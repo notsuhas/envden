@@ -9,7 +9,7 @@ function indexKey(kind: "mailbox" | "approver", id: string): Uint8Array {
 
 export function indexMailbox(storage: IStorageAdapter, number: number, vaultId: Uint8Array): void {
   storage.writeState(namespace, [
-    { kind: "server-identity", key: indexKey("mailbox", String(number)), bytes: vaultId },
+    { kind: "pairing-index", key: indexKey("mailbox", String(number)), bytes: vaultId },
   ]);
 }
 
@@ -20,7 +20,7 @@ export function indexJoiner(
 ): void {
   storage.writeState(namespace, [
     {
-      kind: "server-identity",
+      kind: "pairing-index",
       key: indexKey("approver", Buffer.from(device).toString("base64url")),
       bytes: vaultId,
     },
@@ -35,7 +35,7 @@ export function mailboxVault(
   if (!equal(vaultId, namespace)) return vaultId;
 
   return (
-    storage.state(namespace, "server-identity", indexKey("mailbox", String(number))) ?? namespace
+    storage.state(namespace, "pairing-index", indexKey("mailbox", String(number))) ?? namespace
   );
 }
 
@@ -49,7 +49,7 @@ export function approverVault(
   return (
     storage.state(
       namespace,
-      "server-identity",
+      "pairing-index",
       indexKey("approver", Buffer.from(device).toString("base64url")),
     ) ?? namespace
   );
