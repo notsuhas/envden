@@ -5,6 +5,7 @@ import { resolveTrustedExecutable } from "./trust.ts";
 type TOptions = {
   env?: Record<string, string | undefined>;
   cwd?: string;
+  managerBin?: string;
   stdin?: "inherit" | "ignore";
   stdout?: "inherit" | "ignore" | "pipe";
   stderr?: "inherit" | "ignore" | "pipe";
@@ -42,7 +43,7 @@ export function spawnTrusted(
 
   const settings = Array.isArray(argsOrOptions) ? options : argsOrOptions;
   const command = [resolveTrustedExecutable(name), ...args];
-  const env = sanitizedEnvironment(settings.env);
+  const env = sanitizedEnvironment(settings.env, process.env, settings.managerBin);
 
   if ("sync" in settings && settings.sync)
     return Bun.spawnSync(command, { stdout: "pipe", stderr: "pipe", ...settings, env });

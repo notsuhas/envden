@@ -120,6 +120,8 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 
 ## Store, checkouts and placement
 
+User-owned tool directories remain outside envden's control if the user personally symlinks their tools into a checkout.
+
 - Store: `~/.envden/store/<repo-id>/<path-in-repo>/<file>`; checkpoint, history and release state in `~/.envden/state/` (never rolled back by a store backup); bases in `~/.envden/base/`, conflict files and pre-overwrite backups in `~/.envden/conflicts/` (backups deleted after 30 days). Folders 0700, files 0600 (ACLs on Windows).
 - **Repo ID**: from `git remote get-url origin` (falls back to the only remote, else asks). Host aliases resolved with `ssh -G`, host lowercased, path lowercased for hosts with case-insensitive paths (GitHub, GitLab), full path kept (subgroups, Azure DevOps), `.git` stripped. Ships with test vectors.
 - **Approved checkouts**: the first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip it. Every new canonical checkout root needs explicit approval saved outside the checkout in envden state. Worktrees of an approved repository get a shorter prompt but are never approved automatically. A changed remote never silently remaps an approved checkout.

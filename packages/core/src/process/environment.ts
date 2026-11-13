@@ -37,6 +37,7 @@ function allowed(key: string): boolean {
 export function sanitizedEnvironment(
   extra: Record<string, string | undefined> = {},
   inherited = process.env,
+  managerBin?: string,
 ) {
   const env: Record<string, string> = {};
 
@@ -48,7 +49,7 @@ export function sanitizedEnvironment(
     if (value !== undefined && key.toUpperCase() !== "PATH") env[key] = value;
   }
 
-  env.PATH = trustedDirectories(inherited.PATH).join(delimiter);
+  env.PATH = trustedDirectories(undefined, managerBin).join(delimiter);
 
   return env;
 }
