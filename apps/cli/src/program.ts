@@ -1,5 +1,9 @@
+import { reportTelemetry, commandOutcome } from "./output/telemetry.ts";
+import { commandCounts } from "./output/counts.ts";
+import { trackCommand } from "./commands/checkouts/track.ts";
+import { localOnlyCommand } from "./commands/checkouts/local-only.ts";
 import { vaultCommand } from "./commands/vault/vault.ts";
-import { Command } from "@commander-js/extra-typings";
+import { Command, type CommandUnknownOpts } from "@commander-js/extra-typings";
 import { unlockCommand } from "./commands/onboarding/unlock.ts";
 import { VERSION } from "./version.ts";
 import { setupCommand } from "./commands/onboarding/setup.ts";
@@ -28,13 +32,18 @@ export function createProgram() {
     .description("Encrypted whole-file env sync over your private network")
     .version(VERSION);
 
+  let active: CommandUnknownOpts | undefined;
+
   program.hook("preAction", async (_program, command) => {
+    active = command;
     if (command.name() === "status" && command.opts().refreshCache) return;
     const notice = await commandNotice(createAdapters(), Date.now(), fetch, false, process.cwd());
 
     reportCommandNotice(notice);
   });
 
+  program.addCommand(trackCommand);
+  program.addCommand(localOnlyCommand);
   program.addCommand(setupCommand);
   program.addCommand(unlockCommand);
   program.addCommand(joinCommand);
@@ -55,6 +64,26 @@ export function createProgram() {
 
   program.addCommand(vaultCommand);
 
+  const parse = program.parseAsync.bind(program);
+
+  program.parseAsync = async (...args) => {
+    active = undefined;
+
+    return commandCounts.run({}, async () => {
+      return commandOutcome(
+        () => parse(...args),
+        async (outcome) => {
+          if (active)
+            await reportTelemetry(createAdapters(), {
+              command: commandName(active),
+              ...outcome,
+              ...commandCounts.getStore(),
+            });
+        },
+      );
+    });
+  };
+
   return program;
 }
 
@@ -62,4 +91,16 @@ function reportCommandNotice(notice: Awaited<ReturnType<typeof commandNotice>>) 
   for (const repo of notice.repos) console.error(`envden: ${repo} out of sync`);
   if (notice.update.available) console.error("envden: update available; run envden update");
   if (notice.update.required) console.error("envden: this version is unsafe; update required");
+}
+
+function commandName(command: CommandUnknownOpts): string {
+  const names = [command.name()];
+  let parent = command.parent;
+
+  while (parent?.parent) {
+    names.unshift(parent.name());
+    parent = parent.parent;
+  }
+
+  return names.join(" ");
 }

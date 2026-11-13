@@ -1,3 +1,6 @@
+import { join } from "node:path";
+import { atomicWrite } from "../state/files.ts";
+import { withStateLock } from "../state/lock.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";
@@ -15,9 +18,12 @@ export async function promptPairing(
 ) {
   const code = await secret("Pairing code");
   const mailbox = p.normalizePairingCode(code).mailbox;
-  const expiresAt = now() + 300000;
 
-  await exchangeJoiner(adapters, client, identity, pin, code, async () => {
+  await exchangeJoiner(adapters, client, identity, pin, code, async (expiresAt) => {
+    await withStateLock(adapters.home, () =>
+      atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt)),
+    );
+
     await waitMessage(client, `/v1/pairing/mailboxes/${mailbox}/KE2`, now, expiresAt);
   });
 

@@ -1,3 +1,7 @@
+import { setUnlockPeriod } from "../../settings/unlock-period.ts";
+import { secret } from "../../output/questions.ts";
+import { EnvdenError } from "@envden/core/errors";
+import { createAdapters } from "../../adapters.ts";
 import { telemetryEnabled, updateCheckEnabled } from "../../settings/privacy.ts";
 import { Command } from "@commander-js/extra-typings";
 import { readConfig, setConfig } from "../../settings/config.ts";
@@ -8,14 +12,22 @@ export const configCommand = new Command("config")
   .description("Get/set telemetry, update-check, agent-merge or allow-version")
   .action(async (key, value) => {
     if (value !== undefined && key !== undefined) {
+      if (key === "unlock-period") {
+        await setUnlockPeriod(createAdapters(), value, await secret("Master password"), () =>
+          Date.now(),
+        );
+
+        return;
+      }
+
       requireInteractiveOverride(key, !!process.stdin.isTTY);
 
-      console.log(JSON.stringify(await setConfig(key, value), null, 2));
+      console.log(JSON.stringify(await setConfig(key, value, createAdapters().home), null, 2));
 
       return;
     }
 
-    const config = await readConfig();
+    const config = await readConfig(createAdapters().home);
 
     reportConfig(config, key);
   });
@@ -23,7 +35,7 @@ export const configCommand = new Command("config")
 function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: string | undefined) {
   if (key) {
     if (!["telemetry", "update-check", "agent-merge", "allow-version"].includes(key))
-      throw new Error(`Unknown config key: ${key}`);
+      throw new EnvdenError("INVALID_INPUT", "Unknown config key");
 
     console.log(JSON.stringify(Reflect.get(config, key) ?? null));
   } else
@@ -44,5 +56,8 @@ function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: strin
 
 function requireInteractiveOverride(key: string, interactive: boolean) {
   if (key === "allow-version" && !interactive)
-    throw new Error("Accepting an unsafe version requires your own terminal");
+    throw new EnvdenError(
+      "INVALID_INPUT",
+      "Accepting an unsafe version requires your own terminal",
+    );
 }

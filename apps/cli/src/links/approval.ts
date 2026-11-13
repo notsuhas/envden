@@ -16,6 +16,7 @@ export function checkoutApproval(
 
   return state.approved.some(
     (item) =>
+      (item.root === checkout.root || checkout.registeredWorktree === true) &&
       item.gitDir === checkout.gitDir &&
       (state.aliases[item.repoId] ?? item.repoId) ===
         (state.aliases[checkout.repoId] ?? checkout.repoId),

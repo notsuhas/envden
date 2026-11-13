@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { requireConfigured } from "../state/configured.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../adapters.ts";
@@ -11,7 +12,7 @@ import { waitMessage } from "../pairing/wait.ts";
 import { secret, consent } from "../output/questions.ts";
 import { VERSION } from "../version.ts";
 
-export async function runDeviceAdd(adapters: TAdapters, now: () => number): Promise<void> {
+async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promise<void> {
   const state = requireConfigured(await loadState(adapters.home), "Run setup first");
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, state.deviceName);
@@ -58,4 +59,8 @@ export async function runDeviceAdd(adapters: TAdapters, now: () => number): Prom
   );
 
   console.log(result.kind);
+}
+
+export function runDeviceAdd(...args: Parameters<typeof lockedrunDeviceAdd>) {
+  return withStateLock(args[0].home, () => lockedrunDeviceAdd(...args));
 }

@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { recoveryEpochKey } from "./key.ts";
 import {
   rejoinIdentity,
@@ -109,6 +110,10 @@ async function attemptKitJoin(
   }
 }
 
-export function kitJoin(...args: Parameters<typeof attemptKitJoin>) {
+function lockedkitJoin(...args: Parameters<typeof attemptKitJoin>) {
   return retryHead(() => attemptKitJoin(...args));
+}
+
+export function kitJoin(...args: Parameters<typeof lockedkitJoin>) {
+  return withStateLock(args[0].home, () => lockedkitJoin(...args));
 }

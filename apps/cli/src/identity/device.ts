@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import type { IKeychainAdapter } from "@envden/core/adapters";
 import {
   generateDeviceKeys,
@@ -10,7 +11,7 @@ import {
 } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 
-export async function deviceIdentity(keychain: IKeychainAdapter, namespace: string, name: string) {
+async function lockeddeviceIdentity(keychain: IKeychainAdapter, namespace: string, name: string) {
   const slot = `envden/${namespace}/device`;
   const stored = await keychain.get(slot);
 
@@ -60,3 +61,7 @@ export async function deviceIdentity(keychain: IKeychainAdapter, namespace: stri
 }
 
 export type TDeviceIdentity = Awaited<ReturnType<typeof deviceIdentity>>;
+
+export function deviceIdentity(...args: Parameters<typeof lockeddeviceIdentity>) {
+  return withStateLock(args[1], () => lockeddeviceIdentity(...args));
+}

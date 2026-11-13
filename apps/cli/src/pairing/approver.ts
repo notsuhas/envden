@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { currentMaterial } from "../admin/shared/material.ts";
 import { checkFloor } from "../admin/shared/history.ts";
 import { loadState } from "../state/repository.ts";
@@ -12,8 +13,6 @@ import { getSlot, putSlot, requireWindow } from "./exchange.ts";
 import { binary } from "../client/encoding.ts";
 import { readHistory } from "../vault/history.ts";
 import { addDeviceSwap } from "../vault/add.ts";
-import { atomicWrite } from "../state/files.ts";
-import { join } from "node:path";
 
 export async function openPairing(client: TClient, pin: Uint8Array) {
   const response = await client.request("/v1/pairing/mailboxes", "POST");
@@ -23,7 +22,7 @@ export async function openPairing(client: TClient, pin: Uint8Array) {
   return { ...mailbox, ...local };
 }
 
-export async function approvePairing(
+async function lockedapprovePairing(
   adapters: TAdapters,
   client: TClient,
   identity: TDeviceIdentity,
@@ -96,7 +95,6 @@ export async function approvePairing(
     );
 
     const bytes = p.encode(p.SwapCodec, swap);
-    await atomicWrite(join(adapters.home, "state", "pair-swap.bin"), bytes);
     await client.request(`/v1/swap?mailbox=${number}`, "POST", bytes);
   });
 
@@ -104,4 +102,8 @@ export async function approvePairing(
   keys.joinerToApprover.fill(0);
 
   return { kind: "paired" as const };
+}
+
+export function approvePairing(...args: Parameters<typeof lockedapprovePairing>) {
+  return withStateLock(args[0].home, () => lockedapprovePairing(...args));
 }

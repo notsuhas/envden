@@ -1,6 +1,7 @@
+import { EnvdenError } from "@envden/core/errors";
 import type { Dirent } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { resolve, join, relative } from "node:path";
+import { resolve, join, relative, isAbsolute } from "node:path";
 import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 
 const skipped = new Set([
@@ -19,6 +20,7 @@ export async function discoverRepos(
   repo: IRepoAdapter,
   roots: string[],
   excluded: string[],
+  report: (path: string, reason: string) => void = () => {},
 ): Promise<ICheckout[]> {
   const found = new Map<string, ICheckout>();
   const visited = new Set<string>();
@@ -37,7 +39,7 @@ export async function discoverRepos(
     }
 
     if (entries.some((entry) => entry.name === ".git")) {
-      await collectCheckout(repo, path, found);
+      await collectCheckout(repo, path, found, report);
     }
 
     for (const entry of entries) if (canDescend(entry)) await walk(join(path, entry.name));
@@ -48,14 +50,19 @@ export async function discoverRepos(
   return [...found.values()];
 }
 
-async function collectCheckout(repo: IRepoAdapter, path: string, found: Map<string, ICheckout>) {
-  const checkout = await repo.checkoutAt(path);
+async function collectCheckout(
+  repo: IRepoAdapter,
+  path: string,
+  found: Map<string, ICheckout>,
+  report: (path: string, reason: string) => void,
+) {
+  const checkout = await identify(repo, path, report);
 
   if (checkout) {
     found.set(checkout.root, checkout);
 
     for (const worktree of await repo.worktrees(checkout)) {
-      const next = await repo.checkoutAt(worktree);
+      const next = await identify(repo, worktree, report);
       if (next) found.set(next.root, next);
     }
   }
@@ -64,9 +71,26 @@ async function collectCheckout(repo: IRepoAdapter, path: string, found: Map<stri
 export function isWithinRoot(root: string, path: string) {
   const rel = relative(root, path);
 
-  return rel === "" || (!rel.startsWith("..") && !rel.startsWith("/"));
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
 function canDescend(entry: Dirent) {
   return entry.isDirectory() && !entry.isSymbolicLink() && !skipped.has(entry.name);
+}
+
+async function identify(
+  repo: IRepoAdapter,
+  path: string,
+  report: (path: string, reason: string) => void,
+) {
+  try {
+    const checkout = await repo.checkoutAt(path);
+    if (!checkout) report(path, "Repository identity unavailable");
+
+    return checkout;
+  } catch (error) {
+    report(path, error instanceof EnvdenError ? error.message : "Repository identity unavailable");
+
+    return undefined;
+  }
 }

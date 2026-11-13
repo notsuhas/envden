@@ -7,7 +7,7 @@ import { runJoin } from "../../onboarding/join.ts";
 export const joinCommand = new Command("join")
   .argument("<server>")
   .description("Join using a pairing code or recovery kit in your own terminal")
-  .option("--yes", "Take non-secret defaults")
+  .option("--recovery", "Paste a recovery secret key and vault ID")
   .option("--recovery-kit <path>", "Recovery kit path")
   .option("--name <name>", "Device name")
   .option("--resume", "Fetch the committed approver message")

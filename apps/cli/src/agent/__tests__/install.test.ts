@@ -29,3 +29,15 @@ test("agent install is idempotent and notice files use the shell adapter paths",
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("agent install refuses an existing real destination folder", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-agent-folder-"));
+
+  try {
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir(join(home, ".claude", "skills", "envden"), { recursive: true });
+    expect(installAgent(home)).rejects.toThrow("existing folder or file");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

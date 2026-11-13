@@ -1,3 +1,5 @@
+import { installHostService, runServiceCommand } from "./agent/service/install.ts";
+import { atomicWrite } from "./state/files.ts";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createOsKeychainAdapter } from "@envden/adapter-keychain-os";
@@ -22,6 +24,16 @@ export function createAdapters(
     shell: (shell: "zsh" | "bash" | "fish" | "powershell") =>
       createRcShellAdapter(shell, userHome, home),
     network: createTailscaleNetworkAdapter(),
+    hostServer: () =>
+      installHostService({
+        platform: process.platform,
+        executable: process.execPath,
+        userHome,
+        home,
+        uid: process.getuid?.() ?? 0,
+        write: atomicWrite,
+        run: runServiceCommand,
+      }),
   };
 }
 

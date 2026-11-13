@@ -19,14 +19,18 @@ export async function installAgent(userHome: string): Promise<void> {
   await mkdir(join(userHome, ".claude", "skills"), { recursive: true });
 
   try {
-    await lstat(link);
-    const { readlink } = await import("node:fs/promises");
+    const existing = await lstat(link);
 
-    if ((await readlink(link)) !== target)
+    if (!existing.isSymbolicLink())
+      throw new EnvdenError("CONFLICT", "Agent skill destination is an existing folder or file");
+
+    const { realpath } = await import("node:fs/promises");
+
+    if ((await realpath(link)) !== (await realpath(target)))
       throw new EnvdenError("CONFLICT", "Agent skill destination already exists");
   } catch (cause) {
     if (cause instanceof Error && "code" in cause && cause.code === "ENOENT")
-      await symlink(target, link, "dir");
+      await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
     else throw cause;
   }
 }

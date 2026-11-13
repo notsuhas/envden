@@ -1,16 +1,17 @@
+import { withStateLock } from "../../state/lock.ts";
 import { deviceWrap } from "../keys/wrap.ts";
-import { verifyChain } from "@envden/core/chain";
+import { joinMembership, requireLocalFloor, verifiedBlob } from "./validation.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TDeviceIdentity } from "../../identity/device.ts";
 import type { TClient } from "../../client/request.ts";
 import type { THistory } from "../history.ts";
-import { text, binary } from "../../client/encoding.ts";
+import { text } from "../../client/encoding.ts";
 import { emptyState } from "../../state/model.ts";
 import { saveState, loadState } from "../../state/repository.ts";
 
-export async function acceptJoin(
+async function lockedacceptJoin(
   adapters: TAdapters,
   client: TClient,
   identity: TDeviceIdentity,
@@ -19,35 +20,11 @@ export async function acceptJoin(
   history: THistory,
   manifestHash: Uint8Array,
 ) {
-  const header = history.headers.find((item) =>
-    p.equal(p.objectHash(p.ManifestHeaderCodec, item, "manifest"), manifestHash),
-  );
-
-  if (
-    !header ||
-    !p.equal(history.state.serverPin, pin) ||
-    !history.state.devices.has(p.base32(identity.record.id))
-  )
-    throw new EnvdenError("INVALID_DATA", "Pairing membership verification failed");
-
-  const at = verifyChain(history.entries.filter((item) => item.body.seq <= header.body.listSeq));
-
-  if (
-    at.kind !== "valid" ||
-    !p.equal(at.state.serverPin, pin) ||
-    !at.state.devices.has(p.base32(identity.record.id))
-  )
-    throw new EnvdenError("INVALID_DATA", "Device was not added at the approved checkpoint");
+  const { header, at } = joinMembership(history, identity.record.id, pin, manifestHash);
 
   const existing = await loadState(adapters.home);
 
-  if (
-    existing?.checkpoint &&
-    !history.headers.some((item) =>
-      p.equal(p.objectHash(p.ManifestHeaderCodec, item, "manifest"), binary(existing.checkpoint!)),
-    )
-  )
-    throw new EnvdenError("FORK", "Joined history does not descend from the local checkpoint");
+  requireLocalFloor(history, existing?.checkpoint);
 
   const wrap = deviceWrap(history.entries, identity.record.id, header.body.listSeq);
 
@@ -63,21 +40,11 @@ export async function acceptJoin(
     commit,
   );
 
-  const box = new Uint8Array(
-    await (await client.request(`/v1/keyrings/${text(header.body.keyringHash)}`)).arrayBuffer(),
-  );
-
-  if (!p.equal(p.H("keyring-blob", box), header.body.keyringHash))
-    throw new EnvdenError("INVALID_DATA", "Invalid keyring hash");
+  const box = await verifiedBlob(client, "keyrings", "keyring-blob", header.body.keyringHash);
 
   const ring = p.openKeyring(box, key, history.state.vaultId, header.body.epoch, at.state.commits);
 
-  const files = new Uint8Array(
-    await (await client.request(`/v1/files/${text(header.body.filesHash)}`)).arrayBuffer(),
-  );
-
-  if (!p.equal(p.H("files", files), header.body.filesHash))
-    throw new EnvdenError("INVALID_DATA", "Invalid file list hash");
+  const files = await verifiedBlob(client, "files", "files", header.body.filesHash);
 
   p.decode(p.FilesCodec, files);
   const state = existing ?? emptyState(identity.record.name);
@@ -97,4 +64,8 @@ export async function acceptJoin(
   await saveState(adapters.home, state);
 
   return state;
+}
+
+export function acceptJoin(...args: Parameters<typeof lockedacceptJoin>) {
+  return withStateLock(args[0].home, () => lockedacceptJoin(...args));
 }

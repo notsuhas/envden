@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { linkFile } from "./file.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
@@ -5,7 +6,7 @@ import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
 import { checkoutApproval } from "./approval.ts";
 
-export async function linkCheckout(
+async function lockedlinkCheckout(
   adapters: TAdapters,
   state: ILocalState,
   checkout: ICheckout,
@@ -18,8 +19,9 @@ export async function linkCheckout(
 
   if (approval === "ask") {
     if (!(await approve(checkout))) return;
-    state.approved.push(checkout);
   }
+
+  if (!state.approved.some((item) => item.root === checkout.root)) state.approved.push(checkout);
 
   let placement = adapters.placement("link", checkout.root);
 
@@ -28,4 +30,8 @@ export async function linkCheckout(
 
   for (const path of await adapters.repo.envFiles(checkout))
     await linkFile(adapters, state, checkout, placement, path);
+}
+
+export function linkCheckout(...args: Parameters<typeof lockedlinkCheckout>) {
+  return withStateLock(args[0].home, () => lockedlinkCheckout(...args));
 }

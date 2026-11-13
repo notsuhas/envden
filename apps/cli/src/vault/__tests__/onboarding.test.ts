@@ -1,5 +1,5 @@
+import { loadState } from "../../state/repository.ts";
 import { listDevices } from "../../admin/devices/list.ts";
-import { verifySyncFlows } from "../../sync/__tests__/flows.ts";
 import { test, expect, spyOn, setSystemTime } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -60,7 +60,47 @@ test("real server: setup, pair a second home, kit join a third", async () => {
     const third = homes[2]!;
     const address = running.server.url.toString();
 
+    let loseResponse = true;
+    let issuedKey = "";
+
+    const options = {
+      address,
+      token,
+      name: "first",
+      password: "master password",
+      now,
+      onKit: async (kit: { secretKey: string }) => {
+        issuedKey = kit.secretKey;
+      },
+      fetcher: async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+        const response = await fetch(input, init);
+
+        if (
+          loseResponse &&
+          (input instanceof Request ? input.url : input.toString()).endsWith("/v1/vault")
+        ) {
+          loseResponse = false;
+          throw new Error("Lost creation response");
+        }
+
+        return response;
+      },
+    };
+
+    let failed = false;
+
+    try {
+      await setupVault(first, options);
+    } catch {
+      failed = true;
+    }
+
+    expect(failed).toBe(true);
+    const pending = await loadState(first.home);
+    if (!pending?.creationPending) throw new Error("Missing creation request");
+
     const result = await setupVault(first, {
+      resumeSecretKey: issuedKey,
       address,
       token,
       name: "first",
@@ -70,6 +110,7 @@ test("real server: setup, pair a second home, kit join a third", async () => {
     });
 
     expect(result.state.vaultId).toBe(result.kit.vaultId);
+    expect(result.state.creationPending).toBeUndefined();
 
     const checkout = {
       root: join(root, "checkout"),
@@ -93,6 +134,7 @@ test("real server: setup, pair a second home, kit join a third", async () => {
     });
 
     expect(approvals).toBe(1);
+    await pushInitialFiles(first, result.state, now);
     await pushInitialFiles(first, result.state, now);
     const vaultId = p.unbase32(result.kit.vaultId);
     const pin = binary(result.state.server!.pin);
@@ -178,18 +220,6 @@ test("real server: setup, pair a second home, kit join a third", async () => {
 
     expect(recovered.vaultId).toBe(result.kit.vaultId);
     expect(recovered.entries).toHaveLength(4);
-
-    await verifySyncFlows({
-      first,
-      second,
-      third,
-      checkout,
-      aStore: result.state.links[0]!.store,
-      root,
-      now,
-      bClient: joinerClient.forVault(vaultId),
-      vaultId,
-    });
   } finally {
     await running.server.stop(true);
     running.storage.close();

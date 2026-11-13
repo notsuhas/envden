@@ -1,3 +1,5 @@
+import { join } from "node:path";
+import { optionalRead } from "../state/files.ts";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";
@@ -13,6 +15,8 @@ export async function finishPairing(
   now: () => number,
   rejoin = false,
 ) {
-  await waitMessage(client, "/v1/pairing/approver", now, now() + 300000);
+  const stored = await optionalRead(join(adapters.home, "state", "pair-expiry"));
+  const expiresAt = stored === undefined ? now() + 600000 : Number(stored);
+  await waitMessage(client, "/v1/pairing/approver", now, expiresAt);
   await resumeJoiner(adapters, client, identity, address, pin, rejoin);
 }

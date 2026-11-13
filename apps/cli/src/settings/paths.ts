@@ -1,8 +1,7 @@
-import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { mkdir, chmod } from "node:fs/promises";
 
-export function paths(home = process.env.ENVDEN_HOME ?? join(homedir(), ".envden")) {
+export function paths(home: string) {
   const root = resolve(home);
 
   return {
@@ -15,7 +14,7 @@ export function paths(home = process.env.ENVDEN_HOME ?? join(homedir(), ".envden
   };
 }
 
-export async function ensurePaths(home?: string) {
+export async function ensurePaths(home: string) {
   const result = paths(home);
 
   for (const directory of [

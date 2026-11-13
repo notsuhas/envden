@@ -1,9 +1,13 @@
+import type { IDeviceListState } from "@envden/core/chain";
 import type { IReleaseState } from "@envden/core/protocol";
 
 export interface ILocalState {
   format: 1;
+  verifiedState?: IDeviceListState;
+  aliasAsked?: string[];
   deviceName: string;
   vaultId?: string;
+  creationPending?: string;
   server?: { address: string; pin: string; protocol: number };
   checkpoint?: string;
   headers: string[];

@@ -1,0 +1,25 @@
+import { lstat } from "node:fs/promises";
+import type { ILocalState } from "../state/model.ts";
+import { withStateLock } from "../state/lock.ts";
+import { saveState } from "../state/repository.ts";
+
+export async function pruneMissingCheckouts(
+  home: string,
+  state: ILocalState,
+  notice: (message: string) => void,
+) {
+  return withStateLock(home, async () => {
+    for (const approval of state.approved) {
+      try {
+        await lstat(approval.root);
+      } catch (cause) {
+        if (!(cause instanceof Error && "code" in cause && cause.code === "ENOENT")) throw cause;
+        state.approved = state.approved.filter((item) => item.root !== approval.root);
+        state.links = state.links.filter((item) => item.root !== approval.root);
+        notice(`Missing checkout removed: ${approval.root}`);
+      }
+    }
+
+    await saveState(home, state);
+  });
+}

@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { initialEntries } from "./entries.ts";
 import { vaultConnection } from "../connection.ts";
 import { retryHead } from "../../client/retry.ts";
@@ -29,8 +30,7 @@ async function attemptPushInitialFiles(
   const history = await readHistory(client, vaultId);
   const previous = history.headers.at(-1)!;
 
-  if (previous.body.seq !== 1n)
-    throw new EnvdenError("CONFLICT", "Initial upload requires the creation checkpoint");
+  if (previous.body.seq !== 1n) return;
 
   const key = await adapters.keychain.get(`envden/${adapters.home}/epoch/1`);
   const idKey = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
@@ -76,5 +76,5 @@ async function attemptPushInitialFiles(
 }
 
 export function pushInitialFiles(...args: Parameters<typeof attemptPushInitialFiles>) {
-  return retryHead(() => attemptPushInitialFiles(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptPushInitialFiles(...args)));
 }

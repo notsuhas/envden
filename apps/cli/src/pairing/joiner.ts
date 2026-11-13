@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
@@ -6,23 +7,23 @@ import type { TDeviceIdentity } from "../identity/device.ts";
 import { adoptRejoin, finishRejoinIdentity } from "../admin/rejoin/classify.ts";
 import { getSlot, putSlot } from "./exchange.ts";
 import { text, binary } from "../client/encoding.ts";
-import { atomicWrite, optionalRead } from "../state/files.ts";
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { readHistory } from "../vault/history.ts";
 import { acceptJoin } from "../vault/join/accept.ts";
 
-export async function exchangeJoiner(
+async function lockedexchangeJoiner(
   adapters: TAdapters,
   client: TClient,
   identity: TDeviceIdentity,
   pin: Uint8Array,
   code: string,
-  wait: () => Promise<void>,
+  wait: (expiresAt: number) => Promise<void>,
 ): Promise<void> {
   const normalized = p.normalizePairingCode(code);
   const start = await p.opaqueStartLogin(normalized.password);
-  await putSlot(client, normalized.mailbox, "KE1", start.startLoginRequest);
-  await wait();
+  const expiresAt = await putSlot(client, normalized.mailbox, "KE1", start.startLoginRequest);
+  await wait(expiresAt);
 
   const finish = await p.opaqueFinishLogin({
     password: normalized.password,
@@ -35,13 +36,12 @@ export async function exchangeJoiner(
   const keys = p.pairingChannelKeys(binary(finish.sessionKey));
   await adapters.keychain.set(`envden/${adapters.home}/pair-receive`, keys.approverToJoiner);
   const message = p.sealPairJoiner({ device: identity.record }, keys.joinerToApprover);
-  await atomicWrite(join(adapters.home, "state", "pair-joiner"), text(message));
   await putSlot(client, normalized.mailbox, "KE3", finish.finishLoginRequest);
   await putSlot(client, normalized.mailbox, "PairJoiner", text(message));
   keys.joinerToApprover.fill(0);
 }
 
-export async function resumeJoiner(
+async function lockedresumeJoiner(
   adapters: TAdapters,
   client: TClient,
   identity: TDeviceIdentity,
@@ -51,8 +51,7 @@ export async function resumeJoiner(
 ) {
   const key = await adapters.keychain.get(`envden/${adapters.home}/pair-receive`);
 
-  if (!key || !(await optionalRead(join(adapters.home, "state", "pair-joiner"))))
-    throw new EnvdenError("NOT_FOUND", "No pairing exchange to resume");
+  if (!key) throw new EnvdenError("NOT_FOUND", "No pairing exchange to resume");
 
   const response = p.MessageResponseSchema.parse(
     await (await client.request("/v1/pairing/approver")).json(),
@@ -82,5 +81,16 @@ export async function resumeJoiner(
   await adapters.keychain.delete(`envden/${adapters.home}/pair-receive`);
   key.fill(0);
 
+  for (const file of ["pair-pin", "pair-joiner", "pair-expiry"])
+    await rm(join(adapters.home, "state", file), { force: true });
+
   return state;
+}
+
+export function exchangeJoiner(...args: Parameters<typeof lockedexchangeJoiner>) {
+  return withStateLock(args[0].home, () => lockedexchangeJoiner(...args));
+}
+
+export function resumeJoiner(...args: Parameters<typeof lockedresumeJoiner>) {
+  return withStateLock(args[0].home, () => lockedresumeJoiner(...args));
 }

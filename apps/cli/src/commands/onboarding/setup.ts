@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { runSetup } from "../../onboarding/setup.ts";
@@ -7,6 +8,7 @@ export const setupCommand = new Command("setup")
   .description("Create a vault and configure this device")
   .option("--yes", "Take defaults; secrets and checkout approval still require your terminal")
   .option("--server <url>", "Use this server")
+  .option("--kit-out <file>", "Write recovery kit to a private file")
   .option("--name <name>", "Device name")
   .option("--host-server", "Host a login service on this device")
   .option("--setup-token <token>", "Server setup token")
@@ -32,7 +34,7 @@ export const setupCommand = new Command("setup")
         `Missing choices: ${missing.join(", ")}. Run secret entry and checkout approval in your own terminal.`,
       );
 
-      process.exit(2);
+      throw new EnvdenError("INVALID_INPUT", "Setup choices require your own terminal");
     }
 
     await runSetup(createAdapters(), options, () => Date.now());

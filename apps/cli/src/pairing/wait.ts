@@ -10,13 +10,12 @@ export async function waitMessage(
   expiresAt: number,
   pause: () => Promise<void> = () => setTimeout(500),
 ) {
-  for (let attempt = 0; attempt < 600 && now() < expiresAt; attempt++) {
+  while (now() < expiresAt) {
     try {
       const body: unknown = await (await client.request(path)).json();
-      const message = p.MessageResponseSchema.safeParse(body);
-      if (message.success) return message.data.message;
-      const pending = p.PendingResponseSchema.safeParse(body);
-      if (!pending.success) throw new EnvdenError("INVALID_DATA", "Invalid pairing response");
+      const result = pairingResponse(body, expiresAt);
+      expiresAt = result.expiresAt;
+      if (result.message !== undefined) return result.message;
     } catch (error) {
       if (
         !(error instanceof EnvdenError) ||
@@ -33,4 +32,22 @@ export async function waitMessage(
     "UNAUTHORIZED",
     "Pairing timed out; run envden join --resume after approval, or create a new pairing code",
   );
+}
+
+export function pairingResponse(body: unknown, expiresAt: number) {
+  const slot = p.MailboxSlotResponseSchema.safeParse(body);
+
+  if (slot.success)
+    return {
+      expiresAt: slot.data.expiresAt,
+      ...("message" in slot.data ? { message: slot.data.message } : {}),
+    };
+
+  const message = p.MessageResponseSchema.safeParse(body);
+  if (message.success) return { expiresAt, message: message.data.message };
+
+  if (!p.PendingResponseSchema.safeParse(body).success)
+    throw new EnvdenError("INVALID_DATA", "Invalid pairing response");
+
+  return { expiresAt };
 }

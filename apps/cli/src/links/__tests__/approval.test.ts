@@ -9,7 +9,12 @@ test("approval binds git directory and remote, including worktrees", () => {
   expect(checkoutApproval(state, checkout)).toBe("ask");
   state.approved.push(checkout);
   expect(checkoutApproval(state, checkout)).toBe("approved");
-  expect(checkoutApproval(state, { ...checkout, root: "/code/branch" })).toBe("approved");
+  expect(checkoutApproval(state, { ...checkout, root: "/code/branch" })).toBe("ask");
+
+  expect(
+    checkoutApproval(state, { ...checkout, root: "/code/branch", registeredWorktree: true }),
+  ).toBe("approved");
+
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("changed");
   state.aliases["host/other"] = checkout.repoId;
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("approved");

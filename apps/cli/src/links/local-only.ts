@@ -1,10 +1,11 @@
+import { withStateLock } from "../state/lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
 import { saveState } from "../state/repository.ts";
 
-export async function markLocalOnly(
+async function lockedmarkLocalOnly(
   adapters: TAdapters,
   state: ILocalState,
   root: string,
@@ -22,4 +23,8 @@ export async function markLocalOnly(
   link.mode = "copy";
   link.localOnly = true;
   await saveState(adapters.home, state);
+}
+
+export function markLocalOnly(...args: Parameters<typeof lockedmarkLocalOnly>) {
+  return withStateLock(args[0].home, () => lockedmarkLocalOnly(...args));
 }

@@ -13,8 +13,13 @@ test("config validates, persists and uses private paths", async () => {
     expect((await readConfig(home)).telemetry).toBe(false);
     await setConfig("telemetry", "on", home);
     expect((await readConfig(home)).telemetry).toBe(true);
-    expect((await stat(paths(home).config)).mode & 0o777).toBe(0o600);
-    expect((await stat(paths(home).state)).mode & 0o777).toBe(0o700);
+
+    if (process.platform !== "win32")
+      expect((await stat(paths(home).config)).mode & 0o777).toBe(0o600);
+
+    if (process.platform !== "win32")
+      expect((await stat(paths(home).state)).mode & 0o777).toBe(0o700);
+
     expect(setConfig("bad", "on", home)).rejects.toThrow();
     expect(() => parseConfig({ telemetry: "yes" })).toThrow();
     expect(() => parseConfig({ "allow-version": "latest" })).toThrow();

@@ -1,9 +1,12 @@
+import { withStateLock } from "./lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { ILocalState } from "./model.ts";
 import { atomicWrite, optionalRead, privateDirectory } from "./files.ts";
 
 function replacer(_key: string, value: unknown): unknown {
+  if (value instanceof Map) return { $map: [...value] };
+  if (value instanceof Set) return { $set: [...value] };
   if (typeof value === "bigint") return { $bigint: String(value) };
   if (value instanceof Uint8Array) return { $bytes: Buffer.from(value).toString("base64url") };
 
@@ -12,6 +15,8 @@ function replacer(_key: string, value: unknown): unknown {
 
 function reviver(_key: string, value: unknown): unknown {
   if (value && typeof value === "object") {
+    const collection = reviveCollection(value);
+    if (collection) return collection;
     if ("$bigint" in value && typeof value.$bigint === "string") return BigInt(value.$bigint);
 
     if ("$bytes" in value && typeof value.$bytes === "string")
@@ -22,8 +27,10 @@ function reviver(_key: string, value: unknown): unknown {
 }
 
 export async function saveState(home: string, state: ILocalState): Promise<void> {
-  await privateDirectory(home);
-  await atomicWrite(join(home, "state", "device.json"), JSON.stringify(state, replacer));
+  await withStateLock(home, async () => {
+    await privateDirectory(home);
+    await atomicWrite(join(home, "state", "device.json"), JSON.stringify(state, replacer));
+  });
 }
 
 export async function loadState(home: string): Promise<ILocalState | undefined> {
@@ -47,4 +54,11 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
   } catch (cause) {
     throw new EnvdenError("INVALID_DATA", "Unreadable local state", { cause });
   }
+}
+
+function reviveCollection(value: object) {
+  if ("$map" in value && Array.isArray(value.$map)) return new Map(value.$map);
+  if ("$set" in value && Array.isArray(value.$set)) return new Set(value.$set);
+
+  return undefined;
 }
