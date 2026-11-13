@@ -40,7 +40,12 @@ export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
   );
 
   if (!header) throw new EnvdenError("INVALID_DATA", "Missing checkpoint header");
-  const chain = verifyChain(entries.filter((item) => item.body.seq <= header.body.listSeq));
+
+  const chain =
+    state.verifiedState?.seq === header.body.listSeq
+      ? { kind: "valid" as const, state: state.verifiedState }
+      : verifyChain(entries.filter((item) => item.body.seq <= header.body.listSeq));
+
   const idKey = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
   const key = await adapters.keychain.get(`envden/${adapters.home}/epoch/${header.body.epoch}`);
 

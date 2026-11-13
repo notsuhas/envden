@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { revocationSwap } from "./revocation.ts";
 import { retryHead } from "../../client/retry.ts";
 import { exposedNames } from "./exposure.ts";
@@ -19,6 +20,7 @@ async function attemptRemoveDevice(
   now: () => number,
   fetcher: TFetch = fetch,
   newKit = false,
+  recommend?: () => Promise<boolean>,
 ) {
   const context = await adminContext(adapters, now, fetcher);
   await login(context.client, context.vaultId, password);
@@ -36,7 +38,9 @@ async function attemptRemoveDevice(
   const exposure = await exposedNames(context, history);
   const recommendNewKit = recoveryHolders(history).has(p.base32(device.id));
 
-  if (newKit)
+  const replace = newKit || (recommendNewKit && recommend ? await recommend() : false);
+
+  if (replace)
     return {
       recommendNewKit,
       exposure,
@@ -49,5 +53,5 @@ async function attemptRemoveDevice(
 }
 
 export function removeDevice(...args: Parameters<typeof attemptRemoveDevice>) {
-  return retryHead(() => attemptRemoveDevice(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptRemoveDevice(...args)));
 }

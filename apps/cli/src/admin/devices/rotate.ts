@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { retryHead } from "../../client/retry.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../../adapters.ts";
@@ -41,5 +42,5 @@ async function attemptRotateVault(
 }
 
 export function rotateVault(...args: Parameters<typeof attemptRotateVault>) {
-  return retryHead(() => attemptRotateVault(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptRotateVault(...args)));
 }

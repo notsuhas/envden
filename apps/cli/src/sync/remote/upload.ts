@@ -51,6 +51,12 @@ export async function uploadLink(
   if (seen.has(id) && !same(seen.get(id), bytes))
     throw new EnvdenError("CONFLICT", "Copies of one file differ; sync them separately");
 
+  if (seen.has(id)) {
+    changed.set(base, { base, bytes });
+
+    return;
+  }
+
   seen.set(id, bytes);
   const next = await sealUpload(context, repoId, link.path, fileId, previous, bytes);
 

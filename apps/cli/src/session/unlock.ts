@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { requireConfigured } from "../state/configured.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
@@ -9,7 +10,7 @@ import { binary } from "../client/encoding.ts";
 import { login } from "./login.ts";
 import { VERSION } from "../version.ts";
 
-export async function unlockDevice(
+async function lockedunlockDevice(
   adapters: TAdapters,
   password: string,
   now: () => number,
@@ -32,4 +33,8 @@ export async function unlockDevice(
   const session = await login(client, p.unbase32(state.vaultId), password);
   if (session) state.session = session;
   await saveState(adapters.home, state);
+}
+
+export function unlockDevice(...args: Parameters<typeof lockedunlockDevice>) {
+  return withStateLock(args[0].home, () => lockedunlockDevice(...args));
 }

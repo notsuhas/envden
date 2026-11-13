@@ -1,7 +1,8 @@
+import { terminalJson } from "../../output/sanitize.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { removeDevice } from "../../admin/devices/remove.ts";
-import { secret } from "../../output/questions.ts";
+import { secret, consent } from "../../output/questions.ts";
 
 export const deviceRmCommand = new Command("rm")
   .argument("<device>")
@@ -14,12 +15,10 @@ export const deviceRmCommand = new Command("rm")
       () => Date.now(),
       fetch,
       options.newKit,
+      () => consent("This device held recovery keys. Replace the recovery kit in this removal?"),
     );
 
-    if (result.recommendNewKit)
-      console.log("This device held recovery keys. Remove with --new-kit to replace them too.");
-
-    console.log(JSON.stringify(result.exposure, null, 2));
-    if (result.kit) console.log(JSON.stringify(result.kit, null, 2));
+    console.log(terminalJson(result.exposure));
+    if (result.kit) console.log(terminalJson(result.kit));
     console.log("Device removed");
   });

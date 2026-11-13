@@ -1,18 +1,18 @@
+import { withStateLock } from "../../state/lock.ts";
 import { finishPairing } from "../../pairing/finish.ts";
 import { promptPairing } from "../../pairing/prompt.ts";
 import { parseKit } from "../../vault/recovery/input.ts";
 import { readFile } from "node:fs/promises";
-import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import { input, secret } from "../../output/questions.ts";
-import { firstRun } from "../../sync/first-run.ts";
+import { completeJoin } from "../../onboarding/complete-join.ts";
 import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { rejoinIdentity } from "./classify.ts";
 import { kitRejoin } from "./kit.ts";
 import { VERSION } from "../../version.ts";
 
-export async function runRejoin(
+async function lockedrunRejoin(
   adapters: TAdapters,
   address: string,
   options: { recoveryKit?: string; name?: string; resume?: boolean },
@@ -53,18 +53,9 @@ export async function runRejoin(
     await finishPairing(adapters, client, identity, address, server.pin, now, true);
   }
 
-  await firstRun(adapters, {
-    now,
-    fetcher: fetch,
-    all: true,
-    interactive: true,
-    choose: async (path) => {
-      const choice = await input(`Choose keep-mine, take-server or merge for ${path}`);
+  await completeJoin(adapters, now);
+}
 
-      if (choice !== "keep-mine" && choice !== "take-server" && choice !== "merge")
-        throw new EnvdenError("INVALID_INPUT", "Invalid first-run choice");
-
-      return choice;
-    },
-  });
+export function runRejoin(...args: Parameters<typeof lockedrunRejoin>) {
+  return withStateLock(args[0].home, () => lockedrunRejoin(...args));
 }

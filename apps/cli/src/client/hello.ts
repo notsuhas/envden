@@ -1,3 +1,4 @@
+import { serverFetch } from "./fetch.ts";
 import type { TFetch } from "./fetch.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -13,7 +14,12 @@ export async function hello(
   const url = new URL("/v1/hello", address);
   const challenge = p.randomBytes(32);
   url.searchParams.set("challenge", text(challenge));
-  const response = await fetcher(url);
+
+  const response = await serverFetch(fetcher, url, {
+    signal: AbortSignal.timeout(2000),
+    redirect: "error",
+  });
+
   if (!response.ok) throw new EnvdenError("UNAUTHORIZED", "Server hello failed");
   const body = p.HelloResponseSchema.parse(await response.json());
   const signed = p.decode(p.signedCodec(p.ServerHelloCodec), binary(body.hello));

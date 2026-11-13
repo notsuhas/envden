@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
@@ -12,7 +13,7 @@ import { currentHistory } from "../shared/history.ts";
 import type { TAdminContext } from "../shared/context.ts";
 import { VERSION } from "../../version.ts";
 
-export async function abortMove(
+async function lockedabortMove(
   context: TAdminContext,
   adapters: TAdapters,
   directory: string,
@@ -51,4 +52,8 @@ export async function abortMove(
 
   await rm(join(directory, "move-pin"), { force: true });
   await adapters.keychain.delete(`envden/${adapters.home}/move-token`);
+}
+
+export function abortMove(...args: Parameters<typeof lockedabortMove>) {
+  return withStateLock(args[0].adapters.home, () => lockedabortMove(...args));
 }

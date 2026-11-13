@@ -7,9 +7,11 @@ import type { ILocalState } from "../../state/model.ts";
 import type { TAdminContext } from "./context.ts";
 
 export function checkFloor(local: ILocalState, history: THistory) {
+  const bySequence = new Map(history.headers.map((header) => [header.body.seq, header]));
+
   for (const encoded of local.headers) {
     const stored = p.decode(p.signedCodec(p.ManifestHeaderCodec), binary(encoded));
-    const remote = history.headers.find((header) => header.body.seq === stored.body.seq);
+    const remote = bySequence.get(stored.body.seq);
 
     if (!remote)
       throw new EnvdenError("ROLLBACK", "Server is behind this device; run envden server repair");

@@ -1,6 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
-import { runVaultAdmin } from "../../admin/recovery/run.ts";
+import { runVaultAdmin } from "./run.ts";
 
 export const vaultCommand = new Command("vault")
   .addCommand(

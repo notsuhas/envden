@@ -2,7 +2,7 @@ import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { uploadRepair } from "../../admin/repair/upload.ts";
 import { finishRepair } from "../../admin/repair/finish.ts";
-import { runVaultAdmin } from "../../admin/recovery/run.ts";
+import { runVaultAdmin } from "../vault/run.ts";
 import { secret, consent } from "../../output/questions.ts";
 
 export const serverRepairCommand = new Command("repair")

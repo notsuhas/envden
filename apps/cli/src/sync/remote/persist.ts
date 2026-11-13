@@ -8,6 +8,7 @@ export async function persistCheckpoint(context: TSyncContext): Promise<void> {
     p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest"),
   );
 
+  context.state.verifiedState = context.checkpoint.state;
   context.state.files = text(p.FilesCodec.write(context.checkpoint.files));
 
   context.state.headers = context.headers.map((item) =>

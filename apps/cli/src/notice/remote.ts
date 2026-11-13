@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { appliedFiles } from "../sync/local/applied.ts";
 import { text } from "../client/encoding.ts";
 import { join } from "node:path";
@@ -9,7 +10,7 @@ import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/files.ts";
 
-export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
+async function lockedremoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
   const applied = await appliedFiles(adapters.home);
   await acceptHead(context);
@@ -38,4 +39,8 @@ export async function readRemoteNotice(
   const value = await optionalRead(join(home, "state", "remote-notice.json"));
 
   return value ? JSON.parse(value) : undefined;
+}
+
+export function remoteNotice(...args: Parameters<typeof lockedremoteNotice>) {
+  return withStateLock(args[0].home, () => lockedremoteNotice(...args));
 }

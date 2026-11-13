@@ -1,19 +1,15 @@
+import { matchesBase } from "./history.ts";
 import { applyTarget } from "./placement.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
 import { entryContent } from "../../remote/content.ts";
-import { basePath, readBytes } from "../files.ts";
+import { basePath, readBytes, same } from "../files.ts";
 import { recordConflict, conflictRecords } from "../conflicts.ts";
 
 import type { ILocalState } from "../../../state/model.ts";
-import {
-  deriveContentAction,
-  deriveStoreSource,
-  deriveDefaultContent,
-  deriveUntrackedConflict,
-} from "./decision.ts";
+import { deriveContentAction, deriveStoreSource, needsConflict } from "./decision.ts";
 import { resolveContent } from "./resolution.ts";
 
 type TChoose = (path: string) => Promise<"keep-mine" | "take-server" | "merge">;
@@ -29,6 +25,8 @@ export async function reconcileTarget(
   noFastForward: ReadonlySet<string>,
   choose?: TChoose,
 ) {
+  const detachedChoice = context.options.interactive ? context.options.choose : undefined;
+
   const base = basePath(
     context.adapters.home,
     store,
@@ -45,36 +43,27 @@ export async function reconcileTarget(
     (item) => item.root === target.root && item.path === target.path,
   );
 
-  const status = await targetStatus(context, target, store, destination, linked);
+  const status = await resolvedStatus(context, target, store, destination, linked, base);
+  const previous = await readBytes(base);
 
-  const useStore = deriveStoreSource(target.mode, status, linked);
+  const useStore = status === "relinkable" || deriveStoreSource(target.mode, status, linked);
 
   const mine = await readBytes(useStore ? store : destination);
 
-  if (
-    deriveUntrackedConflict({ linked, useStore, mine, server, choosing: !!choose }).kind ===
-    "conflict"
-  ) {
-    await recordConflict(context, { ...target, base }, mine, server);
-
-    return { changed: 0, conflicts: 1 };
-  }
-
-  let previous = await readBytes(base);
-  const old = oldFiles.entries.find((item) => p.equal(item.fileId, entry.fileId));
-  if (!previous && old) previous = await entryContent(context, old);
+  const baseline = await targetBaseline(context, previous, oldFiles, entry);
 
   const action = deriveContentAction({
     linked,
     useStore,
     mine,
     server,
-    previous,
+    previous: baseline,
+    detached: target.mode === "link" && status === "detached",
     choosing: !!choose,
     repair: noFastForward.has(p.base32(entry.fileId)),
   });
 
-  if (action.kind === "conflict" || action.kind === "repair-conflict") {
+  if (needsConflict(action.kind, !!choose, !!detachedChoice)) {
     await recordConflict(context, { ...target, base }, mine, server);
 
     if (action.kind === "repair-conflict")
@@ -91,9 +80,9 @@ export async function reconcileTarget(
           name.path,
           mine,
           server,
-          previous,
-          choose,
-          deriveDefaultContent({ linked, useStore, mine, server, previous }),
+          baseline,
+          choose ?? (action.kind === "detached" ? detachedChoice : undefined),
+          server,
         );
 
   if (resolution.kind === "conflict") {
@@ -134,4 +123,40 @@ async function targetStatus(
       : await placement.inspect(store, destination);
 
   return status;
+}
+
+async function resolvedStatus(
+  context: TSyncContext,
+  target: ILocalState["links"][number],
+  store: string,
+  destination: string,
+  linked: boolean,
+  base: string,
+) {
+  let status = await targetStatus(context, target, store, destination, linked);
+
+  const stored = await readBytes(store);
+
+  if (
+    status === "detached" &&
+    (same(await readBytes(destination), stored) ||
+      (await matchesBase(base, await readBytes(destination))))
+  ) {
+    status = "relinkable";
+  }
+
+  return status;
+}
+
+async function targetBaseline(
+  context: TSyncContext,
+  previous: Uint8Array | undefined,
+  oldFiles: p.IFiles,
+  entry: p.IFileEntry,
+) {
+  let baseline = previous;
+  const old = oldFiles.entries.find((item) => p.equal(item.fileId, entry.fileId));
+  if (!baseline && old) baseline = await entryContent(context, old);
+
+  return baseline;
 }

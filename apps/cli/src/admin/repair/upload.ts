@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { localRepairChain } from "./chain.ts";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
@@ -45,7 +46,7 @@ export async function repairContext(
   return { ...context, repairId };
 }
 
-export async function uploadRepair(
+async function lockeduploadRepair(
   adapters: TAdapters,
   token: string,
   now: () => number,
@@ -78,19 +79,7 @@ export async function uploadRepair(
     ? p.decode(p.FilesCodec, binary(context.local.files))
     : { entries: [] };
 
-  const blobs: Uint8Array[] = [];
-
-  for (const file of files.entries) {
-    if (![1, 3].includes(file.state)) continue;
-    const bytes = await cachedBytes(join(adapters.home, "state", "blobs", text(file.blobHash)));
-    if (!bytes) continue;
-
-    if (!p.equal(p.H("blob", bytes), file.blobHash))
-      throw new EnvdenError("INVALID_DATA", "Cached blob hash mismatch");
-
-    await context.client.request(`/v1/blobs/${text(file.blobHash)}`, "PUT", bytes);
-    blobs.push(file.blobHash);
-  }
+  const blobs = await uploadCachedBlobs(context, files);
 
   if (localHead.body.seq > remoteHead.body.seq) {
     const swaps = await historySwaps(
@@ -151,4 +140,30 @@ export async function uploadRepair(
   );
 
   return context;
+}
+
+export function uploadRepair(...args: Parameters<typeof lockeduploadRepair>) {
+  return withStateLock(args[0].home, () => lockeduploadRepair(...args));
+}
+
+async function uploadCachedBlobs(
+  context: Awaited<ReturnType<typeof repairContext>>,
+  files: p.IFiles,
+) {
+  const adapters = context.adapters;
+  const blobs: Uint8Array[] = [];
+
+  for (const file of files.entries) {
+    if (![1, 3].includes(file.state)) continue;
+    const bytes = await cachedBytes(join(adapters.home, "state", "blobs", text(file.blobHash)));
+    if (!bytes) continue;
+
+    if (!p.equal(p.H("blob", bytes), file.blobHash))
+      throw new EnvdenError("INVALID_DATA", "Cached blob hash mismatch");
+
+    await context.client.request(`/v1/blobs/${text(file.blobHash)}`, "PUT", bytes);
+    blobs.push(file.blobHash);
+  }
+
+  return blobs;
 }

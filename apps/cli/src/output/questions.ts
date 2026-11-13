@@ -1,4 +1,5 @@
 import { confirm, password, text, select } from "@clack/prompts";
+import { sanitizeTerminal } from "./sanitize.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 function answer<T extends string | boolean>(value: T | symbol): T {
@@ -19,7 +20,10 @@ export async function secret(message: string): Promise<string> {
   terminal();
 
   return answer<string>(
-    await password({ message, validate: (value) => (value ? undefined : "Required") }),
+    await password({
+      message: sanitizeTerminal(message),
+      validate: (value) => (value ? undefined : "Required"),
+    }),
   );
 }
 
@@ -27,14 +31,19 @@ export async function input(message: string, required = true): Promise<string> {
   terminal();
 
   return answer<string>(
-    await text({ message, validate: (value) => (!required || value ? undefined : "Required") }),
+    await text({
+      message: sanitizeTerminal(message),
+      validate: (value) => (!required || value ? undefined : "Required"),
+    }),
   );
 }
 
 export async function consent(message: string): Promise<boolean> {
   terminal();
 
-  return answer<boolean>(await confirm({ message, initialValue: false }));
+  return answer<boolean>(
+    await confirm({ message: sanitizeTerminal(message), initialValue: false }),
+  );
 }
 
 export async function shellChoice(): Promise<"zsh" | "bash" | "fish" | "powershell" | "none"> {

@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock.ts";
 import { join } from "node:path";
 import { diffEnvKeys } from "@envden/core/merge";
 import type { TAdapters } from "../adapters.ts";
@@ -6,20 +7,13 @@ import { syncContext } from "./remote/context.ts";
 import { selectedRepos } from "./local/selection.ts";
 import { readBytes, basePath } from "./local/files.ts";
 
-export async function diff(adapters: TAdapters, options: ISyncOptions) {
+async function lockedDiff(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
   const repos = await selectedRepos(adapters, context.state, options);
   const result = [];
 
   for (const link of context.state.links) {
-    const approved = context.state.approved.find((item) => item.root === link.root);
-
-    if (
-      !approved ||
-      link.localOnly ||
-      !repos.has(context.state.aliases[approved.repoId] ?? approved.repoId)
-    )
-      continue;
+    if (!includeLink(context.state, link, repos)) continue;
 
     const before = await readBytes(
       basePath(adapters.home, link.store, link.mode === "copy" ? link.root : undefined),
@@ -34,4 +28,20 @@ export async function diff(adapters: TAdapters, options: ISyncOptions) {
   }
 
   return result;
+}
+
+export function diff(...args: Parameters<typeof lockedDiff>) {
+  return withStateLock(args[0].home, () => lockedDiff(...args));
+}
+
+export function includeLink(
+  state: Awaited<ReturnType<typeof syncContext>>["state"],
+  link: Awaited<ReturnType<typeof syncContext>>["state"]["links"][number],
+  repos: Set<string>,
+) {
+  const approved = state.approved.find((item) => item.root === link.root);
+
+  return (
+    !!approved && !link.localOnly && repos.has(state.aliases[approved.repoId] ?? approved.repoId)
+  );
 }

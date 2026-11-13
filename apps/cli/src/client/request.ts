@@ -1,3 +1,4 @@
+import { serverFetch } from "./fetch.ts";
 import { hc } from "hono/client";
 import type { AppType } from "@envden/server";
 import type { TFetch } from "./fetch.ts";
@@ -69,7 +70,7 @@ export function createClient(options: IClientOptions): IClient {
 
     if (options.proof) headers.set("Envden-Proof", text(options.proof(value)));
 
-    const response = await options.fetcher(url, {
+    const response = await serverFetch(options.fetcher, url, {
       method,
       headers,
       ...(serialized ? { body: serialized } : {}),

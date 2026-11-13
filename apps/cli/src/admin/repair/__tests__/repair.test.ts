@@ -107,7 +107,7 @@ for (const mode of ["rotate", "password", "missing-envelope"] as const)
             expect(joined.vaultId).toBe(f.result.kit.vaultId);
           }
 
-          expect(uploadRepair(f.first, token, f.now)).rejects.toThrow();
+          await Promise.resolve(expect(uploadRepair(f.first, token, f.now)).rejects.toThrow());
         } finally {
           await current.server.stop(true);
           current.stopPruning();

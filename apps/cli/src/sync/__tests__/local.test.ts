@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, symlink } from "node:fs/promises";
+import { mkdtemp, rm, symlink, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
@@ -24,8 +24,15 @@ test("bases distinguish copies, fit long paths, and reads refuse symlinks", asyn
     expect(same(undefined, bytes(""))).toBe(false);
     expect(same(bytes("x"), bytes("x"))).toBe(true);
     await atomicWrite(join(home, "file"), "secret");
-    await symlink(join(home, "file"), join(home, "link"));
-    expect(readBytes(join(home, "link"))).rejects.toMatchObject({ code: "INVALID_DATA" });
+
+    if (process.platform !== "win32") {
+      await symlink(join(home, "file"), join(home, "link"));
+
+      await Promise.resolve(
+        expect(readBytes(join(home, "link"))).rejects.toMatchObject({ code: "INVALID_DATA" }),
+      );
+    }
+
     expect(await readBytes(join(home, "missing"))).toBeUndefined();
 
     await withSyncLock(home, async () => {
@@ -44,30 +51,42 @@ test("bases distinguish copies, fit long paths, and reads refuse symlinks", asyn
 });
 
 test("repo selection refuses changed remotes and path-prefix siblings", async () => {
+  const fixture = await mkdtemp(join(tmpdir(), "envden-selection-"));
+
   const checkout = {
-    root: "/projects/repo",
-    gitDir: "/projects/repo/.git",
+    root: fixture,
+    gitDir: join(fixture, ".git"),
     repoId: "github.com/test/repo",
   };
 
-  const adapters = createAdapters({ home: "/unused", keychain: createMemoryKeychainAdapter([]) });
+  const adapters = createAdapters({
+    home: join(fixture, "home"),
+    keychain: createMemoryKeychainAdapter([]),
+  });
+
   adapters.repo = createFakeRepoAdapter({ checkoutAt: async () => checkout });
   const state = emptyState("test");
   state.approved.push(checkout);
-  const options = { now: () => 1, fetcher: fetch, cwd: "/projects/repo/nested" };
+  const options = { now: () => 1, fetcher: fetch, cwd: join(fixture, "nested") };
   expect([...(await selectedRepos(adapters, state, options))]).toEqual([checkout.repoId]);
 
-  expect(
-    selectedRepos(adapters, state, { ...options, cwd: "/projects/repo-other" }),
-  ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  await Promise.resolve(
+    expect(
+      selectedRepos(adapters, state, { ...options, cwd: fixture + "-other" }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
+  );
 
   adapters.repo = createFakeRepoAdapter({
     checkoutAt: async () => ({ ...checkout, repoId: "changed" }),
   });
 
-  expect(selectedRepos(adapters, state, { ...options, all: true })).rejects.toMatchObject({
-    code: "CONFLICT",
-  });
+  await Promise.resolve(
+    expect(selectedRepos(adapters, state, { ...options, all: true })).rejects.toMatchObject({
+      code: "CONFLICT",
+    }),
+  );
+
+  await rm(fixture, { recursive: true, force: true });
 });
 
 for (const choice of ["keep-mine", "take-server", "edit"] as const) {
@@ -100,7 +119,17 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
         },
       ]);
 
-      await resolveConflict(adapters, { choice });
+      await atomicWrite(join(home, ".env"), "unrelated checkout bytes");
+      await resolveConflict(adapters, { choice, now: () => 10 });
+      const backups = await readdir(join(home, "conflicts", "backups"));
+
+      expect(
+        await Promise.all(
+          backups.map(async (name) =>
+            new TextDecoder().decode(await readBytes(join(home, "conflicts", "backups", name))),
+          ),
+        ),
+      ).toContain("unrelated checkout bytes");
 
       expect(new TextDecoder().decode(await readBytes(store))).toBe(
         choice === "take-server"
@@ -146,6 +175,33 @@ test("repair hazards survive a scoped pull until a conflict is saved", async () 
     await savePendingRepairs(home, new Set(["repo-a", "repo-b"]));
     await consumeRepair(home, "repo-a");
     expect([...(await pendingRepairs(home))]).toEqual(["repo-b"]);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("alias refuses existing placed files before changing their identity", async () => {
+  const { aliasUnlinkedRepo } = await import("../alias.ts");
+  const { saveState, loadState } = await import("../../state/repository.ts");
+  const home = await mkdtemp(join(tmpdir(), "envden-alias-"));
+
+  try {
+    const state = emptyState("test");
+    state.approved.push({ root: home, gitDir: join(home, ".git"), repoId: "source" });
+    state.links.push({ root: home, path: ".env", store: join(home, "store"), mode: "copy" });
+    await saveState(home, state);
+
+    await Promise.resolve(
+      expect(
+        aliasUnlinkedRepo(
+          createAdapters({ home, keychain: createMemoryKeychainAdapter([]) }),
+          "source",
+          "target",
+        ),
+      ).rejects.toMatchObject({ code: "CONFLICT" }),
+    );
+
+    expect((await loadState(home))?.aliases).toEqual({});
   } finally {
     await rm(home, { recursive: true, force: true });
   }

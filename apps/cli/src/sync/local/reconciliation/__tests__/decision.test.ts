@@ -1,5 +1,6 @@
 import { test, expect } from "bun:test";
 import {
+  needsConflict,
   deriveContentAction,
   deriveDefaultContent,
   deriveStoreSource,
@@ -22,6 +23,7 @@ const input = {
 
 for (const [changes, expected] of [
   [{}, "choose"],
+  [{ detached: true, previous: server }, "detached"],
   [{ previous: server }, "write"],
   [{ previous: mine }, "write"],
   [{ mine: server }, "write"],
@@ -47,10 +49,43 @@ test("unchanged server preserves a local edit or deletion", () => {
 for (const [mode, status, linked, expected] of [
   ["link", "missing", false, true],
   ["link", "linked", true, true],
+  ["link", "linked", false, true],
   ["link", "detached", true, false],
   ["copy", "missing", true, false],
   ["link", "relinkable", false, false],
 ] as const)
   test(`store source ${mode} ${status} ${linked}`, () => {
     expect(deriveStoreSource(mode, status, linked)).toBe(expected);
+  });
+
+test("base history recognizes an older synced checkout without accepting a template", async () => {
+  const { mkdtemp, rm } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const { saveBase, matchesBase } = await import("../history.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-base-history-"));
+
+  try {
+    const base = join(root, "base");
+    await saveBase(base, mine);
+    await saveBase(base, server);
+    expect(await matchesBase(base, mine)).toBe(true);
+    expect(await matchesBase(base, server)).toBe(true);
+    expect(await matchesBase(base, previous)).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+for (const [kind, choosing, detached, expected] of [
+  ["conflict", false, false, true],
+  ["repair-conflict", true, true, true],
+  ["detached", false, false, true],
+  ["detached", true, false, false],
+  ["detached", false, true, false],
+  ["write", false, false, false],
+  ["choose", false, false, false],
+] as const)
+  test(`conflict recording ${kind} ${choosing} ${detached}`, () => {
+    expect(needsConflict(kind, choosing, detached)).toBe(expected);
   });

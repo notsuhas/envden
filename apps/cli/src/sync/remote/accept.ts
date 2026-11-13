@@ -1,3 +1,6 @@
+import type { THistory } from "../../vault/history.ts";
+import { readHistory } from "../../vault/history.ts";
+import { decodeHistoryHeader } from "../../client/history.ts";
 import { deviceWrap } from "../../vault/keys/wrap.ts";
 import { pendingRepairs, savePendingRepairs } from "./repairs.ts";
 import * as p from "@envden/core/protocol";
@@ -8,22 +11,23 @@ import { text, binary } from "../../client/encoding.ts";
 import { atomicWrite } from "../../state/files.ts";
 import { join } from "node:path";
 
-export async function acceptHead(context: TSyncContext) {
+export async function acceptHead(context: TSyncContext, history?: THistory) {
   const { client, checkpoint, identity, adapters, vaultId } = context;
   const pending = await pendingRepairs(adapters.home);
 
-  const head = p.decode(
-    p.signedCodec(p.ManifestHeaderCodec),
-    new Uint8Array(await (await client.rpc.v1.head.$get()).arrayBuffer()),
+  const rawHead = new Uint8Array(await (await client.rpc.v1.head.$get()).arrayBuffer());
+
+  const remote = history ?? (await readHistory(client, vaultId, context.state));
+  const headers = remote.headers;
+  const entries = remote.entries;
+
+  const head = decodeHistoryHeader(
+    rawHead,
+    entries,
+    context.state.headers.map(binary),
+    context.state.latest,
+    remote.states,
   );
-
-  const headers = p.ObjectsResponseSchema.parse(
-    await (await client.rpc.v1.headers.$get()).json(),
-  ).objects.map((value) => p.decode(p.signedCodec(p.ManifestHeaderCodec), binary(value)));
-
-  const entries = p.ObjectsResponseSchema.parse(
-    await (await client.rpc.v1.entries.$get()).json(),
-  ).objects.map((value) => p.decode(p.signedCodec(p.EntryCodec), binary(value)));
 
   const fileLists = new Map<string, p.IFiles>();
   let keyring: Uint8Array | undefined;

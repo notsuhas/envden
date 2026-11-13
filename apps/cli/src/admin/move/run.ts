@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { moveCredentials } from "./credentials.ts";
 import { abortMove } from "./abort.ts";
 import { resumeMoveAddress } from "./resume.ts";
@@ -20,7 +21,7 @@ import { copyServer } from "../shared/transfer.ts";
 import { switchServer } from "./switch.ts";
 import { VERSION } from "../../version.ts";
 
-export async function moveServer(
+async function lockedmoveServer(
   adapters: TAdapters,
   options: {
     address?: string | undefined;
@@ -72,6 +73,40 @@ export async function moveServer(
   await atomicWrite(join(directory, "move-pin"), text(pin));
   let swap: p.ISwap;
 
+  swap = await preparedSwap(context, destination, directory, pin, address, options);
+
+  requireDestination(swap, pin, address);
+
+  await context.client.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
+  await destination.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
+  await login(destination, context.vaultId, options.password);
+  await switchServer(adapters, address, options.now, options.fetcher);
+  await rm(join(directory, "move-swap.bin"), { force: true });
+  await rm(join(directory, "move-address"), { force: true });
+  await adapters.keychain.delete(tokenSlot);
+}
+
+export function moveServer(...args: Parameters<typeof lockedmoveServer>) {
+  return withStateLock(args[0].home, () => lockedmoveServer(...args));
+}
+
+function requireDestination(swap: p.ISwap, pin: Uint8Array, address: string) {
+  const move = swap.entries[0]?.body;
+
+  if (move?.kind !== 5 || !p.equal(move.payload.newPin, pin) || move.payload.newAddress !== address)
+    throw new EnvdenError("INVALID_INPUT", "Resume destination differs from the stored move");
+}
+
+async function preparedSwap(
+  context: Awaited<ReturnType<typeof adminContext>>,
+  destination: ReturnType<typeof createClient>,
+  directory: string,
+  pin: Uint8Array,
+  address: string,
+  options: Parameters<typeof lockedmoveServer>[1],
+) {
+  let swap: p.ISwap;
+
   try {
     swap = p.decode(p.SwapCodec, new Uint8Array(await readFile(join(directory, "move-swap.bin"))));
   } catch (error) {
@@ -100,16 +135,5 @@ export async function moveServer(
     await atomicWrite(join(directory, "move-swap.bin"), p.encode(p.SwapCodec, swap));
   }
 
-  const move = swap.entries[0]?.body;
-
-  if (move?.kind !== 5 || !p.equal(move.payload.newPin, pin) || move.payload.newAddress !== address)
-    throw new EnvdenError("INVALID_INPUT", "Resume destination differs from the stored move");
-
-  await context.client.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
-  await destination.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
-  await login(destination, context.vaultId, options.password);
-  await switchServer(adapters, address, options.now, options.fetcher);
-  await rm(join(directory, "move-swap.bin"), { force: true });
-  await rm(join(directory, "move-address"), { force: true });
-  await adapters.keychain.delete(tokenSlot);
+  return swap;
 }

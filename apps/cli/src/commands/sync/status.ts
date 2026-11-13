@@ -1,3 +1,4 @@
+import { sanitizeTerminal, terminalJson } from "../../output/sanitize.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { commandNotice } from "../../notice/command.ts";
@@ -14,12 +15,22 @@ export const statusCommand = new Command("status")
     if (!options.refreshCache)
       console.log(
         options.json
-          ? JSON.stringify(status)
+          ? terminalJson(status)
           : status.configured
             ? [
-                "envden: server unknown",
+                `envden: server ${status.server}`,
+                ...status.links
+                  .filter(
+                    (link) => link.status === "detached" || ("conflict" in link && link.conflict),
+                  )
+                  .map(
+                    (link) =>
+                      `envden: ${link.root}/${link.path} ${"conflict" in link && link.conflict ? "conflict" : "detached"}`,
+                  ),
                 ...notice.repos.map((repo) => `envden: ${repo} out of sync`),
-              ].join("\n")
+              ]
+                .map(sanitizeTerminal)
+                .join("\n")
             : "envden: not configured",
       );
   });

@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
@@ -11,7 +12,7 @@ import { adminContext } from "../shared/context.ts";
 import { checkFloor } from "../shared/history.ts";
 import { VERSION } from "../../version.ts";
 
-export async function switchServer(
+async function lockedswitchServer(
   adapters: TAdapters,
   address: string,
   now: () => number,
@@ -44,4 +45,8 @@ export async function switchServer(
 
   context.local.server = { address, pin: text(server.pin), protocol: 1 };
   await saveState(adapters.home, context.local);
+}
+
+export function switchServer(...args: Parameters<typeof lockedswitchServer>) {
+  return withStateLock(args[0].home, () => lockedswitchServer(...args));
 }

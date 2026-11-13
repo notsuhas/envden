@@ -1,3 +1,5 @@
+import { withStateLock } from "../state/lock.ts";
+import { sanitizeTerminal } from "../output/sanitize.ts";
 import { readRemoteNotice } from "./remote.ts";
 import { join } from "node:path";
 import type { ILocalState } from "../state/model.ts";
@@ -25,7 +27,7 @@ export async function noticeStatus(home: string, state: ILocalState) {
   return [...repos].map((repoId) => ({ repoId, status: "local changes" }));
 }
 
-export async function refreshNotice(home: string, state: ILocalState): Promise<void> {
+async function lockedrefreshNotice(home: string, state: ILocalState): Promise<void> {
   const roots = state.approved.map((item) => item.root).filter((root) => !/[\r\n]/.test(root));
   await atomicWrite(join(home, "state", "approved-checkouts"), roots.join("\n") + "\n");
   const local = await noticeStatus(home, state);
@@ -34,10 +36,18 @@ export async function refreshNotice(home: string, state: ILocalState): Promise<v
 
   await atomicWrite(
     join(home, "state", "notice"),
-    repos.map((repoId) => `envden: ${repoId} out of sync`).join("\n") + (repos.length ? "\n" : ""),
+    repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`).join("\n") +
+      (repos.length ? "\n" : ""),
   );
 }
 
 export async function cachedNotice(home: string): Promise<string> {
-  return (await optionalRead(join(home, "state", "notice"))) ?? "";
+  return ((await optionalRead(join(home, "state", "notice"))) ?? "")
+    .split("\n")
+    .map(sanitizeTerminal)
+    .join("\n");
+}
+
+export function refreshNotice(...args: Parameters<typeof lockedrefreshNotice>) {
+  return withStateLock(args[0], () => lockedrefreshNotice(...args));
 }

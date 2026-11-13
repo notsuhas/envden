@@ -75,14 +75,16 @@ for (const crash of [false, true])
         });
 
       if (crash) {
-        expect(
-          moveServer(f.first, {
-            abort: true,
-            password: "old password",
-            now: f.now,
-            fetcher: fetch,
-          }),
-        ).rejects.toMatchObject({ code: "MOVING" });
+        await Promise.resolve(
+          expect(
+            moveServer(f.first, {
+              abort: true,
+              password: "old password",
+              now: f.now,
+              fetcher: fetch,
+            }),
+          ).rejects.toMatchObject({ code: "MOVING" }),
+        );
 
         await pull(other, {
           now: f.now,
@@ -130,8 +132,6 @@ test("aborting a prepared move discards the inactive destination and permits a f
     .flat()
     .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
 
-  log.mockRestore();
-
   try {
     if (typeof token !== "string") throw new Error("Missing setup token");
     const address = destination.server.url.toString();
@@ -163,9 +163,16 @@ test("aborting a prepared move discards the inactive destination and permits a f
       fetcher: fetch,
     });
 
+    const renewed = log.mock.calls
+      .flat()
+      .filter((value) => typeof value === "string" && value.startsWith("envden-setup-1:"))
+      .at(-1);
+
+    if (typeof renewed !== "string") throw new Error("Missing renewed setup token");
+
     await moveServer(f.first, {
       address,
-      token,
+      token: renewed,
       password: "old password",
       now: f.now,
       fetcher: fetch,
@@ -173,6 +180,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
 
     expect((await loadState(f.first.home))?.server?.address).toBe(address);
   } finally {
+    log.mockRestore();
     await destination.server.stop(true);
     destination.stopPruning();
     destination.storage.close();

@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { availableBlobs } from "./completion/blobs.ts";
 import { missingBlobNames } from "./completion/names.ts";
 import { repairFiles } from "./completion/files.ts";
@@ -12,6 +13,7 @@ import { missingReportMembers, classifyMissingBlobs } from "@envden/core/chain";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
+import type { THistory } from "../../vault/history.ts";
 import { readHistory } from "../../vault/history.ts";
 import { binary } from "../../client/encoding.ts";
 import { repairContext } from "./upload.ts";
@@ -31,7 +33,7 @@ async function attemptFinishRepair(
   const resumed = await resumeClose(adapters, options.token, options.now, options.fetcher);
   if (resumed) return resumed;
   const context = await repairContext(adapters, options.token, options.now, options.fetcher);
-  let history = await readHistory(context.client, context.vaultId);
+  let history: THistory = await readHistory(context.client, context.vaultId);
 
   const status = p.RepairStatusSchema.parse(
     await (await context.client.request("/v1/repair/status")).json(),
@@ -73,5 +75,5 @@ async function attemptFinishRepair(
 }
 
 export function finishRepair(...args: Parameters<typeof attemptFinishRepair>) {
-  return retryHead(() => attemptFinishRepair(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptFinishRepair(...args)));
 }

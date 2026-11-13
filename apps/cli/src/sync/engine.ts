@@ -1,3 +1,4 @@
+import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
 import { pruneBackups } from "./local/retention.ts";
@@ -27,6 +28,8 @@ async function sync(
     await pruneBackups(adapters.home, options.now());
     const context = await syncContext(adapters, options);
 
+    let history = await readHistory(context.client, context.vaultId, context.state);
+
     const followed = await followServerMove(
       {
         adapters,
@@ -36,37 +39,37 @@ async function sync(
         client: context.client,
         now: options.now,
       },
-      await readHistory(context.client, context.vaultId),
+      history,
       options.fetcher,
       options.unlock,
     );
 
-    if (followed.kind === "moved") context.client = followed.client;
+    if (followed.kind === "moved") {
+      context.client = followed.client;
+      history = await readHistory(context.client, context.vaultId, context.state);
+    }
+
     const repos = await selectedRepos(adapters, context.state, options);
     let changed = 0;
 
     for (let attempt = 0; attempt < 3; attempt++) {
       const old = context.checkpoint.files;
-      const accepted = await acceptHead(context);
+      if (attempt) history = await readHistory(context.client, context.vaultId, context.state);
+      const accepted = await acceptHead(context, history);
 
       reportRepairs(context, accepted.repairs);
 
-      const result = await reconcile(context, repos, old, accepted.noFastForward, choose);
+      const result = await syncAttempt(
+        context,
+        repos,
+        old,
+        accepted.noFastForward,
+        pushing,
+        choose,
+      );
+
       changed += result.changed;
-      await persistCheckpoint(context);
-      if (!pushing) return { kind: "pulled" as const, changed, conflicts: result.conflicts };
-
-      if (result.conflicts || (await conflictRecords(adapters.home)).length)
-        return { kind: "conflict" as const, changed, conflicts: result.conflicts };
-
-      try {
-        const uploaded = await uploadChanges(context, repos);
-        await persistCheckpoint(context);
-
-        return { kind: "pushed" as const, changed: uploaded, conflicts: 0 };
-      } catch (error) {
-        if (!(error instanceof EnvdenError) || error.code !== "HEAD_MOVED") throw error;
-      }
+      if (result.kind !== "retry") return { ...result, changed };
     }
 
     throw new EnvdenError("HEAD_MOVED", "Head kept moving; retry envden push");
@@ -74,11 +77,11 @@ async function sync(
 }
 
 export function push(adapters: TAdapters, options: ISyncOptions) {
-  return sync(adapters, options, true);
+  return countedSync(adapters, options, true);
 }
 
 export function pull(adapters: TAdapters, options: ISyncOptions) {
-  return sync(adapters, options, false);
+  return countedSync(adapters, options, false);
 }
 
 export function firstSync(
@@ -97,4 +100,43 @@ function reportRepairs(
     context.options.report?.(
       `Repair changed file ${entryName(context, repair).path}: ${repair.state === 4 ? "lost" : "restored"}`,
     );
+}
+
+async function countedSync(adapters: TAdapters, options: ISyncOptions, pushing: boolean) {
+  const result = await sync(adapters, options, pushing);
+  const counts = commandCounts.getStore();
+  if (counts) Object.assign(counts, { changed: result.changed, conflicts: result.conflicts });
+
+  return result;
+}
+
+async function syncAttempt(
+  context: Awaited<ReturnType<typeof syncContext>>,
+  repos: Set<string>,
+  old: Parameters<typeof reconcile>[2],
+  noFastForward: ReadonlySet<string>,
+  pushing: boolean,
+  choose: Parameters<typeof reconcile>[4],
+) {
+  const adapters = context.adapters;
+  const result = await reconcile(context, repos, old, noFastForward, choose);
+
+  await persistCheckpoint(context);
+
+  if (!pushing)
+    return { kind: "pulled" as const, changed: result.changed, conflicts: result.conflicts };
+
+  if (result.conflicts || (await conflictRecords(adapters.home)).length)
+    return { kind: "conflict" as const, changed: result.changed, conflicts: result.conflicts };
+
+  try {
+    const uploaded = await uploadChanges(context, repos);
+    await persistCheckpoint(context);
+
+    return { kind: "pushed" as const, changed: uploaded, conflicts: 0 };
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "HEAD_MOVED") throw error;
+
+    return { kind: "retry" as const, changed: result.changed };
+  }
 }

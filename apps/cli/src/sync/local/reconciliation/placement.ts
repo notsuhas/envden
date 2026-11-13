@@ -1,3 +1,5 @@
+import { saveBase } from "./history.ts";
+import { saveState } from "../../../state/repository.ts";
 import type { TSyncContext } from "../../remote/context.ts";
 import { readBytes, same, writeBytes } from "../files.ts";
 import { backup } from "../conflicts.ts";
@@ -46,7 +48,8 @@ export async function applyTarget(
     await rm(destination, { force: true });
   }
 
-  await writeBytes(base, server);
+  await saveState(context.adapters.home, context.state);
+  await saveBase(base, server);
 
   return { changed, conflicts: 0 };
 }

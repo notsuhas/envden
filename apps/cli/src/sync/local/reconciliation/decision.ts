@@ -1,6 +1,7 @@
 import { same } from "../files.ts";
 
 interface IContent {
+  detached?: boolean;
   linked: boolean;
   useStore: boolean;
   mine: Uint8Array | undefined;
@@ -12,6 +13,8 @@ interface IContent {
 
 export function deriveContentAction(input: IContent) {
   const { linked, mine, server, previous, choosing, repair } = input;
+
+  if (input.detached) return { kind: "detached" } as const;
 
   if (deriveUntrackedConflict(input).kind === "conflict") return { kind: "conflict" } as const;
 
@@ -41,7 +44,11 @@ export function deriveDefaultContent({
 }
 
 export function deriveStoreSource(mode: "link" | "copy", status: string, linked: boolean) {
-  return mode === "link" && status !== "detached" && (linked || status === "missing");
+  return (
+    mode === "link" &&
+    status !== "detached" &&
+    (linked || status === "missing" || status === "linked")
+  );
 }
 
 export function deriveUntrackedConflict({
@@ -55,4 +62,16 @@ export function deriveUntrackedConflict({
     return { kind: "conflict" } as const;
 
   return { kind: "continue" } as const;
+}
+
+export function needsConflict(
+  kind: ReturnType<typeof deriveContentAction>["kind"],
+  choosing: boolean,
+  detachedChoice: boolean,
+) {
+  return (
+    kind === "conflict" ||
+    kind === "repair-conflict" ||
+    (kind === "detached" && !choosing && !detachedChoice)
+  );
 }

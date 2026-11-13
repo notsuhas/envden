@@ -2,6 +2,7 @@ import { sha256, base32 } from "@envden/core/protocol";
 import { readFile, lstat, rm, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
+import { withStateLock } from "../../state/lock.ts";
 import { atomicWrite } from "../../state/files.ts";
 
 export async function readBytes(path: string): Promise<Uint8Array | undefined> {
@@ -48,7 +49,7 @@ export async function withSyncLock<T>(home: string, action: () => Promise<T>): P
   }
 
   try {
-    return await action();
+    return await withStateLock(home, action);
   } finally {
     await rm(path, { recursive: true, force: true });
   }

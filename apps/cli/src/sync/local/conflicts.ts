@@ -1,3 +1,4 @@
+import { sanitizeTerminal } from "../../output/sanitize.ts";
 import { sha256, base32 } from "@envden/core/protocol";
 import { join } from "node:path";
 import type { TSyncContext } from "../remote/context.ts";
@@ -54,7 +55,10 @@ export async function recordConflict(
   });
 
   await saveConflicts(context.adapters.home, records);
-  context.options.report?.(`Conflict: ${target.path}; edit ${file}, then run envden resolve`);
+
+  context.options.report?.(
+    sanitizeTerminal(`Conflict: ${target.path}; edit ${file}, then run envden resolve`),
+  );
 }
 
 export async function backup(home: string, path: string, now: number): Promise<void> {

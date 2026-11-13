@@ -1,3 +1,4 @@
+import { withStateLock } from "../../state/lock.ts";
 import { sealRecoveryEnvelope } from "./envelope.ts";
 import { retryHead } from "../../client/retry.ts";
 import * as p from "@envden/core/protocol";
@@ -115,9 +116,9 @@ async function attemptChangePassword(
 }
 
 export function replaceKit(...args: Parameters<typeof attemptReplaceKit>) {
-  return retryHead(() => attemptReplaceKit(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptReplaceKit(...args)));
 }
 
 export function changePassword(...args: Parameters<typeof attemptChangePassword>) {
-  return retryHead(() => attemptChangePassword(...args));
+  return withStateLock(args[0].home, () => retryHead(() => attemptChangePassword(...args)));
 }

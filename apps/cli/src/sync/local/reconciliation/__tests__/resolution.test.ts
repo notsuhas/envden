@@ -59,3 +59,20 @@ test("missing baseline remains a conflict without confirmation", async () => {
     { kind: "conflict" },
   );
 });
+
+test("noninteractive merge never calls confirmation or a chooser", async () => {
+  const unexpected = async (): Promise<never> => {
+    throw new Error("Prompted");
+  };
+
+  expect(
+    await resolveContent(
+      { options: { interactive: false, confirm: unexpected } },
+      ".env",
+      mine,
+      server,
+      previous,
+      unexpected,
+    ),
+  ).toEqual({ kind: "conflict" });
+});

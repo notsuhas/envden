@@ -127,3 +127,28 @@ test("typed routes use the signed binary transport", async () => {
   const response = await client.rpc.v1.swap.$post({}, { init: { body: new Uint8Array(bytes) } });
   expect(await response.json()).toEqual({ kind: "committed" });
 });
+
+test("transport failures become a fixed unreachable error without leaking raw text", async () => {
+  const { serverFetch } = await import("../fetch.ts");
+
+  const failure = serverFetch(async () => {
+    throw new Error("secret server address");
+  }, "https://server.invalid");
+
+  await Promise.resolve(
+    expect(failure).rejects.toMatchObject({
+      code: "SERVER_UNREACHABLE",
+      message: "Server unreachable; check the server address and your private network",
+    }),
+  );
+});
+
+test("wire errors use the shared code schema", async () => {
+  const { responseError } = await import("../errors.ts");
+
+  expect((await responseError(Response.json({ error: "SERVER_UNREACHABLE" }))).code).toBe(
+    "SERVER_UNREACHABLE",
+  );
+
+  expect((await responseError(Response.json({ error: "MADE_UP" }))).code).toBe("INVALID_DATA");
+});

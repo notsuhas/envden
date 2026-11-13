@@ -1,3 +1,8 @@
+import { compareSemver } from "@envden/core/protocol";
+import { rememberRelease, restoreReleases } from "../updates/persistence.ts";
+import { cleanupOldBinary } from "../updates/replace.ts";
+import { withStateLock } from "../state/lock.ts";
+import { sanitizeTerminal } from "../output/sanitize.ts";
 import { sep, resolve } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import type { TFetch } from "../client/fetch.ts";
@@ -10,25 +15,55 @@ import { refreshNotice, noticeStatus } from "./cache.ts";
 import { readRemoteNotice, remoteNotice } from "./remote.ts";
 import { VERSION } from "../version.ts";
 
-export async function commandNotice(
+async function lockedcommandNotice(
   adapters: TAdapters,
   now: number,
   fetcher: TFetch,
   refresh = false,
   cwd?: string,
 ) {
+  await cleanupOldBinary(process.execPath, process.platform === "win32");
   const state = await loadState(adapters.home);
   if (!state) return { repos: [], update: { available: false, required: false } };
+  const stored = await restoreReleases(adapters.home, releaseConfig.trust, now);
+  if (stored) state.release = stored;
   const config = await readConfig(adapters.home);
-  const configured = state.updateCheck;
 
   if (!refresh) {
-    state.updateCheck = updateCheckEnabled(config["update-check"] && state.updateCheck);
-    await checkRelease(state, releaseConfig.trust, now, fetcher);
-    state.updateCheck = configured;
+    if (updateCheckEnabled(config["update-check"])) {
+      const result = await checkRelease(state, releaseConfig.trust, now, fetcher);
+      if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+    }
+
     await saveState(adapters.home, state);
   }
 
+  const remote = await refreshedRemote(adapters, state, now, fetcher, refresh);
+
+  await refreshNotice(adapters.home, state);
+  const local = await noticeStatus(adapters.home, state);
+
+  const currentRepo = currentRepoId(state, cwd);
+
+  return {
+    repos: [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])]
+      .filter((repo) => repo !== currentRepo)
+      .map(sanitizeTerminal),
+    update: updateNotice(state, config),
+  };
+}
+
+export function commandNotice(...args: Parameters<typeof lockedcommandNotice>) {
+  return withStateLock(args[0].home, () => lockedcommandNotice(...args));
+}
+
+async function refreshedRemote(
+  adapters: TAdapters,
+  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
+  now: number,
+  fetcher: TFetch,
+  refresh: boolean,
+) {
   let remote = await readRemoteNotice(adapters.home);
 
   if (refresh && state.checkpoint && (!remote || now - remote.checkedAt >= 60000)) {
@@ -39,9 +74,10 @@ export async function commandNotice(
     }
   }
 
-  await refreshNotice(adapters.home, state);
-  const local = await noticeStatus(adapters.home, state);
+  return remote;
+}
 
+function currentRepoId(state: NonNullable<Awaited<ReturnType<typeof loadState>>>, cwd?: string) {
   const current = cwd
     ? state.approved.find(
         (item) => resolve(cwd) === item.root || resolve(cwd).startsWith(item.root + sep),
@@ -50,14 +86,16 @@ export async function commandNotice(
 
   const currentRepo = current && (state.aliases[current.repoId] ?? current.repoId);
 
+  return currentRepo;
+}
+
+function updateNotice(
+  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
+  config: Awaited<ReturnType<typeof readConfig>>,
+) {
   return {
-    repos: [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])].filter(
-      (repo) => repo !== currentRepo,
-    ),
-    update: {
-      available: !!state.latest && state.latest !== VERSION,
-      required:
-        (state.release?.unsafe.includes(VERSION) ?? false) && config["allow-version"] !== VERSION,
-    },
+    available: !!state.latest && compareSemver(state.latest, VERSION) > 0,
+    required:
+      (state.release?.unsafe.includes(VERSION) ?? false) && config["allow-version"] !== VERSION,
   };
 }

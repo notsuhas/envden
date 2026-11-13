@@ -4,6 +4,7 @@ import {
   opaqueFinishLogin,
   unlockIdentifiers,
   MessageResponseSchema,
+  LoginFinishResponseSchema,
 } from "@envden/core/protocol";
 import type { TClient } from "../client/request.ts";
 
@@ -36,23 +37,12 @@ export async function login(
     message: finish.finishLoginRequest,
   });
 
-  const data: unknown = await result.json();
+  const parsed = LoginFinishResponseSchema.safeParse(await result.json());
 
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("kind" in data) ||
-    data.kind !== (purpose === "kit" ? "ticket" : "unlocked")
-  )
+  if (!parsed.success || parsed.data.kind !== (purpose === "kit" ? "ticket" : "unlocked"))
     throw new EnvdenError("INVALID_DATA", "Invalid login result");
 
-  if (
-    "unlockedUntil" in data &&
-    (typeof data.unlockedUntil === "number" || data.unlockedUntil === null) &&
-    "freshUntil" in data &&
-    typeof data.freshUntil === "number"
-  )
-    return { unlockedUntil: data.unlockedUntil, freshUntil: data.freshUntil };
-
-  return undefined;
+  return parsed.data.kind === "unlocked"
+    ? { unlockedUntil: parsed.data.unlockedUntil, freshUntil: parsed.data.freshUntil }
+    : undefined;
 }

@@ -30,8 +30,11 @@ test("rotate and remove revoke the removed device", async () => {
     );
 
     const removed = await adminContext(second, f.now);
-    expect(removed.client.request("/v1/head")).rejects.toThrow();
-    expect(removeDevice(f.first, "first", "old password", f.now)).rejects.toThrow();
+    await Promise.resolve(expect(removed.client.request("/v1/head")).rejects.toThrow());
+
+    await Promise.resolve(
+      expect(removeDevice(f.first, "first", "old password", f.now)).rejects.toThrow(),
+    );
   } finally {
     await f.close();
   }
@@ -42,7 +45,7 @@ test("replace kit invalidates old kit and allows new kit", async () => {
 
   try {
     const kit = await replaceKit(f.first, "old password", f.now);
-    expect(f.joinHome("old-kit")).rejects.toThrow();
+    await Promise.resolve(expect(f.joinHome("old-kit")).rejects.toThrow());
 
     const joined = await kitJoin(f.home("new-kit"), {
       address: kit.server,
@@ -65,7 +68,7 @@ test("password change replaces login while preserving the kit", async () => {
   try {
     await changePassword(f.first, "old password", "new password", f.result.kit.secretKey, f.now);
     const c = await adminContext(f.first, f.now);
-    expect(login(c.client, c.vaultId, "old password")).rejects.toThrow();
+    await Promise.resolve(expect(login(c.client, c.vaultId, "old password")).rejects.toThrow());
     await login(c.client, c.vaultId, "new password");
     await f.joinHome("new-password", f.result.kit, "new password");
   } finally {
