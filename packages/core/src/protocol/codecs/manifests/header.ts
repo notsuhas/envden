@@ -1,15 +1,5 @@
-import {
-  codec,
-  tagged,
-  b32,
-  u64,
-  u8,
-  u32,
-  b16,
-  concat,
-  header,
-  requireValue,
-} from "../../encoding/binary.ts";
+import { EnvdenError } from "../../../errors/envden-error.ts";
+import { codec, tagged, b32, u64, u8, u32, b16, concat, header } from "../../encoding/binary.ts";
 
 export interface IManifestHeader {
   vaultId: Uint8Array;
@@ -62,6 +52,6 @@ export const ManifestHeaderCodec = codec<IManifestHeader>(
       b16.write(v.signer),
     ),
   (v) => {
-    requireValue(v.op <= 12, "Unknown operation");
+    if (v.op > 12) throw new EnvdenError("UPDATE_REQUIRED", "Unknown operation");
   },
 );

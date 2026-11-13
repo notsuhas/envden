@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/envden-error.ts";
 import { type ICodec } from "./binary.ts";
 import { requireValue, bytes } from "./binary.ts";
 
@@ -15,7 +16,7 @@ function validString(v: string): Uint8Array {
 
 export const str: ICodec<string> = {
   read: (r) => {
-    const v = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes.read(r));
+    const v = decodeString(bytes.read(r));
     validString(v);
 
     return v;
@@ -32,4 +33,12 @@ export function normPw(password: string): string {
   requireValue(p.length > 0, "Empty password");
 
   return p;
+}
+
+function decodeString(data: Uint8Array) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(data);
+  } catch (cause) {
+    throw new EnvdenError("INVALID_DATA", "Invalid Unicode", { cause });
+  }
 }

@@ -136,6 +136,27 @@ test("repair-done carries an OPAQUE record exactly when re-registering", () => {
   const f = swapFixture(12);
   const registration = { ...f.context, repairRegistrationRequired: true };
   expect(validateSwap(f.swap, registration).kind).toBe("invalid");
-  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1) }, registration).kind).toBe("valid");
-  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1) }, f.context).kind).toBe("invalid");
+  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1, 192) }, registration).kind).toBe("valid");
+  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1, 192) }, f.context).kind).toBe("invalid");
+});
+
+test("swap optional payloads enforce public key, record and approver shapes", () => {
+  const kit = swapFixture(7);
+
+  for (const skPub of [bytes(0), Uint8Array.of(1, ...new Uint8Array(31)), bytes(1, 31)])
+    expect(validateSwap({ ...kit.swap, skPub }, kit.context).kind).toBe("invalid");
+
+  const password = swapFixture(8);
+
+  for (const length of [0, 191, 193])
+    expect(
+      validateSwap({ ...password.swap, opaqueRecord: bytes(1, length) }, password.context).kind,
+    ).toBe("invalid");
+
+  const pair = swapFixture(2);
+  expect(validateSwap({ ...pair.swap, approver: bytes(1, 4096) }, pair.context).kind).toBe("valid");
+
+  expect(validateSwap({ ...pair.swap, approver: bytes(1, 4097) }, pair.context).kind).toBe(
+    "invalid",
+  );
 });

@@ -33,3 +33,8 @@ test("HPKE fixed ephemeral and low order rejection", async () => {
     ),
   ).toBe(true);
 });
+
+test("HPKE rejects a nonzero low-order X25519 recipient", async () => {
+  const lowOrder = from("e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800");
+  expect(p.sealWrap(key, vaultId, 1, p.deviceId(keys), lowOrder, rng)).rejects.toThrow();
+});

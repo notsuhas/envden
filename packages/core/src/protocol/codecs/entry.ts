@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/envden-error.ts";
 import { type IGenesis } from "./entry-payloads/genesis.ts";
 import { GenesisCodec } from "./entry-payloads/genesis.ts";
 import { type IAddDevice } from "./entry-payloads/add-device.ts";
@@ -41,7 +42,7 @@ export const payloadCodec = codec<TEntryPayload>(
       case 6:
         return { kind: 6, payload: RepairDoneCodec.read(r) };
       default:
-        throw new Error("Unknown entry kind");
+        throw new EnvdenError("UPDATE_REQUIRED", "Unknown entry kind");
     }
   },
   (v) => {

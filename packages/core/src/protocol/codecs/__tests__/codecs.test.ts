@@ -57,7 +57,10 @@ test("all entry payloads round trip; unknown kind/type/version rejected", () => 
     ]) {
       const bad = bytes.slice();
       bad[offset!] = v!;
-      expect(() => p.decode(p.EntryCodec, bad)).toThrow();
+
+      expect(() => p.decode(p.EntryCodec, bad)).toThrow(
+        expect.objectContaining({ code: "UPDATE_REQUIRED" }),
+      );
     }
   }
 });
@@ -139,4 +142,32 @@ test("semantic rejection rules", () => {
       ],
     }),
   ).toThrow();
+});
+
+test("malformed bytes have coded errors and future operations require an update", () => {
+  for (const bytes of [
+    new Uint8Array(),
+    Uint8Array.of(1),
+    p.concat(
+      p.EntryCodec.write({
+        vaultId: z,
+        seq: 0n,
+        parent: z,
+        kind: 3,
+        payload: { change },
+        signer: id,
+      }),
+      Uint8Array.of(0),
+    ),
+  ])
+    expect(() => p.decode(p.EntryCodec, bytes)).toThrow(
+      expect.objectContaining({ code: "INVALID_DATA" }),
+    );
+
+  const future = p.ManifestHeaderCodec.write(manifest);
+  future[42] = 13;
+
+  expect(() => p.decode(p.ManifestHeaderCodec, future)).toThrow(
+    expect.objectContaining({ code: "UPDATE_REQUIRED" }),
+  );
 });

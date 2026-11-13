@@ -30,6 +30,9 @@ export function acceptRelease(
         ).ok,
     );
 
+    if (valid.length !== feed.signatures.length)
+      return { ok: false, reason: "Invalid release signature" };
+
     const backup = valid.some((s) => s.key === 1);
 
     const passes = valid.some((s) => {

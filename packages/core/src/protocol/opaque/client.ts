@@ -2,6 +2,7 @@ import { client, ready } from "@serenity-kit/opaque";
 
 import { normPw } from "../encoding/strings.ts";
 
+import { checkIdentifiers } from "./context.ts";
 import { KS } from "./constants.ts";
 import { check } from "./message.ts";
 
@@ -15,8 +16,11 @@ export async function opaqueStartRegistration(password: string) {
 }
 
 export async function opaqueFinishRegistration(
-  params: Omit<client.FinishRegistrationParams, "keyStretching">,
+  params: Omit<client.FinishRegistrationParams, "keyStretching" | "identifiers"> & {
+    identifiers: { client: string; server: string };
+  },
 ) {
+  checkIdentifiers(params.identifiers);
   check(params.registrationResponse, "registrationResponse");
   check(params.clientRegistrationState, "clientRegistrationState");
   await ready;
@@ -43,7 +47,12 @@ export async function opaqueStartLogin(password: string) {
   return result;
 }
 
-export async function opaqueFinishLogin(params: Omit<client.FinishLoginParams, "keyStretching">) {
+export async function opaqueFinishLogin(
+  params: Omit<client.FinishLoginParams, "keyStretching" | "identifiers"> & {
+    identifiers: { client: string; server: string };
+  },
+) {
+  checkIdentifiers(params.identifiers);
   check(params.clientLoginState, "clientLoginState");
   check(params.loginResponse, "loginResponse");
   await ready;

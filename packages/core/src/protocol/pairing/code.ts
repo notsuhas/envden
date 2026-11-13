@@ -5,6 +5,8 @@ import { randomBytes } from "../crypto/random.ts";
 import { KDF } from "../crypto/kdf.ts";
 
 export function normalizePairingCode(input: string): { mailbox: number; password: string } {
+  requireValue(/^[0-9A-Za-z -]*$/.test(input), "Invalid pairing code");
+
   const text = input.toUpperCase().replace(/[- ]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1");
   requireValue(text.length >= 9);
 

@@ -12,6 +12,7 @@ import type { IFileEntry, IManifestHeader, ISigned } from "../../protocol/index.
 import { applyEntry } from "../devices/apply.ts";
 import { operationRequirement } from "../swaps/operation.ts";
 import { check, id } from "../shared/validation.ts";
+import { checkHeaderSignature } from "./signature.ts";
 import { changedFiles, checkedFiles } from "./files.ts";
 import { entryDescent, headerDescent } from "./descent.ts";
 import type { IChainSource, ICheckpoint } from "./source.ts";
@@ -38,9 +39,17 @@ export async function acceptManifest(input: {
     const hash = (h: ISigned<IManifestHeader>) => objectHash(ManifestHeaderCodec, h, "manifest");
 
     const prior = priorManifest(c, head, input.storedHeaders);
-    if (prior.kind !== "advance") return prior;
 
-    const headers = await headerDescent(source, c.header, head);
+    if (prior.kind !== "advance") {
+      if (prior.kind === "fork") await checkHeaderSignature(source, c.state, head);
+
+      return prior;
+    }
+
+    const headers = await headerDescent(source, c.header, head, (header) =>
+      checkHeaderSignature(source, c.state, header),
+    );
+
     if (!headers) return { kind: "fork" };
     let state = c.state;
     let previous = c.header;
@@ -54,7 +63,13 @@ export async function acceptManifest(input: {
       const h = signed.body;
       check(equal(h.vaultId, state.vaultId));
       const stored = input.storedHeaders.find((item) => item.body.seq === h.seq);
-      if (stored && !equal(hash(stored), hash(signed))) return { kind: "fork" };
+
+      if (stored && !equal(hash(stored), hash(signed))) {
+        await checkHeaderSignature(source, state, signed);
+
+        return { kind: "fork" };
+      }
+
       state = await advanceHeader(source, state, previous, signed, known);
 
       const changes = await repairChanges(c, previous, signed, source);

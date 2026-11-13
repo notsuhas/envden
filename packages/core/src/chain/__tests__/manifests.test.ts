@@ -12,7 +12,7 @@ test("manifest accepts pushes and skipped headers across epoch changes", async (
   const result = await acceptManifest(f.acceptInput(pushed));
   expect(result.kind).toBe("accepted");
   if (result.kind === "accepted") expect(result.headers.length).toBe(2);
-  expect((await headerDescent(f.source, f.header, pushed))?.length).toBe(2);
+  expect((await headerDescent(f.source, f.header, pushed, async () => {}))?.length).toBe(2);
   expect((await entryDescent(f.source, f.state, rotated.body)).length).toBe(1);
 });
 
@@ -153,3 +153,12 @@ for (const defect of ["hash", "decrypt", "id", "commit"] as const) {
     expect((await acceptManifest(f.acceptInput(head))).kind).toBe("invalid");
   });
 }
+
+test("unsigned divergent headers are invalid at equal sequence and during descent", async () => {
+  const f = manifestFixture();
+  const bad = { body: { ...f.header.body, createdAt: 2n }, signature: bytes(0, 64) };
+  expect((await acceptManifest(f.acceptInput(bad))).kind).toBe("invalid");
+  const head = signedHeader(bad, { op: 1 });
+  f.headers.set(base32(objectHash(ManifestHeaderCodec, bad, "manifest")), bad);
+  expect((await acceptManifest(f.acceptInput(head))).kind).toBe("invalid");
+});

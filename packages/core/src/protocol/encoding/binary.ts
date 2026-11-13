@@ -1,3 +1,5 @@
+import { EnvdenError } from "../../errors/envden-error.ts";
+
 export const EMPTY = new Uint8Array();
 
 export function concat(...parts: Uint8Array[]): Uint8Array {
@@ -29,7 +31,7 @@ export function compare(a: Uint8Array, b: Uint8Array): number {
 }
 
 export function requireValue(ok: boolean, message = "Invalid protocol data"): asserts ok {
-  if (!ok) throw new Error(message);
+  if (!ok) throw new EnvdenError("INVALID_DATA", message);
 }
 
 export interface ICodec<T> {
@@ -206,8 +208,11 @@ export function decode<T>(c: ICodec<T>, data: Uint8Array): T {
 }
 
 export function tagged(tag: number, r: Reader): void {
-  requireValue(u8.read(r) === tag, "Unknown type");
-  requireValue(u8.read(r) === 1, "Unknown version");
+  const type = u8.read(r);
+  const version = u8.read(r);
+
+  if (type !== tag || version !== 1)
+    throw new EnvdenError("UPDATE_REQUIRED", "Unknown object format");
 }
 
 export function header(tag: number): Uint8Array {

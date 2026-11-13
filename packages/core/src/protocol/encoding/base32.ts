@@ -23,6 +23,8 @@ export function base32(data: Uint8Array): string {
 }
 
 export function unbase32(text: string): Uint8Array {
+  requireValue(/^[0-9A-Za-z]*$/.test(text), "Invalid base32");
+
   let bits = 0,
     value = 0;
 

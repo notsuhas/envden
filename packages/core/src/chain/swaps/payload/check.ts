@@ -1,5 +1,5 @@
 import type { ISwapContext } from "../context.ts";
-import { equal, H } from "../../../protocol/index.ts";
+import { equal, H, validateEdPublic, OPAQUE_LENGTHS } from "../../../protocol/index.ts";
 import type { ISwap } from "../../../protocol/index.ts";
 import { changedFiles, checkedFiles } from "../../manifests/files.ts";
 import { check, id } from "../../shared/validation.ts";
@@ -27,6 +27,10 @@ export function checkPayload(swap: ISwap, context: ISwapContext) {
   );
 
   check((swap.approver !== undefined) === (op === 2));
+  if (swap.skPub) validateEdPublic(swap.skPub);
+  if (swap.opaqueRecord) check(swap.opaqueRecord.length === OPAQUE_LENGTHS.registrationRecord);
+  if (swap.approver) check(swap.approver.length <= 4096);
+
   if (swap.keyring) check(equal(H("keyring-blob", swap.keyring), h.keyringHash));
   if (swap.envelope) check(equal(H("envelope-blob", swap.envelope), h.envelopeHash));
 

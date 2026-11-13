@@ -30,3 +30,22 @@ test("labels separate all signature roles", () => {
   expect(() => p.validateEdPublic(new Uint8Array(32))).toThrow();
   expect(p.Verify(new Uint8Array(32), "entry", key, new Uint8Array(64)).ok).toBe(false);
 });
+
+import { ed25519 } from "@noble/curves/ed25519.js";
+import { sha512 } from "@noble/hashes/sha2.js";
+
+test("noncanonical R passes ZIP215 but envden rejects it", () => {
+  const publicKey = ed25519.Point.BASE.toBytes();
+  const message = p.frame("entry", key);
+  const r = new Uint8Array(32).fill(255);
+  r[0] = 238;
+  r[31] = 127;
+  const digest = sha512(p.concat(r, publicKey, message));
+
+  const challenge =
+    BigInt("0x" + Buffer.from(digest).reverse().toString("hex")) % ed25519.Point.Fn.ORDER;
+
+  const signature = p.concat(r, ed25519.Point.Fn.toBytes(challenge));
+  expect(ed25519.verify(signature, message, publicKey, { zip215: true })).toBe(true);
+  expect(p.Verify(publicKey, "entry", key, signature).ok).toBe(false);
+});

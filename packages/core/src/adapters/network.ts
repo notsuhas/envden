@@ -10,6 +10,7 @@ export interface INetworkStatus {
 
 export interface INetworkAdapter {
   readonly id: string;
+  checkHttpsCertificate(): Promise<boolean>;
   status(): Promise<INetworkStatus>;
   // Publishes the local server port to the network and returns the address devices dial.
   expose(port: number): Promise<string>;

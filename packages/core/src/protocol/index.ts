@@ -71,3 +71,5 @@ export * from "./versions/semver.ts";
 
 export * from "./codecs/server/http.ts";
 export * from "./codecs/server/data.ts";
+
+export { verifyRawObject } from "./crypto/objects/raw.ts";

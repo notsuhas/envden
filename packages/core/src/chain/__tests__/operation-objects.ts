@@ -61,8 +61,8 @@ export function operationSwap(
     files,
     keyring,
     envelope,
-    skPub: [5, 7].includes(op) ? bytes(26) : undefined,
-    opaqueRecord: [8, 9].includes(op) ? bytes(27) : undefined,
+    skPub: [5, 7].includes(op) ? f.a.record.objPub : undefined,
+    opaqueRecord: [8, 9].includes(op) ? bytes(27, 192) : undefined,
     approver: op === 2 ? bytes(28) : undefined,
   };
 

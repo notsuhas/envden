@@ -120,7 +120,7 @@ test("invalid signature, key tags, revocation flags, expiry and order rejected",
     expect(() => feed(body)).toThrow();
 
   expect(() => feed(base, [2])).toThrow();
-  expect(accept(feed(base, [1, 0])).release.seq).toBe(base.seq);
+  expect(() => feed(base, [1, 0])).toThrow();
   expect(() => feed(base, [0, 0])).toThrow();
 });
 
@@ -136,4 +136,14 @@ test("self update requires newer safe unexpired authenticated build", () => {
   ] satisfies [string, string, string[], bigint, Uint8Array][]) {
     expect(p.selfUpdateDecision(base, running, platform, unsafe, now, download).ok).toBe(false);
   }
+});
+
+test("every listed release signature must verify and wire signatures must be ordered", () => {
+  const good = feed(base, [0, 1]);
+  const junk = good.slice();
+  junk[junk.length - 1] = junk[junk.length - 1]! ^ 1;
+  const state = p.initialReleaseState({ generation: 1, keys });
+  expect(p.acceptRelease(junk, state, 0n).ok).toBe(false);
+  const reversed = p.concat(good.subarray(0, -130), good.subarray(-65), good.subarray(-130, -65));
+  expect(p.acceptRelease(reversed, state, 0n).ok).toBe(false);
 });

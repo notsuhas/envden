@@ -25,3 +25,6 @@ export {
 
 export { operationRequirement } from "./swaps/operation.ts";
 export { checkedFiles, changedFiles } from "./manifests/files.ts";
+
+export { classifyUnknownData } from "./unknown/classify.ts";
+export { decodeServerObject } from "./unknown/decode.ts";

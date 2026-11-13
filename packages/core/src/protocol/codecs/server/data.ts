@@ -1,3 +1,4 @@
+import { ErrorCodeSchema } from "../../../errors/error-code.ts";
 import { z } from "zod";
 import { LoginFinishSchema, RegistrationFinishSchema } from "./http.ts";
 
@@ -37,3 +38,22 @@ export const RepairFinishSchema = z.discriminatedUnion("kind", [
   }),
   RegistrationFinishSchema.extend({ kind: z.literal("registration"), swap: binary }),
 ]);
+
+export const ErrorResponseSchema = z
+  .object({ error: ErrorCodeSchema, hint: z.string().optional() })
+  .strict();
+
+export const LoginFinishResponseSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("ticket") }).strict(),
+  z.object({ kind: z.literal("staged") }).strict(),
+  z
+    .object({
+      kind: z.literal("unlocked"),
+      unlockedUntil: z.number().int().nonnegative().nullable(),
+      freshUntil: z.number().int().nonnegative(),
+    })
+    .strict(),
+]);
+
+export const RegistrationResponseSchema = z.object({ kind: z.literal("registered") }).strict();
+export const MailboxClosedSchema = z.object({ kind: z.literal("closed") }).strict();

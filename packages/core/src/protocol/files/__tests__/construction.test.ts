@@ -41,3 +41,28 @@ test("file blob and name vectors, bound metadata and identity", () => {
     p.openFileName(from(vector.fileNameBox), key, new Uint8Array(32), context),
   ).toThrow();
 });
+
+test("paths are portable relative NFC paths before file identity derivation", () => {
+  for (const path of [
+    "/root",
+    "a//b",
+    "a/./b",
+    "a/../b",
+    "C:secret",
+    "a:x",
+    "a\\b",
+    "a./b",
+    "a /b",
+    "CON",
+    "nul.env",
+    "dir/COM1.txt",
+    "LPT9",
+    "a\u0001b",
+    "a\u0085b",
+    "e\u0301",
+  ])
+    expect(() => p.fileId(key, "repo", path)).toThrow();
+
+  for (const path of ["folder/.env", "é/.env", "console.env", "COM10.env"])
+    expect(() => p.validatePath(path)).not.toThrow();
+});

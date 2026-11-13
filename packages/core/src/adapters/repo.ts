@@ -2,7 +2,9 @@
 export interface ICheckout {
   root: string;
   repoId: string;
+  upstreamRepoId?: string;
   gitDir: string;
+  registeredWorktree?: boolean;
 }
 
 export interface IRepoAdapter {

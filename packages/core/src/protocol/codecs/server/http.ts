@@ -52,3 +52,12 @@ export const HelloResponseSchema = z.object({ hello: z.string() }).strict();
 export const MailboxOpenedSchema = z
   .object({ number: z.number().int().min(1).max(999), expiresAt: z.number().int() })
   .strict();
+
+export const MailboxSlotResponseSchema = z.union([
+  z.object({ message: z.string(), expiresAt: z.number().int() }).strict(),
+  z.object({ kind: z.literal("pending"), expiresAt: z.number().int() }).strict(),
+]);
+
+export const MailboxWriteResponseSchema = z
+  .object({ kind: z.enum(["written", "identical"]), expiresAt: z.number().int() })
+  .strict();

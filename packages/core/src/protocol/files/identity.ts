@@ -7,8 +7,17 @@ export function validatePath(path: string): void {
 
   requireValue(
     path.length > 0 &&
-      !path.includes("\\") &&
-      path.split("/").every((s) => s !== "" && s !== "." && s !== ".."),
+      !/[\\:]/.test(path) &&
+      path
+        .split("/")
+        .every(
+          (s) =>
+            s !== "" &&
+            s !== "." &&
+            s !== ".." &&
+            !/[. ]$/.test(s) &&
+            !/^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/i.test(s),
+        ),
     "Invalid relative path",
   );
 }

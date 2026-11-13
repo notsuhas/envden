@@ -54,6 +54,7 @@ test("OPAQUE malformed strings never reach WASM", async () => {
     expect(
       await p
         .opaqueServerFinishLogin({
+          identifiers: vector.ids.identifiers,
           serverLoginState: value,
           finishLoginRequest: vector.login.finishLoginRequest,
         })
@@ -90,42 +91,91 @@ test("each OPAQUE entrypoint checks external message shapes", async () => {
       registrationRequest: invalid,
     }),
     p.opaqueFinishRegistration({
+      identifiers: vector.ids.identifiers,
       password: "x",
       registrationResponse: invalid,
       clientRegistrationState: r.clientRegistrationState,
     }),
     p.opaqueFinishRegistration({
+      identifiers: vector.ids.identifiers,
       password: "x",
       registrationResponse: r.registrationResponse,
       clientRegistrationState: invalid,
     }),
     p.opaqueServerStartLogin({
+      identifiers: vector.ids.identifiers,
       serverSetup: r.serverSetup,
       registrationRecord: invalid,
       startLoginRequest: l.startLoginRequest,
       userIdentifier: "x",
     }),
     p.opaqueServerStartLogin({
+      identifiers: vector.ids.identifiers,
       serverSetup: r.serverSetup,
       registrationRecord: r.registrationRecord,
       startLoginRequest: invalid,
       userIdentifier: "x",
     }),
     p.opaqueFinishLogin({
+      identifiers: vector.ids.identifiers,
       password: "x",
       clientLoginState: invalid,
       loginResponse: l.loginResponse,
     }),
     p.opaqueFinishLogin({
+      identifiers: vector.ids.identifiers,
       password: "x",
       clientLoginState: l.clientLoginState,
       loginResponse: invalid,
     }),
     p.opaqueServerFinishLogin({
+      identifiers: vector.ids.identifiers,
       serverLoginState: l.serverLoginState,
       finishLoginRequest: invalid,
     }),
   ];
 
   for (const result of await Promise.allSettled(calls)) expect(result.status).toBe("rejected");
+});
+
+test("OPAQUE wrappers reject omitted identity context before calling WASM", async () => {
+  const r = vector.registration,
+    l = vector.login;
+
+  const calls = [
+    Reflect.apply(p.opaqueFinishRegistration, undefined, [
+      {
+        password: "password",
+        clientRegistrationState: r.clientRegistrationState,
+        registrationResponse: r.registrationResponse,
+      },
+    ]),
+    Reflect.apply(p.opaqueFinishLogin, undefined, [
+      {
+        password: "password",
+        clientLoginState: l.clientLoginState,
+        loginResponse: l.loginResponse,
+      },
+    ]),
+    Reflect.apply(p.opaqueServerStartLogin, undefined, [
+      {
+        serverSetup: r.serverSetup,
+        registrationRecord: r.registrationRecord,
+        startLoginRequest: l.startLoginRequest,
+        userIdentifier: vector.ids.userIdentifier,
+      },
+    ]),
+    Reflect.apply(p.opaqueServerFinishLogin, undefined, [
+      { serverLoginState: l.serverLoginState, finishLoginRequest: l.finishLoginRequest },
+    ]),
+    Reflect.apply(p.opaqueRegistrationResponse, undefined, [
+      { serverSetup: r.serverSetup, registrationRequest: r.registrationRequest },
+    ]),
+  ];
+
+  for (const result of await Promise.allSettled(calls)) expect(result.status).toBe("rejected");
+
+  expect(Buffer.from(r.registrationRecord, "base64url").length).toBe(
+    p.OPAQUE_LENGTHS.registrationRecord,
+  );
 });

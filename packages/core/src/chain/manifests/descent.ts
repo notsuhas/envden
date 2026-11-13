@@ -7,6 +7,7 @@ export async function headerDescent(
   source: Pick<IChainSource, "header">,
   ancestor: ISigned<IManifestHeader>,
   head: ISigned<IManifestHeader>,
+  verifyDivergent: (header: ISigned<IManifestHeader>) => Promise<void>,
 ): Promise<ISigned<IManifestHeader>[] | undefined> {
   const path: ISigned<IManifestHeader>[] = [];
   let current = head;
@@ -23,12 +24,19 @@ export async function headerDescent(
     current = previous;
   }
 
-  return equal(
-    objectHash(ManifestHeaderCodec, current, "manifest"),
-    objectHash(ManifestHeaderCodec, ancestor, "manifest"),
-  )
-    ? path.reverse()
-    : undefined;
+  if (
+    !equal(
+      objectHash(ManifestHeaderCodec, current, "manifest"),
+      objectHash(ManifestHeaderCodec, ancestor, "manifest"),
+    )
+  ) {
+    await verifyDivergent(current);
+    for (const header of path) await verifyDivergent(header);
+
+    return undefined;
+  }
+
+  return path.reverse();
 }
 
 export async function entryDescent(

@@ -9,12 +9,14 @@ export interface IReleaseFeed {
   signatures: IReleaseSignature[];
 }
 
+const signatures = list(ReleaseSignatureCodec, (a, b) => a.key - b.key);
+
 export const ReleaseFeedCodec = codec<IReleaseFeed>(
   (r) => ({
     body: ReleaseCodec.read(r),
-    signatures: list(ReleaseSignatureCodec).read(r),
+    signatures: signatures.read(r),
   }),
-  (v) => concat(ReleaseCodec.write(v.body), list(ReleaseSignatureCodec).write(v.signatures)),
+  (v) => concat(ReleaseCodec.write(v.body), signatures.write(v.signatures)),
   (v) => {
     requireValue(
       v.signatures.length <= 2 &&

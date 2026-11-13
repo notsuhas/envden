@@ -113,3 +113,14 @@ test("decoders reject oversized blobs, invalid string encodings and controls", (
 test("UTF-8 BOM is a preserved string character", () => {
   expect(p.decode(p.str, p.str.write("\uFEFFhello"))).toBe("\uFEFFhello");
 });
+
+test("base32 and pairing reject Unicode case folding", () => {
+  expect(() => p.unbase32("ſ0")).toThrow();
+  expect(() => p.normalizePairingCode("1-ſ000-0000")).toThrow();
+});
+
+test("malformed UTF-8 is INVALID_DATA", () => {
+  expect(() => p.decode(p.str, p.concat(p.u32.write(1), Uint8Array.of(255)))).toThrow(
+    expect.objectContaining({ code: "INVALID_DATA" }),
+  );
+});

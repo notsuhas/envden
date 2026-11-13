@@ -1,5 +1,6 @@
 import { server, ready } from "@serenity-kit/opaque";
 
+import { checkIdentifiers, checkUserIdentifier } from "./context.ts";
 import { check } from "./message.ts";
 
 export async function opaqueCreateSetup(): Promise<string> {
@@ -9,6 +10,7 @@ export async function opaqueCreateSetup(): Promise<string> {
 }
 
 export async function opaqueRegistrationResponse(params: server.CreateRegistrationResponseParams) {
+  checkUserIdentifier(params.userIdentifier);
   check(params.serverSetup, "serverSetup");
   check(params.registrationRequest, "registrationRequest");
   await ready;
@@ -18,8 +20,15 @@ export async function opaqueRegistrationResponse(params: server.CreateRegistrati
   return result;
 }
 
-export async function opaqueServerStartLogin(params: server.LoginStartParams) {
+export async function opaqueServerStartLogin(
+  params: Omit<server.LoginStartParams, "identifiers"> & {
+    identifiers: { client: string; server: string };
+  },
+) {
+  checkUserIdentifier(params.userIdentifier);
   check(params.serverSetup, "serverSetup");
+
+  checkIdentifiers(params.identifiers);
 
   if (params.registrationRecord !== undefined && params.registrationRecord !== null)
     check(params.registrationRecord, "registrationRecord");
@@ -33,7 +42,12 @@ export async function opaqueServerStartLogin(params: server.LoginStartParams) {
   return result;
 }
 
-export async function opaqueServerFinishLogin(params: server.LoginFinishParams) {
+export async function opaqueServerFinishLogin(
+  params: Omit<server.LoginFinishParams, "identifiers"> & {
+    identifiers: { client: string; server: string };
+  },
+) {
+  checkIdentifiers(params.identifiers);
   check(params.serverLoginState, "serverLoginState");
   check(params.finishLoginRequest, "finishLoginRequest");
   await ready;
