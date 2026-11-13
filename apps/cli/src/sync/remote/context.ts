@@ -7,6 +7,7 @@ import type { TAdapters } from "../../adapters.ts";
 import type { ISyncOptions } from "../model.ts";
 import { loadState } from "../../state/repository.ts";
 import { binary } from "../../client/encoding.ts";
+import { VERSION } from "../../version.ts";
 
 export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
   const state = await loadState(adapters.home);
@@ -16,7 +17,7 @@ export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
 
   const config = await readConfig(adapters.home);
 
-  if (state.release?.unsafe.includes("0.0.0") && config["allow-version"] !== "0.0.0")
+  if (state.release?.unsafe.includes(VERSION) && config["allow-version"] !== VERSION)
     throw new EnvdenError("UNSAFE_VERSION", "Update envden before syncing");
 
   const { identity, vaultId, client } = await vaultConnection(

@@ -8,6 +8,7 @@ import {
 import type { ILocalState } from "../state/model.ts";
 
 import { releaseConfig } from "./release-config.ts";
+import { VERSION } from "../version.ts";
 
 export async function checkRelease(
   state: ILocalState,
@@ -48,8 +49,8 @@ export async function checkRelease(
     return {
       kind: "checked" as const,
       latest: state.latest,
-      available: compareSemver(state.latest, "0.0.0") > 0,
-      required: state.release.unsafe.includes("0.0.0"),
+      available: compareSemver(state.latest, VERSION) > 0,
+      required: state.release.unsafe.includes(VERSION),
       expired: accepted.value.expired,
     };
   } catch {

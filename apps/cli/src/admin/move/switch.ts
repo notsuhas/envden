@@ -9,6 +9,7 @@ import { saveState } from "../../state/repository.ts";
 import { text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { checkFloor } from "../shared/history.ts";
+import { VERSION } from "../../version.ts";
 
 export async function switchServer(
   adapters: TAdapters,
@@ -17,7 +18,7 @@ export async function switchServer(
   fetcher: TFetch = fetch,
 ) {
   const context = await adminContext(adapters, now, fetcher);
-  const server = await hello(address, undefined, fetcher, "0.0.0");
+  const server = await hello(address, undefined, fetcher, VERSION);
 
   const client = createClient({
     address,
@@ -26,7 +27,7 @@ export async function switchServer(
     identity: context.identity,
     now,
     fetcher,
-    version: "0.0.0",
+    version: VERSION,
   });
 
   const history = await readHistory(client, context.vaultId);

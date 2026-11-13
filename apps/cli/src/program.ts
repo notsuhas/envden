@@ -1,7 +1,7 @@
 import { vaultCommand } from "./commands/vault/vault.ts";
 import { Command } from "@commander-js/extra-typings";
 import { unlockCommand } from "./commands/onboarding/unlock.ts";
-import metadata from "../package.json";
+import { VERSION } from "./version.ts";
 import { setupCommand } from "./commands/onboarding/setup.ts";
 import { joinCommand } from "./commands/onboarding/join.ts";
 import { statusCommand } from "./commands/sync/status.ts";
@@ -26,7 +26,7 @@ export function createProgram() {
   const program = new Command()
     .name("envden")
     .description("Encrypted whole-file env sync over your private network")
-    .version(metadata.version);
+    .version(VERSION);
 
   program.hook("preAction", async (_program, command) => {
     if (command.name() === "status" && command.opts().refreshCache) return;

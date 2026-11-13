@@ -10,6 +10,7 @@ import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { rejoinIdentity } from "./classify.ts";
 import { kitRejoin } from "./kit.ts";
+import { VERSION } from "../../version.ts";
 
 export async function runRejoin(
   adapters: TAdapters,
@@ -32,7 +33,7 @@ export async function runRejoin(
       fetcher: fetch,
     });
   } else {
-    const server = await hello(address, undefined, fetch, "0.0.0");
+    const server = await hello(address, undefined, fetch, VERSION);
     const identity = await rejoinIdentity(adapters, name);
 
     const client = createClient({
@@ -40,7 +41,7 @@ export async function runRejoin(
       pin: server.pin,
       identity,
       vaultId: new Uint8Array(32),
-      version: "0.0.0",
+      version: VERSION,
       now,
       fetcher: fetch,
     });

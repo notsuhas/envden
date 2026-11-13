@@ -11,6 +11,7 @@ import { createClient } from "../client/request.ts";
 import { kitJoin } from "../vault/recovery/kit.ts";
 import { atomicWrite, optionalRead } from "../state/files.ts";
 import { secret } from "../output/questions.ts";
+import { VERSION } from "../version.ts";
 
 export async function runJoin(
   adapters: TAdapters,
@@ -42,7 +43,7 @@ export async function runJoin(
     address,
     expected ? new Uint8Array(Buffer.from(expected, "base64url")) : undefined,
     fetch,
-    "0.0.0",
+    VERSION,
   );
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, name);
@@ -54,7 +55,7 @@ export async function runJoin(
     identity,
     now,
     fetcher: fetch,
-    version: "0.0.0",
+    version: VERSION,
   });
 
   if (!options.resume) {

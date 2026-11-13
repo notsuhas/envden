@@ -9,6 +9,7 @@ import { login } from "../session/login.ts";
 import { openPairing, approvePairing } from "../pairing/approver.ts";
 import { waitMessage } from "../pairing/wait.ts";
 import { secret, consent } from "../output/questions.ts";
+import { VERSION } from "../version.ts";
 
 export async function runDeviceAdd(adapters: TAdapters, now: () => number): Promise<void> {
   const state = requireConfigured(await loadState(adapters.home), "Run setup first");
@@ -24,7 +25,7 @@ export async function runDeviceAdd(adapters: TAdapters, now: () => number): Prom
     identity,
     now,
     fetcher: fetch,
-    version: "0.0.0",
+    version: VERSION,
   });
 
   const session = await login(client, vaultId, await secret("Master password"));

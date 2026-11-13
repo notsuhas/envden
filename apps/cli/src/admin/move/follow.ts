@@ -9,6 +9,7 @@ import { createClient } from "../../client/request.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../../vault/history.ts";
 import { saveState } from "../../state/repository.ts";
+import { VERSION } from "../../version.ts";
 
 export async function followServerMove(
   context: TAdminContext,
@@ -29,14 +30,14 @@ export async function followServerMove(
   if (!header || header.body.op !== 10)
     throw new EnvdenError("INVALID_DATA", "Move header missing");
 
-  await hello(target.newAddress, target.newPin, fetcher, "0.0.0");
+  await hello(target.newAddress, target.newPin, fetcher, VERSION);
 
   const client = createClient({
     address: target.newAddress,
     pin: target.newPin,
     vaultId: context.vaultId,
     identity: context.identity,
-    version: "0.0.0",
+    version: VERSION,
     now: context.now,
     fetcher,
   });

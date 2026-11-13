@@ -17,6 +17,7 @@ import { login } from "../../session/login.ts";
 import { readHistory } from "../history.ts";
 import { addDeviceSwap } from "../add.ts";
 import { acceptJoin } from "../join/accept.ts";
+import { VERSION } from "../../version.ts";
 
 async function attemptKitJoin(
   adapters: TAdapters,
@@ -33,7 +34,7 @@ async function attemptKitJoin(
 ) {
   const vaultId = p.unbase32(options.vaultId);
   const secret = p.decodeSecretKey(options.secretKey);
-  const server = await hello(options.address, undefined, options.fetcher, "0.0.0");
+  const server = await hello(options.address, undefined, options.fetcher, VERSION);
 
   const identity = options.rejoin
     ? await rejoinIdentity(adapters, options.name)
@@ -44,7 +45,7 @@ async function attemptKitJoin(
     pin: server.pin,
     vaultId,
     identity,
-    version: "0.0.0",
+    version: VERSION,
     now: options.now,
     fetcher: options.fetcher,
   });

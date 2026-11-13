@@ -10,6 +10,7 @@ import { binary } from "../../client/encoding.ts";
 import { currentHistory } from "../shared/history.ts";
 
 import type { TAdminContext } from "../shared/context.ts";
+import { VERSION } from "../../version.ts";
 
 export async function abortMove(
   context: TAdminContext,
@@ -34,7 +35,7 @@ export async function abortMove(
       identity: context.identity,
       now: options.now,
       fetcher: options.fetcher,
-      version: "0.0.0",
+      version: VERSION,
     });
 
     try {

@@ -6,6 +6,7 @@ import { createClient } from "../../client/request.ts";
 import { binary } from "../../client/encoding.ts";
 import { loadState } from "../../state/repository.ts";
 import { deviceIdentity } from "../../identity/device.ts";
+import { VERSION } from "../../version.ts";
 
 export async function adminContext(
   adapters: TAdapters,
@@ -28,7 +29,7 @@ export async function adminContext(
     identity,
     now,
     fetcher,
-    version: "0.0.0",
+    version: VERSION,
     ...(proof ? { proof } : {}),
   });
 

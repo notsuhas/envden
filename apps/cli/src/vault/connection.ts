@@ -5,6 +5,7 @@ import type { TFetch } from "../client/fetch.ts";
 import { deviceIdentity } from "../identity/device.ts";
 import { createClient } from "../client/request.ts";
 import { binary } from "../client/encoding.ts";
+import { VERSION } from "../version.ts";
 
 export async function vaultConnection(
   adapters: TAdapters,
@@ -20,7 +21,7 @@ export async function vaultConnection(
     pin: binary(state.server.pin),
     vaultId,
     identity,
-    version: "0.0.0",
+    version: VERSION,
     now,
     fetcher,
   });

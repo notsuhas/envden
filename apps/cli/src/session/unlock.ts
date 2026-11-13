@@ -7,6 +7,7 @@ import { deviceIdentity } from "../identity/device.ts";
 import { createClient } from "../client/request.ts";
 import { binary } from "../client/encoding.ts";
 import { login } from "./login.ts";
+import { VERSION } from "../version.ts";
 
 export async function unlockDevice(
   adapters: TAdapters,
@@ -23,7 +24,7 @@ export async function unlockDevice(
     pin: binary(state.server.pin),
     vaultId: p.unbase32(state.vaultId),
     identity,
-    version: "0.0.0",
+    version: VERSION,
     now,
     fetcher,
   });

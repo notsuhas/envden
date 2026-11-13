@@ -2,6 +2,7 @@ import type { TAdapters } from "../adapters.ts";
 import { loadState } from "../state/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
+import { VERSION } from "../version.ts";
 
 export async function localStatus(adapters: TAdapters, refresh = false) {
   const state = await loadState(adapters.home);
@@ -29,8 +30,8 @@ export async function localStatus(adapters: TAdapters, refresh = false) {
 
 export function deriveUpdateStatus(state: { latest?: string; release?: { unsafe: string[] } }) {
   return {
-    available: !!state.latest && state.latest !== "0.0.0",
-    required: state.release?.unsafe.includes("0.0.0") ?? false,
+    available: !!state.latest && state.latest !== VERSION,
+    required: state.release?.unsafe.includes(VERSION) ?? false,
   };
 }
 

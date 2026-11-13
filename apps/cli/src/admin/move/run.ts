@@ -18,6 +18,7 @@ import { currentHistory } from "../shared/history.ts";
 import { adminSwap } from "../shared/swap.ts";
 import { copyServer } from "../shared/transfer.ts";
 import { switchServer } from "./switch.ts";
+import { VERSION } from "../../version.ts";
 
 export async function moveServer(
   adapters: TAdapters,
@@ -49,7 +50,7 @@ export async function moveServer(
 
   if (!address) throw new EnvdenError("INVALID_INPUT", "Specify the destination server");
   const { token, pin, tokenSlot } = await moveCredentials(adapters, directory, options);
-  await hello(address, pin, options.fetcher, "0.0.0");
+  await hello(address, pin, options.fetcher, VERSION);
 
   const destination = createClient({
     address,
@@ -58,7 +59,7 @@ export async function moveServer(
     identity: context.identity,
     now: options.now,
     fetcher: options.fetcher,
-    version: "0.0.0",
+    version: VERSION,
     ...(token
       ? {
           proof: (request: p.IRequest) =>

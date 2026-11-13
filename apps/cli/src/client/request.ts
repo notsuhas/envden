@@ -7,6 +7,7 @@ import type { TDeviceIdentity } from "../identity/device.ts";
 import { text } from "./encoding.ts";
 import { hello } from "./hello.ts";
 import { responseError } from "./errors.ts";
+import { VERSION } from "../version.ts";
 
 export interface IClientOptions {
   address: string;
@@ -113,7 +114,7 @@ export type TClient = ReturnType<typeof createClient>;
 
 async function checkServerMinimum(response: Response, options: IClientOptions) {
   if (response.status === 426) {
-    const verified = await hello(options.address, options.pin, options.fetcher, "0.0.0");
+    const verified = await hello(options.address, options.pin, options.fetcher, VERSION);
 
     if (p.compareSemver(options.version, verified.hello.minClient) < 0)
       throw new EnvdenError("CLIENT_TOO_OLD", "Update envden to meet the signed server minimum");

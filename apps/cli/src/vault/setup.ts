@@ -13,6 +13,7 @@ import { atomicWrite } from "../state/files.ts";
 import { join } from "node:path";
 import { createGenesis } from "./genesis.ts";
 import { createVaultSwap } from "./creation.ts";
+import { VERSION } from "../version.ts";
 
 export async function setupVault(
   adapters: TAdapters,
@@ -29,7 +30,7 @@ export async function setupVault(
     throw new EnvdenError("CONFLICT", "This device already has a vault");
 
   const token = p.decodeToken("setup", options.token);
-  await hello(options.address, token.serverPin, options.fetcher, "0.0.0");
+  await hello(options.address, token.serverPin, options.fetcher, VERSION);
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
   const material = await createGenesis(identity, token.serverPin, options.now());
   const state = emptyState(options.name);
@@ -50,7 +51,7 @@ export async function setupVault(
     pin: token.serverPin,
     vaultId: material.vaultId,
     identity,
-    version: "0.0.0",
+    version: VERSION,
     now: options.now,
     fetcher: options.fetcher,
     proof: (request) => p.tokenProof("setup", p.tokenKey("setup", token.secret), request),

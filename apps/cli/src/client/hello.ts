@@ -2,6 +2,7 @@ import type { TFetch } from "./fetch.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import { binary, text } from "./encoding.ts";
+import { VERSION } from "../version.ts";
 
 export async function hello(
   address: string,
@@ -17,7 +18,7 @@ export async function hello(
   const body = p.HelloResponseSchema.parse(await response.json());
   const signed = p.decode(p.signedCodec(p.ServerHelloCodec), binary(body.hello));
   const presented = p.serverPin(signed.body.serverSignPub);
-  const result = p.verifyHello(signed, challenge, url.hostname, pin ?? presented, "0.0.0");
+  const result = p.verifyHello(signed, challenge, url.hostname, pin ?? presented, VERSION);
   if (!result.ok) throw new EnvdenError("UNAUTHORIZED", "Server identity verification failed");
 
   if (p.compareSemver(result.value.appVersion, minServer) < 0)

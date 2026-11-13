@@ -8,6 +8,7 @@ import { readConfig } from "../settings/config.ts";
 import { updateCheckEnabled } from "../settings/privacy.ts";
 import { refreshNotice, noticeStatus } from "./cache.ts";
 import { readRemoteNotice, remoteNotice } from "./remote.ts";
+import { VERSION } from "../version.ts";
 
 export async function commandNotice(
   adapters: TAdapters,
@@ -54,9 +55,9 @@ export async function commandNotice(
       (repo) => repo !== currentRepo,
     ),
     update: {
-      available: !!state.latest && state.latest !== "0.0.0",
+      available: !!state.latest && state.latest !== VERSION,
       required:
-        (state.release?.unsafe.includes("0.0.0") ?? false) && config["allow-version"] !== "0.0.0",
+        (state.release?.unsafe.includes(VERSION) ?? false) && config["allow-version"] !== VERSION,
     },
   };
 }
