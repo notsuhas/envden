@@ -14,6 +14,7 @@ const CONTEXT: Record<string, string> = {
   problem: "3 machines / 1 file",
   how: "plaintext → ciphertext → plaintext",
   features: "~/.envden/store",
+  install: "macOS / Linux / Windows",
 };
 
 export function Section(props: ISection) {
