@@ -1,3 +1,4 @@
+import { readToken } from "../../output/token.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { uploadRepair } from "../../admin/repair/upload.ts";
@@ -6,12 +7,15 @@ import { runVaultAdmin } from "../vault/run.ts";
 import { secret, consent } from "../../output/questions.ts";
 
 export const serverRepairCommand = new Command("repair")
-  .option("--repair-token <token>")
+  .option(
+    "--repair-token <token>",
+    "Repair token, visible to other processes; prefer stdin or the prompt",
+  )
   .option("--finish")
   .option("--without <device...>")
   .option("--accept-lost")
   .action(async (options) => {
-    const token = options.repairToken ?? (await secret("Repair token"));
+    const token = await readToken(options.repairToken, "Repair token");
 
     if (options.finish) {
       const result = await finishRepair(createAdapters(), {

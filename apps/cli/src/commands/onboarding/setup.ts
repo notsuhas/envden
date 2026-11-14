@@ -11,7 +11,10 @@ export const setupCommand = new Command("setup")
   .option("--kit-out <file>", "Write recovery kit to a private file")
   .option("--name <name>", "Device name")
   .option("--host-server", "Host a login service on this device")
-  .option("--setup-token <token>", "Server setup token")
+  .option(
+    "--setup-token <token>",
+    "Setup token, visible to other processes; prefer stdin or the prompt",
+  )
   .addOption(new Option("--telemetry <choice>", "Anonymous telemetry").choices(["on", "off"]))
   .addOption(new Option("--update-check <choice>", "Daily release check").choices(["on", "off"]))
   .addOption(

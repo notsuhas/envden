@@ -1,3 +1,4 @@
+import { readToken } from "../output/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
@@ -59,7 +60,7 @@ async function createState(
   const hostedAddress = await hostAddress(adapters, options);
 
   const address = options.server ?? hostedAddress ?? (await input("Server URL"));
-  const token = options.setupToken ?? (await secret("Server setup token"));
+  const token = await readToken(options.setupToken, "Server setup token");
   const name = await defaultInput(options.name, "Device name");
   const password = await confirmedPassword(secret);
 

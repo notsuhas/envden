@@ -164,7 +164,7 @@ User-owned tool directories remain outside envden's control if the user personal
 
 ## Setup
 
-- **Home lab first**: `docker run` with a Tailscale auth key and a data volume; the logs print a setup token. Then `envden setup` on a laptop: takes the token, pins the server, creates the vault (master password, recovery kit), asks about telemetry and update checks, offers the shell line and agent skill, discovers repos, asks you to approve them, links and pushes.
+- **Home lab first**: `docker run` with a Tailscale auth key and a data volume; the logs print a setup token. Then `envden setup` on a laptop: takes the token through stdin or a prompt (token flags remain available but are visible to other processes), pins the server, creates the vault (master password, recovery kit), asks about telemetry and update checks, offers the shell line and agent skill, discovers repos, asks you to approve them, links and pushes.
 - **Laptop first**: `envden setup` finds no server and offers to run one here as a login service. Later `envden server move`.
 - **Other devices**: `envden join <server>` with a pairing code, or master password + recovery kit.
 - **Repo discovery**: walk the chosen scan roots (default: home folder; add or remove roots) for `.git` directories, skipping junk folders; list worktrees with `git worktree list`. Warns that macOS may ask for folder access. Shows repos with env files as a checklist to approve. Later, the shell line offers once to track a repo it missed.
