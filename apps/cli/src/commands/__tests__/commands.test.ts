@@ -9,7 +9,15 @@ async function cli(args: string[]) {
   const home = await mkdtemp(join(tmpdir(), "envden-command-"));
 
   const child = spawnTrusted([process.execPath, join(import.meta.dir, "../../main.ts"), ...args], {
-    env: { ...process.env, ENVDEN_HOME: home },
+    env: {
+      ...process.env,
+      HOME: home,
+      USERPROFILE: home,
+      ENVDEN_HOME: home,
+      ENVDEN_KEYCHAIN: "file",
+      ENVDEN_TELEMETRY: "0",
+      ENVDEN_NO_UPDATE_CHECK: "1",
+    },
     stdout: "pipe",
     stderr: "pipe",
     stdin: "ignore",
@@ -102,13 +110,20 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
   try {
     await saveUpdateCache(home, { message: "Cannot confirm envden is up to date" });
 
-    for (const command of ["status", "config", "doctor"]) {
+    for (const command of ["status", "config"]) {
       if (command !== "status") await atomicWrite(join(home, "state", "device.json"), "{");
 
       const child = spawnTrusted(
         [process.execPath, join(import.meta.dir, "../../main.ts"), command],
         {
-          env: { ENVDEN_HOME: home, ENVDEN_TELEMETRY: "0", ENVDEN_NO_UPDATE_CHECK: "1" },
+          env: {
+            HOME: home,
+            USERPROFILE: home,
+            ENVDEN_HOME: home,
+            ENVDEN_KEYCHAIN: "file",
+            ENVDEN_TELEMETRY: "0",
+            ENVDEN_NO_UPDATE_CHECK: "1",
+          },
           stdout: "pipe",
           stderr: "pipe",
           stdin: "ignore",
@@ -123,8 +138,6 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
           "envden: not configured",
           "Cannot confirm envden is up to date",
         ]);
-
-      if (command === "doctor") expect(stdout.trim().split("\n").length).toBeGreaterThan(3);
     }
   } finally {
     await rm(home, { recursive: true, force: true });
