@@ -60,7 +60,16 @@ function validateMaterial(
   )
     throw new EnvdenError("INVALID_DATA", "Material hash mismatch");
 
-  if (kind !== "skPub") {
+  if (kind === "envelope") {
+    const head = options.storage.head(vault);
+    const stored = head && options.storage.header(vault, head);
+
+    if (
+      !stored ||
+      !equal(decode(signedCodec(ManifestHeaderCodec), stored.bytes).body.envelopeHash, hash)
+    )
+      throw new EnvdenError("INVALID_DATA", "Unreferenced material");
+  } else if (kind === "keyring") {
     const named = options.storage.headers(vault, 1n, 0xffffffffffffffffn).some((stored) => {
       const header = decode(signedCodec(ManifestHeaderCodec), stored.bytes).body;
 

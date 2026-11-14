@@ -25,7 +25,7 @@ export function openMailbox(options: IAppOptions, auth: IAuth) {
     if (!box) throw new EnvdenError("RATE_LIMITED", "Mailbox limit reached");
 
     options.storage.writeState(vaultId, [
-      { kind: "server-identity", key: new Uint8Array([box.number >> 8, box.number & 255]) },
+      { kind: "mailbox-joiner", key: new Uint8Array([box.number >> 8, box.number & 255]) },
     ]);
 
     indexMailbox(options.storage, box.number, vaultId);
@@ -52,7 +52,7 @@ export function accessible(
   requireMailboxSide(owner, write, slot);
 
   const bindingKey = new Uint8Array([number >> 8, number & 255]);
-  const bound = storage.state(vaultId, "server-identity", bindingKey);
+  const bound = storage.state(vaultId, "mailbox-joiner", bindingKey);
 
   requireJoiner(owner, bound, device, write, slot);
 
@@ -95,7 +95,7 @@ export function writeSlot(
 
   if (slot === "KE1" && (!bound || !box.slots.KE1))
     options.storage.writeState(vaultId, [
-      { kind: "server-identity", key: bindingKey, bytes: auth.request.device },
+      { kind: "mailbox-joiner", key: bindingKey, bytes: auth.request.device },
     ]);
 
   if (slot === "PairJoiner") indexJoiner(options.storage, auth.request.device, vaultId);

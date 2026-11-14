@@ -170,3 +170,21 @@ test("membership revoked during body read cannot upload a blob", async () => {
     f.close();
   }
 });
+
+test("small declared swaps reserve their length instead of the route cap", async () => {
+  const f = fixture(await identity());
+  const release = reserveBody(100663292, "member");
+
+  try {
+    const { headers } = f.request("/v1/swap", {});
+    const declaredHeaders = { ...headers, "Content-Length": "2" };
+
+    expect(
+      (await f.app.request("/v1/swap", { method: "POST", headers: declaredHeaders, body: "{}" }))
+        .status,
+    ).not.toBe(503);
+  } finally {
+    release();
+    f.close();
+  }
+});

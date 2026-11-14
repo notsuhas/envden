@@ -5,6 +5,7 @@ import { hasProof } from "../auth/token.ts";
 import { requireGate } from "../middleware/gates.ts";
 import { requireJoinTicket } from "../auth/ticket.ts";
 import { requireRepair } from "./authorization.ts";
+import { decode, signedCodec, ManifestHeaderCodec } from "@envden/core/protocol";
 
 export function requireRead(
   options: IAppOptions,
@@ -31,8 +32,6 @@ export function requireRead(
 
   requireGate(options, auth, kind === "envelope" ? "fresh" : "unlocked");
 }
-
-import { decode, signedCodec, ManifestHeaderCodec } from "@envden/core/protocol";
 
 function currentFiles(bytes: Uint8Array) {
   return decode(signedCodec(ManifestHeaderCodec), bytes).body.filesHash;

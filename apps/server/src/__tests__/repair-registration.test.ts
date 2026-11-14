@@ -199,3 +199,21 @@ test("repair preserves SK refusal after kit replacement", async () => {
     f.close();
   }
 });
+
+test("repair rejects an envelope named by an older header", async () => {
+  const { f, proof } = await changedRepair();
+
+  try {
+    const before = f.storage.state(f.vaultId, "envelope", new Uint8Array());
+    const bytes = f.create.envelope!;
+    const hash = Buffer.from(p.H("envelope-blob", bytes)).toString("base64url");
+
+    expect(
+      (await f.request(`/v1/repair/material/envelope/${hash}`, bytes, f.a, proof, "PUT")).status,
+    ).toBe(400);
+
+    expect(f.storage.state(f.vaultId, "envelope", new Uint8Array())).toEqual(before);
+  } finally {
+    f.close();
+  }
+});

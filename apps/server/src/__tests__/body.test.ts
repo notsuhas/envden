@@ -133,8 +133,8 @@ test("public hello rejects a declared read body", async () => {
 
 for (const [length, expected] of [
   [0, 10000],
-  [16777216, 522000],
-  [33554432, 600000],
+  [16777216, 10000],
+  [33554432, 10000],
 ] as const)
   test(`body deadline scales for ${length} bytes`, async () => {
     let deadline = 0;
@@ -152,6 +152,7 @@ for (const [length, expected] of [
 
         return () => {};
       },
+      () => 0,
     );
 
     expect(deadline).toBe(expected);
@@ -164,4 +165,40 @@ test("repair accepts the maximum report list", async () => {
     (await readBody(new Request("http://server/v1/repair/report", { method: "PUT", body: bytes })))
       .length,
   ).toBe(bytes.length);
+});
+
+test("declared body length is enforced while streaming", () => {
+  expect(
+    readBody(
+      new Request("http://server/v1/swap", {
+        method: "POST",
+        headers: { "Content-Length": "1" },
+        body: new Uint8Array(2),
+      }),
+    ),
+  ).rejects.toMatchObject({ code: "INVALID_INPUT" });
+});
+
+test("only received bytes extend the body deadline", async () => {
+  const deadlines: number[] = [];
+
+  await readBody(
+    new Request("http://server/v1/swap", {
+      method: "POST",
+      headers: { "Content-Length": "33554432" },
+      body: new Uint8Array(65536),
+    }),
+    33554432,
+    undefined,
+    (_expire, timeout) => {
+      deadlines.push(timeout);
+
+      return () => {};
+    },
+    () => 0,
+  );
+
+  expect(deadlines[0]).toBe(10000);
+  expect(deadlines.at(-1)).toBe(12000);
+  expect(Math.max(...deadlines)).toBe(12000);
 });

@@ -81,7 +81,7 @@ function authorizeMailbox(
 
   const bound = storage.state(
     vaultId,
-    "server-identity",
+    "mailbox-joiner",
     new Uint8Array([mailbox >> 8, mailbox & 255]),
   );
 

@@ -45,6 +45,10 @@ export function freezeMove(options: IAppOptions, auth: IAuth, frozen: boolean) {
   requireGate(options, auth, "fresh");
   const { vaultId, device } = auth.request;
   const vault = options.storage.vault(vaultId)!;
+
+  if (frozen && vault.skRefused)
+    throw new EnvdenError("LOCKED", "Replace recovery kit before moving");
+
   if (vault.serverMoved) throw new EnvdenError("MOVING", "Move committed");
 
   options.storage.configureVault(vaultId, { ...vault, frozen }, [

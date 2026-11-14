@@ -4,7 +4,7 @@ import type { IAppOptions, TServerEnv } from "../../http/types.ts";
 import type { requestRoute } from "../../routes/policy.ts";
 import { charge } from "../../auth/rate-limit.ts";
 import { reserveBody } from "../body-budget.ts";
-import { readBody } from "../body.ts";
+import { declaredBodySize, readBody } from "../body.ts";
 import { authorizeBody } from "./body.ts";
 
 export async function verifiedBody(
@@ -22,7 +22,12 @@ export async function verifiedBody(
   const raw = c.req.raw;
   const authorized = route.policy === "data" || route.policy === "registration";
   const budget = auth.member ? "member" : authorized ? "authorized" : "public";
-  const release = reserveBody(raw.body ? route.limit * 2 : 0, budget, auth.request);
+
+  const release = reserveBody(
+    raw.body ? declaredBodySize(raw, route.limit) * 2 : 0,
+    budget,
+    auth.request,
+  );
 
   try {
     const body = await readBody(raw, route.limit, auth.request.bodyHash);

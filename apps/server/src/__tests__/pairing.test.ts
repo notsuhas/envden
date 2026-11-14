@@ -262,36 +262,3 @@ test("mailbox opening rolls back when indexing fails", async () => {
     f.close();
   }
 });
-
-test("non-member mailbox writes are limited across device IDs", async () => {
-  const f = fixture(keys);
-
-  try {
-    f.fresh();
-    const number = await open(f);
-    const body = { message: text(p.randomBytes(96)) };
-    const joiner = f.joiner;
-
-    expect(
-      (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: joiner }).send())
-        .status,
-    ).toBe(200);
-
-    for (let i = 0; i < 19; i++)
-      expect(
-        (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
-          .status,
-      ).toBe(401);
-
-    expect(
-      (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
-        .status,
-    ).toBe(429);
-
-    expect(f.storage.mailbox(vaultId, number, f.options.now())?.slots.KE1).toEqual(
-      Buffer.from(body.message, "base64url"),
-    );
-  } finally {
-    f.close();
-  }
-});

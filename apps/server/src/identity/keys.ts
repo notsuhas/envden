@@ -1,4 +1,5 @@
-import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { persistIdentity } from "./persist.ts";
+import { chmod, mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   generateRecoveryKeys as generateServerIdentityKeys,
@@ -53,7 +54,7 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
   const keys = generateServerIdentityKeys();
   const opaqueSetup = await opaqueCreateSetup();
   const data = { secretKey: text(keys.objSk), publicKey: text(keys.objPub), opaqueSetup };
-  await writeFile(path, JSON.stringify(data), { mode: 0o600, flag: "wx" });
+  await persistIdentity(dataDir, JSON.stringify(data));
 
   return { secretKey: keys.objSk, publicKey: keys.objPub, opaqueSetup };
 }

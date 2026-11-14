@@ -85,3 +85,37 @@ test("discarding the only move session does not reissue setup on restart", async
     f.close();
   }
 });
+
+test("identity publication syncs the file before publication and then the directory", async () => {
+  const fs = await import("node:fs/promises");
+  const { persistIdentity } = await import("../identity/persist.ts");
+  const dir = mkdtempSync(join(tmpdir(), "envden-durable-identity-"));
+  const events: string[] = [];
+
+  try {
+    await persistIdentity(dir, "{}", {
+      ...fs,
+      async open(path, flags, mode) {
+        const file = await fs.open(path, flags, mode);
+        const sync = file.sync.bind(file);
+
+        file.sync = async () => {
+          events.push(flags === "r" ? "directory" : "file");
+          await sync();
+        };
+
+        return file;
+      },
+      async link(from, to) {
+        events.push("publish");
+        await fs.link(from, to);
+      },
+    });
+
+    expect(events).toEqual(
+      process.platform === "win32" ? ["file", "publish"] : ["file", "publish", "directory"],
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

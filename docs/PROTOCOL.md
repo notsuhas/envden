@@ -596,7 +596,7 @@ The printed kit stays valid, because `SK` is unchanged.
    - If any op 5 or 7 lies after `restoredHead`, the server's `skPub` is stale.
    - If the server's envelope doesn't match the head's `envelopeHash`, the kit can't open the vault.
 
-   In either case the server refuses `SK` proofs until the next kit replacement, a flag kept in its database, and envden asks the user to replace the kit now, using the fresh login it just made.
+   In either case the server refuses `SK` proofs until the next kit replacement, a flag kept in its database. While set, the server refuses move freeze and SK public-key export. envden asks the user to replace the kit now, using the fresh login it just made.
 4. The unlock period may have reverted, so envden shows it for the user to confirm.
 
 **What restored mode trusts.** Only someone holding the repair token, meaning the operator, can act in restored mode. During that window it accepts member signatures without a password, which weakens only the honest-server guarantees (expiry and fresh login). Everything uploaded is signed and verified like any other history.

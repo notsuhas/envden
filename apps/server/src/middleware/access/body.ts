@@ -38,8 +38,9 @@ function authorizeMailbox(c: Context<TServerEnv>, options: IAppOptions) {
   const slot = parts[5];
 
   if (slot === "KE1" || slot === "KE2" || slot === "KE3" || slot === "PairJoiner") {
-    chargeMailbox(options, c.get("auth"), Number(parts[4]));
-    accessible(options, c.get("auth"), Number(parts[4]), slot, true);
+    chargeMailbox(options, c.get("auth"), Number(parts[4]), () =>
+      accessible(options, c.get("auth"), Number(parts[4]), slot, true),
+    );
   }
 }
 

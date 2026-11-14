@@ -9,6 +9,10 @@ export function registerMoveMetadata(app: Hono<TServerEnv>, options: IAppOptions
     .get("/v1/move/sk-pub", (c) => {
       const auth = c.get("auth");
       requireGate(options, auth, "fresh");
+
+      if (options.storage.vault(auth.request.vaultId)!.skRefused)
+        throw new EnvdenError("LOCKED", "Replace recovery kit before moving");
+
       const key = options.storage.state(auth.request.vaultId, "skPub", new Uint8Array());
       if (!key) throw new EnvdenError("NOT_FOUND", "Missing public key");
 

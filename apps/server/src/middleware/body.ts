@@ -8,6 +8,18 @@ export function bodyLimit(request: Request): number {
   return requestRoute(request).limit;
 }
 
+export function declaredBodySize(request: Request, limit: number): number {
+  const length = request.headers.get("Content-Length");
+
+  if (
+    length !== null &&
+    (!/^\d+$/.test(length) || !Number.isSafeInteger(Number(length)) || Number(length) > limit)
+  )
+    throw new EnvdenError("INVALID_INPUT", "Request too large");
+
+  return length === null ? limit : Math.min(limit, Number(length));
+}
+
 function scheduleDeadline(expire: () => void, timeout: number): () => void {
   const timer = setTimeout(expire, timeout);
 
@@ -19,12 +31,10 @@ export async function readBody(
   limit = bodyLimit(request),
   expectedHash?: Uint8Array,
   schedule = scheduleDeadline,
+  now: () => number = () => performance.now(),
 ): Promise<Uint8Array> {
   const hasher = sha256.create();
-  const length = request.headers.get("Content-Length");
-
-  if (length && (!/^\d+$/.test(length) || Number(length) > limit))
-    throw new EnvdenError("INVALID_INPUT", "Request too large");
+  const capacity = declaredBodySize(request, limit);
 
   const reader = request.body?.getReader();
 
@@ -33,11 +43,25 @@ export async function readBody(
 
   let stop = () => {};
 
+  const started = now();
+  let extend = (_size: number) => {};
+
   const deadline = new Promise<never>((_resolve, reject) => {
-    stop = schedule(
-      () => reject(new EnvdenError("INVALID_INPUT", "Body read deadline exceeded")),
-      Math.min(600000, 10000 + Math.ceil(Number(length ?? 0) / 32768) * 1000),
-    );
+    const expire = () => reject(new EnvdenError("INVALID_INPUT", "Body read deadline exceeded"));
+
+    extend = (received) => {
+      stop();
+
+      stop = schedule(
+        expire,
+        Math.max(
+          0,
+          Math.min(600000, 10000 + Math.floor(received / 32768) * 1000) - (now() - started),
+        ),
+      );
+    };
+
+    extend(0);
   });
 
   try {
@@ -45,7 +69,8 @@ export async function readBody(
       const chunk = await Promise.race([reader?.read(), deadline]);
       if (!chunk || chunk.done) break;
       size += chunk.value.length;
-      if (size > limit) throw new EnvdenError("INVALID_INPUT", "Request too large");
+      if (size > capacity) throw new EnvdenError("INVALID_INPUT", "Request too large");
+      extend(size);
       hasher.update(chunk.value);
       chunks.push(chunk.value);
     }

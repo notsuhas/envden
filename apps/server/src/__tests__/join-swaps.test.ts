@@ -74,7 +74,7 @@ for (const op of [2, 3])
 
         f.storage.writeState(f.vaultId, [
           {
-            kind: "server-identity",
+            kind: "mailbox-joiner",
             key: new Uint8Array([box.number >> 8, box.number & 255]),
             bytes: f.b.record.id,
           },
