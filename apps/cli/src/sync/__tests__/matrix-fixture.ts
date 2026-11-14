@@ -1,8 +1,9 @@
+import { removeFile } from "../remove.ts";
 import type { remotes } from "./matrix-cases.ts";
 import { values, caseValue, representativeRows } from "./matrix-cases.ts";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readdir } from "node:fs/promises";
 import type { syncFixture } from "./flows.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { setConfig } from "../../settings/config.ts";
@@ -89,16 +90,20 @@ async function changeRemote(
   paths: string[],
   remote: (typeof remotes)[number],
 ) {
-  if (remote === "merge" || remote === "changed" || remote === "deleted" || remote === "applied") {
-    for (const path of paths)
+  if (["merge", "changed", "deleted", "applied"].includes(remote)) {
+    for (const path of paths) {
+      if (remote === "deleted" || remote === "applied") {
+        await removeFile(f.first, join(f.checkout.root, path), { yes: true, now: f.now });
+        continue;
+      }
+
       await writeBytes(
         storePath(f.first.home, f.checkout.repoId, path),
         remote === "merge"
           ? bytes(caseValue(path, "TOKEN=local-test-value\nOTHER=R\n"))
-          : remote === "changed"
-            ? bytes(caseValue(path, "TOKEN=R\n"))
-            : undefined,
+          : bytes(caseValue(path, "TOKEN=R\n")),
       );
+    }
 
     await push(f.first, f.opts);
     if (remote === "applied") await pull(f.second, f.opts);
@@ -137,9 +142,13 @@ export async function survivingContent(
   reports: string[] = [],
   saved: string[] = [],
 ) {
+  const history = basePath(home, item.store) + ".history";
+
   const paths = [
+    ...(await readdir(history).catch(() => [])).map((name) => join(history, name)),
     ...saved,
     item.store,
+    basePath(home, item.store),
     ...item.links.filter((link) => link.mode === "copy").map((link) => join(link.root, link.path)),
   ];
 

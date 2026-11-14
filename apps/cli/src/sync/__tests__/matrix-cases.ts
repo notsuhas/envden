@@ -29,21 +29,13 @@ export function caseValue(path: string, value: string | undefined) {
 }
 
 export function representativeRows(count: number) {
-  if (count === 1) return [values[0], values[1], undefined].map((value) => [value]);
-  const [base, x, y, missing] = values;
+  const states = values.slice(0, 4);
+  const uniform = states.map((value) => Array.from({ length: count }, () => value));
+  if (count === 1) return uniform;
 
-  const rows: (typeof values)[number][][] = [
-    [base, base],
-    [x, base],
-    [base, x],
-    [x, y],
-    [base, missing],
-    [missing, x],
-  ];
-
-  if (count === 3) rows.push([x, y, values[4]]);
-
-  return rows.map((row, i) =>
-    count === 3 && row.length === 2 ? [...row, values[i % values.length]] : row,
+  const rotated = states.map((_, start) =>
+    Array.from({ length: count }, (_, place) => states[(start + place) % states.length]),
   );
+
+  return [uniform[0]!, uniform[3]!, ...rotated];
 }

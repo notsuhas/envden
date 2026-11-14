@@ -1,4 +1,4 @@
-import { storePath } from "../../store/path.ts";
+import { expectedCase } from "./matrix-expectation.ts";
 import { expect, test, describe, beforeAll, afterAll } from "bun:test";
 import { join } from "node:path";
 import { mkdir, readFile, lstat } from "node:fs/promises";
@@ -13,18 +13,18 @@ import { resolveConflict } from "../resolve.ts";
 import { conflictRecords } from "../local/conflicts.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
+let shared: Awaited<ReturnType<typeof syncFixture>>;
+
+beforeAll(async () => {
+  shared = await syncFixture();
+});
+
+afterAll(async () => {
+  await shared?.cleanup();
+});
+
 for (const modes of layouts)
   describe(`layout ${modes.join("+")}`, () => {
-    let shared: Awaited<ReturnType<typeof syncFixture>>;
-
-    beforeAll(async () => {
-      shared = await syncFixture();
-    });
-
-    afterAll(async () => {
-      await shared?.cleanup();
-    });
-
     for (const remote of remotes)
       describe(`file matrix ${modes.join("+")} ${remote}`, () => {
         let fixture: Awaited<ReturnType<typeof syncFixture>>;
@@ -32,6 +32,7 @@ for (const modes of layouts)
         let f: TMatrix;
         const reports: string[] = [];
         const saved = new Map<string, string[]>();
+        const outcomes = new Map<string, ReturnType<typeof expectedCase>>();
 
         beforeAll(async () => {
           fixture = shared;
@@ -53,11 +54,22 @@ for (const modes of layouts)
 
         beforeAll(async () => {
           f = await preparation.seedCases();
+
+          for (const item of f.cases)
+            outcomes.set(
+              item.path,
+              expectedCase(
+                item.path,
+                item.row,
+                remote,
+                item.links.map((target) => target.mode),
+              ),
+            );
         });
 
         test("pull preserves each case and settles all unconflicted targets", async () => {
           await pull(f.second, { ...f.opts, report: (message) => reports.push(message) });
-          await verifyTargets(f);
+          await verifyTargets(f, outcomes);
 
           for (const item of f.cases) {
             if (
@@ -92,31 +104,34 @@ for (const modes of layouts)
               (record) => record.store === item.store,
             );
 
-            if (!record) return;
+            const outcome = outcomes.get(item.path)!;
+            expect(!!record).toBe(outcome.conflict);
+            if (!outcome.conflict) return;
+            expect(record).toBeDefined();
+            expect(await readBytes(record!.mine)).toEqual(encode(outcome.mine));
+            expect(await readBytes(record!.server)).toEqual(encode(outcome.theirs));
             const choice = (["keep-mine", "take-server", "edit"] as const)[i % 3]!;
 
-            const expected =
-              choice === "edit"
-                ? await readBytes(record.file)
-                : choice === "keep-mine"
-                  ? await readBytes(record.mine)
-                  : await readBytes(record.server);
+            const expected = choice === "take-server" ? outcome.theirs : outcome.mine;
 
             const result = await resolveConflict(f.second, { file: item.path, choice, now: f.now });
             saved.set(item.path, result.preserved);
             await verifySurvival(f, item, remote, reports, saved);
 
-            expect(await readBytes(item.store)).toEqual(expected);
-            await verifyTargets(f);
+            outcome.store = expected;
+            outcome.targets = item.links.map(() => expected);
+            outcome.conflict = false;
+            expect(await readBytes(item.store)).toEqual(encode(expected));
+            await verifyTargets(f, outcomes);
           });
 
         test("push and repeat pull preserve settled content", async () => {
           await push(f.second, { ...f.opts, report: (message) => reports.push(message) });
-          await verifyTargets(f);
+          await verifyTargets(f, outcomes);
           const repeated = await pull(f.second, f.opts);
           expect(repeated.conflicts).toBe(0);
           expect(repeated.changed).toBe(0);
-          await verifyTargets(f);
+          await verifyTargets(f, outcomes);
           for (const item of f.cases) await verifySurvival(f, item, remote, reports, saved);
         });
 
@@ -126,7 +141,7 @@ for (const modes of layouts)
 
           for (const item of f.cases) {
             await verifySurvival(f, item, remote, reports, saved);
-            const expected = await readBytes(item.store);
+            const expected = encode(outcomes.get(item.path)!.store);
             const path = join(f.root, "third-checkout", item.path);
 
             if (expected === undefined)
@@ -137,19 +152,24 @@ for (const modes of layouts)
       });
   });
 
-async function verifyTargets(f: TMatrix) {
+function encode(value: string | undefined) {
+  return value === undefined ? undefined : new TextEncoder().encode(value);
+}
+
+async function verifyTargets(f: TMatrix, outcomes: Map<string, ReturnType<typeof expectedCase>>) {
   const records = await conflictRecords(f.second.home);
-  const state = (await loadState(f.second.home))!;
 
   for (const item of f.cases) {
-    if (records.some((record) => record.store === item.store)) continue;
-    const stored = await readBytes(item.store);
+    const expected = outcomes.get(item.path)!;
+    expect(records.some((record) => record.store === item.store)).toBe(expected.conflict);
+    expect(await readBytes(item.store)).toEqual(encode(expected.store));
 
-    for (const target of state.links.filter((target) => target.store === item.store)) {
+    for (const [index, target] of item.links.entries()) {
+      const value = expected.targets[index];
       const path = join(target.root, target.path);
 
-      if (stored === undefined) expect(await lstat(path).catch(() => undefined)).toBeUndefined();
-      else expect(new Uint8Array(await readFile(path))).toEqual(new Uint8Array(stored));
+      if (value === undefined) expect(await Bun.file(path).exists()).toBe(false);
+      else expect(await Bun.file(path).text()).toBe(value);
     }
   }
 }
@@ -176,10 +196,7 @@ async function verifySurvival(
   reports: string[],
   saved: Map<string, string[]>,
 ) {
-  const paths = [
-    ...(saved.get(item.path) ?? []),
-    storePath(f.first.home, f.checkout.repoId, item.path),
-  ];
+  const paths = saved.get(item.path) ?? [];
 
   const surviving = await survivingContent(f.second.home, item, reports, paths);
 
