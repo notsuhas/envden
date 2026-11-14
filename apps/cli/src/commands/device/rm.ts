@@ -1,3 +1,4 @@
+import { writeKit } from "../../vault/recovery/output.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
@@ -6,6 +7,7 @@ import { secret, consent } from "../../output/questions.ts";
 
 export const deviceRmCommand = new Command("rm")
   .argument("<device>")
+  .option("--kit-out <file>", "Write the new recovery kit to a private file")
   .option("--new-kit", "Replace the recovery kit in the same swap")
   .action(async (device, options) => {
     const result = await removeDevice(
@@ -25,6 +27,10 @@ export const deviceRmCommand = new Command("rm")
       },
     );
 
-    if (result.kit) console.log(terminalJson(result.kit));
+    if (result.kit) {
+      if (options.kitOut) await writeKit(options.kitOut, result.kit);
+      console.log(terminalJson(result.kit));
+    }
+
     console.log("Device removed");
   });

@@ -85,3 +85,12 @@ test("unattended resolution lists the terminal and agent override choices", asyn
   expect(result.code).toBe(2);
   expect(result.stderr).toContain("agent-merge");
 });
+
+test("replacement commands offer private kit files", async () => {
+  for (const args of [
+    ["vault", "kit", "replace", "--help"],
+    ["device", "rm", "--help"],
+  ]) {
+    expect((await cli(args)).stdout).toContain("--kit-out");
+  }
+});

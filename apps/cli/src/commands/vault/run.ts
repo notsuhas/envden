@@ -1,3 +1,4 @@
+import { writeKit } from "../../vault/recovery/output.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { confirmedPassword } from "../../onboarding/password.ts";
@@ -11,7 +12,16 @@ export async function runVaultAdmin(
   action: "rotate" | "replace" | "change" | "reset",
   now: () => number,
   prompt: typeof secret = secret,
+  kitOut?: string,
 ) {
+  if (action === "replace") {
+    const kit = await replaceKit(adapters, await prompt("Master password"), now);
+    if (kitOut) await writeKit(kitOut, kit);
+    console.log(terminalJson(kit));
+
+    return;
+  }
+
   await actions[action](adapters, now, prompt);
 }
 
@@ -19,9 +29,6 @@ const actions = {
   rotate: async (adapters: TAdapters, now: () => number, prompt: typeof secret) => {
     await rotateVault(adapters, await prompt("Master password"), now);
     console.log("Epoch rotated");
-  },
-  replace: async (adapters: TAdapters, now: () => number, prompt: typeof secret) => {
-    console.log(terminalJson(await replaceKit(adapters, await prompt("Master password"), now)));
   },
   change: async (adapters: TAdapters, now: () => number, prompt: typeof secret) => {
     await changePassword(

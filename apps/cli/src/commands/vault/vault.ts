@@ -10,9 +10,17 @@ export const vaultCommand = new Command("vault")
   )
   .addCommand(
     new Command("kit").addCommand(
-      new Command("replace").action(async () => {
-        await runVaultAdmin(createAdapters(), "replace", () => Date.now());
-      }),
+      new Command("replace")
+        .option("--kit-out <file>", "Write the new recovery kit to a private file")
+        .action(async (options) => {
+          await runVaultAdmin(
+            createAdapters(),
+            "replace",
+            () => Date.now(),
+            undefined,
+            options.kitOut,
+          );
+        }),
     ),
   )
   .addCommand(
