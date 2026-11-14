@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { EnvdenError } from "@envden/core/errors";
 import { privateDirectory } from "../store/files.ts";
-import { processStart } from "./process.ts";
+import { processIdentity, processStart } from "./process.ts";
 import { publishOwner } from "./publish.ts";
 import { owner } from "./owner.ts";
 import { acquireLock, type ILockTiming } from "./acquire.ts";
@@ -36,7 +36,14 @@ export async function withStateLock<T>(
   const directory = await lstat(path);
 
   try {
-    await publishOwner(path, { pid: process.pid, startedAt: observed.startedAt, token });
+    await publishOwner(path, {
+      pid: process.pid,
+      startedAt: observed.startedAt,
+      token,
+      identity: await processIdentity(),
+      createdAt: clock.now(),
+    });
+
     const published = await lstat(path);
 
     if (published.ino !== directory.ino || published.dev !== directory.dev)

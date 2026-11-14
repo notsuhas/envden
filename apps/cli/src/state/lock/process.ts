@@ -1,4 +1,6 @@
 import { execTrusted as exec } from "@envden/core/process";
+import { hostname } from "node:os";
+import { readlink } from "node:fs/promises";
 import { readFile } from "node:fs/promises";
 
 type TProcess = { kind: "live"; startedAt: string } | { kind: "dead" | "unknown" };
@@ -49,4 +51,17 @@ export async function processStart(
   }
 
   return { kind: "unknown" };
+}
+
+export async function processIdentity(): Promise<string | undefined> {
+  if (process.platform !== "linux") return hostname();
+
+  try {
+    const boot = await readFile("/proc/sys/kernel/random/boot_id", "utf8");
+    const namespace = await readlink("/proc/self/ns/pid");
+
+    return `${hostname()}:${boot.trim()}:${namespace}`;
+  } catch {
+    return undefined;
+  }
 }

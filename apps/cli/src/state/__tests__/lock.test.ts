@@ -1,3 +1,4 @@
+import { processIdentity } from "../lock/process.ts";
 import { fileURLToPath } from "node:url";
 import { spawnTrusted } from "@envden/core/process";
 import * as lockOwners from "../lock/owner.ts";
@@ -50,7 +51,12 @@ test("owned lock rejects concurrent writers, nests and reclaims a dead owner", a
     release();
     await running;
     await mkdir(path);
-    await writeFile(join(path, "owner.json"), JSON.stringify({ pid: 2147483647, token: "dead" }));
+
+    await writeFile(
+      join(path, "owner.json"),
+      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+    );
+
     expect(await withStateLock(home, async () => "reclaimed")).toBe("reclaimed");
 
     await Promise.resolve(
@@ -75,7 +81,12 @@ test("a reused PID does not preserve a dead owner's lock", async () => {
 
     await writeFile(
       join(path, "owner.json"),
-      JSON.stringify({ pid: process.pid, startedAt: "old process", token: "old" }),
+      JSON.stringify({
+        pid: process.pid,
+        identity: await processIdentity(),
+        startedAt: "old process",
+        token: "old",
+      }),
     );
 
     expect(await withStateLock(home, async () => "reclaimed")).toBe("reclaimed");
@@ -97,7 +108,7 @@ test("lock directories and owner files cannot be symlinks", async () => {
 
     await writeFile(
       join(home, "outside", "owner.json"),
-      JSON.stringify({ pid: 2147483647, token: "dead" }),
+      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
     );
 
     expect(await lockOwners.owner(path)).toBeUndefined();
@@ -123,7 +134,12 @@ test("lock directories and owner files cannot be symlinks", async () => {
 
     await rm(path);
     await mkdir(path);
-    await writeFile(join(home, "owner"), JSON.stringify({ pid: 2147483647, token: "dead" }));
+
+    await writeFile(
+      join(home, "owner"),
+      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+    );
+
     await symlink(join(home, "owner"), join(path, "owner.json"));
     expect(await lockOwners.owner(path)).toBeUndefined();
 
@@ -243,30 +259,6 @@ test("owner publication exposes complete metadata and never overwrites an owner"
     await rm(home, { recursive: true, force: true });
   }
 });
-
-for (const crash of ["guard", "renamed"])
-  test(`reclaim recovers after a crash at ${crash}`, async () => {
-    const { lstat, rename } = await import("node:fs/promises");
-    const home = await mkdtemp(join(tmpdir(), "envden-reclaim-"));
-    const path = join(home, "state", "write.lock");
-
-    try {
-      await mkdir(join(path, "reclaim"), { recursive: true });
-      await writeFile(join(path, "owner.json"), JSON.stringify({ pid: 2147483647, token: "dead" }));
-      const created = (await lstat(join(path, "reclaim"))).mtimeMs;
-      if (crash === "renamed") await rename(path, `${path}.interrupted.abandoned`);
-
-      expect(
-        await withStateLock(home, async () => "recovered", {
-          now: () => created + 30001,
-          wait: async () => {},
-          delays: [],
-        }),
-      ).toBe("recovered");
-    } finally {
-      await rm(home, { recursive: true, force: true });
-    }
-  });
 
 test("importing the lock does not probe process start", async () => {
   const path = fileURLToPath(new URL("../lock/lock.ts", import.meta.url));

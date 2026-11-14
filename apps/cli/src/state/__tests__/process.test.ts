@@ -16,11 +16,11 @@ test("process identity is observable without GNU ps", async () => {
 });
 
 test("only proven death or a different observed start permits reclaim", () => {
-  const previous = { pid: 123, token: "owner", startedAt: "first" };
-  expect(reclaimable(previous, { kind: "unknown" })).toBe(false);
-  expect(reclaimable(previous, { kind: "live", startedAt: "first" })).toBe(false);
-  expect(reclaimable(previous, { kind: "live", startedAt: "second" })).toBe(true);
-  expect(reclaimable(previous, { kind: "dead" })).toBe(true);
+  const previous = { pid: 123, token: "owner", startedAt: "first", identity: "host" };
+  expect(reclaimable(previous, { kind: "unknown" }, "host")).toBe(false);
+  expect(reclaimable(previous, { kind: "live", startedAt: "first" }, "host")).toBe(false);
+  expect(reclaimable(previous, { kind: "live", startedAt: "second" }, "host")).toBe(true);
+  expect(reclaimable(previous, { kind: "dead" }, "host")).toBe(true);
 
   expect(reclaimable({ pid: 123, token: "legacy" }, { kind: "live", startedAt: "first" })).toBe(
     false,

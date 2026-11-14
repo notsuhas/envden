@@ -1,12 +1,14 @@
 import { lstat, open } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
-import { processStart } from "./process.ts";
+import { processIdentity, processStart } from "./process.ts";
 
 export interface IOwner {
   pid: number;
   token: string;
   startedAt?: string;
+  identity?: string | undefined;
+  createdAt?: number;
 }
 
 export async function owner(path: string): Promise<IOwner | undefined> {
@@ -34,7 +36,15 @@ export async function owner(path: string): Promise<IOwner | undefined> {
   return undefined;
 }
 
-export function reclaimable(previous: IOwner, observed: Awaited<ReturnType<typeof processStart>>) {
+export function reclaimable(
+  previous: IOwner,
+  observed: Awaited<ReturnType<typeof processStart>>,
+  identity?: string,
+  now = 0,
+) {
+  if (!identity || previous.identity !== identity)
+    return previous.createdAt !== undefined && now - previous.createdAt >= 86400000;
+
   return (
     observed.kind === "dead" ||
     (observed.kind === "live" &&
@@ -59,5 +69,20 @@ async function orphaned(path: string, now: number): Promise<boolean> {
 }
 
 export async function expiredOwner(path: string, previous: IOwner | undefined, now: number) {
-  return previous ? reclaimable(previous, await processStart(previous.pid)) : orphaned(path, now);
+  if (!previous) return orphaned(path, now);
+  const identity = await processIdentity();
+
+  const observed =
+    identity && previous.identity === identity
+      ? await processStart(previous.pid)
+      : { kind: "unknown" as const };
+
+  const directory = await lstat(path);
+
+  return reclaimable(
+    { ...previous, createdAt: previous.createdAt ?? directory.mtimeMs },
+    observed,
+    identity,
+    now,
+  );
 }
