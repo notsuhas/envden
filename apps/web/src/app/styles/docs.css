@@ -46,6 +46,23 @@ body:has(#nd-docs-layout) .den-pulse {
   }
 }
 
+/* phones: match the landing header and inset so nothing jumps between pages */
+@media (width < 48rem) {
+  #nd-subnav {
+    padding-inline: 2rem 1.625rem;
+  }
+
+  #nd-subnav button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  #nd-page,
+  [class*="toc-popover"] > header > button {
+    padding-inline: 2rem;
+  }
+}
+
 #nd-nav a,
 #nd-nav button,
 #nd-sidebar a,
