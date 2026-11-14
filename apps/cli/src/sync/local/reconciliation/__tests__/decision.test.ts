@@ -58,28 +58,6 @@ for (const [mode, status, linked, expected] of [
     expect(deriveStoreSource(mode, status, linked)).toBe(expected);
   });
 
-test("base history recognizes an older synced checkout without accepting a template", async () => {
-  const { mkdtemp, rm } = await import("node:fs/promises");
-  const { join } = await import("node:path");
-  const { tmpdir } = await import("node:os");
-  const { saveBase, matchesBase } = await import("../history.ts");
-  const root = await mkdtemp(join(tmpdir(), "envden-base-history-"));
-
-  try {
-    const base = join(root, "base");
-    await saveBase(base, mine, 1);
-    await saveBase(base, server, 2);
-    expect(await matchesBase(base, mine)).toBe(true);
-    expect(await matchesBase(base, server)).toBe(true);
-    expect(await matchesBase(base, previous)).toBe(false);
-    await saveBase(base, previous, 2592000002);
-    expect(await matchesBase(base, mine)).toBe(false);
-    expect(await matchesBase(base, server)).toBe(true);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
 for (const [kind, choosing, detached, expected] of [
   ["conflict", false, false, true],
   ["repair-conflict", true, true, true],

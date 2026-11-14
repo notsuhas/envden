@@ -61,8 +61,8 @@ for (const scenario of [
         await rm(path);
         await writeBytes(path, original);
         expect((await pull(f.second, f.opts)).conflicts).toBe(0);
-        expect(await readBytes(target.store)).toEqual(edited);
-        expect(await Bun.file(path).bytes()).toEqual(edited);
+        expect(await readBytes(target.store)).toEqual(original);
+        expect(await Bun.file(path).bytes()).toEqual(original);
 
         return;
       }

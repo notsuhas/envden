@@ -59,6 +59,7 @@ export function resolveConflict(
     await recordDeletion(adapters.home, record, bytes);
 
     await rm(basePath(adapters.home, record.store) + ".pending", { force: true });
+    await rm(basePath(adapters.home, record.store) + ".corrupt", { force: true });
     await writeBytes(record.store, bytes);
 
     const placementReports = await placeResolution(
@@ -150,7 +151,7 @@ async function placeResolution(
   await saveState(adapters.home, state);
 
   if (record.entry) {
-    await saveBase(record.base, server, now);
+    await saveBase(record.base, server);
     await markAppliedEntry(adapters.home, record.entry, record.store);
   }
 
@@ -192,7 +193,7 @@ async function resolveTarget(
     target.mode === "copy" ? target.root : undefined,
   );
 
-  await saveBase(base, target.mode === "copy" ? bytes : server, now);
+  await saveBase(base, target.mode === "copy" ? bytes : server);
 }
 
 async function recordDeletion(

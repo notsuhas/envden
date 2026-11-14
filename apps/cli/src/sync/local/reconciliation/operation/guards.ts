@@ -26,9 +26,10 @@ export function canResume(
   before: (string | null)[],
   current: (string | null)[],
   next: string | null,
+  written: boolean[] = before.map(() => false),
 ) {
   return (
     before.length === current.length &&
-    current.every((hash, i) => hash === before[i] || hash === next)
+    current.every((hash, i) => (written[i] ? hash === next : hash === before[i]))
   );
 }

@@ -1,9 +1,13 @@
+import { z } from "zod";
+import { readSyncRecord } from "../../state/store/records.ts";
 import { join } from "node:path";
-import { atomicWrite, optionalRead } from "../../state/store/files.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 
 export async function pendingRepairs(home: string): Promise<Set<string>> {
   return new Set(
-    JSON.parse((await optionalRead(join(home, "state", "pending-repairs.json"))) ?? "[]"),
+    (await readSyncRecord(join(home, "state", "pending-repairs.json"), (saved) =>
+      z.array(z.string()).parse(JSON.parse(saved)),
+    )) ?? [],
   );
 }
 

@@ -71,7 +71,9 @@ function targetEdits(
 ): TBytes[] {
   if (copy.bytes === undefined || same(copy.bytes, store) || copy.historical) return [];
 
-  if (copy.mode === "link" || !copy.tracked || copy.base === undefined) return [copy.bytes, store];
+  if (!copy.tracked || copy.base === undefined) return [copy.bytes, store];
+
+  if (copy.mode === "link") return same(store, copy.base) ? [copy.bytes] : [store, copy.bytes];
 
   return copyEdits(store, copy.bytes, copy.base, deleted);
 }

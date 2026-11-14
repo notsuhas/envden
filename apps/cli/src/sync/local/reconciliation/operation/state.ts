@@ -1,3 +1,4 @@
+import { recoverSyncRecord } from "../../../../state/store/records.ts";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../../remote/context.ts";
@@ -19,9 +20,23 @@ export async function readFileState(
 ) {
   const base = basePath(context.adapters.home, store);
 
-  const encoded =
-    (await optionalRead(base + ".entry")) ??
-    (entry && (await appliedFiles(context.adapters.home))[p.base32(entry.fileId)]);
+  const ancestor = await recoverSyncRecord(
+    base + ".entry",
+    base + ".corrupt",
+    (saved) => {
+      p.decode(p.FileEntryCodec, binary(saved));
+
+      return saved;
+    },
+    context.options.report,
+  );
+
+  await deletionRequested(context.adapters.home, store);
+  const corrupt = (await optionalRead(base + ".corrupt")) !== undefined;
+
+  const encoded = corrupt
+    ? undefined
+    : (ancestor ?? (entry && (await appliedFiles(context.adapters.home))[p.base32(entry.fileId)]));
 
   const previous = encoded
     ? await entryContent(context, p.decode(p.FileEntryCodec, binary(encoded)))
@@ -29,8 +44,14 @@ export async function readFileState(
 
   const server = entry ? await entryContent(context, entry) : undefined;
 
-  await cancelRestoredDeletion(context, targets, store);
-  const { stored, restored, deleting } = await restoreStore(context, store, entry, server);
+  if (!corrupt) await cancelRestoredDeletion(context, targets, store);
+
+  const { stored, restored, deleting } = await restoreStore(
+    context,
+    store,
+    entry,
+    corrupt ? undefined : server,
+  );
 
   const snapshots = await Promise.all(
     targets.map((target) => fileSnapshot(context, target, stored, previous)),
@@ -43,6 +64,7 @@ export async function readFileState(
 
   return {
     base,
+    corrupt,
     encoded,
     previous,
     server,

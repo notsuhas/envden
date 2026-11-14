@@ -1,3 +1,4 @@
+import { readOperation, type TOperation } from "./record.ts";
 import * as p from "@envden/core/protocol";
 import { markAppliedEntry } from "../../applied.ts";
 import { text } from "../../../../client/encoding.ts";
@@ -5,7 +6,7 @@ import { deletionRequested } from "./deletion.ts";
 import { canResume, contentHash, operationHashes } from "./guards.ts";
 import { sanitizeTerminal } from "../../../../output/sanitize.ts";
 import type { TSyncContext } from "../../../remote/context.ts";
-import { atomicWrite, optionalRead } from "../../../../state/store/files.ts";
+import { atomicWrite } from "../../../../state/store/files.ts";
 import { journalPlacement } from "../../../../state/journal/placement.ts";
 import { basePath, readBytes, same, writeBytes } from "../../files.ts";
 import { backup } from "../../conflicts.ts";
@@ -14,38 +15,28 @@ import { saveBase } from "../history.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
-interface IOperation {
-  targets: TTarget[];
-  before: (string | null)[];
-  next: string | null;
-  server: string | null;
-  header: string;
-  entry: string | null;
-}
-
 export async function resumeFile(context: TSyncContext, store: string) {
   const path = basePath(context.adapters.home, store) + ".pending";
-  const saved = await optionalRead(path);
-  if (!saved) return;
-  const operation: IOperation = JSON.parse(saved);
+  const operation = await readOperation(path, context.options.report);
+  if (!operation) return;
   const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
   const server = operation.server === null ? undefined : Buffer.from(operation.server, "base64");
 
   const current = await operationHashes(context, store, operation.targets);
 
-  await recoverPlaces(context, store, operation, current, next);
+  await recoverPlaces(context, store, operation, next);
 
   if (
     operation.header !==
       text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")) ||
-    !canResume(operation.before, current, contentHash(next))
+    !canResume(operation.before, current, contentHash(next), operation.written)
   ) {
     await writeBytes(path, undefined);
 
     return;
   }
 
-  await finishFile(context, store, operation.targets, next, server, operation.entry);
+  await finishFile(context, store, operation.targets, next, server, operation.entry, operation);
   if (operation.entry) await markAppliedEntry(context.adapters.home, operation.entry);
   await writeBytes(path, undefined);
 }
@@ -71,11 +62,12 @@ export async function commitFile(
     JSON.stringify({
       targets,
       before,
+      written: before.map(() => false),
       entry,
       header: text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")),
       next: next === undefined ? null : Buffer.from(next).toString("base64"),
       server: server === undefined ? null : Buffer.from(server).toString("base64"),
-    } satisfies IOperation),
+    } satisfies TOperation),
   );
 
   await resumeFile(context, store);
@@ -88,6 +80,7 @@ async function finishFile(
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
   entry: string | null,
+  operation?: TOperation,
 ) {
   if (!same(await readBytes(store), next)) {
     const saved = await backup(context.adapters.home, store, context.options.now());
@@ -100,10 +93,12 @@ async function finishFile(
     await atomicWrite(store, next);
   }
 
-  if (entry) await atomicWrite(basePath(context.adapters.home, store) + ".entry", entry);
-  await placeTargets(context, store, targets, next, server);
+  if (operation) await markWritten(context, store, operation, 0);
 
-  await saveBase(basePath(context.adapters.home, store), server, context.options.now());
+  if (entry) await atomicWrite(basePath(context.adapters.home, store) + ".entry", entry);
+  await placeTargets(context, store, targets, next, server, operation);
+
+  await saveBase(basePath(context.adapters.home, store), server);
   await journalPlacement(context.adapters.home, context.state);
 }
 
@@ -113,50 +108,53 @@ async function placeTargets(
   targets: TTarget[],
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
+  operation?: TOperation,
 ) {
   const preserveDeleted =
     server !== undefined || (await deletionRequested(context.adapters.home, store));
 
-  for (const target of targets) {
+  for (const [index, target] of targets.entries()) {
     if (!(await placeFileTarget(context, target, next, preserveDeleted))) continue;
 
+    if (operation) await markWritten(context, store, operation, index + 1);
+
     if (target.mode === "copy")
-      await saveBase(
-        basePath(context.adapters.home, store, target.root),
-        next,
-        context.options.now(),
-      );
+      await saveBase(basePath(context.adapters.home, store, target.root), next);
   }
 }
 
 async function recoverPlaces(
   context: TSyncContext,
   store: string,
-  operation: IOperation,
-  current: (string | null)[],
+  operation: TOperation,
   next: Uint8Array | undefined,
 ) {
-  if (operation.entry && current[0] === contentHash(next))
+  if (operation.entry && operation.written[0])
     await atomicWrite(basePath(context.adapters.home, store) + ".entry", operation.entry);
 
   for (const [index, target] of operation.targets.entries()) {
-    if (target.mode !== "copy" || current[index + 1] !== contentHash(next)) continue;
+    if (target.mode !== "copy" || !operation.written[index + 1]) continue;
 
-    await saveBase(
-      basePath(context.adapters.home, store, target.root),
-      next,
-      context.options.now(),
-    );
+    await saveBase(basePath(context.adapters.home, store, target.root), next);
   }
 }
 
 export async function preservePendingAncestor(home: string, store: string) {
   const base = basePath(home, store);
-  const saved = await optionalRead(base + ".pending");
-  if (!saved) return;
-  const operation: IOperation = JSON.parse(saved);
+  const operation = await readOperation(base + ".pending");
+  if (!operation) return;
   const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
 
   if (operation.entry && contentHash(await readBytes(store)) === contentHash(next))
     await atomicWrite(base + ".entry", operation.entry);
+}
+
+async function markWritten(
+  context: TSyncContext,
+  store: string,
+  operation: TOperation,
+  index: number,
+) {
+  operation.written[index] = true;
+  await atomicWrite(basePath(context.adapters.home, store) + ".pending", JSON.stringify(operation));
 }

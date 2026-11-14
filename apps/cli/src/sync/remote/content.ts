@@ -1,4 +1,3 @@
-import { rememberVersion } from "../local/lineage/versions.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import { join } from "node:path";
@@ -21,7 +20,6 @@ export async function entryContent(
   context: TSyncContext,
   entry: p.IFileEntry,
 ): Promise<Uint8Array | undefined> {
-  await rememberVersion(context, entry);
   if (entry.state === 2 || entry.state === 4) return undefined;
   const name = entryName(context, entry);
 

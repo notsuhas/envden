@@ -102,6 +102,7 @@ test("cancel at detached prompt aborts push", async () => {
 
   try {
     const path = join(f.checkout.root, ".env");
+    await atomicWrite(f.aStore, "TOKEN=store-edit\n");
     await rm(path);
     await atomicWrite(path, "TOKEN=detached\n");
 

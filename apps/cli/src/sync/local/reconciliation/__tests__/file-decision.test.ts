@@ -50,7 +50,18 @@ for (const [name, bytes, base, tracked, mode, expected] of [
   ],
   ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", mine: C, theirs: B }],
   ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", mine: C, theirs: B }],
-  ["detached bytes conflict", C, A, true, "link", { kind: "conflict", mine: C, theirs: B }],
+  ["detached bytes conflict", C, A, true, "link", { kind: "conflict", mine: B, theirs: C }],
+  ["tracked detached revert is an edit", A, B, true, "link", { kind: "content", bytes: A }],
+  ["tracked detached new bytes are an edit", C, B, true, "link", { kind: "content", bytes: C }],
+  ["matching detached bytes relink", B, A, true, "link", { kind: "content", bytes: B }],
+  [
+    "untracked detached bytes require a choice",
+    A,
+    B,
+    false,
+    "link",
+    { kind: "conflict", mine: A, theirs: B },
+  ],
   ["missing copy restores", undefined, A, true, "copy", { kind: "content", bytes: B }],
 ] as const)
   test(name, () => {

@@ -85,7 +85,7 @@ test("untracking the last conflicting checkout releases the conflict", async () 
   expect(await conflictRecords(f.second.home)).toEqual([]);
 });
 
-test("own push retains relink history", async () => {
+test("detached link with old content is adopted as an edit", async () => {
   const f = await fixture();
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
@@ -95,7 +95,7 @@ test("own push retains relink history", async () => {
   await rm(target);
   await atomicWrite(target, "TOKEN=local-test-value\n");
   expect((await pull(f.second, f.opts)).conflicts).toBe(0);
-  expect(await Bun.file(target).text()).toBe("TOKEN=new\n");
+  expect(await Bun.file(target).text()).toBe("TOKEN=local-test-value\n");
 });
 
 test("untracking divergent copy lets remaining link advance", async () => {

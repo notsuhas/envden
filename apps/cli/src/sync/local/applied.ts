@@ -1,11 +1,20 @@
+import { z } from "zod";
+import { readSyncRecord } from "../../state/store/records.ts";
 import { basePath } from "./files.ts";
 import * as p from "@envden/core/protocol";
-import { text } from "../../client/encoding.ts";
+import { binary, text } from "../../client/encoding.ts";
 import { join } from "node:path";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 
 export async function appliedFiles(home: string): Promise<Record<string, string>> {
-  return JSON.parse((await optionalRead(join(home, "state", "applied-files.json"))) ?? "{}");
+  return (
+    (await readSyncRecord(join(home, "state", "applied-files.json"), (saved) => {
+      const entries = z.record(z.string(), z.string()).parse(JSON.parse(saved));
+      for (const encoded of Object.values(entries)) p.decode(p.FileEntryCodec, binary(encoded));
+
+      return entries;
+    })) ?? {}
+  );
 }
 
 export async function saveAppliedFiles(home: string, files: Record<string, string>): Promise<void> {

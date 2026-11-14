@@ -1,3 +1,7 @@
+import {
+  deletionRequested,
+  requestDeletion,
+} from "../../sync/local/reconciliation/operation/deletion.ts";
 import { removeConflictTargets } from "../../sync/local/conflicts.ts";
 import { removeCheckoutBases } from "./bases.ts";
 import { join } from "node:path";
@@ -15,7 +19,14 @@ export async function untrack(adapters: TAdapters, path: string) {
     if (!root || !state?.approved.some((item) => item.root === root))
       throw new EnvdenError("NOT_FOUND", "Checkout is not tracked");
 
+    const cancelled: string[] = [];
+
     for (const link of state.links.filter((item) => item.root === root)) {
+      if (await deletionRequested(adapters.home, link.store)) {
+        await requestDeletion(adapters.home, link.store, false);
+        cancelled.push(join(root, link.path));
+      }
+
       const placement = adapters.placement("copy", root);
       const destination = join(root, link.path);
       const status = await placement.inspect(link.store, destination);
@@ -36,5 +47,7 @@ export async function untrack(adapters: TAdapters, path: string) {
     state.approved = state.approved.filter((item) => item.root !== root);
     await saveState(adapters.home, state);
     await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
+
+    return cancelled;
   });
 }

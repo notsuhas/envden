@@ -158,7 +158,7 @@ function decideFile(
   return {
     local,
     mine,
-    action: snapshot.deletionInvalid ? { kind: "conflict" as const } : action,
+    action: snapshot.deletionInvalid || snapshot.corrupt ? { kind: "conflict" as const } : action,
     repair,
     detached,
   };

@@ -2,7 +2,7 @@ import { acknowledgeAttempt } from "./remote/attempt/record.ts";
 import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
-import { pruneBackups, pruneBaseHistory } from "./local/retention.ts";
+import { pruneBackups } from "./local/retention.ts";
 import { entryName } from "./remote/content.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
@@ -66,7 +66,6 @@ async function sync(
 
       if (result.kind !== "retry") {
         await pruneBackups(adapters.home, options.now());
-        await pruneBaseHistory(adapters.home, options.now());
         await adapters.prunePlacementBackups(options.now());
 
         try {

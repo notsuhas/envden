@@ -11,6 +11,7 @@ export async function removeCheckoutBases(
   for (const link of removed) {
     await preservePendingAncestor(home, link.store);
     await rm(basePath(home, link.store) + ".pending", { force: true });
+    await rm(basePath(home, link.store) + ".corrupt", { force: true });
     const bases = [basePath(home, link.store, link.root)];
 
     if (!remaining.some((item) => item.store === link.store))

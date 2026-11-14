@@ -1,7 +1,6 @@
 import { join } from "node:path";
 import type { TSyncContext } from "../../remote/context.ts";
 import { basePath, readBytes, same } from "../files.ts";
-import { matchesBase } from "./history.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -30,13 +29,14 @@ export async function fileSnapshot(
   const useStore = target.mode === "link" && status !== "detached";
   const bytes = useStore ? stored : await readBytes(destination);
 
-  const previous = await readBytes(base);
+  const previous =
+    target.mode === "link" && applied !== undefined ? applied : await readBytes(base);
 
   const detached =
     target.mode === "link" &&
     status === "detached" &&
     !same(bytes, stored) &&
-    !(await matchesBase(base, bytes));
+    (!tracked || !same(stored, previous));
 
   return {
     target,
@@ -46,8 +46,6 @@ export async function fileSnapshot(
     base: previous,
     detached,
     mode: target.mode,
-    historical:
-      (tracked && target.mode === "link" && status === "detached" && !detached) ||
-      ((!tracked || previous === undefined) && bytes !== undefined && same(bytes, applied)),
+    historical: (!tracked || previous === undefined) && bytes !== undefined && same(bytes, applied),
   };
 }
