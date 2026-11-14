@@ -22,8 +22,18 @@ const operationSchema = z.object({
 
 export type TOperation = z.infer<typeof operationSchema>;
 
-export async function readOperation(path: string, report?: (message: string) => void) {
-  return recoverSyncRecord(path, path.replace(/\.pending$/, ".corrupt"), decodeOperation, report);
+export async function readOperation(
+  path: string,
+  now = Date.now,
+  report?: (message: string) => void,
+) {
+  return recoverSyncRecord(
+    path,
+    path.replace(/\.pending$/, ".corrupt"),
+    decodeOperation,
+    now(),
+    report,
+  );
 }
 
 export function decodeOperation(saved: string) {

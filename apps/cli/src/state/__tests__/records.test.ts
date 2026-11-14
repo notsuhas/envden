@@ -19,7 +19,9 @@ test("interrupted quarantine retains the corruption hold", async () => {
 
   try {
     await Promise.resolve(
-      expect(recoverSyncRecord(path, marker, JSON.parse)).rejects.toThrow("Interrupted quarantine"),
+      expect(recoverSyncRecord(path, marker, JSON.parse, 1800000000000)).rejects.toThrow(
+        "Interrupted quarantine",
+      ),
     );
 
     const saved = await optionalRead(marker);

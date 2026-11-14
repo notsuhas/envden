@@ -17,7 +17,7 @@ type TTarget = TSyncContext["state"]["links"][number];
 
 export async function resumeFile(context: TSyncContext, store: string) {
   const path = basePath(context.adapters.home, store) + ".pending";
-  const operation = await readOperation(path, context.options.report);
+  const operation = await readOperation(path, context.options.now, context.options.report);
   if (!operation) return;
   const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
   const server = operation.server === null ? undefined : Buffer.from(operation.server, "base64");

@@ -28,10 +28,11 @@ export async function readFileState(
 
       return saved;
     },
+    context.options.now(),
     context.options.report,
   );
 
-  await deletionRequested(context.adapters.home, store);
+  await deletionRequested(context.adapters.home, store, context.options.now);
   const corrupt = (await optionalRead(base + ".corrupt")) !== undefined;
 
   const encoded = corrupt
@@ -58,7 +59,7 @@ export async function readFileState(
     targets.map((target) => fileSnapshot(context, target, stored, previous)),
   );
 
-  const intent = await readDeletion(context.adapters.home, store);
+  const intent = await readDeletion(context.adapters.home, store, context.options.now);
 
   const deletionInvalid =
     deleting && entry !== undefined && intent?.entry !== text(p.FileEntryCodec.write(entry));
@@ -102,7 +103,7 @@ async function restoreStore(
 }
 
 async function cancelRestoredDeletion(context: TSyncContext, targets: TTarget[], store: string) {
-  const intent = await readDeletion(context.adapters.home, store);
+  const intent = await readDeletion(context.adapters.home, store, context.options.now);
   if (!intent) return undefined;
 
   for (const path of [
@@ -129,5 +130,5 @@ async function liveDeletion(context: TSyncContext, store: string, entry: p.IFile
     return false;
   }
 
-  return deletionRequested(context.adapters.home, store);
+  return deletionRequested(context.adapters.home, store, context.options.now);
 }

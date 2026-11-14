@@ -1,39 +1,23 @@
-import { readdir, rm, lstat } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 
 export async function pruneBackups(home: string, now: number): Promise<void> {
-  for (const directory of ["state", "base"]) await pruneStateBackups(join(home, directory), now);
-
-  const directory = join(home, "conflicts", "backups");
-  let names: string[];
-
-  try {
-    names = await readdir(directory);
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") return;
-    throw error;
-  }
-
-  for (const name of names) {
-    const match = /^(\d+)-[a-f0-9-]+$/.exec(name);
-
-    if (match && now - Number(match[1]) >= 2592000000)
-      await rm(join(directory, name), { force: true });
-  }
+  for (const directory of ["state", "base", "conflicts/backups"])
+    await pruneDirectory(join(home, directory), now, directory !== "conflicts/backups");
 }
 
-async function pruneStateBackups(directory: string, now: number): Promise<void> {
-  for (const entry of await readdir(directory, { withFileTypes: true }).catch((error: unknown) => {
+async function pruneDirectory(directory: string, now: number, recursive: boolean): Promise<void> {
+  const entries = await readdir(directory, { withFileTypes: true }).catch((error: unknown) => {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return [];
     throw error;
-  })) {
+  });
+
+  for (const entry of entries) {
     const path = join(directory, entry.name);
+    const match = /(?:\.corrupt-|^\.?)(\d+)-[a-f0-9-]+(?:\.tmp)?$/.exec(entry.name);
 
-    if (entry.name.includes(".corrupt-") || /^\..+\.tmp$/.test(entry.name)) {
-      const stat = await lstat(path);
-
-      if (now - stat.mtimeMs >= 2592000000)
-        await rm(path, { force: true, recursive: entry.isDirectory() });
-    } else if (entry.isDirectory()) await pruneStateBackups(path, now);
+    if (match && now - Number(match[1]) >= 2592000000)
+      await rm(path, { force: true, recursive: entry.isDirectory() });
+    else if (recursive && entry.isDirectory()) await pruneDirectory(path, now, true);
   }
 }

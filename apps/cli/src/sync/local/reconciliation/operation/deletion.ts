@@ -14,14 +14,14 @@ export function decodeDeletion(saved: string) {
   return intent;
 }
 
-export async function readDeletion(home: string, store: string) {
+export async function readDeletion(home: string, store: string, now = Date.now) {
   const base = basePath(home, store);
 
-  return recoverSyncRecord(base + ".delete", base + ".corrupt", decodeDeletion);
+  return recoverSyncRecord(base + ".delete", base + ".corrupt", decodeDeletion, now());
 }
 
-export async function deletionRequested(home: string, store: string) {
-  return (await readDeletion(home, store)) !== undefined;
+export async function deletionRequested(home: string, store: string, now = Date.now) {
+  return (await readDeletion(home, store, now)) !== undefined;
 }
 
 export async function requestDeletion(
@@ -30,6 +30,7 @@ export async function requestDeletion(
   requested: boolean,
   entry?: string,
   targets?: string[],
+  now = Date.now,
 ) {
   const path = basePath(home, store) + ".delete";
 
@@ -39,7 +40,7 @@ export async function requestDeletion(
     return;
   }
 
-  const previous = await readDeletion(home, store);
+  const previous = await readDeletion(home, store, now);
   const ancestor = entry ?? (await optionalRead(basePath(home, store) + ".entry"));
 
   if (ancestor)

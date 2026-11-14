@@ -19,6 +19,7 @@ const attemptSchema = z.object({
 export async function readAttempts(
   adapters: TAdapters,
   links: ILocalState["links"],
+  now = Date.now,
   report?: (message: string) => void,
 ) {
   const directory = join(adapters.home, "state", "attempts");
@@ -41,6 +42,7 @@ export async function readAttempts(
       path,
       marker,
       (saved) => decodeAttempt(saved, name),
+      now(),
       report,
     );
 

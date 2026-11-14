@@ -38,6 +38,7 @@ export async function acknowledgeAttempt(context: TSyncContext) {
   const attempts = await readAttempts(
     context.adapters,
     context.state.links,
+    context.options.now,
     context.options.report,
   );
 

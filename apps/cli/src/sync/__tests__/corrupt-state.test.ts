@@ -15,7 +15,7 @@ import { deletionRequested } from "../local/reconciliation/operation/deletion.ts
 
 const fixture = createSharedFixture();
 
-for (const suffix of [".entry", ".pending", "attempt"])
+for (const suffix of [".entry", ".pending", ".delete", "attempt"])
   test(`corrupt ${suffix} is quarantined and resolvable`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["copy"]);
@@ -27,7 +27,7 @@ for (const suffix of [".entry", ".pending", "attempt"])
         : basePath(f.second.home, store) + suffix;
 
     await atomicWrite(path, "{invalid");
-    await utimes(path, new Date(f.now()), new Date(f.now()));
+    await utimes(path, new Date(0), new Date(0));
     await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n");
     const result = await push(f.second, f.opts);
     expect(result.conflicts).toBe(1);
