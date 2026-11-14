@@ -65,9 +65,11 @@ export function pullActions(model: TModel) {
       `${state.token} -> pull ${JSON.stringify(result && { c: result.changed, x: result.conflicts })} rec=${records} places=${JSON.stringify(now)} reports=${JSON.stringify(reports)}`,
     );
 
-    if (quiet || !result || fail !== undefined || killed) return result;
+    if (quiet || !result || killed) return result;
 
-    checkPull(model, d, result, records, await model.activePlaces(d));
+    await checkResult(model, d, result, records, fail);
+
+    if (fail !== undefined) return result;
 
     if (state.step !== 99) await secondPull(d, now);
 
@@ -97,4 +99,15 @@ export function pullActions(model: TModel) {
   }
 
   return { doPull };
+}
+
+async function checkResult(
+  model: TModel,
+  d: number,
+  result: Awaited<ReturnType<typeof pull>>,
+  records: number,
+  fail: number | undefined,
+) {
+  if (fail !== undefined && result.conflicts) return;
+  checkPull(model, d, result, records, await model.activePlaces(d));
 }
