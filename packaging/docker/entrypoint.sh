@@ -29,8 +29,10 @@ if tailscale status --json | grep -Eq '"BackendState"[[:space:]]*:[[:space:]]*"N
   chmod 600 "$auth_file"
   printf '%s' "$TS_AUTHKEY" > "$auth_file"
   unset TS_AUTHKEY
-  tailscale up --auth-key="file:$auth_file" --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false
+  tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false --auth-key="file:$auth_file"
   rm -f "$auth_file"
+else
+  tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false
 fi
 unset TS_AUTHKEY
 tailscale serve --bg --https=443 "http://127.0.0.1:$ENVDEN_PORT"
