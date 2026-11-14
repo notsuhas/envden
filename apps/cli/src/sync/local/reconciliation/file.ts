@@ -1,12 +1,11 @@
-import { fileSnapshot } from "./snapshot.ts";
+import { blocksFile } from "./operation/conflict.ts";
+import { readFileState } from "./operation/state.ts";
 import { commitFile, resumeFile } from "./operation/file.ts";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
-import { text, binary } from "../../../client/encoding.ts";
-import { entryContent } from "../../remote/content.ts";
-import { appliedFiles } from "../applied.ts";
-import { basePath, readBytes, same } from "../files.ts";
-import { conflictRecords, recordConflict } from "../conflicts.ts";
+import { text } from "../../../client/encoding.ts";
+import { same } from "../files.ts";
+import { recordConflict } from "../conflicts.ts";
 import { deriveFileDecision } from "./file-decision.ts";
 import { resolveContent } from "./resolution.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
@@ -23,11 +22,17 @@ export async function reconcileFile(
 ) {
   await resumeFile(context, store);
 
-  if ((await conflictRecords(context.adapters.home)).some((item) => item.store === store))
-    return { changed: 0, conflicts: 1 };
-
   const snapshot = await readFileState(context, targets, store, entry);
   const { base, server, stored, snapshots } = snapshot;
+
+  if (
+    await blocksFile(
+      context.adapters.home,
+      store,
+      decideFile(snapshot, entry, repairs, !!choose).action.kind === "write",
+    )
+  )
+    return { changed: Number(snapshot.restored), conflicts: 1 };
 
   const { resolution, mine, local, repair } = await resolveFileState(
     context,
@@ -53,33 +58,10 @@ export async function reconcileFile(
 
     if (repair) await consumeRepair(context.adapters.home, p.base32(entry!.fileId));
 
-    return { changed: 0, conflicts: 1 };
+    return { changed: Number(snapshot.restored), conflicts: 1 };
   }
 
   return applyFile(context, snapshot, store, resolution.next);
-}
-
-async function readFileState(
-  context: TSyncContext,
-  targets: TTarget[],
-  store: string,
-  entry: p.IFileEntry | undefined,
-) {
-  const base = basePath(context.adapters.home, store);
-  const encoded = entry && (await appliedFiles(context.adapters.home))[p.base32(entry.fileId)];
-
-  const previous = encoded
-    ? await entryContent(context, p.decode(p.FileEntryCodec, binary(encoded)))
-    : undefined;
-
-  const server = entry ? await entryContent(context, entry) : undefined;
-  const stored = await readBytes(store);
-
-  const snapshots = await Promise.all(
-    targets.map((target) => fileSnapshot(context, target, stored, previous)),
-  );
-
-  return { base, encoded, previous, server, stored, snapshots };
 }
 
 async function resolveFileState(
@@ -131,7 +113,9 @@ async function applyFile(
   const { stored, server, snapshots } = snapshot;
 
   const changed =
-    Number(!same(stored, next)) + snapshots.filter((item) => !same(item.bytes, next)).length;
+    Number(snapshot.restored) +
+    Number(!same(stored, next)) +
+    snapshots.filter((item) => !same(item.bytes, next)).length;
 
   await commitFile(
     context,
@@ -166,6 +150,7 @@ function decideFile(
     choosing,
     applied: !!entry && snapshot.encoded === text(p.FileEntryCodec.write(entry)),
     tombstone: entry?.state === 2 || entry?.state === 4,
+    deleting: snapshot.deleting,
   });
 
   return { local, mine, action, repair, detached };

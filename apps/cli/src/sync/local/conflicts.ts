@@ -1,10 +1,11 @@
 import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
 import { sha256, base32 } from "@envden/core/protocol";
+import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TSyncContext } from "../remote/context.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
-import { readBytes, writeBytes, same } from "./files.ts";
+import { readBytes, writeBytes, same, basePath } from "./files.ts";
 
 export interface IConflictRecord {
   remote: string;
@@ -128,8 +129,41 @@ export async function removeConflictTargets(home: string, root: string) {
   const records = await conflictRecords(home);
   if (!records.some((record) => record.targets.some((target) => target.root === root))) return;
 
-  for (const record of records)
-    record.targets = record.targets.filter((target) => target.root !== root);
+  const retained: IConflictRecord[] = [];
 
-  await saveConflicts(home, records);
+  for (const record of records) {
+    if (!record.targets.some((target) => target.root === root)) {
+      retained.push(record);
+      continue;
+    }
+
+    record.targets = record.targets.filter((target) => target.root !== root);
+    if (!record.targets.length) continue;
+    const stored = await readBytes(record.store);
+    const base = await readBytes(record.base);
+
+    const divergent = await Promise.all(
+      record.targets.map(async (target) => {
+        const path = join(target.root, target.path);
+        const stat = await lstat(path).catch(() => undefined);
+        if (!stat?.isFile()) return false;
+        const bytes = await readBytes(path);
+
+        return (
+          bytes !== undefined &&
+          !same(bytes, stored) &&
+          !same(
+            bytes,
+            await readBytes(
+              basePath(home, record.store, target.mode === "copy" ? target.root : undefined),
+            ),
+          )
+        );
+      }),
+    );
+
+    if (!same(stored, base) || divergent.some(Boolean)) retained.push(record);
+  }
+
+  await saveConflicts(home, retained);
 }

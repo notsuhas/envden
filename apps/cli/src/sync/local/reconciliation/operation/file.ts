@@ -1,3 +1,5 @@
+import { deletionRequested } from "./deletion.ts";
+import { canResume, contentHash, operationHashes } from "./guards.ts";
 import { sanitizeTerminal } from "../../../../output/sanitize.ts";
 import type { TSyncContext } from "../../../remote/context.ts";
 import { atomicWrite, optionalRead } from "../../../../state/store/files.ts";
@@ -11,6 +13,7 @@ type TTarget = TSyncContext["state"]["links"][number];
 
 interface IOperation {
   targets: TTarget[];
+  before: (string | null)[];
   next: string | null;
   server: string | null;
 }
@@ -23,6 +26,14 @@ export async function resumeFile(context: TSyncContext, store: string) {
   const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
   const server = operation.server === null ? undefined : Buffer.from(operation.server, "base64");
 
+  const current = await operationHashes(context, store, operation.targets);
+
+  if (!canResume(operation.before, current, contentHash(next))) {
+    await writeBytes(path, undefined);
+
+    return;
+  }
+
   await finishFile(context, store, operation.targets, next, server);
   await writeBytes(path, undefined);
 }
@@ -34,7 +45,9 @@ export async function commitFile(
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
 ) {
-  if (same(await readBytes(store), next)) {
+  const before = await operationHashes(context, store, targets);
+
+  if (before.every((hash) => hash === contentHash(next))) {
     await finishFile(context, store, targets, next, server);
 
     return;
@@ -44,6 +57,7 @@ export async function commitFile(
     basePath(context.adapters.home, store) + ".pending",
     JSON.stringify({
       targets,
+      before,
       next: next === undefined ? null : Buffer.from(next).toString("base64"),
       server: server === undefined ? null : Buffer.from(server).toString("base64"),
     } satisfies IOperation),
@@ -70,8 +84,24 @@ async function finishFile(
     await atomicWrite(store, next);
   }
 
+  await placeTargets(context, store, targets, next, server);
+
+  await saveBase(basePath(context.adapters.home, store), server, context.options.now());
+  await journalPlacement(context.adapters.home, context.state);
+}
+
+async function placeTargets(
+  context: TSyncContext,
+  store: string,
+  targets: TTarget[],
+  next: Uint8Array | undefined,
+  server: Uint8Array | undefined,
+) {
+  const preserveDeleted =
+    server !== undefined || (await deletionRequested(context.adapters.home, store));
+
   for (const target of targets) {
-    if (!(await placeFileTarget(context, target, next, server !== undefined))) continue;
+    if (!(await placeFileTarget(context, target, next, preserveDeleted))) continue;
 
     if (target.mode === "copy")
       await saveBase(
@@ -80,7 +110,4 @@ async function finishFile(
         context.options.now(),
       );
   }
-
-  await saveBase(basePath(context.adapters.home, store), server, context.options.now());
-  await journalPlacement(context.adapters.home, context.state);
 }

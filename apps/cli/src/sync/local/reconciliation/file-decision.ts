@@ -13,6 +13,7 @@ export function deriveFileContent(
     mode: "link" | "copy";
     historical?: boolean;
   }[],
+  deleted = false,
 ) {
   const edits: TBytes[] = [];
 
@@ -21,7 +22,7 @@ export function deriveFileContent(
   };
 
   for (const copy of copies) {
-    for (const bytes of targetEdits(store, copy)) add(bytes);
+    for (const bytes of targetEdits(store, copy, deleted)) add(bytes);
   }
 
   if (edits.length > 1) return { kind: "conflict", mine: edits[0], theirs: edits[1] } as const;
@@ -35,14 +36,22 @@ export function deriveFileDecision(
     copies: Parameters<typeof deriveFileContent>[1];
     tracked: boolean;
     published: boolean;
+    deleting?: boolean;
   },
 ) {
-  const local = deriveFileContent(input.store, input.copies);
+  const store = input.store ?? (input.published && !input.deleting ? input.server : undefined);
+
+  const local = deriveFileContent(
+    store,
+    input.copies,
+    !!input.deleting || (input.published && !!input.tombstone),
+  );
+
   const mine = local.kind === "conflict" ? local.mine : local.bytes;
 
   const action = deriveContentAction({
     ...input,
-    linked: input.tracked || input.store !== undefined,
+    linked: input.tracked || store !== undefined,
     useStore: true,
     mine,
     server: input.published ? input.server : mine,
@@ -58,16 +67,17 @@ export function deriveFileDecision(
 function targetEdits(
   store: TBytes,
   copy: Parameters<typeof deriveFileContent>[1][number],
+  deleted: boolean,
 ): TBytes[] {
   if (copy.bytes === undefined || same(copy.bytes, store) || copy.historical) return [];
 
   if (copy.mode === "link" || !copy.tracked || copy.base === undefined) return [copy.bytes, store];
 
-  return copyEdits(store, copy.bytes, copy.base);
+  return copyEdits(store, copy.bytes, copy.base, deleted);
 }
 
-function copyEdits(store: TBytes, bytes: Uint8Array, base: Uint8Array): TBytes[] {
-  if (same(bytes, base)) return [];
+function copyEdits(store: TBytes, bytes: Uint8Array, base: Uint8Array, deleted: boolean): TBytes[] {
+  if (same(bytes, base)) return store === undefined && !deleted ? [store, bytes] : [];
   if (same(store, base)) return [bytes];
 
   return [store, bytes];

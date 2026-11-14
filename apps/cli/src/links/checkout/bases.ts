@@ -8,6 +8,7 @@ export async function removeCheckoutBases(
   remaining: ILocalState["links"],
 ) {
   for (const link of removed) {
+    await rm(basePath(home, link.store) + ".pending", { force: true });
     const bases = [basePath(home, link.store, link.root)];
 
     if (!remaining.some((item) => item.store === link.store))
