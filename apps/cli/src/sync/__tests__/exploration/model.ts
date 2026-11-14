@@ -1,7 +1,7 @@
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 
-import { serverBytes } from "../interleaving/fixture.ts";
+import { serverBytes } from "./observation/server.ts";
 
 import { atomicWrite } from "../../../state/store/files.ts";
 
@@ -120,7 +120,7 @@ export function createModel(w: TWorld) {
     return anywhere;
   }
 
-  const server = async () => serverBytes(w.f);
+  const server = async () => serverBytes(w.observer, w.f.checkout.repoId);
 
   const write = async (d: number, t: number, value: string) => {
     const path = await placePath(d, t);

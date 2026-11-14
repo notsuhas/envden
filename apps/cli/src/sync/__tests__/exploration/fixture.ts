@@ -1,3 +1,4 @@
+import { syncContext } from "../../remote/context.ts";
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { syncFixture } from "../flows.ts";
@@ -86,6 +87,7 @@ export async function fresh(layout: readonly ("copy" | "link")[]) {
   const targets = await approveLayout({ ...f, aStore: store }, layout);
 
   return {
+    observer: await syncContext(f.third, f.opts),
     f: { ...f, aStore: store },
     devices: [f.first, f.second] as const,
     targets: [[{ root: f.checkout.root, path: ".env", store, mode: "link" as const }], targets],
