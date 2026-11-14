@@ -35,7 +35,8 @@ async function lockedapprovePairing(
   confirm: (name: string) => Promise<boolean>,
 ) {
   const { number } = attempt;
-  requireWindow(attempt.expiresAt, now());
+  const expiresAt = Math.min(attempt.expiresAt, now() + 600000);
+  requireWindow(expiresAt, now());
   await wait("KE1");
   const response = await attempt.answer(await getSlot(client, number, "KE1"));
   await putSlot(client, number, "KE2", response.loginResponse);
@@ -69,44 +70,46 @@ async function lockedapprovePairing(
       return { kind: "declined" as const };
     }
 
-    await retryHead(async () => {
-      const history = await readHistory(client, vaultId);
+    await withStateLock(adapters.home, () =>
+      retryHead(async () => {
+        const history = await readHistory(client, vaultId);
 
-      const local = await loadState(adapters.home);
-      if (!local) throw new EnvdenError("NOT_FOUND", "Missing local vault state");
-      checkFloor(local, history);
+        const local = await loadState(adapters.home);
+        if (!local) throw new EnvdenError("NOT_FOUND", "Missing local vault state");
+        checkFloor(local, history);
 
-      const { key: epochKey } = await currentMaterial(
-        { adapters, local, client, identity, vaultId, now },
-        history,
-      );
+        const { key: epochKey } = await currentMaterial(
+          { adapters, local, client, identity, vaultId, now },
+          history,
+        );
 
-      requireWindow(attempt.expiresAt, now());
+        requireWindow(expiresAt, now());
 
-      const swap = await addDeviceSwap(
-        history,
-        candidate,
-        identity.record.id,
-        identity.keys.objSk,
-        epochKey,
-        2,
-        now(),
-        { id: identity.record.id, sk: identity.keys.objSk },
-      );
+        const swap = await addDeviceSwap(
+          history,
+          candidate,
+          identity.record.id,
+          identity.keys.objSk,
+          epochKey,
+          2,
+          now(),
+          { id: identity.record.id, sk: identity.keys.objSk },
+        );
 
-      swap.approver = p.sealPairApprover(
-        {
-          vaultId,
-          serverPin: pin,
-          manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
-        },
-        keys.approverToJoiner,
-      );
+        swap.approver = p.sealPairApprover(
+          {
+            vaultId,
+            serverPin: pin,
+            manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
+          },
+          keys.approverToJoiner,
+        );
 
-      const bytes = p.encode(p.SwapCodec, swap);
-      await saveApproval(adapters, number, bytes);
-      await resumeApproval(adapters, client, vaultId);
-    });
+        const bytes = p.encode(p.SwapCodec, swap);
+        await saveApproval(adapters, number, bytes);
+        await resumeApproval(adapters, client, vaultId);
+      }),
+    );
 
     return { kind: "paired" as const };
   } finally {
@@ -116,5 +119,5 @@ async function lockedapprovePairing(
 }
 
 export function approvePairing(...args: Parameters<typeof lockedapprovePairing>) {
-  return withStateLock(args[0].home, () => lockedapprovePairing(...args));
+  return lockedapprovePairing(...args);
 }

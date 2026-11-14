@@ -1,6 +1,7 @@
 import { resumeApproval } from "../../pairing/persistence/submission.ts";
 import { listDevices } from "../../admin/devices/list.ts";
 import { expect } from "bun:test";
+import { lstat, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { atomicWrite } from "../../state/store/files.ts";
@@ -58,7 +59,10 @@ export async function pairedFlow(
 
     expect(approvals).toBe(1);
     await pushInitialFiles(first, result.state, now);
+    await rm(join(first.home, "state", "applied-files.json"));
     await pushInitialFiles(first, result.state, now);
+    const { appliedFiles } = await import("../../sync/local/applied.ts");
+    expect(Object.keys(await appliedFiles(first.home))).toHaveLength(1);
     const vaultId = p.unbase32(result.kit.vaultId);
     const pin = binary(result.state.server!.pin);
     const identity = await deviceIdentity(first.keychain, first.home, "first");
@@ -135,6 +139,10 @@ export async function pairedFlow(
       attempt,
       now,
       async (slot) => {
+        expect(
+          await lstat(join(first.home, "state", "write.lock")).catch(() => undefined),
+        ).toBeUndefined();
+
         if (slot === "KE1") await ke1.promise;
         else {
           ke2.resolve();
@@ -145,6 +153,10 @@ export async function pairedFlow(
     );
 
     const exchange = exchangeJoiner(second, joinerClient, joiner, pin, attempt.code, async () => {
+      expect(
+        await lstat(join(second.home, "state", "write.lock")).catch(() => undefined),
+      ).toBeUndefined();
+
       ke1.resolve();
       await ke2.promise;
     });

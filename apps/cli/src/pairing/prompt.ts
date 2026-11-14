@@ -20,7 +20,9 @@ export async function promptPairing(
   const code = await interaction.secret("Pairing code");
   const mailbox = p.normalizePairingCode(code).mailbox;
 
-  await exchangeJoiner(adapters, client, identity, pin, code, async (expiresAt) => {
+  await exchangeJoiner(adapters, client, identity, pin, code, async (serverExpiry) => {
+    const expiresAt = Math.min(serverExpiry, now() + 600000);
+
     await withStateLock(adapters.home, () =>
       atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt)),
     );

@@ -38,17 +38,21 @@ async function lockedexchangeJoiner(
   const session = binary(finish.sessionKey);
   const keys = p.pairingChannelKeys(session);
   session.fill(0);
-  await adapters.keychain.set(`envden/${adapters.home}/pair-receive`, keys.approverToJoiner);
+
   const message = p.sealPairJoiner({ device: identity.record }, keys.joinerToApprover);
 
-  await atomicWrite(
-    join(adapters.home, "state", "pair-joiner"),
-    JSON.stringify({
-      mailbox: normalized.mailbox,
-      ke3: finish.finishLoginRequest,
-      message: text(message),
-    }),
-  );
+  await withStateLock(adapters.home, async () => {
+    await adapters.keychain.set(`envden/${adapters.home}/pair-receive`, keys.approverToJoiner);
+
+    await atomicWrite(
+      join(adapters.home, "state", "pair-joiner"),
+      JSON.stringify({
+        mailbox: normalized.mailbox,
+        ke3: finish.finishLoginRequest,
+        message: text(message),
+      }),
+    );
+  });
 
   try {
     await putSlot(client, normalized.mailbox, "KE3", finish.finishLoginRequest);
@@ -109,20 +113,18 @@ async function lockedresumeJoiner(
   }
 }
 
-export function exchangeJoiner(...args: Parameters<typeof lockedexchangeJoiner>) {
-  return withStateLock(args[0].home, async () => {
-    try {
-      return await lockedexchangeJoiner(...args);
-    } catch (error) {
-      if (
-        error instanceof EnvdenError &&
-        ["UNAUTHORIZED", "CONFLICT", "INVALID_DATA", "NOT_FOUND"].includes(error.code)
-      )
-        await clearJoiner(args[0]);
+export async function exchangeJoiner(...args: Parameters<typeof lockedexchangeJoiner>) {
+  try {
+    return await lockedexchangeJoiner(...args);
+  } catch (error) {
+    if (
+      error instanceof EnvdenError &&
+      ["UNAUTHORIZED", "CONFLICT", "INVALID_DATA", "NOT_FOUND"].includes(error.code)
+    )
+      await withStateLock(args[0].home, () => clearJoiner(args[0]));
 
-      throw error;
-    }
-  });
+    throw error;
+  }
 }
 
 export function resumeJoiner(...args: Parameters<typeof lockedresumeJoiner>) {

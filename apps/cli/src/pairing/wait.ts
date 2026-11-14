@@ -10,11 +10,18 @@ export async function waitMessage(
   expiresAt: number,
   pause: () => Promise<void> = () => setTimeout(500),
 ) {
+  const deadline = Math.min(
+    expiresAt,
+    now() + (path === "/v1/pairing/approver" ? 86400000 : 600000),
+  );
+
+  expiresAt = deadline;
+
   while (now() < expiresAt) {
     try {
       const body: unknown = await (await client.request(path)).json();
       const result = pairingResponse(body, expiresAt);
-      expiresAt = result.expiresAt;
+      expiresAt = Math.min(expiresAt, result.expiresAt, deadline);
       if (result.message !== undefined) return result.message;
     } catch (error) {
       if (
@@ -29,7 +36,7 @@ export async function waitMessage(
   }
 
   throw new EnvdenError(
-    "UNAUTHORIZED",
+    "BUSY",
     "Pairing timed out; run envden join --resume after approval, or create a new pairing code",
   );
 }
@@ -39,7 +46,7 @@ export function pairingResponse(body: unknown, expiresAt: number) {
 
   if (slot.success)
     return {
-      expiresAt: slot.data.expiresAt,
+      expiresAt: Math.min(expiresAt, slot.data.expiresAt),
       ...("message" in slot.data ? { message: slot.data.message } : {}),
     };
 

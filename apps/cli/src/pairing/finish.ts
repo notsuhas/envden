@@ -1,3 +1,4 @@
+import { withStateLock } from "../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { clearJoiner } from "./persistence/cleanup.ts";
 import { join } from "node:path";
@@ -29,7 +30,7 @@ export async function finishPairing(
       error instanceof EnvdenError &&
       ["UNAUTHORIZED", "INVALID_DATA", "FORK"].includes(error.code)
     )
-      await clearJoiner(adapters);
+      await withStateLock(adapters.home, () => clearJoiner(adapters));
 
     throw error;
   }

@@ -111,7 +111,7 @@ export async function checkCompletion(input: ICompletion) {
   await Promise.resolve(
     expect(
       finishPairing(fourth, fourthClient, fourthIdentity, address, pin, now),
-    ).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
+    ).rejects.toMatchObject({ code: "BUSY" }),
   );
 
   const kitPath = join(root, "kit.json");

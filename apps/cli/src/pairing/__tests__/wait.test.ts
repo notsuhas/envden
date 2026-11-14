@@ -73,7 +73,7 @@ test("mailbox waiting accepts pending replies and expires using the supplied clo
     await waitMessage(client, "/slot", () => time, 200, pause);
     throw new Error("Expected pairing timeout");
   } catch (error) {
-    expect(error).toMatchObject({ code: "UNAUTHORIZED" });
+    expect(error).toMatchObject({ code: "BUSY" });
     expect(String(error)).toContain("Pairing timed out");
   }
 
@@ -96,6 +96,7 @@ test("mailbox polling stops at server expiry instead of the caller guess", async
   const keys = p.generateDeviceKeys();
   const server = p.generateRecoveryKeys();
   let now = 0;
+  let expiry = 100;
   let requests = 0;
 
   const client = createClient({
@@ -140,7 +141,7 @@ test("mailbox polling stops at server expiry instead of the caller guess", async
 
       requests++;
 
-      return Response.json({ kind: "pending", expiresAt: 100 });
+      return Response.json({ kind: "pending", expiresAt: expiry });
     },
   });
 
@@ -155,14 +156,78 @@ test("mailbox polling stops at server expiry instead of the caller guess", async
           now += 50;
         },
       ),
-    ).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
+    ).rejects.toMatchObject({ code: "BUSY" }),
   );
 
   expect(requests).toBe(2);
   expect(now).toBe(100);
+  now = 0;
+  requests = 0;
+  expiry = 99999999;
+
+  await Promise.resolve(
+    expect(
+      waitMessage(
+        client,
+        "/slot",
+        () => now,
+        expiry,
+        async () => {
+          now += 300000;
+        },
+      ),
+    ).rejects.toMatchObject({ code: "BUSY" }),
+  );
+
+  expect(now).toBe(600000);
+  expect(requests).toBe(2);
 });
 
 test("approval retrieval has a separate 24-hour deadline", async () => {
   const { approvalDeadline } = await import("../finish.ts");
   expect(approvalDeadline(600000)).toBe(87000000);
+});
+
+test("mailbox response cannot extend the client deadline", () => {
+  expect(pairingResponse({ kind: "pending", expiresAt: 99999999 }, 600000)).toEqual({
+    expiresAt: 600000,
+  });
+});
+
+test("timeout preserves the saved join exchange", async () => {
+  const { setupFlow } = await import("../../vault/__tests__/setup-flow.ts");
+  const { finishPairing } = await import("../finish.ts");
+  const { atomicWrite, optionalRead } = await import("../../state/store/files.ts");
+  const { join } = await import("node:path");
+  const { deviceIdentity } = await import("../../identity/device.ts");
+  const f = await setupFlow();
+
+  try {
+    const identity = await deviceIdentity(f.second.keychain, f.second.home, "second");
+
+    const client = createClient({
+      address: f.address,
+      pin: p.unbase32(f.result.kit.vaultId),
+      vaultId: new Uint8Array(32),
+      identity,
+      version: "0.0.0",
+      now: f.now,
+      fetcher: f.fetcher,
+    });
+
+    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "0");
+    await atomicWrite(join(f.second.home, "state", "pair-joiner"), "saved");
+    await f.second.keychain.set(`envden/${f.second.home}/pair-receive`, new Uint8Array(32));
+
+    await Promise.resolve(
+      expect(
+        finishPairing(f.second, client, identity, f.address, new Uint8Array(32), f.now),
+      ).rejects.toMatchObject({ code: "BUSY" }),
+    );
+
+    expect(await optionalRead(join(f.second.home, "state", "pair-joiner"))).toBe("saved");
+    expect(await f.second.keychain.get(`envden/${f.second.home}/pair-receive`)).not.toBeNull();
+  } finally {
+    await f.cleanup();
+  }
 });

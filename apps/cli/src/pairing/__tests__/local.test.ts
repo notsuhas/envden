@@ -25,3 +25,7 @@ test("local OPAQUE pairing allows one attempt and derives the same channel keys"
   expect(() => requireWindow(1000, 1000)).toThrow();
   expect(() => requireWindow(1000, 999)).not.toThrow();
 });
+
+test("pairing window rejects a server deadline beyond ten minutes", () => {
+  expect(() => requireWindow(600001, 0)).toThrow();
+});

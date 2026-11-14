@@ -20,5 +20,8 @@ export async function getSlot(client: TClient, mailbox: number, slot: string): P
 }
 
 export function requireWindow(expiresAt: number, now: number): void {
+  if (expiresAt > now + 600000)
+    throw new EnvdenError("INVALID_DATA", "Pairing window exceeds ten minutes");
+
   if (now >= expiresAt) throw new EnvdenError("UNAUTHORIZED", "Pairing exchange expired");
 }

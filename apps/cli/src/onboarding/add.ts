@@ -33,11 +33,14 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
   const session = await login(client, vaultId, await secret("Master password"));
 
   if (session) {
-    state.session = session;
-    await saveState(adapters.home, state);
+    await withStateLock(adapters.home, async () => {
+      const latest = requireConfigured(await loadState(adapters.home), "Run setup first");
+      latest.session = session;
+      await saveState(adapters.home, latest);
+    });
   }
 
-  if (await resumeApproval(adapters, client, vaultId)) {
+  if (await withStateLock(adapters.home, () => resumeApproval(adapters, client, vaultId))) {
     console.log("paired");
 
     return;
@@ -69,5 +72,5 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
 }
 
 export function runDeviceAdd(...args: Parameters<typeof lockedrunDeviceAdd>) {
-  return withStateLock(args[0].home, () => lockedrunDeviceAdd(...args));
+  return lockedrunDeviceAdd(...args);
 }

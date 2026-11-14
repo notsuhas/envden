@@ -37,7 +37,7 @@ async function lockedrunJoin(
     return;
   }
 
-  if (!options.resume) await clearJoiner(adapters);
+  if (!options.resume) await withStateLock(adapters.home, () => clearJoiner(adapters));
   const expected = options.resume ? await pairingPin(adapters.home) : undefined;
 
   const server = await hello(address, expected, adapters.fetcher, MIN_SERVER);
@@ -60,22 +60,28 @@ async function lockedrunJoin(
   });
 
   if (!options.resume) {
-    await atomicWrite(
-      join(adapters.home, "state", "pair-pin"),
-      Buffer.from(server.pin).toString("base64url"),
+    await withStateLock(adapters.home, () =>
+      atomicWrite(
+        join(adapters.home, "state", "pair-pin"),
+        Buffer.from(server.pin).toString("base64url"),
+      ),
     );
 
     await promptPairing(adapters, client, identity, server.pin, now);
   }
 
   await finishPairing(adapters, client, identity, address, server.pin, now);
-  await rm(join(adapters.home, "state", "pair-pin"), { force: true });
+
+  await withStateLock(adapters.home, () =>
+    rm(join(adapters.home, "state", "pair-pin"), { force: true }),
+  );
+
   await completeJoin(adapters, now, undefined, options);
   console.log("Joined");
 }
 
 export function runJoin(...args: Parameters<typeof lockedrunJoin>) {
-  return withStateLock(args[0].home, () => lockedrunJoin(...args));
+  return lockedrunJoin(...args);
 }
 
 async function pairingPin(home: string) {
