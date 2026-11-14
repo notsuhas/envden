@@ -7,7 +7,6 @@ export function discardMove(options: IAppOptions, auth: IAuth) {
 
   options.storage.transaction(() => {
     options.storage.discardInactiveVault(vault);
-    options.storage.writeState(new Uint8Array(32), [{ kind: "server-identity", key: vault }]);
   });
 
   return { kind: "unfrozen" as const };

@@ -30,7 +30,8 @@ test("setup initialization preserves active hash, replaces explicitly, and stays
 
   try {
     const pub = f.options.serverKeys.publicKey;
-    const first = initializeSetup(f.storage, pub)!;
+    const firstToken = p.encodeToken("setup", p.randomBytes(20), p.serverPin(pub));
+    const first = initializeSetup(f.storage, pub, firstToken)!;
     const key = p.tokenKey("setup", p.decodeToken("setup", first).secret);
     expect(p.equal(f.storage.setupToken()!, key)).toBe(true);
     expect(initializeSetup(f.storage, pub)).toBeUndefined();
@@ -49,7 +50,36 @@ test("setup initialization preserves active hash, replaces explicitly, and stays
       f.storage.setupToken(),
     );
 
-    expect(initializeSetup(f.storage, pub)).toBeString();
+    expect(initializeSetup(f.storage, pub)).toBeUndefined();
+    expect(initializeSetup(f.storage, pub)).toBeUndefined();
+  } finally {
+    f.close();
+  }
+});
+
+test("discarding the only move session does not reissue setup on restart", async () => {
+  const f = fixture(await identity());
+
+  try {
+    const pub = f.options.serverKeys.publicKey;
+    const token = p.encodeToken("setup", p.randomBytes(20), p.serverPin(pub));
+    initializeSetup(f.storage, pub, token);
+
+    for (const id of f.storage.vaultIds()) {
+      f.storage.configureVault(id, { ...f.storage.vault(id)!, active: false });
+      f.storage.discardInactiveVault(id);
+    }
+
+    const vault = p.randomBytes(32);
+
+    f.storage.configureVault(
+      vault,
+      { active: false, frozen: false, skRefused: false, unlockPeriod: null },
+      [],
+      f.storage.setupToken(),
+    );
+
+    f.storage.discardInactiveVault(vault);
     expect(initializeSetup(f.storage, pub)).toBeUndefined();
   } finally {
     f.close();

@@ -1,3 +1,4 @@
+import { tokenKey, decodeToken } from "@envden/core/protocol";
 import { pull } from "../../../sync/engine.ts";
 import { login } from "../../../session/login.ts";
 import type { TFetch } from "../../../client/fetch.ts";
@@ -180,12 +181,10 @@ test("aborting a prepared move discards the inactive destination and permits a f
       fetcher: f.fetcher,
     });
 
-    const renewed = log.mock.calls
-      .flat()
-      .filter((value) => typeof value === "string" && value.startsWith("envden-setup-1:"))
-      .at(-1);
+    expect(destination.storage.setupToken()).toBeUndefined();
+    destination.storage.setSetupToken(tokenKey("setup", decodeToken("setup", token).secret));
 
-    if (typeof renewed !== "string") throw new Error("Missing renewed setup token");
+    const renewed = token;
 
     await moveServer(f.first, {
       address,

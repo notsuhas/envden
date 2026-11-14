@@ -83,6 +83,11 @@ export function finishRegistration(options: IAppOptions, auth: IAuth, message: s
           key: new TextEncoder().encode("registration"),
           bytes: binary(message),
         },
+        {
+          kind: "move-session",
+          key: new TextEncoder().encode("registration-receipt"),
+          bytes: receipt,
+        },
       ]);
 
     const restored = options.storage.vault(vaultId)?.restored;
@@ -95,7 +100,12 @@ export function finishRegistration(options: IAppOptions, auth: IAuth, message: s
         options.now(),
       );
 
-    options.storage.refund(new TextDecoder().decode(receipt), options.now());
+    options.storage.putSession(
+      vaultId,
+      { kind: "login", device, purpose: "registration-receipt" },
+      receipt,
+      options.now(),
+    );
   });
 
   return RegistrationResponseSchema.parse({ kind: "registered" });

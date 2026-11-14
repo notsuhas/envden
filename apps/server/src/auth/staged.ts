@@ -16,3 +16,18 @@ export function requireStagedRecord(
 
   return key;
 }
+
+export function refundRegistration(options: IAppOptions, vault: Uint8Array, device: Uint8Array) {
+  const receiptKey = new TextEncoder().encode("registration-receipt");
+
+  const receipt =
+    options.storage.state(vault, "move-session", receiptKey) ??
+    options.storage.consumeSession(
+      vault,
+      { kind: "login", device, purpose: "registration-receipt" },
+      options.now(),
+    );
+
+  options.storage.writeState(vault, [{ kind: "move-session", key: receiptKey }]);
+  if (receipt) options.storage.refund(new TextDecoder().decode(receipt), options.now());
+}

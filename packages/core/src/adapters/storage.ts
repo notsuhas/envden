@@ -34,6 +34,7 @@ export type TStateKind =
   | "opaqueRecord"
   | "repair-report"
   | "move-session"
+  | "setup-issued"
   | "server-identity"
   | "pairing-index";
 
@@ -92,7 +93,12 @@ export interface IStoredMailbox {
 }
 
 export type TMailboxSlot = "KE1" | "KE2" | "KE3" | "PairJoiner";
-export type TRateBucket = { kind: "member"; device: Uint8Array } | { kind: "non-member" };
+
+export type TRateBucket =
+  | { kind: "member"; device: Uint8Array }
+  | { kind: "non-member" }
+  | { kind: "mailbox"; device?: Uint8Array };
+
 export type TRateCharge = { kind: "charged"; receipt: string } | { kind: "locked"; until: number };
 
 // Encoded objects are opaque; callers supply verified indexes and retention metadata.

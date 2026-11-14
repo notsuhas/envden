@@ -15,10 +15,16 @@ export function initializeSetup(
   replacement?: string,
 ): string | undefined {
   const pin = serverPin(publicKey);
-  const identityVault = new Uint8Array(32);
-  const issuedKey = new TextEncoder().encode("setup-issued");
+  const namespace = new Uint8Array(32);
+  const key = new Uint8Array();
 
-  if (!replacement && storage.setupToken()) return undefined;
+  if (
+    !replacement &&
+    (storage.setupToken() ||
+      storage.state(namespace, "setup-issued", key) ||
+      storage.vaultIds().length > 0)
+  )
+    return undefined;
 
   const secret = replacement ? decodeToken("setup", replacement).secret : randomBytes(20);
 
@@ -27,10 +33,7 @@ export function initializeSetup(
 
   storage.transaction(() => {
     storage.setSetupToken(tokenKey("setup", secret));
-
-    storage.writeState(identityVault, [
-      { kind: "server-identity", key: issuedKey, bytes: new Uint8Array([1]) },
-    ]);
+    storage.writeState(namespace, [{ kind: "setup-issued", key, bytes: new Uint8Array([1]) }]);
   });
 
   return encodeToken("setup", secret, pin);

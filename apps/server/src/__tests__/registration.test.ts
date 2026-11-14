@@ -1,4 +1,4 @@
-import { beforeAll, test, expect } from "bun:test";
+import { beforeAll, test, expect, spyOn } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { fixture, identity, vaultId } from "./fixture.ts";
 import type { IServerKeys } from "../http/types.ts";
@@ -32,6 +32,7 @@ test("registration requires proof or freshness and stages the record for swap co
   const f = fixture(keys, record);
 
   try {
+    const refund = spyOn(f.storage, "refund");
     const start = await p.opaqueStartRegistration("new password");
     const path = "/v1/opaque/registration/start";
     expect((await f.request(path, { message: start.registrationRequest }).send()).status).toBe(401);
@@ -57,6 +58,9 @@ test("registration requires proof or freshness and stages the record for swap co
       (await f.request(finishPath, { message: finish.registrationRecord }).send()).status,
     ).toBe(401);
 
+    expect(refund).not.toHaveBeenCalled();
+    refund.mockRestore();
+
     expect(
       Buffer.from(f.storage.state(vaultId, "opaqueRecord", new Uint8Array())!).toString(
         "base64url",
@@ -81,7 +85,12 @@ test("setup proof is limited to absent vaults and consumed at creation commit", 
   const f = fixture(keys);
 
   try {
-    const token = initializeSetup(f.storage, keys.publicKey)!;
+    const token = initializeSetup(
+      f.storage,
+      keys.publicKey,
+      p.encodeToken("setup", p.randomBytes(20), p.serverPin(keys.publicKey)),
+    )!;
+
     const key = p.tokenKey("setup", p.decodeToken("setup", token).secret);
     const start = await p.opaqueStartRegistration("password");
     const path = "/v1/opaque/registration/start";

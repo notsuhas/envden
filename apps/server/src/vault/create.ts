@@ -1,5 +1,4 @@
-import { initializeSetup } from "../identity/setup.ts";
-import { requireStagedRecord } from "../auth/staged.ts";
+import { requireStagedRecord, refundRegistration } from "../auth/staged.ts";
 import { validateCreation } from "./creation/validate.ts";
 import { equal, type ISwap } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -48,9 +47,7 @@ function create(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Arr
   return storage.transaction(() => {
     const result = storage.commitSwap(vaultId, undefined, stored, now());
 
-    storage.writeState(new Uint8Array(32), [
-      { kind: "server-identity", key: vaultId, bytes: vaultId },
-    ]);
+    if (result.kind === "committed") refundRegistration(options, vaultId, device);
 
     return result;
   });
@@ -58,8 +55,6 @@ function create(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Arr
 
 export function createVault(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Array) {
   const result = options.storage.transaction(() => create(options, auth, swap, digest));
-  const token = initializeSetup(options.storage, options.serverKeys.publicKey);
-  if (token) console.log(token);
 
   return result;
 }
