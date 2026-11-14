@@ -116,3 +116,9 @@ A lost push response is checked against the verified history, even if another de
 `rm` records deletion only after removing local files. Recreating a target cancels pending removal. Resolving to live content also clears removal intent. A changed server entry requires another confirmation; unpublished files are removed locally without a tombstone. Checkouts needing approval are skipped. Backup reports include the source and saved path.
 
 Push reports held-back files with a reason and next action, including conflicts, placement failures and `env-files` exclusions. `status` checks current approvals, rules, conflicts and placement state. JSON includes these reports.
+
+Untracking cancels a pending removal and prints `Cancelled removal: <path>`. Track the checkout again to receive the server's file.
+
+A regular file replacing a tracked symlink is a user edit, including a revert. Envden adopts it when the store is unchanged; different unpushed edits in both places produce one conflict.
+
+Corrupt per-file sync records are moved to a named backup and reported by `status`. Run `pull`, then `resolve --list` to choose the content. If the error names `applied-files.json`, back up local env files, move that file aside, then run `pull` and resolve conflicts before pushing.
