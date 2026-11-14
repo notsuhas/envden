@@ -32,19 +32,19 @@ export const APPROVER_SESSION: ISessionLine[] = [
   { kind: "prompt", text: "Master password" },
   { kind: "answer", text: "••••••••••••" },
   { kind: "output", text: "3-K7QF-2MXP" },
-  { kind: "output", text: "" },
-  { kind: "output", text: "" },
+  { kind: "pause", text: "" },
+  { kind: "pause", text: "" },
   { kind: "prompt", text: "Add desktop?" },
   { kind: "answer", text: "yes" },
 ];
 
 export const JOINER_SESSION: ISessionLine[] = [
-  { kind: "output", text: "" },
-  { kind: "output", text: "" },
-  { kind: "output", text: "" },
+  { kind: "pause", text: "" },
+  { kind: "pause", text: "" },
+  { kind: "pause", text: "" },
   { kind: "command", text: "envden join <server>" },
   { kind: "prompt", text: "Pairing code" },
   { kind: "answer", text: "•••••••••••" },
   { kind: "output", text: "Waiting for the approving device" },
-  { kind: "output", text: "" },
+  { kind: "pause", text: "" },
 ];

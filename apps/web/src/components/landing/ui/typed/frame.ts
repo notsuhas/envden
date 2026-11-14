@@ -1,5 +1,5 @@
 export interface ISessionLine {
-  kind: "command" | "prompt" | "answer" | "output";
+  kind: "command" | "prompt" | "answer" | "output" | "pause";
   text: string;
 }
 
