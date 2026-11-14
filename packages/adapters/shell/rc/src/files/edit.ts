@@ -1,6 +1,6 @@
 import { constants } from "node:fs";
-import { mkdir, open, realpath } from "node:fs/promises";
-import { dirname } from "node:path";
+import { mkdir, open, realpath, rename, rm, lstat } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { verifyWindowsOwner } from "./windows.ts";
 import { backupRc } from "./backup.ts";
@@ -47,21 +47,25 @@ export async function editRc(
 
     await hooks.opened?.();
     const original = await file.readFile();
-    const next = transform(original.toString("utf8"));
+    const next = transform(original.toString("latin1"));
     await hooks.read?.();
-    if (next === original.toString("utf8")) return;
+    if (next === original.toString("latin1")) return;
     if (backupDirectory) await backupRc(backupDirectory, original);
 
-    await file.truncate(0);
-    const bytes = Buffer.from(next);
-    let offset = 0;
+    const temporary = join(dirname(resolved), `.envden-rc-${crypto.randomUUID()}`);
+    const replacement = await open(temporary, "wx", stat.mode & 0o777);
 
-    while (offset < bytes.length) {
-      const { bytesWritten } = await file.write(bytes, offset, bytes.length - offset, offset);
-      offset += bytesWritten;
+    try {
+      await replacement.chmod(stat.mode & 0o777);
+      await replacement.writeFile(Buffer.from(next, "latin1"));
+      await replacement.sync();
+      const current = await lstat(resolved);
+      if (current.dev !== stat.dev || current.ino !== stat.ino) return;
+      await rename(temporary, resolved);
+    } finally {
+      await replacement.close();
+      await rm(temporary, { force: true });
     }
-
-    await file.sync();
   } finally {
     await file.close();
   }

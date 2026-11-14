@@ -139,3 +139,9 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
       await rm(home, { recursive: true, force: true });
     }
   });
+
+test("PowerShell doubles all single quote delimiters in paths", () => {
+  const path = join(tmpdir(), "a’‘‚‛b");
+  const snippet = createRcShellAdapter("powershell").hookSnippet(path);
+  expect(snippet).toContain("a’’‘‘‚‚‛‛b");
+});

@@ -66,7 +66,13 @@ class RcShellAdapter implements IShellAdapter {
       (value) => {
         const current = strip(value);
 
-        return `${current}${current && !current.endsWith("\n") ? "\n" : ""}${this.hookSnippet(binaryPath)}`;
+        const newline = value.includes("\r\n") ? "\r\n" : "\n";
+
+        const snippet = Buffer.from(
+          this.hookSnippet(binaryPath).replaceAll("\n", newline),
+        ).toString("latin1");
+
+        return `${current}${current && !current.endsWith("\n") ? newline : ""}${snippet}`;
       },
       this.backupDirectory,
     );
@@ -78,7 +84,7 @@ class RcShellAdapter implements IShellAdapter {
 }
 
 function strip(value: string) {
-  return value.replace(/# >>> envden >>>\n[\s\S]*?# <<< envden <<<\n?/g, "");
+  return value.replace(/# >>> envden >>>\r?\n[\s\S]*?# <<< envden <<<(?:\r?\n)?/g, "");
 }
 
 export function createRcShellAdapter(

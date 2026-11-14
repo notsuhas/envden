@@ -4,7 +4,7 @@ import { start, end } from "./markers.ts";
 import type { TShell } from "./shell.ts";
 
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
-const psQuote = (value: string) => `'${value.replaceAll("'", "''")}'`;
+const psQuote = (value: string) => `'${value.replace(/['’‘‚‛]/g, (quote) => quote + quote)}'`;
 
 export function renderHook(shell: TShell, binaryPath: string, envdenHome: string) {
   if (!isAbsolute(binaryPath) || /[\r\n]/.test(binaryPath + envdenHome))

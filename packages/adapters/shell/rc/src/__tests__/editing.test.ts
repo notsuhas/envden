@@ -140,3 +140,27 @@ for (const operation of ["install", "uninstall"] as const) {
     }
   });
 }
+
+test("rc install preserves non-UTF-8 bytes, mode and CRLF without duplicate blocks", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-rc-bytes-"));
+
+  try {
+    const adapter = createRcShellAdapter("bash", home);
+    const original = Buffer.from([35, 32, 255, 13, 10]);
+    await writeFile(adapter.rcPath(), original, { mode: 0o640 });
+    await adapter.install("/opt/envden");
+    await adapter.install("/opt/envden");
+    const current = await readFile(adapter.rcPath());
+    expect(current.subarray(0, original.length)).toEqual(original);
+    expect(current.toString().match(/# >>> envden >>>/g)).toHaveLength(1);
+    expect(current.toString().replaceAll("\r\n", "")).not.toContain("\n");
+
+    if (process.platform !== "win32")
+      expect((await stat(adapter.rcPath())).mode & 0o777).toBe(0o640);
+
+    await adapter.uninstall();
+    expect(await readFile(adapter.rcPath())).toEqual(original);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
