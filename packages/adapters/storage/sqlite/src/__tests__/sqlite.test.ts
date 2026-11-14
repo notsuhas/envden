@@ -28,7 +28,7 @@ describe("SQLite durability", () => {
 
     try {
       const db = new Database(join(dir, "envden.sqlite"));
-      db.exec("PRAGMA journal_mode=WAL; CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
+      db.run("PRAGMA journal_mode=WAL; CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
       const storage = createSqliteStorageAdapter(dir, 0);
       const backup = new Database(join(dir, "pre-1"));
       expect(backup.query<{ value: number }, []>("SELECT value FROM legacy").get()?.value).toBe(42);
@@ -54,7 +54,7 @@ describe("SQLite durability", () => {
 
     try {
       const db = new Database(join(dir, "envden.sqlite"));
-      db.exec("PRAGMA user_version=99");
+      db.run("PRAGMA user_version=99");
       db.close();
       expect(() => createSqliteStorageAdapter(dir, 0)).toThrow("update envden");
     } finally {

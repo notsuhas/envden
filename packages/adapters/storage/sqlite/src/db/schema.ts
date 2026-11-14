@@ -31,7 +31,7 @@ export function openDatabase(dataDir: string, now: number): Database {
   const db = new Database(path, { create: true, strict: true });
 
   try {
-    db.exec(
+    db.run(
       "PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;",
     );
 
@@ -41,11 +41,11 @@ export function openDatabase(dataDir: string, now: number): Database {
 
     migrateDatabase(db, dataDir, existed);
 
-    db.exec(
+    db.run(
       "CREATE TABLE IF NOT EXISTS blob_usage (vault BLOB NOT NULL, hash BLOB NOT NULL, size INTEGER NOT NULL, at REAL NOT NULL, PRIMARY KEY(vault,hash))",
     );
 
-    db.exec(
+    db.run(
       "CREATE TABLE IF NOT EXISTS blob_garbage (vault BLOB NOT NULL, hash BLOB NOT NULL, PRIMARY KEY(vault,hash))",
     );
 

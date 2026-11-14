@@ -26,6 +26,7 @@ for (const source of [
   'import { $ } from "bun";',
   'import * as runtime from "bun"; runtime.spawn(["git"]);',
   'import runtime from "bun"; runtime.spawnSync(["git"]);',
+  'const B = globalThis.Bun; B.spawn(["git"]);',
   'const runtime = Bun; runtime.spawnSync(["git"]);',
   "const { spawn } = Bun;",
   'require("child_process");',

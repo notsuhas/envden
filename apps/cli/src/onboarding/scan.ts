@@ -22,13 +22,13 @@ async function lockedsetupCheckouts(
     scanRoot?: string[];
     excludeRoot?: string[];
     approve?: (checkout: ICheckout) => Promise<boolean>;
-    now?: () => number;
+    now: () => number;
     alias?: (source: string, target: string) => Promise<boolean>;
   },
 ) {
   const repos = await scanCheckouts(adapters, options);
 
-  const storedRepos = await vaultRepos(adapters, state, options.now ?? (() => Date.now()));
+  const storedRepos = await vaultRepos(adapters, state, options.now);
 
   const eligible = await eligibleCheckouts(adapters, state, repos, storedRepos);
   const selected = options.approve ? eligible : await chooseCheckouts(state, eligible);

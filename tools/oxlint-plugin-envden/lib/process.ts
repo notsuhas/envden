@@ -45,7 +45,7 @@ export function registerProcessAlias(
   node: ESTree.VariableDeclarator,
   groups: Set<string>[],
 ): boolean {
-  const name = identifierName(node.init);
+  const name = memberOwner(node.init) ?? "";
   const aliases = groups.find((known) => known.has(name));
   if (!aliases) return false;
   if (node.id.type !== "Identifier") return true;
@@ -94,7 +94,8 @@ function globalRuntime(node: ESTree.Node): "bun" | "process" | undefined {
   return globalMember(node) ? GLOBAL_RUNTIMES[propertyName(node.property) ?? ""] : undefined;
 }
 
-export function memberOwner(object: ESTree.Node): string | undefined {
+export function memberOwner(object: ESTree.Node | null | undefined): string | undefined {
+  if (!object) return undefined;
   if (object.type === "Identifier") return object.name;
 
   const runtime = globalRuntime(object);
@@ -138,10 +139,4 @@ export function forbiddenMember(
   if (processAliases.has(name)) return propertyName(property) === "binding";
 
   return false;
-}
-
-function identifierName(node: ESTree.Node | null | undefined): string {
-  if (!node) return "";
-
-  return node.type === "Identifier" ? node.name : "";
 }

@@ -14,6 +14,11 @@ export const trackCommand = new Command("track")
 
     await withStateLock(adapters.home, async () => {
       const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
-      await setupCheckouts(adapters, state, { scanRoot: [path], copy: !!options.copy });
+
+      await setupCheckouts(adapters, state, {
+        scanRoot: [path],
+        copy: !!options.copy,
+        now: () => Date.now(),
+      });
     });
   });

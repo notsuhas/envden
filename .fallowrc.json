@@ -13,6 +13,10 @@
   "boundaries": {
     "zones": [
       {
+        "name": "tests",
+        "patterns": ["**/__tests__/**"]
+      },
+      {
         "name": "core",
         "patterns": ["packages/core/src/**"]
       },
@@ -40,14 +44,17 @@
       },
       {
         "from": "adapters",
-        "allow": ["core", "testing"]
+        "allow": ["core"]
       },
       {
         "from": "apps",
-        "allow": ["core", "adapters", "testing"]
+        "allow": ["core", "adapters"]
+      },
+      {
+        "from": "tests",
+        "allow": ["core", "testing", "adapters", "apps", "tests"]
       }
     ]
   },
-  "ignoreBinaries": ["tailscale"],
-  "ignoreDependencies": ["oxlint"]
+  "ignoreBinaries": ["tailscale"]
 }

@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 
 export function migrateV1(db: Database): void {
-  db.exec(`
+  db.run(`
           CREATE TABLE vaults (id BLOB PRIMARY KEY, head BLOB, active INTEGER NOT NULL, frozen INTEGER NOT NULL, moved BLOB, refused INTEGER NOT NULL, period REAL, repair BLOB, restored BLOB, progress BLOB);
           CREATE TABLE headers (vault BLOB NOT NULL REFERENCES vaults(id), seq TEXT NOT NULL, hash BLOB NOT NULL, bytes BLOB NOT NULL, at REAL NOT NULL, files BLOB, PRIMARY KEY(vault,seq), UNIQUE(vault,hash));
           CREATE TABLE entries (vault BLOB NOT NULL REFERENCES vaults(id), seq TEXT NOT NULL, hash BLOB NOT NULL, bytes BLOB NOT NULL, PRIMARY KEY(vault,seq), UNIQUE(vault,hash));
