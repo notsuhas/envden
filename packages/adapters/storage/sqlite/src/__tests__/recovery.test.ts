@@ -31,7 +31,7 @@ test("migration replaces an interrupted backup and live requests prune expired s
   const dir = temp();
   const path = join(dir, "envden.sqlite");
   const db = new Database(path);
-  db.exec("CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
+  db.run("CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
   db.close();
   writeFileSync(join(dir, "pre-1"), "partial");
   const storage = createSqliteStorageAdapter(dir, 0);
@@ -44,7 +44,7 @@ test("migration replaces an interrupted backup and live requests prune expired s
     const key = { kind: "login", device: new Uint8Array([1]), purpose: "unlock" } as const;
     storage.putSession(new Uint8Array([1]), key, new Uint8Array([2]), 0);
     const inspect = new Database(path);
-    inspect.exec("INSERT INTO approvers VALUES(x'01',x'01',x'02',100)");
+    inspect.run("INSERT INTO approvers VALUES(x'01',x'01',x'02',100)");
     storage.rememberNonce(new Uint8Array([1]), new Uint8Array([2]), 30 * 86400000);
     expect(existsSync(join(dir, "pre-1"))).toBe(false);
 
