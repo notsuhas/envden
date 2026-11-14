@@ -11,7 +11,7 @@ Done:
 
 Still needed:
 
-- `ENVDEN_CHANNELS_TOKEN` in the `release` environment needs read access to releases and write access to both channel repositories. The channels job publishes Homebrew and Scoop; winget submission stays manual.
+- Homebrew and Scoop are published by hand after each release with `publish-channels.ts` (below); winget submission is manual too.
 - npm: the release workflow's `npm` job publishes with trusted publishing (`npm trust github envden --file release.yml --repo notsuhas/envden --env release`). No token is stored.
 - After the first image push, make the GHCR package public.
 - `ENVDEN_TELEMETRY_KEY` (repository variable): a PostHog project key. Empty disables telemetry.
