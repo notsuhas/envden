@@ -67,7 +67,7 @@ export function pullActions(model: TModel) {
 
     if (quiet || !result || fail !== undefined || killed) return result;
 
-    checkPull(model, d, result, records, now, await model.activePlaces(d));
+    checkPull(model, d, result, records, await model.activePlaces(d));
 
     if (state.step !== 99) await secondPull(d, now);
 

@@ -8,7 +8,6 @@ export function checkPull(
   d: number,
   result: Awaited<ReturnType<typeof pull>>,
   records: number,
-  now: (string | undefined)[],
   active: (string | undefined)[],
 ) {
   const { commits, dirty, bad, clean } = model;
@@ -20,18 +19,13 @@ export function checkPull(
     return;
   }
 
-  if (dirty[d]) checkLocal(model, d, now, active);
+  if (dirty[d]) checkLocal(model, d, active);
   else if (active.some((v) => v !== head))
     bad("I2-pull-not-converged", "Clean device differs from server");
   else clean(d);
 }
 
-function checkLocal(
-  model: TModel,
-  d: number,
-  now: (string | undefined)[],
-  active: (string | undefined)[],
-) {
+function checkLocal(model: TModel, d: number, active: (string | undefined)[]) {
   const desired = model.last[d] === DEL ? undefined : model.last[d];
 
   if (!active.includes(desired))

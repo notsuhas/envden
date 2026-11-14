@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import type { TModel } from "../model.ts";
 import type { push } from "../../../engine.ts";
 
@@ -92,7 +93,7 @@ function checkHeldIntent(model: TModel, observation: IObservation) {
   if (
     reports.some((message) =>
       model.w.targets[d]!.some((target) =>
-        message.startsWith(`Held back ${target.root}/${target.path}:`),
+        message.startsWith(`Held back ${join(target.root, target.path)}:`),
       ),
     )
   )

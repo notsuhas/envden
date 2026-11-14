@@ -1,6 +1,10 @@
-import { afterAll, expect, test } from "bun:test";
-import { run } from "./exploration/run.ts";
-import { shutdown } from "./exploration/fixtures/world.ts";
+import { beforeAll, afterAll, expect, test } from "bun:test";
+import {
+  WORKER_COUNT,
+  startWorkers,
+  stopWorkers,
+  runWorker,
+} from "./exploration/fixtures/workers.ts";
 import { randomTraces, sequences } from "./exploration/drivers/generated.ts";
 
 // ENVDEN_DEEP_EXPLORATION=1 adds depth-four traces and 600 seeded random traces.
@@ -42,18 +46,31 @@ const alphabet = [
 
 const layouts = [["copy"], ["copy", "copy"], ["link"], ["link", "copy"]] as const;
 
-afterAll(shutdown);
+beforeAll(startWorkers);
 
-function register(layout: readonly ("copy" | "link")[], tokens: string[], label = "exhaustive") {
-  test(`${label} ${layout.join("+")} ${tokens.join(" ")}`, async () => {
-    const result = await run(layout, tokens);
+afterAll(stopWorkers);
 
-    expect({
-      violations: result.violations,
-      notes: result.notes,
-      trace: result.violations.length ? result.trace : [],
-    }).toEqual({ violations: [], notes: [], trace: [] });
-  });
+interface ITrace {
+  layout: readonly ("copy" | "link")[];
+  tokens: string[];
+  label: string;
+}
+
+const cases: ITrace[] = [];
+
+function register(layout: ITrace["layout"], tokens: string[], label = "exhaustive") {
+  cases.push({ layout, tokens, label });
+}
+
+async function verifyTrace(scenario: ITrace, index: number) {
+  const { layout, tokens } = scenario;
+  const result = await runWorker(index, layout, tokens);
+
+  expect({
+    violations: result.violations,
+    notes: result.notes,
+    trace: result.violations.length ? result.trace : [],
+  }).toEqual({ violations: [], notes: [], trace: [] });
 }
 
 for (const layout of layouts)
@@ -66,4 +83,17 @@ if (deep) {
     register(layout, tokens, `seed-1-${String(index).padStart(3, "0")}`);
   for (const layout of layouts)
     for (const tokens of sequences(["a", "Be", "Bx", "Bf"], 4)) register(layout, tokens, "deep");
+}
+
+for (let offset = 0; offset < cases.length; offset += WORKER_COUNT) {
+  const batch = cases.slice(offset, offset + WORKER_COUNT);
+  const name = batch
+    .map(
+      (scenario) => `${scenario.label} ${scenario.layout.join("+")} ${scenario.tokens.join(" ")}`,
+    )
+    .join(" | ");
+
+  test(name, async () => {
+    await Promise.all(batch.map(verifyTrace));
+  });
 }

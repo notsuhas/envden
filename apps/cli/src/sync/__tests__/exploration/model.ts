@@ -41,7 +41,6 @@ export function createModel(w: TWorld) {
   const last: (string | undefined)[] = [undefined, undefined];
   const required = new Set<string>();
   const saved = new Set<string>();
-  const everWritten = new Set<string>([INIT]);
   const state = { unique: 0, step: 0, token: "", tombstoned: false };
 
   const bad = (kind: string, detail: string) =>
@@ -152,7 +151,6 @@ export function createModel(w: TWorld) {
   function recordEdit(d: number, value: string, before: string | undefined) {
     if (before !== undefined) required.delete(before);
     required.add(value);
-    everWritten.add(value);
     intentSeen[d] = seen[d]!;
     dirty[d] = true;
     pending[d]!.add(value);
@@ -193,7 +191,6 @@ export function createModel(w: TWorld) {
     last,
     required,
     saved,
-    everWritten,
     bad,
     agreed,
     clean,
@@ -207,7 +204,6 @@ export function createModel(w: TWorld) {
     survive,
     server,
     write,
-    recordEdit,
     recordPlaceEdit,
     observe,
     settleUnobserved,
