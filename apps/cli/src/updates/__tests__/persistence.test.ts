@@ -1,3 +1,4 @@
+import { atomicWrite } from "../../state/store/files.ts";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -49,6 +50,16 @@ for (const upgrade of [false, true])
       const restored = await restoreReleases(home, builtin, 2);
       expect(restored?.generation).toBe(2);
       expect(restored?.unsafe).toEqual(["0.0.1"]);
+      const legacy = join(home, "legacy");
+
+      await atomicWrite(
+        join(legacy, "state", "releases.json"),
+        JSON.stringify({ objects: [Buffer.from(bytes).toString("base64url")] }),
+      );
+
+      const migrated = await restoreReleases(legacy, builtin, 2);
+      expect(migrated?.generation).toBe(2);
+      expect(migrated?.unsafe).toEqual(["0.0.1"]);
       if (restored) state.release = restored;
       let url = "";
 
