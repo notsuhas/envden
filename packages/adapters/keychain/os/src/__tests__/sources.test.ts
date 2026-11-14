@@ -89,7 +89,7 @@ for (const failure of [
   });
 }
 
-test("file-only deletion removes OS keys without inventing a file source", async () => {
+test("file-only deletion leaves OS keys untouched without inventing a file source", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-delete-"));
   let value: string | null = "AQ==";
   const get = spyOn(Bun.secrets, "get").mockImplementation(async () => value);
@@ -102,12 +102,117 @@ test("file-only deletion removes OS keys without inventing a file source", async
 
   try {
     await createOsKeychainAdapter({ home, fileOnly: true }).delete("os");
-    expect(remove).toHaveBeenCalled();
-    expect(await createOsKeychainAdapter({ home }).get("os")).toBeUndefined();
-    expect(await readdir(home)).toEqual([]);
+    expect(remove).not.toHaveBeenCalled();
+    expect(await createOsKeychainAdapter({ home }).get("os")).toEqual(new Uint8Array([1]));
+    expect(await readdir(home)).toEqual(["state"]);
   } finally {
     get.mockRestore();
     remove.mockRestore();
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+for (const operation of ["get", "set", "delete"] as const) {
+  test(`OS history refuses unavailable ${operation}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-history-"));
+    const get = spyOn(Bun.secrets, "get").mockResolvedValue("AQ==");
+    const set = spyOn(Bun.secrets, "set").mockResolvedValue(undefined);
+    const remove = spyOn(Bun.secrets, "delete").mockRejectedValue(new Error("unavailable"));
+
+    try {
+      await createOsKeychainAdapter({ home }).get("old");
+      get.mockRejectedValue(new Error("unavailable"));
+      set.mockRejectedValue(new Error("unavailable"));
+      const adapter = createOsKeychainAdapter({ home });
+
+      const action =
+        operation === "get"
+          ? adapter.get("old")
+          : operation === "set"
+            ? adapter.set("new", new Uint8Array([2]))
+            : adapter.delete("old");
+
+      await Promise.resolve(expect(action).rejects.toMatchObject({ code: "LOCKED" }));
+    } finally {
+      get.mockRestore();
+      set.mockRestore();
+      remove.mockRestore();
+      await rm(home, { recursive: true, force: true });
+    }
+  });
+}
+
+test("headless first setup permits fallback but required reads fail closed", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-headless-"));
+
+  const failure = new Error(
+    "The name org.freedesktop.secrets was not provided by any .service files",
+  );
+
+  const get = spyOn(Bun.secrets, "get").mockRejectedValue(failure);
+  const set = spyOn(Bun.secrets, "set").mockRejectedValue(failure);
+  const remove = spyOn(Bun.secrets, "delete").mockRejectedValue(failure);
+
+  try {
+    const adapter = createOsKeychainAdapter({ home });
+    expect(await adapter.get("new")).toBeUndefined();
+
+    await Promise.resolve(
+      expect(adapter.get("new", true)).rejects.toMatchObject({ code: "LOCKED" }),
+    );
+
+    await adapter.delete("pair-receive");
+    await adapter.set("new", new Uint8Array([7]));
+    expect(await adapter.get("new", true)).toEqual(new Uint8Array([7]));
+    expect(adapter.takeFallbackNotice?.()).toBe(true);
+  } finally {
+    get.mockRestore();
+    set.mockRestore();
+    remove.mockRestore();
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+for (const failure of ["locked", "unknown failure", "User interaction is not allowed"]) {
+  test(`a new OS slot cannot fall back after ${failure}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-refuse-fallback-"));
+    const get = spyOn(Bun.secrets, "get").mockResolvedValue(null);
+    const set = spyOn(Bun.secrets, "set").mockRejectedValue(new Error(failure));
+
+    try {
+      const adapter = createOsKeychainAdapter({ home });
+
+      await Promise.resolve(
+        expect(adapter.set("new", new Uint8Array([1]))).rejects.toMatchObject({ code: "LOCKED" }),
+      );
+
+      expect(adapter.takeFallbackNotice?.()).toBe(false);
+      expect(await adapter.get("new")).toBeUndefined();
+    } finally {
+      get.mockRestore();
+      set.mockRestore();
+      await rm(home, { recursive: true, force: true });
+    }
+  });
+}
+
+test("a successful OS write persists home history across adapters", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-written-os-"));
+  const get = spyOn(Bun.secrets, "get").mockResolvedValue(null);
+  const set = spyOn(Bun.secrets, "set").mockResolvedValue(undefined);
+
+  try {
+    await createOsKeychainAdapter({ home }).set("key", new Uint8Array([1]));
+    get.mockRejectedValue(new Error("unavailable"));
+
+    await Promise.resolve(
+      expect(createOsKeychainAdapter({ home }).get("key")).rejects.toMatchObject({
+        code: "LOCKED",
+      }),
+    );
+  } finally {
+    get.mockRestore();
+    set.mockRestore();
     await rm(home, { recursive: true, force: true });
   }
 });

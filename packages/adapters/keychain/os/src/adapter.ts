@@ -1,7 +1,8 @@
+import { keychainUnavailable } from "./failures/unavailable.ts";
 import { keychainFailure } from "./failures/operation.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { readFile } from "node:fs/promises";
-import { hasFileSource, writeKeyFile, removeKeyFile } from "./files/source.ts";
+import { hasFileSource, writeKeyFile, removeKeyFile, durableWrite } from "./files/source.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { IKeychainAdapter } from "@envden/core/adapters";
@@ -71,6 +72,28 @@ class OsKeychainAdapter implements IKeychainAdapter {
     }
   }
 
+  private marker() {
+    return join(this.directory, "os.file");
+  }
+
+  private async readOs(name: string, required = false) {
+    try {
+      const value = await Bun.secrets.get(this.options(name));
+      if (value !== null) await durableWrite(this.marker(), new Uint8Array());
+
+      return value;
+    } catch (cause) {
+      if (
+        required ||
+        !keychainUnavailable(cause) ||
+        (await hasFileSource(join(this.directory, "os")))
+      )
+        throw new EnvdenError("LOCKED", "Vault keys unavailable", { cause });
+
+      return null;
+    }
+  }
+
   async get(name: string, required = false): Promise<Uint8Array | undefined> {
     const file = await this.fileValue(name);
     if (file !== undefined) return file;
@@ -87,14 +110,14 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
     if (await hasFileSource(this.path(name))) return undefined;
 
-    const value = await Bun.secrets.get(this.options(name)).catch(keychainReadFailure);
+    const value = await this.readOs(name, required);
 
     return value === null ? undefined : new Uint8Array(Buffer.from(value, "base64"));
   }
 
   async set(name: string, value: Uint8Array) {
     if (!(await this.fileBacked(name))) {
-      const existing = await Bun.secrets.get(this.options(name)).catch(keychainReadFailure);
+      const existing = await this.readOs(name);
 
       try {
         await Bun.secrets.set({
@@ -103,9 +126,17 @@ class OsKeychainAdapter implements IKeychainAdapter {
           ...(process.platform === "win32" ? { persist: "local" as const } : {}),
         });
 
+        await durableWrite(this.marker(), new Uint8Array());
+
         return;
       } catch (cause) {
-        if (existing !== null) throw cause;
+        if (
+          existing !== null ||
+          !keychainUnavailable(cause) ||
+          (await hasFileSource(join(this.directory, "os")))
+        )
+          throw cause;
+
         this.fallbackNotice = true;
       }
     }
@@ -126,11 +157,11 @@ class OsKeychainAdapter implements IKeychainAdapter {
       (await hasFileSource(this.path(name))) || (await this.fileValue(name)) !== undefined;
 
     try {
-      await Bun.secrets.delete(this.options(name));
+      if (!this.fileOnly) await Bun.secrets.delete(this.options(name));
     } catch (cause) {
-      if (!fileSource)
+      if (!keychainUnavailable(cause) || (await hasFileSource(join(this.directory, "os"))))
         throw new EnvdenError(
-          "INVALID_INPUT",
+          "LOCKED",
           "Keychain unavailable; key deletion could not be confirmed",
           { cause },
         );
@@ -138,19 +169,6 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
     if (fileSource) await removeKeyFile(this.path(name));
   }
-}
-
-function keychainReadFailure(cause: unknown): null {
-  if (
-    !(cause instanceof Error) ||
-    /locked|denied|cancel|interaction is not allowed/i.test(cause.message) ||
-    !/unavailable|not available|not supported|not implemented|missing|dbus|d-bus|secret service/i.test(
-      cause.message,
-    )
-  )
-    throw cause;
-
-  return null;
 }
 
 export function createOsKeychainAdapter(options: IOptions = {}): IKeychainAdapter {

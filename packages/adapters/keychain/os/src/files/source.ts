@@ -32,7 +32,7 @@ async function markFileSource(path: string) {
   if (!(await hasFileSource(path))) await durableWrite(path + ".file", new Uint8Array());
 }
 
-async function durableWrite(path: string, value: Uint8Array) {
+export async function durableWrite(path: string, value: Uint8Array) {
   const directory = dirname(path);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   await restrictAccess(directory, true);

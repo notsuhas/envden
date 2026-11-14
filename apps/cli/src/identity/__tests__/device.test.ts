@@ -38,3 +38,23 @@ test("a fresh join replaces an orphan's keys and honours the requested name", as
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("configured state cannot silently replace a missing identity", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-configured-"));
+
+  try {
+    const { saveState } = await import("../../state/store/repository.ts");
+    const { emptyState } = await import("../../state/model.ts");
+    await saveState(root, { ...emptyState("joined"), vaultId: "configured" });
+    const keychain = createMemoryKeychainAdapter(["get"]);
+
+    await Promise.resolve(
+      expect(deviceIdentity(keychain, root, "replacement")).rejects.toMatchObject({
+        code: "LOCKED",
+        message: "Vault keys unavailable",
+      }),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
