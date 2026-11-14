@@ -14,6 +14,7 @@ export const INSTALL_CHANNELS = [
       "scoop bucket add envden https://github.com/notsuhas/scoop-bucket; scoop install envden",
     ],
   },
+  { id: "npm", label: "npm", commands: ["npm i -g envden"] },
   {
     id: "docker",
     label: "Docker",
