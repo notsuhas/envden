@@ -57,3 +57,31 @@ test("box decryption failures carry a fixed EnvdenError and cause", () => {
     });
   }
 });
+
+test("verification preserves unexpected codec and input failures", () => {
+  const failure = new Error("programmer failure");
+
+  const codec: p.ICodec<Uint8Array> = {
+    read: () => {
+      throw failure;
+    },
+    write: () => {
+      throw failure;
+    },
+  };
+
+  expect(() =>
+    p.verifyObject(codec, { body: key, signature: new Uint8Array(64) }, keys.objPub, "entry"),
+  ).toThrow(failure);
+
+  const publicKey = new Uint8Array(32);
+
+  Object.defineProperty(publicKey, "length", {
+    get: () => {
+      throw failure;
+    },
+  });
+
+  expect(() => p.Verify(publicKey, "entry", key, new Uint8Array(64))).toThrow(failure);
+  expect(p.Verify(keys.objPub, "entry", key, new Uint8Array(63)).ok).toBe(false);
+});

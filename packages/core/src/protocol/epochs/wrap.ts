@@ -43,22 +43,26 @@ export async function sealWrap(
   encPub: Uint8Array,
   rng: TRandom = randomBytes,
 ): Promise<IWrap> {
-  const recipientPublicKey = await suite.kem.importKey("raw", encPub, true);
-  const seed = b32.write(rng(32));
-  const ephemeral = await suite.kem.importKey("raw", seed, false);
-  const publicKey = await suite.kem.importKey("raw", x25519.getPublicKey(seed), true);
+  try {
+    const recipientPublicKey = await suite.kem.importKey("raw", encPub, true);
+    const seed = b32.write(rng(32));
+    const ephemeral = await suite.kem.importKey("raw", seed, false);
+    const publicKey = await suite.kem.importKey("raw", x25519.getPublicKey(seed), true);
 
-  const result = await suite.seal(
-    {
-      recipientPublicKey,
-      info: wrapInfo(vaultId, epoch, recipient, encPub),
-      ekm: { privateKey: ephemeral, publicKey },
-    },
-    b32.write(key),
-    EMPTY,
-  );
+    const result = await suite.seal(
+      {
+        recipientPublicKey,
+        info: wrapInfo(vaultId, epoch, recipient, encPub),
+        ekm: { privateKey: ephemeral, publicKey },
+      },
+      b32.write(key),
+      EMPTY,
+    );
 
-  return { recipient, enc: new Uint8Array(result.enc), ct: new Uint8Array(result.ct) };
+    return { recipient, enc: new Uint8Array(result.enc), ct: new Uint8Array(result.ct) };
+  } catch (cause) {
+    throw new EnvdenError("INVALID_DATA", "Unable to encrypt wrap", { cause });
+  }
 }
 
 export async function openWrap(

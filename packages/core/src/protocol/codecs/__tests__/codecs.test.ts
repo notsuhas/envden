@@ -175,3 +175,33 @@ test("malformed bytes have coded errors and future operations require an update"
     expect.objectContaining({ code: "UPDATE_REQUIRED" }),
   );
 });
+
+test("member codecs reject low-order encryption keys with matching IDs", () => {
+  for (const encPub of [
+    z,
+    Uint8Array.of(1, ...new Uint8Array(31)),
+    Uint8Array.from(
+      Buffer.from("e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800", "hex"),
+    ),
+  ]) {
+    const d = { ...device, encPub };
+    const r = { ...rec, encPub };
+    d.id = p.deviceId(d);
+    r.id = p.recoveryId(r);
+
+    expect(() => p.DeviceRecordCodec.write(d)).toThrow(
+      expect.objectContaining({ code: "INVALID_DATA" }),
+    );
+
+    expect(() => p.RecoveryRecordCodec.write(r)).toThrow(
+      expect.objectContaining({ code: "INVALID_DATA" }),
+    );
+
+    const deviceBytes = p.DeviceRecordCodec.write(device);
+    deviceBytes.set(d.id, 0);
+    deviceBytes.set(encPub, 16 + p.str.write(device.name).length);
+    const recoveryBytes = p.concat(r.id, encPub, r.objPub);
+    expect(() => p.decode(p.DeviceRecordCodec, deviceBytes)).toThrow();
+    expect(() => p.decode(p.RecoveryRecordCodec, recoveryBytes)).toThrow();
+  }
+});

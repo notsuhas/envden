@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { type ICodec } from "../encoding/binary.ts";
 import { encode, concat, b64 } from "../encoding/binary.ts";
 import { type ISigned } from "../codecs/signed.ts";
@@ -19,7 +20,9 @@ export function verifyObject<T>(
     const result = Verify(pub, label, encode(c, value.body), value.signature);
 
     return result.ok ? { ok: true, value: value.body } : result;
-  } catch {
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
+
     return { ok: false, reason: "Malformed signed object" };
   }
 }

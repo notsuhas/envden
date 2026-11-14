@@ -53,3 +53,19 @@ test("wrong HPKE key produces an EnvdenError with cause", async () => {
     }),
   );
 });
+
+test("sealWrap reports malformed and low-order recipients as EnvdenError", async () => {
+  for (const encPub of [
+    new Uint8Array(31),
+    new Uint8Array(32),
+    from("e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800"),
+  ]) {
+    await Promise.resolve(
+      expect(p.sealWrap(key, vaultId, 1, p.deviceId(keys), encPub, rng)).rejects.toMatchObject({
+        name: "EnvdenError",
+        code: "INVALID_DATA",
+        cause: expect.any(Error),
+      }),
+    );
+  }
+});

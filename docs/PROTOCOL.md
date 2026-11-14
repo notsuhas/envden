@@ -106,7 +106,7 @@ DeviceRecord   { id b16, name str (1–64 bytes), encPub b32, objPub b32, reqPub
 RecoveryRecord { id b16, encPub b32, objPub b32 }
 ```
 
-Receivers recompute every ID from the public keys and reject mismatches.
+Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must permit X25519 key agreement with a nonzero shared secret; receivers reject low-order keys when validating records.
 
 ## 4. Wraps and epochs
 

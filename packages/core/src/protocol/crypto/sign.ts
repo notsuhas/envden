@@ -1,5 +1,6 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { ed25519 } from "@noble/curves/ed25519.js";
-import { b32, requireValue } from "../encoding/binary.ts";
+import { b32, b64, requireValue } from "../encoding/binary.ts";
 
 import { validateEdPublic } from "../keys/validation.ts";
 import { frame } from "./frame.ts";
@@ -20,12 +21,14 @@ export function Verify(
     validateEdPublic(pub);
 
     requireValue(
-      ed25519.verify(signature, frame(label, message), pub, { zip215: false }),
+      ed25519.verify(b64.write(signature), frame(label, message), pub, { zip215: false }),
       "Bad signature",
     );
 
     return { ok: true, value: true };
-  } catch {
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
+
     return { ok: false, reason: "Invalid signature" };
   }
 }

@@ -1,7 +1,7 @@
 import { codec, b16, b32, concat, requireValue, compare } from "../../encoding/binary.ts";
 import { str } from "../../encoding/strings.ts";
 import { deviceId } from "../../keys/identifiers.ts";
-import { validateEdPublic } from "../../keys/validation.ts";
+import { validateEdPublic, validateEncPublic } from "../../keys/validation.ts";
 
 export interface IDeviceRecord {
   id: Uint8Array;
@@ -34,6 +34,7 @@ export const DeviceRecordCodec = codec<IDeviceRecord>(
       new TextEncoder().encode(v.name).length >= 1 && new TextEncoder().encode(v.name).length <= 64,
     );
 
+    validateEncPublic(v.encPub);
     validateEdPublic(v.objPub);
     validateEdPublic(v.reqPub);
     requireValue(compare(v.id, deviceId(v)) === 0, "Device ID mismatch");
