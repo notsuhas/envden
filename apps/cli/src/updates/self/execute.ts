@@ -26,7 +26,7 @@ async function runCommand(
 }
 
 export async function postInstall(binary: string, run = runCommand) {
-  await run([binary, "update", "--post-install"]);
+  await run([binary, "update", "--post-install"], postInstallEnvironment());
 }
 
 export async function managerUpdate(
@@ -75,7 +75,7 @@ export async function managerUpdate(
     // Homebrew reads system and prefix brew.env files even with an isolated user config.
     if (command[0] === "brew") env.HOMEBREW_XDG_CONFIG_HOME = config;
     await run(absolute, env, managerBin);
-    await run([pinned.binary, "update", "--post-install"], sanitizedEnvironment());
+    await postInstall(pinned.binary, run);
   } finally {
     await rm(config, { recursive: true, force: true });
   }
@@ -101,4 +101,21 @@ async function installerCommand(manager: string, path: string) {
   } catch {
     return undefined;
   }
+}
+
+function postInstallEnvironment() {
+  const extra: Record<string, string> = {};
+
+  for (const key of [
+    "ENVDEN_HOME",
+    "ENVDEN_KEYCHAIN",
+    "ENVDEN_NO_UPDATE_CHECK",
+    "ENVDEN_TELEMETRY",
+    "DO_NOT_TRACK",
+  ]) {
+    const value = process.env[key];
+    if (value !== undefined) extra[key] = value;
+  }
+
+  return sanitizedEnvironment(extra);
 }

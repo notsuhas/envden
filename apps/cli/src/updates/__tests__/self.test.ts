@@ -46,10 +46,17 @@ for (const valid of [true, false])
       const action = selfUpdate(adapters, {
         binary,
         run: async (command) => {
-          expect(command).toEqual([binary, "update", "--post-install"]);
+          expect(command).toEqual(
+            command[1] === "--version"
+              ? [binary + ".envden-new", "--version"]
+              : [binary, "update", "--post-install"],
+          );
         },
-        now: 200,
         fetcher: async (input, options) => {
+          expect(
+            await Bun.file(join(adapters.home, "state", "write.lock", "owner.json")).exists(),
+          ).toBe(false);
+
           const url = input instanceof Request ? input.url : input.toString();
 
           if (url.endsWith("/latest"))
@@ -104,7 +111,7 @@ test("Windows replacement keeps the old executable for next-start cleanup", asyn
   try {
     const binary = join(root, "envden.exe");
     await atomicWrite(binary, "old");
-    await replaceBinary(binary, new TextEncoder().encode("new"), true);
+    await replaceBinary(binary, new TextEncoder().encode("new"), true, async () => {});
     expect(await readFile(binary, "utf8")).toBe("new");
     expect(await readFile(binary + ".envden-old", "utf8")).toBe("old");
     await cleanupOldBinary(binary, true);
@@ -113,3 +120,41 @@ test("Windows replacement keeps the old executable for next-start cleanup", asyn
     await rm(root, { recursive: true, force: true });
   }
 });
+
+for (const windows of [false, true])
+  test(`replacement refuses an unstartable binary and restores after failed post-install: ${windows}`, async () => {
+    const root = await mkdtemp(join(tmpdir(), "envden-replace-"));
+    const binary = join(root, "envden");
+
+    try {
+      await atomicWrite(binary, "old");
+
+      await Promise.resolve(
+        expect(
+          replaceBinary(binary, new TextEncoder().encode("bad"), windows, async () => {
+            throw new Error("cannot start");
+          }),
+        ).rejects.toThrow(),
+      );
+
+      expect(await readFile(binary, "utf8")).toBe("old");
+
+      await Promise.resolve(
+        expect(
+          replaceBinary(
+            binary,
+            new TextEncoder().encode("new"),
+            windows,
+            async () => {},
+            async () => {
+              throw new Error("post-install failed");
+            },
+          ),
+        ).rejects.toThrow(),
+      );
+
+      expect(await readFile(binary, "utf8")).toBe("old");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });

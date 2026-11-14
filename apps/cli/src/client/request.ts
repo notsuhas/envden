@@ -1,3 +1,4 @@
+import { authenticatedRequestSucceeded } from "../updates/status.ts";
 import { latestRelease } from "../updates/github.ts";
 import { retryBusy } from "./retry.ts";
 import { serverFetch } from "./fetch.ts";
@@ -97,6 +98,8 @@ export function createClient(options: IClientOptions): IClient {
 
       throw error;
     }
+
+    await authenticatedRequestSucceeded();
 
     return response;
   }

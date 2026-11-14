@@ -125,3 +125,48 @@ for (const optOut of ["config", "env", "none"])
       await rm(home, { recursive: true, force: true });
     }
   });
+
+test("an already cancelled check does not cache a day without sending a request", async () => {
+  const cache: IUpdateCache = {};
+  let calls = 0;
+
+  await checkRelease(
+    cache,
+    100,
+    async () => {
+      calls++;
+
+      return redirect();
+    },
+    false,
+    AbortSignal.abort(),
+  );
+
+  expect(calls).toBe(0);
+  expect(cache.checkedAt).toBeUndefined();
+});
+
+test("explicit checks bypass disabled automatic checks and fetch outside the lock", async () => {
+  const { setConfig } = await import("../../settings/config.ts");
+  const home = await mkdtemp(join(tmpdir(), "envden-explicit-"));
+
+  try {
+    await setConfig("update-check", "off", home);
+
+    const adapters = createAdapters({
+      home,
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    const result = await runUpdateCheck(adapters, 100, true, async () => {
+      expect(await Bun.file(join(home, "state", "write.lock", "owner.json")).exists()).toBe(false);
+
+      return redirect();
+    });
+
+    expect(result.kind).toBe("checked");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

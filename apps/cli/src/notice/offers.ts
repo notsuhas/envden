@@ -44,7 +44,7 @@ async function scanOffer(
   if (!checkout || !safeRoot(checkout.root) || roots.has(checkout.root)) return;
   if (state.approved.some((item) => item.root === checkout.root)) return;
   const path = join(adapters.home, "state", "track-scanned.json");
-  const scans: Record<string, number> = JSON.parse((await optionalRead(path)) ?? "{}");
+  const scans = await recentScans(path, now);
   const previous = scans[checkout.root];
   if (previous !== undefined && now - previous < 60000) return;
 
@@ -56,4 +56,20 @@ async function scanOffer(
   if (files.length) roots.add(checkout.root);
   scans[checkout.root] = now;
   await atomicWrite(path, JSON.stringify(scans));
+}
+
+async function recentScans(path: string, now: number): Promise<Record<string, number>> {
+  const raw: unknown = JSON.parse((await optionalRead(path)) ?? "{}");
+
+  const scans: Record<string, number> = Object.fromEntries(
+    Object.entries(raw && typeof raw === "object" ? raw : {})
+      .filter(
+        (entry): entry is [string, number] =>
+          typeof entry[1] === "number" && now - entry[1] < 60000,
+      )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 255),
+  );
+
+  return scans;
 }

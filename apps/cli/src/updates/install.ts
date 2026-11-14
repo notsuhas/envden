@@ -39,11 +39,7 @@ export async function installMethod(home: string, recorded?: string, binary = pr
 function detectedMethod(binary: string, home: string) {
   const normalized = binary.replaceAll("\\", "/");
 
-  if (
-    /\/Cellar\/envden\//.test(normalized) ||
-    /^(\/opt\/homebrew|\/usr\/local)\/(bin\/envden|opt\/envden\/bin\/envden)$/.test(normalized)
-  )
-    return "brew";
+  if (/\/Cellar\/envden\//.test(normalized)) return "brew";
 
   if (/\/Microsoft\/WinGet\/(Packages|Links)\//i.test(normalized)) return "winget";
 

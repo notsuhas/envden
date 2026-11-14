@@ -74,5 +74,22 @@ export async function readRemoteNotice(
 ): Promise<{ checkedAt: number; repos: string[] } | undefined> {
   const value = await optionalRead(join(home, "state", "remote-notice.json"));
 
-  return value ? JSON.parse(value) : undefined;
+  try {
+    const parsed: unknown = value ? JSON.parse(value) : undefined;
+
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      "checkedAt" in parsed &&
+      typeof parsed.checkedAt === "number" &&
+      "repos" in parsed &&
+      Array.isArray(parsed.repos) &&
+      parsed.repos.every((repo): repo is string => typeof repo === "string")
+    )
+      return { checkedAt: parsed.checkedAt, repos: parsed.repos };
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
 }

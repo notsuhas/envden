@@ -40,8 +40,6 @@ test("manager detection recognizes Homebrew prefixes and WinGet package paths", 
     for (const binary of [
       "/opt/homebrew/Cellar/envden/1/bin/envden",
       "/usr/local/Cellar/envden/1/bin/envden",
-      "/opt/homebrew/bin/envden",
-      "/usr/local/bin/envden",
     ])
       expect(await installMethod(root, undefined, binary)).toEqual({
         kind: "manager",
@@ -60,16 +58,14 @@ test("manager detection recognizes Homebrew prefixes and WinGet package paths", 
   }
 });
 
-test("manager binary path overrides a stale installer marker", async () => {
+test("script marker wins over a bare Homebrew-style bin path", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-stale-method-"));
 
   try {
     await atomicWrite(join(root, "install-method"), "script");
 
-    expect(await installMethod(root, undefined, "/opt/homebrew/bin/envden")).toEqual({
-      kind: "manager",
-      command: ["brew", "upgrade", "envden"],
-    });
+    for (const binary of ["/opt/homebrew/bin/envden", "/usr/local/bin/envden"])
+      expect(await installMethod(root, undefined, binary)).toEqual({ kind: "script" });
   } finally {
     await rm(root, { recursive: true, force: true });
   }

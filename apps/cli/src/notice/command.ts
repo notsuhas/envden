@@ -16,13 +16,10 @@ import { readRemoteNotice, remoteNotice } from "./remote.ts";
 async function lockedcommandNotice(
   adapters: TAdapters,
   now: number,
-  fetcher: TFetch,
   refresh = false,
   cwd?: string,
-  localOnly = false,
 ) {
   await cleanupOldBinary(process.execPath, process.platform === "win32");
-  if (!refresh && !localOnly) await runUpdateCheck(adapters, now, false, fetcher);
   const state = await loadState(adapters.home);
   if (!state) return { repos: [], update: await updateStatus(adapters.home) };
 
@@ -64,8 +61,10 @@ export async function commandNotice(
       if (state) await refreshedRemote(adapters, state, now, fetchNotice, !refresh);
     }
 
+    if (!refresh && !localOnly) await runUpdateCheck(adapters, now, false, fetcher);
+
     return await withStateLock(adapters.home, () =>
-      lockedcommandNotice(adapters, now, fetchNotice, refresh, cwd, localOnly),
+      lockedcommandNotice(adapters, now, refresh, cwd),
     );
   } catch {
     return { repos: [], update: { available: false, required: false } };

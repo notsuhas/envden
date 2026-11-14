@@ -20,7 +20,6 @@ export const updateCommand = new Command("update")
     const result = options.check
       ? await runUpdateCheck(adapters, Date.now())
       : await selfUpdate(adapters, {
-          now: Date.now(),
           fetcher: fetch,
           binary: process.execPath,
         });

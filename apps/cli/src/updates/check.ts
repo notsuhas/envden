@@ -1,3 +1,4 @@
+import { boundedFetch } from "../notice/fetch.ts";
 import { compareSemver } from "@envden/core/protocol";
 import type { TFetch } from "../client/fetch.ts";
 import { latestRelease } from "./github.ts";
@@ -14,12 +15,22 @@ export async function checkRelease(
   now: number,
   fetcher: TFetch,
   force = false,
+  deadline = AbortSignal.timeout(2000),
 ) {
   if (!force && state.checkedAt !== undefined && now - state.checkedAt < 86400000)
     return { kind: "skipped" as const };
 
+  let sent = false;
+
+  const tracked: TFetch = (input, init) => {
+    init?.signal?.throwIfAborted();
+    sent = true;
+
+    return fetcher(input, init);
+  };
+
   try {
-    state.latest = await latestRelease(fetcher);
+    state.latest = await latestRelease(boundedFetch(tracked, deadline));
     delete state.message;
 
     return {
@@ -32,6 +43,6 @@ export async function checkRelease(
 
     return { kind: "unavailable" as const, message: state.message };
   } finally {
-    state.checkedAt = now;
+    if (sent) state.checkedAt = now;
   }
 }

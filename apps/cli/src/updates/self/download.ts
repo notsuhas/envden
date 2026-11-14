@@ -3,17 +3,21 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TFetch } from "../../client/fetch.ts";
 import { latestRelease, releaseAssetUrl } from "../github.ts";
 
-export async function downloadUpdate(fetcher: TFetch, running: string, platform: string) {
+export async function downloadUpdate(
+  fetcher: TFetch,
+  running: string,
+  platform: string,
+  timeoutMs = 1800000,
+) {
   const latest = await latestRelease(fetcher);
 
-  if (compareSemver(latest, running) <= 0)
-    throw new EnvdenError("INVALID_INPUT", "Latest release is not newer than the running version");
+  if (compareSemver(latest, running) <= 0) return { kind: "current" as const };
 
   const name = `envden-${platform}${platform.startsWith("windows-") ? ".exe" : ""}`;
 
   const sums = await fetcher(releaseAssetUrl(latest, "SHA256SUMS"), {
     redirect: "follow",
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!sums.ok) throw new EnvdenError("INVALID_DATA", "Release checksums download failed");
@@ -33,7 +37,7 @@ export async function downloadUpdate(fetcher: TFetch, running: string, platform:
 
   const response = await fetcher(releaseAssetUrl(latest, name), {
     redirect: "follow",
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!response.ok) throw new EnvdenError("INVALID_DATA", "Build download failed");

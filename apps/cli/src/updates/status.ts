@@ -1,3 +1,6 @@
+import { EnvdenError } from "@envden/core/errors";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { compareSemver } from "@envden/core/protocol";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
@@ -14,6 +17,23 @@ export async function updateStatus(home: string) {
   };
 }
 
-export function recordUpdateRequired(home: string) {
+export async function recordUpdateRequired(home: string, error?: unknown) {
+  if (
+    error instanceof EnvdenError &&
+    error.message === "The server requires a version that doesn't exist"
+  )
+    return;
+
   return atomicWrite(join(home, "state", "update-required"), VERSION);
+}
+
+const requestHome = new AsyncLocalStorage<string>();
+
+export function withUpdateStatus<T>(home: string, action: () => Promise<T>) {
+  return requestHome.run(home, action);
+}
+
+export async function authenticatedRequestSucceeded() {
+  const home = requestHome.getStore();
+  if (home) await rm(join(home, "state", "update-required"), { force: true });
 }
