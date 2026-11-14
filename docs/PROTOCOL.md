@@ -72,7 +72,6 @@ Decoders reject:
 | `0x09` | `request` | signed by a device's request key |
 | `0x0A` | `server-hello` | signed by the server key |
 | `0x0B` | `repair-report` | signed by a device's object key |
-| `0x0C` | `release` | signed by a release key |
 | `0x0D` | `file-name` | encrypted |
 
 **Text forms.** `b32(x)` is Crockford base32, uppercase, with no padding. Decoders uppercase their input and reject non-zero trailing bits. Integers inside text (mailbox numbers) are decimal with no leading zeros.
@@ -92,7 +91,6 @@ Decoders reject:
 | ID key `K_id` | 32 random bytes | vault creation, never rotated | the keyring |
 | Secret key `SK` | 16 random bytes | vault creation, kit replacement | recovery kit only |
 | SK key | Ed25519 from `KDF(SK, vaultId, "sk-sign", empty)` | with `SK` | derived when needed; the server stores only `skPub` |
-| Release keys | Ed25519 | by the maintainers | a primary key in the release job and an offline backup; both public keys are built into every binary |
 | Server signing key | Ed25519 | first server start | server data folder |
 | Server OPAQUE setup | `server.createSetup()` | first server start | server data folder |
 
@@ -402,7 +400,7 @@ The server rejects a request if:
 The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `skPub`. Token proofs are recomputed and compared in constant time.
 
 **Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only, with no leading zeros except the single digit `0`. `protocols` lists the protocol versions the server speaks, sorted; v1 is `[1]`.
-- The server rejects a request whose `clientVersion` is below `minClient` with `426`. The 426 body is unsigned, so the client runs hello again and trusts only the signed `minClient`. If that's above the latest release in the feed (§ 15), it reports "the server requires a version that doesn't exist" instead of "update envden".
+- The server rejects a request whose `clientVersion` is below `minClient` with `426`. The 426 body is unsigned, so the client runs hello again and trusts only the signed `minClient`. If that's above the latest GitHub release (§ 15), it reports "the server requires a version that doesn't exist" instead of "update envden".
 - The server records each device's last `clientVersion`.
 - The client refuses a server whose `appVersion` is below the client's built-in `minServer`.
 - **Protocol version.** The client uses the highest version both sides speak, and stores the highest it has used per vault. It never goes below that.
@@ -415,7 +413,7 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `s
   1. Compare headers and entries byte for byte with the ones it stored. A mismatch is a rollback or fork (§ 6), whatever the version.
   2. Verify the signature, using the `signer` at the end of the body and the member's key from the verified state. Decrypt encrypted types.
   3. Only data that passes step 2 and has an unknown tag, version, kind or op gets "update required". Anything else is "invalid data from server".
-  4. If the client is already at the feed's latest release, it says "unreadable data from server" instead of "update required".
+  4. If the client is already at the latest GitHub release, it says "unreadable data from server" instead of "update required".
 
 **Setup token.**
 - Text: `envden-setup-1:` ‖ `b32(secret(20) ‖ serverPin(32))`.
@@ -700,38 +698,10 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - a server move where D disappears before and after O commits
   - a member lockout attempt from a stolen device
 - **Versions**: a client below `minClient` gets `426` and re-checks the signed hello; a server below `minServer` is refused; a new entry kind is rejected while `minClient` is too low; an unknown entry kind with a valid signature reports "update required", and one with a bad signature reports "invalid data".
-- **Releases** (§ 15): an older `seq`, an expired feed for self-update, a wrong build hash, an unsafe version, a downgrade, a backup-only feed revoking the primary, a huge primary `seq` followed by a backup feed, a stripped signature, a dual-signed feed with unequal stored `seq`s, `revokePrimary = 2`, a generation tie, a primary-only rotation (`next` ignored), an identical re-fetch, and a generation rotation.
 - **Repo ID** normalization (DESIGN § Store).
 
 ## 15. Releases
 
-**Feed.** A signed `release.bin` is published with each GitHub release and re-signed by a scheduled job every week:
+GitHub Releases holds the stable platform binaries and their `SHA256SUMS` file. The CLI resolves the newest stable tag through GitHub's public release redirect, with the REST API as a fallback. Script installs download this platform's build and the checksums from that same tag, verify SHA-256, refuse a version that is not strictly newer, and replace the binary atomically. Versions use strict `X.Y.Z` comparison. Package-manager installs delegate to the manager.
 
-```
-Release (0x0C) { type, version, generation u32, seq u64, issuedAt time, expires time, latest str, unsafe list<str> sorted, builds list<Build> sorted by platform, revokePrimary u8, next opt<KeyPair> }
-Build   { platform str, sha256 b32 }   // builds of `latest`
-KeyPair { primary b32, backup b32 }
-```
-
-The feed is the body followed by `list<{ key u8, sig b64 }>`: signatures by the generation's primary (`key` 0) and/or backup (`key` 1), each `Sign(sk, "release", body)`.
-
-- **Keys.** Every binary ships with a generation's key pair. The client uses the higher of its built-in generation and its stored one; on a tie, the built-in keys. `expires` = `issuedAt` + 30 days, and each weekly re-sign bumps `seq`.
-- **The client keeps** a few things in `~/.envden/state`, outside the store. Turning the update check off doesn't clear them.
-  - the trusted generation and its keys
-  - the highest `seq` accepted under each key
-  - whether the primary is revoked
-  - every version it has seen marked unsafe
-- **It rejects** a feed without a valid signature from a trusted, unrevoked key, or with a `seq` below that key's stored `seq`. An equal `seq` is accepted only if the feed is byte-identical to the stored one. Every listed signature must verify under its indicated key. A feed signed by both keys passes the sequence check if either counted key passes its `seq` check, and it sets the stored `seq` of every key that validly signed it to `max(stored, feed.seq)`. `revokePrimary` other than 0 or 1 is rejected.
-- **Primary compromise.** `revokePrimary = 1` counts only with a valid backup signature, and then revokes the primary in that client for good. From then on only the backup counts until the next generation. So a primary-signed feed with a huge `seq` can't lock the backup out.
-- **Rotation.** `next` counts only with a valid backup signature of generation `g`. It moves the client to generation `g + 1` and its keys. Feeds for each generation are published side by side as `release-g<n>.bin`, so older binaries can still follow the chain forward.
-- **If the feed has expired**, or can't be fetched, the client warns "can't confirm envden is up to date" and doesn't block ordinary commands. An expired feed still applies `unsafe`, `revokePrimary` and `next`, which only tighten, but can't authorize a self-update.
-- **If the running version is marked unsafe**, push and pull stop. `envden config allow-version <version>` overrides this for that one version, and only from an interactive terminal.
-
-**Self-update** (script installs):
-1. Fetch and accept the feed. It must not have expired.
-2. Download the build for this platform and check its SHA-256 against the feed.
-3. Refuse anything that isn't newer than the running version, or that is marked unsafe.
-4. Swap the binary in atomically.
-
-Package-manager installs update through the manager, and the new binary then checks itself against the stored unsafe list.
-
+Daily checks cache their result in `~/.envden/state`. A failed lookup never blocks a command. Update integrity rests on GitHub and TLS. The server's signed `minClient` and the 426 verification rules in § 10 still enforce compatibility.

@@ -10,7 +10,7 @@ envden update --check
 envden update
 ```
 
-`--check` reports release state without installing. `update` uses the recorded install method. Package-manager installations delegate to Homebrew, npm, Scoop or winget. Script installations download a newer binary, verify its hash against the signed release feed, then replace it atomically.
+`--check` reports release state without installing. `update` uses the recorded install method. Package-manager installations delegate to Homebrew, npm, Scoop or winget. Script installations download a newer binary, verify its hash against `SHA256SUMS` from the same release tag, then replace it atomically.
 
 After installation, envden refreshes the shell notice and agent skill. It also restarts an installed laptop server service.
 
@@ -37,7 +37,7 @@ To require a higher minimum client version on a foreground server, use `envden s
 
 ## Control automatic checks
 
-Once a day, the CLI checks a signed release feed from GitHub Releases. It remembers the newest feed and unsafe versions to reject replayed release information. Setup asks about checks and defaults to on.
+Once a day, the CLI checks the latest stable GitHub release and caches the result locally. Setup asks about checks and defaults to on. Failed checks never block commands; status and doctor report them.
 
 ```sh
 envden config update-check off
@@ -45,11 +45,9 @@ envden config update-check off
 
 `ENVDEN_NO_UPDATE_CHECK=1` also disables automatic checks. Checks send only the HTTP request and are separate from [telemetry](/docs/telemetry).
 
-## Unsafe versions
+## Required updates
 
-The signed feed can mark a version unsafe. That version warns on every command and blocks push and pull until you update.
-
-If you choose to keep using that exact version, accept it in your own terminal with `envden config allow-version <version>`. A stale feed produces a warning.
+The server can require a newer client through its signed minimum version. A refused sync shows "update required" until you update. Download integrity rests on GitHub and TLS.
 
 ## Data migrations
 

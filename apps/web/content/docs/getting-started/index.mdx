@@ -19,7 +19,7 @@ curl -fsSL https://envden.theclau.de/install.sh | sh
 irm https://envden.theclau.de/install.ps1 | iex
 ```
 
-These scripts check the binary against `SHA256SUMS` over HTTPS. They don't verify the signed release feed. Later script-installed updates through `envden update` verify that feed.
+These scripts and later script-installed updates check the binary against `SHA256SUMS` from the same release. Integrity rests on GitHub and TLS.
 
 ### Homebrew
 

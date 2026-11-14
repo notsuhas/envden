@@ -48,7 +48,7 @@ scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
 scoop install notsuhas/envden
 ```
 
-Bootstrap scripts check SHA256SUMS over HTTPS; they do not verify the signed release feed.
+Bootstrap scripts check SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.
 
 The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
 

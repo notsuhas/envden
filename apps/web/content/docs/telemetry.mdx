@@ -34,4 +34,4 @@ They exclude raw errors, stack traces, Repo IDs, file names, key names, values, 
 
 The CLI sends events to PostHog using `fetch`. The PostHog project is configured to discard IP addresses and skip GeoIP, but PostHog still sees the connection's IP address.
 
-The [daily update check](/docs/updates#control-automatic-checks) is separate. It fetches a signed release feed from GitHub Releases and has its own setting.
+The [daily update check](/docs/updates#control-automatic-checks) is separate. It checks the latest stable GitHub release and has its own setting.

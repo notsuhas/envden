@@ -11,6 +11,6 @@ Commands call these functions directly. All receive the existing CLI adapters.
 
 `--yes` confirms clean merges, never checkout approval or conflicts. Sync only uses approved checkouts. Operations are serialized per device home. Results contain counts and paths, never values.
 
-Command integration: call `commandNotice(adapters, now, fetcher)` from `notice/command.ts` in the program's pre-action hook and print `repos` to stderr. `status --refresh-cache` already performs the remote refresh; shell adapters already detach that command after 60 seconds. The update check runs in `commandNotice`, respects config and environment opt-outs, and never blocks commands on feed failure.
+Command integration: call `commandNotice(adapters, now, fetcher)` from `notice/command.ts` in the program's pre-action hook and print `repos` to stderr. `status --refresh-cache` already performs the remote refresh; shell adapters already detach that command after 60 seconds. The update check runs in `commandNotice`, respects config and environment opt-outs, and never blocks commands on lookup failure.
 
 Aliasing a repo with placed files is refused. Run `envden untrack <path>` before assigning the alias so pulls and pushes cannot disagree about their store identity.
