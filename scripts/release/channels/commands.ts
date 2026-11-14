@@ -1,7 +1,10 @@
 import { spawnTrusted } from "@envden/core/process";
 
 export async function command(name: string, args: string[], cwd: string, diff = false) {
-  const child = spawnTrusted(name, args, { cwd });
+  const child = spawnTrusted(name, args, {
+    cwd,
+    env: { GH_TOKEN: process.env.GH_TOKEN, GH_REPO: process.env.GH_REPO },
+  });
 
   const [stdout, stderr, status] = await Promise.all([
     new Response(child.stdout).text(),

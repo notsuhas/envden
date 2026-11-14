@@ -50,6 +50,7 @@ jobs:
           docker run --rm -v "$PWD/apps/cli/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'apk add --no-cache libstdc++=14.2.0-r6; for args in "--version" "--help" "doctor --json"; do /dist/${{ matrix.smoke }} $args; done'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
+          overwrite: true
           name: binaries-${{ matrix.targets }}
           path: apps/cli/dist/envden-*
           if-no-files-found: error
@@ -111,24 +112,16 @@ jobs:
           path: release
       - name: Hash release builds
         run: bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: release-checksums
-          path: release/SHA256SUMS
-          if-no-files-found: error
-          overwrite: true
       - name: Check current release
         id: current
         run: bun scripts/release/current-release.ts
       - name: Publish release
         env:
           HIGHEST: ${{ steps.current.outputs.highest }}
+          IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" release/* --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes --latest="$HIGHEST"
-          fi
+          printf '%s\n' "$IMAGE_DIGEST" > release/IMAGE_DIGEST
+          bun scripts/release/publication/run.ts
   promote-image:
     if: github.event_name == 'push'
     needs: [publish, image]
@@ -157,8 +150,10 @@ jobs:
       - name: Promote release image
         env:
           IMAGE: ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden
-          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
+          gh release download "$GITHUB_REF_NAME" --pattern IMAGE_DIGEST --pattern SHA256SUMS --dir published
+          DIGEST=$(cat published/IMAGE_DIGEST)
+          if ! [[ "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then echo "Invalid published image digest" >&2; exit 1; fi
           version=${GITHUB_REF_NAME#v}
           tags=(-t "$IMAGE:$version")
           if [ "${{ steps.current.outputs.highest }}" = true ]; then
@@ -186,10 +181,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: release-checksums
-          path: npm-release
+      - name: Download published checksums
+        run: gh release download "$GITHUB_REF_NAME" --pattern SHA256SUMS --dir npm-release
       - id: current
         run: bun scripts/release/current-release.ts
       - name: Build the npm package from the release checksums
@@ -201,6 +194,10 @@ jobs:
           version=${GITHUB_REF_NAME#v}
           if npm view "envden@$version" version --json >version.json 2>npm-error; then
             node -e 'if (JSON.parse(require("fs").readFileSync("version.json", "utf8")) !== process.argv[1]) process.exit(1)' "$version"
+            mkdir npm-published
+            npm pack "envden@$version" --pack-destination npm-published
+            tar -xzf "npm-published/envden-$version.tgz" -C npm-published package/checksums.json
+            bun scripts/release/publication/npm.ts npm-published/package/checksums.json npm-release/SHA256SUMS
           elif grep -q 'E404' npm-error; then
             tag=backport
             if [ "${{ steps.current.outputs.highest }}" = true ]; then tag=latest; fi
@@ -236,11 +233,9 @@ jobs:
           repository: notsuhas/homebrew-tap
           ssh-key: ${{ secrets.ENVDEN_HOMEBREW_TAP_KEY }}
           path: homebrew-tap
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - name: Download published checksums
         if: steps.current.outputs.highest == 'true'
-        with:
-          name: release-checksums
-          path: homebrew-release
+        run: gh release download "$GITHUB_REF_NAME" --pattern SHA256SUMS --dir homebrew-release
       - name: Render the formula from the release checksums
         if: steps.current.outputs.highest == 'true'
         run: |
@@ -250,6 +245,48 @@ jobs:
         working-directory: homebrew-tap
         run: |
           git add Formula/envden.rb
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "envden ${GITHUB_REF_NAME#v}"
+          git push origin HEAD
+
+  scoop:
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - id: current
+        run: bun scripts/release/current-release.ts
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: steps.current.outputs.highest == 'true'
+        with:
+          repository: notsuhas/scoop-bucket
+          ssh-key: ${{ secrets.ENVDEN_SCOOP_BUCKET_KEY }}
+          path: scoop-bucket
+      - name: Download published checksums
+        if: steps.current.outputs.highest == 'true'
+        run: gh release download "$GITHUB_REF_NAME" --pattern SHA256SUMS --dir scoop-release
+      - name: Render the manifest from the release checksums
+        if: steps.current.outputs.highest == 'true'
+        run: |
+          bun --tsconfig-override scripts/tsconfig.json scripts/release/scoop-manifest.ts "${GITHUB_REF_NAME#v}" scoop-release/SHA256SUMS scoop-bucket/bucket/envden.json
+      - name: Push the manifest
+        if: steps.current.outputs.highest == 'true'
+        working-directory: scoop-bucket
+        run: |
+          git add bucket/envden.json
           if git diff --cached --quiet; then exit 0; fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "envden ${GITHUB_REF_NAME#v}"
           git push origin HEAD

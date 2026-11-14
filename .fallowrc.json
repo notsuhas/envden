@@ -4,7 +4,8 @@
   "entry": [
     "apps/cli/scripts/{build-all,e2e,smoke,targets}.ts",
     "tools/*/index.ts",
-    "scripts/release/{checksums,homebrew-formula,npm-package,publish-channels}.ts"
+    "scripts/release/{checksums,homebrew-formula,scoop-manifest,npm-package,publish-channels}.ts",
+    "scripts/release/publication/{run,npm}.ts"
   ],
   "rules": {
     "circular-dependencies": "error",

@@ -51,7 +51,7 @@ scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
 scoop install notsuhas/envden
 ```
 
-Scoop and winget are published manually and may lag a release.
+Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release.
 
 Bootstrap scripts check SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.
 
