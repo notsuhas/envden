@@ -160,3 +160,22 @@ test("final line terminators do not change key selection", () => {
 
   expect(clean("A=1\nB=2", "A=5\nB=2", "A=1")).toBe("A=5\n");
 });
+
+for (const newline of ["\n", "\r\n"])
+  for (const block of ["# moved", "# first\n# second"])
+    for (const side of ["local", "remote"])
+      test(`one-sided comment move merges cleanly: ${JSON.stringify(newline)} ${block} ${side}`, () => {
+        const base = `# moved-block\nA=1\nB=2\nC=3\n`
+          .replace("# moved-block", block)
+          .replaceAll("\n", newline);
+
+        const moved = `A=1\n# moved-block\nB=2\nC=3\n`
+          .replace("# moved-block", block)
+          .replaceAll("\n", newline);
+
+        const edited = base.replace("C=3", "C=4");
+
+        expect(
+          clean(base, side === "local" ? moved : edited, side === "local" ? edited : moved),
+        ).toBe(moved.replace("C=3", "C=4"));
+      });
