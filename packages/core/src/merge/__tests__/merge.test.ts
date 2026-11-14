@@ -84,17 +84,17 @@ describe("env merge", () => {
   });
 
   const conflicts = [
-    ["duplicate-key", "A=1\nA=2\n", "", ""],
-    ["unterminated-quote", "", "A='no", ""],
-    ["multiline-value", "", 'A="one\ntwo"\n', ""],
-    ["multiline-value", "", "A=one\\\ntwo\n", ""],
+    ["duplicate-key", "A=1\nA=2\n", "B=1\n", "C=1\n"],
+    ["unterminated-quote", "", "A='no", "B=1\n"],
+    ["multiline-value", "", 'A="one\ntwo"\n', "B=1\n"],
+    ["multiline-value", "", "A=one\\\ntwo\n", "B=1\n"],
     ["both-changed", "A=1\n", "A=2\n", "A=3\n"],
     ["delete-vs-edit", "A=1\n", "", "A=2\n"],
-    ["style-change", "A=1\n", "export A=1\n", "A=1\n"],
-    ["style-change", "A='1'\n", 'A="1"\n', "A='1'\n"],
+    ["style-change", "A=1\n", "export A=1\n", "A=2\n"],
+    ["style-change", "A='1'\n", 'A="1"\n', "A='2'\n"],
     ["comment-toggle-vs-edit", "A=1\n", "# A=1\n", "A=2\n"],
     ["both-changed", "# before\nA=1\n", "# after\nA=1\n", "# before\nA=2\n"],
-    ["unsupported-syntax", "", "source other.env\n", ""],
+    ["unsupported-syntax", "", "source other.env\n", "B=1\n"],
     ["layout-change", "A=1\n# old\n", "A=2\n# old\n", "A=1\n# new\n"],
   ];
 
@@ -136,4 +136,27 @@ describe("env merge", () => {
       expect(clean(base, base, changed)).toBe(changed);
     }
   });
+});
+
+test("a comment moved to different keys on both sides conflicts", () => {
+  expect(
+    merge("\nA=1\n# c0\nB=0\nC=1\n", "A=1\n\n# c0\nF=4\nB=0\nC=1\n", "\nA=1\nB=0\n# c0\nC=0\n"),
+  ).toEqual({ kind: "conflict", reason: "layout-change" });
+});
+
+test("equality shortcuts precede parsing and style checks", () => {
+  for (const changed of ['A="x\ny"\n', "A=1\nA=2\n", "\uFEFFA=2\n", "export A=2\n"]) {
+    expect(clean("A=1\n", "A=1\n", changed)).toBe(changed);
+    expect(clean("A=1\n", changed, "A=1\n")).toBe(changed);
+    expect(clean("A=1\n", changed, changed)).toBe(changed);
+  }
+});
+
+test("final line terminators do not change key selection", () => {
+  expect(merge("A=1\nB=2", "A=9\nB=2", "A=1\nB=2\nC=3")).toMatchObject({
+    kind: "clean",
+    changedKeys: ["A", "C"],
+  });
+
+  expect(clean("A=1\nB=2", "A=5\nB=2", "A=1")).toBe("A=5\n");
 });

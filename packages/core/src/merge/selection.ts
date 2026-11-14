@@ -1,3 +1,4 @@
+import { entryBytes } from "./entries/bytes.ts";
 import { equal } from "./bytes.ts";
 import type { IEnvEntry, TConflict } from "./types.ts";
 
@@ -7,10 +8,10 @@ export function selectEntry(
   mine: IEnvEntry | undefined,
   theirs: IEnvEntry | undefined,
 ): TConflict | { kind: "selected"; changed: boolean; entry?: IEnvEntry | undefined } {
-  const lc = !equal(original?.raw, mine?.raw);
-  const rc = !equal(original?.raw, theirs?.raw);
+  const lc = !equal(entryBytes(original), entryBytes(mine));
+  const rc = !equal(entryBytes(original), entryBytes(theirs));
 
-  if (lc && rc && equal(mine?.raw, theirs?.raw))
+  if (lc && rc && equal(entryBytes(mine), entryBytes(theirs)))
     return { kind: "selected", changed: true, entry: mine };
 
   if (styleChanged(original, mine) || styleChanged(original, theirs))
