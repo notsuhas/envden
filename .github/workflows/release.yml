@@ -4,8 +4,20 @@ on:
     tags: ["v*"]
 permissions:
   contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
 jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun scripts/release/check-tag.ts
   build:
+    needs: validate
     if: github.event_name == 'push'
     strategy:
       fail-fast: false
@@ -27,9 +39,6 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - name: Check tag version
-        shell: bash
-        run: bun -e 'if ("v" + (await Bun.file("apps/cli/package.json").json()).version !== process.env.GITHUB_REF_NAME || "v" + (await Bun.file("apps/server/package.json").json()).version !== process.env.GITHUB_REF_NAME) throw new Error("Tag/version mismatch")'
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.targets }}
         env:
           ENVDEN_TELEMETRY_KEY: ${{ vars.ENVDEN_TELEMETRY_KEY }}
@@ -102,21 +111,43 @@ jobs:
           path: release
       - name: Hash release builds
         run: bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
-      - name: Publish release
-        run: gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-checksums
           path: release/SHA256SUMS
           if-no-files-found: error
+          overwrite: true
+      - name: Check current release
+        id: current
+        run: bun scripts/release/current-release.ts
+      - name: Publish release
+        env:
+          HIGHEST: ${{ steps.current.outputs.highest }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes --latest="$HIGHEST"
+          fi
   promote-image:
     if: github.event_name == 'push'
     needs: [publish, image]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
+      contents: read
       packages: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
     steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - id: current
+        run: bun scripts/release/current-release.ts
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
@@ -129,7 +160,11 @@ jobs:
           DIGEST: ${{ needs.image.outputs.digest }}
         run: |
           version=${GITHUB_REF_NAME#v}
-          docker buildx imagetools create -t "$IMAGE:$version" -t "$IMAGE:${version%.*}" -t "$IMAGE:${version%%.*}" -t "$IMAGE:latest" "$IMAGE@$DIGEST"
+          tags=(-t "$IMAGE:$version")
+          if [ "${{ steps.current.outputs.highest }}" = true ]; then
+            tags+=(-t "$IMAGE:${version%.*}" -t "$IMAGE:${version%%.*}" -t "$IMAGE:latest")
+          fi
+          docker buildx imagetools create "${tags[@]}" "$IMAGE@$DIGEST"
 
   npm:
     if: github.event_name == 'push'
@@ -147,6 +182,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
+      - run: bun install --frozen-lockfile
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
@@ -154,11 +190,25 @@ jobs:
         with:
           name: release-checksums
           path: npm-release
+      - id: current
+        run: bun scripts/release/current-release.ts
       - name: Build the npm package from the release checksums
         run: |
           bun --tsconfig-override scripts/tsconfig.json scripts/release/npm-package.ts "${GITHUB_REF_NAME#v}" npm-release/SHA256SUMS npm-release/package
       # trusted publishing: npm exchanges the GitHub OIDC token, so no NPM_TOKEN secret
-      - run: npx -y npm@11.21.2 publish ./npm-release/package --access public
+      - name: Publish npm unless this version already exists
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          if npm view "envden@$version" version --json >version.json 2>npm-error; then
+            node -e 'if (JSON.parse(require("fs").readFileSync("version.json", "utf8")) !== process.argv[1]) process.exit(1)' "$version"
+          elif grep -q 'E404' npm-error; then
+            tag=backport
+            if [ "${{ steps.current.outputs.highest }}" = true ]; then tag=latest; fi
+            npx -y npm@11.21.2 publish ./npm-release/package --access public --tag "$tag"
+          else
+            cat npm-error >&2
+            exit 1
+          fi
 
   homebrew:
     if: github.event_name == 'push'
@@ -167,6 +217,9 @@ jobs:
     environment: release
     permissions:
       contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -174,19 +227,26 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - id: current
+        run: bun scripts/release/current-release.ts
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: steps.current.outputs.highest == 'true'
         with:
           repository: notsuhas/homebrew-tap
           ssh-key: ${{ secrets.ENVDEN_HOMEBREW_TAP_KEY }}
           path: homebrew-tap
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: steps.current.outputs.highest == 'true'
         with:
           name: release-checksums
           path: homebrew-release
       - name: Render the formula from the release checksums
+        if: steps.current.outputs.highest == 'true'
         run: |
           bun --tsconfig-override scripts/tsconfig.json scripts/release/homebrew-formula.ts "${GITHUB_REF_NAME#v}" homebrew-release/SHA256SUMS homebrew-tap/Formula/envden.rb
       - name: Push the formula
+        if: steps.current.outputs.highest == 'true'
         working-directory: homebrew-tap
         run: |
           git add Formula/envden.rb
