@@ -1,13 +1,15 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { linkCheckout } from "../../links/place.ts";
 import { pull, push } from "../engine.ts";
 import { resolveConflict } from "../resolve.ts";
 import { readBytes, writeBytes, basePath } from "../local/files.ts";
+
+const syncFixture = createSharedFixture();
 
 for (const [base, stored, copied, agreed] of [
   [true, "1", "1", "1"],

@@ -8,7 +8,9 @@ import { linkCheckout } from "../../links/place.ts";
 import { setupVault } from "../../vault/setup.ts";
 import { pushInitialFiles } from "../../vault/initial/push.ts";
 import { pull, push } from "../engine.ts";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
 
 for (const scenario of ["revert", "unpublished", "two copies"] as const)
   test(`copy push preserves edits: ${scenario}`, async () => {

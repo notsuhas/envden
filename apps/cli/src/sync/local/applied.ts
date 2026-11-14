@@ -8,7 +8,10 @@ export async function appliedFiles(home: string): Promise<Record<string, string>
 }
 
 export async function saveAppliedFiles(home: string, files: Record<string, string>): Promise<void> {
-  await atomicWrite(join(home, "state", "applied-files.json"), JSON.stringify(files));
+  const path = join(home, "state", "applied-files.json");
+  const bytes = JSON.stringify(files);
+  if ((await optionalRead(path)) === bytes) return;
+  await atomicWrite(path, bytes);
 }
 
 export async function hasAppliedEntry(home: string, entry: p.IFileEntry) {
