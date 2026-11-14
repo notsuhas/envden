@@ -22,7 +22,9 @@ export async function finishPairing(
   const expiresAt = stored === undefined ? now() + 86400000 : approvalDeadline(Number(stored));
 
   try {
-    if (stored !== undefined && now() < Number(stored)) await resendJoiner(adapters, client);
+    if (stored !== undefined && now() < Number(stored))
+      await resendJoiner(adapters, client, rejoin);
+
     await waitMessage(client, "/v1/pairing/approver", now, expiresAt);
     await resumeJoiner(adapters, client, identity, address, pin, rejoin);
   } catch (error) {

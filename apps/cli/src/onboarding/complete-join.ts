@@ -5,7 +5,6 @@ import { requireConfigured } from "../state/configured.ts";
 import { setupCheckouts } from "./scan.ts";
 import { firstRun } from "../sync/first-run.ts";
 import { input } from "../output/questions.ts";
-import { EnvdenError } from "@envden/core/errors";
 
 export async function completeJoin(
   adapters: TAdapters,
@@ -27,8 +26,8 @@ export async function completeJoin(
 }
 
 async function chooseFirstRun(path: string) {
-  const choice = await input(`${path}: keep-mine, take-server or merge?`);
-  if (choice === "keep-mine" || choice === "take-server" || choice === "merge") return choice;
-
-  throw new EnvdenError("INVALID_INPUT", "Unknown first-run choice");
+  while (true) {
+    const choice = await input(`${path}: keep-mine, take-server or merge?`);
+    if (choice === "keep-mine" || choice === "take-server" || choice === "merge") return choice;
+  }
 }

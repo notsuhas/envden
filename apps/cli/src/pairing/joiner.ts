@@ -1,3 +1,5 @@
+import { readIdentity } from "../identity/stored.ts";
+import { refuseCommittedJoin } from "./guard.ts";
 import { clearJoiner } from "./persistence/cleanup.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { withStateLock } from "../state/lock/lock.ts";
@@ -22,6 +24,13 @@ async function lockedexchangeJoiner(
   code: string,
   wait: (expiresAt: number) => Promise<void>,
 ): Promise<void> {
+  const rejoinKey = await adapters.keychain.get(`envden/${adapters.home}/rejoin/device`);
+
+  await refuseCommittedJoin(
+    adapters,
+    !!rejoinKey && p.equal(readIdentity(rejoinKey).record.id, identity.record.id),
+  );
+
   const normalized = p.normalizePairingCode(code);
   const start = await p.opaqueStartLogin(normalized.password);
   const expiresAt = await putSlot(client, normalized.mailbox, "KE1", start.startLoginRequest);
@@ -71,6 +80,7 @@ async function lockedresumeJoiner(
   pin: Uint8Array,
   rejoin = false,
 ) {
+  await refuseCommittedJoin(adapters, rejoin);
   const key = await adapters.keychain.get(`envden/${adapters.home}/pair-receive`);
 
   if (!key) throw new EnvdenError("NOT_FOUND", "No pairing exchange to resume");
@@ -141,7 +151,7 @@ export function resumeJoiner(...args: Parameters<typeof lockedresumeJoiner>) {
     } catch (error) {
       if (
         error instanceof EnvdenError &&
-        ["INVALID_DATA", "FORK", "UNAUTHORIZED"].includes(error.code)
+        ["INVALID_DATA", "FORK", "UNAUTHORIZED", "CONFLICT"].includes(error.code)
       )
         await clearJoiner(args[0]);
 
@@ -150,7 +160,8 @@ export function resumeJoiner(...args: Parameters<typeof lockedresumeJoiner>) {
   });
 }
 
-export async function resendJoiner(adapters: TAdapters, client: TClient) {
+export async function resendJoiner(adapters: TAdapters, client: TClient, rejoin = false) {
+  await refuseCommittedJoin(adapters, rejoin);
   const saved = await optionalRead(join(adapters.home, "state", "pair-joiner"));
   if (!saved) return;
   const value: unknown = JSON.parse(saved);

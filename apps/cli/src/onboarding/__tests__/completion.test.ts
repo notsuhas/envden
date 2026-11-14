@@ -155,3 +155,34 @@ test("interactive setup offers to host a server before credential entry", async 
     await f.close();
   }
 });
+
+test("first-run choice retries a typo before accepting an answer", async () => {
+  const { spyOn } = await import("bun:test");
+  const questions = await import("../../output/questions.ts");
+  const { completeJoin } = await import("../complete-join.ts");
+  const f = await fixture();
+
+  const prompt = spyOn(questions, "input")
+    .mockResolvedValueOnce("typo")
+    .mockResolvedValueOnce("keep-mine");
+
+  try {
+    const choices: string[] = [];
+
+    await completeJoin(f.first, f.now, {
+      setupCheckouts: async () => {},
+      setupPreferences: async () => {},
+      firstRun: async (_adapters, options) => {
+        choices.push(await options.choose(".env"));
+
+        return { kind: "pulled", changed: 0, conflicts: 0 };
+      },
+    });
+
+    expect(choices).toEqual(["keep-mine"]);
+    expect(prompt).toHaveBeenCalledTimes(2);
+  } finally {
+    prompt.mockRestore();
+    await f.close();
+  }
+});

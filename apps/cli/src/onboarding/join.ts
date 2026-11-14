@@ -1,3 +1,4 @@
+import { refuseCommittedJoin } from "../pairing/guard.ts";
 import { clearJoiner } from "../pairing/persistence/cleanup.ts";
 import { loadState } from "../state/store/repository.ts";
 import type { TPreferenceOptions } from "./preferences.ts";
@@ -27,6 +28,7 @@ async function lockedrunJoin(
   },
   now: () => number,
 ): Promise<void> {
+  await withStateLock(adapters.home, () => refuseCommittedJoin(adapters));
   const name = await defaultInput(options.name, "Device name");
 
   if (options.recoveryKit || options.recovery) {
