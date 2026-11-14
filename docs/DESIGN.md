@@ -211,7 +211,6 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 - Homebrew, `curl | sh`, `irm | iex`, npm (`npm i -g envden`), Scoop. Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
 - The static site CSP permits inline Next.js bootstrap scripts and component styles; scripts, search, fonts and images otherwise use the same origin.
 - Site `envden.theclau.de` for now, from one `SITE_URL` constant. LLM-friendly docs: `llms.txt`, `llms-full.txt`, raw markdown per page, comparison pages (vs Infisical, dotenv-vault, DotVeil), agent setup page.
-- 0.1.0 shipped as an alpha. Outstanding release validation is tracked in `packaging/README.md`.
 
 ## Not in v1
 
