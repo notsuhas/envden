@@ -83,13 +83,14 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 
 ### Pairing (join with a pairing code)
 
-- `envden device add` asks for the master password, then shows a code like `3-K7QF-2MXP`. The `3` is a public mailbox number; `K7QF-2MXP` (~40 bits, no lookalike characters) stays secret. Valid 10 minutes.
+- `envden device add` asks for the master password, then shows a code like `3-K7QF-2MXP`. The `3` is a public mailbox number; `K7QF-2MXP` (~40 bits, no lookalike characters) stays secret. Valid for at most 10 minutes, capped by each device even if the server advertises a longer window.
 - The new device runs `envden join <server>` and types the code. The two run OPAQUE through the server. The old device does OPAQUE registration with the code entirely locally and plays the OPAQUE server. It marks the code used before answering the first login attempt, answers only that one, and erases its state when it finishes or expires.
 - Pairing and unlock use different OPAQUE identifiers, since the library has no context parameter. The pairing identifiers include the server pin and mailbox number.
 - After login, one encrypted message each way, under a key per direction derived from the OPAQUE session key:
   - new → old: device name and public keys.
   - old asks "Add *throwbook*? [y/N]". On yes it commits the "add device" entry, which carries the new device's wrap of the current epoch key.
   - old → new: vault ID, server pin and the manifest that committed it, re-sent until it arrives. No keys travel in the channel; the new device verifies everything from the server against these, and never counts itself a member without this message.
+- Waiting for the other device does not hold the local state lock. A timeout preserves the join exchange for `envden join --resume`; approval retrieval has its separate 24-hour window.
 - The joiner aborts if the received pin doesn't match the server it dialled.
 - A bad server can only relay or block, and gets one live guess at the code against each side.
 - **Library**: `@serenity-kit/opaque`, pinned (at least 1.1.1 once published; it fixes a WASM memory leak on malformed input; until then, validate message shapes before calling it). It returns the session key on both sides and supports fully local registration (verified in the 1.1.0 type definitions). Audit coverage: NCC reviewed `opaque-ke` v0.5.0 against draft-03 (2021). 7ASecurity's audit of the wrapper ran in 2023, announced 2024, with the version not confirmed. 1.0.0 moved to `opaque-ke` 4.0.0, which its maintainers say matches RFC 9807. Re-check before release.
@@ -130,9 +131,9 @@ User-owned tool directories remain outside envden's control if the user personal
 - Pulled paths are validated: no `..`, no absolute paths, `lstat` before writing, no following symlinks out of the checkout.
 - Placement uses directory handles on macOS/Linux; Windows or unavailable FFI retains a parent-swap race after the final path check.
 - Monorepos: `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
-- Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias. `envden alias` also fixes renamed or moved repos.
+- Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias, only if no checkout of the fork already has placed files. `envden alias` also fixes renamed or moved repos.
 - **Link mode** (default): a symlink into the store. All links to one store file share one base.
-- **Copy mode**: real copies, each with its own base; push detects changes against it. Requires explicit consent when symlinks aren't available, and is offered once per checkout, interactively, when its root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`. `envden track --copy` selects it explicitly; `envden config placement <path> link|copy` saves the checkout preference.
+- **Copy mode**: real copies, each with its own base; push detects changes against it, including a revert to any earlier version. Requires explicit consent when symlinks aren't available, and is offered once per checkout, interactively, when its root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`. `envden track --copy` selects it explicitly; `envden config placement <path> link|copy` saves the checkout preference.
 - **Local only**: a checkout can mark a file as deliberately different (e.g. `PORT` per worktree). It becomes a copy that is never pushed or pulled, with no nagging.
 - **Detached checkouts**: if a link was replaced by a regular file (atomic save, `sed -i`, `cp .env.example .env`), envden relinks if the content matches the store or a version synced within the last 30 days. Otherwise it marks the checkout detached, keeps both versions, and asks on the next interactive command. Never silently. The shell line never does this.
 - Docker builds: docs show `.dockerignore` and BuildKit secret mounts. Copy mode is not recommended for builds.
@@ -141,6 +142,8 @@ User-owned tool directories remain outside envden's control if the user personal
 
 - Explicit only. `envden push` / `envden pull` in a checkout act on its repo; `--all` acts on everything in one manifest swap.
 - A push names the manifest head it was based on; the server rejects it if the head moved (compare-and-swap). Requests are retry-safe. Local operations on a store file are serialized with a lock.
+- Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote still requires `envden alias`. Cancelling a reconciliation prompt aborts the command.
+- A local file without a base conflicts with a server tombstone. Restoring it requires an explicit choice.
 - Pull never overwrites unpushed local edits: those go through merge. A backup is kept before any overwrite.
 - Each device keeps the ciphertext of files it uses, so it can repair a restored server for those repos. It never fetches other repos' files; their names come from the file list.
 - **Merge**: each entry is the raw bytes of one key's assignment (including its comments), compared as bytes, never as parsed values. The local file is the layout; keys added remotely go at the end in remote order. One-sided changes and identical local and remote files are accepted byte-for-byte before parsing, including unsupported syntax or style changes; key names are reported only when both base and result parse. Final line terminators do not count as key changes. Keys changed on one side merge. A comment block moved to different keys on both sides is a layout conflict. Anything ambiguous becomes a whole-file conflict: a key changed on both sides, delete vs edit, duplicate keys, unterminated quotes, multi-line values, `export` or quote-style changes, a comment toggled against an edit. Clean merges are shown (key names only) and confirmed. Property tests check that a one-sided change reproduces that side byte-for-byte.
@@ -165,6 +168,7 @@ User-owned tool directories remain outside envden's control if the user personal
 ## Setup
 
 - **Home lab first**: `docker run` with a Tailscale auth key and a data volume; the logs print a setup token. Then `envden setup` on a laptop: takes the token through stdin or a prompt (token flags remain available but are visible to other processes), pins the server, creates the vault (master password, recovery kit), asks about telemetry and update checks, offers the shell line and agent skill, discovers repos, asks you to approve them, links and pushes.
+- Re-running setup leaves existing edits for normal pull/push reconciliation. Initial-push recovery records bases only for this device's sequence-2 push when every included file still matches locally. A resumed creation must use the recovery kit issued for that pending vault.
 - **Laptop first**: `envden setup` finds no server and offers to run one here as a login service. Later `envden server move`.
 - **Other devices**: `envden join <server>` with a pairing code, or master password + recovery kit.
 - **Repo discovery**: walk the chosen scan roots (default: home folder; add or remove roots) for `.git` directories, skipping junk folders; list worktrees with `git worktree list`. Warns that macOS may ask for folder access. Shows repos with env files as a checklist to approve. Later, the shell line offers once to track a repo it missed.
