@@ -1,4 +1,4 @@
-import { Worker, parentPort, type MessagePort } from "node:worker_threads";
+import { Worker, parentPort, workerData, type MessagePort } from "node:worker_threads";
 import { run } from "../run.ts";
 import { fresh, shutdown } from "./world.ts";
 
@@ -11,12 +11,12 @@ export type TWorkerReply =
   | { kind: "result"; result: Awaited<ReturnType<typeof run>> }
   | { kind: "error"; message: string };
 
-export function createExplorationWorker() {
-  return new Worker(new URL(import.meta.url));
+export function createExplorationWorker(directory: string) {
+  return new Worker(new URL(import.meta.url), { workerData: directory });
 }
 
 async function serve(port: MessagePort) {
-  await fresh(["copy", "link"]);
+  await fresh(["copy", "link"], typeof workerData === "string" ? workerData : undefined);
   port.postMessage({ kind: "ready" } satisfies TWorkerReply);
 
   port.on("message", async (request: TWorkerRequest) => {

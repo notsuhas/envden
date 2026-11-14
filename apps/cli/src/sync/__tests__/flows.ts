@@ -13,8 +13,8 @@ import { pushInitialFiles } from "../../vault/initial/push.ts";
 import { saveState, loadState } from "../../state/store/repository.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 
-export async function syncFixture() {
-  const root = await mkdtemp(join(tmpdir(), "envden-sync-"));
+export async function syncFixture(directory?: string) {
+  const root = directory ?? (await mkdtemp(join(tmpdir(), "envden-sync-")));
   const now = () => 1800000000000;
   const log = spyOn(console, "log").mockImplementation(() => {});
   const { serve, fetcher } = testNetwork();

@@ -43,7 +43,10 @@ export function isolatedTrace<T>(run: () => Promise<T>) {
   return result;
 }
 
-export async function fresh(layout: readonly ("copy" | "link")[]): Promise<TWorld> {
+export async function fresh(
+  layout: readonly ("copy" | "link")[],
+  directory?: string,
+): Promise<TWorld> {
   const key = layout.join("+");
   const cached = snapshots.get(key);
 
@@ -63,12 +66,12 @@ export async function fresh(layout: readonly ("copy" | "link")[]): Promise<TWorl
     };
   }
 
-  return createFresh(layout, key);
+  return createFresh(layout, key, directory);
 }
 
-async function createFresh(layout: readonly ("copy" | "link")[], key: string) {
+async function createFresh(layout: readonly ("copy" | "link")[], key: string, directory?: string) {
   if (!f) {
-    f = await syncFixture();
+    f = await syncFixture(directory);
 
     originals = [f.first, f.second, f.third].map((a) => ({
       placement: a.placement,
