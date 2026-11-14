@@ -61,6 +61,13 @@ export async function linkFile(
   }
 
   await placement.place(store, destination);
+
+  if (placement.mode === "copy")
+    await writeBytes(
+      basePath(adapters.home, store, checkout.root) + ".unpublished",
+      await readBytes(store),
+    );
+
   state.links.push({ root: checkout.root, path, store, mode: placement.mode });
 }
 
@@ -113,6 +120,7 @@ async function copyBase(
 ) {
   if (mode !== "copy") return;
   await writeBytes(basePath(home, store, root), await readBytes(basePath(home, store)));
+  await writeBytes(basePath(home, store, root) + ".unpublished", await readBytes(store));
 }
 
 async function relinkExisting(

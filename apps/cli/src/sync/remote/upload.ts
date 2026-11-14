@@ -1,3 +1,4 @@
+import { hasAppliedEntry } from "../local/applied.ts";
 import { fileSizeNotice } from "../local/validation/size.ts";
 import { sealUpload } from "./seal.ts";
 import * as p from "@envden/core/protocol";
@@ -47,7 +48,8 @@ export async function uploadLink(
     previous &&
     (previous.state === 2 || previous.state === 4) &&
     bytes !== undefined &&
-    (await readBytes(base)) === undefined
+    (await readBytes(base)) === undefined &&
+    !(await hasAppliedEntry(context.adapters.home, previous))
   )
     throw new EnvdenError("CONFLICT", "Deleted file has no agreed base; resolve before pushing");
 

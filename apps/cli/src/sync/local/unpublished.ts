@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../remote/context.ts";
-import { basePath, readBytes, writeBytes } from "./files.ts";
+import { basePath, readBytes, writeBytes, same } from "./files.ts";
 import { recordConflict, backup } from "./conflicts.ts";
 
 export async function reconcileUnpublished(context: TSyncContext, repos: Set<string>) {
@@ -31,18 +31,38 @@ async function reconcileDetached(
   link: TSyncContext["state"]["links"][number],
   destination: string,
 ) {
-  if (link.mode === "copy") {
-    await backup(context.adapters.home, link.store, context.options.now());
-    await writeBytes(link.store, await readBytes(destination));
+  const base = basePath(
+    context.adapters.home,
+    link.store,
+    link.mode === "copy" ? link.root : undefined,
+  );
 
-    return 0;
+  const mine = await readBytes(destination);
+  const stored = await readBytes(link.store);
+  const previous = await readBytes(base + ".unpublished");
+
+  if (link.mode === "copy" && previous !== undefined) {
+    if (same(stored, previous) || same(mine, stored)) {
+      await backup(context.adapters.home, link.store, context.options.now());
+      await writeBytes(link.store, mine);
+      await writeBytes(base + ".unpublished", mine);
+
+      return 0;
+    }
+
+    if (same(mine, previous)) {
+      await context.adapters.placement(link.mode, link.root).place(link.store, destination);
+      await writeBytes(base + ".unpublished", stored);
+
+      return 0;
+    }
   }
 
   await recordConflict(
     context,
     {
       ...link,
-      base: basePath(context.adapters.home, link.store),
+      base,
     },
     await readBytes(destination),
     await readBytes(link.store),

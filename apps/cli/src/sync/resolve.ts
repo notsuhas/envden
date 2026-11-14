@@ -1,3 +1,4 @@
+import { markAppliedEntry } from "./local/applied.ts";
 import { rm } from "node:fs/promises";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { saveBase } from "./local/reconciliation/history.ts";
@@ -46,6 +47,7 @@ export function resolveConflict(
     if (!bytes) await removeResolvedLink(adapters.home, record.root, record.path);
 
     await saveBase(record.base, server, now);
+    await saveAgreement(adapters.home, record, bytes, now);
 
     await saveConflicts(
       adapters.home,
@@ -91,4 +93,14 @@ function matchesConflict(
     item.file === options.file ||
     resolve(options.file) === join(item.root, item.path)
   );
+}
+
+async function saveAgreement(
+  home: string,
+  record: Awaited<ReturnType<typeof conflictRecords>>[number],
+  bytes: Uint8Array | undefined,
+  now: number,
+) {
+  if (record.entry) await markAppliedEntry(home, record.entry);
+  else if (record.mode === "copy") await saveBase(record.base + ".unpublished", bytes, now);
 }

@@ -6,6 +6,7 @@ import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { readBytes, writeBytes } from "./files.ts";
 
 export interface IConflictRecord {
+  entry?: string;
   store: string;
   root: string;
   path: string;

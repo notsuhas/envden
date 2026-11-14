@@ -1,3 +1,5 @@
+import { hasAppliedEntry } from "../applied.ts";
+import { text } from "../../../client/encoding.ts";
 import { matchesBase } from "./history.ts";
 import { applyTarget } from "./placement.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
@@ -58,12 +60,18 @@ export async function reconcileTarget(
     previous: baseline,
     detached: target.mode === "link" && status === "detached",
     choosing: !!choose,
+    applied: await hasAppliedEntry(context.adapters.home, entry),
     tombstone: entry.state === 2 || entry.state === 4,
     repair: noFastForward.has(p.base32(entry.fileId)),
   });
 
   if (needsConflict(action.kind, !!choose, !!detachedChoice)) {
-    await recordConflict(context, { ...target, base }, mine, server);
+    await recordConflict(
+      context,
+      { ...target, base, entry: text(p.FileEntryCodec.write(entry)) },
+      mine,
+      server,
+    );
 
     if (action.kind === "repair-conflict")
       await consumeRepair(context.adapters.home, p.base32(entry.fileId));
@@ -85,7 +93,12 @@ export async function reconcileTarget(
         );
 
   if (resolution.kind === "conflict") {
-    await recordConflict(context, { ...target, base }, mine, server);
+    await recordConflict(
+      context,
+      { ...target, base, entry: text(p.FileEntryCodec.write(entry)) },
+      mine,
+      server,
+    );
 
     return { changed: 0, conflicts: 1 };
   }
