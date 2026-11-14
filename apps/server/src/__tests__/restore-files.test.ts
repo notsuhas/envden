@@ -35,7 +35,7 @@ test("file restoration validates encoding, hash and references before persisting
       .write(f.next(f.create.header, { filesHash: hash }).header),
   };
 
-  const headers = spyOn(f.storage, "headers").mockReturnValue([stored]);
+  const headers = spyOn(f.storage, "headersForFiles").mockReturnValue([stored]);
   const put = spyOn(f.storage, "putFileList");
 
   try {

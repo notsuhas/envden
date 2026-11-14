@@ -13,11 +13,26 @@ export function validateForCommit(options: IAppOptions, auth: IAuth, swap: ISwap
   if (!fileBytes) throw new EnvdenError("INVALID_DATA", "Missing head file list");
   const files = decode(FilesCodec, fileBytes);
 
-  const available = new Set(
-    [...files.entries, ...(swap.files?.entries ?? [])]
-      .filter((entry) => storage.hasBlob(vaultId, entry.blobHash))
+  const old = new Set(
+    files.entries
+      .filter((entry) => [1, 3].includes(entry.state))
       .map((entry) => base32(entry.blobHash)),
   );
+
+  const candidates =
+    swap.header.body.op === 11
+      ? [...files.entries, ...(swap.files?.entries ?? [])]
+      : (swap.files?.entries ?? []).filter((entry) => !old.has(base32(entry.blobHash)));
+
+  const available = new Set<string>();
+  const checked = new Set<string>();
+
+  for (const entry of candidates) {
+    const hash = base32(entry.blobHash);
+    if (checked.has(hash)) continue;
+    checked.add(hash);
+    if (storage.hasBlob(vaultId, entry.blobHash)) available.add(hash);
+  }
 
   const result = validateSwap(swap, {
     previous,

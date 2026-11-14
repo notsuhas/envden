@@ -26,7 +26,7 @@ export function vaultChain(storage: IStorageAdapter, vault: Uint8Array) {
   }
 
   const cached = cache.get(base32(vault));
-  if (cached?.head === base32(head)) return { header, state: cached.state };
+  if (cached?.head === base32(header.body.listHead)) return { header, state: cached.state };
 
   const result = verifyChain(
     storage
@@ -35,7 +35,7 @@ export function vaultChain(storage: IStorageAdapter, vault: Uint8Array) {
   );
 
   if (result.kind !== "valid") throw new EnvdenError("INVALID_DATA", "Invalid stored chain");
-  cache.set(base32(vault), { head: base32(head), state: result.state });
+  cache.set(base32(vault), { head: base32(header.body.listHead), state: result.state });
 
   return { header, state: result.state };
 }

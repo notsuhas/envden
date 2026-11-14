@@ -23,7 +23,7 @@ export function storeReport(options: IAppOptions, auth: IAuth, bytes: Uint8Array
     repairId: storage.vault(vaultId)!.restored!.finishProgress!,
     state: vaultChain(storage, vaultId).state,
     headerHashes: new Set(
-      storage.headers(vaultId, 1n, 0xffffffffffffffffn).map((h) => base32(h.hash)),
+      storage.header(vaultId, report.body.head) ? [base32(report.body.head)] : [],
     ),
   });
 

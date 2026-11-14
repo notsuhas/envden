@@ -20,9 +20,10 @@ export function restoreFiles(
   const files = input(() => decode(FilesCodec, bytes));
   if (!equal(H("files", bytes), hash)) throw new EnvdenError("INVALID_DATA", "Files hash mismatch");
 
-  const headers = options.storage
-    .headers(id, 1n, 0xffffffffffffffffn)
-    .map((h) => decode(signedCodec(ManifestHeaderCodec), h.bytes).body);
+  const headers = (
+    options.storage.headersForFiles?.(id, hash) ??
+    options.storage.headers(id, 1n, 0xffffffffffffffffn)
+  ).map((h) => decode(signedCodec(ManifestHeaderCodec), h.bytes).body);
 
   if (!headers.some((h) => equal(h.filesHash, hash)))
     throw new EnvdenError("INVALID_DATA", "Unreferenced files");
