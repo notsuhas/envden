@@ -6,7 +6,7 @@ import { createRcShellAdapter } from "../adapter.ts";
 import { powerShellProfile } from "../files/powershell-profile.ts";
 
 test("PowerShell profile resolution uses trusted runner and redirected Documents", () => {
-  const redirected = join(tmpdir(), "OneDrive", "Documents", "profile.ps1");
+  const redirected = join(tmpdir(), "OneDrive", "Documents", "Microsoft.PowerShell_profile.ps1");
   const calls: string[] = [];
 
   const path = powerShellProfile((name, args, options) => {
@@ -39,13 +39,13 @@ test("PowerShell profile resolution uses trusted runner and redirected Documents
   ).toBeUndefined();
 });
 
-test("PowerShell rejects profiles outside home and resolves once per adapter", () => {
+test("PowerShell validates profile paths and resolves once per adapter", () => {
   let calls = 0;
 
   const adapter = createRcShellAdapter("powershell", tmpdir(), undefined, undefined, () => {
     calls++;
 
-    return join(tmpdir(), "Documents", "profile.ps1");
+    return join(tmpdir(), "Documents", "Microsoft.PowerShell_profile.ps1");
   });
 
   expect(adapter.rcPath()).toBe(adapter.rcPath());
@@ -55,8 +55,8 @@ test("PowerShell rejects profiles outside home and resolves once per adapter", (
 
 test("PowerShell prefers an existing envden hook over the first executable", () => {
   const home = mkdtempSync(join(tmpdir(), "envden-profile-"));
-  const modern = join(home, "Documents", "PowerShell", "profile.ps1");
-  const legacy = join(home, "Documents", "WindowsPowerShell", "profile.ps1");
+  const modern = join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1");
+  const legacy = join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1");
 
   try {
     mkdirSync(join(home, "Documents", "WindowsPowerShell"), { recursive: true });
@@ -65,4 +65,17 @@ test("PowerShell prefers an existing envden hook over the first executable", () 
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
+});
+
+test("PowerShell accepts redirected profiles outside home and rejects unsafe output", () => {
+  const profile = join(tmpdir(), "redirected", "Microsoft.PowerShell_profile.ps1");
+  expect(powerShellProfile(() => profile, join(tmpdir(), "home"))).toBe(profile);
+
+  for (const path of [
+    "relative/Microsoft.PowerShell_profile.ps1",
+    profile.replace("redirected", "bad\u0000path"),
+    profile + "/extra",
+    profile.replace("redirected", "bad\tpath"),
+  ])
+    expect(powerShellProfile(() => path, join(tmpdir(), "home"))).toBeUndefined();
 });

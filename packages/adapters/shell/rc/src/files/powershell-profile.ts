@@ -1,7 +1,7 @@
 import { execTrustedSync } from "@envden/core/process";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, relative, join } from "node:path";
+import { isAbsolute, basename, join } from "node:path";
 import { start } from "../markers.ts";
 
 export function powerShellProfile(
@@ -17,16 +17,16 @@ export function powerShellProfile(
         shell,
         ["-NoProfile", "-NonInteractive", "-Command", "$PROFILE.CurrentUserCurrentHost"],
         { timeout: 5000 },
-      ).trim();
-
-      const within = relative(home, path);
+      ).replace(/\r?\n$/, "");
 
       if (
         isAbsolute(path) &&
-        within &&
-        !within.startsWith("..") &&
-        !isAbsolute(within) &&
-        !/[\r\n]/.test(path)
+        basename(path) === "Microsoft.PowerShell_profile.ps1" &&
+        !Array.from(path).some((character) => {
+          const code = character.charCodeAt(0);
+
+          return code < 32 || (code >= 127 && code <= 159);
+        })
       )
         candidates.push(path);
     } catch {
