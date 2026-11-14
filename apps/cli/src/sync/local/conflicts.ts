@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
 import { sha256, base32 } from "@envden/core/protocol";
 import { join } from "node:path";
@@ -6,7 +7,9 @@ import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { readBytes, writeBytes } from "./files.ts";
 
 export interface IConflictRecord {
-  entry?: string;
+  alternatives: string[];
+  targets: TSyncContext["state"]["links"];
+  entry: string | null;
   store: string;
   root: string;
   path: string;
@@ -20,18 +23,32 @@ export interface IConflictRecord {
 }
 
 export async function conflictRecords(home: string): Promise<IConflictRecord[]> {
-  return JSON.parse((await optionalRead(join(home, "state", "conflicts.json"))) ?? "[]");
+  const saved = await optionalRead(join(home, "state", "conflicts.json"));
+  if (saved === undefined) return [];
+  const document: { model: string; records: IConflictRecord[] } = JSON.parse(saved);
+
+  if (document.model !== "shared-store" || !Array.isArray(document.records))
+    throw new EnvdenError("INVALID_DATA", "Invalid local conflict state");
+
+  return document.records;
 }
 
 export async function saveConflicts(home: string, records: IConflictRecord[]): Promise<void> {
-  await atomicWrite(join(home, "state", "conflicts.json"), JSON.stringify(records));
+  await atomicWrite(
+    join(home, "state", "conflicts.json"),
+    JSON.stringify({ model: "shared-store", records }),
+  );
 }
 
 export async function recordConflict(
   context: TSyncContext,
-  target: Omit<IConflictRecord, "file" | "server" | "mine" | "deleted" | "mineDeleted">,
+  target: Omit<
+    IConflictRecord,
+    "file" | "server" | "mine" | "deleted" | "mineDeleted" | "alternatives"
+  >,
   mine: Uint8Array | undefined,
   server: Uint8Array | undefined,
+  variants: (Uint8Array | undefined)[] = [],
 ): Promise<void> {
   const records = await conflictRecords(context.adapters.home);
 
@@ -46,7 +63,17 @@ export async function recordConflict(
   await writeBytes(file + ".server", server);
   await writeBytes(file + ".mine", mine);
 
+  const alternatives: string[] = [];
+
+  for (const [index, bytes] of variants.entries()) {
+    if (bytes === undefined) continue;
+    const path = file + `.variant-${index}`;
+    await writeBytes(path, bytes);
+    alternatives.push(path);
+  }
+
   records.push({
+    alternatives,
     ...target,
     file,
     server: file + ".server",

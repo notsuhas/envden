@@ -8,12 +8,12 @@ import { sanitizeTerminal } from "../../output/sanitize.ts";
 import * as p from "@envden/core/protocol";
 import { text } from "../../client/encoding.ts";
 import type { TSyncContext } from "../remote/context.ts";
-import { basePath, readBytes } from "./files.ts";
+
 import { storePath } from "../../store/path.ts";
-import { entryName, entryContent } from "../remote/content.ts";
+import { entryName } from "../remote/content.ts";
 import { appliedFiles, saveAppliedFiles } from "./applied.ts";
 import { reconciliationTargets } from "./reconciliation/targets.ts";
-import { reconcileTarget } from "./reconciliation/target.ts";
+import { reconcileFile } from "./reconciliation/file.ts";
 
 export async function reconcile(
   context: TSyncContext,
@@ -23,9 +23,10 @@ export async function reconcile(
 ) {
   const applied = await appliedFiles(context.adapters.home);
   const rules = (await readConfig(context.adapters.home))["env-files"];
-  let conflicts = await reconcileUnpublished(context, repos);
+  const unpublished = await reconcileUnpublished(context, repos);
+  let conflicts = unpublished.conflicts;
   let changed = 0;
-  const failedStores = new Set<string>();
+  const failedStores = unpublished.failedStores;
 
   const collisions = await collisionEntries(context, repos);
 
@@ -41,30 +42,16 @@ export async function reconcile(
       continue;
     }
 
-    const targets = await reconciliationTargets(context, repos, name, store);
-    if (!targets.length) continue;
-    const server = await serverContent(context, entry, targets[0]!, store, applied);
-
-    for (const target of targets) {
-      try {
-        const result = await reconcileTarget(
-          context,
-          target,
-          store,
-          server,
-          entry,
-          name,
-          noFastForward,
-          choose,
-        );
-
-        changed += result.changed;
-        conflicts += result.conflicts;
-      } catch (error) {
-        reportPlacementFailure(context, target.path, error);
-        failedStores.add(store);
-        conflicts++;
-      }
+    try {
+      const targets = await reconciliationTargets(context, repos, name, store);
+      if (!targets.length) continue;
+      const result = await reconcileFile(context, targets, store, entry, noFastForward, choose);
+      changed += result.changed;
+      conflicts += result.conflicts;
+    } catch (error) {
+      reportPlacementFailure(context, name.path, error);
+      failedStores.add(store);
+      conflicts++;
     }
 
     if (conflicts === beforeConflicts)
@@ -76,29 +63,6 @@ export async function reconcile(
   await saveAppliedFiles(context.adapters.home, applied);
 
   return { changed, conflicts, failedStores };
-}
-
-async function serverContent(
-  context: TSyncContext,
-  entry: p.IFileEntry,
-  first: TSyncContext["state"]["links"][number],
-  store: string,
-  applied: Awaited<ReturnType<typeof appliedFiles>>,
-) {
-  const unchanged = applied[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry));
-
-  const baseline = unchanged
-    ? await readBytes(
-        basePath(context.adapters.home, store, first.mode === "copy" ? first.root : undefined),
-      )
-    : undefined;
-
-  const server =
-    unchanged && (baseline !== undefined || entry.state === 2 || entry.state === 4)
-      ? baseline
-      : await entryContent(context, entry);
-
-  return server;
 }
 
 function report(context: TSyncContext, message: string) {

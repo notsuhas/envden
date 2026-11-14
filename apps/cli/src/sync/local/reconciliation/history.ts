@@ -10,6 +10,12 @@ function historyPath(base: string, bytes: Uint8Array) {
 export async function saveBase(base: string, server: Uint8Array | undefined, now: number) {
   const previous = await readBytes(base);
 
+  if (same(previous, server)) {
+    await pruneHistory(base, now);
+
+    return;
+  }
+
   if (previous) {
     const path = historyPath(base, previous);
     await writeBytes(path, previous);

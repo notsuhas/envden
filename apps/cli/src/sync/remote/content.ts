@@ -3,6 +3,7 @@ import { EnvdenError } from "@envden/core/errors";
 import { join } from "node:path";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
+import { readBytes } from "../local/files.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 
 export function entryName(context: TSyncContext, entry: p.IFileEntry) {
@@ -22,11 +23,17 @@ export async function entryContent(
   if (entry.state === 2 || entry.state === 4) return undefined;
   const name = entryName(context, entry);
 
-  const box = new Uint8Array(
-    await (
-      await context.client.rpc.v1.blobs[":hash"].$get({ param: { hash: text(entry.blobHash) } })
-    ).arrayBuffer(),
+  const cached = await readBytes(
+    join(context.adapters.home, "state", "blobs", text(entry.blobHash)),
   );
+
+  const box =
+    cached ??
+    new Uint8Array(
+      await (
+        await context.client.rpc.v1.blobs[":hash"].$get({ param: { hash: text(entry.blobHash) } })
+      ).arrayBuffer(),
+    );
 
   const value = p.openFile(
     box,
@@ -37,7 +44,8 @@ export async function entryContent(
     name,
   );
 
-  await atomicWrite(join(context.adapters.home, "state", "blobs", text(entry.blobHash)), box);
+  if (!cached)
+    await atomicWrite(join(context.adapters.home, "state", "blobs", text(entry.blobHash)), box);
 
   return value.content;
 }

@@ -35,10 +35,19 @@ for (const [base, stored, copied, agreed] of [
       await linkCheckout(f.first, state, copy, async () => true, true);
       await saveState(f.first.home, state);
       const store = state.links.find((link) => link.path === ".env.new")!.store;
-      if (!base) await rm(basePath(f.first.home, store, copy.root) + ".unpublished");
+      if (!base) await rm(basePath(f.first.home, store, copy.root));
       await writeBytes(store, portContent(stored));
       await atomicWrite(join(copy.root, ".env.new"), `PORT=${copied}\n`);
       const result = await pull(f.first, f.opts);
+
+      if (base && stored === undefined) {
+        expect(result.conflicts).toBe(0);
+        expect(await readBytes(store)).toBeUndefined();
+        expect(await readBytes(join(copy.root, ".env.new"))).toBeUndefined();
+
+        return;
+      }
+
       expect(result.conflicts > 0).toBe(agreed === undefined);
       expect(await readBytes(store)).toEqual(portContent(agreed ?? stored));
       expect(await Bun.file(join(copy.root, ".env.new")).text()).toBe(`PORT=${agreed ?? copied}\n`);

@@ -140,6 +140,16 @@ User-owned tool directories remain outside envden's control if the user personal
 
 ## Sync
 
+A device must leave its current vault before pairing with another. There is no leave/reset command yet: back up env files, remove the local envden home, then join. Remove the old device from the old vault separately.
+
+### One file on one device
+
+- The server entry is live content, a tombstone, or absent. The device separately records the entry it applied; its decrypted content comes from the local blob cache, never a target's base.
+- There is one shared store file and N targets. A link's content is the store itself; a copy has its own bytes and a base last agreed with the store.
+- Decide once for all targets before writing. A one-place edit propagates; distinct edits conflict. The store never moves backwards without a user choice, and a copy base advances only after copy and store agree.
+- Keep one conflict per file, with recorded mine and theirs. Resolution uses those saved bytes and settles every target. Preserve other versions in reported backups before replacing them.
+- Repeating pull changes nothing. Unpublished files have no server base. After an applied deletion, tracking an old worktree's surviving env file is a deliberate re-add and publishes it again.
+
 - Explicit only. `envden push` / `envden pull` in a checkout act on its repo; `--all` acts on everything in one manifest swap.
 - A push names the manifest head it was based on; the server rejects it if the head moved (compare-and-swap). Requests are retry-safe. Local operations on a store file are serialized with a lock.
 - Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote still requires `envden alias`. Cancelling a reconciliation prompt aborts the command.

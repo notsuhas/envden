@@ -1,3 +1,5 @@
+import { markAppliedEntry } from "../local/applied.ts";
+import { text } from "../../client/encoding.ts";
 import { test, expect } from "bun:test";
 import { join } from "node:path";
 import { cp, readFile, mkdir } from "node:fs/promises";
@@ -7,7 +9,7 @@ import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { syncContext } from "../remote/context.ts";
 import { sealUpload } from "../remote/seal.ts";
-import { reconcileTarget } from "../local/reconciliation/target.ts";
+import { reconcileFile } from "../local/reconciliation/file.ts";
 import { conflictRecords } from "../local/conflicts.ts";
 import { saveBase } from "../local/reconciliation/history.ts";
 import { basePath } from "../local/files.ts";
@@ -49,24 +51,27 @@ for (const detached of [true, false])
         await atomicWrite(join(checkout.root, ".env.example"), detached ? "SECRET=example\n" : old);
         await cp(join(checkout.root, ".env.example"), join(checkout.root, ".env"));
 
-        const entry = await sealUpload(
+        const applied = await sealUpload(
           context,
           checkout.repoId,
           ".env",
           p.fileId(context.checkpoint.idKey, checkout.repoId, ".env"),
           undefined,
+          old,
+        );
+
+        await markAppliedEntry(f.first.home, text(p.FileEntryCodec.write(applied)));
+
+        const entry = await sealUpload(
+          context,
+          checkout.repoId,
+          ".env",
+          p.fileId(context.checkpoint.idKey, checkout.repoId, ".env"),
+          applied,
           server,
         );
 
-        const result = await reconcileTarget(
-          context,
-          target,
-          store,
-          server,
-          entry,
-          { path: ".env" },
-          new Set(),
-        );
+        const result = await reconcileFile(context, [target], store, entry, new Set());
 
         expect(result.conflicts).toBe(detached ? 1 : 0);
         expect(await readFile(store, "utf8")).toBe(detached ? "SECRET=old\n" : "SECRET=remote\n");
@@ -122,13 +127,11 @@ test.if(process.platform !== "win32")(
           server,
         );
 
-        const action = reconcileTarget(
+        const action = reconcileFile(
           context,
-          { root: checkout.root, path, store, mode: "link" },
+          [{ root: checkout.root, path, store, mode: "link" }],
           store,
-          server,
           entry,
-          { path },
           new Set(),
         );
 

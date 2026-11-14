@@ -1,3 +1,4 @@
+import { saveState } from "../../state/store/repository.ts";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm, symlink, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -103,7 +104,7 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
 });
 
 for (const choice of ["keep-mine", "take-server", "edit"] as const) {
-  test(`resolve ${choice} keeps the server base and clears only its conflict`, async () => {
+  test(`resolve ${choice} uses recorded snapshots and clears its conflict`, async () => {
     const home = await mkdtemp(join(tmpdir(), "envden-resolve-"));
 
     const adapters = createAdapters({
@@ -133,8 +134,16 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
       await atomicWrite(server, "KEY=remote\n");
       await atomicWrite(file + ".mine", "KEY=mine\n");
 
+      const state = emptyState("test");
+      state.approved.push({ root: checkout, gitDir: join(checkout, ".git"), repoId: "host/repo" });
+      state.links.push({ root: checkout, path: ".env", store, mode: "copy" });
+      await saveState(home, state);
+
       await saveConflicts(home, [
         {
+          entry: null,
+          alternatives: [],
+          targets: [{ root: checkout, path: ".env", store, mode: "copy" }],
           store,
           root: checkout,
           path: ".env",
@@ -164,11 +173,11 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
         choice === "take-server"
           ? "KEY=remote\n"
           : choice === "keep-mine"
-            ? "unrelated checkout bytes"
+            ? "KEY=mine\n"
             : "KEY=edited\n",
       );
 
-      expect(new TextDecoder().decode(await readBytes(base))).toBe("KEY=remote\n");
+      expect(await readBytes(base)).toBeUndefined();
       expect(await conflictRecords(home)).toEqual([]);
 
       for (const path of [file, server, file + ".mine"])

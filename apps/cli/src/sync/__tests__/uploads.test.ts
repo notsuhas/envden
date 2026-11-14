@@ -54,7 +54,7 @@ test("two copies of one store upload one blob and retain both bases", async () =
   }
 });
 
-test("an already applied entry reuses its base without downloading its blob", async () => {
+test("an applied entry uses its cached blob and refetches a missing cache", async () => {
   const { mkdir, rm } = await import("node:fs/promises");
   const { createFakeRepoAdapter } = await import("@envden/testing/repo");
   const { sealUpload } = await import("../remote/seal.ts");
@@ -104,9 +104,11 @@ test("an already applied entry reuses its base without downloading its blob", as
     await rm(join(f.first.home, "state", "blobs", text(entry.blobHash)));
     await reconcile(context, new Set(["repo"]), new Set());
     expect(downloads).toBe(1);
-    await rm(join(f.first.home, "state", "blobs", text(entry.blobHash)), { force: true });
     await reconcile(context, new Set(["repo"]), new Set());
     expect(downloads).toBe(1);
+    await rm(join(f.first.home, "state", "blobs", text(entry.blobHash)), { force: true });
+    await reconcile(context, new Set(["repo"]), new Set());
+    expect(downloads).toBe(2);
   } finally {
     await f.close();
   }
