@@ -16,15 +16,11 @@ test("process identity is observable without GNU ps", async () => {
 });
 
 test("only proven death or a different observed start permits reclaim", () => {
-  const previous = { pid: 123, token: "owner", startedAt: "first", identity: "host" };
+  const previous = { pid: 123, token: "owner", startedAt: "first", identity: "host", createdAt: 0 };
   expect(reclaimable(previous, { kind: "unknown" }, "host")).toBe(false);
   expect(reclaimable(previous, { kind: "live", startedAt: "first" }, "host")).toBe(false);
   expect(reclaimable(previous, { kind: "live", startedAt: "second" }, "host")).toBe(true);
   expect(reclaimable(previous, { kind: "dead" }, "host")).toBe(true);
-
-  expect(reclaimable({ pid: 123, token: "legacy" }, { kind: "live", startedAt: "first" })).toBe(
-    false,
-  );
 });
 
 test("Linux reads proc starttime even when ps is unavailable", async () => {

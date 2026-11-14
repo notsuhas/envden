@@ -1,4 +1,3 @@
-import { cleanupReleaseState } from "./updates/cache.ts";
 import { recordUpdateRequired, withUpdateStatus } from "./updates/status.ts";
 import { createAdapters } from "./adapters.ts";
 import { withTerminalErrors } from "./output/errors.ts";
@@ -9,7 +8,6 @@ import { createProgram } from "./program.ts";
 
 async function runCli() {
   try {
-    await cleanupReleaseState(createAdapters().home);
     await withUpdateStatus(createAdapters().home, () => createProgram().parseAsync());
   } catch (error) {
     if (isEnvdenError(error) && error.code === "CLIENT_TOO_OLD")

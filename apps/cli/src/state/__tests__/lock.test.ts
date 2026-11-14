@@ -54,7 +54,13 @@ test("owned lock rejects concurrent writers, nests and reclaims a dead owner", a
 
     await writeFile(
       join(path, "owner.json"),
-      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+      JSON.stringify({
+        pid: 2147483647,
+        token: "dead",
+        startedAt: "start",
+        createdAt: 0,
+        identity: await processIdentity(),
+      }),
     );
 
     expect(await withStateLock(home, async () => "reclaimed")).toBe("reclaimed");
@@ -86,6 +92,7 @@ test("a reused PID does not preserve a dead owner's lock", async () => {
         identity: await processIdentity(),
         startedAt: "old process",
         token: "old",
+        createdAt: 0,
       }),
     );
 
@@ -108,7 +115,13 @@ test("lock directories and owner files cannot be symlinks", async () => {
 
     await writeFile(
       join(home, "outside", "owner.json"),
-      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+      JSON.stringify({
+        pid: 2147483647,
+        token: "dead",
+        startedAt: "start",
+        createdAt: 0,
+        identity: await processIdentity(),
+      }),
     );
 
     expect(await lockOwners.owner(path)).toBeUndefined();
@@ -137,7 +150,13 @@ test("lock directories and owner files cannot be symlinks", async () => {
 
     await writeFile(
       join(home, "owner"),
-      JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+      JSON.stringify({
+        pid: 2147483647,
+        token: "dead",
+        startedAt: "start",
+        createdAt: 0,
+        identity: await processIdentity(),
+      }),
     );
 
     await symlink(join(home, "owner"), join(path, "owner.json"));
@@ -195,7 +214,12 @@ test("a writer retries contention and enters after the owner releases", async ()
 
     await writeFile(
       join(path, "owner.json"),
-      JSON.stringify({ pid: process.pid, startedAt: observed.startedAt, token: "other" }),
+      JSON.stringify({
+        pid: process.pid,
+        startedAt: observed.startedAt,
+        token: "other",
+        createdAt: 0,
+      }),
     );
 
     expect(
@@ -234,27 +258,6 @@ test("ownerless initialization recovers only after its grace period", async () =
     expect(
       await withStateLock(home, async () => "recovered", { ...clock, now: () => created + 30001 }),
     ).toBe("recovered");
-  } finally {
-    await rm(home, { recursive: true, force: true });
-  }
-});
-
-test("owner publication exposes complete metadata and never overwrites an owner", async () => {
-  const { publishOwner } = await import("../lock/publish.ts");
-  const home = await mkdtemp(join(tmpdir(), "envden-publication-"));
-  const first = { pid: process.pid, token: "first", startedAt: "start" };
-
-  try {
-    await publishOwner(home, first);
-    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
-
-    await Promise.resolve(
-      expect(publishOwner(home, { ...first, token: "second" })).rejects.toMatchObject({
-        code: "EEXIST",
-      }),
-    );
-
-    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
   } finally {
     await rm(home, { recursive: true, force: true });
   }

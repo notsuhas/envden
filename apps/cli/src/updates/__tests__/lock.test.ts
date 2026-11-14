@@ -16,6 +16,7 @@ test("update reclaims a prior boot's lock without waiting a day", async () => {
       JSON.stringify({
         pid: process.pid,
         token: "prior",
+        startedAt: "prior-start",
         identity: "previous-boot",
         createdAt: Number.MAX_SAFE_INTEGER,
       }),

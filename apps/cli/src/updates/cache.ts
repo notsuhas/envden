@@ -1,12 +1,7 @@
-import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { parseSemver } from "@envden/core/protocol";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import type { IUpdateCache } from "./check.ts";
-
-export async function cleanupReleaseState(home: string) {
-  await rm(join(home, "state", "releases.json"), { force: true });
-}
 
 export async function readUpdateCache(home: string): Promise<IUpdateCache> {
   try {

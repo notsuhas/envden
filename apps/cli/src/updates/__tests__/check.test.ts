@@ -7,7 +7,7 @@ import { createAdapters } from "../../adapters.ts";
 import { latestRelease, RELEASE_REPOSITORY } from "../github.ts";
 import { checkRelease, type IUpdateCache } from "../check.ts";
 import { runUpdateCheck } from "../run.ts";
-import { readUpdateCache, cleanupReleaseState } from "../cache.ts";
+import { readUpdateCache } from "../cache.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import type { TFetch } from "../../client/fetch.ts";
 
@@ -115,9 +115,6 @@ for (const optOut of ["config", "env", "none"])
       await runUpdateCheck(adapters, 11, false, fetcher);
       expect(calls).toBe(optOut === "none" ? 1 : 0);
       expect((await readUpdateCache(home)).latest).toBe(optOut === "none" ? "1.2.3" : undefined);
-      await atomicWrite(join(home, "state", "releases.json"), "obsolete");
-      await cleanupReleaseState(home);
-      expect(await Bun.file(join(home, "state", "releases.json")).exists()).toBe(false);
     } finally {
       if (before === undefined) delete process.env.ENVDEN_NO_UPDATE_CHECK;
       else process.env.ENVDEN_NO_UPDATE_CHECK = before;

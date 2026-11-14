@@ -7,6 +7,27 @@ import { EnvdenError } from "@envden/core/errors";
 import type { ILocalState } from "../model.ts";
 import { atomicWrite, optionalRead, privateDirectory } from "./files.ts";
 
+const stateKeys = new Set([
+  "format",
+  "verifiedState",
+  "aliasAsked",
+  "deviceName",
+  "vaultId",
+  "creationPending",
+  "server",
+  "checkpoint",
+  "headerRefs",
+  "entries",
+  "keyring",
+  "files",
+  "session",
+  "approved",
+  "links",
+  "aliases",
+  "telemetry",
+  "updateCheck",
+]);
+
 function replacer(_key: string, value: unknown): unknown {
   if (value instanceof Map) return { $map: [...value] };
   if (value instanceof Set) return { $set: [...value] };
@@ -49,31 +70,34 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
   if (text === undefined) return undefined;
 
   try {
-    const value: ILocalState & { headerRefs?: string[] } = JSON.parse(text, reviver);
-
-    if (Array.isArray(value.headerRefs)) {
-      value.headers = await restoreHeaders(home, value.headerRefs);
-      delete value.headerRefs;
-    }
+    const value: Omit<ILocalState, "headers"> & { headerRefs: string[] } = JSON.parse(
+      text,
+      reviver,
+    );
 
     if (
       value.format !== 1 ||
-      !Array.isArray(value.headers) ||
+      !Array.isArray(value.headerRefs) ||
       !Array.isArray(value.entries) ||
       !Array.isArray(value.approved) ||
       !Array.isArray(value.links) ||
-      typeof value.deviceName !== "string"
+      typeof value.deviceName !== "string" ||
+      !value.aliases ||
+      typeof value.aliases !== "object" ||
+      Array.isArray(value.aliases) ||
+      typeof value.telemetry !== "boolean" ||
+      typeof value.updateCheck !== "boolean" ||
+      Object.keys(value).some((key) => !stateKeys.has(key))
     )
       throw new Error("Invalid state");
 
-    Reflect.deleteProperty(value, "release");
-    Reflect.deleteProperty(value, "lastFeedCheck");
-    delete value.latest;
+    const { headerRefs, ...record } = value;
+    const state: ILocalState = { ...record, headers: await restoreHeaders(home, headerRefs) };
     const latest = (await readUpdateCache(home)).latest;
-    if (latest) value.latest = latest;
-    await restorePlacement(home, value);
+    if (latest) state.latest = latest;
+    await restorePlacement(home, state);
 
-    return value;
+    return state;
   } catch (cause) {
     throw new EnvdenError("INVALID_DATA", "Unreadable local state", { cause });
   }

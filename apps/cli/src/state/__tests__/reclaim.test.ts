@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, rename, rm, writeFile, readFile } from "node:fs/promise
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { reclaimLock } from "../lock/reclaim.ts";
-import { reclaimable } from "../lock/owner.ts";
+import { reclaimable, owner } from "../lock/owner.ts";
 
 test("a suspended reclaimer preserves the replacement owner", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-race-"));
@@ -13,13 +13,21 @@ test("a suspended reclaimer preserves the replacement owner", async () => {
 
   try {
     await mkdir(path);
-    await writeFile(join(path, "owner.json"), JSON.stringify({ pid: 123, token: "old" }));
+
+    await writeFile(
+      join(path, "owner.json"),
+      JSON.stringify({ pid: 123, token: "old", startedAt: "start", createdAt: 0 }),
+    );
 
     expect(
       await reclaimLock(path, "old", 100, async () => {
         await rename(path, join(home, "old"));
         await mkdir(path);
-        await writeFile(join(path, "owner.json"), JSON.stringify({ pid: 124, token: "new" }));
+
+        await writeFile(
+          join(path, "owner.json"),
+          JSON.stringify({ pid: 124, token: "new", startedAt: "start", createdAt: 0 }),
+        );
       }),
     ).toBe(false);
 
@@ -30,7 +38,14 @@ test("a suspended reclaimer preserves the replacement owner", async () => {
 });
 
 test("foreign namespaces use age even when their PID looks dead", () => {
-  const previous = { pid: 123, token: "owner", identity: "container", createdAt: 100 };
+  const previous = {
+    pid: 123,
+    token: "owner",
+    startedAt: "start",
+    identity: "container",
+    createdAt: 100,
+  };
+
   expect(reclaimable(previous, { kind: "dead" }, "host", 101)).toBe(false);
   expect(reclaimable(previous, { kind: "dead" }, "container", 101)).toBe(true);
   expect(reclaimable(previous, { kind: "live", startedAt: "same" }, "host", 86400101)).toBe(true);
@@ -47,7 +62,13 @@ for (const crash of ["guard", "renamed"])
 
       await writeFile(
         join(path, "owner.json"),
-        JSON.stringify({ pid: 2147483647, token: "dead", identity: await processIdentity() }),
+        JSON.stringify({
+          pid: 2147483647,
+          token: "dead",
+          startedAt: "start",
+          createdAt: 0,
+          identity: await processIdentity(),
+        }),
       );
 
       const created = (await lstat(join(path, "reclaim"))).mtimeMs;
@@ -64,3 +85,33 @@ for (const crash of ["guard", "renamed"])
       await rm(home, { recursive: true, force: true });
     }
   });
+
+test("owner publication exposes complete metadata and never overwrites an owner", async () => {
+  const { publishOwner } = await import("../lock/publish.ts");
+  const home = await mkdtemp(join(tmpdir(), "envden-publication-"));
+  const first = { pid: process.pid, token: "first", createdAt: 0, startedAt: "start" };
+
+  try {
+    for (const incomplete of [
+      { ...first, startedAt: undefined },
+      { ...first, createdAt: undefined },
+    ]) {
+      await writeFile(join(home, "owner.json"), JSON.stringify(incomplete));
+      expect(await owner(home)).toBeUndefined();
+    }
+
+    await rm(join(home, "owner.json"));
+    await publishOwner(home, first);
+    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
+
+    await Promise.resolve(
+      expect(publishOwner(home, { ...first, token: "second" })).rejects.toMatchObject({
+        code: "EEXIST",
+      }),
+    );
+
+    expect(JSON.parse(await readFile(join(home, "owner.json"), "utf8"))).toEqual(first);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

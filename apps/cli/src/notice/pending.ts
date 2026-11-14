@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
-import { binary } from "../client/encoding.ts";
 import { recoveryJoins, printRecoveryJoins } from "./recovery.ts";
 
 async function pendingJoins(home: string): Promise<Record<string, string>> {
@@ -11,8 +10,7 @@ async function pendingJoins(home: string): Promise<Record<string, string>> {
     const value: unknown = JSON.parse(pending);
     if (!value || typeof value !== "object" || Array.isArray(value)) return {};
 
-    const legacy = legacyJoins(value);
-    if (legacy) return legacy;
+    if (Object.values(value).some((name) => typeof name !== "string")) return {};
 
     return Object.fromEntries(
       Object.entries(value).filter((item): item is [string, string] => typeof item[1] === "string"),
@@ -40,18 +38,4 @@ export async function reportPendingJoins(home: string) {
   const pending = await pendingJoins(home);
   await printRecoveryJoins(home, pending);
   await atomicWrite(join(home, "state", "pending-recovery.json"), "{}");
-}
-
-function legacyJoins(value: object) {
-  if (
-    "entries" in value &&
-    "ownId" in value &&
-    Array.isArray(value.entries) &&
-    value.entries.every((entry) => typeof entry === "string") &&
-    typeof value.ownId === "string"
-  ) {
-    return recoveryJoins(value.entries, binary(value.ownId));
-  }
-
-  return undefined;
 }

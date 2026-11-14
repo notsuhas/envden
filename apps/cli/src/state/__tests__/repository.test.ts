@@ -62,6 +62,21 @@ test("headers live in immutable objects outside device.json", async () => {
     const record = JSON.parse(await readFile(join(home, "state", "device.json"), "utf8"));
     expect(record.headers).toBeUndefined();
     expect(record.headerRefs).toHaveLength(1);
+
+    for (const invalid of [
+      { ...record, headerRefs: undefined, headers: [] },
+      { ...record, unknown: true },
+      { ...record, aliases: undefined },
+      { ...record, telemetry: undefined },
+      { ...record, updateCheck: undefined },
+    ]) {
+      await atomicWrite(join(home, "state", "device.json"), JSON.stringify(invalid));
+
+      await Promise.resolve(
+        expect(loadState(home)).rejects.toMatchObject({ code: "INVALID_DATA" }),
+      );
+    }
+
     const path = join(home, "state", "headers", record.headerRefs[0]);
     const before = (await stat(path)).mtimeMs;
     state.headers.push("second-header");

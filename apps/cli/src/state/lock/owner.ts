@@ -6,9 +6,9 @@ import { processIdentity, processStart } from "./process.ts";
 export interface IOwner {
   pid: number;
   token: string;
-  startedAt?: string;
+  startedAt: string;
   identity?: string | undefined;
-  createdAt?: number;
+  createdAt: number;
 }
 
 export async function owner(path: string): Promise<IOwner | undefined> {
@@ -27,7 +27,14 @@ export async function owner(path: string): Promise<IOwner | undefined> {
       await file.close();
     }
 
-    if (Number.isSafeInteger(value.pid) && value.pid > 0 && typeof value.token === "string")
+    if (
+      Number.isSafeInteger(value.pid) &&
+      value.pid > 0 &&
+      typeof value.token === "string" &&
+      typeof value.startedAt === "string" &&
+      typeof value.createdAt === "number" &&
+      Number.isFinite(value.createdAt)
+    )
       return value;
   } catch {
     return undefined;
@@ -42,14 +49,11 @@ export function reclaimable(
   identity?: string,
   now = 0,
 ) {
-  if (!identity || previous.identity !== identity)
-    return previous.createdAt !== undefined && now - previous.createdAt >= 86400000;
+  if (!identity || previous.identity !== identity) return now - previous.createdAt >= 86400000;
 
   return (
     observed.kind === "dead" ||
-    (observed.kind === "live" &&
-      previous.startedAt !== undefined &&
-      observed.startedAt !== previous.startedAt)
+    (observed.kind === "live" && observed.startedAt !== previous.startedAt)
   );
 }
 
@@ -77,12 +81,5 @@ export async function expiredOwner(path: string, previous: IOwner | undefined, n
       ? await processStart(previous.pid)
       : { kind: "unknown" as const };
 
-  const directory = await lstat(path);
-
-  return reclaimable(
-    { ...previous, createdAt: previous.createdAt ?? directory.mtimeMs },
-    observed,
-    identity,
-    now,
-  );
+  return reclaimable(previous, observed, identity, now);
 }
