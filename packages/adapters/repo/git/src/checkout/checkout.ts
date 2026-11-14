@@ -19,7 +19,17 @@ export async function checkoutAt(
     root = (
       await git(stat.isDirectory() ? path : dirname(path), ["rev-parse", "--show-toplevel"])
     ).trimEnd();
-  } catch {
+  } catch (error) {
+    if (
+      !(
+        error instanceof EnvdenError &&
+        error.cause &&
+        typeof error.cause === "object" &&
+        "exitCode" in error.cause
+      )
+    )
+      throw error;
+
     return undefined;
   }
 

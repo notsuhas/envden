@@ -12,13 +12,12 @@ import { isIgnored } from "./is-ignored.ts";
 export async function ensureIgnored(checkout: ICheckout, path: string): Promise<void> {
   validatePath(path);
 
-  if (/[\p{Cc}\p{Cf}*?[\]#!~;|&$`<>"'(){}]/u.test(path))
-    throw new EnvdenError("INVALID_INPUT", "Unsafe ignore path");
-
   if (await tracked(checkout, path))
     throw new EnvdenError("INVALID_INPUT", "Refusing a tracked env file");
 
   if (await isIgnored(checkout, path)) return;
+
+  if (/[\p{Cc}\p{Cf}]/u.test(path)) throw new EnvdenError("INVALID_INPUT", "Unsafe ignore path");
 
   const exclude = resolve(
     checkout.root,
@@ -31,7 +30,7 @@ export async function ensureIgnored(checkout: ICheckout, path: string): Promise<
 
   const file = await open(
     exclude,
-    constants.O_WRONLY |
+    constants.O_RDWR |
       constants.O_APPEND |
       constants.O_CREAT |
       constants.O_NOFOLLOW |
@@ -49,11 +48,22 @@ export async function ensureIgnored(checkout: ICheckout, path: string): Promise<
       throw new EnvdenError("INVALID_INPUT", "Unsafe exclude parent");
 
     await verifyExcludeParents(parents);
-    await file.writeFile(`\n/${escaped}\n`);
+    const original = await file.readFile("utf8");
+    const line = `/${escaped}`;
+    const added = !original.split("\n").includes(line);
+    const suffix = `\n${line}\n`;
+    if (added) await file.writeFile(suffix);
+
+    try {
+      if (!(await isIgnored(checkout, path)))
+        throw new EnvdenError("INVALID_INPUT", "Could not ignore env file");
+    } catch (error) {
+      if (added && (await file.stat()).size === stat.size + Buffer.byteLength(suffix))
+        await file.truncate(stat.size);
+
+      throw error;
+    }
   } finally {
     await file.close();
   }
-
-  if (!(await isIgnored(checkout, path)))
-    throw new EnvdenError("INVALID_INPUT", "Could not ignore env file");
 }

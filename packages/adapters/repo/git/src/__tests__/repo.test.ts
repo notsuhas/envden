@@ -147,11 +147,16 @@ for (const path of [
   ".env#x",
   ".env!x",
 ]) {
-  test(`exclude rejects unsafe pattern ${JSON.stringify(path)}`, async () => {
+  test(`exclude escapes literal pattern ${JSON.stringify(path)}`, async () => {
     const root = await repo();
     const checkout = await adapter.checkoutAt(root);
     if (!checkout) throw new Error("No checkout");
-    await rejects(adapter.ensureIgnored(checkout, path));
+
+    if (/[\p{Cc}\p{Cf}]/u.test(path)) await rejects(adapter.ensureIgnored(checkout, path));
+    else {
+      await adapter.ensureIgnored(checkout, path);
+      expect(await adapter.isIgnored(checkout, path)).toBe(true);
+    }
   });
 }
 
@@ -223,4 +228,33 @@ test("SSH rejects option and shell injection before running host resolution", as
     await rejects(resolveSshHost(host), /Unsafe SSH host/);
 
   await rejects(access(marker));
+});
+
+test("failed ignore attempts do not change exclude bytes", async () => {
+  const root = await repo();
+  const checkout = await adapter.checkoutAt(root);
+  if (!checkout) throw new Error("No checkout");
+  await writeFile(join(root, ".gitignore"), "!.env.keep\n");
+  const exclude = join(checkout.gitDir, "info", "exclude");
+  const before = await readFile(exclude);
+
+  for (let count = 0; count < 3; count++) {
+    await rejects(adapter.ensureIgnored(checkout, ".env.keep"));
+    expect(await readFile(exclude)).toEqual(before);
+  }
+});
+
+test("embedded bare repositories cannot choose checkout identity", async () => {
+  const root = await repo();
+  const bare = join(root, "embedded");
+  git(root, "init", "--bare", bare);
+  git(bare, "config", "core.worktree", root);
+  git(bare, "config", "core.bare", "false");
+  git(bare, "remote", "add", "origin", "https://evil.test/owned");
+  expect(await adapter.checkoutAt(bare)).toBeUndefined();
+});
+
+test("checkout lookup propagates filesystem failures", async () => {
+  const root = await repo();
+  await rejects(adapter.checkoutAt(join(root, "missing")));
 });

@@ -6,7 +6,7 @@ type TOptions = {
   env?: Record<string, string | undefined>;
   cwd?: string;
   managerBin?: string;
-  stdin?: "inherit" | "ignore";
+  stdin?: "inherit" | "ignore" | Blob;
   stdout?: "inherit" | "ignore" | "pipe";
   stderr?: "inherit" | "ignore" | "pipe";
 };
