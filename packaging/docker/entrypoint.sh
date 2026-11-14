@@ -43,6 +43,9 @@ if [ "$state" = NeedsLogin ]; then
 else
   timeout 5 tailscale set --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false || echo 'Tailscale preferences unavailable; starting server' >&2
 fi
+if [ "$state" = Stopped ]; then
+  timeout 30 tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false || echo 'Tailscale resume unavailable; starting server' >&2
+fi
 unset TS_AUTHKEY
 timeout 5 tailscale serve --bg --https=443 "http://127.0.0.1:$ENVDEN_PORT" || echo 'Tailscale Serve unavailable; starting server' >&2
 envden serve --data-dir /data --port "$ENVDEN_PORT" "$@" &
