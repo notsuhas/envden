@@ -12,7 +12,7 @@ docker run -d --name envden --restart unless-stopped \
   -e TS_AUTHKEY="tskey-auth-..." \
   -v envden-data:/data \
   -v tailscale-state:/var/lib/tailscale \
-  ghcr.io/notsuhas/envden:0.1.0
+  ghcr.io/notsuhas/envden:0
 ```
 
 Replace `tskey-auth-...` with your auth key. The volumes keep envden data and Tailscale state across container replacements. The container joins your tailnet as `envden`; set `TS_HOSTNAME` to choose another name.

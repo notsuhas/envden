@@ -11,7 +11,7 @@ export const INSTALL_CHANNELS = [
     label: "Windows",
     commands: [
       `irm ${SITE_URL}/install.ps1 | iex`,
-      "scoop bucket add envden https://github.com/notsuhas/scoop-bucket; scoop install envden",
+      "scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket; scoop install notsuhas/envden",
     ],
   },
   { id: "npm", label: "npm", commands: ["npm i -g envden"] },
@@ -19,7 +19,7 @@ export const INSTALL_CHANNELS = [
     id: "docker",
     label: "Docker",
     commands: [
-      "docker run -d --name envden --restart unless-stopped -e TS_AUTHKEY=tskey-auth-... -v envden-data:/data -v tailscale-state:/var/lib/tailscale ghcr.io/notsuhas/envden:0.1",
+      "docker run -d --name envden --restart unless-stopped -e TS_AUTHKEY=tskey-auth-... -v envden-data:/data -v tailscale-state:/var/lib/tailscale ghcr.io/notsuhas/envden:0",
       "docker logs envden",
     ],
   },

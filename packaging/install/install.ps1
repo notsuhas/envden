@@ -1,10 +1,12 @@
+& {
 param([switch]$Platform, [switch]$Help)
 $ErrorActionPreference = 'Stop'
-if ($Help) { Write-Output 'Usage: install.ps1 [-Platform] [-Help]'; exit 0 }
+$ProgressPreference = 'SilentlyContinue'
+if ($Help) { Write-Output 'Usage: install.ps1 [-Platform] [-Help]'; return }
 if ([Environment]::OSVersion.Platform -ne 'Win32NT') { throw 'Windows required' }
 $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 if ($arch -notin @('x64', 'arm64')) { throw 'Unsupported architecture' }
-if ($Platform) { Write-Output "windows-$arch"; exit 0 }
+if ($Platform) { Write-Output "windows-$arch"; return }
 $repo = 'notsuhas/envden'
 if ($repo.Contains('REPLACE')) { throw 'Maintainer must configure the release repository' }
 $version = $env:ENVDEN_VERSION
@@ -19,9 +21,9 @@ New-Item -ItemType Directory -Path $work | Out-Null
 try {
   $asset = "envden-windows-$arch.exe"
   $download = Join-Path $work $asset
-  Invoke-WebRequest "$base/$asset" -OutFile $download
+  Invoke-WebRequest -UseBasicParsing "$base/$asset" -OutFile $download
   $checksumFile = Join-Path $work 'SHA256SUMS'
-  Invoke-WebRequest "$base/SHA256SUMS" -OutFile $checksumFile
+  Invoke-WebRequest -UseBasicParsing "$base/SHA256SUMS" -OutFile $checksumFile
   $checksums = Get-Content $checksumFile -Raw
   $lines = @($checksums -split "`n" | Where-Object { $_ -match "^[a-f0-9]{64}  $([regex]::Escape($asset))`r?$" })
   if ($lines.Count -ne 1) { throw 'Missing or duplicate checksum' }
@@ -34,3 +36,4 @@ try {
   Write-Output "Installed envden. Add $bin to your user PATH."
   Write-Output 'Bootstrap verified SHA256SUMS over HTTPS; it does not authenticate the signed feed.'
 } finally { Remove-Item $work -Recurse -Force }
+} @args

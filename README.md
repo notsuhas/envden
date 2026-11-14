@@ -44,11 +44,13 @@ irm https://envden.theclau.de/install.ps1 | iex
 brew install notsuhas/tap/envden
 
 # Scoop
-scoop bucket add envden https://github.com/notsuhas/scoop-bucket
-scoop install envden
+scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
+scoop install notsuhas/envden
 ```
 
-The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
+Bootstrap scripts check SHA256SUMS over HTTPS; they do not verify the signed release feed.
+
+The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
 
 ## Quick start
 
@@ -135,7 +137,7 @@ bun run --cwd apps/cli build   # writes apps/cli/dist/envden
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike and most are enforced by lint.
+Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike and lint enforces package boundaries, file layout, naming and comment limits.
 
 ```sh
 bun run check    # format, lint and type check (Vite+)

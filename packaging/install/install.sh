@@ -1,4 +1,5 @@
 #!/bin/sh
+main() {
 set -eu
 usage() { echo 'Usage: install.sh [--platform] [--help]'; }
 case "${1:-}" in --help) usage; exit 0 ;; ''|--platform) ;; *) usage >&2; exit 2 ;; esac
@@ -35,3 +36,5 @@ mv -f "$staged" "$bin/envden"
 printf 'script' > "$home/install-method"
 echo "Installed $bin/envden. Add $bin to PATH."
 echo 'Bootstrap verified SHA256SUMS over HTTPS; it does not authenticate the signed feed.'
+}
+main "$@"

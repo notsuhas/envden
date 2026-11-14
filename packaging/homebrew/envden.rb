@@ -24,9 +24,6 @@ class Envden < Formula
   def install
     bin.install Dir["envden-*"].first => "envden"
   end
-  def caveats
-    "Run with ENVDEN_INSTALL_METHOD=brew so envden update uses Homebrew."
-  end
   test do
     system bin/"envden", "--version"
   end

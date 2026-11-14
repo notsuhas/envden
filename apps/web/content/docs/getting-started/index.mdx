@@ -33,11 +33,13 @@ brew install notsuhas/tap/envden
 npm i -g envden
 ```
 
+If your package manager disables install scripts, run `envden` and follow its printed `node .../install.js` command to finish installation.
+
 ### Scoop
 
 ```powershell
-scoop bucket add envden https://github.com/notsuhas/scoop-bucket
-scoop install envden
+scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
+scoop install notsuhas/envden
 ```
 
 Check the installation:
@@ -56,7 +58,7 @@ For v0.1.0, this prints:
 
 Your devices need Tailscale, with HTTPS certificates enabled for the tailnet. Setup checks this.
 
-- [Home lab first](/docs/getting-started/home-lab-first): run `ghcr.io/notsuhas/envden` in Docker on an always-on host.
+- [Home lab first](/docs/getting-started/home-lab-first): run `ghcr.io/notsuhas/envden:0` in Docker on an always-on host.
 - [Laptop first](/docs/getting-started/laptop-first): run the server as a login service on this machine.
 
 Use an always-on host if you have one. Other devices can sync with a laptop server only while that laptop is awake.
