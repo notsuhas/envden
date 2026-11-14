@@ -35,10 +35,10 @@ Secrets managers store keys, not files, so the layout and comments of a `.env` g
 
 ```sh
 # macOS and Linux
-curl -fsSL https://raw.githubusercontent.com/notsuhas/envden/main/packaging/install/install.sh | sh
+curl -fsSL https://envden.theclau.de/install.sh | sh
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/notsuhas/envden/main/packaging/install/install.ps1 | iex
+irm https://envden.theclau.de/install.ps1 | iex
 
 # Homebrew
 brew install notsuhas/tap/envden
