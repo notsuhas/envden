@@ -23,15 +23,22 @@ function temp(): string {
 }
 
 describe("SQLite durability", () => {
-  test("migrates a legacy database after a consistent backup including WAL", () => {
+  test("migrates a synthetic format-zero database after a consistent backup including WAL", () => {
     const dir = temp();
 
     try {
       const db = new Database(join(dir, "envden.sqlite"));
-      db.run("PRAGMA journal_mode=WAL; CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
+
+      db.run(
+        "PRAGMA journal_mode=WAL; CREATE TABLE fixture(value); INSERT INTO fixture VALUES(42)",
+      );
+
       const storage = createSqliteStorageAdapter(dir, 0);
       const backup = new Database(join(dir, "pre-1"));
-      expect(backup.query<{ value: number }, []>("SELECT value FROM legacy").get()?.value).toBe(42);
+
+      expect(backup.query<{ value: number }, []>("SELECT value FROM fixture").get()?.value).toBe(
+        42,
+      );
 
       expect(
         backup.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version,
@@ -237,48 +244,30 @@ test("discard commits durable blob garbage and pruning retries failed deletion",
   }
 });
 
-for (const version of [1, 3])
-  test(`v${version} migration backs up rate data before adding lookup indexes`, () => {
-    const dir = temp();
-    const initial = createSqliteStorageAdapter(dir, 0);
-    initial.close();
-    let db = new Database(join(dir, "envden.sqlite"));
+test("fresh format one includes every current lookup index", () => {
+  const dir = temp();
+  const storage = createSqliteStorageAdapter(dir, 0);
+  const db = new Database(join(dir, "envden.sqlite"));
 
-    try {
-      db.run(
-        "DROP INDEX IF EXISTS charges_at; DROP INDEX IF EXISTS charges_bucket; DROP INDEX IF EXISTS buckets_until",
+  try {
+    expect(db.query("PRAGMA user_version").get()).toEqual({ user_version: 1 });
+
+    for (const [table, column] of [
+      ["nonces", "expires"],
+      ["sessions", "expires"],
+      ["approvers", "expires"],
+      ["headers", "files"],
+      ["charges", "at"],
+      ["charges", "bucket"],
+      ["buckets", "until"],
+    ]) {
+      expect(db.query(`PRAGMA index_info(${table}_${column})`).all()).toContainEqual(
+        expect.objectContaining({ name: column }),
       );
-
-      if (version === 1)
-        db.run(
-          "DROP INDEX nonces_expires; DROP INDEX sessions_expires; DROP INDEX approvers_expires; DROP INDEX headers_files",
-        );
-
-      db.run(`PRAGMA user_version=${version}`);
-
-      db.run("INSERT INTO charges VALUES('receipt','bucket',1)");
-      const storage = createSqliteStorageAdapter(dir, 0);
-      storage.close();
-      const backup = new Database(join(dir, `pre-${version + 1}`));
-
-      expect(backup.query("SELECT * FROM charges").all()).toEqual([
-        { receipt: "receipt", bucket: "bucket", at: 1 },
-      ]);
-
-      backup.close();
-      db.close();
-      db = new Database(join(dir, "envden.sqlite"));
-
-      for (const [table, column] of [
-        ["charges", "at"],
-        ["charges", "bucket"],
-        ["buckets", "until"],
-      ]) {
-        const indexes = db.query(`PRAGMA index_info(${table}_${column})`).all();
-        expect(indexes).toEqual([expect.objectContaining({ name: column })]);
-      }
-    } finally {
-      db.close();
-      rmSync(dir, { recursive: true, force: true });
     }
-  });
+  } finally {
+    db.close();
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -31,14 +31,14 @@ test("migration replaces an interrupted backup and live requests prune expired s
   const dir = temp();
   const path = join(dir, "envden.sqlite");
   const db = new Database(path);
-  db.run("CREATE TABLE legacy(value); INSERT INTO legacy VALUES(42)");
+  db.run("CREATE TABLE fixture(value); INSERT INTO fixture VALUES(42)");
   db.close();
   writeFileSync(join(dir, "pre-1"), "partial");
   const storage = createSqliteStorageAdapter(dir, 0);
 
   try {
     const backup = new Database(join(dir, "pre-1"));
-    expect(backup.query<{ value: number }, []>("SELECT value FROM legacy").get()?.value).toBe(42);
+    expect(backup.query<{ value: number }, []>("SELECT value FROM fixture").get()?.value).toBe(42);
     backup.close();
     utimesSync(join(dir, "pre-1"), 0, 0);
     const key = { kind: "login", device: new Uint8Array([1]), purpose: "unlock" } as const;

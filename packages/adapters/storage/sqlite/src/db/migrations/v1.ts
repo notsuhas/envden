@@ -20,6 +20,15 @@ export function migrateV1(db: Database): void {
           CREATE TABLE slots (number INTEGER NOT NULL REFERENCES mailboxes(number) ON DELETE CASCADE, slot TEXT NOT NULL, bytes BLOB NOT NULL, PRIMARY KEY(number,slot));
           CREATE TABLE openings (vault BLOB NOT NULL, at REAL NOT NULL);
           CREATE TABLE nonces (device BLOB NOT NULL, nonce BLOB NOT NULL, expires REAL NOT NULL, PRIMARY KEY(device,nonce));
+          CREATE INDEX nonces_expires ON nonces(expires);
+          CREATE INDEX sessions_expires ON sessions(expires);
+          CREATE INDEX approvers_expires ON approvers(expires);
+          CREATE INDEX headers_files ON headers(vault,files);
+          CREATE INDEX charges_at ON charges(at);
+          CREATE INDEX charges_bucket ON charges(bucket);
+          CREATE INDEX buckets_until ON buckets(until);
+          CREATE TABLE blob_usage (vault BLOB NOT NULL, hash BLOB NOT NULL, size INTEGER NOT NULL, at REAL NOT NULL, PRIMARY KEY(vault,hash));
+          CREATE TABLE blob_garbage (vault BLOB NOT NULL, hash BLOB NOT NULL, PRIMARY KEY(vault,hash));
           PRAGMA user_version = 1;
         `);
 }
