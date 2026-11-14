@@ -50,3 +50,16 @@ test("expired state backups and interrupted writes are removed without losing li
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("retention leaves update state and lock directories to their owners", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-retention-"));
+  const paths = ["state/update/state/write.lock/.0-abcd.tmp", "base/write.lock/.0-abcd.tmp"];
+
+  try {
+    for (const path of paths) await atomicWrite(join(home, path), "owner");
+    await pruneBackups(home, 1800000000000);
+    for (const path of paths) expect(await Bun.file(join(home, path)).exists()).toBe(true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

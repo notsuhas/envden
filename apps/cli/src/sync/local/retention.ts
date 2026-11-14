@@ -2,8 +2,8 @@ import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 
 export async function pruneBackups(home: string, now: number): Promise<void> {
-  for (const directory of ["state", "base", "conflicts/backups"])
-    await pruneDirectory(join(home, directory), now, directory !== "conflicts/backups");
+  for (const directory of ["state", "state/attempts", "base", "conflicts/backups"])
+    await pruneDirectory(join(home, directory), now, directory === "base");
 }
 
 async function pruneDirectory(directory: string, now: number, recursive: boolean): Promise<void> {
@@ -13,6 +13,7 @@ async function pruneDirectory(directory: string, now: number, recursive: boolean
   });
 
   for (const entry of entries) {
+    if (entry.name.endsWith(".lock")) continue;
     const path = join(directory, entry.name);
     const match = /(?:\.corrupt-|^\.?)(\d+)-[a-f0-9-]+(?:\.tmp)?$/.exec(entry.name);
 
