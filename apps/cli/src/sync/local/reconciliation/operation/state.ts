@@ -8,7 +8,7 @@ import { entryContent } from "../../../remote/content.ts";
 import { appliedFiles } from "../../applied.ts";
 import { basePath, readBytes, writeBytes } from "../../files.ts";
 import { fileSnapshot } from "../snapshot.ts";
-import { deletionRequested, requestDeletion } from "./deletion.ts";
+import { deletionRequested, readDeletion, requestDeletion } from "./deletion.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -44,29 +44,32 @@ export async function readFileState(
 
   const server = entry ? await entryContent(context, entry) : undefined;
 
-  if (!corrupt) await cancelRestoredDeletion(context, targets, store);
+  const reappeared = corrupt ? undefined : await cancelRestoredDeletion(context, targets, store);
 
   const { stored, restored, deleting } = await restoreStore(
     context,
     store,
     entry,
     corrupt ? undefined : server,
+    reappeared?.bytes,
   );
 
   const snapshots = await Promise.all(
     targets.map((target) => fileSnapshot(context, target, stored, previous)),
   );
 
-  const intent = await optionalRead(base + ".delete");
+  const intent = await readDeletion(context.adapters.home, store);
 
   const deletionInvalid =
-    deleting && entry !== undefined && intent !== text(p.FileEntryCodec.write(entry));
+    deleting && entry !== undefined && intent?.entry !== text(p.FileEntryCodec.write(entry));
 
   return {
     base,
     corrupt,
     encoded,
     previous,
+    reappeared: !!reappeared,
+    recorded: await readBytes(base),
     server,
     stored,
     snapshots,
@@ -81,15 +84,14 @@ async function restoreStore(
   store: string,
   entry: p.IFileEntry | undefined,
   server: Uint8Array | undefined,
+  reappeared: Uint8Array | undefined,
 ) {
   const before = await readBytes(store);
 
-  let deleting = await deletionRequested(context.adapters.home, store);
+  if (before === undefined && reappeared !== undefined)
+    return { stored: reappeared, restored: false, deleting: false };
 
-  if (entry?.state === 2 || entry?.state === 4) {
-    await requestDeletion(context.adapters.home, store, false);
-    deleting = false;
-  }
+  const deleting = await liveDeletion(context, store, entry);
 
   const restored = before === undefined && server !== undefined && !deleting;
 
@@ -100,14 +102,32 @@ async function restoreStore(
 }
 
 async function cancelRestoredDeletion(context: TSyncContext, targets: TTarget[], store: string) {
-  if (!(await deletionRequested(context.adapters.home, store))) return;
+  const intent = await readDeletion(context.adapters.home, store);
+  if (!intent) return undefined;
 
-  for (const path of [store, ...targets.map((target) => join(target.root, target.path))]) {
+  for (const path of [
+    store,
+    ...targets
+      .map((target) => join(target.root, target.path))
+      .filter((path) => intent.targets.includes(path)),
+  ]) {
     const bytes = await readBytes(path);
     if (bytes === undefined) continue;
     await requestDeletion(context.adapters.home, store, false);
     context.options.report?.(`Cancelled removal; restored env file: ${path}`);
 
-    return;
+    return { bytes };
   }
+
+  return undefined;
+}
+
+async function liveDeletion(context: TSyncContext, store: string, entry: p.IFileEntry | undefined) {
+  if (entry?.state === 2 || entry?.state === 4) {
+    await requestDeletion(context.adapters.home, store, false);
+
+    return false;
+  }
+
+  return deletionRequested(context.adapters.home, store);
 }

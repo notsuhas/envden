@@ -23,21 +23,18 @@ const operationSchema = z.object({
 export type TOperation = z.infer<typeof operationSchema>;
 
 export async function readOperation(path: string, report?: (message: string) => void) {
-  return recoverSyncRecord(
-    path,
-    path.replace(/\.pending$/, ".corrupt"),
-    (saved) => {
-      const operation = operationSchema.parse(JSON.parse(saved));
-      if (operation.entry) p.decode(p.FileEntryCodec, binary(operation.entry));
+  return recoverSyncRecord(path, path.replace(/\.pending$/, ".corrupt"), decodeOperation, report);
+}
 
-      if (
-        operation.before.length !== operation.targets.length + 1 ||
-        operation.written.length !== operation.before.length
-      )
-        throw new Error("Invalid placement record");
+export function decodeOperation(saved: string) {
+  const operation = operationSchema.parse(JSON.parse(saved));
+  if (operation.entry) p.decode(p.FileEntryCodec, binary(operation.entry));
 
-      return operation;
-    },
-    report,
-  );
+  if (
+    operation.before.length !== operation.targets.length + 1 ||
+    operation.written.length !== operation.before.length
+  )
+    throw new Error("Invalid placement record");
+
+  return operation;
 }

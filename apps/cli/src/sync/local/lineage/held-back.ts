@@ -1,7 +1,7 @@
-import { deletionRequested } from "../reconciliation/operation/deletion.ts";
-import { readAttempts } from "../../remote/attempt/state.ts";
-import { readOperation } from "../reconciliation/operation/record.ts";
-import { recoverSyncRecord } from "../../../state/store/records.ts";
+import { decodeDeletion } from "../reconciliation/operation/deletion.ts";
+import { invalidAttemptState } from "../../remote/attempt/state.ts";
+import { decodeOperation } from "../reconciliation/operation/record.ts";
+import { invalidSyncRecord } from "../../../state/store/records.ts";
 import { fileSizeNotice } from "../validation/size.ts";
 import { join } from "node:path";
 import { acceptsEnvPath } from "@envden/core/adapters";
@@ -19,14 +19,14 @@ export async function heldBackFiles(adapters: TAdapters) {
   const state = await loadState(adapters.home);
   const notices: { path: string; reason: string }[] = [];
   if (!state) return notices;
-  await readAttempts(adapters, state.links);
+  const invalidAttempt = await invalidAttemptState(adapters.home);
   const rules = (await readConfig(adapters.home))["env-files"];
   const conflicts = await conflictRecords(adapters.home);
   const applied = await appliedFiles(adapters.home);
   const key = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
   const entries = state.files ? p.decode(p.FilesCodec, binary(state.files)).entries : [];
 
-  const context = { adapters, state, rules, conflicts, applied, key, entries };
+  const context = { adapters, state, rules, conflicts, applied, key, entries, invalidAttempt };
 
   for (const link of state.links) {
     if (link.localOnly) continue;
@@ -46,6 +46,7 @@ async function linkReason(
     applied,
     key,
     entries,
+    invalidAttempt,
   }: {
     adapters: TAdapters;
     state: NonNullable<Awaited<ReturnType<typeof loadState>>>;
@@ -54,23 +55,36 @@ async function linkReason(
     applied: Record<string, string>;
     key: Uint8Array | undefined;
     entries: p.IFileEntry[];
+    invalidAttempt: boolean;
   },
   link: NonNullable<Awaited<ReturnType<typeof loadState>>>["links"][number],
 ) {
   const checkout = await adapters.repo.checkoutAt(link.root);
-  const entry = knownEntry({ adapters, state, rules, conflicts, applied, key, entries }, link);
+
+  const entry = knownEntry(
+    { adapters, state, rules, conflicts, applied, key, entries, invalidAttempt },
+    link,
+  );
 
   const stored = await readBytes(link.store);
 
   const base = basePath(adapters.home, link.store);
 
-  await recoverSyncRecord(base + ".entry", base + ".corrupt", (saved) =>
+  const invalidEntry = await invalidSyncRecord(base + ".entry", (saved) =>
     p.decode(p.FileEntryCodec, binary(saved)),
   );
 
-  await readOperation(base + ".pending");
-  await deletionRequested(adapters.home, link.store);
-  const corrupt = (await readBytes(base + ".corrupt")) !== undefined;
+  const invalidPending = await invalidSyncRecord(base + ".pending", decodeOperation);
+
+  const invalidDeletion = await invalidSyncRecord(base + ".delete", decodeDeletion);
+
+  const corrupt = [
+    invalidAttempt,
+    invalidEntry,
+    invalidPending,
+    invalidDeletion,
+    (await readBytes(base + ".corrupt")) !== undefined,
+  ].some(Boolean);
 
   const reason = corrupt
     ? "invalid sync state; run envden pull, then envden resolve --list"

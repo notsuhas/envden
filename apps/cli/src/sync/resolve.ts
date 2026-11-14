@@ -151,7 +151,7 @@ async function placeResolution(
   await saveState(adapters.home, state);
 
   if (record.entry) {
-    await saveBase(record.base, server);
+    await saveBase(record.base, bytes);
     await markAppliedEntry(adapters.home, record.entry, record.store);
   }
 
@@ -193,7 +193,7 @@ async function resolveTarget(
     target.mode === "copy" ? target.root : undefined,
   );
 
-  await saveBase(base, target.mode === "copy" ? bytes : server);
+  await saveBase(base, bytes);
 }
 
 async function recordDeletion(
@@ -206,6 +206,7 @@ async function recordDeletion(
     record.store,
     bytes === undefined && (record.deleted || record.mineDeleted),
     record.entry ?? undefined,
+    record.targets.map((target) => join(target.root, target.path)),
   );
 }
 

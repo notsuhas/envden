@@ -1,5 +1,5 @@
+import { conflictDocumentSchema } from "./conflicts/schema.ts";
 import { readSyncRecord } from "../../state/store/records.ts";
-import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
 import { sha256, base32 } from "@envden/core/protocol";
 import { lstat } from "node:fs/promises";
@@ -26,15 +26,11 @@ export interface IConflictRecord {
 }
 
 export async function conflictRecords(home: string): Promise<IConflictRecord[]> {
-  const document = await readSyncRecord<{ model: string; records: IConflictRecord[] }>(
-    join(home, "state", "conflicts.json"),
-    (saved) => JSON.parse(saved),
+  const document = await readSyncRecord(join(home, "state", "conflicts.json"), (saved) =>
+    conflictDocumentSchema.parse(JSON.parse(saved)),
   );
 
-  if (!document) return [];
-
-  if (document.model !== "shared-store" || !Array.isArray(document.records))
-    throw new EnvdenError("INVALID_DATA", "Invalid local conflict state");
+  if (document === undefined) return [];
 
   return document.records;
 }

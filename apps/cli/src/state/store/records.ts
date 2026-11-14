@@ -40,3 +40,14 @@ export async function recoverSyncRecord<T>(
     return undefined;
   }
 }
+
+export async function invalidSyncRecord(path: string, decode: (value: string) => unknown) {
+  try {
+    await readSyncRecord(path, decode);
+
+    return false;
+  } catch (error) {
+    if (error instanceof EnvdenError && error.code === "INVALID_DATA") return true;
+    throw error;
+  }
+}

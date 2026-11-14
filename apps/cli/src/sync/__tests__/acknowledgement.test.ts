@@ -92,3 +92,23 @@ for (const mode of ["copy", "link"] as const)
     await push(f.second, f.opts);
     expect(await serverBytes(f)).toBe(initial);
   });
+
+test("already matching copy records its content before a placement failure", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["link", "copy"]);
+  await atomicWrite(targets[0]!.store, edited);
+  await atomicWrite(join(targets[1]!.root, ".env"), edited);
+  const original = f.second.repo.ensureIgnored.bind(f.second.repo);
+
+  f.second.repo.ensureIgnored = async (checkout, path) => {
+    if (checkout.root === targets[1]!.root) throw new Error("Placement failed");
+    await original(checkout, path);
+  };
+
+  expect((await pull(f.second, f.opts)).conflicts).toBe(1);
+  f.second.repo.ensureIgnored = original;
+  await atomicWrite(join(targets[1]!.root, ".env"), initial);
+  expect((await push(f.second, f.opts)).conflicts).toBe(0);
+  expect(await serverBytes(f)).toBe(initial);
+  expect(await Bun.file(join(targets[1]!.root, ".env")).text()).toBe(initial);
+});

@@ -29,7 +29,11 @@ export async function reconcileFile(
     await blocksFile(
       context.adapters.home,
       store,
-      decideFile(snapshot, entry, repairs, !!choose).action.kind === "write",
+      decideFile(snapshot, entry, repairs, !!choose).action.kind === "write" &&
+        same(snapshot.stored, snapshot.server) &&
+        snapshot.snapshots.every(
+          (item) => item.bytes === undefined || same(item.bytes, snapshot.server),
+        ),
     )
   )
     return { changed: Number(snapshot.restored), conflicts: 1 };
@@ -99,7 +103,8 @@ async function resolveFileState(
             server,
           );
 
-  if (repair) resolution = { kind: "conflict" };
+  if (repair || (local.kind !== "conflict" && action.kind === "conflict"))
+    resolution = { kind: "conflict" };
 
   return { resolution, mine, local, repair };
 }
@@ -146,6 +151,8 @@ function decideFile(
     tracked: snapshots.some((item) => item.tracked),
     published: entry !== undefined,
     previous,
+    recorded: snapshot.recorded,
+    reappeared: snapshot.reappeared,
     server,
     repair,
     detached,

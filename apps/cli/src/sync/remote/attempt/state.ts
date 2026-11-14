@@ -4,7 +4,7 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../../../adapters.ts";
 import type { ILocalState } from "../../../state/model.ts";
-import { recoverSyncRecord } from "../../../state/store/records.ts";
+import { recoverSyncRecord, invalidSyncRecord } from "../../../state/store/records.ts";
 import { basePath } from "../../local/files.ts";
 import { atomicWrite } from "../../../state/store/files.ts";
 import { binary } from "../../../client/encoding.ts";
@@ -29,17 +29,7 @@ export async function readAttempts(
     const path = join(directory, name);
     const marker = path + ".invalid";
 
-    const record = await recoverSyncRecord(
-      path,
-      marker,
-      (saved) => {
-        const value = attemptSchema.parse(JSON.parse(saved));
-        for (const entry of value.entries) p.decode(p.FileEntryCodec, binary(entry));
-
-        return value;
-      },
-      report,
-    );
+    const record = await recoverSyncRecord(path, marker, decodeAttempt, report);
 
     if (record) attempts.push({ path, ...record });
     else {
@@ -51,4 +41,25 @@ export async function readAttempts(
   }
 
   return attempts.sort((a, b) => Number(BigInt(a.sequence) - BigInt(b.sequence)));
+}
+
+function decodeAttempt(saved: string) {
+  const value = attemptSchema.parse(JSON.parse(saved));
+  for (const entry of value.entries) p.decode(p.FileEntryCodec, binary(entry));
+
+  return value;
+}
+
+export async function invalidAttemptState(home: string) {
+  const directory = join(home, "state", "attempts");
+
+  for (const name of await readdir(directory).catch(() => [])) {
+    if (
+      !name.includes(".corrupt-") &&
+      (await invalidSyncRecord(join(directory, name), decodeAttempt))
+    )
+      return true;
+  }
+
+  return false;
 }

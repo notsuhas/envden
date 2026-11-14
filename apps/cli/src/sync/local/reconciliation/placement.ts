@@ -35,7 +35,7 @@ export async function placeFileTarget(
 
     trackTarget(context, target);
   } else {
-    await removeTarget(context, target, status, preserveDeleted);
+    await removeTarget(context, target, preserveDeleted);
   }
 
   return true;
@@ -49,13 +49,11 @@ function trackTarget(context: Pick<TSyncContext, "state">, target: TTarget) {
 async function removeTarget(
   context: Pick<TSyncContext, "adapters" | "state">,
   target: TTarget,
-  status: string,
   preserveDeleted: boolean,
 ) {
-  if (target.mode === "copy" || status === "linked")
-    await context.adapters
-      .placement(target.mode, target.root)
-      .remove(target.store, join(target.root, target.path));
+  await context.adapters
+    .placement(target.mode, target.root)
+    .remove(target.store, join(target.root, target.path));
 
   if (!preserveDeleted)
     context.state.links = context.state.links.filter(

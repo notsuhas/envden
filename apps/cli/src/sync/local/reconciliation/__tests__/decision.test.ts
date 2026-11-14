@@ -81,3 +81,14 @@ test("a tombstone without a base requires a choice before resurrection", () => {
     }).kind,
   ).toBe("choose");
 });
+
+for (const [recorded, local, remote, kind] of [
+  [mine, previous, server, "conflict"],
+  [previous, previous, server, "write"],
+  [mine, previous, previous, "write"],
+] as const)
+  test(`observed revert ${recorded[0]} ${remote[0]}`, () => {
+    expect(
+      deriveContentAction({ ...input, mine: local, previous, server: remote, recorded }).kind,
+    ).toBe(kind);
+  });

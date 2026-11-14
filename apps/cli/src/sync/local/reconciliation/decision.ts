@@ -3,6 +3,8 @@ import { contentHash } from "./operation/guards.ts";
 import { same } from "../files.ts";
 
 interface IContent {
+  reappeared?: boolean;
+  recorded?: Uint8Array | undefined;
   detached?: boolean;
   tombstone?: boolean;
   applied?: boolean;
@@ -17,6 +19,8 @@ interface IContent {
 
 export function deriveContentAction(input: IContent) {
   const { linked, mine, server, previous, choosing, repair } = input;
+
+  if (deriveObservedRevert(input)) return { kind: "conflict" } as const;
 
   if (input.detached) return { kind: "detached" } as const;
 
@@ -80,5 +84,14 @@ export function needsConflict(
     kind === "conflict" ||
     kind === "repair-conflict" ||
     (kind === "detached" && !choosing && !detachedChoice)
+  );
+}
+
+function deriveObservedRevert(input: IContent) {
+  return (
+    (input.recorded !== undefined || input.reappeared === true) &&
+    !same(input.mine, input.recorded) &&
+    same(input.mine, input.previous) &&
+    !same(input.server, input.previous)
   );
 }

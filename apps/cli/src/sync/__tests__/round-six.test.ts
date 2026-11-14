@@ -126,7 +126,7 @@ test("missing store is restored even when the remaining copy conflicts", async (
   expect(await Bun.file(join(f.checkoutB.root, ".env")).text()).toBe("TOKEN=mine\n");
 });
 
-test("undoing the local edit releases an obsolete conflict", async () => {
+test("reverting after a conflict preserves the new user action", async () => {
   const f = await fixture();
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
@@ -135,8 +135,8 @@ test("undoing the local edit releases an obsolete conflict", async () => {
   await push(f.first, f.opts);
   expect((await pull(f.second, f.opts)).conflicts).toBe(1);
   await atomicWrite(store, "TOKEN=local-test-value\n");
-  expect((await pull(f.second, f.opts)).conflicts).toBe(0);
-  expect(await Bun.file(store).text()).toBe("TOKEN=remote\n");
+  expect((await pull(f.second, f.opts)).conflicts).toBe(1);
+  expect(await Bun.file(store).text()).toBe("TOKEN=local-test-value\n");
 });
 
 for (const reason of ["refused", "failed", "conflicted"] as const)

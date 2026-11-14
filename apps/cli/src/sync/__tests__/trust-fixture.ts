@@ -66,7 +66,12 @@ export async function seedScenario(
     await push(f.first, f.opts);
     await writeBytes(path, bytes("TOKEN=local-test-value\nA=local\n"));
   } else {
-    if (scenario === "deletion-side") await removeFile(f.second, path, { yes: true, now: f.now });
+    if (scenario === "deletion-side") {
+      await removeFile(f.second, path, { yes: true, now: f.now });
+      await writeBytes(f.aStore, bytes("TOKEN=remote\n"));
+      await push(f.first, f.opts);
+    }
+
     await writeBytes(path, edited);
 
     await writeBytes(
@@ -118,7 +123,9 @@ export async function finishScenario(
 
   expect(await conflictRecords(f.second.home)).toHaveLength(0);
   if (scenario.startsWith("unapproved")) expect(await readBytes(path)).toEqual(edited);
-  if (scenario === "deletion-side") expect(await readBytes(target.store)).toEqual(original);
+
+  if (scenario === "deletion-side")
+    expect(await readBytes(target.store)).toEqual(bytes("TOKEN=remote\n"));
 
   if (scenario === "edit-content")
     expect(await readBytes(target.store)).toEqual(bytes("TOKEN=edited-resolution\n"));

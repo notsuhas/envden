@@ -51,7 +51,10 @@ export async function commitFile(
 ) {
   const before = await operationHashes(context, store, targets);
 
-  if (before.every((hash) => hash === contentHash(next))) {
+  if (
+    before.every((hash) => hash === contentHash(next)) &&
+    (await copiesRecorded(context, targets, next))
+  ) {
     await finishFile(context, store, targets, next, server, entry);
 
     return;
@@ -62,7 +65,7 @@ export async function commitFile(
     JSON.stringify({
       targets,
       before,
-      written: before.map(() => false),
+      written: before.map((hash) => hash === contentHash(next)),
       entry,
       header: text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")),
       next: next === undefined ? null : Buffer.from(next).toString("base64"),
@@ -96,9 +99,9 @@ async function finishFile(
   if (operation) await markWritten(context, store, operation, 0);
 
   if (entry) await atomicWrite(basePath(context.adapters.home, store) + ".entry", entry);
+  await saveBase(basePath(context.adapters.home, store), next);
   await placeTargets(context, store, targets, next, server, operation);
 
-  await saveBase(basePath(context.adapters.home, store), server);
   await journalPlacement(context.adapters.home, context.state);
 }
 
@@ -129,8 +132,12 @@ async function recoverPlaces(
   operation: TOperation,
   next: Uint8Array | undefined,
 ) {
-  if (operation.entry && operation.written[0])
-    await atomicWrite(basePath(context.adapters.home, store) + ".entry", operation.entry);
+  if (operation.written[0]) {
+    if (operation.entry)
+      await atomicWrite(basePath(context.adapters.home, store) + ".entry", operation.entry);
+
+    await saveBase(basePath(context.adapters.home, store), next);
+  }
 
   for (const [index, target] of operation.targets.entries()) {
     if (target.mode !== "copy" || !operation.written[index + 1]) continue;
@@ -157,4 +164,20 @@ async function markWritten(
 ) {
   operation.written[index] = true;
   await atomicWrite(basePath(context.adapters.home, store) + ".pending", JSON.stringify(operation));
+}
+
+async function copiesRecorded(
+  context: TSyncContext,
+  targets: TTarget[],
+  next: Uint8Array | undefined,
+) {
+  for (const target of targets) {
+    if (
+      target.mode === "copy" &&
+      !same(await readBytes(basePath(context.adapters.home, target.store, target.root)), next)
+    )
+      return false;
+  }
+
+  return true;
 }

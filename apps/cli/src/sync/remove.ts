@@ -75,7 +75,14 @@ export function removeFile(
       records.find((record) => record.store === selected.store)?.entry ??
       (await removalEntry(adapters, state!, selected.root, selected.path));
 
-    await requestDeletion(adapters.home, selected.store, true, entry ?? undefined);
+    await requestDeletion(
+      adapters.home,
+      selected.store,
+      true,
+      entry ?? undefined,
+      targets.map((target) => join(target.root, target.path)),
+    );
+
     const published = await deletionRequested(adapters.home, selected.store);
 
     if (!published) {
