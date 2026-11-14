@@ -26,7 +26,7 @@ async function lockeddeviceIdentity(
 
   const state = await loadState(namespace);
 
-  if (state?.vaultId || state?.verifiedState || state?.creationPending)
+  if (state?.verifiedState || (state?.vaultId && !state.creationPending))
     throw new EnvdenError("LOCKED", "Vault keys unavailable");
 
   const keys = generateDeviceKeys();

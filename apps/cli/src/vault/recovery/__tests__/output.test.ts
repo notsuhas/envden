@@ -40,3 +40,29 @@ test.skipIf(process.platform !== "win32")(
     }
   },
 );
+
+test("kit output preserves an existing kit and explains missing parents", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-kit-output-"));
+
+  try {
+    const path = join(home, "kit.json");
+    await writeKit(path, { vault: "first" });
+
+    await Promise.resolve(
+      expect(writeKit(path, { vault: "second" })).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+    );
+
+    expect(await Bun.file(path).json()).toEqual({ vault: "first" });
+
+    await Promise.resolve(
+      expect(writeKit(join(home, "missing", "kit.json"), {})).rejects.toMatchObject({
+        code: "INVALID_INPUT",
+      }),
+    );
+
+    await writeKit(join(home, "new-kit.json"), { vault: "second" });
+    expect(await Bun.file(join(home, "new-kit.json")).json()).toEqual({ vault: "second" });
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

@@ -64,8 +64,6 @@ async function createState(
   const name = await defaultInput(options.name, "Device name");
   const password = await confirmedPassword(secret);
 
-  const resumeSecretKey = await resumeKey(vaultId, options.kitOut);
-
   const result = await setupVault(adapters, {
     address,
     token,
@@ -73,7 +71,7 @@ async function createState(
     password,
     now,
     fetcher: adapters.fetcher,
-    ...(resumeSecretKey ? { resumeSecretKey } : {}),
+    readResumeSecretKey: async () => (await resumeKey(vaultId, options.kitOut))!,
     onKit: (kit) => reportKit(options.kitOut, kit),
   });
 

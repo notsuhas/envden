@@ -5,17 +5,28 @@ import { setupVault } from "../setup.ts";
 import { kitJoin } from "../recovery/kit.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
-for (const missing of ["epoch/1", "id-key", "both", "write-fails"])
+for (const missing of [
+  "epoch/1",
+  "id-key",
+  "both",
+  "device",
+  "wrong-epoch",
+  "expired",
+  "write-fails",
+])
   test(`setup cannot commit without keys: ${missing}`, async () => {
     const f = await setupFlow();
     const log = spyOn(console, "log").mockImplementation(() => {});
     const { testNetwork } = await import("@envden/server/testing");
     const network = testNetwork();
 
+    let timestamp = f.now();
+    const now = () => timestamp;
+
     const running = await network.serve({
       dataDir: join(f.root, "fresh-server"),
       port: 0,
-      now: f.now,
+      now,
     });
 
     const token = log.mock.calls
@@ -41,7 +52,7 @@ for (const missing of ["epoch/1", "id-key", "both", "write-fails"])
         token,
         name: "third",
         password: "password",
-        now: f.now,
+        now,
         fetcher: network.fetcher,
       };
 
@@ -68,10 +79,12 @@ for (const missing of ["epoch/1", "id-key", "both", "write-fails"])
       else {
         expect(pending?.creationPending).toBeDefined();
 
-        for (const key of missing === "both" ? ["epoch/1", "id-key"] : [missing])
+        for (const key of missing === "both" ? ["epoch/1", "id-key", "device"] : [missing])
           await adapters.keychain.delete(`envden/${adapters.home}/${key}`);
       }
 
+      await replaceWrongEpoch(missing, originalSet, adapters.home);
+      if (missing === "expired") timestamp += 120001;
       adapters.keychain.set = originalSet;
       const result = await setupVault(adapters, options);
       expect(result.state.creationPending).toBeUndefined();
@@ -114,3 +127,11 @@ test("join refuses a foreign committed vault without changing state or keys", as
     await f.cleanup();
   }
 });
+
+async function replaceWrongEpoch(
+  missing: string,
+  set: (name: string, value: Uint8Array) => Promise<void>,
+  home: string,
+) {
+  if (missing === "wrong-epoch") await set(`envden/${home}/epoch/1`, new Uint8Array(32).fill(7));
+}

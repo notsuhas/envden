@@ -1,3 +1,4 @@
+import { resumedKit } from "./recovery/pending-kit.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
@@ -24,6 +25,7 @@ async function lockedsetupVault(
     now: () => number;
     fetcher: TFetch;
     resumeSecretKey?: string;
+    readResumeSecretKey?: () => Promise<string>;
     onKit?: (kit: {
       secretKey: string;
       vaultId: string;
@@ -42,32 +44,11 @@ async function lockedsetupVault(
   await hello(options.address, token.serverPin, options.fetcher, MIN_SERVER);
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
 
-  const pending = await resumableCreation(adapters, existing);
+  const pending = await resumableCreation(adapters, existing, identity.record.id);
 
   if (pending) {
-    const kit = resumedKit(pending.state, options);
-
-    const client = createClient({
-      address: pending.server.address,
-      pin: token.serverPin,
-      vaultId: p.unbase32(pending.vaultId),
-      identity,
-      version: VERSION,
-      now: options.now,
-      fetcher: options.fetcher,
-      proof: (request) => p.tokenProof("setup", p.tokenKey("setup", token.secret), request),
-    });
-
-    await client.request(
-      "/v1/vault",
-      "POST",
-      new Uint8Array(Buffer.from(pending.creationPending, "base64url")),
-    );
-
-    delete pending.state.creationPending;
-    await saveState(adapters.home, pending.state);
-
-    return { state: pending.state, kit };
+    const resumed = await resumeCreation(adapters, options, token, identity, pending);
+    if (resumed) return resumed;
   }
 
   const material = await createGenesis(identity, token.serverPin, options.now());
@@ -133,46 +114,19 @@ export function setupVault(...args: Parameters<typeof lockedsetupVault>) {
   return withStateLock(args[0].home, () => lockedsetupVault(...args));
 }
 
-function resumedKit(
-  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
-  options: { address: string; resumeSecretKey?: string },
-) {
-  if (!options.resumeSecretKey)
-    throw new EnvdenError(
-      "INVALID_INPUT",
-      "Resume setup with the recovery kit issued before creation",
-    );
-
-  const vaultId = state.vaultId!;
-  const secret = p.decodeSecretKey(options.resumeSecretKey);
-
-  if (state.creationPending) {
-    const swap = p.decode(
-      p.SwapCodec,
-      new Uint8Array(Buffer.from(state.creationPending, "base64url")),
-    );
-
-    if (!swap.skPub || !p.equal(p.skPub(secret, p.unbase32(vaultId)), swap.skPub))
-      throw new EnvdenError("INVALID_INPUT", "Recovery kit does not match pending vault");
-  }
-
-  return {
-    vaultId,
-    secretKey: options.resumeSecretKey,
-    server: options.address,
-    masterPassword: "________________",
-  };
-}
-
 async function resumableCreation(
   adapters: TAdapters,
   state: Awaited<ReturnType<typeof loadState>>,
+  deviceId: Uint8Array,
 ) {
   if (!state?.creationPending || !state.vaultId || !state.server) return undefined;
   const epoch = await adapters.keychain.get(`envden/${adapters.home}/epoch/1`);
   const id = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
 
-  return epoch && id
+  const valid =
+    epoch && id && matchesPendingKey(state.creationPending, state.vaultId, epoch, deviceId);
+
+  return valid
     ? {
         state,
         creationPending: state.creationPending,
@@ -180,4 +134,61 @@ async function resumableCreation(
         server: state.server,
       }
     : undefined;
+}
+
+async function resumeCreation(
+  adapters: TAdapters,
+  options: Parameters<typeof lockedsetupVault>[1],
+  token: ReturnType<typeof p.decodeToken>,
+  identity: Awaited<ReturnType<typeof deviceIdentity>>,
+  pending: NonNullable<Awaited<ReturnType<typeof resumableCreation>>>,
+) {
+  const client = createClient({
+    address: pending.server.address,
+    pin: token.serverPin,
+    vaultId: p.unbase32(pending.vaultId),
+    identity,
+    version: VERSION,
+    now: options.now,
+    fetcher: options.fetcher,
+    proof: (request) => p.tokenProof("setup", p.tokenKey("setup", token.secret), request),
+  });
+
+  try {
+    await client.request(
+      "/v1/vault",
+      "POST",
+      new Uint8Array(Buffer.from(pending.creationPending, "base64url")),
+    );
+
+    const resumeSecretKey = options.resumeSecretKey ?? (await options.readResumeSecretKey?.());
+
+    const kit = resumedKit(pending.state, {
+      ...options,
+      ...(resumeSecretKey ? { resumeSecretKey } : {}),
+    });
+
+    delete pending.state.creationPending;
+    await saveState(adapters.home, pending.state);
+
+    return { state: pending.state, kit };
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "UNAUTHORIZED") throw error;
+  }
+}
+
+function matchesPendingKey(
+  encoded: string,
+  vaultId: string,
+  epoch: Uint8Array,
+  deviceId: Uint8Array,
+) {
+  const swap = p.decode(p.SwapCodec, new Uint8Array(Buffer.from(encoded, "base64url")));
+  const change = swap.entries.find((entry) => entry.body.kind === 3)?.body;
+
+  return (
+    p.equal(swap.header.body.signer, deviceId) &&
+    change?.kind === 3 &&
+    p.equal(p.keyCommit(epoch, p.unbase32(vaultId), 1), change.payload.change.keyCommit)
+  );
 }
