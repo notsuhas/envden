@@ -1,3 +1,4 @@
+import { indexHeaders } from "./stored.ts";
 import { EnvdenError } from "../../errors/index.ts";
 import { protectSource, SourceFailure } from "./source-errors.ts";
 import type { IDeviceListState } from "../devices/state.ts";
@@ -41,7 +42,8 @@ export async function acceptManifest(input: {
     const source = protectSource(input.source);
     const hash = (h: ISigned<IManifestHeader>) => objectHash(ManifestHeaderCodec, h, "manifest");
 
-    const prior = priorManifest(c, head, input.storedHeaders);
+    const storedBySeq = indexHeaders(input.storedHeaders);
+    const prior = priorManifest(c, head, storedBySeq);
 
     if (prior.kind !== "advance") {
       if (prior.kind === "fork") await checkHeaderSignature(source, c.state, head);
@@ -65,7 +67,7 @@ export async function acceptManifest(input: {
     for (const signed of headers) {
       const h = signed.body;
       check(equal(h.vaultId, state.vaultId));
-      const stored = input.storedHeaders.find((item) => item.body.seq === h.seq);
+      const stored = storedBySeq.get(h.seq);
 
       if (stored && !equal(hash(stored), hash(signed))) {
         await checkHeaderSignature(source, state, signed);
@@ -185,12 +187,12 @@ async function verifyKeyring(
 function priorManifest(
   c: ICheckpoint,
   head: ISigned<IManifestHeader>,
-  storedHeaders: readonly ISigned<IManifestHeader>[],
+  storedHeaders: ReadonlyMap<bigint, ISigned<IManifestHeader>>,
 ): { kind: "advance" } | { kind: "fork" | "unchanged" | "rollback" } {
   const hash = (h: ISigned<IManifestHeader>) => objectHash(ManifestHeaderCodec, h, "manifest");
 
   if (head.body.seq <= c.header.body.seq) {
-    const stored = storedHeaders.find((h) => h.body.seq === head.body.seq);
+    const stored = storedHeaders.get(head.body.seq);
     if (!stored || !equal(hash(stored), hash(head))) return { kind: "fork" };
 
     return { kind: head.body.seq === c.header.body.seq ? "unchanged" : "rollback" };

@@ -1,5 +1,5 @@
 import { transitionEntry } from "./mutate.ts";
-import { EntryCodec, equal, objectHash, verifyObject } from "../../../protocol/index.ts";
+import { EntryCodec, equal, H, concat, b64, Verify } from "../../../protocol/index.ts";
 import type { ISigned, TEntry } from "../../../protocol/index.ts";
 import { check, id } from "../../shared/validation.ts";
 import type { IDeviceListState } from "../state.ts";
@@ -9,17 +9,17 @@ export function apply(
   signed: ISigned<TEntry>,
 ): IDeviceListState {
   const e = signed.body;
-  EntryCodec.write(e);
-  const head = objectHash(EntryCodec, signed, "entry");
+  const encoded = EntryCodec.write(e);
+  const head = H("hash/entry", concat(encoded, b64.write(signed.signature)));
 
-  if (!state) return createState(signed, head);
+  if (!state) return createState(signed, head, encoded);
 
   check(equal(e.vaultId, state.vaultId) && e.seq === state.seq + 1n && equal(e.parent, state.head));
   check(e.seq !== 1n || e.kind === 3);
   const signer = state.devices.get(id(e.signer));
   const recoverySigned = equal(e.signer, state.recovery.id);
   check(signer || (recoverySigned && e.kind === 1));
-  check(verifyObject(EntryCodec, signed, signer?.objPub ?? state.recovery.objPub, "entry").ok);
+  check(Verify(signer?.objPub ?? state.recovery.objPub, "entry", encoded, signed.signature).ok);
 
   const { devices, everUsedIds, repairIds, commits, recovery, serverPin } = transitionEntry(
     state,
@@ -61,7 +61,11 @@ export function apply(
   };
 }
 
-function createState(signed: ISigned<TEntry>, head: Uint8Array): IDeviceListState {
+function createState(
+  signed: ISigned<TEntry>,
+  head: Uint8Array,
+  encoded: Uint8Array,
+): IDeviceListState {
   const e = signed.body;
 
   check(
@@ -72,7 +76,7 @@ function createState(signed: ISigned<TEntry>, head: Uint8Array): IDeviceListStat
   );
 
   check(equal(e.signer, e.payload.device.id));
-  check(verifyObject(EntryCodec, signed, e.payload.device.objPub, "entry").ok);
+  check(Verify(e.payload.device.objPub, "entry", encoded, signed.signature).ok);
   check(!equal(e.payload.device.id, e.payload.recovery.id));
 
   return {

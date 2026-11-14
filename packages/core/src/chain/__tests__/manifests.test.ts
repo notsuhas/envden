@@ -1,3 +1,4 @@
+import { verifyChain } from "../devices/apply.ts";
 import { EnvdenError } from "../../errors/index.ts";
 import { expect, test } from "bun:test";
 import {
@@ -222,3 +223,56 @@ for (const method of ["header", "files"] as const) {
     }
   });
 }
+
+test("foreign genesis cannot establish a fork at equal or greater sequence", async () => {
+  const f = manifestFixture();
+  const foreign = manifestFixture();
+  if (foreign.genesis.body.kind !== 0) throw new Error("fixture genesis");
+
+  const genesis = signObject(
+    EntryCodec,
+    {
+      ...foreign.genesis.body,
+      payload: { ...foreign.genesis.body.payload, device: foreign.b.record, vaultNonce: bytes(99) },
+      signer: foreign.b.record.id,
+    },
+    foreign.b.keys.objSk,
+    "entry",
+  );
+
+  const vaultId = objectHash(EntryCodec, genesis, "entry");
+
+  const epoch = signObject(
+    EntryCodec,
+    {
+      ...foreign.epoch.body,
+      kind: 3,
+      payload: {
+        change: foreign.change({ ...foreign.state, vaultId, epoch: 0 }, [foreign.b.record]),
+      },
+      vaultId,
+      parent: vaultId,
+      signer: foreign.b.record.id,
+    },
+    foreign.b.keys.objSk,
+    "entry",
+  );
+
+  expect(verifyChain([genesis, epoch]).kind).toBe("valid");
+
+  const listHead = objectHash(EntryCodec, epoch, "entry");
+  foreign.entries.set(base32(vaultId), genesis);
+  foreign.entries.set(base32(listHead), epoch);
+
+  for (const seq of [1n, 2n]) {
+    const head = signedHeader(
+      foreign.header,
+      { vaultId, listHead, seq, signer: foreign.b.record.id },
+      foreign.b,
+    );
+
+    expect((await acceptManifest({ ...f.acceptInput(head), source: foreign.source })).kind).toBe(
+      "invalid",
+    );
+  }
+});

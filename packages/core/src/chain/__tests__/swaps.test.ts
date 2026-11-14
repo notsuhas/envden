@@ -160,3 +160,16 @@ test("swap optional payloads enforce public key, record and approver shapes", ()
     "invalid",
   );
 });
+
+test("swap validation preserves unexpected failures", () => {
+  const f = swapFixture(1);
+  const failure = new Error("programmer failure");
+
+  Object.defineProperty(f.swap, "header", {
+    get: () => {
+      throw failure;
+    },
+  });
+
+  expect(() => validateSwap(f.swap, f.context)).toThrow(failure);
+});

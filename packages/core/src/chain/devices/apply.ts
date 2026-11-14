@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { apply } from "./transitions/apply.ts";
 import type { ISigned, TEntry } from "../../protocol/index.ts";
 import type { IDeviceListState, TDeviceListResult } from "./state.ts";
@@ -8,7 +9,9 @@ export function applyEntry(
 ): TDeviceListResult {
   try {
     return { kind: "valid", state: apply(state, entry) };
-  } catch {
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
+
     return { kind: "invalid" };
   }
 }

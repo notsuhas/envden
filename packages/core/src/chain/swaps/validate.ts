@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import type { ISwapContext } from "./context.ts";
 import { checkPayload } from "./payload/check.ts";
 import {
@@ -53,7 +54,9 @@ export function validateSwap(
     checkPayload(swap, context);
 
     return { kind: "valid", authorization, state };
-  } catch {
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
+
     return { kind: "invalid" };
   }
 }

@@ -13,6 +13,7 @@ export async function checkHeaderSignature(
   signed: ISigned<IManifestHeader>,
 ): Promise<void> {
   const h = signed.body;
+  check(equal(h.vaultId, verified.vaultId));
   let state = verified;
 
   if (h.listSeq >= state.seq) {

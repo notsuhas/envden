@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, spyOn, test } from "bun:test";
 import {
   compare,
   EntryCodec,
@@ -248,4 +248,33 @@ test("recovery replacement, pin update and repair ID uniqueness", () => {
 
   if (repaired.kind === "valid")
     expect(applyEntry(repaired.state, f.entry(repaired.state, done)).kind).toBe("invalid");
+});
+
+test("entry validation preserves unexpected failures", () => {
+  const f = fixture();
+  const failure = new Error("programmer failure");
+
+  Object.defineProperty(f.genesis, "body", {
+    get: () => {
+      throw failure;
+    },
+  });
+
+  expect(() => applyEntry(undefined, f.genesis)).toThrow(failure);
+});
+
+test("entry validation encodes each body once", () => {
+  const f = fixture();
+  const write = spyOn(EntryCodec, "write");
+
+  try {
+    const genesis = applyEntry(undefined, f.genesis);
+    expect(genesis.kind).toBe("valid");
+    expect(write).toHaveBeenCalledTimes(1);
+    if (genesis.kind !== "valid") return;
+    expect(applyEntry(genesis.state, f.epoch).kind).toBe("valid");
+    expect(write).toHaveBeenCalledTimes(2);
+  } finally {
+    write.mockRestore();
+  }
 });
