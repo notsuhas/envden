@@ -60,6 +60,14 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.target }}
       - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.asset }}
+      # setup requires tailnet HTTPS certificates, so a stand-in tailscale reports them enabled
+      - if: runner.os != 'Windows'
+        run: |
+          cat > "$RUNNER_TEMP/tailscale" <<'EOF'
+          #!/bin/sh
+          echo '{"BackendState":"Running","Self":{"DNSName":"ci.example.ts.net."},"CertDomains":["ci.example.ts.net"]}'
+          EOF
+          sudo install -m 0755 "$RUNNER_TEMP/tailscale" /usr/local/bin/tailscale
       # Bun's pseudo-terminal support is POSIX-only, so Windows runs the smoke test alone
       - if: runner.os != 'Windows'
         run: bun apps/cli/scripts/e2e.ts apps/cli/dist/${{ matrix.asset }}
