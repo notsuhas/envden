@@ -1,3 +1,5 @@
+import { membership } from "../vault/chain.ts";
+import { requireGate } from "../middleware/gates.ts";
 import {
   MailboxOpenedSchema,
   MailboxSlotResponseSchema,
@@ -15,16 +17,21 @@ import { indexMailbox, indexJoiner, mailboxVault, approverVault } from "./lookup
 
 export function openMailbox(options: IAppOptions, auth: IAuth) {
   const { vaultId, device } = auth.request;
-  const box = options.storage.openMailbox(vaultId, device, options.now());
-  if (!box) throw new EnvdenError("RATE_LIMITED", "Mailbox limit reached");
 
-  options.storage.writeState(vaultId, [
-    { kind: "server-identity", key: new Uint8Array([box.number >> 8, box.number & 255]) },
-  ]);
+  return options.storage.transaction(() => {
+    auth = { ...auth, member: !!membership(options.storage, vaultId, device) };
+    requireGate(options, auth, "fresh");
+    const box = options.storage.openMailbox(vaultId, device, options.now());
+    if (!box) throw new EnvdenError("RATE_LIMITED", "Mailbox limit reached");
 
-  indexMailbox(options.storage, box.number, vaultId);
+    options.storage.writeState(vaultId, [
+      { kind: "server-identity", key: new Uint8Array([box.number >> 8, box.number & 255]) },
+    ]);
 
-  return MailboxOpenedSchema.parse({ number: box.number, expiresAt: box.expiresAt });
+    indexMailbox(options.storage, box.number, vaultId);
+
+    return MailboxOpenedSchema.parse({ number: box.number, expiresAt: box.expiresAt });
+  });
 }
 
 export function accessible(

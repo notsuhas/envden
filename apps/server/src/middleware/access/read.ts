@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import type { Context } from "hono";
 import type { IAppOptions, TServerEnv } from "../../http/types.ts";
 import type { requestRoute } from "../../routes/policy.ts";
@@ -14,6 +15,10 @@ export async function verifiedBody(
   authorizeBody(c, options);
   const auth = c.get("auth");
   if (!auth.member && route.charge) auth.rateReceipt = charge(options, auth);
+
+  if (!options.storage.rememberNonce(auth.request.device, auth.request.nonce, options.now()))
+    throw new EnvdenError("UNAUTHORIZED", "Replayed request");
+
   const raw = c.req.raw;
   const authorized = route.policy === "data" || route.policy === "registration";
   const budget = auth.member ? "member" : authorized ? "authorized" : "public";

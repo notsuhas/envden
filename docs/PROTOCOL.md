@@ -439,7 +439,7 @@ The server stores the unlock period per vault (1d, 7d, 30d or never; default 30d
 - **Kit join.** A successful kit login gives the candidate device a join ticket: server-side state keyed by (vault, candidate device ID), not a bearer value. The ticket is bound to (vault, candidate device ID), lasts 10 minutes and is used once. It allows the reads listed in § 10 and exactly one kit-join swap, signed by that candidate. After the swap, the device is unlocked for one period, with no fresh window.
 - **SK proof.** An `SK` proof authorizes exactly one reset-password swap. It also authorizes the reads needed to build it, even if the device is locked: the headers and entries from the device's checkpoint to the head, the head's file list, the keyring and the envelope. It bypasses `unlockedUntil` and `freshUntil` for those requests only.
 - **Rate limits.**
-  - Every OPAQUE login start counts as a failure, and a successful finish refunds it. That's because each `KE2` allows one offline guess, with or without `KE3`. Registration starts count the same way.
+  - Every OPAQUE login start counts as a failure, and a successful finish refunds it. That's because each `KE2` allows one offline guess, with or without `KE3`. Registration starts count the same way, with a refund only when the registration record is committed by creation, move activation or a swap.
   - Members have one bucket per device ID. Non-members (kit login) have one bucket per vault.
   - Each bucket allows 5 failures per 15 minutes, then a doubling lockout up to 24 hours. A stolen device can lock only itself out, and strangers can lock only the kit path.
   - Pairing mailboxes have their own limits (§ 12).
@@ -492,7 +492,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
 - Mailbox messages are at most 4 KiB.
 - A mailbox has four slots, each written once: `KE1` and `KE3` from B, `KE2` from A, then `PairJoiner` from B, accepted only after `KE3`. An identical resubmission returns success. A different message for a filled slot closes the mailbox.
 - Slots are writable only within 10 minutes of opening. The mailbox, and its number, are freed when the pair swap commits, or at the 10-minute mark if none did. `PairApprover` lives on separately, keyed by device ID.
-- A vault can open at most 10 mailboxes per hour.
+- A vault can open at most 10 mailboxes per hour. Non-member mailbox writes are limited to 20 per 15 minutes per source device ID and per mailbox number, with a doubling lockout up to 24 hours.
 
 **Orphans.** If A commits but B never receives `PairApprover` in time, B shows up in `envden device list` as never confirmed. The user removes it with `envden device rm` and pairs again with fresh keys.
 

@@ -239,3 +239,48 @@ test("internal failures never expose their message", async () => {
     f.close();
   }
 });
+
+for (const path of ["/v1/devices", "/v1/head", "/v1/settings/unlock-period"])
+  test(`zero vault rejected on ${path}`, async () => {
+    const f = fixture(keys);
+
+    try {
+      const response = await f
+        .request(path, undefined, {
+          mutate: (r) => {
+            r.vaultId = new Uint8Array(32);
+          },
+        })
+        .send();
+
+      expect(response.status).toBe(404);
+    } finally {
+      f.close();
+    }
+  });
+
+test("unchanged member versions do not write device state", async () => {
+  const f = fixture(keys);
+  const put = spyOn(f.storage, "putDevice");
+
+  try {
+    await f.request("/v1/settings/unlock-period").send();
+    expect(put).not.toHaveBeenCalled();
+  } finally {
+    put.mockRestore();
+    f.close();
+  }
+});
+
+test("rejected unknown devices do not record nonces", async () => {
+  const f = fixture(keys);
+  const remember = spyOn(f.storage, "rememberNonce");
+
+  try {
+    await f.request("/v1/head", undefined, { who: f.joiner }).send();
+    expect(remember).not.toHaveBeenCalled();
+  } finally {
+    remember.mockRestore();
+    f.close();
+  }
+});

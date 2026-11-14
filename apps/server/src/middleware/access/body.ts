@@ -1,3 +1,5 @@
+import { chargeMailbox } from "../../pairing/rate-limit.ts";
+import { authorizeNonMember } from "./non-member.ts";
 import type { Context } from "hono";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth, TServerEnv } from "../../http/types.ts";
@@ -13,6 +15,8 @@ export function authorizeBody(c: Context<TServerEnv>, options: IAppOptions): voi
   const auth = c.get("auth");
   const path = c.req.path;
   const vault = options.storage.vault(auth.request.vaultId);
+
+  authorizeNonMember(c, options);
 
   if (path.startsWith("/v1/opaque/registration/")) authorizeRegistration(options, auth);
   else if (path === "/v1/vault" && (!vault || !auth.member)) requireSetup(options, auth);
@@ -33,8 +37,10 @@ function authorizeMailbox(c: Context<TServerEnv>, options: IAppOptions) {
   const parts = c.req.path.split("/");
   const slot = parts[5];
 
-  if (slot === "KE1" || slot === "KE2" || slot === "KE3" || slot === "PairJoiner")
+  if (slot === "KE1" || slot === "KE2" || slot === "KE3" || slot === "PairJoiner") {
+    chargeMailbox(options, c.get("auth"), Number(parts[4]));
     accessible(options, c.get("auth"), Number(parts[4]), slot, true);
+  }
 }
 
 function authorizeMove(options: IAppOptions, auth: IAuth, path: string, method: string) {

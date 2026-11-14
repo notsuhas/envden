@@ -37,7 +37,7 @@ export function verifyAccess(
 
   const state = storage.device(request.vaultId, request.device);
 
-  if (member)
+  if (member && state?.clientVersion !== request.clientVersion)
     storage.putDevice(request.vaultId, request.device, {
       unlockedUntil: 0,
       freshUntil: 0,

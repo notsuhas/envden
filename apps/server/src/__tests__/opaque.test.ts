@@ -67,7 +67,7 @@ for (const purpose of ["unlock", "kit"] as const) {
             .request(finishPath, finish.body, { who: purpose === "kit" ? f.member : f.joiner })
             .send()
         ).status,
-      ).toBe(403);
+      ).toBe(purpose === "unlock" ? 401 : 403);
 
       const finished = await f.request(finishPath, finish.body, { who: finish.who }).send();
       expect(finished.status).toBe(200);

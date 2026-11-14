@@ -1,4 +1,4 @@
-import { beforeAll, test, expect } from "bun:test";
+import { beforeAll, test, expect, spyOn } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { candidate, fixture, identity, vaultId } from "./fixture.ts";
 import type { IServerKeys } from "../http/types.ts";
@@ -237,6 +237,59 @@ test("PairApprover is fetched by authenticated device ID and expires after 24h",
 
     expect((await f.request("/v1/pairing/approver", undefined, { who: other }).send()).status).toBe(
       404,
+    );
+  } finally {
+    f.close();
+  }
+});
+
+test("mailbox opening rolls back when indexing fails", async () => {
+  const f = fixture(keys);
+  f.fresh();
+
+  const write = spyOn(f.storage, "writeState").mockImplementation(() => {
+    throw new Error("index failed");
+  });
+
+  const log = spyOn(console, "error").mockImplementation(() => {});
+
+  try {
+    expect((await f.request(path, {}).send()).status).toBe(500);
+    expect(f.storage.mailbox(vaultId, 1, f.options.now())).toBeUndefined();
+  } finally {
+    write.mockRestore();
+    log.mockRestore();
+    f.close();
+  }
+});
+
+test("non-member mailbox writes are limited across device IDs", async () => {
+  const f = fixture(keys);
+
+  try {
+    f.fresh();
+    const number = await open(f);
+    const body = { message: text(p.randomBytes(96)) };
+    const joiner = f.joiner;
+
+    expect(
+      (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: joiner }).send())
+        .status,
+    ).toBe(200);
+
+    for (let i = 0; i < 19; i++)
+      expect(
+        (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
+          .status,
+      ).toBe(401);
+
+    expect(
+      (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
+        .status,
+    ).toBe(429);
+
+    expect(f.storage.mailbox(vaultId, number, f.options.now())?.slots.KE1).toEqual(
+      Buffer.from(body.message, "base64url"),
     );
   } finally {
     f.close();

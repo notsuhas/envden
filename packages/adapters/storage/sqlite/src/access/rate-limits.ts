@@ -7,7 +7,7 @@ export function createRateLimits(context: TContext) {
   const { db, run } = context;
 
   function charge(vault: Uint8Array, bucket: TRateBucket, now: number): TRateCharge {
-    const key = bucket.kind === "member" ? `member:${hex(bucket.device)}` : `vault:${hex(vault)}`;
+    const key = bucketKey(vault, bucket);
 
     return db
       .transaction(() => {
@@ -27,7 +27,7 @@ export function createRateLimits(context: TContext) {
             )
             .get(key)?.count ?? 0;
 
-        if (count >= 5) {
+        if (count >= (bucket.kind === "mailbox" ? 20 : 5)) {
           const strikes = (row?.strikes ?? 0) + 1;
 
           run(
@@ -61,4 +61,15 @@ export function createRateLimits(context: TContext) {
   }
 
   return { charge, refund };
+}
+
+function bucketKey(vault: Uint8Array, bucket: TRateBucket): string {
+  switch (bucket.kind) {
+    case "mailbox":
+      return bucket.device ? `mailbox-writer:${hex(bucket.device)}` : `mailbox:${hex(vault)}`;
+    case "member":
+      return `member:${hex(bucket.device)}`;
+    case "non-member":
+      return `vault:${hex(vault)}`;
+  }
 }

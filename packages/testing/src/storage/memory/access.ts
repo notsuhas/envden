@@ -1,3 +1,4 @@
+import type { TRateBucket } from "@envden/core/adapters";
 import type { IStorageAdapter } from "@envden/core/adapters";
 import { hex } from "./data.ts";
 import type { IMemoryContext } from "./data.ts";
@@ -38,7 +39,7 @@ export function createAccess(context: IMemoryContext) {
     },
     charge(vault, bucket, now) {
       const data = context.data;
-      const key = bucket.kind === "member" ? `member:${hex(bucket.device)}` : `vault:${hex(vault)}`;
+      const key = rateKey(vault, bucket);
       const prior = data.buckets.get(key);
       if (prior && now < prior.until) return { kind: "locked", until: prior.until };
 
@@ -47,7 +48,10 @@ export function createAccess(context: IMemoryContext) {
       const receipt = String(++data.receipt);
       data.charges.set(receipt, { key, at: now });
 
-      if ([...data.charges.values()].filter((charge) => charge.key === key).length >= 5) {
+      if (
+        [...data.charges.values()].filter((charge) => charge.key === key).length >=
+        (bucket.kind === "mailbox" ? 20 : 5)
+      ) {
         const strikes = (prior?.strikes ?? 0) + 1;
 
         data.buckets.set(key, {
@@ -78,4 +82,12 @@ function expireCharges(context: IMemoryContext, key: string, now: number) {
 
   for (const [receipt, charge] of data.charges)
     if (charge.key === key && charge.at <= now - 900000) data.charges.delete(receipt);
+}
+
+function rateKey(vault: Uint8Array, bucket: TRateBucket) {
+  if (bucket.kind === "non-member") return `vault:${hex(vault)}`;
+  if (bucket.kind === "member") return `member:${hex(bucket.device)}`;
+  if (bucket.device) return `mailbox-writer:${hex(bucket.device)}`;
+
+  return `mailbox:${hex(vault)}`;
 }

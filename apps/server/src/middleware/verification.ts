@@ -48,9 +48,6 @@ export function verification(options: IAppOptions) {
     )
       throw new EnvdenError("UNAUTHORIZED", "Invalid request");
 
-    if (!storage.rememberNonce(request.device, request.nonce, now()))
-      throw new EnvdenError("UNAUTHORIZED", "Replayed request");
-
     if (compareSemver(request.clientVersion, config.minClient) < 0)
       throw new EnvdenError("CLIENT_TOO_OLD", "Update required");
 
@@ -59,6 +56,9 @@ export function verification(options: IAppOptions) {
     const release = await verifiedBody(c, options, route);
 
     try {
+      if (member && !membership(storage, request.vaultId, request.device))
+        throw new EnvdenError("NOT_MEMBER", "Membership required");
+
       await next();
     } finally {
       release();
