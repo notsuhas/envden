@@ -16,7 +16,7 @@ const operationSchema = z.object({
   written: z.array(z.boolean()),
   next: z.string().nullable(),
   server: z.string().nullable(),
-  header: z.string(),
+  header: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
   entry: z.string().nullable(),
 });
 

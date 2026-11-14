@@ -61,3 +61,49 @@ test("late superseded attempt advances the merge ancestor before retry", async (
   expect(await Bun.file(join(f.second.home, "state", "upload-attempt.json")).exists()).toBe(false);
   expect(await Bun.file(join(f.second.home, "state", "lineage")).exists()).toBe(false);
 });
+
+test("an attempt with a mismatched header is quarantined before a stale push", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["copy"]);
+  await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=edit\n");
+
+  const lost: TFetch = async (input, init) => {
+    const response = await f.fetcher(input, init);
+    if (isSwap(input)) throw new Error("Lost response");
+
+    return response;
+  };
+
+  await Promise.resolve(expect(push(f.second, { ...f.opts, fetcher: lost })).rejects.toThrow());
+  const directory = join(f.second.home, "state", "attempts");
+  const name = (await readdir(directory))[0]!;
+  const record = JSON.parse(await Bun.file(join(directory, name)).text());
+  await atomicWrite(join(directory, name), JSON.stringify({ ...record, header: "invalid" }));
+  await pull(f.first, f.opts);
+  await atomicWrite(f.aStore, "TOKEN=local-test-value\n");
+  await push(f.first, f.opts);
+  const result = await push(f.second, f.opts);
+  expect(result.conflicts).toBe(1);
+  expect(await serverBytes(f)).toBe("TOKEN=local-test-value\n");
+});
+
+test("an attempt sequence inconsistent with its proposal cannot be rejected as stale", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["copy"]);
+  await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=edit\n");
+
+  const lost: TFetch = async (input, init) => {
+    if (isSwap(input)) throw new Error("Request not delivered");
+
+    return f.fetcher(input, init);
+  };
+
+  await Promise.resolve(expect(push(f.second, { ...f.opts, fetcher: lost })).rejects.toThrow());
+  const directory = join(f.second.home, "state", "attempts");
+  const name = (await readdir(directory))[0]!;
+  const record = JSON.parse(await Bun.file(join(directory, name)).text());
+  await atomicWrite(join(directory, name), JSON.stringify({ ...record, sequence: "0" }));
+  const result = await push(f.second, f.opts);
+  expect(result.conflicts).toBe(1);
+  expect(await serverBytes(f)).toBe("TOKEN=local-test-value\n");
+});

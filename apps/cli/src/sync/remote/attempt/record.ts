@@ -30,7 +30,8 @@ export async function saveAttempt(
     entries: entries.map((entry) => text(p.FileEntryCodec.write(entry))),
   });
 
-  await atomicWrite(join(context.adapters.home, "state", "attempts", hash), document);
+  const receipt = text(p.sha256(new TextEncoder().encode(document)));
+  await atomicWrite(join(context.adapters.home, "state", "attempts", receipt), document);
 }
 
 export async function acknowledgeAttempt(context: TSyncContext) {
