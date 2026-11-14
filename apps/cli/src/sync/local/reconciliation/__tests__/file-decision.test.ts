@@ -46,7 +46,7 @@ for (const [name, bytes, base, tracked, mode, expected] of [
     A,
     true,
     "copy",
-    { kind: "conflict", mine: B, theirs: C },
+    { kind: "conflict", mine: C, theirs: B },
   ],
   ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", mine: C, theirs: B }],
   ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", mine: C, theirs: B }],

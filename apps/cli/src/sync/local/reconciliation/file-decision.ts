@@ -43,7 +43,7 @@ export function deriveFileDecision(
 
   const local = deriveFileContent(
     store,
-    input.copies,
+    input.copies.filter((copy) => !(same(copy.bytes, input.server) && same(store, input.previous))),
     !!input.deleting || (input.published && !!input.tombstone),
   );
 
@@ -82,5 +82,5 @@ function copyEdits(store: TBytes, bytes: Uint8Array, base: Uint8Array, deleted: 
   if (same(bytes, base)) return store === undefined && !deleted ? [store, bytes] : [];
   if (same(store, base)) return [bytes];
 
-  return [store, bytes];
+  return [bytes, store];
 }
