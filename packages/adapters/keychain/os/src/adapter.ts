@@ -87,14 +87,14 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
     if (await hasFileSource(this.path(name))) return undefined;
 
-    const value = await Bun.secrets.get(this.options(name));
+    const value = await Bun.secrets.get(this.options(name)).catch(keychainReadFailure);
 
     return value === null ? undefined : new Uint8Array(Buffer.from(value, "base64"));
   }
 
   async set(name: string, value: Uint8Array) {
     if (!(await this.fileBacked(name))) {
-      const existing = await Bun.secrets.get(this.options(name));
+      const existing = await Bun.secrets.get(this.options(name)).catch(keychainReadFailure);
 
       try {
         await Bun.secrets.set({
@@ -122,17 +122,35 @@ class OsKeychainAdapter implements IKeychainAdapter {
   }
 
   async delete(name: string) {
-    if (!(await this.fileBacked(name))) {
-      try {
-        await Bun.secrets.delete(this.options(name));
-      } catch {
+    const fileSource =
+      (await hasFileSource(this.path(name))) || (await this.fileValue(name)) !== undefined;
+
+    try {
+      await Bun.secrets.delete(this.options(name));
+    } catch (cause) {
+      if (!fileSource)
         throw new EnvdenError(
           "INVALID_INPUT",
           "Keychain unavailable; key deletion could not be confirmed",
+          { cause },
         );
-      }
-    } else await removeKeyFile(this.path(name));
+    }
+
+    if (fileSource) await removeKeyFile(this.path(name));
   }
+}
+
+function keychainReadFailure(cause: unknown): null {
+  if (
+    !(cause instanceof Error) ||
+    /locked|denied|cancel|interaction is not allowed/i.test(cause.message) ||
+    !/unavailable|not available|not supported|not implemented|missing|dbus|d-bus|secret service/i.test(
+      cause.message,
+    )
+  )
+    throw cause;
+
+  return null;
 }
 
 export function createOsKeychainAdapter(options: IOptions = {}): IKeychainAdapter {

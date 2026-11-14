@@ -1,3 +1,4 @@
+import { beforeEach, afterEach, spyOn as secretSpy } from "bun:test";
 import { rejects } from "node:assert/strict";
 import { EnvdenError } from "@envden/core/errors";
 import { execTrustedSync as execFileSync } from "@envden/core/process";
@@ -86,6 +87,7 @@ test.skipIf(process.platform !== "win32")(
 
 test.skipIf(process.platform !== "win32")("Windows credentials persist locally", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-key-persist-"));
+  const get = spyOn(Bun.secrets, "get").mockResolvedValue(null);
   const set = spyOn(Bun.secrets, "set").mockResolvedValue(undefined);
   const remove = spyOn(Bun.secrets, "delete").mockResolvedValue(true);
 
@@ -95,8 +97,21 @@ test.skipIf(process.platform !== "win32")("Windows credentials persist locally",
     await adapter.set("key", new Uint8Array([1]));
     expect(set.mock.calls.every(([options]) => options.persist === "local")).toBe(true);
   } finally {
+    get.mockRestore();
     set.mockRestore();
     remove.mockRestore();
     await rm(home, { recursive: true, force: true });
   }
+});
+
+let restoreDelete: (() => void) | undefined;
+
+beforeEach(() => {
+  if (process.env.ENVDEN_TEST_KEYCHAIN === "1") return;
+  const remove = secretSpy(Bun.secrets, "delete").mockResolvedValue(true);
+  restoreDelete = () => remove.mockRestore();
+});
+
+afterEach(() => {
+  restoreDelete?.();
 });
