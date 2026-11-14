@@ -29,14 +29,11 @@ async function pruneStateBackups(directory: string, now: number): Promise<void> 
   })) {
     const path = join(directory, entry.name);
 
-    if (entry.isDirectory()) await pruneStateBackups(path, now);
-    else if (
-      entry.isFile() &&
-      (entry.name.includes(".corrupt-") || /^\..+\.tmp$/.test(entry.name))
-    ) {
+    if (entry.name.includes(".corrupt-") || /^\..+\.tmp$/.test(entry.name)) {
       const stat = await lstat(path);
 
-      if (now - stat.mtimeMs >= 2592000000) await rm(path, { force: true });
-    }
+      if (now - stat.mtimeMs >= 2592000000)
+        await rm(path, { force: true, recursive: entry.isDirectory() });
+    } else if (entry.isDirectory()) await pruneStateBackups(path, now);
   }
 }
