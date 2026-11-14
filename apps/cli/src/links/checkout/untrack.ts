@@ -1,5 +1,5 @@
 import {
-  deletionRequested,
+  readDeletion,
   requestDeletion,
 } from "../../sync/local/reconciliation/operation/deletion.ts";
 import { removeConflictTargets } from "../../sync/local/conflicts.ts";
@@ -22,9 +22,22 @@ export async function untrack(adapters: TAdapters, path: string) {
     const cancelled: string[] = [];
 
     for (const link of state.links.filter((item) => item.root === root)) {
-      if (await deletionRequested(adapters.home, link.store)) {
-        await requestDeletion(adapters.home, link.store, false);
-        cancelled.push(join(root, link.path));
+      const intent = await readDeletion(adapters.home, link.store);
+
+      if (intent) {
+        const remaining = state.links.some(
+          (item) => item.store === link.store && item.root !== root,
+        );
+
+        await requestDeletion(
+          adapters.home,
+          link.store,
+          remaining,
+          intent.entry,
+          intent.targets.filter((path) => path !== join(root, link.path)),
+        );
+
+        if (!remaining) cancelled.push(...intent.targets);
       }
 
       const placement = adapters.placement("copy", root);
