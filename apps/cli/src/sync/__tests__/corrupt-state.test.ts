@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { basename, join } from "node:path";
-import { readdir } from "node:fs/promises";
+import { readdir, utimes } from "node:fs/promises";
 import { EnvdenError } from "@envden/core/errors";
 import { createSharedFixture } from "./shared-fixture.ts";
 import { approveLayout } from "./round-fixture.ts";
@@ -23,10 +23,11 @@ for (const suffix of [".entry", ".pending", "attempt"])
 
     const path =
       suffix === "attempt"
-        ? join(f.second.home, "state", "attempts", "invalid")
+        ? join(f.second.home, "state", "attempts", "A".repeat(43))
         : basePath(f.second.home, store) + suffix;
 
     await atomicWrite(path, "{invalid");
+    await utimes(path, new Date(f.now()), new Date(f.now()));
     await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n");
     const result = await push(f.second, f.opts);
     expect(result.conflicts).toBe(1);
