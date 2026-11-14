@@ -5,6 +5,7 @@ import { resolveTrustedExecutable } from "./trust.ts";
 type TOptions = {
   env?: Record<string, string | undefined>;
   cwd?: string;
+  timeout?: number;
   managerBin?: string;
   stdin?: "inherit" | "ignore" | Blob;
   stdout?: "inherit" | "ignore" | "pipe";
@@ -67,9 +68,14 @@ export async function execTrusted(name: string, args: string[], options: TOption
   return { stdout, stderr };
 }
 
-export function execTrustedSync(name: string, args: string[], options: { cwd?: string } = {}) {
+export function execTrustedSync(
+  name: string,
+  args: string[],
+  options: { cwd?: string; timeout?: number } = {},
+) {
   const result = spawnTrusted(name, args, {
     ...(options.cwd ? { cwd: options.cwd } : {}),
+    timeout: options.timeout ?? 5000,
     sync: true,
   });
 

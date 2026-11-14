@@ -27,6 +27,7 @@ class RcShellAdapter implements IShellAdapter {
   private readonly envdenHome: string;
   private readonly backupDirectory: string | undefined;
   private readonly resolveProfile: () => string | undefined;
+  private profile: string | undefined;
 
   constructor(
     shell: TShell,
@@ -51,12 +52,11 @@ class RcShellAdapter implements IShellAdapter {
       case "fish":
         return join(this.home, ".config", "fish", "config.fish");
       case "powershell":
-        return (
+        return (this.profile ??=
           this.resolveProfile() ??
           (process.platform === "win32"
             ? join(this.home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1")
-            : join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1"))
-        );
+            : join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1")));
     }
   }
 

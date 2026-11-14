@@ -4,6 +4,7 @@ export function fixedDirectories(platform = process.platform): string[] {
       "C:\\Windows\\System32",
       "C:\\Windows\\System32\\OpenSSH",
       "C:\\Windows\\System32\\WindowsPowerShell\\v1.0",
+      "C:\\Program Files\\PowerShell\\7",
       "C:\\Program Files\\Git\\cmd",
       "C:\\Program Files\\Tailscale",
     ];

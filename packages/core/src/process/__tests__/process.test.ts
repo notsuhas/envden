@@ -231,6 +231,7 @@ test("Windows fixed directories use canonical drive paths", () => {
       "C:/Windows/System32",
       "C:/Windows/System32/OpenSSH",
       "C:/Windows/System32/WindowsPowerShell/v1.0",
+      "C:/Program Files/PowerShell/7",
       "C:/Program Files/Git/cmd",
       "C:/Program Files/Tailscale",
     ].map((path) => win32.normalize(path)),
