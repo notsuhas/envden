@@ -25,7 +25,7 @@ export async function readAttempts(
   const attempts = [];
 
   for (const name of await readdir(directory).catch(() => [])) {
-    if (name.includes(".corrupt-")) continue;
+    if (!/^[A-Za-z0-9_-]{43}$/.test(name)) continue;
     const path = join(directory, name);
     const marker = path + ".invalid";
 
@@ -63,7 +63,7 @@ export async function invalidAttemptState(home: string) {
 
   for (const name of await readdir(directory).catch(() => [])) {
     if (
-      !name.includes(".corrupt-") &&
+      /^[A-Za-z0-9_-]{43}$/.test(name) &&
       (await invalidSyncRecord(join(directory, name), (saved) => decodeAttempt(saved, name)))
     )
       return true;
