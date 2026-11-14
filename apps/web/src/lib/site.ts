@@ -9,6 +9,6 @@ export const SITE_TAGLINE =
 
 export const GITHUB_URL = "https://github.com/notsuhas/envden";
 
-export const ENVDEN_VERSION = "0.1.0";
+export const ENVDEN_VERSION = "0.2.0";
 
 export const ALPHA_BANNER = `${SITE_NAME} v${ENVDEN_VERSION} is in alpha`;

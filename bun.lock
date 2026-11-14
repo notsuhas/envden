@@ -14,7 +14,7 @@
     },
     "apps/cli": {
       "name": "@envden/cli",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "bin": {
         "envden": "./src/main.ts",
       },
@@ -37,7 +37,7 @@
     },
     "apps/server": {
       "name": "@envden/server",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@envden/adapter-storage-sqlite": "workspace:*",
         "@envden/core": "workspace:*",
@@ -46,7 +46,7 @@
     },
     "apps/web": {
       "name": "@envden/web",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@envden/core": "workspace:*",
         "fumadocs-core": "16.19.0",
