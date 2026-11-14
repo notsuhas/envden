@@ -1,6 +1,6 @@
 import { keychainFailure } from "./failures/operation.ts";
 import { EnvdenError } from "@envden/core/errors";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, open } from "node:fs/promises";
 import { restrictAccess } from "./permissions/private.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +14,9 @@ interface IOptions {
 class OsKeychainAdapter implements IKeychainAdapter {
   readonly id = "os";
   private readonly directory: string;
-  private useFile: boolean;
+  private readonly fileOnly: boolean;
+  private fallbackNotice = false;
+  private reported = false;
 
   constructor(options: IOptions = {}) {
     this.directory = join(
@@ -23,7 +25,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
       "keys",
     );
 
-    this.useFile = options.fileOnly ?? false;
+    this.fileOnly = options.fileOnly ?? false;
   }
 
   private options(name: string) {
@@ -34,8 +36,15 @@ class OsKeychainAdapter implements IKeychainAdapter {
     return join(this.directory, `${Buffer.from(name).toString("hex")}.key`);
   }
 
+  takeFallbackNotice() {
+    if (!this.fallbackNotice || this.reported) return false;
+    this.reported = true;
+
+    return true;
+  }
+
   async available() {
-    if (this.useFile) return false;
+    if (this.fileOnly) return false;
     const name = `probe-${crypto.randomUUID()}`;
 
     try {
@@ -49,22 +58,11 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
       return true;
     } catch {
-      this.useFile = true;
-
       return false;
     }
   }
 
-  async get(name: string): Promise<Uint8Array | undefined> {
-    if (!this.useFile) {
-      try {
-        const value = await Bun.secrets.get(this.options(name));
-        if (value !== null) return Buffer.from(value, "base64");
-      } catch {
-        this.useFile = true;
-      }
-    }
-
+  private async fileValue(name: string) {
     try {
       return new Uint8Array(await readFile(this.path(name)));
     } catch (error) {
@@ -73,8 +71,29 @@ class OsKeychainAdapter implements IKeychainAdapter {
     }
   }
 
+  async get(name: string, required = false): Promise<Uint8Array | undefined> {
+    const file = await this.fileValue(name);
+    if (file !== undefined) return file;
+
+    if (this.fileOnly) {
+      if (required)
+        throw new EnvdenError(
+          "LOCKED",
+          "Device keys are in the OS keychain; disable file-only mode",
+        );
+
+      return undefined;
+    }
+
+    const value = await Bun.secrets.get(this.options(name));
+
+    return value === null ? undefined : new Uint8Array(Buffer.from(value, "base64"));
+  }
+
   async set(name: string, value: Uint8Array) {
-    if (!this.useFile) {
+    if (!this.fileOnly && (await this.fileValue(name)) === undefined) {
+      const existing = await Bun.secrets.get(this.options(name));
+
       try {
         await Bun.secrets.set({
           ...this.options(name),
@@ -82,11 +101,10 @@ class OsKeychainAdapter implements IKeychainAdapter {
           ...(process.platform === "win32" ? { persist: "local" as const } : {}),
         });
 
-        await rm(this.path(name), { force: true });
-
         return;
-      } catch {
-        this.useFile = true;
+      } catch (cause) {
+        if (existing !== null) throw cause;
+        this.fallbackNotice = true;
       }
     }
 
@@ -95,16 +113,34 @@ class OsKeychainAdapter implements IKeychainAdapter {
     const temporary = join(this.directory, `${crypto.randomUUID()}.tmp`);
 
     try {
-      await writeFile(temporary, value, { mode: 0o600, flag: "wx" });
+      const file = await open(temporary, "wx", 0o600);
+
+      try {
+        await file.writeFile(value);
+        await file.sync();
+      } finally {
+        await file.close();
+      }
+
       await restrictAccess(temporary);
       await rename(temporary, this.path(name));
+
+      if (process.platform !== "win32") {
+        const directory = await open(this.directory, "r");
+
+        try {
+          await directory.sync();
+        } finally {
+          await directory.close();
+        }
+      }
     } finally {
       await rm(temporary, { force: true });
     }
   }
 
   async delete(name: string) {
-    if (!this.useFile) {
+    if (!this.fileOnly && (await this.fileValue(name)) === undefined) {
       try {
         await Bun.secrets.delete(this.options(name));
       } catch {
@@ -124,8 +160,9 @@ export function createOsKeychainAdapter(options: IOptions = {}): IKeychainAdapte
 
   return {
     id: adapter.id,
+    takeFallbackNotice: () => adapter.takeFallbackNotice(),
     available: () => adapter.available().catch(keychainFailure),
-    get: (name) => adapter.get(name).catch(keychainFailure),
+    get: (name, required) => adapter.get(name, required).catch(keychainFailure),
     set: (name, value) => adapter.set(name, value).catch(keychainFailure),
     delete: (name) => adapter.delete(name).catch(keychainFailure),
   };

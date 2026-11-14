@@ -1,3 +1,4 @@
+import { access } from "node:fs/promises";
 import type { TFetch } from "./client/fetch.ts";
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
 import { atomicWrite } from "./state/store/files.ts";
@@ -24,9 +25,7 @@ export function createAdapters(options?: {
     home,
     userHome,
     fetcher: options?.fetcher ?? fetch,
-    keychain:
-      options?.keychain ??
-      createOsKeychainAdapter({ home, fileOnly: process.env.ENVDEN_KEYCHAIN === "file" }),
+    keychain: options?.keychain ?? visibleKeychain(home),
     repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
     placement: (mode: TPlacementMode, root: string) =>
       createFsPlacementAdapter(mode, root, join(home, "conflicts")),
@@ -47,3 +46,36 @@ export function createAdapters(options?: {
 }
 
 export type TAdapters = ReturnType<typeof createAdapters>;
+
+function visibleKeychain(home: string): IKeychainAdapter {
+  const keychain = createOsKeychainAdapter({
+    home,
+    fileOnly: process.env.ENVDEN_KEYCHAIN === "file",
+  });
+
+  const report = () => {
+    if (keychain.takeFallbackNotice?.())
+      console.error("envden: OS keychain unavailable; new keys use the private key file");
+  };
+
+  return {
+    ...keychain,
+    get: async (name, required) => {
+      const deviceExists =
+        name === `envden/${home}/device` &&
+        (await access(join(home, "state", "device.json")).then(
+          () => true,
+          () => false,
+        ));
+
+      return keychain.get(name, required || deviceExists);
+    },
+    set: async (name, value) => {
+      try {
+        await keychain.set(name, value);
+      } finally {
+        report();
+      }
+    },
+  };
+}
