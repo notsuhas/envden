@@ -90,7 +90,14 @@ test("notice caches missed env checkouts and sanitized update text", async () =>
     };
 
     adapters.repo.checkoutAt = async () => checkout;
-    adapters.repo.envFiles = async () => [".env"];
+    let scans = 0;
+
+    adapters.repo.envFiles = async () => {
+      scans++;
+
+      return [".env"];
+    };
+
     const state = emptyState("test");
     await atomicWrite(join(home, "state", "track-offers"), "/bad\u001b[31m\n");
     await cacheOffers(adapters, state, checkout.root, { available: true, required: true });
@@ -99,6 +106,9 @@ test("notice caches missed env checkouts and sanitized update text", async () =>
     expect(await readFile(join(home, "state", "notice-update"), "utf8")).toContain(
       "update required",
     );
+
+    await cacheOffers(adapters, state, checkout.root, { available: false, required: false });
+    expect(scans).toBe(1);
 
     state.approved.push(checkout);
     await cacheOffers(adapters, state, checkout.root, { available: false, required: false });

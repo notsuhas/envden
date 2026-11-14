@@ -10,22 +10,12 @@ export async function cacheOffers(
   state: ILocalState,
   cwd: string | undefined,
   update: { available: boolean; required: boolean },
+  now = 0,
 ) {
   const path = join(adapters.home, "state", "track-offers");
   const roots = new Set(((await optionalRead(path)) ?? "").split("\n").filter(safeRoot));
 
-  if (cwd) {
-    const checkout = await adapters.repo.checkoutAt(cwd).catch(() => undefined);
-
-    if (
-      checkout &&
-      safeRoot(checkout.root) &&
-      !state.approved.some((item) => item.root === checkout.root) &&
-      (await adapters.repo.envFiles(checkout, (await readConfig(adapters.home))["env-files"]))
-        .length
-    )
-      roots.add(checkout.root);
-  }
+  if (cwd) await scanOffer(adapters, state, cwd, roots, now);
 
   const pending = [...roots].filter((root) => !state.approved.some((item) => item.root === root));
   await atomicWrite(path, pending.join("\n") + (pending.length ? "\n" : ""));
@@ -41,4 +31,29 @@ export async function cacheOffers(
 
 function safeRoot(root: string) {
   return !!root && sanitizeTerminal(root) === root && !/[\r\n]/.test(root);
+}
+
+async function scanOffer(
+  adapters: TAdapters,
+  state: ILocalState,
+  cwd: string,
+  roots: Set<string>,
+  now: number,
+) {
+  const checkout = await adapters.repo.checkoutAt(cwd).catch(() => undefined);
+  if (!checkout || !safeRoot(checkout.root) || roots.has(checkout.root)) return;
+  if (state.approved.some((item) => item.root === checkout.root)) return;
+  const path = join(adapters.home, "state", "track-scanned.json");
+  const scans: Record<string, number> = JSON.parse((await optionalRead(path)) ?? "{}");
+  const previous = scans[checkout.root];
+  if (previous !== undefined && now - previous < 60000) return;
+
+  const files = await adapters.repo.envFiles(
+    checkout,
+    (await readConfig(adapters.home))["env-files"],
+  );
+
+  if (files.length) roots.add(checkout.root);
+  scans[checkout.root] = now;
+  await atomicWrite(path, JSON.stringify(scans));
 }

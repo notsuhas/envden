@@ -39,7 +39,7 @@ async function lockedcommandNotice(
   const remote = await readRemoteNotice(adapters.home);
 
   await refreshNotice(adapters.home, state);
-  await cacheOffers(adapters, state, cwd, updateNotice(state, config));
+  await cacheOffers(adapters, state, cwd, updateNotice(state, config), now);
   const local = await noticeStatus(adapters.home, state);
 
   const currentRepo = currentRepoId(state, cwd);
