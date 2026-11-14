@@ -38,3 +38,18 @@ test("HPKE rejects a nonzero low-order X25519 recipient", async () => {
   const lowOrder = from("e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800");
   expect(p.sealWrap(key, vaultId, 1, p.deviceId(keys), lowOrder, rng)).rejects.toThrow();
 });
+
+test("wrong HPKE key produces an EnvdenError with cause", async () => {
+  const wrap = await p.sealWrap(key, vaultId, 1, p.deviceId(keys), keys.encPub, rng);
+
+  await Promise.resolve(
+    expect(
+      p.openWrap(wrap, new Uint8Array(32), keys.encPub, vaultId, 1, p.keyCommit(key, vaultId, 1)),
+    ).rejects.toMatchObject({
+      name: "EnvdenError",
+      code: "INVALID_DATA",
+      message: "Unable to decrypt wrap",
+      cause: expect.any(Error),
+    }),
+  );
+});

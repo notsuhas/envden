@@ -49,3 +49,19 @@ test("noncanonical R passes ZIP215 but envden rejects it", () => {
   expect(ed25519.verify(signature, message, publicKey, { zip215: true })).toBe(true);
   expect(p.Verify(publicKey, "entry", key, signature).ok).toBe(false);
 });
+
+test("box decryption failures carry a fixed EnvdenError and cause", () => {
+  const box = p.sealBox(key, key, undefined, rng);
+
+  try {
+    p.openBox(new Uint8Array(32), box);
+    throw new Error("decryption unexpectedly succeeded");
+  } catch (error) {
+    expect(error).toMatchObject({
+      name: "EnvdenError",
+      code: "INVALID_DATA",
+      message: "Unable to decrypt box",
+      cause: expect.any(Error),
+    });
+  }
+});

@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import type { IStorageAdapter, IStoredSwap } from "../storage.ts";
 
 export function prepareCommit(
@@ -10,17 +11,19 @@ export function prepareCommit(
   now: number,
 ) {
   if (swap.setupTokenHash && !sameBytes(storage.setupToken(), swap.setupTokenHash))
-    throw new Error("Setup token changed or consumed");
+    throw new EnvdenError("UNAUTHORIZED", "Setup token changed or consumed");
 
   for (const session of swap.consumeSessions ?? [])
     if (!storage.consumeSession(vault, session, now))
-      throw new Error("Session expired or consumed");
+      throw new EnvdenError("UNAUTHORIZED", "Session expired or consumed");
 
   if (swap.closeMailbox !== undefined && !storage.mailbox(vault, swap.closeMailbox, now))
-    throw new Error("Mailbox expired or closed");
+    throw new EnvdenError("NOT_FOUND", "Mailbox expired or closed");
 
   if (swap.vault) storage.configureVault(vault, swap.vault);
-  if (!storage.hasVault(vault)) throw new Error("Creation requires vault metadata");
+
+  if (!storage.hasVault(vault))
+    throw new EnvdenError("INVALID_DATA", "Creation requires vault metadata");
 }
 
 export function writeCommitState(

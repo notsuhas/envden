@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
 import { EMPTY, requireValue, concat, b32, Reader } from "../encoding/binary.ts";
 import { type TRandom } from "./random.ts";
@@ -24,5 +25,9 @@ export function openBox(key: Uint8Array, box: Uint8Array, ad: Uint8Array = EMPTY
   requireValue(r.take(1)[0] === 1, "Unknown blob version");
   const nonce = r.take(24);
 
-  return xchacha20poly1305(b32.write(key), nonce, ad).decrypt(r.take(box.length - r.offset));
+  try {
+    return xchacha20poly1305(b32.write(key), nonce, ad).decrypt(r.take(box.length - r.offset));
+  } catch (cause) {
+    throw new EnvdenError("INVALID_DATA", "Unable to decrypt box", { cause });
+  }
 }

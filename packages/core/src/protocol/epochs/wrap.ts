@@ -1,3 +1,4 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { x25519 } from "@noble/curves/ed25519.js";
 import { CipherSuite, HkdfSha256 } from "@hpke/core";
 import { DhkemX25519HkdfSha256 } from "@hpke/dhkem-x25519";
@@ -68,17 +69,31 @@ export async function openWrap(
   epoch: number,
   commit: Uint8Array,
 ): Promise<Uint8Array> {
-  const recipientKey = await suite.kem.importKey("raw", b32.write(encSk), false);
-
-  const key = new Uint8Array(
-    await suite.open(
-      { recipientKey, enc: wrap.enc, info: wrapInfo(vaultId, epoch, wrap.recipient, encPub) },
-      wrap.ct,
-      EMPTY,
-    ),
-  );
+  const key = await decryptWrap(wrap, encSk, encPub, vaultId, epoch);
 
   requireValue(equal(keyCommit(key, vaultId, epoch), commit), "Epoch commit mismatch");
 
   return key;
+}
+
+async function decryptWrap(
+  wrap: IWrap,
+  encSk: Uint8Array,
+  encPub: Uint8Array,
+  vaultId: Uint8Array,
+  epoch: number,
+) {
+  try {
+    const recipientKey = await suite.kem.importKey("raw", b32.write(encSk), false);
+
+    return new Uint8Array(
+      await suite.open(
+        { recipientKey, enc: wrap.enc, info: wrapInfo(vaultId, epoch, wrap.recipient, encPub) },
+        wrap.ct,
+        EMPTY,
+      ),
+    );
+  } catch (cause) {
+    throw new EnvdenError("INVALID_DATA", "Unable to decrypt wrap", { cause });
+  }
 }

@@ -16,12 +16,13 @@ test("envelope fixed salt/nonce and wrong password or secret", async () => {
   expect(value.vaultId).toEqual(vaultId);
   expect(hex(await p.sealEnvelope(value, "password", secret, rng))).toBe(vector.envelopeBox);
 
-  expect(
-    await p.openEnvelope(box, "wrong", secret, vaultId).then(
-      () => false,
-      () => true,
-    ),
-  ).toBe(true);
+  await Promise.resolve(
+    expect(p.openEnvelope(box, "wrong", secret, vaultId)).rejects.toMatchObject({
+      name: "EnvdenError",
+      code: "INVALID_DATA",
+      cause: expect.any(Error),
+    }),
+  );
 
   expect(
     await p.openEnvelope(box, "password", new Uint8Array(16), vaultId).then(
