@@ -132,7 +132,7 @@ async function createFresh(layout: readonly ("copy" | "link")[], key: string) {
 
 export async function shutdown() {
   await pending;
-  for (const cached of snapshots.values()) await cached.snapshot.cleanup();
+  for (const cached of snapshots.values()) cached.snapshot.cleanup();
   snapshots.clear();
   if (f) await f.cleanup();
   f = undefined;

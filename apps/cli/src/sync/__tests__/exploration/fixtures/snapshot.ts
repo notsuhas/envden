@@ -1,10 +1,9 @@
 import { Database, type SQLQueryBindings } from "bun:sqlite";
-import { cp, readdir, rm, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { snapshotTree } from "./tree.ts";
 
 export async function snapshotFixture(root: string) {
-  const directory = await mkdtemp(join(tmpdir(), "envden-snapshot-"));
+  const restoreTree = await snapshotTree(root);
   const database = new Database(join(root, "server", "envden.sqlite"));
 
   const tables = database
@@ -17,9 +16,6 @@ export async function snapshotFixture(root: string) {
     name,
     values: database.query<Record<string, SQLQueryBindings>, []>(`SELECT * FROM "${name}"`).all(),
   }));
-
-  for (const name of await readdir(root))
-    if (name !== "server") await cp(join(root, name), join(directory, name), { recursive: true });
 
   return {
     async restore() {
@@ -45,15 +41,10 @@ export async function snapshotFixture(root: string) {
         }
       })();
 
-      for (const name of await readdir(root))
-        if (name !== "server") await rm(join(root, name), { recursive: true, force: true });
-
-      for (const name of await readdir(directory))
-        await cp(join(directory, name), join(root, name), { recursive: true });
+      await restoreTree();
     },
-    async cleanup() {
+    cleanup() {
       database.close();
-      await rm(directory, { recursive: true, force: true });
     },
   };
 }
