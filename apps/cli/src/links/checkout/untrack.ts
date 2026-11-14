@@ -1,3 +1,4 @@
+import { removeCheckoutBases } from "./bases.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
@@ -21,6 +22,12 @@ export async function untrack(adapters: TAdapters, path: string) {
       if (status === "linked" || status === "relinkable")
         await placement.place(link.store, destination);
     }
+
+    await removeCheckoutBases(
+      adapters.home,
+      state.links.filter((item) => item.root === root),
+      state.links.filter((item) => item.root !== root),
+    );
 
     state.links = state.links.filter((item) => item.root !== root);
     state.approved = state.approved.filter((item) => item.root !== root);

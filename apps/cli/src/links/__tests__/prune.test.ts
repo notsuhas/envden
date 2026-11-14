@@ -1,3 +1,4 @@
+import { basePath, readBytes, writeBytes } from "../../sync/local/files.ts";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -14,9 +15,12 @@ for (const unavailable of [true, false])
       const root = unavailable ? join(home, "unmounted", "repo") : join(home, "removed");
       state.approved.push({ root, repoId: "host/repo", gitDir: join(root, ".git") });
       state.links.push({ root, path: ".env", store: join(home, "store"), mode: "copy" });
+      const base = basePath(home, state.links[0]!.store, root);
+      await writeBytes(base, new Uint8Array([1]));
       await pruneMissingCheckouts(home, state, () => {});
       expect(state.approved).toHaveLength(unavailable ? 1 : 0);
       expect(state.links).toHaveLength(unavailable ? 1 : 0);
+      expect(await readBytes(base)).toEqual(unavailable ? new Uint8Array([1]) : undefined);
     } finally {
       await rm(home, { recursive: true, force: true });
     }

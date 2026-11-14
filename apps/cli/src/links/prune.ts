@@ -1,3 +1,4 @@
+import { removeCheckoutBases } from "./checkout/bases.ts";
 import { dirname } from "node:path";
 import { lstat } from "node:fs/promises";
 import type { ILocalState } from "../state/model.ts";
@@ -21,6 +22,13 @@ export async function pruneMissingCheckouts(
           continue;
 
         state.approved = state.approved.filter((item) => item.root !== approval.root);
+
+        await removeCheckoutBases(
+          home,
+          state.links.filter((item) => item.root === approval.root),
+          state.links.filter((item) => item.root !== approval.root),
+        );
+
         state.links = state.links.filter((item) => item.root !== approval.root);
         notice(`Missing checkout removed: ${approval.root}`);
       }
