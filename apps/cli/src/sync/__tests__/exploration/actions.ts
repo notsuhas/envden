@@ -1,10 +1,11 @@
+import { extraAction } from "./extra.ts";
 import { read } from "./files.ts";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 
 import { atomicWrite } from "../../../state/store/files.ts";
 
-import { INIT } from "./fixture.ts";
+import { INIT } from "./fixtures/world.ts";
 import type { TModel } from "./model.ts";
 import { pullActions } from "./pull.ts";
 import { pushActions } from "./push.ts";
@@ -20,16 +21,19 @@ export function actions(model: TModel) {
 
   const apply = async (raw: string): Promise<boolean> => {
     state.token = raw;
+    if (await extraAction(model, raw)) return true;
+
     const d = raw[0] === "A" ? 0 : 1;
     const [head, value] = raw.split("=");
     const kind = head![1]!;
     const t = head!.length > 2 ? Number(head![2]) : kind === "f" ? w.targets[d]!.length - 1 : 0;
 
-    if (kind === "e" || kind === "r") return edit(kind, d, t, value);
+    if (["e", "r"].includes(kind)) return edit(kind, d, t, value);
 
-    if (await syncAction(kind, d, t)) return true;
-
-    await special(kind, d, t, value);
+    if (kind === "n") await doPush(d, "unsent");
+    else if (kind === "q") await doPull(d, undefined, false, true);
+    else if (await syncAction(kind, d, t)) return true;
+    else await special(kind, d, t, value);
 
     return true;
   };
@@ -74,7 +78,9 @@ export function actions(model: TModel) {
   }
 
   async function edit(kind: string, d: number, t: number, value: string | undefined) {
-    const bytes = kind === "r" ? INIT : `TOKEN=${value ?? `u${state.unique++}`}\n`;
+    const bytes =
+      kind === "r" && value === undefined ? INIT : `TOKEN=${value ?? `u${state.unique++}`}\n`;
+
     const wrote = await write(d, t, bytes);
     trace.push(`${state.token} -> wrote ${JSON.stringify(bytes)} ${wrote}`);
 
@@ -89,7 +95,7 @@ export function actions(model: TModel) {
       const before = await read(path);
       await rm(path, { force: true });
       await atomicWrite(path, bytes);
-      if (bytes !== before) model.recordEdit(d, bytes, before);
+      if (bytes !== before) model.recordPlaceEdit(d, t, bytes, before);
       await model.settleUnobserved(d, t);
       trace.push(`${state.token} -> detached write ${JSON.stringify(bytes)}`);
     } else if (kind === "z") {
@@ -105,14 +111,16 @@ export function actions(model: TModel) {
       restores.get(d)?.();
       restores.delete(d);
       for (const target of w.targets[d]!) model.skipped.delete(target.root);
+      await model.resumeSkipped();
       trace.push(`${state.token} -> restored`);
     } else throw new Error(`Unknown token ${kind}`);
   }
 
-  function restoreCheckouts() {
+  async function restoreCheckouts() {
     for (const restore of restores.values()) restore();
     restores.clear();
     model.skipped.clear();
+    await model.resumeSkipped();
   }
 
   return { apply, doPull, doPush, doResolve, restoreCheckouts };

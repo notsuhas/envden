@@ -1,5 +1,5 @@
 import { afterAll, expect, test } from "bun:test";
-import { fresh, shutdown } from "./exploration/fixture.ts";
+import { fresh, shutdown } from "./exploration/fixtures/world.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";

@@ -1,4 +1,4 @@
-import { fresh, isolatedTrace } from "./fixture.ts";
+import { fresh, isolatedTrace } from "./fixtures/world.ts";
 import { createModel } from "./model.ts";
 import { actions } from "./actions.ts";
 import { closeTrace } from "./checks/closing.ts";

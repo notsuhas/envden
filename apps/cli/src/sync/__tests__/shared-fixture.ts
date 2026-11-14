@@ -31,12 +31,7 @@ export function createSharedFixture() {
     for (const [i, adapters] of [f.first, f.second, f.third].entries()) {
       Object.assign(adapters, originals[i], { repo: { ...originals[i]!.repo } });
 
-      for (const name of [
-        "conflicts.json",
-        "applied-files.json",
-        "upload-attempt.json",
-        "attempts",
-      ])
+      for (const name of ["conflicts.json", "applied-files.json", "attempts"])
         await rm(join(adapters.home, "state", name), { recursive: true, force: true });
 
       await rm(join(adapters.home, "base"), { recursive: true, force: true });

@@ -1,16 +1,17 @@
-import { syncContext } from "../../remote/context.ts";
+import { snapshotFixture } from "./snapshot.ts";
+import { syncContext } from "../../../remote/context.ts";
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { syncFixture } from "../flows.ts";
-import { resetMatrix } from "../matrix-fixture.ts";
-import { approveLayout } from "../round-fixture.ts";
+import { syncFixture } from "../../flows.ts";
+import { resetMatrix } from "../../matrix-fixture.ts";
+import { approveLayout } from "../../round-fixture.ts";
 
-import { loadState, saveState } from "../../../state/store/repository.ts";
-import { setConfig } from "../../../settings/config.ts";
-import { storePath } from "../../../store/path.ts";
-import { writeBytes } from "../../local/files.ts";
+import { loadState, saveState } from "../../../../state/store/repository.ts";
+import { setConfig } from "../../../../settings/config.ts";
+import { storePath } from "../../../../store/path.ts";
+import { writeBytes } from "../../../local/files.ts";
 
-import { push } from "../../engine.ts";
+import { push } from "../../../engine.ts";
 
 export const INIT = "TOKEN=local-test-value\n";
 
@@ -20,7 +21,14 @@ let originals: Pick<Awaited<ReturnType<typeof syncFixture>>["first"], "placement
 
 let scenario = 0;
 
-let used = 0;
+const snapshots = new Map<
+  string,
+  {
+    world: TWorld;
+    snapshot: Awaited<ReturnType<typeof snapshotFixture>>;
+    adapters: Pick<TWorld["devices"][number], "placement" | "repo">[];
+  }
+>();
 
 let pending = Promise.resolve();
 
@@ -35,13 +43,30 @@ export function isolatedTrace<T>(run: () => Promise<T>) {
   return result;
 }
 
-export async function fresh(layout: readonly ("copy" | "link")[]) {
-  if (f && used++ === 10) {
-    await f.cleanup();
-    f = undefined;
-    used = 0;
+export async function fresh(layout: readonly ("copy" | "link")[]): Promise<TWorld> {
+  const key = layout.join("+");
+  const cached = snapshots.get(key);
+
+  if (cached) {
+    await cached.snapshot.restore();
+    Object.assign(f!.checkout, cached.world.f.checkout);
+    Object.assign(f!.checkoutB, cached.world.f.checkoutB);
+
+    for (const [index, adapters] of cached.world.devices.entries())
+      Object.assign(adapters, cached.adapters[index], {
+        repo: { ...cached.adapters[index]!.repo },
+      });
+
+    return {
+      ...cached.world,
+      observer: await syncContext(cached.world.f.third, cached.world.f.opts),
+    };
   }
 
+  return createFresh(layout, key);
+}
+
+async function createFresh(layout: readonly ("copy" | "link")[], key: string) {
   if (!f) {
     f = await syncFixture();
 
@@ -63,7 +88,6 @@ export async function fresh(layout: readonly ("copy" | "link")[]) {
       "conflicts.json",
       "placement.json",
       "pending-repairs.json",
-      "upload-attempt.json",
     ])
       await rm(join(adapters.home, "state", name), { recursive: true, force: true });
 
@@ -86,19 +110,32 @@ export async function fresh(layout: readonly ("copy" | "link")[]) {
   await push(f.first, f.opts);
   const targets = await approveLayout({ ...f, aStore: store }, layout);
 
-  return {
+  const world = {
     observer: await syncContext(f.third, f.opts),
-    f: { ...f, aStore: store },
+    f: { ...f, checkout: { ...f.checkout }, checkoutB: { ...f.checkoutB }, aStore: store },
     devices: [f.first, f.second] as const,
     targets: [[{ root: f.checkout.root, path: ".env", store, mode: "link" as const }], targets],
     stores: [store, targets[0]!.store],
   };
+
+  snapshots.set(key, {
+    world,
+    snapshot: await snapshotFixture(f.root),
+    adapters: world.devices.map((adapters) => ({
+      placement: adapters.placement,
+      repo: { ...adapters.repo },
+    })),
+  });
+
+  return world;
 }
 
 export async function shutdown() {
   await pending;
+  for (const cached of snapshots.values()) await cached.snapshot.cleanup();
+  snapshots.clear();
   if (f) await f.cleanup();
   f = undefined;
 }
 
-export type TWorld = Awaited<ReturnType<typeof fresh>>;
+export type TWorld = Awaited<ReturnType<typeof createFresh>>;

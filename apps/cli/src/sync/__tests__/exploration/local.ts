@@ -115,7 +115,7 @@ export function localActions(model: TModel) {
     } else if (choice === "take-server" && commits.includes(value)) {
       clean(d, value);
     } else {
-      if (!pending[d]!.has(value) && !commits.includes(value))
+      if (!pending[d]!.has(value))
         bad("resolve-unknown-content", `resolve ${choice} produced ${JSON.stringify(value)}`);
 
       if (value === commits.at(-1)) clean(d);
@@ -145,11 +145,27 @@ export function localActions(model: TModel) {
       if ((await read(join(target.root, ".env"))) !== undefined)
         await linkFile(adapters, next, checkout, adapters.placement("copy", target.root), ".env");
 
+      await adoptUnlinked(d, target.root, next);
+
       await saveState(adapters.home, next);
     }
 
     trace.push(`${state.token} -> retracked places=${JSON.stringify(await places(d))}`);
   };
+
+  async function adoptUnlinked(
+    d: number,
+    root: string,
+    next: NonNullable<Awaited<ReturnType<typeof loadState>>>,
+  ) {
+    if (dirty[d]) return;
+    if (next.links.some((link) => link.root === root)) return;
+    const value = await read(join(root, ".env"));
+    if (value === undefined) return;
+    dirty[d] = true;
+    pending[d]!.add(value);
+    last[d] = value;
+  }
 
   return { doRemove, doResolve, doRetrack };
 }

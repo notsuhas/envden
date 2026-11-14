@@ -1,10 +1,20 @@
 import { afterAll, expect, test } from "bun:test";
 import { run } from "./exploration/run.ts";
-import { shutdown } from "./exploration/fixture.ts";
+import { shutdown } from "./exploration/fixtures/world.ts";
 
 afterAll(shutdown);
 
 const cases: [string, readonly ("copy" | "link")[], string][] = [
+  ["interrupted-receipt", ["copy", "copy"], "Btmp Bl"],
+  ["untrack-removal", ["copy", "copy"], "Bm Bv1 Bs"],
+  ["observed-detached", ["link"], "Be Bl Bd=zz Bl"],
+  ["plain-target-delete", ["copy"], "Bdel Bl"],
+  ["plain-store-delete", ["link"], "Bstore Bl"],
+  ["unsent-swap", ["copy"], "Be Bn Ae As Bl"],
+  ["placement-write-kill", ["copy", "copy"], "Ae As Bq Ar As Bs"],
+  ["corrupt-receipt", ["copy"], "Bcorrupt Bl"],
+  ["non-init-revert", ["link"], "Be=first Bs Be=second Bs Br=first Bs"],
+
   ["lost-then-other", ["copy"], "Be Bx Al Ae As Be Bs"],
   ["lost-then-other-link", ["link"], "Be Bx Al Ae As Be Bs"],
   ["lost-revert-fail", ["copy"], "Be Bx Al Ar As Bf Ae As Bs"],
@@ -84,6 +94,7 @@ for (const [name, layout, sequence] of cases)
 
     expect({
       violations: result.violations,
+      notes: result.notes,
       trace: result.violations.length ? result.trace : [],
-    }).toEqual({ violations: [], trace: [] });
+    }).toEqual({ violations: [], notes: [], trace: [] });
   });

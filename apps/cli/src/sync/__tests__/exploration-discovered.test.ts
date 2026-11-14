@@ -1,6 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
 import { run } from "./exploration/run.ts";
-import { shutdown } from "./exploration/fixture.ts";
+import { shutdown } from "./exploration/fixtures/world.ts";
 
 afterAll(shutdown);
 
@@ -62,30 +62,13 @@ const cases: [readonly ("copy" | "link")[], string][] = [
   [["link", "copy"], "Ae=2 Bd a Bs Bf Al"],
 ];
 
-const normal = new Set([
-  "Bs Bf Be As a Bx Al Br",
-  "Be Bl Br a Bs",
-  "Am Be a Bm Bz1 Be1 At",
-  "Bz1 As Ak Br1 Be Br Be1 Bx",
-  "Bt Bs Bu Br1 By1 a Ae=2 Bz1",
-  "Be1 Ae Bs Be1 Bz1 Br1",
-  "Ae=2 Am r Ae Ar Be1 Bs",
-  "Bt Ak By1 Bz1 Ae Bm Be",
-  "Am Ae Bk r Be1 Bz1 Bm Bf0",
-  "Ae Bt Bt Bm Br a",
-  "a Ae Bm Ae Bm Br Br",
-  "Am Bs Ax Bd Bx",
-  "Bm Bs Am Bl Ar Bm",
-]);
-
-for (const [layout, sequence] of cases.filter(
-  ([, sequence]) => process.env.ENVDEN_DEEP_EXPLORATION === "1" || normal.has(sequence),
-))
+for (const [layout, sequence] of cases)
   test(`discovered ${layout.join("+")} ${sequence}`, async () => {
     const result = await run(layout, sequence.split(" "));
 
     expect({
       violations: result.violations,
+      notes: result.notes,
       trace: result.violations.length ? result.trace : [],
-    }).toEqual({ violations: [], trace: [] });
+    }).toEqual({ violations: [], notes: [], trace: [] });
   });

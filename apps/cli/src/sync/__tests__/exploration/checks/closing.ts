@@ -6,7 +6,7 @@ type TActions = ReturnType<typeof actions>;
 async function settle(model: TModel, operations: TActions) {
   for (const d of [0, 1]) {
     model.state.token = `${"AB"[d]}s(close)`;
-    await operations.doPush(d, false);
+    if (model.dirty[d]) await operations.doPush(d, false);
     await model.survive();
   }
 
@@ -23,7 +23,7 @@ async function settle(model: TModel, operations: TActions) {
 }
 
 export async function closeTrace(model: TModel, operations: TActions) {
-  operations.restoreCheckouts();
+  await operations.restoreCheckouts();
   model.state.step = 99;
   let conflicts = await settle(model, operations);
 
@@ -31,7 +31,7 @@ export async function closeTrace(model: TModel, operations: TActions) {
     if (!conflicts) break;
 
     for (const d of [0, 1]) {
-      await operations.doResolve(d, choice);
+      await operations.doResolve(d, model.pending[d]!.size ? choice : "take-server");
       await model.survive();
     }
 
@@ -43,7 +43,7 @@ export async function closeTrace(model: TModel, operations: TActions) {
 }
 
 async function checkConvergence(model: TModel) {
-  const all = [...(await model.places(0)), ...(await model.places(1))];
+  const all = [...(await model.activePlaces(0)), ...(await model.activePlaces(1))];
 
   if (all.some((v) => v !== model.commits.at(-1)))
     model.bad("I2-final", "Conflict-free devices differ from server");

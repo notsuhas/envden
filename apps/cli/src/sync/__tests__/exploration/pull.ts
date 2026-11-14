@@ -1,4 +1,5 @@
-import { caughtError } from "./checks/errors.ts";
+import { placementFault } from "./fixtures/fault.ts";
+import { caughtError, checkCorruptState } from "./checks/errors.ts";
 import { checkPull } from "./checks/pull.ts";
 import { pull } from "../../engine.ts";
 
@@ -7,7 +8,7 @@ import type { TModel } from "./model.ts";
 export function pullActions(model: TModel) {
   const { w, notes, trace, bad, places, conflictCount, absorb, state } = model;
 
-  const doPull = async (d: number, fail: number | undefined, quiet = false) => {
+  const doPull = async (d: number, fail: number | undefined, quiet = false, kill = false) => {
     const adapters = w.devices[d]!;
     const original = adapters.repo.ensureIgnored.bind(adapters.repo);
     const reports: string[] = [];
@@ -21,6 +22,8 @@ export function pullActions(model: TModel) {
       };
     }
 
+    const fault = placementFault(kill);
+
     let result: Awaited<ReturnType<typeof pull>> | undefined;
 
     try {
@@ -28,12 +31,29 @@ export function pullActions(model: TModel) {
     } catch (caught) {
       const error = caughtError(caught);
       const code = error.code;
-      notes.push(`${state.step}:${state.token} pull threw ${code}: ${error.message}`);
+
+      if (!fault.killed())
+        notes.push(`${state.step}:${state.token} pull threw ${code}: ${error.message}`);
+
       trace.push(`${state.token} -> threw ${code} ${error.message}`);
       result = undefined;
     } finally {
+      fault.restore();
       adapters.repo.ensureIgnored = original;
     }
+
+    return observePull(d, fail, quiet, fault.killed(), result, reports);
+  };
+
+  async function observePull(
+    d: number,
+    fail: number | undefined,
+    quiet: boolean,
+    killed: boolean,
+    result: Awaited<ReturnType<typeof pull>> | undefined,
+    reports: string[],
+  ) {
+    checkCorruptState(model, d, reports);
 
     absorb(reports);
     await model.observe(d);
@@ -45,14 +65,14 @@ export function pullActions(model: TModel) {
       `${state.token} -> pull ${JSON.stringify(result && { c: result.changed, x: result.conflicts })} rec=${records} places=${JSON.stringify(now)} reports=${JSON.stringify(reports)}`,
     );
 
-    if (quiet || !result) return result;
+    if (quiet || !result || fail !== undefined || killed) return result;
 
     checkPull(model, d, result, records, now, await model.activePlaces(d));
 
-    if (fail === undefined) await secondPull(d, now);
+    if (state.step !== 99) await secondPull(d, now);
 
     return result;
-  };
+  }
 
   async function secondPull(d: number, now: (string | undefined)[]) {
     const adapters = w.devices[d]!;

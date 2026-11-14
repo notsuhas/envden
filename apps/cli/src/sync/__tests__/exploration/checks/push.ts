@@ -15,6 +15,10 @@ interface IObservation {
 
 export function checkPush(model: TModel, observation: IObservation) {
   const { now, head, d } = observation;
+
+  if ((observation.result?.conflicts || observation.records) && !model.dirty[d])
+    model.bad("spurious-conflict", "Clean device entered conflict");
+
   checkIntent(model, observation);
   checkAncestor(model, observation);
 
@@ -84,7 +88,15 @@ function checkUnchanged(model: TModel, observation: IObservation) {
 
 function checkHeldIntent(model: TModel, observation: IObservation) {
   const { d, now, local, reports } = observation;
-  if (reports.some((message) => message.startsWith("Held back"))) return;
+
+  if (
+    reports.some((message) =>
+      model.w.targets[d]!.some((target) =>
+        message.startsWith(`Held back ${target.root}/${target.path}:`),
+      ),
+    )
+  )
+    return;
 
   if (model.dirty[d] && (model.last[d] === DEL ? undefined : model.last[d]) !== now)
     model.bad("P1-push-dropped-user-op", "Push dropped explicit intent");

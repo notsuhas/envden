@@ -7,7 +7,7 @@ import { atomicWrite } from "../../../state/store/files.ts";
 
 import { conflictRecords } from "../../local/conflicts.ts";
 
-import { INIT, type TWorld } from "./fixture.ts";
+import { INIT, type TWorld } from "./fixtures/world.ts";
 import { read, walk } from "./files.ts";
 
 interface IViolation {
@@ -26,10 +26,15 @@ export function createModel(w: TWorld) {
   const intentSeen = [0, 0];
   const authors = [-1];
   const skipped = new Set<string>();
+  const untracked = new Set<string>();
 
   const observed: (string | undefined)[][] = w.targets.map((targets) =>
     Array.from({ length: targets.length + 1 }, () => INIT),
   );
+
+  const deferred = new Map<string, { d: number; value: string }>();
+
+  const corrupt = new Set<number>();
 
   const dirty = [false, false];
   const pending = [new Set<string>(), new Set<string>()];
@@ -45,6 +50,7 @@ export function createModel(w: TWorld) {
   const agreed: (string | undefined)[] = [INIT, INIT];
 
   const clean = (d: number, value: string | undefined = commits.at(-1)) => {
+    if (corrupt.has(d)) return;
     agreed[d] = value;
     seen[d] = commits.lastIndexOf(value);
     dirty[d] = false;
@@ -70,9 +76,9 @@ export function createModel(w: TWorld) {
   const activePlaces = async (d: number) =>
     Promise.all([
       read(w.stores[d]!),
-      ...w.targets[d]!.filter((target) => !skipped.has(target.root)).map((target) =>
-        read(join(target.root, target.path)),
-      ),
+      ...w.targets[d]!.filter(
+        (target) => !skipped.has(target.root) && !untracked.has(target.root),
+      ).map((target) => read(join(target.root, target.path))),
     ]);
 
   const conflictCount = async (d: number) =>
@@ -126,16 +132,26 @@ export function createModel(w: TWorld) {
     const path = await placePath(d, t);
     const before = await read(path);
     if (before === value) return false;
-    recordEdit(d, value, before);
+    recordPlaceEdit(d, t, value, before);
     await atomicWrite(path, value);
     await settleUnobserved(d, t);
 
     return true;
   };
 
+  function recordPlaceEdit(d: number, t: number, value: string, before: string | undefined) {
+    const root = w.targets[d]![t]!.root;
+
+    if (skipped.has(root) || untracked.has(root)) {
+      if (before !== undefined) required.delete(before);
+      required.add(value);
+      deferred.set(root, { d, value });
+    } else recordEdit(d, value, before);
+  }
+
   function recordEdit(d: number, value: string, before: string | undefined) {
     if (before !== undefined) required.delete(before);
-    if (!everWritten.has(value) && !commits.includes(value)) required.add(value);
+    required.add(value);
     everWritten.add(value);
     intentSeen[d] = seen[d]!;
     dirty[d] = true;
@@ -158,7 +174,8 @@ export function createModel(w: TWorld) {
     observed[d]![0] = current[0];
 
     for (const [index, target] of w.targets[d]!.entries())
-      if (!skipped.has(target.root)) observed[d]![index + 1] = current[index + 1];
+      if (!skipped.has(target.root) && !untracked.has(target.root))
+        observed[d]![index + 1] = current[index + 1];
   }
 
   return {
@@ -171,6 +188,7 @@ export function createModel(w: TWorld) {
     seen,
     intentSeen,
     dirty,
+    corrupt,
     pending,
     last,
     required,
@@ -183,14 +201,23 @@ export function createModel(w: TWorld) {
     places,
     activePlaces,
     skipped,
+    untracked,
     conflictCount,
     absorb,
     survive,
     server,
     write,
     recordEdit,
+    recordPlaceEdit,
     observe,
     settleUnobserved,
+    async resumeSkipped() {
+      for (const [root, { d, value }] of deferred) {
+        if (skipped.has(root) || untracked.has(root)) continue;
+        recordEdit(d, value, undefined);
+        deferred.delete(root);
+      }
+    },
     state,
   };
 }
