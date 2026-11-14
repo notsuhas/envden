@@ -1,3 +1,4 @@
+import { rm, mkdir } from "node:fs/promises";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
@@ -8,13 +9,17 @@ import { push } from "../engine.ts";
 
 const fixture = createSharedFixture();
 
-for (const failure of ["placement", "conflict"] as const)
+for (const failure of ["placement", "conflict", "inspection"] as const)
   test(`push and status report the same ${failure} reason`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy"]);
 
     if (failure === "conflict") await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n");
-    else {
+    else if (failure === "inspection") {
+      const path = join(targets[0]!.root, ".env");
+      await rm(path);
+      await mkdir(path);
+    } else {
       const original = f.second.repo.ensureIgnored.bind(f.second.repo);
 
       f.second.repo.ensureIgnored = async (checkout, path) => {

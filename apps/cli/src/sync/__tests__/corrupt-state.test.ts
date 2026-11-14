@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { readdir } from "node:fs/promises";
 import { EnvdenError } from "@envden/core/errors";
 import { createSharedFixture } from "./shared-fixture.ts";
@@ -35,7 +35,7 @@ for (const suffix of [".entry", ".pending", "attempt"])
 
     expect(
       (await readdir(join(path, ".."))).some((name) =>
-        name.startsWith(path.split("/").at(-1)! + ".corrupt-"),
+        name.startsWith(basename(path) + ".corrupt-"),
       ),
     ).toBe(true);
 
