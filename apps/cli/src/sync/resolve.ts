@@ -44,8 +44,6 @@ export function resolveConflict(
 
     await placeResolution(adapters, record, bytes, server, now);
 
-    console.log("Resolved env file; previous versions are in the store conflicts/backups folder");
-
     await saveConflicts(
       adapters.home,
       records.filter((item) => item !== record),
@@ -54,7 +52,11 @@ export function resolveConflict(
     for (const path of [record.file, record.server, record.mine, ...record.alternatives])
       await rm(path, { force: true });
 
-    return { kind: "resolved" as const, path: record.path };
+    return {
+      kind: "resolved" as const,
+      path: record.path,
+      backups: join(adapters.home, "conflicts", "backups"),
+    };
   });
 }
 

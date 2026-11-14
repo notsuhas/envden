@@ -158,7 +158,8 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
       ]);
 
       await atomicWrite(join(checkout, ".env"), "unrelated checkout bytes");
-      await resolveConflict(adapters, { choice, now: () => 10 });
+      const result = await resolveConflict(adapters, { choice, now: () => 10 });
+      expect(result.backups).toBe(join(home, "conflicts", "backups"));
       const backups = await readdir(join(home, "conflicts", "backups"));
 
       expect(
