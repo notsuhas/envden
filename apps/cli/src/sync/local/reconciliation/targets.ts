@@ -7,10 +7,13 @@ export async function reconciliationTargets(
   name: { repoId: string; path: string },
   store: string,
 ) {
-  const targets = context.state.links.filter((link) => !link.localOnly && link.store === store);
+  const targets = context.state.links.filter(
+    (link) => !link.localOnly && !context.skippedRoots.has(link.root) && link.store === store,
+  );
 
   for (const approved of context.state.approved.filter(
     (item) =>
+      !context.skippedRoots.has(item.root) &&
       repos.has(context.state.aliases[item.repoId] ?? item.repoId) &&
       (context.state.aliases[item.repoId] ?? item.repoId) === name.repoId,
   )) {

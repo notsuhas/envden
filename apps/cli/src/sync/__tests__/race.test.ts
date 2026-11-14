@@ -44,3 +44,23 @@ test("sync race", async () => {
     await fixture.cleanup();
   }
 });
+
+test("accept refreshes history when a newer head appears", async () => {
+  const { syncContext } = await import("../remote/context.ts");
+  const { acceptHead } = await import("../remote/accept.ts");
+  const { readHistory } = await import("../../vault/history.ts");
+  const f = await syncFixture();
+
+  try {
+    const context = await syncContext(f.second, f.opts);
+    const history = await readHistory(context.client, context.vaultId, context.state);
+    await atomicWrite(f.aStore, "TOKEN=one\n");
+    await push(f.first, f.opts);
+    await atomicWrite(f.aStore, "TOKEN=two\n");
+    await push(f.first, f.opts);
+    await acceptHead(context, history);
+    expect(context.checkpoint.header.body.seq).toBe(history.headers.at(-1)!.body.seq + 2n);
+  } finally {
+    await f.cleanup();
+  }
+});

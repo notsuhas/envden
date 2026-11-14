@@ -44,3 +44,22 @@ for (const accepted of [true, false])
     expect(asks).toBe(1);
     expect(state.aliases.fork).toBe(accepted ? "upstream" : undefined);
   });
+
+test("fork with placed files in another checkout is never offered an alias", () => {
+  const state = emptyState("test");
+  state.approved.push({ root: "/other", gitDir: "/other/.git", repoId: "fork" });
+  state.links.push({ root: "/other", path: ".env", store: "/store", mode: "copy" });
+
+  expect(
+    shouldAskAlias(
+      state,
+      {
+        root: "/repo",
+        gitDir: "/repo/.git",
+        repoId: "fork",
+        upstreamRepoId: "upstream",
+      },
+      new Set(["upstream"]),
+    ),
+  ).toBe(false);
+});

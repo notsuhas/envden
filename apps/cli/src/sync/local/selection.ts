@@ -10,16 +10,25 @@ export async function selectedRepos(
   adapters: TAdapters,
   state: ILocalState,
   options: ISyncOptions,
+  skippedRoots = new Set<string>(),
 ): Promise<Set<string>> {
-  await pruneMissingCheckouts(adapters.home, state, options.report ?? (() => {}));
+  await pruneMissingCheckouts(adapters.home, state, options.report ?? ignoreNotice);
   const repos = new Set<string>();
 
   for (const approved of state.approved) {
     const rel = relative(approved.root, options.cwd ?? process.cwd());
-    if (!options.all && (rel.startsWith("..") || isAbsolute(rel))) continue;
+    if (!includesCheckout(options.all, rel)) continue;
     const checkout = await adapters.repo.checkoutAt(approved.root);
 
-    if (!checkout || checkoutApproval(state, checkout) !== "approved")
+    const approval = checkout ? checkoutApproval(state, checkout) : "ask";
+
+    if (approval === "ask") {
+      skippedRoots.add(approved.root);
+      options.report?.("Skipped checkout requiring approval; run envden track");
+      continue;
+    }
+
+    if (approval === "changed")
       throw new EnvdenError("CONFLICT", "Approved checkout changed; use envden alias");
 
     repos.add(state.aliases[approved.repoId] ?? approved.repoId);
@@ -30,3 +39,9 @@ export async function selectedRepos(
 
   return repos;
 }
+
+function includesCheckout(all: boolean | undefined, rel: string) {
+  return all || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
+function ignoreNotice() {}

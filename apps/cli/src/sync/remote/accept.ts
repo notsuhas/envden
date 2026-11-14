@@ -1,7 +1,7 @@
+import { decodeHistoryHeader } from "../../client/history.ts";
 import { verifiedBlob } from "../../vault/join/validation.ts";
 import type { THistory } from "../../vault/history.ts";
 import { readHistory } from "../../vault/history.ts";
-import { decodeHistoryHeader } from "../../client/history.ts";
 import { deviceWrap } from "../../vault/keys/wrap.ts";
 import { pendingRepairs, savePendingRepairs } from "./repairs.ts";
 import * as p from "@envden/core/protocol";
@@ -16,19 +16,9 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   const { client, checkpoint, identity, adapters, vaultId } = context;
   const pending = await pendingRepairs(adapters.home);
 
-  const rawHead = new Uint8Array(await (await client.rpc.v1.head.$get()).arrayBuffer());
-
-  const remote = history ?? (await readHistory(client, vaultId, context.state));
+  const { remote, head } = await currentHead(context, history);
   const headers = remote.headers;
   const entries = remote.entries;
-
-  const head = decodeHistoryHeader(
-    rawHead,
-    entries,
-    context.state.headers.map(binary),
-    context.state.latest,
-    remote.states,
-  );
 
   const fileLists = new Map<string, p.IFiles>();
   let keyring: Uint8Array | undefined;
@@ -142,4 +132,27 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   await savePendingRepairs(adapters.home, pending);
 
   return { repairs: result.repairs, noFastForward: pending };
+}
+
+async function currentHead(context: TSyncContext, history?: THistory) {
+  const { client, vaultId, state } = context;
+  const raw = new Uint8Array(await (await client.rpc.v1.head.$get()).arrayBuffer());
+  let remote = history ?? (await readHistory(client, vaultId, state));
+
+  const known = remote.headers.find((header) =>
+    p.equal(p.signedCodec(p.ManifestHeaderCodec).write(header), raw),
+  );
+
+  if (known) return { remote, head: known };
+  remote = await readHistory(client, vaultId, state);
+
+  const head = decodeHistoryHeader(
+    raw,
+    remote.entries,
+    state.headers.map(binary),
+    state.latest,
+    remote.states,
+  );
+
+  return { remote, head };
 }

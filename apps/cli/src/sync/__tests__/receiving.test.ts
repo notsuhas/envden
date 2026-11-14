@@ -47,7 +47,7 @@ test("receiver filters unsafe env names and continues after placement failures",
 
     f.second.repo.caseInsensitive = async () => true;
 
-    const result = await reconcile(context, new Set([repoId]), { entries: [] }, new Set());
+    const result = await reconcile(context, new Set([repoId]), new Set());
     expect(result.conflicts).toBe(2);
     expect(result.failedStores.has(storePath(f.second.home, repoId, ".env.collision"))).toBe(true);
     expect(result.failedStores.has(storePath(f.second.home, repoId, ".env.bad"))).toBe(true);

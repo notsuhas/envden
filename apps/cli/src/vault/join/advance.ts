@@ -21,6 +21,7 @@ export async function advanceCheckpoint(
     client,
     identity,
     state,
+    skippedRoots: new Set<string>(),
     ...material,
     vaultId: material.checkpoint.header.body.vaultId,
     options: { now: () => 0, fetcher: adapters.fetcher },

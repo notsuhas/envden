@@ -65,7 +65,6 @@ for (const detached of [true, false])
           server,
           entry,
           { path: ".env" },
-          { entries: [] },
           new Set(),
         );
 
@@ -130,7 +129,6 @@ test.if(process.platform !== "win32")(
           server,
           entry,
           { path },
-          { entries: [] },
           new Set(),
         );
 

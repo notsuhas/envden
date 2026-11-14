@@ -50,24 +50,16 @@ async function sync(
       history = await readHistory(context.client, context.vaultId, context.state);
     }
 
-    const repos = await selectedRepos(adapters, context.state, options);
+    const repos = await selectedRepos(adapters, context.state, options, context.skippedRoots);
     let changed = 0;
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      const old = context.checkpoint.files;
       if (attempt) history = await readHistory(context.client, context.vaultId, context.state);
       const accepted = await acceptHead(context, history);
 
       reportRepairs(context, accepted.repairs);
 
-      const result = await syncAttempt(
-        context,
-        repos,
-        old,
-        accepted.noFastForward,
-        pushing,
-        choose,
-      );
+      const result = await syncAttempt(context, repos, accepted.noFastForward, pushing, choose);
 
       changed += result.changed;
 
@@ -131,14 +123,13 @@ async function countedSync(adapters: TAdapters, options: ISyncOptions, pushing: 
 async function syncAttempt(
   context: Awaited<ReturnType<typeof syncContext>>,
   repos: Set<string>,
-  old: Parameters<typeof reconcile>[2],
   noFastForward: ReadonlySet<string>,
   pushing: boolean,
-  choose: Parameters<typeof reconcile>[4],
+  choose: Parameters<typeof reconcile>[3],
 ) {
   const adapters = context.adapters;
   await persistCheckpoint(context);
-  const result = await reconcile(context, repos, old, noFastForward, choose);
+  const result = await reconcile(context, repos, noFastForward, choose);
 
   await persistCheckpoint(context);
 

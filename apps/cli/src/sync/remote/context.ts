@@ -22,6 +22,7 @@ export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
     adapters,
     options,
     state,
+    skippedRoots: new Set<string>(),
     identity,
     vaultId,
     client,

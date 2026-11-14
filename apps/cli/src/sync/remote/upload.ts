@@ -19,7 +19,7 @@ export async function uploadLink(
   seen: Map<string, Uint8Array | undefined>,
 ) {
   const approved = context.state.approved.find((item) => item.root === link.root);
-  if (link.localOnly || !approved) return;
+  if (link.localOnly || !approved || context.skippedRoots.has(link.root)) return;
   const repoId = context.state.aliases[approved.repoId] ?? approved.repoId;
   if (!repos.has(repoId)) return;
   const fileId = p.fileId(context.checkpoint.idKey, repoId, link.path);
@@ -42,6 +42,14 @@ export async function uploadLink(
   }
 
   const previous = context.checkpoint.files.entries.find((item) => p.equal(item.fileId, fileId));
+
+  if (
+    previous &&
+    (previous.state === 2 || previous.state === 4) &&
+    bytes !== undefined &&
+    (await readBytes(base)) === undefined
+  )
+    throw new EnvdenError("CONFLICT", "Deleted file has no agreed base; resolve before pushing");
 
   const baseline = await uploadBaseline(context, base, previous);
 
@@ -97,7 +105,7 @@ async function uploadBytes(context: TSyncContext, link: ILocalState["links"][num
     .placement(link.mode, link.root)
     .inspect(link.store, join(link.root, link.path));
 
-  if (status === "detached")
+  if (status === "detached" && link.mode === "link")
     throw new EnvdenError("CONFLICT", "Detached checkout; resolve local content before pushing");
 
   return status === "missing"

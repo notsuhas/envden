@@ -2,6 +2,7 @@ import { same } from "../files.ts";
 
 interface IContent {
   detached?: boolean;
+  tombstone?: boolean;
   linked: boolean;
   useStore: boolean;
   mine: Uint8Array | undefined;
@@ -17,6 +18,9 @@ export function deriveContentAction(input: IContent) {
   if (input.detached) return { kind: "detached" } as const;
 
   if (deriveUntrackedConflict(input).kind === "conflict") return { kind: "conflict" } as const;
+
+  if (input.tombstone && previous === undefined && mine !== undefined)
+    return { kind: "choose" } as const;
 
   if (repair && mine !== undefined) return { kind: "repair-conflict" } as const;
 

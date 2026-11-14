@@ -238,3 +238,44 @@ test("alias refuses existing placed files before changing their identity", async
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("all skips recreated checkouts with a track notice", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-recreated-"));
+
+  try {
+    const checkout = {
+      root: home,
+      gitDir: join(home, ".git"),
+      repoId: "host/repo",
+      identity: "old",
+    };
+
+    const state = emptyState("test");
+    state.approved.push(checkout);
+
+    const adapters = createAdapters({
+      home: join(home, "state"),
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    adapters.repo = createFakeRepoAdapter({
+      checkoutAt: async () => ({ ...checkout, identity: "new" }),
+    });
+
+    const reports: string[] = [];
+
+    expect(
+      await selectedRepos(adapters, state, {
+        now: () => 1,
+        fetcher: fetch,
+        all: true,
+        report: (line) => reports.push(line),
+      }),
+    ).toEqual(new Set());
+
+    expect(reports.join(" ")).toContain("envden track");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

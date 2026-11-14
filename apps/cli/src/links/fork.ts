@@ -12,8 +12,13 @@ export function shouldAskAlias(
 ) {
   const target = checkout.upstreamRepoId;
 
+  const roots = new Set(
+    state.approved.filter((item) => item.repoId === checkout.repoId).map((item) => item.root),
+  );
+
   return (
     !!target &&
+    !state.links.some((item) => roots.has(item.root)) &&
     repos.has(target) &&
     !(state.aliasAsked ?? []).includes(checkout.repoId) &&
     !state.aliases[checkout.repoId] &&

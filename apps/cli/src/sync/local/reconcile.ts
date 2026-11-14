@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { collisionEntries } from "./validation/entries.ts";
 import { reconcileUnpublished } from "./unpublished.ts";
 import { acceptsEnvPath } from "@envden/core/adapters";
@@ -16,7 +17,6 @@ import { reconcileTarget } from "./reconciliation/target.ts";
 export async function reconcile(
   context: TSyncContext,
   repos: Set<string>,
-  oldFiles: p.IFiles,
   noFastForward: ReadonlySet<string>,
   choose?: (path: string) => Promise<"keep-mine" | "take-server" | "merge">,
 ) {
@@ -53,17 +53,16 @@ export async function reconcile(
           server,
           entry,
           name,
-          oldFiles,
           noFastForward,
           choose,
         );
 
         changed += result.changed;
         conflicts += result.conflicts;
-      } catch {
+      } catch (error) {
+        reportPlacementFailure(context, target.path, error);
         failedStores.add(store);
         conflicts++;
-        report(context, `Could not place env file: ${target.path}`);
       }
     }
 
@@ -118,4 +117,10 @@ function selectedEntries(
 
     return false;
   });
+}
+
+function reportPlacementFailure(context: TSyncContext, path: string, error: unknown) {
+  if (error instanceof EnvdenError && error.code === "INVALID_INPUT") throw error;
+  const code = error instanceof EnvdenError ? error.code : "UNKNOWN";
+  report(context, `Could not place env file (${code}): ${path}`);
 }

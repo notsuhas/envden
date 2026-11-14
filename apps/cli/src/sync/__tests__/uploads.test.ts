@@ -102,10 +102,10 @@ test("an already applied entry reuses its base without downloading its blob", as
 
     context.checkpoint.files = { entries: [entry] };
     await rm(join(f.first.home, "state", "blobs", text(entry.blobHash)));
-    await reconcile(context, new Set(["repo"]), { entries: [] }, new Set());
+    await reconcile(context, new Set(["repo"]), new Set());
     expect(downloads).toBe(1);
     await rm(join(f.first.home, "state", "blobs", text(entry.blobHash)), { force: true });
-    await reconcile(context, new Set(["repo"]), context.checkpoint.files, new Set());
+    await reconcile(context, new Set(["repo"]), new Set());
     expect(downloads).toBe(1);
   } finally {
     await f.close();

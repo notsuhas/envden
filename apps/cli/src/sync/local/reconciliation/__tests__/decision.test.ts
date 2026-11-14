@@ -92,3 +92,14 @@ for (const [kind, choosing, detached, expected] of [
   test(`conflict recording ${kind} ${choosing} ${detached}`, () => {
     expect(needsConflict(kind, choosing, detached)).toBe(expected);
   });
+
+test("a tombstone without a base requires a choice before resurrection", () => {
+  expect(
+    deriveContentAction({
+      ...input,
+      previous: undefined,
+      server: undefined,
+      tombstone: true,
+    }).kind,
+  ).toBe("choose");
+});

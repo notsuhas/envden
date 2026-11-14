@@ -20,7 +20,6 @@ export async function reconcileTarget(
   server: Uint8Array | undefined,
   entry: p.IFileEntry,
   name: { path: string },
-  _oldFiles: p.IFiles,
   noFastForward: ReadonlySet<string>,
   choose?: TChoose,
 ) {
@@ -59,6 +58,7 @@ export async function reconcileTarget(
     previous: baseline,
     detached: target.mode === "link" && status === "detached",
     choosing: !!choose,
+    tombstone: entry.state === 2 || entry.state === 4,
     repair: noFastForward.has(p.base32(entry.fileId)),
   });
 
@@ -139,7 +139,9 @@ async function resolvedStatus(
   if (
     status === "detached" &&
     (same(await readBytes(destination), stored) ||
-      (await matchesBase(base, await readBytes(destination))))
+      (target.mode === "link"
+        ? await matchesBase(base, await readBytes(destination))
+        : same(await readBytes(base), await readBytes(destination))))
   ) {
     status = "relinkable";
   }
