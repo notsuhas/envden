@@ -60,24 +60,25 @@ function validateMaterial(
   )
     throw new EnvdenError("INVALID_DATA", "Material hash mismatch");
 
+  if (kind !== "skPub" && !referenced(options, vault, kind, hash))
+    throw new EnvdenError("INVALID_DATA", "Unreferenced material");
+}
+
+function referenced(options: IAppOptions, vault: Uint8Array, kind: string, hash: Uint8Array) {
   if (kind === "envelope") {
     const head = options.storage.head(vault);
     const stored = head && options.storage.header(vault, head);
 
-    if (
-      !stored ||
-      !equal(decode(signedCodec(ManifestHeaderCodec), stored.bytes).body.envelopeHash, hash)
-    )
-      throw new EnvdenError("INVALID_DATA", "Unreferenced material");
-  } else if (kind === "keyring") {
-    const named = options.storage.headers(vault, 1n, 0xffffffffffffffffn).some((stored) => {
-      const header = decode(signedCodec(ManifestHeaderCodec), stored.bytes).body;
-
-      return equal(kind === "keyring" ? header.keyringHash : header.envelopeHash, hash);
-    });
-
-    if (!named) throw new EnvdenError("INVALID_DATA", "Unreferenced material");
+    return stored ? equal(headerBody(stored.bytes).envelopeHash, hash) : false;
   }
+
+  return options.storage
+    .headers(vault, 1n, 0xffffffffffffffffn)
+    .some((stored) => equal(headerBody(stored.bytes).keyringHash, hash));
+}
+
+function headerBody(bytes: Uint8Array) {
+  return decode(signedCodec(ManifestHeaderCodec), bytes).body;
 }
 
 export function storeMaterial(
