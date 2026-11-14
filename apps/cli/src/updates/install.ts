@@ -10,7 +10,10 @@ const managers = {
 };
 
 export async function installMethod(home: string, recorded?: string, binary = process.execPath) {
+  const detected = detectedMethod(binary, home);
+
   const value =
+    (detected !== "script" ? detected : undefined) ??
     recorded ??
     process.env.ENVDEN_INSTALL_METHOD ??
     (await optionalRead(join(home, "install-method"))) ??

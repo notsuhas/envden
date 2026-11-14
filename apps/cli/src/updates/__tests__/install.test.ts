@@ -59,3 +59,18 @@ test("manager detection recognizes Homebrew prefixes and WinGet package paths", 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("manager binary path overrides a stale installer marker", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-stale-method-"));
+
+  try {
+    await atomicWrite(join(root, "install-method"), "script");
+
+    expect(await installMethod(root, undefined, "/opt/homebrew/bin/envden")).toEqual({
+      kind: "manager",
+      command: ["brew", "upgrade", "envden"],
+    });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
