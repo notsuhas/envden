@@ -17,7 +17,8 @@ export function Install() {
       <div className="den-dots border-t border-den-line p-3 sm:p-6 lg:p-8">
         <InstallWindow />
         <p className="mt-3 text-sm">
-          Bootstrap scripts check SHA256SUMS over HTTPS; they do not verify the signed release feed.
+          Bootstrap scripts check SHA256SUMS from the same GitHub release over HTTPS. Integrity
+          rests on GitHub and TLS.
         </p>
       </div>
       <div className="den-cells border-t border-den-line sm:grid-cols-2 xl:grid-cols-4">

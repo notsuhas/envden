@@ -7,8 +7,8 @@ export const SECURITY_POINTS = [
   { tag: "device keys", text: "Each device has its own keys. Remove one and the keys rotate." },
   { tag: "approval", text: "Every checkout needs your approval before it gets secrets." },
   {
-    tag: "signed",
-    text: "Updates are signed, and envden checks the signature before installing.",
+    tag: "checksums",
+    text: "Updates check SHA256SUMS from the same GitHub release over HTTPS. Integrity rests on GitHub and TLS.",
   },
   { tag: "audited", text: "Built on audited crypto libraries. Nothing hand-rolled." },
 ];

@@ -16,7 +16,7 @@
 
 envden keeps the `.env` files in your repos the same on every machine you work on. It syncs whole files, byte for byte, so comments, order and blank lines survive. Everything is encrypted on your devices before it leaves them, and it syncs through a small server you run yourself on your Tailscale network.
 
-> **Alpha.** v0.1.0 is the first release. Commands and file formats may still change.
+> **Alpha.** Commands and file formats may still change.
 
 ## Why
 
@@ -43,10 +43,15 @@ irm https://envden.theclau.de/install.ps1 | iex
 # Homebrew
 brew install notsuhas/tap/envden
 
+# npm
+npm i -g envden
+
 # Scoop
 scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
 scoop install notsuhas/envden
 ```
+
+Scoop and winget are published manually and may lag a release.
 
 Bootstrap scripts check SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.
 

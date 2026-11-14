@@ -1,3 +1,4 @@
+import { version } from "../../package.json";
 import { SITE_URL } from "@envden/core/site";
 
 export { SITE_URL };
@@ -9,6 +10,6 @@ export const SITE_TAGLINE =
 
 export const GITHUB_URL = "https://github.com/notsuhas/envden";
 
-export const ENVDEN_VERSION = "0.2.0";
+export const ENVDEN_VERSION = version;
 
 export const ALPHA_BANNER = `${SITE_NAME} v${ENVDEN_VERSION} is in alpha`;

@@ -1,50 +1,37 @@
 # Release runbook
 
-Publishing stops until the maintainer configures these values.
+A stable `vX.Y.Z` tag matching the CLI and server starts the release workflow. It builds and smoke-tests eight binaries, stages a multi-architecture GHCR image, uploads `SHA256SUMS`, then publishes the GitHub release. npm uses trusted publishing; Homebrew uses the release environment's `ENVDEN_HOMEBREW_TAP_KEY` deploy key. `ENVDEN_GHCR_NAMESPACE` selects the image namespace. No npm token is stored.
 
-## Release setup
+Only the highest stable release moves GitHub Latest, Docker latest/major/minor tags and the Homebrew formula. Backports retain exact image tags and use npm's `backport` tag. Release creation, asset uploads, npm publication and unchanged formula pushes can be retried.
 
-Done:
+## Version bumps
 
-- GitHub environment `release` accepts only `v*` tags. `ENVDEN_GHCR_NAMESPACE=notsuhas` selects the image namespace.
-- Channels: npm name `envden`, Homebrew tap `notsuhas/homebrew-tap` (`brew install notsuhas/tap/envden`), Scoop bucket `notsuhas/scoop-bucket`, winget identifier `notsuhas.envden`.
+Update `apps/{cli,server,web}/package.json` and `packaging/npm/package.json`, then run `bun install` to refresh `bun.lock`. `apps/web/src/lib/site.ts` derives `ENVDEN_VERSION` from the web manifest. Update the getting-started version output; its test rejects stale examples. Run the root checks, web build and three-OS CI before requesting approval to tag.
 
-Still needed:
+## Manual channels
 
-- Homebrew: the release workflow's `homebrew` job pushes the formula to the tap with a write deploy key on `notsuhas/homebrew-tap`, stored as `ENVDEN_HOMEBREW_TAP_KEY` in the `release` environment.
-- Scoop is published by hand after each release with `publish-channels.ts` (below); winget submission is manual too.
-- npm: the release workflow's `npm` job publishes with trusted publishing (`npm trust github envden --file release.yml --repo notsuhas/envden --env release`). No token is stored.
-- After the first image push, make the GHCR package public.
-- `ENVDEN_TELEMETRY_KEY` (repository variable): a PostHog project key. Empty disables telemetry.
-- `TS_AUTHKEY` at deployment, never at build time. Enable HTTPS certificates and Serve in the tailnet.
+Scoop and winget are published manually and may lag a release.
 
-## First release order
-
-1. 0.1.0 shipped as an alpha. Outstanding: independent human review of PROTOCOL and its implementation, the editor/tool link-mode compatibility matrix, and installer testing on disposable Windows, macOS, glibc and musl hosts.
-2. Match CLI and server versions to the stable vX.Y.Z tag. Run three-OS CI and compiled smoke tests. Test installers on disposable Windows, macOS, glibc and musl hosts.
-3. Push the approved tag. Verify all eight binaries and SHA256SUMS. GHCR stages amd64/arm64 images by digest using the musl binary artifacts, then promotes exact, minor, major and latest tags after release publication.
-4. Independently verify binaries and checksums. Publish package channels through maintainer accounts, and test fresh installation and update.
-
-## Publish package channels
-
-After verifying a release, run from the repository root with `gh` authenticated and Git push access to both channel repositories:
+After verifying the release, a maintainer with channel repository access can run:
 
 ```sh
-bun scripts/release/publish-channels.ts <version>
+bun scripts/release/publish-channels.ts <version> --dry-run
 ```
 
-Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads SHA256SUMS from the requested tag, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. The release workflow publishes npm and Homebrew itself through `scripts/release/npm-package.ts` and `scripts/release/homebrew-formula.ts`, so the script finds the formula already current.
+Use the version without `v`. Removing `--dry-run` pushes the Homebrew formula and Scoop manifest. Homebrew is normally already current from the workflow. winget manifests are generated for a manual PR to `microsoft/winget-pkgs`; they are not yet published there. Never run this against an older release when a newer formula exists.
 
-winget manifests go to `packaging/dist/winget/<version>/`. Follow the printed instructions to open the PR in `microsoft/winget-pkgs` yourself. Dry runs keep winget manifests in the temporary directory too.
+GHCR visibility could not be checked with the available token, which lacks `read:packages`. If the package is private, a maintainer must make it public after an image push. Configure `ENVDEN_TELEMETRY_KEY` only if telemetry is wanted; an empty value disables it.
 
-## Installer and container limits
+## Installers and containers
 
-Bootstrap shell/PowerShell installers and later self-updates verify SHA256SUMS from the same release. Integrity rests on GitHub and TLS. npm downloads its exact package version and checks package-pinned hashes, without runtime dependencies. Its launcher sets ENVDEN_INSTALL_METHOD=npm. Scoop records its marker. The CLI detects Homebrew Cellar and winget paths. If npm install scripts are disabled, its launcher prints the exact `node .../install.js` command needed to finish installation.
+Bootstrap scripts and self-updates check `SHA256SUMS` from the same GitHub release over HTTPS. Integrity rests on GitHub and TLS. npm checks package-pinned hashes; its launcher explains how to finish installation if install scripts were disabled.
 
-The container uses userspace Tailscale, with no TUN device, privileged mode or published host port. Both processes run as uid 10001. Existing root-owned state volumes must be migrated to uid/gid 10001 before upgrading. The shell supervises and shuts down both children. Application and Tailscale state use separate volumes. Update with docker compose pull && docker compose up -d. Base images use multi-arch index digests and apk versions are pinned. Compose drops all capabilities, mounts a read-only root with writable state volumes and temporary sockets, and checks hello and Tailscale status. Docker builds require the downloaded musl release artifacts in `release/`, passed with `--build-context release-artifacts=./release`.
+Both bootstrap scripts accept `ENVDEN_VERSION=latest` or a stable `vX.Y.Z` tag without leading zeros, `ENVDEN_INSTALL_DIR` for binaries, and `ENVDEN_HOME` for state.
 
-## Release execution coverage
+The container runs envden and userspace Tailscale as uid/gid 10001. Migrate older root-owned volumes before upgrading. Compose drops capabilities and uses a read-only root, writable state volumes and temporary sockets. Health requires both the hello endpoint and a Running Tailscale backend. `TS_AUTHKEY` is required only when Tailscale needs login; enable HTTPS certificates and Serve in the tailnet. Update with `docker compose pull && docker compose up -d`.
 
-All eight targets have smoke steps on matching hosted runners; musl builds run in Alpine containers on their native architecture. No target is intentionally shipped without execution. The new matrix still needs its first CI run, including Windows arm64 runner availability. Local checks cannot substitute for that run.
+Docker builds require musl binaries through `--build-context release-artifacts=./release`. CI builds and smokes an x64 musl binary and builds the hardened image without pushing, exercising the pinned apk revisions before tag time.
 
-winget manifests are generated locally but are not yet published in `microsoft/winget-pkgs`. Scoop uses bucket name `notsuhas` for `notsuhas/scoop-bucket`.
+## Validation limits
+
+The tag workflow cannot be executed locally. Its eight-target smoke matrix, Windows arm64 runner availability and publishing credentials still require confirmation from an actual tag run. Disposable-host installer tests on Windows, macOS, glibc and musl, the editor/tool link-mode matrix, and independent human review of the protocol and implementation remain unvalidated here.
