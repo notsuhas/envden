@@ -67,3 +67,14 @@ test("untrack cancels removal and tolerates a corrupt pending record", async () 
   expect(await untrack(f.second, target.root)).toEqual([join(target.root, ".env")]);
   expect(await deletionRequested(f.second.home, target.store)).toBe(false);
 });
+
+test("untracking one target preserves a shared corrupt-state hold", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["copy", "copy"]);
+  await atomicWrite(targets[0]!.store, "TOKEN=unknown\n");
+  await atomicWrite(basePath(f.second.home, targets[0]!.store) + ".pending", "{invalid");
+  await untrack(f.second, targets[1]!.root);
+  const result = await push(f.second, f.opts);
+  expect(result.conflicts).toBe(1);
+  expect(result.changed).toBe(0);
+});

@@ -30,8 +30,8 @@ export async function recoverSyncRecord<T>(
   } catch (error) {
     if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
     const backup = path + ".corrupt-" + crypto.randomUUID();
-    await rename(path, backup);
     await atomicWrite(marker, backup);
+    await rename(path, backup);
 
     report?.(
       `Invalid sync state: ${path}; saved ${backup}; run envden pull, then envden resolve --list`,
