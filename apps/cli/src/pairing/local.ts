@@ -51,5 +51,9 @@ export async function finishApprover(
     identifiers: p.pairingIdentifiers(pin, mailbox).identifiers,
   });
 
-  return p.pairingChannelKeys(new Uint8Array(Buffer.from(result.sessionKey, "base64url")));
+  const session = new Uint8Array(Buffer.from(result.sessionKey, "base64url"));
+  const keys = p.pairingChannelKeys(session);
+  session.fill(0);
+
+  return keys;
 }

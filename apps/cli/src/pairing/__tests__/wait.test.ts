@@ -161,3 +161,8 @@ test("mailbox polling stops at server expiry instead of the caller guess", async
   expect(requests).toBe(2);
   expect(now).toBe(100);
 });
+
+test("approval retrieval has a separate 24-hour deadline", async () => {
+  const { approvalDeadline } = await import("../finish.ts");
+  expect(approvalDeadline(600000)).toBe(87000000);
+});

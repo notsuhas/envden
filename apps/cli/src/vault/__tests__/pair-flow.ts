@@ -1,3 +1,4 @@
+import { resumeApproval } from "../../pairing/persistence/submission.ts";
 import { listDevices } from "../../admin/devices/list.ts";
 import { expect } from "bun:test";
 import { join } from "node:path";
@@ -12,7 +13,7 @@ import { createClient } from "../../client/request.ts";
 import { binary } from "../../client/encoding.ts";
 import { login } from "../../session/login.ts";
 import { openPairing, approvePairing } from "../../pairing/approver.ts";
-import { exchangeJoiner, resumeJoiner } from "../../pairing/joiner.ts";
+import { exchangeJoiner, resumeJoiner, resendJoiner } from "../../pairing/joiner.ts";
 
 import { setupFlow } from "./setup-flow.ts";
 
@@ -28,6 +29,7 @@ function signal() {
 
 export async function pairedFlow(
   beforeResume?: (flow: Awaited<ReturnType<typeof setupFlow>>) => Promise<void>,
+  interrupt = false,
 ) {
   const flow = await setupFlow();
   const { root, now, first, second, address, result, fetcher } = flow;
@@ -61,13 +63,30 @@ export async function pairedFlow(
     const pin = binary(result.state.server!.pin);
     const identity = await deviceIdentity(first.keychain, first.home, "first");
 
+    let approvalLost = false;
+    let joinerLost = false;
+    const joinerMessages: string[] = [];
+
     const client = createClient({
       address,
       vaultId,
       pin,
       identity,
       now,
-      fetcher,
+      fetcher: async (input, init) => {
+        const response = await fetcher(input, init);
+
+        if (
+          interrupt &&
+          !approvalLost &&
+          new URL(input instanceof Request ? input.url : input.toString()).pathname === "/v1/swap"
+        ) {
+          approvalLost = true;
+          throw new Error("Lost approval response");
+        }
+
+        return response;
+      },
       version: "0.0.0",
     });
 
@@ -81,7 +100,25 @@ export async function pairedFlow(
       vaultId: new Uint8Array(32),
       identity: joiner,
       now,
-      fetcher,
+      fetcher: async (input, init) => {
+        if (
+          new URL(input instanceof Request ? input.url : input.toString()).pathname.endsWith(
+            "/PairJoiner",
+          )
+        ) {
+          if (typeof init?.body !== "string")
+            throw new Error("Expected serialized pairing message");
+
+          joinerMessages.push(init.body);
+
+          if (interrupt && !joinerLost) {
+            joinerLost = true;
+            throw new Error("Lost joiner request");
+          }
+        }
+
+        return fetcher(input, init);
+      },
       version: "0.0.0",
     });
 
@@ -107,13 +144,24 @@ export async function pairedFlow(
       async () => true,
     );
 
-    await exchangeJoiner(second, joinerClient, joiner, pin, attempt.code, async () => {
+    const exchange = exchangeJoiner(second, joinerClient, joiner, pin, attempt.code, async () => {
       ke1.resolve();
       await ke2.promise;
     });
 
+    if (interrupt) {
+      await Promise.resolve(expect(exchange).rejects.toMatchObject({ code: "SERVER_UNREACHABLE" }));
+      await resendJoiner(second, joinerClient);
+      expect(joinerMessages[0]).toBe(joinerMessages[1]);
+    } else await exchange;
+
     ke3.resolve();
-    expect((await pairing).kind).toBe("paired");
+
+    if (interrupt) {
+      await Promise.resolve(expect(pairing).rejects.toMatchObject({ code: "SERVER_UNREACHABLE" }));
+      expect(await resumeApproval(first, client, vaultId)).toBe(true);
+    } else expect((await pairing).kind).toBe("paired");
+
     const devices = await listDevices(first, now);
 
     expect(devices.find((device) => device.name === "second")).toMatchObject({

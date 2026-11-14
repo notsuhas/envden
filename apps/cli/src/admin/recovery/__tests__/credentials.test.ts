@@ -144,3 +144,37 @@ test("stale locked device resets with the same secret key", async () => {
     await f.close();
   }
 });
+
+test("kit join resumes after its swap commits but key storage fails", async () => {
+  const f = await fixture();
+
+  try {
+    const home = f.home("crashed-kit");
+    const set = home.keychain.set.bind(home.keychain);
+    let interrupted = false;
+
+    home.keychain.set = async (slot, value) => {
+      if (!interrupted && slot.endsWith("/epoch/1")) {
+        interrupted = true;
+        throw new Error("injected storage failure");
+      }
+
+      await set(slot, value);
+    };
+
+    const options = {
+      ...f.result.kit,
+      address: f.result.kit.server,
+      password: "old password",
+      name: "crashed-kit",
+      now: f.now,
+      fetcher: f.fetcher,
+    };
+
+    await Promise.resolve(expect(kitJoin(home, options)).rejects.toThrow());
+    expect(interrupted).toBe(true);
+    expect((await kitJoin(home, options)).vaultId).toBe(f.result.kit.vaultId);
+  } finally {
+    await f.close();
+  }
+});

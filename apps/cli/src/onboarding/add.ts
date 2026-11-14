@@ -1,3 +1,4 @@
+import { resumeApproval } from "../pairing/persistence/submission.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { requireConfigured } from "../state/configured.ts";
 import * as p from "@envden/core/protocol";
@@ -34,6 +35,12 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
   if (session) {
     state.session = session;
     await saveState(adapters.home, state);
+  }
+
+  if (await resumeApproval(adapters, client, vaultId)) {
+    console.log("paired");
+
+    return;
   }
 
   const attempt = await openPairing(client, pin);

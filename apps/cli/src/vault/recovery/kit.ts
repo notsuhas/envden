@@ -1,63 +1,28 @@
+import { prepareKitJoin, type IKitJoin } from "./attempt.ts";
+import { resumeKitJoin } from "./resume.ts";
+
+import { rm } from "node:fs/promises";
+
 import { withStateLock } from "../../state/lock/lock.ts";
 import { recoveryEpochKey } from "./key.ts";
-import {
-  rejoinIdentity,
-  checkRejoin,
-  adoptRejoin,
-  finishRejoinIdentity,
-} from "../../admin/rejoin/classify.ts";
+import { adoptRejoin, finishRejoinIdentity } from "../../admin/rejoin/classify.ts";
 import { retryHead } from "../../client/retry.ts";
-import type { TFetch } from "../../client/fetch.ts";
+
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
-import { hello } from "../../client/hello.ts";
-import { createClient } from "../../client/request.ts";
-import { deviceIdentity } from "../../identity/device.ts";
-import { login } from "../../session/login.ts";
+
 import { readHistory } from "../history.ts";
 import { addDeviceSwap } from "../add.ts";
 import { acceptJoin } from "../join/accept.ts";
-import { VERSION, MIN_SERVER } from "../../version.ts";
 
-async function attemptKitJoin(
-  adapters: TAdapters,
-  options: {
-    rejoin?: boolean;
-    address: string;
-    vaultId: string;
-    secretKey: string;
-    password: string;
-    name: string;
-    now: () => number;
-    fetcher: TFetch;
-  },
-) {
-  const vaultId = p.unbase32(options.vaultId);
+async function attemptKitJoin(adapters: TAdapters, options: IKitJoin) {
+  const context = await prepareKitJoin(adapters, options);
+  const resumed = await resumeKitJoin(adapters, options, context);
+  if (resumed) return resumed;
+  const { vaultId, server, pending, identity, client, history } = context;
   const secret = p.decodeSecretKey(options.secretKey);
-  const server = await hello(options.address, undefined, options.fetcher, MIN_SERVER);
 
-  const identity = options.rejoin
-    ? await rejoinIdentity(adapters, options.name)
-    : await deviceIdentity(adapters.keychain, adapters.home, options.name);
-
-  const client = createClient({
-    address: options.address,
-    pin: server.pin,
-    vaultId,
-    identity,
-    version: VERSION,
-    now: options.now,
-    fetcher: options.fetcher,
-  });
-
-  await login(client, vaultId, options.password, "kit");
-  const history = await readHistory(client, vaultId);
-
-  if (!p.equal(history.state.serverPin, server.pin))
-    throw new EnvdenError("MOVING", "Vault moved; use its current server address");
-
-  if (options.rejoin) await checkRejoin(adapters, history);
   const head = history.headers.at(-1)!;
   const box = new Uint8Array(await (await client.request("/v1/envelope")).arrayBuffer());
 
@@ -109,6 +74,8 @@ async function attemptKitJoin(
     );
 
     if (options.rejoin) await finishRejoinIdentity(adapters);
+
+    await rm(pending, { force: true });
 
     return accepted;
   } finally {

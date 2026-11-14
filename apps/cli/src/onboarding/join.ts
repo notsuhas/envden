@@ -1,3 +1,5 @@
+import { clearJoiner } from "../pairing/persistence/cleanup.ts";
+import { loadState } from "../state/store/repository.ts";
 import type { TPreferenceOptions } from "./preferences.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { completeJoin } from "./complete-join.ts";
@@ -35,11 +37,17 @@ async function lockedrunJoin(
     return;
   }
 
-  const expected = await pairingPin(adapters.home);
+  if (!options.resume) await clearJoiner(adapters);
+  const expected = options.resume ? await pairingPin(adapters.home) : undefined;
 
   const server = await hello(address, expected, adapters.fetcher, MIN_SERVER);
 
-  const identity = await deviceIdentity(adapters.keychain, adapters.home, name);
+  const identity = await deviceIdentity(
+    adapters.keychain,
+    adapters.home,
+    name,
+    !options.resume && !(await loadState(adapters.home))?.checkpoint,
+  );
 
   const client = createClient({
     address,

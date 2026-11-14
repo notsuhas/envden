@@ -1,3 +1,5 @@
+import { clearJoiner } from "./persistence/cleanup.ts";
+import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -33,12 +35,28 @@ async function lockedexchangeJoiner(
   });
 
   if (!finish) throw new EnvdenError("UNAUTHORIZED", "Incorrect pairing code; make a new code");
-  const keys = p.pairingChannelKeys(binary(finish.sessionKey));
+  const session = binary(finish.sessionKey);
+  const keys = p.pairingChannelKeys(session);
+  session.fill(0);
   await adapters.keychain.set(`envden/${adapters.home}/pair-receive`, keys.approverToJoiner);
   const message = p.sealPairJoiner({ device: identity.record }, keys.joinerToApprover);
-  await putSlot(client, normalized.mailbox, "KE3", finish.finishLoginRequest);
-  await putSlot(client, normalized.mailbox, "PairJoiner", text(message));
-  keys.joinerToApprover.fill(0);
+
+  await atomicWrite(
+    join(adapters.home, "state", "pair-joiner"),
+    JSON.stringify({
+      mailbox: normalized.mailbox,
+      ke3: finish.finishLoginRequest,
+      message: text(message),
+    }),
+  );
+
+  try {
+    await putSlot(client, normalized.mailbox, "KE3", finish.finishLoginRequest);
+    await putSlot(client, normalized.mailbox, "PairJoiner", text(message));
+  } finally {
+    keys.joinerToApprover.fill(0);
+    keys.approverToJoiner.fill(0);
+  }
 }
 
 async function lockedresumeJoiner(
@@ -53,44 +71,97 @@ async function lockedresumeJoiner(
 
   if (!key) throw new EnvdenError("NOT_FOUND", "No pairing exchange to resume");
 
-  const response = p.MessageResponseSchema.parse(
-    await (await client.request("/v1/pairing/approver")).json(),
-  );
+  try {
+    const response = p.MessageResponseSchema.parse(
+      await (await client.request("/v1/pairing/approver")).json(),
+    );
 
-  const approver = p.openPairApprover(binary(response.message), key);
+    const approver = p.openPairApprover(binary(response.message), key);
 
-  if (!p.equal(approver.serverPin, pin))
-    throw new EnvdenError("UNAUTHORIZED", "Pairing server pin mismatch");
+    if (!p.equal(approver.serverPin, pin))
+      throw new EnvdenError("UNAUTHORIZED", "Pairing server pin mismatch");
 
-  const historyClient = client.forVault(approver.vaultId);
-  const history = await readHistory(historyClient, approver.vaultId);
+    const historyClient = client.forVault(approver.vaultId);
+    const history = await readHistory(historyClient, approver.vaultId);
 
-  if (rejoin) await adoptRejoin(adapters, history);
+    if (rejoin) await adoptRejoin(adapters, history);
 
-  const state = await acceptJoin(
-    adapters,
-    historyClient,
-    identity,
-    address,
-    pin,
-    history,
-    approver.manifestHash,
-  );
+    const state = await acceptJoin(
+      adapters,
+      historyClient,
+      identity,
+      address,
+      pin,
+      history,
+      approver.manifestHash,
+    );
 
-  if (rejoin) await finishRejoinIdentity(adapters);
-  await adapters.keychain.delete(`envden/${adapters.home}/pair-receive`);
-  key.fill(0);
+    if (rejoin) await finishRejoinIdentity(adapters);
+    await adapters.keychain.delete(`envden/${adapters.home}/pair-receive`);
+    key.fill(0);
 
-  for (const file of ["pair-pin", "pair-joiner", "pair-expiry"])
-    await rm(join(adapters.home, "state", file), { force: true });
+    for (const file of ["pair-pin", "pair-joiner", "pair-expiry"])
+      await rm(join(adapters.home, "state", file), { force: true });
 
-  return state;
+    return state;
+  } finally {
+    key.fill(0);
+  }
 }
 
 export function exchangeJoiner(...args: Parameters<typeof lockedexchangeJoiner>) {
-  return withStateLock(args[0].home, () => lockedexchangeJoiner(...args));
+  return withStateLock(args[0].home, async () => {
+    try {
+      return await lockedexchangeJoiner(...args);
+    } catch (error) {
+      if (
+        error instanceof EnvdenError &&
+        ["UNAUTHORIZED", "CONFLICT", "INVALID_DATA", "NOT_FOUND"].includes(error.code)
+      )
+        await clearJoiner(args[0]);
+
+      throw error;
+    }
+  });
 }
 
 export function resumeJoiner(...args: Parameters<typeof lockedresumeJoiner>) {
-  return withStateLock(args[0].home, () => lockedresumeJoiner(...args));
+  return withStateLock(args[0].home, async () => {
+    try {
+      return await lockedresumeJoiner(...args);
+    } catch (error) {
+      if (
+        error instanceof EnvdenError &&
+        ["INVALID_DATA", "FORK", "UNAUTHORIZED"].includes(error.code)
+      )
+        await clearJoiner(args[0]);
+
+      throw error;
+    }
+  });
+}
+
+export async function resendJoiner(adapters: TAdapters, client: TClient) {
+  const saved = await optionalRead(join(adapters.home, "state", "pair-joiner"));
+  if (!saved) return;
+  const value: unknown = JSON.parse(saved);
+
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("mailbox" in value) ||
+    typeof value.mailbox !== "number" ||
+    !("ke3" in value) ||
+    typeof value.ke3 !== "string" ||
+    !("message" in value) ||
+    typeof value.message !== "string"
+  )
+    throw new EnvdenError("INVALID_DATA", "Invalid stored pairing exchange");
+
+  try {
+    await putSlot(client, value.mailbox, "KE3", value.ke3);
+    await putSlot(client, value.mailbox, "PairJoiner", value.message);
+  } catch (error) {
+    if (!(error instanceof EnvdenError) || error.code !== "NOT_FOUND") throw error;
+  }
 }

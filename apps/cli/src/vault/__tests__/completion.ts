@@ -106,7 +106,7 @@ export async function checkCompletion(input: ICompletion) {
   expect((await approval).kind).toBe("paired");
   await finishPairing(fourth, fourthClient, fourthIdentity, address, pin, now);
   expect((await loadState(fourth.home))?.vaultId).toBe(kit.vaultId);
-  await writeFile(join(fourth.home, "state/pair-expiry"), String(now()));
+  await writeFile(join(fourth.home, "state/pair-expiry"), String(now() - 86400000));
 
   await Promise.resolve(
     expect(

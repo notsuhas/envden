@@ -65,3 +65,13 @@ test("pairing stores only headers through its approved checkpoint", async () => 
     await flow.cleanup();
   }
 });
+
+test("pairing resends persisted messages and accepts its committed swap after interruption", async () => {
+  const flow = await pairedFlow(undefined, true);
+
+  try {
+    expect((await loadState(flow.second.home))?.vaultId).toBe(flow.result.kit.vaultId);
+  } finally {
+    await flow.cleanup();
+  }
+});

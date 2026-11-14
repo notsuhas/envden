@@ -1,3 +1,4 @@
+import { saveApproval, resumeApproval } from "./persistence/submission.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { currentMaterial } from "../admin/shared/material.ts";
 import { checkFloor } from "../admin/shared/history.ts";
@@ -40,68 +41,78 @@ async function lockedapprovePairing(
   await putSlot(client, number, "KE2", response.loginResponse);
   await wait("KE3");
 
-  const keys = await finishApprover(
-    pin,
-    number,
-    response.serverLoginState,
-    await getSlot(client, number, "KE3"),
-  );
+  let keys;
 
-  await wait("PairJoiner");
-
-  const candidate = p.openPairJoiner(
-    binary(await getSlot(client, number, "PairJoiner")),
-    keys.joinerToApprover,
-  ).device;
-
-  if (!(await confirm(candidate.name))) {
+  try {
+    keys = await finishApprover(
+      pin,
+      number,
+      response.serverLoginState,
+      await getSlot(client, number, "KE3"),
+    );
+  } catch (error) {
     await client.request(`/v1/pairing/mailboxes/${number}`, "DELETE");
-
-    return { kind: "declined" as const };
+    throw error;
   }
 
-  await retryHead(async () => {
-    const history = await readHistory(client, vaultId);
+  try {
+    await wait("PairJoiner");
 
-    const local = await loadState(adapters.home);
-    if (!local) throw new EnvdenError("NOT_FOUND", "Missing local vault state");
-    checkFloor(local, history);
+    const candidate = p.openPairJoiner(
+      binary(await getSlot(client, number, "PairJoiner")),
+      keys.joinerToApprover,
+    ).device;
 
-    const { key: epochKey } = await currentMaterial(
-      { adapters, local, client, identity, vaultId, now },
-      history,
-    );
+    if (!(await confirm(candidate.name))) {
+      await client.request(`/v1/pairing/mailboxes/${number}`, "DELETE");
 
-    requireWindow(attempt.expiresAt, now());
+      return { kind: "declined" as const };
+    }
 
-    const swap = await addDeviceSwap(
-      history,
-      candidate,
-      identity.record.id,
-      identity.keys.objSk,
-      epochKey,
-      2,
-      now(),
-      { id: identity.record.id, sk: identity.keys.objSk },
-    );
+    await retryHead(async () => {
+      const history = await readHistory(client, vaultId);
 
-    swap.approver = p.sealPairApprover(
-      {
-        vaultId,
-        serverPin: pin,
-        manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
-      },
-      keys.approverToJoiner,
-    );
+      const local = await loadState(adapters.home);
+      if (!local) throw new EnvdenError("NOT_FOUND", "Missing local vault state");
+      checkFloor(local, history);
 
-    const bytes = p.encode(p.SwapCodec, swap);
-    await client.request(`/v1/swap?mailbox=${number}`, "POST", bytes);
-  });
+      const { key: epochKey } = await currentMaterial(
+        { adapters, local, client, identity, vaultId, now },
+        history,
+      );
 
-  keys.approverToJoiner.fill(0);
-  keys.joinerToApprover.fill(0);
+      requireWindow(attempt.expiresAt, now());
 
-  return { kind: "paired" as const };
+      const swap = await addDeviceSwap(
+        history,
+        candidate,
+        identity.record.id,
+        identity.keys.objSk,
+        epochKey,
+        2,
+        now(),
+        { id: identity.record.id, sk: identity.keys.objSk },
+      );
+
+      swap.approver = p.sealPairApprover(
+        {
+          vaultId,
+          serverPin: pin,
+          manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
+        },
+        keys.approverToJoiner,
+      );
+
+      const bytes = p.encode(p.SwapCodec, swap);
+      await saveApproval(adapters, number, bytes);
+      await resumeApproval(adapters, client, vaultId);
+    });
+
+    return { kind: "paired" as const };
+  } finally {
+    keys.approverToJoiner.fill(0);
+    keys.joinerToApprover.fill(0);
+  }
 }
 
 export function approvePairing(...args: Parameters<typeof lockedapprovePairing>) {

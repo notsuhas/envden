@@ -11,11 +11,16 @@ import {
 } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 
-async function lockeddeviceIdentity(keychain: IKeychainAdapter, namespace: string, name: string) {
+async function lockeddeviceIdentity(
+  keychain: IKeychainAdapter,
+  namespace: string,
+  name: string,
+  fresh = false,
+) {
   const slot = `envden/${namespace}/device`;
   const stored = await keychain.get(slot);
 
-  if (stored) {
+  if (stored && !fresh) {
     if (stored.length < 96) throw new EnvdenError("INVALID_DATA", "Invalid device identity");
 
     const keys = {

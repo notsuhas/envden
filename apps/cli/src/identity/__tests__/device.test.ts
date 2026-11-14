@@ -24,3 +24,17 @@ test("three independent keypairs survive reload in their namespace", async () =>
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("a fresh join replaces an orphan's keys and honours the requested name", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-orphan-"));
+
+  try {
+    const keychain = createMemoryKeychainAdapter(["get", "set"]);
+    const old = await deviceIdentity(keychain, root, "old");
+    const next = await deviceIdentity(keychain, root, "new", true);
+    expect(next.record.id).not.toEqual(old.record.id);
+    expect(next.record.name).toBe("new");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
