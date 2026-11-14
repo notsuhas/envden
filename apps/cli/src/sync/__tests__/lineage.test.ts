@@ -1,3 +1,4 @@
+import { heldBackFiles } from "../local/lineage/held-back.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";

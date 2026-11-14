@@ -1,3 +1,4 @@
+import { fileSizeNotice } from "../validation/size.ts";
 import { join } from "node:path";
 import { acceptsEnvPath } from "@envden/core/adapters";
 import * as p from "@envden/core/protocol";
@@ -32,13 +33,16 @@ export async function heldBackFiles(adapters: TAdapters) {
 
     const entry = id && entries.find((item) => p.equal(item.fileId, id));
 
+    const stored = await readBytes(link.store);
+
     const reason = reasonFor({
+      oversized: fileSizeNotice(link.path, stored) !== undefined,
       approval: !!checkout && checkoutApproval(state, checkout) === "approved",
       included: acceptsEnvPath(link.path, rules),
       conflict: conflicts.some((record) => record.store === link.store),
       pending: (await readBytes(basePath(adapters.home, link.store) + ".pending")) !== undefined,
       unapplied: !!entry && applied[p.base32(entry.fileId)] !== text(p.FileEntryCodec.write(entry)),
-      lost: !entry && link.mode === "link" && (await readBytes(link.store)) === undefined,
+      lost: !entry && link.mode === "link" && stored === undefined,
     });
 
     if (reason) notices.push({ path: join(link.root, link.path), reason });
@@ -48,6 +52,7 @@ export async function heldBackFiles(adapters: TAdapters) {
 }
 
 function reasonFor(input: {
+  oversized: boolean;
   approval: boolean;
   included: boolean;
   conflict: boolean;
@@ -55,6 +60,7 @@ function reasonFor(input: {
   unapplied: boolean;
   lost: boolean;
 }) {
+  if (input.oversized) return "file exceeds 1 MiB; reduce its size before pushing";
   if (!input.approval) return "checkout needs approval; run envden track";
   if (!input.included) return "excluded by env-files; update envden config env-files";
   if (input.conflict) return "conflict; run envden resolve --list";
