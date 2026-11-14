@@ -1,6 +1,6 @@
 import { rejects } from "node:assert/strict";
 import { expect, spyOn, test } from "bun:test";
-import { mkdtemp, rm, readdir } from "node:fs/promises";
+import { mkdtemp, rm, readdir, mkdir, writeFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createOsKeychainAdapter } from "../adapter.ts";
@@ -216,3 +216,25 @@ test("a successful OS write persists home history across adapters", async () => 
     await rm(home, { recursive: true, force: true });
   }
 });
+
+for (const blocked of [false, true])
+  test(`successful OS reads tolerate marker writes and preserve existing markers: ${blocked}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-marker-"));
+    const get = spyOn(Bun.secrets, "get").mockResolvedValue("AQ==");
+    const directory = join(home, "state", "keys");
+    const marker = join(directory, "os.file");
+
+    try {
+      await mkdir(directory, { recursive: true });
+
+      if (blocked) await mkdir(marker);
+      else await writeFile(marker, "existing");
+
+      const before = await stat(marker);
+      expect(await createOsKeychainAdapter({ home }).get("key")).toEqual(new Uint8Array([1]));
+      expect((await stat(marker)).mtimeMs).toBe(before.mtimeMs);
+    } finally {
+      get.mockRestore();
+      await rm(home, { recursive: true, force: true });
+    }
+  });

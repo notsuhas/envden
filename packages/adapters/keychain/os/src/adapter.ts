@@ -76,10 +76,15 @@ class OsKeychainAdapter implements IKeychainAdapter {
     return join(this.directory, "os.file");
   }
 
+  private async markOs() {
+    if (!(await hasFileSource(join(this.directory, "os"))))
+      await durableWrite(this.marker(), new Uint8Array());
+  }
+
   private async readOs(name: string, required = false) {
     try {
       const value = await Bun.secrets.get(this.options(name));
-      if (value !== null) await durableWrite(this.marker(), new Uint8Array());
+      if (value !== null) await this.markOs().catch(() => {});
 
       return value;
     } catch (cause) {
