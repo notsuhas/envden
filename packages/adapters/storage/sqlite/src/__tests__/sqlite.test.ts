@@ -236,3 +236,49 @@ test("discard commits durable blob garbage and pruning retries failed deletion",
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+for (const version of [1, 3])
+  test(`v${version} migration backs up rate data before adding lookup indexes`, () => {
+    const dir = temp();
+    const initial = createSqliteStorageAdapter(dir, 0);
+    initial.close();
+    let db = new Database(join(dir, "envden.sqlite"));
+
+    try {
+      db.run(
+        "DROP INDEX IF EXISTS charges_at; DROP INDEX IF EXISTS charges_bucket; DROP INDEX IF EXISTS buckets_until",
+      );
+
+      if (version === 1)
+        db.run(
+          "DROP INDEX nonces_expires; DROP INDEX sessions_expires; DROP INDEX approvers_expires; DROP INDEX headers_files",
+        );
+
+      db.run(`PRAGMA user_version=${version}`);
+
+      db.run("INSERT INTO charges VALUES('receipt','bucket',1)");
+      const storage = createSqliteStorageAdapter(dir, 0);
+      storage.close();
+      const backup = new Database(join(dir, `pre-${version + 1}`));
+
+      expect(backup.query("SELECT * FROM charges").all()).toEqual([
+        { receipt: "receipt", bucket: "bucket", at: 1 },
+      ]);
+
+      backup.close();
+      db.close();
+      db = new Database(join(dir, "envden.sqlite"));
+
+      for (const [table, column] of [
+        ["charges", "at"],
+        ["charges", "bucket"],
+        ["buckets", "until"],
+      ]) {
+        const indexes = db.query(`PRAGMA index_info(${table}_${column})`).all();
+        expect(indexes).toEqual([expect.objectContaining({ name: column })]);
+      }
+    } finally {
+      db.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });

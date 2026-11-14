@@ -1,3 +1,4 @@
+import { migrateV4 } from "./migrations/v4.ts";
 import { migrateV3 } from "./migrations/v3.ts";
 import { migrateV2 } from "./migrations/v2.ts";
 import { syncDirectory } from "./directory.ts";
@@ -64,31 +65,34 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     const version =
       db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0;
 
-    if (version > 3)
+    if (version > 4)
       throw new Error(
-        `Database schema ${version} is newer than supported schema 3; update envden.`,
+        `Database schema ${version} is newer than supported schema 4; update envden.`,
       );
 
-    if (version === 3) return;
+    if (version === 4) return;
 
-    if (existed) {
-      const backup = join(dataDir, `pre-${version === 0 ? 1 : version + 1}`);
-      const fd = openSync(backup, "w", 0o600);
-
-      try {
-        writeFileSync(fd, db.serialize());
-        fsyncSync(fd);
-      } finally {
-        closeSync(fd);
-      }
-
-      syncDirectory(dataDir);
-    }
+    if (existed) backupDatabase(db, dataDir, version);
 
     if (version === 0) migrateV1(db);
     if (version < 2) migrateV2(db);
-    migrateV3(db);
+    if (version < 3) migrateV3(db);
+    migrateV4(db);
   }).immediate();
+}
+
+function backupDatabase(db: Database, dataDir: string, version: number) {
+  const backup = join(dataDir, `pre-${version === 0 ? 1 : version + 1}`);
+  const fd = openSync(backup, "w", 0o600);
+
+  try {
+    writeFileSync(fd, db.serialize());
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+
+  syncDirectory(dataDir);
 }
 
 export function pruneBackups(dataDir: string, now: number) {
