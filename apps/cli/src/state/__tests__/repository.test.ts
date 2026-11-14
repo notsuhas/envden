@@ -72,3 +72,17 @@ test("headers live in immutable objects outside device.json", async () => {
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("atomic writes preserve permissions on directories envden does not own", async () => {
+  const { chmod, stat } = await import("node:fs/promises");
+  const { atomicWrite } = await import("../store/files.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-public-parent-"));
+
+  try {
+    await chmod(root, 0o755);
+    await atomicWrite(join(root, "service"), "configuration");
+    if (process.platform !== "win32") expect((await stat(root)).mode & 0o777).toBe(0o755);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

@@ -1,25 +1,29 @@
-import { chmod, mkdir, open, rename, rm, readFile, lstat } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { restrictAccess } from "./permissions.ts";
+import { mkdir, open, rename, rm, readFile, lstat } from "node:fs/promises";
+import { dirname, join, resolve, relative, isAbsolute } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 
+const owned = new Set<string>();
+
 export async function privateDirectory(path: string): Promise<void> {
-  await mkdir(path, { recursive: true, mode: 0o700 });
-  const stat = await lstat(path);
-
-  if (!stat.isDirectory() || stat.isSymbolicLink())
-    throw new EnvdenError("INVALID_INPUT", "Unsafe state directory");
-
-  await chmod(path, 0o700);
+  await prepareDirectory(path);
+  await restrictAccess(path, true);
+  owned.add(resolve(path));
 }
 
 export async function atomicWrite(path: string, bytes: string | Uint8Array): Promise<void> {
-  await privateDirectory(dirname(path));
+  const parent = dirname(path);
+
+  if ([...owned].some((root) => inside(root, parent))) await privateDirectory(parent);
+  else await prepareDirectory(parent);
+
   const temporary = join(dirname(path), `.${crypto.randomUUID()}.tmp`);
 
   try {
     const file = await open(temporary, "wx", 0o600);
 
     try {
+      await restrictAccess(temporary, false);
       await file.writeFile(bytes);
       await file.sync();
     } finally {
@@ -54,4 +58,18 @@ export async function optionalRead(path: string): Promise<string | undefined> {
     if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return undefined;
     throw cause;
   }
+}
+
+function inside(root: string, path: string) {
+  const rel = relative(root, resolve(path));
+
+  return !rel.startsWith("..") && !isAbsolute(rel);
+}
+
+async function prepareDirectory(path: string) {
+  await mkdir(path, { recursive: true, mode: 0o700 });
+  const stat = await lstat(path);
+
+  if (!stat.isDirectory() || stat.isSymbolicLink())
+    throw new EnvdenError("INVALID_INPUT", "Unsafe state directory");
 }
