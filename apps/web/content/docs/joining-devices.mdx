@@ -82,6 +82,6 @@ envden vault password reset
 
 `rotate` asks for your master password and starts a new epoch. It prints `Epoch rotated`; old files aren't re-encrypted.
 
-Use `kit replace` if you've lost the kit but still know the password. It replaces the recovery key and prints a new kit. Keep the replacement and discard the old one.
+Use `kit replace` if you've lost the kit but still know the password. It replaces the recovery key and prints a new kit. Keep the replacement and discard the old one. For `kit replace` or `device rm --new-kit`, `--kit-out /path/to/kit.json` writes the new kit without printing it. If saving fails, the kit is printed so you can save it yourself.
 
 `password change` needs the old password and the recovery secret key. If you've forgotten the password, `password reset` needs an existing device and the recovery secret key. Both keep the current kit valid. If you've lost both the password and kit, create a new vault from a device's local store.

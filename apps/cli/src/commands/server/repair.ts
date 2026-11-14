@@ -9,7 +9,7 @@ import { secret, consent } from "../../output/questions.ts";
 export const serverRepairCommand = new Command("repair")
   .option(
     "--repair-token <token>",
-    "Repair token, visible to other processes; prefer stdin or the prompt",
+    "Repair token; prefer stdin for upload, use a terminal for --finish",
   )
   .option("--finish")
   .option("--without <device...>")

@@ -21,7 +21,7 @@ Start the destination server and read its setup token. From an existing member d
 envden server move https://new-envden.your-tailnet.ts.net
 ```
 
-Enter the destination setup token and master password when prompted. You can pass the token with `--setup-token <token>`.
+Enter the destination setup token and master password when prompted. This requires a terminal; piping the token cannot complete the secret prompts. You can pass the token with `--setup-token <token>`.
 
 The move freezes the old server, copies and verifies the vault, registers your password on the destination, and records a signed move. The old server becomes read-only. Success prints `Move complete`.
 
@@ -68,7 +68,7 @@ On each member device, run:
 envden server repair
 ```
 
-Enter the repair token. The device uploads its signed history and cached ciphertext for the repos it uses. Success prints `Repair material uploaded`. You can also pass `--repair-token <token>`.
+Enter the repair token or pipe it on stdin. The device uploads its signed history and cached ciphertext for the repos it uses. Success prints `Repair material uploaded`. You can also pass `--repair-token <token>`.
 
 When every device has uploaded, finish from one device:
 
@@ -76,7 +76,7 @@ When every device has uploaded, finish from one device:
 envden server repair --finish
 ```
 
-Enter the repair token and master password. The finishing device verifies the signed reports itself. It stops if a member hasn't repaired or if the newest version of a file is unavailable.
+Enter the repair token and master password in a terminal; piping the token cannot complete the secret prompts. The finishing device verifies the signed reports itself. It stops if a member hasn't repaired or if the newest version of a file is unavailable.
 
 ### Drop an unavailable device
 

@@ -8,7 +8,7 @@ export const serverMoveCommand = new Command("move")
   .argument("[server]")
   .option(
     "--setup-token <token>",
-    "Setup token, visible to other processes; prefer stdin or the prompt",
+    "Setup token, visible to other processes; use the prompt in a terminal",
   )
   .addOption(new Option("--resume").conflicts("abort"))
   .option("--abort")

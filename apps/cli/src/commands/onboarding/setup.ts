@@ -13,7 +13,7 @@ export const setupCommand = new Command("setup")
   .option("--host-server", "Host a login service on this device")
   .option(
     "--setup-token <token>",
-    "Setup token, visible to other processes; prefer stdin or the prompt",
+    "Setup token, visible to other processes; use the prompt in a terminal",
   )
   .addOption(new Option("--telemetry <choice>", "Anonymous telemetry").choices(["on", "off"]))
   .addOption(new Option("--update-check <choice>", "Daily release check").choices(["on", "off"]))

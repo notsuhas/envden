@@ -93,3 +93,52 @@ test("replacement commands offer private kit files", async () => {
     expect((await cli(args)).stdout).toContain("--kit-out");
   }
 });
+
+test("human status keeps notice lines and diagnostics survive unreadable state", async () => {
+  const { atomicWrite } = await import("../../state/store/files.ts");
+  const { saveUpdateCache } = await import("../../updates/cache.ts");
+  const home = await mkdtemp(join(tmpdir(), "envden-command-state-"));
+
+  try {
+    await saveUpdateCache(home, { message: "Cannot confirm envden is up to date" });
+
+    for (const command of ["status", "config", "doctor"]) {
+      if (command !== "status") await atomicWrite(join(home, "state", "device.json"), "{");
+
+      const child = spawnTrusted(
+        [process.execPath, join(import.meta.dir, "../../main.ts"), command],
+        {
+          env: { ENVDEN_HOME: home, ENVDEN_TELEMETRY: "0", ENVDEN_NO_UPDATE_CHECK: "1" },
+          stdout: "pipe",
+          stderr: "pipe",
+          stdin: "ignore",
+        },
+      );
+
+      const stdout = await new Response(child.stdout).text();
+      expect(await child.exited).toBe(0);
+
+      if (command === "status")
+        expect(stdout.trim().split("\n")).toEqual([
+          "envden: not configured",
+          "Cannot confirm envden is up to date",
+        ]);
+
+      if (command === "doctor") expect(stdout.trim().split("\n").length).toBeGreaterThan(3);
+    }
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("secret-prompt commands no longer recommend piped tokens", async () => {
+  for (const args of [
+    ["setup", "--help"],
+    ["server", "move", "--help"],
+    ["server", "repair", "--help"],
+  ]) {
+    const result = await cli(args);
+    expect(result.stdout).not.toContain("prefer stdin or the prompt");
+    expect(result.stdout).toContain("terminal");
+  }
+});

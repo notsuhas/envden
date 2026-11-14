@@ -43,14 +43,16 @@ Once a day, the CLI checks the latest stable GitHub release and caches the resul
 envden config update-check off
 ```
 
-`ENVDEN_NO_UPDATE_CHECK=1` also disables automatic checks. Checks send only the HTTP request and are separate from [telemetry](/docs/telemetry).
+`ENVDEN_NO_UPDATE_CHECK=1` also disables automatic checks. An explicit `envden update --check` still runs. Checks send only the HTTP request and are separate from [telemetry](/docs/telemetry).
 
 ## Required updates
 
-The server can require a newer client through its signed minimum version. A refused sync shows "update required" until you update. Download integrity rests on GitHub and TLS.
+The server can require a newer client through its signed minimum version. A refused sync shows "update required" until you update or a successful authenticated request confirms the server accepts this version. A minimum above the latest release does not leave a persistent notice. Download integrity rests on GitHub and TLS.
 
 ## Data migrations
 
 Newer binaries migrate local and server data forward after saving `pre-<version>` backups. An older binary refuses data in a newer format. Downgrade only before new-format data exists. Migration backups expire after 30 days.
 
 Use `envden device ls` to see each device's last-seen version. `envden status --json` includes `update.available` and `update.required` for tools.
+
+Script updates allow 30 minutes for the download and run the new binary before replacement. Already current exits successfully. Failed post-install restores the old binary.
