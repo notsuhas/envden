@@ -11,12 +11,14 @@ export function createRateLimits(context: TContext) {
 
     return db
       .transaction(() => {
+        run("DELETE FROM charges WHERE at<=?", now - 900000);
+        run("DELETE FROM buckets WHERE until<=?", now - 86400000);
+
         const row = db
           .query<{ until: number; strikes: number }, [string]>("SELECT * FROM buckets WHERE key=?")
           .get(key);
 
         if (row && now < row.until) return { kind: "locked", until: row.until } as const;
-        run("DELETE FROM charges WHERE bucket=? AND at<=?", key, now - 900000);
         const receipt = randomUUID();
         run("INSERT INTO charges VALUES(?,?,?)", receipt, key, now);
 

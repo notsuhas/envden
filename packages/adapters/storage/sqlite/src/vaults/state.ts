@@ -1,4 +1,3 @@
-import { checkQuota } from "../db/quota.ts";
 import type { TStateKind, IStateWrite } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
 
@@ -31,9 +30,6 @@ export function createState(context: TContext) {
             write.bytes,
           );
       }
-
-      if (writes.some((write) => write.kind === "keyring" && write.bytes !== undefined))
-        checkQuota(context, vault);
     }).immediate();
   }
 

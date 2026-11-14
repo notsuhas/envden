@@ -1,4 +1,4 @@
-import { checkQuota } from "../db/quota.ts";
+import { checkQuota, vaultUsage } from "../db/quota.ts";
 import { prepareCommit, writeCommitState } from "@envden/core/adapters";
 import type { IStorageAdapter, IStoredSwap } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
@@ -43,6 +43,8 @@ export function createSwapCommit(
         if (!equal(head, expected))
           return { kind: "head-moved", ...(head ? { head } : {}) } as const;
 
+        const before = vaultUsage(context, vault);
+
         prepareCommit(storage, vault, swap, now);
 
         const priorFiles = bytes(
@@ -74,10 +76,11 @@ export function createSwapCommit(
             entry.bytes,
           );
 
+        checkQuota(context, vault, before);
+
         writeCommitState(storage, vault, swap);
 
         writeMetadata(context, storage, vault, swap, now);
-        checkQuota(context, vault);
 
         run("INSERT INTO digests VALUES(?,?)", vault, swap.bodyDigest);
         run("UPDATE vaults SET head=? WHERE id=?", swap.header.hash, vault);

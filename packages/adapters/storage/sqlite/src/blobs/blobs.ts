@@ -1,6 +1,5 @@
-import { vaultUsage } from "../db/quota.ts";
+import { vaultUsage, checkGrowthQuota } from "../db/quota.ts";
 import { syncDirectory } from "../db/directory.ts";
-import { EnvdenError } from "@envden/core/errors";
 import type { TContext } from "../db/context.ts";
 import { equal, hex } from "../db/values.ts";
 import { randomUUID } from "node:crypto";
@@ -44,8 +43,7 @@ export function createBlobs(context: TContext) {
           )
           .get(vault, hash)?.size ?? 0;
 
-      if (used - prior + bytes.length > quotaBytes)
-        throw new EnvdenError("STORAGE_QUOTA", "Vault storage quota exceeded");
+      checkGrowthQuota(context, vault, used, used - prior + bytes.length, quotaBytes);
 
       const dir = join(dataDir, "blobs", hex(vault) || "empty");
       mkdirSync(dir, { recursive: true, mode: 0o700 });

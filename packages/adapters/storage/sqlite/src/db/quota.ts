@@ -12,7 +12,27 @@ export function vaultUsage(context: TContext, vault: Uint8Array): number {
     .get(vault, vault, vault, vault)!.size;
 }
 
-export function checkQuota(context: TContext, vault: Uint8Array): void {
-  if (vaultUsage(context, vault) > 1073741824)
+export function checkQuota(context: TContext, vault: Uint8Array, before: number): void {
+  checkGrowthQuota(context, vault, before, vaultUsage(context, vault));
+}
+
+export function checkGrowthQuota(
+  context: TContext,
+  vault: Uint8Array,
+  before: number,
+  after: number,
+  limit = 1073741824,
+): void {
+  if (!isImport(context, vault) && after > limit && after > before)
     throw new EnvdenError("STORAGE_QUOTA", "Vault storage quota exceeded");
+}
+
+function isImport(context: TContext, vault: Uint8Array): boolean {
+  const row = context.db
+    .query<{ active: number; repair: Uint8Array | null }, [Uint8Array]>(
+      "SELECT active,repair FROM vaults WHERE id=?",
+    )
+    .get(vault);
+
+  return !!row && (!row.active || row.repair !== null);
 }

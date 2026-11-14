@@ -1,4 +1,3 @@
-import { checkQuota } from "../db/quota.ts";
 import type { SQLQueryBindings } from "bun:sqlite";
 import type { IStoredHeader, IStoredSwap } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
@@ -102,8 +101,6 @@ export function createChain(context: TContext) {
           version.blobHash ?? null,
           +version.tombstone,
         );
-
-      checkQuota(context, vault);
     }).immediate();
   }
 
