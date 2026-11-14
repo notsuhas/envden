@@ -8,8 +8,9 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: release-feed
+  group: release-${{ github.event_name == 'push' && github.ref || 'resign' }}
   cancel-in-progress: false
+  queue: max
 jobs:
   build:
     if: github.event_name == 'push'
@@ -17,22 +18,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15-intel, targets: "darwin-x64 darwin-arm64", smoke: envden-darwin-x64 }
-          - {
-              os: ubuntu-24.04,
-              targets: "linux-x64 linux-arm64 linux-x64-musl linux-arm64-musl",
-              smoke: envden-linux-x64,
-            }
-          - {
-              os: windows-2025,
-              targets: "windows-x64 windows-arm64",
-              smoke: envden-windows-x64.exe,
-            }
+          - { os: macos-15-intel, targets: darwin-x64, smoke: envden-darwin-x64 }
+          - { os: macos-15, targets: darwin-arm64, smoke: envden-darwin-arm64 }
+          - { os: ubuntu-24.04, targets: linux-x64, smoke: envden-linux-x64 }
+          - { os: ubuntu-24.04-arm, targets: linux-arm64, smoke: envden-linux-arm64 }
+          - { os: ubuntu-24.04, targets: linux-x64-musl, smoke: envden-linux-x64-musl }
+          - { os: ubuntu-24.04-arm, targets: linux-arm64-musl, smoke: envden-linux-arm64-musl }
+          - { os: windows-2025, targets: windows-x64, smoke: envden-windows-x64.exe }
+          - { os: windows-11-arm, targets: windows-arm64, smoke: envden-windows-arm64.exe }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
@@ -42,107 +40,92 @@ jobs:
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.targets }}
         env:
           ENVDEN_TELEMETRY_KEY: ${{ vars.ENVDEN_TELEMETRY_KEY }}
-      - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
-      - uses: actions/upload-artifact@v4
+      - if: ${{ !contains(matrix.targets, 'musl') }}
+        run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
+      - name: Smoke musl on Alpine
+        if: contains(matrix.targets, 'musl')
+        run: |
+          docker run --rm -v "$PWD/apps/cli/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'apk add --no-cache libstdc++=14.2.0-r6; for args in "--version" "--help" "doctor --json"; do /dist/${{ matrix.smoke }} $args; done'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: binaries-${{ runner.os }}
+          name: binaries-${{ matrix.targets }}
           path: apps/cli/dist/envden-*
           if-no-files-found: error
   image:
     if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-24.04
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Require image namespace
         env:
           NAMESPACE: ${{ vars.ENVDEN_GHCR_NAMESPACE }}
         run: test -n "$NAMESPACE" && ! echo "$NAMESPACE" | grep -qi REPLACE
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/metadata-action@v5
-        id: meta
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          images: ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-      - uses: docker/build-push-action@v6
+          pattern: binaries-linux-*-musl
+          merge-multiple: true
+          path: release
+      - id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: apps/server/Dockerfile
+          build-contexts: release-artifacts=./release
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=image,name=ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden,push-by-digest=true,name-canonical=true,push=true
   publish:
-    if: always() && (github.event_name != 'push' || (needs.build.result == 'success' && needs.image.result == 'success'))
+    if: github.event_name == 'push'
     needs: [build, image]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/sign-feed.yml
+    secrets: inherit
+    with:
+      tag_release: true
+      first_release: ${{ vars.ENVDEN_FIRST_RELEASE == '1' }}
+  resign:
+    if: github.event_name != 'push'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/sign-feed.yml
+    secrets: inherit
+    with:
+      tag_release: false
+      first_release: false
+  promote-image:
+    if: github.event_name == 'push'
+    needs: [publish, image]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GH_REPO: ${{ github.repository }}
-      ENVDEN_RELEASE_GENERATION: ${{ vars.ENVDEN_RELEASE_GENERATION }}
-      ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX: ${{ vars.ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX }}
+      packages: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
-          bun-version-file: package.json
-      - run: bun install --frozen-lockfile
-      - uses: actions/download-artifact@v4
-        if: github.event_name == 'push'
-        with:
-          pattern: binaries-*
-          merge-multiple: true
-          path: release
-      - name: Load previous feed and release assets
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote signed release image
         env:
-          FIRST_RELEASE: ${{ vars.ENVDEN_FIRST_RELEASE }}
-        shell: bash
+          IMAGE: ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden
+          DIGEST: ${{ needs.image.outputs.digest }}
         run: |
-          set -euo pipefail
-          mkdir -p release previous
-          if [ "$FIRST_RELEASE" = 1 ]; then
-            test "$GITHUB_EVENT_NAME" = push
-            count=$(gh api "repos/$GH_REPO/releases" --jq 'length')
-            test "$count" = 0
-            echo ENVDEN_FIRST_RELEASE=1 >> "$GITHUB_ENV"
-          else
-            tag=$(gh release view --json tagName --jq .tagName)
-            gh release download "$tag" -p "release-g${ENVDEN_RELEASE_GENERATION}.bin" -D previous
-            echo "ENVDEN_PREVIOUS_FEED=previous/release-g${ENVDEN_RELEASE_GENERATION}.bin" >> "$GITHUB_ENV"
-            if [ "$GITHUB_EVENT_NAME" != push ]; then
-              gh release download "$tag" -p 'envden-*' -D release
-              echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
-            fi
-          fi
-          if [ "$GITHUB_EVENT_NAME" = push ]; then echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"; fi
-      - name: Hash and sign
-        env:
-          ENVDEN_RELEASE_PRIMARY_SEED_HEX: ${{ secrets.ENVDEN_RELEASE_PRIMARY_SEED_HEX }}
-          ENVDEN_UNSAFE_VERSIONS: ${{ vars.ENVDEN_UNSAFE_VERSIONS }}
-        run: |
-          export ENVDEN_RELEASE_VERSION="${RELEASE_TAG#v}"
-          bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
-          bun --tsconfig-override scripts/tsconfig.json scripts/release/sign.ts release
-      - name: Publish new release
-        if: github.event_name == 'push'
-        run: gh release create "$RELEASE_TAG" release/* --verify-tag --generate-notes
-      - name: Refresh signed feed
-        if: github.event_name != 'push'
-        run: gh release upload "$RELEASE_TAG" release/release*.bin --clobber
+          version=${GITHUB_REF_NAME#v}
+          docker buildx imagetools create -t "$IMAGE:$version" -t "$IMAGE:${version%.*}" -t "$IMAGE:${version%%.*}" -t "$IMAGE:latest" "$IMAGE@$DIGEST"
 
   npm:
     if: github.event_name == 'push'
@@ -156,17 +139,19 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
-      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-checksums
+          path: npm-release
       - name: Build the npm package from the release checksums
         run: |
-          gh release download "$GITHUB_REF_NAME" -p SHA256SUMS -D npm-release
           bun --tsconfig-override scripts/tsconfig.json scripts/release/npm-package.ts "${GITHUB_REF_NAME#v}" npm-release/SHA256SUMS npm-release/package
       # trusted publishing: npm exchanges the GitHub OIDC token, so no NPM_TOKEN secret
-      - run: npx -y npm@11 publish ./npm-release/package --access public
+      - run: npx -y npm@11.21.2 publish ./npm-release/package --access public

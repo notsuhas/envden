@@ -2,12 +2,13 @@ import { join } from "node:path";
 import {
   ReleaseCodec,
   ReleaseFeedCodec,
-  decodeReleaseFeed,
   Sign,
   Verify,
   parseSemver,
   compareSemver,
 } from "@envden/core/protocol";
+import { releaseConfig } from "@envden/cli/src/updates/release-config.ts";
+import { verifiedFeed, nextSequence, checkBuilds } from "./feed-policy.ts";
 import { targets, assetName } from "../../apps/cli/scripts/targets.ts";
 
 function hex(value: string | undefined, name: string) {
@@ -19,54 +20,49 @@ function hex(value: string | undefined, name: string) {
 const directory = process.argv[2] ?? "release";
 const key = hex(process.env.ENVDEN_RELEASE_PRIMARY_SEED_HEX, "ENVDEN_RELEASE_PRIMARY_SEED_HEX");
 
-const publicKey = hex(
-  process.env.ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX,
-  "ENVDEN_RELEASE_PRIMARY_PUBLIC_HEX",
-);
+const trust = releaseConfig.trust;
 
-const generationText = process.env.ENVDEN_RELEASE_GENERATION;
+if (!trust) throw new Error("CLI release trust required");
 
-if (!generationText || !/^[1-9][0-9]*$/.test(generationText))
-  throw new Error("Configure ENVDEN_RELEASE_GENERATION");
-
-const generation = Number(generationText);
-
-if (!Number.isSafeInteger(generation) || generation > 0xffffffff)
-  throw new Error("Invalid generation");
-
-const previousPath = process.env.ENVDEN_PREVIOUS_FEED;
-
-const previous = previousPath
-  ? decodeReleaseFeed(new Uint8Array(await Bun.file(previousPath).arrayBuffer()))
-  : undefined;
-
-if (previous) {
-  const signature = previous.signatures.find((entry) => entry.key === 0);
-  if (
-    previous.body.generation !== generation ||
-    !signature ||
-    !Verify(publicKey, "release", ReleaseCodec.write(previous.body), signature.sig).ok
-  )
-    throw new Error("Previous feed is not signed by the configured primary");
-  if (previous.body.revokePrimary || previous.body.next)
-    throw new Error("Offline backup procedure required");
-}
-
-if (!previous && process.env.ENVDEN_FIRST_RELEASE !== "1")
-  throw new Error("Previous feed required; first release must be explicit");
-
+const generation = trust.generation;
+const publicKey = trust.keys.primary;
 const latest = process.env.ENVDEN_RELEASE_VERSION;
 
 if (!latest) throw new Error("ENVDEN_RELEASE_VERSION required");
 
 parseSemver(latest);
 
-if (previous && compareSemver(latest, previous.body.latest) < 0)
+async function publishedFeed(url: string) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(30000), cache: "no-store" });
+  if (response.status === 404) return undefined;
+  if (!response.ok) throw new Error("Could not read published feed");
+
+  return verifiedFeed(new Uint8Array(await response.arrayBuffer()), trust!);
+}
+
+const base = "https://github.com/notsuhas/envden/releases";
+const published = await publishedFeed(`${base}/latest/download/release-g${generation}.bin`);
+const tagged = await publishedFeed(`${base}/download/v${latest}/release-g${generation}.bin`);
+const previousPath = process.env.ENVDEN_PREVIOUS_FEED;
+
+const local = previousPath
+  ? verifiedFeed(new Uint8Array(await Bun.file(previousPath).arrayBuffer()), trust)
+  : undefined;
+
+const feeds = [published, tagged, local].filter((feed) => feed !== undefined);
+
+if (!published && process.env.ENVDEN_FIRST_RELEASE !== "1")
+  throw new Error("Published feed required; first release must be explicit");
+
+const seq = nextSequence(feeds, process.env.ENVDEN_FIRST_RELEASE === "1");
+const previous = feeds.toSorted((a, b) => (a.seq > b.seq ? -1 : a.seq < b.seq ? 1 : 0))[0];
+
+if (previous && compareSemver(latest, previous.latest) < 0)
   throw new Error("Release version must not go backwards");
 
 const unsafe = [
   ...new Set([
-    ...(previous?.body.unsafe ?? []),
+    ...feeds.flatMap((feed) => feed.unsafe),
     ...(process.env.ENVDEN_UNSAFE_VERSIONS?.split(",").filter(Boolean) ?? []),
   ]),
 ].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
@@ -82,19 +78,13 @@ const builds = await Promise.all(
 
 builds.sort((a, b) => (a.platform < b.platform ? -1 : a.platform > b.platform ? 1 : 0));
 
-if (previous && latest === previous.body.latest) {
-  for (const build of builds) {
-    const old = previous.body.builds.find((item) => item.platform === build.platform);
-    if (!old || !Buffer.from(old.sha256).equals(Buffer.from(build.sha256)))
-      throw new Error("Refusing to re-sign changed release assets");
-  }
-}
+checkBuilds(latest, builds, feeds);
 
 const issuedAt = BigInt(Date.now());
 
 const body = {
   generation,
-  seq: (previous?.body.seq ?? 0n) + 1n,
+  seq,
   issuedAt,
   expires: issuedAt + 2592000000n,
   latest,

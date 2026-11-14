@@ -1,10 +1,9 @@
-#!/bin/sh
+#!/bin/ash
 set -eu
 : "${TS_AUTHKEY:?Set TS_AUTHKEY to a Tailscale auth key}"
 : "${ENVDEN_PORT:=4280}"
 case "$ENVDEN_PORT" in ''|*[!0-9]*) echo 'Invalid ENVDEN_PORT' >&2; exit 1 ;; esac
 mkdir -p /data /var/lib/tailscale /var/run/tailscale
-chown envden:envden /data
 tailscaled --tun=userspace-networking --state=/var/lib/tailscale/tailscaled.state &
 daemon=$!
 server=
@@ -13,7 +12,7 @@ cleanup() {
   kill "$daemon" 2>/dev/null || true
   wait "$daemon" || true
 }
-trap cleanup EXIT
+trap 'cleanup' EXIT
 trap 'exit 143' TERM
 trap 'exit 130' INT
 attempt=0
@@ -26,6 +25,7 @@ done
 tailscale up --auth-key="$TS_AUTHKEY" --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false
 unset TS_AUTHKEY
 tailscale serve --bg --https=443 "http://127.0.0.1:$ENVDEN_PORT"
-su-exec envden envden serve --data-dir /data --port "$ENVDEN_PORT" "$@" &
+envden serve --data-dir /data --port "$ENVDEN_PORT" "$@" &
 server=$!
-wait "$server"
+wait -n
+exit 1

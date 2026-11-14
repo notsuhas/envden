@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@envden/core/protocol": ["../../packages/core/src/protocol/index.ts"],
-      "@envden/core/process": ["../../packages/core/src/process/index.ts"]
+      "@envden/core/process": ["../../packages/core/src/process/index.ts"],
+      "@envden/cli/src/updates/release-config.ts": ["../../apps/cli/src/updates/release-config.ts"]
     }
   },
   "include": ["**/*.ts"]

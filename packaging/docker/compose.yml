@@ -1,6 +1,22 @@
 services:
   envden:
-    image: ghcr.io/notsuhas/envden:1
+    image: ghcr.io/notsuhas/envden:0
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:uid=10001,gid=10001,mode=1777
+      - /var/run/tailscale:uid=10001,gid=10001,mode=0700
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'wget -q -O /dev/null "http://127.0.0.1:$${ENVDEN_PORT:-4280}/v1/hello?challenge=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" && tailscale status --json >/dev/null',
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     restart: unless-stopped
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:?Set TS_AUTHKEY}
