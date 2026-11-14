@@ -113,8 +113,10 @@ test("padding is minimal, aligned and zero", () => {
 
 test("semver uses arbitrary precision and digits only", () => {
   expect(p.compareSemver("1.10.0", "1.2.0")).toBe(1);
-  expect(p.compareSemver("01.0.0", "1.0.0")).toBe(0);
-  for (const v of ["1.2", "v1.2.3", "1.2.3-a", "-1.2.3"]) expect(() => p.parseSemver(v)).toThrow();
+  expect(p.parseSemver("0.0.0")).toEqual([0n, 0n, 0n]);
+
+  for (const v of ["1.2", "v1.2.3", "1.2.3-a", "-1.2.3", "01.2.3", "1.02.3", "1.2.03"])
+    expect(() => p.parseSemver(v)).toThrow();
 });
 
 test("base32 and pairing reject Unicode case folding", () => {

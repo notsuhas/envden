@@ -147,3 +147,18 @@ test("every listed release signature must verify and wire signatures must be ord
   const reversed = p.concat(good.subarray(0, -130), good.subarray(-65), good.subarray(-130, -65));
   expect(p.acceptRelease(reversed, state, 0n).ok).toBe(false);
 });
+
+test("release codec rejects unknown and duplicate wire signature keys", () => {
+  const body = p.encode(p.ReleaseCodec, base);
+  const signature = new Uint8Array(64);
+
+  for (const tags of [[2], [255], [0, 0], [1, 1]]) {
+    const wire = p.concat(
+      body,
+      p.u32.write(tags.length),
+      ...tags.map((key) => p.concat(p.u8.write(key), signature)),
+    );
+
+    expect(() => p.decodeReleaseFeed(wire)).toThrow();
+  }
+});

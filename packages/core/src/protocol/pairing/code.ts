@@ -8,6 +8,11 @@ export function normalizePairingCode(input: string): { mailbox: number; password
   requireValue(/^[0-9A-Za-z -]*$/.test(input), "Invalid pairing code");
 
   const text = input.toUpperCase().replace(/[- ]/g, "").replace(/O/g, "0").replace(/[IL]/g, "1");
+  const mailboxGroup = input.trim().match(/^([0-9A-Za-z]+)[ -]+/);
+
+  if (mailboxGroup)
+    requireValue(mailboxGroup[1]!.length === text.length - 8, "Invalid pairing code");
+
   requireValue(text.length >= 9);
 
   const mailboxText = text.slice(0, -8),

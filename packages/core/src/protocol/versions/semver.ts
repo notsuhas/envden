@@ -1,7 +1,7 @@
 import { requireValue } from "../encoding/binary.ts";
 
 export function parseSemver(version: string): readonly [bigint, bigint, bigint] {
-  requireValue(/^\d+\.\d+\.\d+$/.test(version), "Invalid version");
+  requireValue(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version), "Invalid version");
   const [x, y, z] = version.split(".");
 
   return [BigInt(x!), BigInt(y!), BigInt(z!)];

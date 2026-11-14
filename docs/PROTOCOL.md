@@ -101,7 +101,7 @@ Decoders reject:
 - **Member ID**: a device ID or the current recovery ID.
 - **Server pin** = `H("server-pin", serverSignPub)`. Devices store the server's address separately; the address isn't part of the pin.
 - **Vault ID** = hash of the signed genesis entry (§ 5).
-- **File ID** = `MAC(K_id, "file-id", str(repoId) ‖ str(path))`. `path` is relative to the repo root, `/`-separated, NFC, with no empty, `.` or `..` segments, and case preserved.
+- **File ID** = `MAC(K_id, "file-id", str(repoId) ‖ str(path))`. `path` is relative to the repo root, `/`-separated, NFC, with case preserved. It must be nonempty and contain no `\`, `:`, empty, `.` or `..` segments, or segments ending in a dot or space. Segments must not match the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9` or `LPT1`–`LPT9`, including superscript `¹`, `²`, `³` suffixes, case-insensitively, with or without a dot extension.
 
 ```
 DeviceRecord   { id b16, name str (1–64 bytes), encPub b32, objPub b32, reqPub b32 }
@@ -401,7 +401,7 @@ The server rejects a request if:
 
 The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `skPub`. Token proofs are recomputed and compared in constant time.
 
-**Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only. `protocols` lists the protocol versions the server speaks, sorted; v1 is `[1]`.
+**Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only, with no leading zeros except the single digit `0`. `protocols` lists the protocol versions the server speaks, sorted; v1 is `[1]`.
 - The server rejects a request whose `clientVersion` is below `minClient` with `426`. The 426 body is unsigned, so the client runs hello again and trusts only the signed `minClient`. If that's above the latest release in the feed (§ 15), it reports "the server requires a version that doesn't exist" instead of "update envden".
 - The server records each device's last `clientVersion`.
 - The client refuses a server whose `appVersion` is below the client's built-in `minServer`.
@@ -451,7 +451,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
 **Code.** The code is `m-XXXX-XXXX`.
 - `m` is the mailbox number: the smallest free integer from 1 to 999 among the server's open mailboxes.
 - `XXXX-XXXX` is 8 random Crockford base32 characters, which is 40 bits.
-- Input is normalized: uppercased, dashes and spaces removed, `O` read as `0`, and `I`/`L` read as `1`.
+- Input is normalized: uppercased, dashes and spaces removed, `O` read as `0`, and `I`/`L` read as `1`. If a separator follows the mailbox group, that group fixes the mailbox boundary and exactly 8 code characters must follow after normalization. For compact input, the last 8 characters are the secret. In either form the remaining mailbox must be 1–999 with no leading zeros; all secret characters must be Crockford base32. Other input is rejected.
 
 **Flow.** A is the approving device, B is the joiner, S is the server.
 
@@ -607,7 +607,7 @@ The printed kit stays valid, because `SK` is unchanged.
 
 ## 14. Test vectors and cases
 
-Shipped as JSON in `packages/core/test-vectors/`, and run in CI against every platform binary:
+Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in CI against every platform binary:
 
 - **Encoding**:
   - round trips
@@ -721,7 +721,7 @@ The feed is the body followed by `list<{ key u8, sig b64 }>`: signatures by the 
   - the highest `seq` accepted under each key
   - whether the primary is revoked
   - every version it has seen marked unsafe
-- **It rejects** a feed without a valid signature from a trusted, unrevoked key, or with a `seq` below that key's stored `seq`. An equal `seq` is accepted only if the feed is byte-identical to the stored one. A feed signed by both keys is accepted if either counted key passes its `seq` check, and it sets the stored `seq` of every key that validly signed it to `max(stored, feed.seq)`. `revokePrimary` other than 0 or 1 is rejected.
+- **It rejects** a feed without a valid signature from a trusted, unrevoked key, or with a `seq` below that key's stored `seq`. An equal `seq` is accepted only if the feed is byte-identical to the stored one. Every listed signature must verify under its indicated key. A feed signed by both keys passes the sequence check if either counted key passes its `seq` check, and it sets the stored `seq` of every key that validly signed it to `max(stored, feed.seq)`. `revokePrimary` other than 0 or 1 is rejected.
 - **Primary compromise.** `revokePrimary = 1` counts only with a valid backup signature, and then revokes the primary in that client for good. From then on only the backup counts until the next generation. So a primary-signed feed with a huge `seq` can't lock the backup out.
 - **Rotation.** `next` counts only with a valid backup signature of generation `g`. It moves the client to generation `g + 1` and its keys. Feeds for each generation are published side by side as `release-g<n>.bin`, so older binaries can still follow the chain forward.
 - **If the feed has expired**, or can't be fetched, the client warns "can't confirm envden is up to date" and doesn't block ordinary commands. An expired feed still applies `unsafe`, `revokePrimary` and `next`, which only tighten, but can't authorize a self-update.
