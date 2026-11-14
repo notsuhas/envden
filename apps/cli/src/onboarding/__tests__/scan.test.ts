@@ -54,3 +54,21 @@ test("differing worktree env files do not abort unrelated linking", async () => 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("checkout setup reloads state after preferences have allowed another writer", async () => {
+  const { fixture } = await import("../../admin/recovery/__tests__/fixture.ts");
+  const { loadState, saveState } = await import("../../state/store/repository.ts");
+  const f = await fixture();
+
+  try {
+    const stale = (await loadState(f.first.home))!;
+    const latest = (await loadState(f.first.home))!;
+    latest.aliases = { "host/new": "host/canonical" };
+    await saveState(f.first.home, latest);
+    await setupCheckouts(f.first, stale, { scanRoot: [], now: f.now });
+    expect(stale.aliases).toEqual(latest.aliases);
+    expect((await loadState(f.first.home))?.aliases).toEqual(latest.aliases);
+  } finally {
+    await f.close();
+  }
+});

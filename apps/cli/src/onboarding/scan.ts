@@ -6,7 +6,7 @@ import { vaultRepos, offerForkAlias } from "../links/fork.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
-import { saveState } from "../state/store/repository.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
 import { discoverRepos } from "../links/discovery.ts";
 import { linkCheckout } from "../links/place.ts";
 import { approvalPrompt } from "../links/approval.ts";
@@ -74,7 +74,11 @@ async function scanCheckouts(
 }
 
 export function setupCheckouts(...args: Parameters<typeof lockedsetupCheckouts>) {
-  return withStateLock(args[0].home, () => lockedsetupCheckouts(...args));
+  return withStateLock(args[0].home, async () => {
+    const state = (await loadState(args[0].home)) ?? args[1];
+    await lockedsetupCheckouts(args[0], state, args[2]);
+    Object.assign(args[1], state);
+  });
 }
 
 async function chooseCheckouts(state: ILocalState, repos: ICheckout[]) {
