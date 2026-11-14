@@ -22,6 +22,11 @@ pre,
   box-shadow: none;
 }
 
+/* the open search dialog already shows where focus is */
+[role="dialog"]:has(#fd-search-list) input:focus-visible {
+  outline: none;
+}
+
 button:not(:disabled),
 [role="tab"],
 summary {
