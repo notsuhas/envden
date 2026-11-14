@@ -9,6 +9,8 @@ import type { ILocalState } from "../../state/model.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../history.ts";
 import { saveState } from "../../state/store/repository.ts";
+import { appliedFiles, saveAppliedFiles } from "../../sync/local/applied.ts";
+import { writeBytes } from "../../sync/local/files.ts";
 
 async function attemptPushInitialFiles(
   adapters: TAdapters,
@@ -36,7 +38,7 @@ async function attemptPushInitialFiles(
   const idKey = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
   if (!key || !idKey) throw new EnvdenError("LOCKED", "Vault keys unavailable");
 
-  const files = await initialEntries(adapters, state, client, vaultId, key, idKey);
+  const { files, bases } = await initialEntries(adapters, state, client, vaultId, key, idKey);
 
   if (!files.entries.length) return;
   files.entries.sort((a, b) => p.compare(a.fileId, b.fileId));
@@ -73,6 +75,19 @@ async function attemptPushInitialFiles(
   state.files = text(p.FilesCodec.write(files));
   state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, header, "manifest"));
   await saveState(adapters.home, state);
+
+  await recordPushed(adapters.home, files, bases);
+}
+
+// the pushed files are now this device's synced baseline, so nothing reads as changed
+async function recordPushed(home: string, files: p.IFiles, bases: Map<string, Uint8Array>) {
+  const applied = await appliedFiles(home);
+
+  for (const entry of files.entries)
+    applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
+
+  await saveAppliedFiles(home, applied);
+  for (const [path, bytes] of bases) await writeBytes(path, bytes);
 }
 
 export function pushInitialFiles(...args: Parameters<typeof attemptPushInitialFiles>) {

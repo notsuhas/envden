@@ -2,7 +2,9 @@ import { expect, test, spyOn } from "bun:test";
 import { pull } from "../engine.ts";
 import { commandNotice } from "../../notice/command.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
-import { readRemoteNotice } from "../../notice/remote.ts";
+import { readRemoteNotice, remoteNotice } from "../../notice/remote.ts";
+import { noticeStatus } from "../../notice/cache.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { syncFixture } from "./flows.ts";
 
 test("background refresh fetches outside the state lock and locks only to write", async () => {
@@ -73,12 +75,9 @@ test("foreground commands inspect remote history even while the shell cache is f
     };
 
     await commandNotice(fixture.second, fixture.now(), fetcher, true);
-    const cachedRequests = requests;
-    expect(cachedRequests).toBeGreaterThan(0);
-    await commandNotice(fixture.second, fixture.now(), fetcher, true);
-    expect(requests).toBe(cachedRequests);
+    expect(requests).toBe(0);
     await commandNotice(fixture.second, fixture.now(), fetcher, false);
-    expect(requests).toBeGreaterThan(cachedRequests);
+    expect(requests).toBeGreaterThan(0);
     const foregroundRequests = requests;
     await commandNotice(fixture.second, fixture.now(), fetcher, false);
     expect(requests).toBeGreaterThan(foregroundRequests);
@@ -87,6 +86,27 @@ test("foreground commands inspect remote history even while the shell cache is f
     else process.env.ENVDEN_NO_UPDATE_CHECK = previous;
 
     output.mockRestore();
+    await fixture.cleanup();
+  }
+});
+
+test("setup's initial push leaves nothing to pull and a pull settles the remote notice", async () => {
+  const fixture = await syncFixture();
+
+  try {
+    expect((await remoteNotice(fixture.first, fixture.opts)).repos).toEqual([]);
+
+    expect(await noticeStatus(fixture.first.home, (await loadState(fixture.first.home))!)).toEqual(
+      [],
+    );
+
+    expect((await remoteNotice(fixture.second, fixture.opts)).repos).toEqual([
+      "github.com/example/project",
+    ]);
+
+    await pull(fixture.second, fixture.opts);
+    expect((await readRemoteNotice(fixture.second.home))?.repos).toEqual([]);
+  } finally {
     await fixture.cleanup();
   }
 });

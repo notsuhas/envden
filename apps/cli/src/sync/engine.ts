@@ -14,6 +14,8 @@ import { reconcile } from "./local/reconcile.ts";
 import { selectedRepos } from "./local/selection.ts";
 import { withSyncLock } from "./local/files.ts";
 import { conflictRecords } from "./local/conflicts.ts";
+import { settleRemoteNotice } from "../notice/remote.ts";
+import { refreshNotice } from "../notice/cache.ts";
 
 async function sync(
   adapters: TAdapters,
@@ -72,6 +74,8 @@ async function sync(
       if (result.kind !== "retry") {
         await pruneBackups(adapters.home, options.now());
         await adapters.prunePlacementBackups(options.now());
+        await settleRemoteNotice(context);
+        await refreshNotice(adapters.home, context.state);
 
         return { ...result, changed };
       }

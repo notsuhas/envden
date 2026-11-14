@@ -6,15 +6,39 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../adapters.ts";
 import type { ISyncOptions } from "../sync/model.ts";
-import { syncContext } from "../sync/remote/context.ts";
+import { syncContext, type TSyncContext } from "../sync/remote/context.ts";
 import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
-  const applied = await appliedFiles(adapters.home);
   await acceptHead(context, undefined, true);
+  const result = await pendingRepos(context);
+
+  await withStateLock(adapters.home, async () => {
+    await writeRemoteNotice(adapters.home, result);
+
+    await addPendingJoins(
+      adapters.home,
+      context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
+      context.identity.record.id,
+    );
+  });
+
+  return result;
+}
+
+export async function settleRemoteNotice(context: TSyncContext) {
+  const result = await pendingRepos(context);
+
+  await withStateLock(context.adapters.home, () =>
+    writeRemoteNotice(context.adapters.home, result),
+  );
+}
+
+async function pendingRepos(context: TSyncContext) {
+  const applied = await appliedFiles(context.adapters.home);
 
   const approved = new Set(
     context.state.approved.map((item) => context.state.aliases[item.repoId] ?? item.repoId),
@@ -28,19 +52,11 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
     if (approved.has(name.repoId)) repos.add(name.repoId);
   }
 
-  const result = { checkedAt: options.now(), repos: [...repos] };
+  return { checkedAt: context.options.now(), repos: [...repos] };
+}
 
-  await withStateLock(adapters.home, async () => {
-    await atomicWrite(join(adapters.home, "state", "remote-notice.json"), JSON.stringify(result));
-
-    await addPendingJoins(
-      adapters.home,
-      context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
-      context.identity.record.id,
-    );
-  });
-
-  return result;
+function writeRemoteNotice(home: string, notice: { checkedAt: number; repos: string[] }) {
+  return atomicWrite(join(home, "state", "remote-notice.json"), JSON.stringify(notice));
 }
 
 export async function readRemoteNotice(
