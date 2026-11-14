@@ -12,7 +12,7 @@ import { emptyState } from "../state/model.ts";
 import { saveState, loadState } from "../state/store/repository.ts";
 import { createGenesis } from "./genesis.ts";
 import { createVaultSwap } from "./creation.ts";
-import { VERSION } from "../version.ts";
+import { VERSION, MIN_SERVER } from "../version.ts";
 
 async function lockedsetupVault(
   adapters: TAdapters,
@@ -39,7 +39,7 @@ async function lockedsetupVault(
   }
 
   const token = p.decodeToken("setup", options.token);
-  await hello(options.address, token.serverPin, options.fetcher, VERSION);
+  await hello(options.address, token.serverPin, options.fetcher, MIN_SERVER);
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
 
   if (existing?.creationPending && existing.vaultId && existing.server) {

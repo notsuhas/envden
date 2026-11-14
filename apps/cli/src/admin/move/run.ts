@@ -19,7 +19,7 @@ import { currentHistory } from "../shared/history.ts";
 import { adminSwap } from "../shared/swap.ts";
 import { copyServer } from "../shared/transfer.ts";
 import { switchServer } from "./switch.ts";
-import { VERSION } from "../../version.ts";
+import { VERSION, MIN_SERVER } from "../../version.ts";
 
 async function lockedmoveServer(
   adapters: TAdapters,
@@ -51,7 +51,7 @@ async function lockedmoveServer(
 
   if (!address) throw new EnvdenError("INVALID_INPUT", "Specify the destination server");
   const { token, pin, tokenSlot } = await moveCredentials(adapters, directory, options);
-  await hello(address, pin, options.fetcher, VERSION);
+  await hello(address, pin, options.fetcher, MIN_SERVER);
 
   const destination = createClient({
     address,

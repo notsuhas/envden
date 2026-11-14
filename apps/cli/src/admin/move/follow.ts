@@ -9,7 +9,7 @@ import { createClient } from "../../client/request.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../../vault/history.ts";
 import { saveState } from "../../state/store/repository.ts";
-import { VERSION } from "../../version.ts";
+import { VERSION, MIN_SERVER } from "../../version.ts";
 
 export async function followServerMove(
   context: TAdminContext,
@@ -30,7 +30,7 @@ export async function followServerMove(
   if (!header || header.body.op !== 10)
     throw new EnvdenError("INVALID_DATA", "Move header missing");
 
-  await hello(target.newAddress, target.newPin, fetcher, VERSION);
+  await hello(target.newAddress, target.newPin, fetcher, MIN_SERVER);
 
   const client = createClient({
     address: target.newAddress,

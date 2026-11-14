@@ -10,7 +10,7 @@ import { saveState } from "../../state/store/repository.ts";
 import { text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { checkFloor } from "../shared/history.ts";
-import { VERSION } from "../../version.ts";
+import { VERSION, MIN_SERVER } from "../../version.ts";
 
 async function lockedswitchServer(
   adapters: TAdapters,
@@ -19,7 +19,7 @@ async function lockedswitchServer(
   fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await adminContext(adapters, now, fetcher);
-  const server = await hello(address, undefined, fetcher, VERSION);
+  const server = await hello(address, undefined, fetcher, MIN_SERVER);
 
   const client = createClient({
     address,

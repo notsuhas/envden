@@ -1,3 +1,4 @@
+import { verifiedBlob } from "../../vault/join/validation.ts";
 import type { THistory } from "../../vault/history.ts";
 import { readHistory } from "../../vault/history.ts";
 import { decodeHistoryHeader } from "../../client/history.ts";
@@ -39,14 +40,7 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
       entries.find((item) => p.equal(p.objectHash(p.EntryCodec, item, "entry"), hash)),
     files: async (hash: Uint8Array) => {
       try {
-        const files = p.decode(
-          p.FilesCodec,
-          new Uint8Array(
-            await (
-              await client.rpc.v1.files[":hash"].$get({ param: { hash: text(hash) } })
-            ).arrayBuffer(),
-          ),
-        );
+        const files = p.decode(p.FilesCodec, await verifiedBlob(client, "files", "files", hash));
 
         fileLists.set(text(hash), files);
 

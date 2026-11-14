@@ -8,7 +8,7 @@ import type { TAdapters } from "../adapters.ts";
 import { loadState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
-import { VERSION } from "../version.ts";
+import { VERSION, MIN_SERVER } from "../version.ts";
 
 export async function localStatus(
   adapters: TAdapters,
@@ -35,7 +35,7 @@ export async function localStatus(
   let server = "reachable";
 
   try {
-    await hello(state.server.address, binary(state.server.pin), fetcher, VERSION);
+    await hello(state.server.address, binary(state.server.pin), fetcher, MIN_SERVER);
   } catch (cause) {
     if (!(cause instanceof EnvdenError) || cause.code !== "SERVER_UNREACHABLE") throw cause;
     server = "unknown";

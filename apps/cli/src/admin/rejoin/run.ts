@@ -10,7 +10,7 @@ import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { rejoinIdentity } from "./classify.ts";
 import { kitRejoin } from "./kit.ts";
-import { VERSION } from "../../version.ts";
+import { VERSION, MIN_SERVER } from "../../version.ts";
 
 async function lockedrunRejoin(
   adapters: TAdapters,
@@ -38,7 +38,7 @@ async function lockedrunRejoin(
       fetcher: adapters.fetcher,
     });
   } else {
-    const server = await hello(address, undefined, adapters.fetcher, VERSION);
+    const server = await hello(address, undefined, adapters.fetcher, MIN_SERVER);
     const identity = await rejoinIdentity(adapters, name);
 
     const client = createClient({

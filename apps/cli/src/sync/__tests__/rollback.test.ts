@@ -1,3 +1,4 @@
+import { loadState, saveState } from "../../state/store/repository.ts";
 import { expect, test } from "bun:test";
 import { cp } from "node:fs/promises";
 import { join } from "node:path";
@@ -22,6 +23,11 @@ test("sync rollback", async () => {
     await push(first, opts);
     const oldServer = await fixture.serve({ dataDir: snapshot, port: 0, now: opts.now });
 
+    const stored = (await loadState(first.home))!;
+    const original = stored.server!.address;
+    stored.server!.address = oldServer.server.url.toString();
+    await saveState(first.home, stored);
+
     try {
       const oldFetch: TFetch = (input, init) => {
         const url = new URL(input instanceof Request ? input.url : input.toString());
@@ -36,6 +42,8 @@ test("sync rollback", async () => {
         }),
       );
     } finally {
+      stored.server!.address = original;
+      await saveState(first.home, stored);
       await oldServer.server.stop(true);
       oldServer.storage.close();
       oldServer.stopPruning();
@@ -81,6 +89,11 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
     second.placement = placement;
     const oldServer = await fixture.serve({ dataDir: snapshot, port: 0, now: opts.now });
 
+    const stored = (await loadState(second.home))!;
+    const original = stored.server!.address;
+    stored.server!.address = oldServer.server.url.toString();
+    await saveState(second.home, stored);
+
     try {
       const oldFetch: TFetch = (input, init) => {
         const url = new URL(input instanceof Request ? input.url : input.toString());
@@ -97,6 +110,8 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
 
       expect(await readFile(join(checkoutB.root, ".env"), "utf8")).toBe("TOKEN=new-version\n");
     } finally {
+      stored.server!.address = original;
+      await saveState(second.home, stored);
       await oldServer.server.stop(true);
       oldServer.storage.close();
       oldServer.stopPruning();

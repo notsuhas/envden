@@ -3,13 +3,14 @@ import type { TFetch } from "./fetch.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import { binary, text } from "./encoding.ts";
-import { VERSION } from "../version.ts";
+import { MIN_SERVER } from "../version.ts";
+import { decodeUntrusted } from "./untrusted.ts";
 
 export async function hello(
   address: string,
   pin: Uint8Array | undefined,
   fetcher: TFetch,
-  minServer: string,
+  minServer = MIN_SERVER,
 ) {
   const url = new URL("/v1/hello", address);
   const challenge = p.randomBytes(32);
@@ -21,10 +22,17 @@ export async function hello(
   });
 
   if (!response.ok) throw new EnvdenError("UNAUTHORIZED", "Server hello failed");
-  const body = p.HelloResponseSchema.parse(await response.json());
-  const signed = p.decode(p.signedCodec(p.ServerHelloCodec), binary(body.hello));
+  let body;
+
+  try {
+    body = p.HelloResponseSchema.parse(await response.json());
+  } catch (cause) {
+    throw new EnvdenError("INVALID_DATA", "Invalid data from server", { cause });
+  }
+
+  const signed = decodeUntrusted(p.signedCodec(p.ServerHelloCodec), binary(body.hello));
   const presented = p.serverPin(signed.body.serverSignPub);
-  const result = p.verifyHello(signed, challenge, url.hostname, pin ?? presented, VERSION);
+  const result = p.verifyHello(signed, challenge, url.hostname, pin ?? presented, "0.0.0");
   if (!result.ok) throw new EnvdenError("UNAUTHORIZED", "Server identity verification failed");
 
   if (p.compareSemver(result.value.appVersion, minServer) < 0)
@@ -34,4 +42,29 @@ export async function hello(
     throw new EnvdenError("UPDATE_REQUIRED", "No compatible protocol");
 
   return { pin: presented, hello: result.value };
+}
+
+const servers = new WeakMap<TFetch, Map<string, ReturnType<typeof hello>>>();
+
+export function memberHello(address: string, pin: Uint8Array, fetcher: TFetch) {
+  let cache = servers.get(fetcher);
+
+  if (!cache) {
+    cache = new Map();
+    servers.set(fetcher, cache);
+  }
+
+  const key = `${new URL(address).origin}/${text(pin)}`;
+  let pending = cache.get(key);
+
+  if (!pending) {
+    pending = hello(address, pin, fetcher).catch((error: unknown) => {
+      cache.delete(key);
+      throw error;
+    });
+
+    cache.set(key, pending);
+  }
+
+  return pending;
 }

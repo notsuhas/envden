@@ -7,9 +7,9 @@ import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TDeviceIdentity } from "../identity/device.ts";
 import { text } from "./encoding.ts";
-import { hello } from "./hello.ts";
+import { hello, memberHello } from "./hello.ts";
 import { responseError } from "./errors.ts";
-import { VERSION } from "../version.ts";
+import { MIN_SERVER } from "../version.ts";
 
 export interface IClientOptions {
   address: string;
@@ -45,6 +45,8 @@ export function createClient(options: IClientOptions): IClient {
 
     if (url.origin !== new URL(options.address).origin)
       throw new EnvdenError("INVALID_INPUT", "Invalid request destination");
+
+    await memberHello(options.address, options.pin, options.fetcher);
 
     const value: p.IRequest = {
       serverPin: options.pin,
@@ -122,7 +124,7 @@ export type TClient = ReturnType<typeof createClient>;
 
 async function checkServerMinimum(response: Response, options: IClientOptions) {
   if (response.status === 426) {
-    const verified = await hello(options.address, options.pin, options.fetcher, VERSION);
+    const verified = await hello(options.address, options.pin, options.fetcher, MIN_SERVER);
 
     if (p.compareSemver(options.version, verified.hello.minClient) < 0)
       throw new EnvdenError("CLIENT_TOO_OLD", "Update envden to meet the signed server minimum");

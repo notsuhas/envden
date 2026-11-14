@@ -1,48 +1,13 @@
 import type { TFetch } from "../fetch.ts";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, test, expect } from "bun:test";
+import { test, expect } from "bun:test";
 import * as p from "@envden/core/protocol";
-import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
-import { deviceIdentity } from "../../identity/device.ts";
 import { createClient } from "../request.ts";
 import { hello } from "../hello.ts";
 import { text, binary } from "../encoding.ts";
-
-const homes: string[] = [];
-
-afterEach(async () => {
-  for (const home of homes.splice(0)) await rm(home, { recursive: true, force: true });
-});
-
-async function fixture() {
-  const home = await mkdtemp(join(tmpdir(), "envden-request-"));
-  homes.push(home);
-  const server = p.generateRecoveryKeys();
-
-  const identity = await deviceIdentity(
-    createMemoryKeychainAdapter(["get", "set"]),
-    home,
-    "device",
-  );
-
-  const pin = p.serverPin(server.objPub);
-
-  const options = {
-    address: "https://server.example",
-    vaultId: new Uint8Array(32),
-    pin,
-    identity,
-    version: "1.0.0",
-    now: () => 1000000,
-  };
-
-  return { server, options };
-}
+import { fixture } from "./fixture.ts";
 
 test("request signs the exact body, query and pin; locked retries once", async () => {
-  const { options } = await fixture();
+  const { options, greeting } = await fixture();
   let attempts = 0;
   let unlocked = 0;
 
@@ -52,6 +17,8 @@ test("request signs the exact body, query and pin; locked retries once", async (
       unlocked++;
     },
     fetcher: async (url, init) => {
+      const welcome = greeting(url);
+      if (welcome) return welcome;
       attempts++;
       const headers = new Headers(init?.headers);
       const request = p.decode(p.RequestCodec, binary(headers.get("Envden-Request")!));
@@ -120,12 +87,14 @@ test("426 trusts the fresh signed hello, never the unsigned minimum", async () =
 });
 
 test("typed routes use the signed binary transport", async () => {
-  const { options } = await fixture();
+  const { options, greeting } = await fixture();
   const bytes = p.randomBytes(48);
 
   const client = createClient({
     ...options,
     fetcher: async (_input, init) => {
+      const welcome = greeting(_input);
+      if (welcome) return welcome;
       const headers = new Headers(init?.headers);
       const value = p.decode(p.RequestCodec, binary(headers.get("Envden-Request")!));
       expect(value.pathAndQuery).toBe("/v1/swap");
@@ -166,7 +135,7 @@ test("wire errors use the shared code schema", async () => {
 
 for (const recover of [true, false])
   test(`BUSY retries use fresh signatures and bounded backoff; recover=${recover}`, async () => {
-    const { options } = await fixture();
+    const { options, greeting } = await fixture();
     const nonces = new Set<string>();
     const delays: number[] = [];
     let attempts = 0;
@@ -177,6 +146,8 @@ for (const recover of [true, false])
         delays.push(ms);
       },
       fetcher: async (_input, init) => {
+        const welcome = greeting(_input);
+        if (welcome) return welcome;
         const headers = new Headers(init?.headers);
         nonces.add(headers.get("Envden-Nonce")!);
         attempts++;
@@ -200,7 +171,7 @@ for (const recover of [true, false])
 
 test("every signed request installs a bounded timeout signal", async () => {
   const { spyOn } = await import("bun:test");
-  const { options } = await fixture();
+  const { options, greeting } = await fixture();
   const signal = new AbortController().signal;
   const timeout = spyOn(AbortSignal, "timeout").mockReturnValue(signal);
 
@@ -208,6 +179,8 @@ test("every signed request installs a bounded timeout signal", async () => {
     const client = createClient({
       ...options,
       fetcher: async (_url, init) => {
+        const welcome = greeting(_url);
+        if (welcome) return welcome;
         expect(init?.signal).toBe(signal);
 
         return Response.json({ kind: "ok" });

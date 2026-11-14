@@ -95,7 +95,10 @@ test("the next foreground command reports a kit join even with a fresh notice ca
 
     await commandNotice(f.first, f.now(), capture, false);
 
-    const replay: TFetch = async (input) => {
+    const replay: TFetch = async (input, init) => {
+      if (new URL(input instanceof Request ? input.url : input.toString()).pathname === "/v1/hello")
+        return f.fetcher(input, init);
+
       const response = responses.get(
         typeof input === "string" ? input : input instanceof URL ? input.href : input.url,
       );

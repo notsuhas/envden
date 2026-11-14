@@ -12,7 +12,7 @@ import { deviceIdentity } from "../identity/device.ts";
 import { hello } from "../client/hello.ts";
 import { createClient } from "../client/request.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
-import { VERSION } from "../version.ts";
+import { VERSION, MIN_SERVER } from "../version.ts";
 
 async function lockedrunJoin(
   adapters: TAdapters,
@@ -37,7 +37,7 @@ async function lockedrunJoin(
 
   const expected = await pairingPin(adapters.home);
 
-  const server = await hello(address, expected, adapters.fetcher, VERSION);
+  const server = await hello(address, expected, adapters.fetcher, MIN_SERVER);
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, name);
 

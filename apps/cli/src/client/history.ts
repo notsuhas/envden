@@ -1,3 +1,4 @@
+import { decodeUntrusted } from "./untrusted.ts";
 import * as p from "@envden/core/protocol";
 import { applyEntry, decodeServerObject, verifyChain } from "@envden/core/chain";
 import type { IDeviceListState } from "@envden/core/chain";
@@ -51,7 +52,7 @@ export function decodeHistoryEntries(
   for (const bytes of raw) {
     const entry = state
       ? decodeHistoryObject(bytes, p.EntryCodec, "entry", state, stored, latestVersion)
-      : p.decode(p.signedCodec(p.EntryCodec), bytes);
+      : decodeUntrusted(p.signedCodec(p.EntryCodec), bytes);
 
     const result = applyEntry(state, entry);
     if (result.kind !== "valid") throw new EnvdenError("INVALID_DATA", "Invalid device list");

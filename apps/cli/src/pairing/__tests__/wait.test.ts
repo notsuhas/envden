@@ -5,6 +5,7 @@ import { waitMessage, pairingResponse } from "../wait.ts";
 
 test("mailbox waiting accepts pending replies and expires using the supplied clock", async () => {
   const keys = p.generateDeviceKeys();
+  const server = p.generateRecoveryKeys();
 
   const identity = {
     keys,
@@ -22,12 +23,35 @@ test("mailbox waiting accepts pending replies and expires using the supplied clo
 
   const client = createClient({
     address: "http://server.test",
-    pin: new Uint8Array(32),
+    pin: p.serverPin(server.objPub),
     vaultId: new Uint8Array(32),
     identity,
     version: "0.0.0",
     now: () => time,
-    fetcher: async () => {
+    fetcher: async (input) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+
+      if (url.pathname === "/v1/hello")
+        return Response.json({
+          hello: Buffer.from(
+            p.signedCodec(p.ServerHelloCodec).write(
+              p.buildHello(
+                {
+                  challenge: new Uint8Array(
+                    Buffer.from(url.searchParams.get("challenge")!, "base64url"),
+                  ),
+                  host: url.hostname,
+                  serverSignPub: server.objPub,
+                  appVersion: "1.0.0",
+                  minClient: "0.0.0",
+                  protocols: [1],
+                },
+                server.objSk,
+              ),
+            ),
+          ).toString("base64url"),
+        });
+
       requests++;
 
       return Response.json(
@@ -70,12 +94,13 @@ for (const [body, expected] of [
 
 test("mailbox polling stops at server expiry instead of the caller guess", async () => {
   const keys = p.generateDeviceKeys();
+  const server = p.generateRecoveryKeys();
   let now = 0;
   let requests = 0;
 
   const client = createClient({
     address: "http://server.test",
-    pin: new Uint8Array(32),
+    pin: p.serverPin(server.objPub),
     vaultId: new Uint8Array(32),
     identity: {
       keys,
@@ -89,7 +114,30 @@ test("mailbox polling stops at server expiry instead of the caller guess", async
     },
     version: "0.0.0",
     now: () => now,
-    fetcher: async () => {
+    fetcher: async (input) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+
+      if (url.pathname === "/v1/hello")
+        return Response.json({
+          hello: Buffer.from(
+            p.signedCodec(p.ServerHelloCodec).write(
+              p.buildHello(
+                {
+                  challenge: new Uint8Array(
+                    Buffer.from(url.searchParams.get("challenge")!, "base64url"),
+                  ),
+                  host: url.hostname,
+                  serverSignPub: server.objPub,
+                  appVersion: "1.0.0",
+                  minClient: "0.0.0",
+                  protocols: [1],
+                },
+                server.objSk,
+              ),
+            ),
+          ).toString("base64url"),
+        });
+
       requests++;
 
       return Response.json({ kind: "pending", expiresAt: 100 });
