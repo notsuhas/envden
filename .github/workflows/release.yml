@@ -120,6 +120,7 @@ jobs:
           HIGHEST: ${{ steps.current.outputs.highest }}
           IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
         run: |
+          if ! [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then echo "Invalid image digest" >&2; exit 1; fi
           printf '%s\n' "$IMAGE_DIGEST" > release/IMAGE_DIGEST
           bun scripts/release/publication/run.ts
   promote-image:
