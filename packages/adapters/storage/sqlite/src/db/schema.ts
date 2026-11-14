@@ -1,3 +1,4 @@
+import { migrateV2 } from "./migrations/v2.ts";
 import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
 import { Database } from "bun:sqlite";
@@ -62,16 +63,16 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     const version =
       db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0;
 
-    if (version > 1)
+    if (version > 2)
       throw new Error(
-        `Database schema ${version} is newer than supported schema 1; update envden.`,
+        `Database schema ${version} is newer than supported schema 2; update envden.`,
       );
 
-    if (version === 1) return;
+    if (version === 2) return;
 
     if (existed) {
-      const backup = join(dataDir, "pre-1");
-      const fd = openSync(backup, "wx", 0o600);
+      const backup = join(dataDir, `pre-${version === 0 ? 1 : 2}`);
+      const fd = openSync(backup, "w", 0o600);
 
       try {
         writeFileSync(fd, db.serialize());
@@ -83,11 +84,12 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
       syncDirectory(dataDir);
     }
 
-    migrateV1(db);
+    if (version === 0) migrateV1(db);
+    migrateV2(db);
   }).immediate();
 }
 
-function pruneBackups(dataDir: string, now: number) {
+export function pruneBackups(dataDir: string, now: number) {
   for (const name of readdirSync(dataDir)) {
     if (/^pre-\d+$/.test(name) && now - statSync(join(dataDir, name)).mtimeMs >= 30 * 86400000)
       rmSync(join(dataDir, name));

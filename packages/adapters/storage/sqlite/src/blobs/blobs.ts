@@ -48,7 +48,7 @@ export function createBlobs(context: TContext) {
           .get(vault, hash)?.size ?? 0;
 
       if (used - prior + bytes.length > quotaBytes)
-        throw new EnvdenError("LOCKED", "Vault storage quota exceeded");
+        throw new EnvdenError("STORAGE_QUOTA", "Vault storage quota exceeded");
 
       const dir = join(dataDir, "blobs", hex(vault) || "empty");
       mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -77,7 +77,14 @@ export function createBlobs(context: TContext) {
         syncDirectory(dir);
 
         run("INSERT OR IGNORE INTO blobs VALUES(?,?)", vault, hash);
-        run("INSERT OR IGNORE INTO blob_usage VALUES(?,?,?,?)", vault, hash, bytes.length, now);
+
+        run(
+          "INSERT INTO blob_usage VALUES(?,?,?,?) ON CONFLICT(vault,hash) DO UPDATE SET at=excluded.at",
+          vault,
+          hash,
+          bytes.length,
+          now,
+        );
       } finally {
         if (existsSync(temp)) unlinkSync(temp);
       }

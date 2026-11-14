@@ -16,6 +16,8 @@ export function createHistory(context: TContext) {
 
     if (db.inTransaction) throw new Error("Pruning must run outside an application transaction");
 
+    context.maintain(now);
+
     const result = db
       .transaction(() => {
         const candidates = db

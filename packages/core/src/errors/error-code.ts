@@ -9,6 +9,7 @@ export const ErrorCodeSchema = z.enum([
   "NOT_MEMBER",
   "UNAUTHORIZED",
   "LOCKED",
+  "STORAGE_QUOTA",
   "RATE_LIMITED",
   "CONFLICT",
   "NOT_FOUND",

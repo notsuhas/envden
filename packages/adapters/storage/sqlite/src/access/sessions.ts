@@ -5,6 +5,8 @@ export function createSessions(context: TContext) {
   const { bytes, run } = context;
 
   function putSession(vault: Uint8Array, key: ISessionKey, bytes: Uint8Array, now: number): void {
+    context.maintain(now);
+
     run(
       "INSERT OR REPLACE INTO sessions VALUES(?,?,?,?,?,?)",
       vault,

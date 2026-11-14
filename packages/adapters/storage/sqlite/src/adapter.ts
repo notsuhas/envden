@@ -20,7 +20,7 @@ export function createSqliteStorageAdapter(dataDir: string, now: number): IStora
   const context = createContext(dataDir, now);
 
   try {
-    recoverBlobs(context);
+    recoverBlobs(context, now);
   } catch (error) {
     context.db.close();
     throw error;

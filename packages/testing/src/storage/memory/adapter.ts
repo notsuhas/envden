@@ -120,13 +120,13 @@ export function createMemoryStorageAdapter(
         .reduce((size, blob) => size + blob.bytes.length, 0);
 
       if (used - (prior?.bytes.length ?? 0) + bytes.length > quotaBytes)
-        throw new EnvdenError("LOCKED", "Vault storage quota exceeded");
+        throw new EnvdenError("STORAGE_QUOTA", "Vault storage quota exceeded");
 
       context.data.blobs.set(key, {
         vault: hex(vault),
         hash: hash.slice(),
         bytes: bytes.slice(),
-        at: prior?.at ?? now,
+        at: now,
       });
     },
     getBlob: (vault, hash) => context.data.blobs.get(`${hex(vault)}:${hex(hash)}`)?.bytes.slice(),
