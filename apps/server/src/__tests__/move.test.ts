@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect, spyOn } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { vaultFixture } from "./vault-fixture.ts";
 
@@ -103,6 +103,26 @@ for (const lostAfterCommit of [false, true])
 
       expect((await o.send(swap, owner)).status).toBe(200);
       expect((await o.request("/v1/move/unfreeze", new Uint8Array(), o.b)).status).toBe(409);
+      const originalState = n.storage.state.bind(n.storage);
+
+      for (const missing of ["files", "keyring", "envelope", "skPub"]) {
+        const read =
+          missing === "files"
+            ? spyOn(n.storage, "fileList").mockReturnValue(undefined)
+            : spyOn(n.storage, "state").mockImplementation((vault, kind, key) => {
+                if (kind === missing) return undefined;
+
+                return originalState(vault, kind, key);
+              });
+
+        try {
+          expect((await n.request("/v1/swap", p.SwapCodec.write(swap), o.b)).status).toBe(400);
+          expect(n.storage.vault(o.vaultId)!.active).toBe(false);
+        } finally {
+          read.mockRestore();
+        }
+      }
+
       const forwarded = await n.request("/v1/swap", p.SwapCodec.write(swap), o.b);
       expect(forwarded.status).toBe(200);
       expect(n.storage.vault(o.vaultId)!.active).toBe(true);

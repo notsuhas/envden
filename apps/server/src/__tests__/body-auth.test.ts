@@ -128,3 +128,45 @@ test("concurrent body reservations return 503 and release after requests finish"
     }
   }
 });
+
+test("membership revoked during body read cannot upload a blob", async () => {
+  const { spyOn } = await import("bun:test");
+  const f = fixture(await identity());
+  f.fresh();
+  const blob = p.randomBytes(32);
+  const path = `/v1/blobs/${text(p.H("blob", blob))}`;
+
+  const signed = f.request(path, undefined, {
+    method: "PUT",
+    mutate: (r) => {
+      r.bodyHash = p.sha256(blob);
+    },
+  });
+
+  const head = spyOn(f.storage, "head");
+
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        head.mockReturnValue(undefined);
+        controller.enqueue(blob);
+        controller.close();
+      },
+    },
+    { highWaterMark: 0 },
+  );
+
+  try {
+    const response = await f.app.request(path, {
+      method: "PUT",
+      headers: signed.headers,
+      body: stream,
+    });
+
+    expect(response.status).toBe(403);
+    expect(f.storage.hasBlob(signed.r.vaultId, p.H("blob", blob))).toBe(false);
+  } finally {
+    head.mockRestore();
+    f.close();
+  }
+});

@@ -1,4 +1,3 @@
-import { initializeSetup } from "../identity/setup.ts";
 import { equal } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../http/types.ts";
@@ -6,6 +5,9 @@ import { hasProof } from "../auth/token.ts";
 import { requireGate } from "../middleware/gates.ts";
 
 export function openMove(options: IAppOptions, auth: IAuth) {
+  if (auth.request.vaultId.every((byte) => byte === 0))
+    throw new EnvdenError("INVALID_INPUT", "Invalid vault ID");
+
   const existing = options.storage.vault(auth.request.vaultId);
   const owner = options.storage.state(auth.request.vaultId, "move-session", new Uint8Array());
 
@@ -25,14 +27,7 @@ export function openMove(options: IAppOptions, auth: IAuth) {
       [{ kind: "move-session", key: new Uint8Array(), bytes: device }],
       storage.setupToken()!,
     );
-
-    storage.writeState(new Uint8Array(32), [
-      { kind: "server-identity", key: vaultId, bytes: vaultId },
-    ]);
   });
-
-  const token = initializeSetup(storage, options.serverKeys.publicKey);
-  if (token) console.log(token);
 
   return { kind: "moving" };
 }

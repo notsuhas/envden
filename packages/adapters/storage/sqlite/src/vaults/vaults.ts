@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { collectGarbage } from "../blobs/garbage.ts";
 import type { IStorageAdapter, IStoredVault, IStateWrite } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
@@ -47,6 +48,8 @@ export function createVaults(
   }
 
   function putVault(vault: Uint8Array, state: IStoredVault): void {
+    requireVaultId(vault);
+
     run(
       `INSERT INTO vaults(id,active,frozen,moved,refused,period,repair,restored,progress) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,frozen=excluded.frozen,moved=excluded.moved,refused=excluded.refused,period=excluded.period,repair=excluded.repair,restored=excluded.restored,progress=excluded.progress`,
       vault,
@@ -129,4 +132,9 @@ export function createVaults(
     head,
     discardInactiveVault,
   };
+}
+
+function requireVaultId(vault: Uint8Array) {
+  if (vault.length === 32 && vault.every((byte) => byte === 0))
+    throw new EnvdenError("INVALID_INPUT", "Invalid vault ID");
 }

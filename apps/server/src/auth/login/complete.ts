@@ -1,3 +1,4 @@
+import { membership } from "../../vault/chain.ts";
 import { hasProof } from "../token.ts";
 import { repairHistory } from "../../repair/close.ts";
 import { repairLoginDecision } from "@envden/core/chain";
@@ -12,6 +13,9 @@ export function completeLogin(
 ) {
   const { storage, now } = options;
   const { vaultId, device } = auth.request;
+
+  if (purpose !== "kit" && !membership(storage, vaultId, device))
+    throw new EnvdenError("NOT_MEMBER", "Membership required");
 
   if (purpose === "kit") {
     storage.putSession(

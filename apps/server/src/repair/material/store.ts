@@ -1,27 +1,36 @@
+import { membership } from "../../vault/chain.ts";
 import { restoreFiles } from "../files.ts";
-import { H, equal, TransferResponseSchema } from "@envden/core/protocol";
+import {
+  H,
+  equal,
+  decode,
+  signedCodec,
+  ManifestHeaderCodec,
+  TransferResponseSchema,
+} from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../../http/types.ts";
 
-export function storeMaterial(
+function store(
   options: IAppOptions,
   auth: IAuth,
   kind: string,
   hash: Uint8Array,
   bytes: Uint8Array,
 ) {
+  const vault = auth.request.vaultId;
+
+  if (options.storage.vault(vault)?.restored) {
+    if (!membership(options.storage, vault, auth.request.device))
+      throw new EnvdenError("NOT_MEMBER", "Membership required");
+
+    if (kind === "skPub") throw new EnvdenError("INVALID_INPUT", "Invalid repair material");
+  }
+
   if (kind === "files")
     return TransferResponseSchema.parse(restoreFiles(options, auth.request.vaultId, hash, bytes));
 
-  if (bytes.length > 16777216 || !["keyring", "envelope", "skPub"].includes(kind))
-    throw new EnvdenError("INVALID_INPUT", "Invalid material");
-
-  if (
-    kind === "skPub"
-      ? bytes.length !== 32
-      : !equal(H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes), hash)
-  )
-    throw new EnvdenError("INVALID_DATA", "Material hash mismatch");
+  validateMaterial(options, vault, kind, hash, bytes);
 
   options.storage.writeState(auth.request.vaultId, [
     {
@@ -32,4 +41,42 @@ export function storeMaterial(
   ]);
 
   return TransferResponseSchema.parse({ kind: "uploaded" });
+}
+
+function validateMaterial(
+  options: IAppOptions,
+  vault: Uint8Array,
+  kind: string,
+  hash: Uint8Array,
+  bytes: Uint8Array,
+) {
+  if (bytes.length > 16777216 || !["keyring", "envelope", "skPub"].includes(kind))
+    throw new EnvdenError("INVALID_INPUT", "Invalid material");
+
+  if (
+    kind === "skPub"
+      ? bytes.length !== 32
+      : !equal(H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes), hash)
+  )
+    throw new EnvdenError("INVALID_DATA", "Material hash mismatch");
+
+  if (kind !== "skPub") {
+    const named = options.storage.headers(vault, 1n, 0xffffffffffffffffn).some((stored) => {
+      const header = decode(signedCodec(ManifestHeaderCodec), stored.bytes).body;
+
+      return equal(kind === "keyring" ? header.keyringHash : header.envelopeHash, hash);
+    });
+
+    if (!named) throw new EnvdenError("INVALID_DATA", "Unreferenced material");
+  }
+}
+
+export function storeMaterial(
+  options: IAppOptions,
+  auth: IAuth,
+  kind: string,
+  hash: Uint8Array,
+  bytes: Uint8Array,
+) {
+  return options.storage.transaction(() => store(options, auth, kind, hash, bytes));
 }
