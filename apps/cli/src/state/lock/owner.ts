@@ -1,3 +1,4 @@
+import { machineIdentity } from "./identity.ts";
 import { lstat, open } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
@@ -49,7 +50,17 @@ export function reclaimable(
   identity?: string,
   now = 0,
 ) {
-  if (!identity || previous.identity !== identity) return now - previous.createdAt >= 86400000;
+  if (!identity || previous.identity !== identity) {
+    if (identity && previous.identity) {
+      const before = machineIdentity(previous.identity);
+      const current = machineIdentity(identity);
+
+      if (before && current && before.host === current.host && before.boot !== current.boot)
+        return true;
+    }
+
+    return now - previous.createdAt >= 86400000;
+  }
 
   return (
     observed.kind === "dead" ||

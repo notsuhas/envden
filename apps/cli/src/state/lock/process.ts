@@ -54,13 +54,31 @@ export async function processStart(
 }
 
 export async function processIdentity(): Promise<string | undefined> {
-  if (process.platform !== "linux") return hostname();
-
   try {
-    const boot = await readFile("/proc/sys/kernel/random/boot_id", "utf8");
-    const namespace = await readlink("/proc/self/ns/pid");
+    let boot: string;
+    let namespace = "";
 
-    return `${hostname()}:${boot.trim()}:${namespace}`;
+    if (process.platform === "linux") {
+      boot = (await readFile("/proc/sys/kernel/random/boot_id", "utf8")).trim();
+      namespace = await readlink("/proc/self/ns/pid");
+    } else if (process.platform === "darwin") {
+      boot = (await exec("sysctl", ["-n", "kern.boottime"])).stdout.trim();
+    } else if (process.platform === "win32") {
+      boot = (
+        await exec("powershell", [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
+        ])
+      ).stdout.trim();
+    } else {
+      return undefined;
+    }
+
+    if (!boot) return undefined;
+
+    return JSON.stringify({ host: hostname(), boot, namespace });
   } catch {
     return undefined;
   }
