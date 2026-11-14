@@ -58,7 +58,7 @@ body:has(#nd-docs-layout) .den-pulse {
   }
 
   #nd-page,
-  [class*="toc-popover"] > header > button {
+  [class*="grid-area:toc-popover"] > header > button {
     padding-inline: 2rem;
   }
 }
