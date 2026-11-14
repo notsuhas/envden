@@ -79,7 +79,6 @@ export function createSwapCommit(
         checkQuota(context, vault, before);
 
         writeCommitState(storage, vault, swap);
-        if (swap.files) checkQuota(context, vault, before);
 
         writeMetadata(context, storage, vault, swap, now);
 

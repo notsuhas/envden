@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
 import { Database } from "bun:sqlite";
@@ -54,10 +55,8 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     const version =
       db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0;
 
-    if (version > 1)
-      throw new Error(
-        `Database schema ${version} is newer than supported schema 1; update envden.`,
-      );
+    if (version !== 0 && version !== 1)
+      throw new EnvdenError("INVALID_INPUT", "Incompatible server database format");
 
     if (version === 1) return;
 

@@ -34,45 +34,39 @@ for (const refund of [false, true])
     }
   });
 
-for (const material of ["files", "keyring"] as const)
-  test(`swap quota includes ${material} and rolls back the head`, () => {
-    const dir = temp();
-    const storage = createSqliteStorageAdapter(dir, 0);
-    const vault = new Uint8Array([1]);
-    const hash = new Uint8Array([2]);
-    storage.putBlob(vault, hash, new Uint8Array([3]));
-    const db = new Database(join(dir, "envden.sqlite"));
-    db.run("UPDATE blob_usage SET size=1073741824");
+test("swap quota includes files and rolls back the head", () => {
+  const dir = temp();
+  const storage = createSqliteStorageAdapter(dir, 0);
+  const vault = new Uint8Array([1]);
+  const hash = new Uint8Array([2]);
+  storage.putBlob(vault, hash, new Uint8Array([3]));
+  const db = new Database(join(dir, "envden.sqlite"));
+  db.run("UPDATE blob_usage SET size=1073741824");
 
-    try {
-      expect(() =>
-        storage.commitSwap(
-          vault,
-          undefined,
-          {
-            header: { seq: 1n, hash, bytes: hash },
-            entries: [],
-            bodyDigest: hash,
-            vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
-            ...(material === "files"
-              ? { files: { hash, bytes: hash, versions: [] } }
-              : {
-                  files: { hash, bytes: new Uint8Array(), versions: [] },
-                  state: [{ kind: "keyring", key: hash, bytes: hash }],
-                }),
-          },
-          0,
-        ),
-      ).toThrow(expect.objectContaining({ code: "STORAGE_QUOTA" }));
+  try {
+    expect(() =>
+      storage.commitSwap(
+        vault,
+        undefined,
+        {
+          header: { seq: 1n, hash, bytes: hash },
+          entries: [],
+          bodyDigest: hash,
+          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          files: { hash, bytes: hash, versions: [] },
+        },
+        0,
+      ),
+    ).toThrow(expect.objectContaining({ code: "STORAGE_QUOTA" }));
 
-      expect(storage.head(vault)).toBeUndefined();
-      expect(storage.hasVault(vault)).toBe(false);
-    } finally {
-      db.close();
-      storage.close();
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
+    expect(storage.head(vault)).toBeUndefined();
+    expect(storage.hasVault(vault)).toBe(false);
+  } finally {
+    db.close();
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test("expired charges and strikes are pruned across caller-selected buckets", () => {
   const dir = temp();

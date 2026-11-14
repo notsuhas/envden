@@ -4,6 +4,7 @@ import { Worker } from "node:worker_threads";
 import { describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
 import {
+  readdirSync,
   chmodSync,
   statSync,
   mkdtempSync,
@@ -56,18 +57,22 @@ describe("SQLite durability", () => {
     }
   });
 
-  test("refuses future schemas with an update instruction", () => {
-    const dir = temp();
+  for (const version of [-1, 2, 99])
+    test(`refuses incompatible schema ${version} clearly`, () => {
+      const dir = temp();
 
-    try {
-      const db = new Database(join(dir, "envden.sqlite"));
-      db.run("PRAGMA user_version=99");
-      db.close();
-      expect(() => createSqliteStorageAdapter(dir, 0)).toThrow("update envden");
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
+      try {
+        const db = new Database(join(dir, "envden.sqlite"));
+        db.run(`PRAGMA user_version=${version}`);
+        db.close();
+
+        expect(() => createSqliteStorageAdapter(dir, 0)).toThrow(
+          "Incompatible server database format",
+        );
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
 
   test("partial temporary files and published orphans never become visible", () => {
     const dir = temp();
@@ -251,6 +256,7 @@ test("fresh format one includes every current lookup index", () => {
 
   try {
     expect(db.query("PRAGMA user_version").get()).toEqual({ user_version: 1 });
+    expect(readdirSync(dir).filter((name) => name.startsWith("pre-"))).toEqual([]);
 
     for (const [table, column] of [
       ["nonces", "expires"],
