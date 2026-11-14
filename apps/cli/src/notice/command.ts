@@ -133,7 +133,7 @@ async function refreshRelease(
 
   if (updateCheckEnabled(config["update-check"])) {
     const result = await checkRelease(state, releaseConfig.trust, now, fetcher);
-    if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+    if (result.kind === "checked") await rememberRelease(adapters.home, result.feed, state.release);
   }
 
   await saveState(adapters.home, state);

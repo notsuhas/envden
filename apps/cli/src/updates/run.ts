@@ -16,7 +16,7 @@ async function lockedrunUpdateCheck(adapters: TAdapters, now: number, force = tr
   const config = await readConfig(adapters.home);
   if (!updateCheckEnabled(config["update-check"])) return { kind: "skipped" as const };
   const result = await checkRelease(state, releaseConfig.trust, now, fetch, force);
-  if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+  if (result.kind === "checked") await rememberRelease(adapters.home, result.feed, state.release);
   if (existing) await saveState(adapters.home, state);
 
   return releaseCheckSummary(result);

@@ -74,7 +74,7 @@ async function authorizedRelease(adapters: TAdapters, options: Parameters<typeof
 
   const result = await checkRelease(state, releaseConfig.trust, options.now, options.fetcher, true);
 
-  if (result.kind === "checked") await rememberRelease(adapters.home, result.feed);
+  if (result.kind === "checked") await rememberRelease(adapters.home, result.feed, state.release);
   if (existing) await saveState(adapters.home, state);
 
   if (result.kind !== "checked" || result.expired || !releaseConfig.buildUrl)

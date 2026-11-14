@@ -24,7 +24,14 @@ export async function checkRelease(
     return { kind: "unavailable" as const, message: "Release signing keys are not configured" };
 
   try {
-    const response = await fetcher(releaseConfig.url, {
+    const trusted = initialReleaseState(trust, state.release);
+
+    const url = releaseConfig.url.replace(
+      /release-g\d+\.bin$/,
+      `release-g${trusted.generation}.bin`,
+    );
+
+    const response = await fetcher(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(2000),
     });
@@ -33,7 +40,7 @@ export async function checkRelease(
       return { kind: "unavailable" as const, message: "Cannot confirm envden is up to date" };
 
     const bytes = new Uint8Array(await response.arrayBuffer());
-    const accepted = acceptRelease(bytes, initialReleaseState(trust, state.release), BigInt(now));
+    const accepted = acceptRelease(bytes, trusted, BigInt(now));
 
     if (!accepted.ok)
       return { kind: "unavailable" as const, message: "Cannot verify the release feed" };
