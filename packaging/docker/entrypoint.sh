@@ -23,19 +23,28 @@ while [ ! -S /var/run/tailscale/tailscaled.sock ]; do
   [ "$attempt" -le 30 ] || { echo 'Tailscale socket timeout' >&2; exit 1; }
   sleep 1
 done
-if tailscale status --json | grep -Eq '"BackendState"[[:space:]]*:[[:space:]]*"NeedsLogin"'; then
+attempt=0
+while :; do
+  status=$(timeout 5 tailscale status --json) || status=
+  state=$(printf '%s' "$status" | sed -n 's/.*"BackendState"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+  case "$state" in ''|NoState) ;; *) break ;; esac
+  attempt=$((attempt + 1))
+  [ "$attempt" -lt 30 ] || { echo 'Tailscale backend timeout' >&2; exit 1; }
+  sleep 1
+done
+if [ "$state" = NeedsLogin ]; then
   : "${TS_AUTHKEY:?Set TS_AUTHKEY to a Tailscale auth key for first login}"
   auth_file=$(mktemp /tmp/envden-auth.XXXXXX)
   chmod 600 "$auth_file"
   printf '%s' "$TS_AUTHKEY" > "$auth_file"
   unset TS_AUTHKEY
-  tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false --auth-key="file:$auth_file"
+  timeout 30 tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false --auth-key="file:$auth_file"
   rm -f "$auth_file"
 else
-  tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false
+  timeout 5 tailscale set --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false || echo 'Tailscale preferences unavailable; starting server' >&2
 fi
 unset TS_AUTHKEY
-tailscale serve --bg --https=443 "http://127.0.0.1:$ENVDEN_PORT"
+timeout 5 tailscale serve --bg --https=443 "http://127.0.0.1:$ENVDEN_PORT" || echo 'Tailscale Serve unavailable; starting server' >&2
 envden serve --data-dir /data --port "$ENVDEN_PORT" "$@" &
 server=$!
 while kill -0 "$daemon" 2>/dev/null && kill -0 "$server" 2>/dev/null; do

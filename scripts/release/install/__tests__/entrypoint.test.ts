@@ -7,20 +7,22 @@ const entrypoint = readFileSync(
   "utf8",
 );
 
-const start = entrypoint.indexOf("if tailscale status");
-const end = entrypoint.indexOf("\ntailscale serve", start);
+const start = entrypoint.indexOf("attempt=0", entrypoint.indexOf("done"));
+const end = entrypoint.indexOf("\ntimeout 5 tailscale serve", start);
 
 const script = `
 set -eu
+sleep() { :; }
+timeout() { shift; "$@"; }
 tailscale() {
-  if [ "$1" = status ]; then printf '{"BackendState":"%s"}' "$STATE"; else printf '%s\\n' "$@"; fi
+  if [ "$1" = status ]; then printf '{"BackendState":"%s"}' "$STATE"; else printf '%s\\n' "$@"; return "\${SET_FAILURE:-0}"; fi
 }
 ${entrypoint.slice(start, end)}
 `;
 
 if (process.platform !== "win32") {
-  for (const state of ["NoState", "Stopped", "Running", "NeedsLogin"])
-    test(`tailscale up applies hostname in ${state}`, () => {
+  for (const state of ["Stopped", "Running", "NeedsLogin"])
+    test(`tailscale applies hostname in ${state}`, () => {
       const result = spawnTrusted("sh", ["-c", script], {
         sync: true,
         env: { ...process.env, STATE: state, TS_HOSTNAME: "changed", TS_AUTHKEY: "test-only" },
@@ -28,7 +30,7 @@ if (process.platform !== "win32") {
 
       const output = result.stdout?.toString() ?? "";
       expect(result.exitCode).toBe(0);
-      expect(output).toStartWith("up\n");
+      expect(output).toStartWith(state === "NeedsLogin" ? "up\n" : "set\n");
       expect(output).toContain("--hostname=changed");
       expect(output).toContain("--accept-dns=false");
       expect(output.includes("--auth-key=file:")).toBe(state === "NeedsLogin");
@@ -45,3 +47,25 @@ if (process.platform !== "win32") {
     expect(result.stderr?.toString()).toContain("Set TS_AUTHKEY");
   });
 }
+
+if (process.platform !== "win32")
+  test("NoState times out instead of attempting interactive login", () => {
+    const result = spawnTrusted("sh", ["-c", script], {
+      sync: true,
+      env: { ...process.env, STATE: "NoState", TS_AUTHKEY: "test-only" },
+    });
+
+    expect(result.exitCode).not.toBe(0);
+    expect(result.stderr?.toString()).toContain("Tailscale backend timeout");
+  });
+
+if (process.platform !== "win32")
+  test("a logged-in preference failure still reaches server startup", () => {
+    const result = spawnTrusted("sh", ["-c", script + "\nprintf server-started"], {
+      sync: true,
+      env: { ...process.env, STATE: "Stopped", SET_FAILURE: "1" },
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout?.toString()).toContain("server-started");
+  });
