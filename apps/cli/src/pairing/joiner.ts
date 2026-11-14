@@ -117,6 +117,13 @@ export async function exchangeJoiner(...args: Parameters<typeof lockedexchangeJo
   try {
     return await lockedexchangeJoiner(...args);
   } catch (error) {
+    if (!(await optionalRead(join(args[0].home, "state", "pair-joiner")))) {
+      await withStateLock(args[0].home, () => clearJoiner(args[0]));
+
+      if (error instanceof EnvdenError && error.code === "BUSY")
+        throw new EnvdenError("BUSY", "Pairing timed out before login; create a new pairing code");
+    }
+
     if (
       error instanceof EnvdenError &&
       ["UNAUTHORIZED", "CONFLICT", "INVALID_DATA", "NOT_FOUND"].includes(error.code)
