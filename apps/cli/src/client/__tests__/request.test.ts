@@ -203,3 +203,33 @@ test("every signed request installs a bounded timeout signal", async () => {
     timeout.mockRestore();
   }
 });
+
+test("kit replacement refusal never retries unlock", async () => {
+  const { options, greeting } = await fixture();
+  let attempts = 0;
+  let unlocked = 0;
+
+  const client = createClient({
+    ...options,
+    unlock: async () => {
+      unlocked++;
+    },
+    fetcher: async (url) => {
+      const welcome = greeting(url);
+      if (welcome) return welcome;
+      attempts++;
+
+      return Response.json({ error: "RECOVERY_KIT_REQUIRED" }, { status: 409 });
+    },
+  });
+
+  await Promise.resolve(
+    expect(client.request("/v1/move/sk-pub")).rejects.toMatchObject({
+      code: "RECOVERY_KIT_REQUIRED",
+      message: "Replace the recovery kit first: envden vault kit replace",
+    }),
+  );
+
+  expect(attempts).toBe(1);
+  expect(unlocked).toBe(0);
+});

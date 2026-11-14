@@ -160,8 +160,15 @@ test("moves refuse stale SK export and freeze until kit replacement", async () =
   try {
     await f.initialize();
     f.storage.configureVault(f.vaultId, { ...f.storage.vault(f.vaultId)!, skRefused: true });
-    expect((await f.request("/v1/move/sk-pub")).status).toBe(403);
-    expect((await f.request("/v1/move/freeze", new Uint8Array())).status).toBe(403);
+
+    expect(await (await f.request("/v1/move/sk-pub")).json()).toEqual({
+      error: "RECOVERY_KIT_REQUIRED",
+    });
+
+    expect(await (await f.request("/v1/move/freeze", new Uint8Array())).json()).toEqual({
+      error: "RECOVERY_KIT_REQUIRED",
+    });
+
     expect(f.storage.vault(f.vaultId)!.frozen).toBe(false);
     expect((await f.request("/v1/move/unfreeze", new Uint8Array())).status).toBe(200);
   } finally {

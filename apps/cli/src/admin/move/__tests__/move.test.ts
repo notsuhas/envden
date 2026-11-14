@@ -205,3 +205,53 @@ test("aborting a prepared move discards the inactive destination and permits a f
     await f.close();
   }
 });
+
+test("stale recovery kit refuses move before consuming destination token", async () => {
+  const f = await fixture();
+  const log = spyOn(console, "log").mockImplementation(() => {});
+
+  const destination = await f.serve({
+    dataDir: join(f.root, "refused-destination"),
+    port: 0,
+    now: f.now,
+  });
+
+  const token = log.mock.calls
+    .flat()
+    .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+
+  log.mockRestore();
+
+  try {
+    if (typeof token !== "string") throw new Error("Missing setup token");
+    const vault = f.running.storage.vaultIds()[0]!;
+
+    f.running.storage.configureVault(vault, {
+      ...f.running.storage.vault(vault)!,
+      skRefused: true,
+    });
+
+    const setup = destination.storage.setupToken();
+
+    await Promise.resolve(
+      expect(
+        moveServer(f.first, {
+          address: destination.server.url.toString(),
+          token,
+          password: "old password",
+          now: f.now,
+          fetcher: f.fetcher,
+        }),
+      ).rejects.toMatchObject({ code: "RECOVERY_KIT_REQUIRED" }),
+    );
+
+    expect(destination.storage.setupToken()).toEqual(setup);
+    expect(destination.storage.vaultIds()).toEqual([]);
+    expect(f.running.storage.vault(vault)!.frozen).toBe(false);
+  } finally {
+    await destination.server.stop(true);
+    destination.stopPruning();
+    destination.storage.close();
+    await f.close();
+  }
+});

@@ -112,6 +112,7 @@ async function preparedSwap(
     swap = p.decode(p.SwapCodec, new Uint8Array(await readFile(join(directory, "move-swap.bin"))));
   } catch (error) {
     if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
+    await context.client.request("/v1/move/sk-pub");
     await destination.request("/v1/move/session", "POST");
     await context.client.request("/v1/move/freeze", "POST");
     const history = await currentHistory(context);

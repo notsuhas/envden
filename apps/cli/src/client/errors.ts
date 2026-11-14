@@ -14,7 +14,14 @@ export async function responseError(response: Response): Promise<EnvdenError> {
     return new EnvdenError("HEAD_MOVED", "The manifest head moved");
 
   const parsed = ErrorResponseSchema.safeParse(data);
-  if (parsed.success) return new EnvdenError(parsed.data.error, "Server refused the request");
+
+  if (parsed.success)
+    return new EnvdenError(
+      parsed.data.error,
+      parsed.data.error === "RECOVERY_KIT_REQUIRED"
+        ? "Replace the recovery kit first: envden vault kit replace"
+        : "Server refused the request",
+    );
 
   return new EnvdenError("INVALID_DATA", "Invalid server response");
 }
