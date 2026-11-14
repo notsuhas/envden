@@ -53,17 +53,19 @@ export async function processStart(
   return { kind: "unknown" };
 }
 
+let bootForProcess: string | undefined;
+
 export async function processIdentity(): Promise<string | undefined> {
   try {
-    let boot: string;
+    let boot = bootForProcess;
     let namespace = "";
 
     if (process.platform === "linux") {
-      boot = (await readFile("/proc/sys/kernel/random/boot_id", "utf8")).trim();
+      boot ??= (await readFile("/proc/sys/kernel/random/boot_id", "utf8")).trim();
       namespace = await readlink("/proc/self/ns/pid");
-    } else if (process.platform === "darwin") {
+    } else if (process.platform === "darwin" && !boot) {
       boot = (await exec("sysctl", ["-n", "kern.boottime"])).stdout.trim();
-    } else if (process.platform === "win32") {
+    } else if (process.platform === "win32" && !boot) {
       boot = (
         await exec("powershell", [
           "-NoProfile",
@@ -72,11 +74,11 @@ export async function processIdentity(): Promise<string | undefined> {
           "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
         ])
       ).stdout.trim();
-    } else {
-      return undefined;
     }
 
     if (!boot) return undefined;
+
+    bootForProcess = boot;
 
     return JSON.stringify({ host: hostname(), boot, namespace });
   } catch {

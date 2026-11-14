@@ -1,4 +1,6 @@
-import { expect, test } from "bun:test";
+import * as trusted from "@envden/core/process";
+import { processIdentity } from "../process.ts";
+import { expect, test, spyOn } from "bun:test";
 import { reclaimable } from "../owner.ts";
 
 const identity = (host: string, boot: string, namespace = "pid:1") =>
@@ -25,4 +27,17 @@ test("lock reclamation separates hosts, boots and PID namespaces", () => {
   ).toBe(false);
 
   expect(reclaimable(previous, { kind: "dead" }, previous.identity, 3600000)).toBe(true);
+});
+
+test("boot discovery is cached for the lifetime of the process", async () => {
+  const identity = await processIdentity();
+  expect(identity).toBeDefined();
+  const probe = spyOn(trusted, "execTrusted");
+
+  try {
+    expect(await processIdentity()).toBe(identity);
+    expect(probe).not.toHaveBeenCalled();
+  } finally {
+    probe.mockRestore();
+  }
 });
