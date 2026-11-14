@@ -1,10 +1,15 @@
-import { conflictRecords } from "../local/conflicts.ts";
+import { rm } from "node:fs/promises";
+import { join } from "node:path";
+import { requestDeletion } from "../local/reconciliation/operation/deletion.ts";
+import { saveBase } from "../local/reconciliation/history.ts";
+import { saveAttempt } from "./attempt/record.ts";
+import { blockedStores } from "./attempt/blocked.ts";
 import { uploadLink } from "./upload.ts";
 import { appliedFiles, saveAppliedFiles } from "../local/applied.ts";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
-import { basePath, writeBytes } from "../local/files.ts";
+import { basePath } from "../local/files.ts";
 
 export async function uploadChanges(
   context: TSyncContext,
@@ -15,10 +20,7 @@ export async function uploadChanges(
   const changed = new Map<string, { base: string; bytes: Uint8Array | undefined }>();
   const seen = new Map<string, Uint8Array | undefined>();
 
-  const blocked = new Set([
-    ...failedStores,
-    ...(await conflictRecords(context.adapters.home)).map((record) => record.store),
-  ]);
+  const blocked = await blockedStores(context, failedStores);
 
   for (const link of context.state.links) {
     if (!blocked.has(link.store)) await uploadLink(context, repos, link, files, changed, seen);
@@ -56,6 +58,11 @@ export async function uploadChanges(
     approver: undefined,
   };
 
+  await saveAttempt(
+    context,
+    files.entries.filter((entry) => seen.has(p.base32(entry.fileId))),
+  );
+
   await context.client.rpc.v1.swap.$post(
     {},
     { init: { body: new Uint8Array(p.SwapCodec.write(swap)) } },
@@ -70,8 +77,19 @@ export async function uploadChanges(
       applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
   }
 
+  for (const item of changed.values()) await saveBase(item.base, item.bytes, context.options.now());
   await saveAppliedFiles(context.adapters.home, applied);
-  for (const item of changed.values()) await writeBytes(item.base, item.bytes);
+  await rm(join(context.adapters.home, "state", "upload-attempt.json"), { force: true });
+
+  for (const link of context.state.links) {
+    if (
+      seen.size &&
+      changed.has(
+        basePath(context.adapters.home, link.store, link.mode === "copy" ? link.root : undefined),
+      )
+    )
+      await requestDeletion(context.adapters.home, link.store, false);
+  }
 
   context.state.links = context.state.links.filter(
     (link) =>

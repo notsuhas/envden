@@ -14,8 +14,15 @@ export async function saveAppliedFiles(home: string, files: Record<string, strin
   await atomicWrite(path, bytes);
 }
 
-export async function hasAppliedEntry(home: string, entry: p.IFileEntry) {
-  return (await appliedFiles(home))[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry));
+export async function hasAppliedEntry(
+  home: string,
+  entry: p.IFileEntry,
+  files?: Record<string, string>,
+) {
+  return (
+    (files ?? (await appliedFiles(home)))[p.base32(entry.fileId)] ===
+    text(p.FileEntryCodec.write(entry))
+  );
 }
 
 export async function markAppliedEntry(home: string, encoded: string) {

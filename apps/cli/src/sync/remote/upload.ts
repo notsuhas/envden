@@ -1,4 +1,4 @@
-import { hasAppliedEntry } from "../local/applied.ts";
+import { deletionRequested } from "../local/reconciliation/operation/deletion.ts";
 import { fileSizeNotice } from "../local/validation/size.ts";
 import { sealUpload } from "./seal.ts";
 import * as p from "@envden/core/protocol";
@@ -43,18 +43,15 @@ export async function uploadLink(
 
   const previous = context.checkpoint.files.entries.find((item) => p.equal(item.fileId, fileId));
 
-  if (
-    previous &&
-    (previous.state === 2 || previous.state === 4) &&
-    bytes !== undefined &&
-    (await readBytes(base)) === undefined &&
-    !(await hasAppliedEntry(context.adapters.home, previous))
-  )
-    throw new EnvdenError("CONFLICT", "Deleted file has no agreed base; resolve before pushing");
+  if (bytes === undefined && !(await deletionRequested(context.adapters.home, link.store))) return;
 
   const baseline = await uploadBaseline(context, previous);
 
-  if (same(bytes, baseline)) return;
+  if (
+    same(bytes, baseline) &&
+    (previous || !(await deletionRequested(context.adapters.home, link.store)))
+  )
+    return;
 
   if (seen.has(id)) {
     changed.set(base, { base, bytes });

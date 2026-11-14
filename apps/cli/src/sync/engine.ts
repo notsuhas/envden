@@ -1,3 +1,4 @@
+import { acknowledgeAttempt } from "./remote/attempt/record.ts";
 import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
@@ -129,6 +130,7 @@ async function syncAttempt(
 ) {
   const adapters = context.adapters;
   await persistCheckpoint(context);
+  await acknowledgeAttempt(context);
   const result = await reconcile(context, repos, noFastForward, choose);
 
   await persistCheckpoint(context);
