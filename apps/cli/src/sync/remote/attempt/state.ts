@@ -25,8 +25,16 @@ export async function readAttempts(
   const attempts = [];
 
   for (const name of await readdir(directory).catch(() => [])) {
-    if (!/^[A-Za-z0-9_-]{43}$/.test(name)) continue;
-    const path = join(directory, name);
+    const receipt = name.replace(/\.invalid$/, "");
+    if (!/^[A-Za-z0-9_-]{43}$/.test(receipt)) continue;
+    const path = join(directory, receipt);
+
+    if (name.endsWith(".invalid")) {
+      await holdCorruptAttempt(adapters.home, links, path);
+      await rm(join(directory, name), { force: true });
+      continue;
+    }
+
     const marker = path + ".invalid";
 
     const record = await recoverSyncRecord(
@@ -38,14 +46,16 @@ export async function readAttempts(
 
     if (record) attempts.push({ path, ...record });
     else {
-      for (const link of links)
-        await atomicWrite(basePath(adapters.home, link.store) + ".corrupt", path);
-
+      await holdCorruptAttempt(adapters.home, links, path);
       await rm(marker, { force: true });
     }
   }
 
   return attempts.sort((a, b) => Number(BigInt(a.sequence) - BigInt(b.sequence)));
+}
+
+async function holdCorruptAttempt(home: string, links: ILocalState["links"], path: string) {
+  for (const link of links) await atomicWrite(basePath(home, link.store) + ".corrupt", path);
 }
 
 function decodeAttempt(saved: string, name: string) {
@@ -62,6 +72,8 @@ export async function invalidAttemptState(home: string) {
   const directory = join(home, "state", "attempts");
 
   for (const name of await readdir(directory).catch(() => [])) {
+    if (/^[A-Za-z0-9_-]{43}\.invalid$/.test(name)) return true;
+
     if (
       /^[A-Za-z0-9_-]{43}$/.test(name) &&
       (await invalidSyncRecord(join(directory, name), (saved) => decodeAttempt(saved, name)))
