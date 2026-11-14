@@ -12,9 +12,7 @@ async function pendingJoins(home: string): Promise<Record<string, string>> {
 
     if (Object.values(value).some((name) => typeof name !== "string")) return {};
 
-    return Object.fromEntries(
-      Object.entries(value).filter((item): item is [string, string] => typeof item[1] === "string"),
-    );
+    return Object.fromEntries(Object.entries(value));
   } catch {
     return {};
   }
