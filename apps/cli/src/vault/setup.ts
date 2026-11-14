@@ -42,13 +42,15 @@ async function lockedsetupVault(
   await hello(options.address, token.serverPin, options.fetcher, MIN_SERVER);
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
 
-  if (existing?.creationPending && existing.vaultId && existing.server) {
-    const kit = resumedKit(existing, options);
+  const pending = await resumableCreation(adapters, existing);
+
+  if (pending) {
+    const kit = resumedKit(pending.state, options);
 
     const client = createClient({
-      address: existing.server.address,
+      address: pending.server.address,
       pin: token.serverPin,
-      vaultId: p.unbase32(existing.vaultId),
+      vaultId: p.unbase32(pending.vaultId),
       identity,
       version: VERSION,
       now: options.now,
@@ -59,13 +61,13 @@ async function lockedsetupVault(
     await client.request(
       "/v1/vault",
       "POST",
-      new Uint8Array(Buffer.from(existing.creationPending, "base64url")),
+      new Uint8Array(Buffer.from(pending.creationPending, "base64url")),
     );
 
-    delete existing.creationPending;
-    await saveState(adapters.home, existing);
+    delete pending.state.creationPending;
+    await saveState(adapters.home, pending.state);
 
-    return { state: existing, kit };
+    return { state: pending.state, kit };
   }
 
   const material = await createGenesis(identity, token.serverPin, options.now());
@@ -110,9 +112,9 @@ async function lockedsetupVault(
     state.headers = [text(p.encode(p.signedCodec(p.ManifestHeaderCodec), creation.swap.header))];
     state.files = text(p.encode(p.FilesCodec, creation.swap.files!));
     state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, creation.swap.header, "manifest"));
-    await saveState(adapters.home, state);
     await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
     await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
+    await saveState(adapters.home, state);
     await client.request("/v1/vault", "POST", bytes);
     delete state.creationPending;
     await saveState(adapters.home, state);
@@ -160,4 +162,22 @@ function resumedKit(
     server: options.address,
     masterPassword: "________________",
   };
+}
+
+async function resumableCreation(
+  adapters: TAdapters,
+  state: Awaited<ReturnType<typeof loadState>>,
+) {
+  if (!state?.creationPending || !state.vaultId || !state.server) return undefined;
+  const epoch = await adapters.keychain.get(`envden/${adapters.home}/epoch/1`);
+  const id = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
+
+  return epoch && id
+    ? {
+        state,
+        creationPending: state.creationPending,
+        vaultId: state.vaultId,
+        server: state.server,
+      }
+    : undefined;
 }

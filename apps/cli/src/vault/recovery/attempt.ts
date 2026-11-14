@@ -1,3 +1,4 @@
+import { joinLocalState } from "../join/local-state.ts";
 import { join } from "node:path";
 
 import { optionalRead, atomicWrite } from "../../state/store/files.ts";
@@ -29,6 +30,7 @@ export interface IKitJoin {
 }
 
 export async function prepareKitJoin(adapters: TAdapters, options: IKitJoin) {
+  await joinLocalState(adapters.home, options.vaultId);
   const vaultId = p.unbase32(options.vaultId);
   const server = await hello(options.address, undefined, options.fetcher, MIN_SERVER);
 

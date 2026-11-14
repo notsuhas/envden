@@ -1,3 +1,4 @@
+import { joinLocalState } from "./local-state.ts";
 import { droppedRejoin } from "./floor.ts";
 import { advanceCheckpoint } from "./advance.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
@@ -11,7 +12,8 @@ import type { TClient } from "../../client/request.ts";
 import type { THistory } from "../history.ts";
 import { text } from "../../client/encoding.ts";
 import { emptyState } from "../../state/model.ts";
-import { saveState, loadState } from "../../state/store/repository.ts";
+import type { loadState } from "../../state/store/repository.ts";
+import { saveState } from "../../state/store/repository.ts";
 
 async function lockedacceptJoin(
   adapters: TAdapters,
@@ -24,7 +26,7 @@ async function lockedacceptJoin(
 ) {
   const { header, at } = joinMembership(history, identity.record.id, pin, manifestHash);
 
-  const existing = await sameVaultState(adapters.home, history.state.vaultId);
+  const existing = await joinLocalState(adapters.home, p.base32(history.state.vaultId));
 
   const dropped = await droppedRejoin(adapters, history, existing?.checkpoint);
 
@@ -91,10 +93,4 @@ async function knownIdKey(adapters: TAdapters, state: Awaited<ReturnType<typeof 
   if (!state) return undefined;
 
   return (await adapters.keychain.get(`envden/${adapters.home}/id-key`)) ?? undefined;
-}
-
-async function sameVaultState(home: string, vaultId: Uint8Array) {
-  const state = await loadState(home);
-
-  return state?.vaultId === p.base32(vaultId) ? state : undefined;
 }
