@@ -1,3 +1,4 @@
+import { rmCommand } from "./commands/sync/rm.ts";
 import { setUntrustedRoots } from "@envden/core/process";
 import { loadState } from "./state/store/repository.ts";
 import { shellCommand } from "./commands/shell/shell.ts";
@@ -64,6 +65,7 @@ export function createProgram() {
   program.addCommand(statusCommand);
   program.addCommand(diffCommand);
   program.addCommand(resolveCommand);
+  program.addCommand(rmCommand);
   program.addCommand(aliasCommand);
   program.addCommand(serveCommand);
   program.addCommand(updateCommand);

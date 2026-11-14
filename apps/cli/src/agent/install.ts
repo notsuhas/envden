@@ -9,6 +9,7 @@ description: Sync this checkout's env files with envden.
 ---
 Run envden status --json before syncing. Use envden push --yes or envden pull --yes only when asked.
 Never read or print env values. Ask the user to run password entry, pairing codes and checkout approval in their own terminal.
+Use envden rm <path> --yes only when the user explicitly asks to delete that env file everywhere; it backs up local content and publishes deletion on the next push. Missing files are restored.
 Never resolve conflicts or update the binary without the user's approval. Use envden update --check to check releases.
 `;
 

@@ -99,3 +99,14 @@ envden shell uninstall zsh
 ## History and deletes
 
 The server retains every version for 90 days and at least the last 20 versions of each file. Deletion records survive history pruning so a device returning from offline can't silently resurrect a deleted file.
+
+## Delete an env file everywhere
+
+```sh
+envden rm /path/to/checkout/.env
+envden push --yes
+```
+
+`rm` asks before discarding local edits or conflicts, backs up every local version, and removes the file from all local targets and the store. The next push publishes the deletion. Other devices remove the file on pull, or conflict if they have edits. Missing files alone are restored.
+
+Use `--yes` to confirm without a terminal and `--json` for the result and backup paths. Success exits 0; refusal or cancellation exits 2; an unknown tracked path or an I/O failure exits 1. To add it again after publishing deletion, create the file and track the checkout again.

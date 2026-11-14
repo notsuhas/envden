@@ -142,6 +142,10 @@ User-owned tool directories remain outside envden's control if the user personal
 
 A device must leave its current vault before pairing with another. There is no leave/reset command yet: back up env files, remove the local envden home, then join. Remove the old device from the old vault separately.
 
+`envden rm <path>` removes one tracked env file from all local targets and the store, backs up content and conflicts, and publishes a tombstone on the next push. It asks for confirmation including discarding local edits; non-interactive use requires `--yes`. Missing store files and targets are restored, never interpreted as deletion. Only explicit removal or resolution choosing a deletion side may publish a tombstone.
+
+A pending placement records hashes of every place before writing. Resume completes it only while every place still matches its original or intended content; otherwise it drops the record and reconciles current bytes. Uploads require the current server entry to have been applied locally. A durable attempted upload acknowledges an accepted swap whose response was lost.
+
 ### One file on one device
 
 - The server entry is live content, a tombstone, or absent. The device separately records the entry it applied; its decrypted content comes from the local blob cache, never a target's base.
@@ -149,8 +153,8 @@ A device must leave its current vault before pairing with another. There is no l
 - Decide once for all targets before writing. Only a tracked copy with a recorded base equal to the current store may replace the store, and only when its bytes differ from that base. A copy still equal to its base follows the store. Different non-base bytes in two places conflict.
 - A link is the store by definition. A regular file replacing a tracked link relinks when it equals the store or retained base history; otherwise it conflicts. Historical bytes never become a copy edit.
 - Untracked targets and tracked copies without a base never win silently. Bytes equal to the store or applied server content adopt the store; different bytes require a choice or a reported conflict. `--yes` does not approve them.
-- Missing copies are restored from the store on pull and push, like missing links. Removing a target is not a request to delete the file everywhere. There is no explicit CLI command for deleting a tracked file everywhere yet.
-- Persist the chosen content before changing the store, and retain that operation until placement and bases finish. Retrying an interrupted merge completes that operation. Content and directory entries are durable before state references them; unchanged durable bytes need no rewrite.
+- Missing copies are restored from the store on pull and push, like missing links. Removing a target is not a request to delete the file everywhere. Use `envden rm <path>` to delete it everywhere on the next push.
+- Persist the chosen content before changing the store, and retain that operation until placement and bases finish. Retrying an interrupted merge completes it only if each place still matches its recorded before or intended content. Content and directory entries are durable before state references them; unchanged durable bytes need no rewrite.
 - Keep one conflict per file, with recorded mine and theirs. When the server is unchanged, local conflicts offer the two local versions. Name every other local version and its saved path. Resolution uses saved bytes, touches only still-approved, present targets, and keeps its record until placement and bases finish so retry can complete. Untracking or pruning a checkout removes its conflict targets. Editing an absent mine keeps a deletion unless the user creates the conflict file.
 - Repeating pull changes nothing. Unpublished files have no server base. After an applied deletion, tracking an old worktree's surviving env file is a deliberate re-add and publishes it again.
 

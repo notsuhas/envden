@@ -1,3 +1,4 @@
+import { requestDeletion } from "./local/reconciliation/operation/deletion.ts";
 import * as p from "@envden/core/protocol";
 import { binary } from "../client/encoding.ts";
 import { placeFileTarget } from "./local/reconciliation/placement.ts";
@@ -45,6 +46,9 @@ export function resolveConflict(
 
     const storeBackup = await backup(adapters.home, record.store, now);
     if (storeBackup) preserved.push(storeBackup);
+
+    await recordDeletion(adapters.home, record, bytes);
+
     await writeBytes(record.store, bytes);
 
     const placementReports = await placeResolution(
@@ -85,7 +89,18 @@ async function resolutionBytes(
   server: Uint8Array | undefined,
 ) {
   if (choice === "take-server") return server;
-  if (choice === "edit") return readBytes(record.file);
+
+  if (choice === "edit") {
+    const edited = await readBytes(record.file);
+
+    if (edited === undefined && !record.mineDeleted)
+      throw new EnvdenError(
+        "INVALID_INPUT",
+        "Conflict file is missing; choose a recorded deletion side explicitly",
+      );
+
+    return edited;
+  }
 
   return record.mineDeleted ? undefined : readBytes(record.mine);
 }
@@ -167,4 +182,13 @@ async function resolveTarget(
   );
 
   await saveBase(base, target.mode === "copy" ? bytes : server, now);
+}
+
+async function recordDeletion(
+  home: string,
+  record: Awaited<ReturnType<typeof conflictRecords>>[number],
+  bytes: Uint8Array | undefined,
+) {
+  if (bytes === undefined && (record.deleted || record.mineDeleted))
+    await requestDeletion(home, record.store, true);
 }
