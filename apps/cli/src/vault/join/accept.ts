@@ -24,7 +24,7 @@ async function lockedacceptJoin(
 ) {
   const { header, at } = joinMembership(history, identity.record.id, pin, manifestHash);
 
-  const existing = await loadState(adapters.home);
+  const existing = await sameVaultState(adapters.home, history.state.vaultId);
 
   const dropped = await droppedRejoin(adapters, history, existing?.checkpoint);
 
@@ -53,7 +53,7 @@ async function lockedacceptJoin(
     history.state.vaultId,
     header.body.epoch,
     at.state.commits,
-    (await adapters.keychain.get(`envden/${adapters.home}/id-key`)) ?? undefined,
+    await knownIdKey(adapters, existing),
   );
 
   const files = await verifiedBlob(client, "files", "files", header.body.filesHash);
@@ -85,4 +85,16 @@ async function lockedacceptJoin(
 
 export function acceptJoin(...args: Parameters<typeof lockedacceptJoin>) {
   return withStateLock(args[0].home, () => lockedacceptJoin(...args));
+}
+
+async function knownIdKey(adapters: TAdapters, state: Awaited<ReturnType<typeof loadState>>) {
+  if (!state) return undefined;
+
+  return (await adapters.keychain.get(`envden/${adapters.home}/id-key`)) ?? undefined;
+}
+
+async function sameVaultState(home: string, vaultId: Uint8Array) {
+  const state = await loadState(home);
+
+  return state?.vaultId === p.base32(vaultId) ? state : undefined;
 }

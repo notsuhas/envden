@@ -35,7 +35,7 @@ async function lockedsetupVault(
   const existing = await loadState(adapters.home);
 
   if (existing?.vaultId && !existing.creationPending) {
-    return { state: existing, kit: resumedKit(existing.vaultId, options) };
+    return { state: existing, kit: resumedKit(existing, options) };
   }
 
   const token = p.decodeToken("setup", options.token);
@@ -43,7 +43,7 @@ async function lockedsetupVault(
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
 
   if (existing?.creationPending && existing.vaultId && existing.server) {
-    const kit = resumedKit(existing.vaultId, options);
+    const kit = resumedKit(existing, options);
 
     const client = createClient({
       address: existing.server.address,
@@ -78,8 +78,6 @@ async function lockedsetupVault(
   );
 
   state.keyring = text(material.keyring);
-  await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
-  await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
 
   const client = createClient({
     address: options.address,
@@ -113,6 +111,8 @@ async function lockedsetupVault(
     state.files = text(p.encode(p.FilesCodec, creation.swap.files!));
     state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, creation.swap.header, "manifest"));
     await saveState(adapters.home, state);
+    await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
+    await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
     await client.request("/v1/vault", "POST", bytes);
     delete state.creationPending;
     await saveState(adapters.home, state);
@@ -131,14 +131,28 @@ export function setupVault(...args: Parameters<typeof lockedsetupVault>) {
   return withStateLock(args[0].home, () => lockedsetupVault(...args));
 }
 
-function resumedKit(vaultId: string, options: { address: string; resumeSecretKey?: string }) {
+function resumedKit(
+  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
+  options: { address: string; resumeSecretKey?: string },
+) {
   if (!options.resumeSecretKey)
     throw new EnvdenError(
       "INVALID_INPUT",
       "Resume setup with the recovery kit issued before creation",
     );
 
-  p.decodeSecretKey(options.resumeSecretKey);
+  const vaultId = state.vaultId!;
+  const secret = p.decodeSecretKey(options.resumeSecretKey);
+
+  if (state.creationPending) {
+    const swap = p.decode(
+      p.SwapCodec,
+      new Uint8Array(Buffer.from(state.creationPending, "base64url")),
+    );
+
+    if (!swap.skPub || !p.equal(p.skPub(secret, p.unbase32(vaultId)), swap.skPub))
+      throw new EnvdenError("INVALID_INPUT", "Recovery kit does not match pending vault");
+  }
 
   return {
     vaultId,

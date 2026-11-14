@@ -84,6 +84,18 @@ export async function setupFlow() {
     const pending = await loadState(first.home);
     if (!pending?.creationPending) throw new Error("Missing creation request");
 
+    await Promise.resolve(
+      expect(
+        setupVault(first, {
+          ...options,
+          fetcher,
+          resumeSecretKey: (await import("@envden/core/protocol")).encodeSecretKey(
+            crypto.getRandomValues(new Uint8Array(16)),
+          ),
+        }),
+      ).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+    );
+
     const result = await setupVault(first, {
       resumeSecretKey: issuedKey,
       address,
@@ -97,7 +109,7 @@ export async function setupFlow() {
     expect(result.state.vaultId).toBe(result.kit.vaultId);
     expect(result.state.creationPending).toBeUndefined();
 
-    return { root, now, running, fetcher, first, second, third, address, result, cleanup };
+    return { root, now, running, fetcher, first, second, third, address, token, result, cleanup };
   } catch (error) {
     await cleanup();
     throw error;
