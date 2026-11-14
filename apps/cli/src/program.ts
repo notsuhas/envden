@@ -43,7 +43,7 @@ export function createProgram() {
   program.hook("preAction", async (_program, command) => {
     const state = await loadState(createAdapters().home);
     setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);
-    active = command;
+    if (command.name() !== "status" || !command.opts().refreshCache) active = command;
     if (command.name() === "status") return;
 
     try {

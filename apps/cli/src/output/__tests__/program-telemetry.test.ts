@@ -188,3 +188,23 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("shell cache refresh never reports command telemetry", async () => {
+  const telemetry = await import("../telemetry.ts");
+  const report = spyOn(telemetry, "reportTelemetry").mockImplementation(async () => {});
+  const root = await mkdtemp(join(tmpdir(), "envden-hook-telemetry-"));
+  const previous = process.env.ENVDEN_HOME;
+
+  try {
+    process.env.ENVDEN_HOME = root;
+    await createProgram().parseAsync(["node", "envden", "status", "--refresh-cache"]);
+    expect(report).not.toHaveBeenCalled();
+  } finally {
+    report.mockRestore();
+
+    if (previous === undefined) delete process.env.ENVDEN_HOME;
+    else process.env.ENVDEN_HOME = previous;
+
+    await rm(root, { recursive: true, force: true });
+  }
+});

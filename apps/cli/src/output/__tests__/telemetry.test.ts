@@ -29,3 +29,29 @@ for (const command of ["vault password reset"])
 
       expect(JSON.stringify(events)).not.toContain("private input");
     });
+
+test("telemetry cannot hold the command result", async () => {
+  let release = () => {};
+
+  const report = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  let done = false;
+
+  const action = commandOutcome(
+    async () => 42,
+    () => report,
+  ).then(() => {
+    done = true;
+  });
+
+  try {
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(done).toBe(true);
+  } finally {
+    release();
+    await action;
+  }
+});

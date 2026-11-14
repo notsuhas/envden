@@ -63,7 +63,7 @@ export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_key: projectKey, ...telemetryPayload(id, event) }),
-      signal: AbortSignal.timeout(2000),
+      signal: AbortSignal.timeout(200),
       redirect: "error",
     });
   } catch {
@@ -77,11 +77,14 @@ export async function commandOutcome<T>(
 ) {
   try {
     const result = await action();
-    await report({ success: true });
+    void report({ success: true }).catch(() => {});
 
     return result;
   } catch (cause) {
-    await report({ success: false, errorCode: isEnvdenError(cause) ? cause.code : "INTERNAL" });
+    void report({
+      success: false,
+      errorCode: isEnvdenError(cause) ? cause.code : "INTERNAL",
+    }).catch(() => {});
 
     throw cause;
   }
