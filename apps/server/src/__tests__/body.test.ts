@@ -130,3 +130,38 @@ test("public hello rejects a declared read body", async () => {
     f.close();
   }
 });
+
+for (const [length, expected] of [
+  [0, 10000],
+  [16777216, 522000],
+  [33554432, 600000],
+] as const)
+  test(`body deadline scales for ${length} bytes`, async () => {
+    let deadline = 0;
+
+    await readBody(
+      new Request("http://server/v1/swap", {
+        method: "POST",
+        headers: { "Content-Length": String(length) },
+        body: new Uint8Array(),
+      }),
+      33554432,
+      undefined,
+      (_callback, timeout) => {
+        deadline = timeout;
+
+        return () => {};
+      },
+    );
+
+    expect(deadline).toBe(expected);
+  });
+
+test("repair accepts the maximum report list", async () => {
+  const bytes = new Uint8Array(182 + 32 * 100000);
+
+  expect(
+    (await readBody(new Request("http://server/v1/repair/report", { method: "PUT", body: bytes })))
+      .length,
+  ).toBe(bytes.length);
+});

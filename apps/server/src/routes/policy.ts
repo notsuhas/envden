@@ -77,7 +77,7 @@ const routes: IRoute[] = [
     policy: "data",
   },
   { method: "POST", path: /^\/v1\/repair\/finish$/, limit: 65536, policy: "data" },
-  { method: "PUT", path: /^\/v1\/repair\/report$/, limit: 65536, policy: "data" },
+  { method: "PUT", path: /^\/v1\/repair\/report$/, limit: 3200182, policy: "data" },
   { method: "GET", path: /^\/v1\/repair\/(status|reports)$/, limit: 0, policy: "data" },
 ];
 

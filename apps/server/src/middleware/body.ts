@@ -8,8 +8,8 @@ export function bodyLimit(request: Request): number {
   return requestRoute(request).limit;
 }
 
-function scheduleDeadline(expire: () => void): () => void {
-  const timer = setTimeout(expire, 10000);
+function scheduleDeadline(expire: () => void, timeout: number): () => void {
+  const timer = setTimeout(expire, timeout);
 
   return () => clearTimeout(timer);
 }
@@ -34,7 +34,10 @@ export async function readBody(
   let stop = () => {};
 
   const deadline = new Promise<never>((_resolve, reject) => {
-    stop = schedule(() => reject(new EnvdenError("INVALID_INPUT", "Body read deadline exceeded")));
+    stop = schedule(
+      () => reject(new EnvdenError("INVALID_INPUT", "Body read deadline exceeded")),
+      Math.min(600000, 10000 + Math.ceil(Number(length ?? 0) / 32768) * 1000),
+    );
   });
 
   try {
