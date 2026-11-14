@@ -29,8 +29,7 @@ export async function fileSnapshot(
   const useStore = target.mode === "link" && status !== "detached";
   const bytes = useStore ? stored : await readBytes(destination);
 
-  const previous =
-    target.mode === "link" && applied !== undefined ? applied : await readBytes(base);
+  const previous = await readBytes(base);
 
   const detached =
     target.mode === "link" &&
