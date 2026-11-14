@@ -24,6 +24,10 @@ export async function resumeFile(context: TSyncContext, store: string) {
 
   const current = await operationHashes(context, store, operation.targets);
 
+  operation.written = operation.written.map(
+    (written, index) => written || current[index] === contentHash(next),
+  );
+
   await recoverPlaces(context, store, operation, next);
 
   if (

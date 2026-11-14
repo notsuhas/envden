@@ -8,7 +8,7 @@ for (const [written, current, expected] of [
   [[true, false], ["old", "old"], false],
   [[false, true], ["next", "old"], false],
   [[false, false], ["edit", "old"], false],
-  [[false, false], ["next", "old"], false],
+  [[false, false], ["next", "old"], true],
 ] as const)
   test(`resume ${written.join(",")} ${current.join(",")}`, () => {
     expect(canResume(["old", "old"], [...current], "next", [...written])).toBe(expected);

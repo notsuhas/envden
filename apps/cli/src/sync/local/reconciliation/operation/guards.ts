@@ -30,6 +30,6 @@ export function canResume(
 ) {
   return (
     before.length === current.length &&
-    current.every((hash, i) => (written[i] ? hash === next : hash === before[i]))
+    current.every((hash, i) => hash === next || (!written[i] && hash === before[i]))
   );
 }
