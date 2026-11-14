@@ -33,7 +33,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 | Network | How devices reach the server | Tailscale | NetBird, ZeroTier, LAN |
 | Repo | Which repo is this checkout? | Git | Jujutsu, Mercurial, plain folders |
 | Storage | Where the server keeps ciphertext | Local disk (SQLite + files) | S3, R2, MinIO |
-| Keychain | Where a device keeps its keys | macOS Keychain, Windows Credential Manager (`persist: local`), Linux Secret Service, 0600 file fallback | 1Password CLI |
+| Keychain | Where a device keeps its keys | macOS Keychain, Windows Credential Manager (`persist: local`), Linux Secret Service, 0600 file fallback (forced by `ENVDEN_KEYCHAIN=file`) | 1Password CLI |
 | Placement | How files appear in a checkout | Link, copy | — |
 | Shell | Out-of-sync line | zsh, bash, fish, PowerShell | nushell |
 

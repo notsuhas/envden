@@ -24,7 +24,9 @@ export function createAdapters(options?: {
     home,
     userHome,
     fetcher: options?.fetcher ?? fetch,
-    keychain: options?.keychain ?? createOsKeychainAdapter({ home }),
+    keychain:
+      options?.keychain ??
+      createOsKeychainAdapter({ home, fileOnly: process.env.ENVDEN_KEYCHAIN === "file" }),
     repo: createGitRepoAdapter(),
     placement: (mode: TPlacementMode, root: string) =>
       createFsPlacementAdapter(mode, root, join(home, "conflicts")),
