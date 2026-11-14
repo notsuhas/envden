@@ -20,7 +20,7 @@ test("selection preserves concurrent-edit rules", () => {
     [base, edit, base, "selected"],
     [base, undefined, undefined, "selected"],
     [base, undefined, edit, "conflict"],
-    [base, edit, edit, "conflict"],
+    [base, edit, edit, "selected"],
     [base, { ...base, exported: true }, base, "conflict"],
   ] as const)
     expect(selectEntry("A", original, mine, theirs).kind).toBe(kind);

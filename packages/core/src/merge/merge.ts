@@ -26,7 +26,9 @@ export function mergeEnv(base: Uint8Array, local: Uint8Array, remote: Uint8Array
   if (equal(base, local)) return { kind: "clean", bytes: remote.slice(), changedKeys };
   if (equal(base, remote)) return { kind: "clean", bytes: local.slice(), changedKeys };
 
-  if (!equal(parsedBase.tail, parsedRemote.tail) && !equal(parsedLocal.tail, parsedRemote.tail))
+  if (equal(local, remote)) return { kind: "clean", bytes: local.slice(), changedKeys };
+
+  if (tailChanged(parsedBase.tail, parsedLocal.tail, parsedRemote.tail))
     return { kind: "conflict", reason: "layout-change" };
 
   return {
@@ -47,18 +49,29 @@ function mergeLayout(
 
   for (const entry of parsedLocal.entries) {
     const chosen = selected.get(entry.key);
-    if (chosen) parts.push(chosen.raw);
+    if (chosen) appendPart(parts, chosen.raw);
   }
 
-  parts.push(parsedLocal.tail);
+  appendPart(parts, parsedLocal.tail);
 
   for (const entry of parsedRemote.entries) {
     if (!l.has(entry.key) && !b.has(entry.key)) {
-      const previous = parts.findLast((part) => part.length > 0);
-      if (previous?.length && previous[previous.length - 1] !== 10) parts.push(Buffer.from("\n"));
-      parts.push(entry.raw);
+      appendPart(parts, entry.raw);
     }
   }
 
   return Buffer.concat(parts);
+}
+
+function appendPart(parts: Uint8Array[], part: Uint8Array) {
+  if (!part.length) return;
+  const previous = parts.at(-1);
+  if (previous?.length && previous[previous.length - 1] !== 10) parts.push(Buffer.from("\n"));
+  parts.push(part);
+}
+
+function tailChanged(base: Uint8Array, local: Uint8Array, remote: Uint8Array) {
+  if (base.length && !equal(base, local) && !equal(base, remote)) return true;
+
+  return !equal(base, remote) && !equal(local, remote);
 }

@@ -46,13 +46,49 @@ describe("env merge", () => {
   test("remote append after local file without newline", () =>
     expect(clean("A=1\n", "A=local", "A=1\nB=2\n")).toBe("A=local\nB=2\n"));
 
+  test("selected entries never join adjacent assignments", () => {
+    expect(clean("A=1\n", "A=1\nB=3\n", "A=2")).toBe("A=2\nB=3\n");
+    expect(clean("A=1\nB=2\n", "A=1\nB=2\nC=3\n", "B=2\nA=9")).toBe("A=9\nB=2\nC=3\n");
+  });
+
+  test("concurrent appends do not duplicate a former tail", () => {
+    expect(merge("A=1\n# end\n", "A=1\n# end\nL=3\n", "A=1\n# end\nN=2\n")).toEqual({
+      kind: "conflict",
+      reason: "layout-change",
+    });
+  });
+
+  test("identical concurrent entries are clean", () => {
+    expect(clean("A=1\n", "A=2\n", "A=2\n")).toBe("A=2\n");
+    expect(clean("", "A=1\n", "A=1\n")).toBe("A=1\n");
+    expect(clean("A=1\n", "export A=2\n", "export A=2\n")).toBe("export A=2\n");
+  });
+
+  test("two-sided independent changes preserve source lines", () => {
+    for (const newline of ["\n", "\r\n"]) {
+      for (const ending of ["", newline]) {
+        for (let i = 0; i < 100; i++) {
+          const base = `A=${i}${newline}B=${i}${newline}`;
+          const local = `A=${i}${newline}B=${i + 1}${newline}`;
+          const remote = `B=${i}${newline}A=${i + 2}${ending}`;
+          const result = merge(base, local, remote);
+          expect(result.kind).toBe("clean");
+          if (result.kind !== "clean") continue;
+          const lines = new Set([base, local, remote].flatMap((text) => text.split(/\r?\n/)));
+
+          for (const line of Buffer.from(result.bytes).toString().split(/\r?\n/))
+            expect(lines.has(line)).toBe(true);
+        }
+      }
+    }
+  });
+
   const conflicts = [
     ["duplicate-key", "A=1\nA=2\n", "", ""],
     ["unterminated-quote", "", "A='no", ""],
     ["multiline-value", "", 'A="one\ntwo"\n', ""],
     ["multiline-value", "", "A=one\\\ntwo\n", ""],
     ["both-changed", "A=1\n", "A=2\n", "A=3\n"],
-    ["both-changed", "", "A=1\n", "A=1\n"],
     ["delete-vs-edit", "A=1\n", "", "A=2\n"],
     ["style-change", "A=1\n", "export A=1\n", "A=1\n"],
     ["style-change", "A='1'\n", 'A="1"\n', "A='1'\n"],

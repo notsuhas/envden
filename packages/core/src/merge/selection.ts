@@ -10,6 +10,9 @@ export function selectEntry(
   const lc = !equal(original?.raw, mine?.raw);
   const rc = !equal(original?.raw, theirs?.raw);
 
+  if (lc && rc && equal(mine?.raw, theirs?.raw))
+    return { kind: "selected", changed: true, entry: mine };
+
   if (styleChanged(original, mine) || styleChanged(original, theirs))
     return { kind: "conflict", reason: "style-change", key };
 
@@ -30,10 +33,6 @@ function concurrentChange(
   mine: IEnvEntry | undefined,
   theirs: IEnvEntry | undefined,
 ): ReturnType<typeof selectEntry> {
-  if (!mine && !theirs) {
-    return { kind: "selected", changed: true } as const;
-  }
-
   if (!mine || !theirs) return { kind: "conflict", reason: "delete-vs-edit", key };
 
   if (original && (original.active !== mine.active || original.active !== theirs.active))
