@@ -50,7 +50,7 @@ async function reconcileDetached(
       return 0;
     }
 
-    if (same(mine, previous)) {
+    if (stored !== undefined && same(mine, previous)) {
       await context.adapters.placement(link.mode, link.root).place(link.store, destination);
       await writeBytes(base + ".unpublished", stored);
 

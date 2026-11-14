@@ -7,13 +7,14 @@ import { loadState, saveState } from "../../state/store/repository.ts";
 import { linkCheckout } from "../../links/place.ts";
 import { pull, push } from "../engine.ts";
 import { resolveConflict } from "../resolve.ts";
-import { basePath } from "../local/files.ts";
+import { readBytes, writeBytes, basePath } from "../local/files.ts";
 
 for (const [base, stored, copied, agreed] of [
   [true, "1", "1", "1"],
   [true, "store", "1", "store"],
   [true, "1", "copy", "copy"],
   [true, "store", "copy", undefined],
+  [true, undefined, "1", undefined],
   [true, "same", "same", "same"],
   [false, "1", "1", "1"],
   [false, "store", "1", undefined],
@@ -35,11 +36,11 @@ for (const [base, stored, copied, agreed] of [
       await saveState(f.first.home, state);
       const store = state.links.find((link) => link.path === ".env.new")!.store;
       if (!base) await rm(basePath(f.first.home, store, copy.root) + ".unpublished");
-      await atomicWrite(store, `PORT=${stored}\n`);
+      await writeBytes(store, portContent(stored));
       await atomicWrite(join(copy.root, ".env.new"), `PORT=${copied}\n`);
       const result = await pull(f.first, f.opts);
       expect(result.conflicts > 0).toBe(agreed === undefined);
-      expect(await Bun.file(store).text()).toBe(`PORT=${agreed ?? stored}\n`);
+      expect(await readBytes(store)).toEqual(portContent(agreed ?? stored));
       expect(await Bun.file(join(copy.root, ".env.new")).text()).toBe(`PORT=${agreed ?? copied}\n`);
 
       if (result.conflicts) {
@@ -103,3 +104,7 @@ for (const copy of [false, true])
         await f.cleanup();
       }
     });
+
+function portContent(value: string | undefined) {
+  return value === undefined ? undefined : new TextEncoder().encode(`PORT=${value}\n`);
+}
