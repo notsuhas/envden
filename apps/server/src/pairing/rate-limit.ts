@@ -20,20 +20,18 @@ export function chargeMailbox(
   const box = storage.mailbox(vault, number, now());
   if (!box) throw new EnvdenError("NOT_FOUND", "Mailbox closed");
 
-  const deviceCharge = storage.charge(
-    vault,
-    { kind: "mailbox", device: auth.request.device },
-    now(),
-  );
-
-  if (deviceCharge.kind === "locked")
-    throw new EnvdenError("RATE_LIMITED", "Too many mailbox writes");
-
-  authorize();
-
   const mailbox = sha256(
     concat(new TextEncoder().encode(`mailbox/${number}/${box.expiresAt}/`), vault),
   );
+
+  try {
+    authorize();
+  } catch (error) {
+    const rejected = sha256(concat(new TextEncoder().encode("rejected/"), mailbox));
+    const charge = storage.charge(rejected, { kind: "mailbox" }, now());
+    if (charge.kind === "locked") throw new EnvdenError("RATE_LIMITED", "Too many mailbox writes");
+    throw error;
+  }
 
   const boxCharge = storage.charge(mailbox, { kind: "mailbox" }, now());
   if (boxCharge.kind === "locked") throw new EnvdenError("RATE_LIMITED", "Too many mailbox writes");

@@ -23,7 +23,7 @@ test("rejected writers do not consume the bound mailbox budget", async () => {
         .status,
     ).toBe(200);
 
-    for (let i = 0; i < 19; i++)
+    for (let i = 0; i < 20; i++)
       expect(
         (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
           .status,
@@ -32,7 +32,7 @@ test("rejected writers do not consume the bound mailbox budget", async () => {
     expect(
       (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: candidate() }).send())
         .status,
-    ).toBe(401);
+    ).toBe(429);
 
     expect(
       (await f.request(`${path}/${number}/KE1`, body, { method: "PUT", who: joiner }).send())
