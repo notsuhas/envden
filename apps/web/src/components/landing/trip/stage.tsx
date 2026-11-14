@@ -1,6 +1,6 @@
 "use client";
 
-import { useInView, useScroll, useTransform } from "motion/react";
+import { useInView } from "motion/react";
 import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
 import { useRef, useState } from "react";
 import { DesktopPane } from "@/components/landing/trip/panes/desktop.tsx";
@@ -18,9 +18,7 @@ export function TripStage() {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const running = isRunning(visible, hovered, focused);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "end 0.6"] });
-  const pushDraw = useTransform(scrollYProgress, [0, 0.3], [reduced ? 1 : 0, 1]);
-  const pullDraw = useTransform(scrollYProgress, [0.3, 0.6], [reduced ? 1 : 0, 1]);
+  const drawn = useInView(ref, { once: true, amount: 0.2 }) || reduced;
   const { phase, beat, durationMs, jump } = useTripLoop(running, reduced);
   const view = deriveTripView(phase);
 
@@ -42,7 +40,7 @@ export function TripStage() {
           area="push"
           command="envden push"
           packet={view.pushPacket}
-          draw={pushDraw}
+          drawn={drawn}
           working={view.sealing}
         />
         <ServerPane filled={view.serverFilled} />
@@ -50,7 +48,7 @@ export function TripStage() {
           area="pull"
           command="envden pull"
           packet={view.pullPacket}
-          draw={pullDraw}
+          drawn={drawn}
           working={view.desktopHolds === "ciphertext"}
         />
         <DesktopPane holds={view.desktopHolds} />

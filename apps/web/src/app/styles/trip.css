@@ -73,7 +73,13 @@
 
 .den-cable-line {
   border-color: var(--den-ink);
-  transition: border-color 150ms ease-out;
+  transition:
+    border-color 150ms ease-out,
+    transform 600ms var(--ease-den-out);
+}
+
+.den-cable[data-cable="pull"] .den-cable-line {
+  transition-delay: 0ms, 450ms;
 }
 
 .den-cable[data-live="true"] .den-cable-line,
@@ -128,18 +134,24 @@
 }
 
 .den-cable-line {
-  transform: scaleY(var(--wire-draw, 1));
+  transform: scaleY(0);
   transform-origin: top;
 }
 @media (width >= 64rem) {
   .den-cable-line {
-    transform: scaleX(var(--wire-draw, 1));
+    transform: scaleX(0);
     transform-origin: left;
   }
+}
+.den-cable[data-drawn="true"] .den-cable-line {
+  transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .den-step-fill {
     animation: none;
     transform: none;
+  }
+  .den-cable-line {
+    transition: border-color 150ms ease-out;
   }
 }

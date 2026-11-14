@@ -1,8 +1,8 @@
-import { RecoveryArt } from "@/components/landing/security/recovery-art.tsx";
 import { FeatureCell } from "@/components/landing/features/cell.tsx";
 import { AgentPreview } from "@/components/landing/features/previews/agent.tsx";
 import { MergePreview } from "@/components/landing/features/previews/merge.tsx";
 import { PairPreview } from "@/components/landing/features/previews/pair.tsx";
+import { RecoveryPreview } from "@/components/landing/features/previews/recovery.tsx";
 import { RemovePreview } from "@/components/landing/features/previews/remove.tsx";
 import { ShellPreview } from "@/components/landing/features/previews/shell.tsx";
 import { StorePreview } from "@/components/landing/features/previews/store.tsx";
@@ -58,7 +58,7 @@ export function Features() {
         <FeatureCell
           title="Keep a recovery kit."
           body="Store your recovery kit like a passport."
-          preview={<RecoveryArt />}
+          preview={<RecoveryPreview />}
         />
       </div>
     </Section>
