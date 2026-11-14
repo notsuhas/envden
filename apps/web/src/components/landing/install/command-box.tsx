@@ -46,7 +46,7 @@ export function CommandBox(props: ICommandBox) {
         aria-label="Install with"
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        className="den-tabs den-fade-right flex w-fit max-w-full overflow-x-auto border border-b-0 border-den-line-strong [scrollbar-width:none]"
+        className="den-tabs grid grid-cols-4 border border-b-0 border-den-line-strong"
       >
         {INSTALL_CHANNELS.map((item, index) => (
           <button
@@ -61,7 +61,7 @@ export function CommandBox(props: ICommandBox) {
               setPicked(index);
               echoAction(`channel: ${item.label}`);
             }}
-            className="den-tab h-11 min-w-11 shrink-0 border-r border-den-line-strong px-2.5 font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out last:border-r-0 hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-selected:text-den-on-lantern"
+            className="den-tab h-11 min-w-0 border-r border-den-line-strong px-2.5 font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out last:border-r-0 hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-selected:text-den-on-lantern"
           >
             {item.label}
           </button>
@@ -76,7 +76,7 @@ export function CommandBox(props: ICommandBox) {
             aria-labelledby={`${name}-tab-${channel.id}`}
             aria-hidden={index !== active}
             inert={index !== active}
-            className={`col-start-1 row-start-1 grid content-start gap-2 ${index !== active ? "invisible" : ""}`}
+            className={`col-start-1 row-start-1 grid content-start [&>*+*]:-mt-px ${index !== active ? "invisible" : ""}`}
           >
             {channel.commands.map((command) => (
               <CopyCommand key={command} command={command} />
