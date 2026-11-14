@@ -1,3 +1,4 @@
+import { withUpdateLock } from "./self/lock.ts";
 import { downloadUpdate } from "./self/download.ts";
 import { basename } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
@@ -9,7 +10,7 @@ import { VERSION } from "../version.ts";
 import { installMethod } from "./install.ts";
 import { replaceBinary } from "./replace.ts";
 
-export async function selfUpdate(
+async function update(
   adapters: TAdapters,
   options: {
     fetcher: TFetch;
@@ -44,4 +45,8 @@ export async function selfUpdate(
   );
 
   return { kind: "updated" as const };
+}
+
+export async function selfUpdate(adapters: TAdapters, options: Parameters<typeof update>[1]) {
+  return withUpdateLock(adapters.home, () => update(adapters, options));
 }

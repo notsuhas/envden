@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, mkdir, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
@@ -48,7 +48,7 @@ for (const valid of [true, false])
         run: async (command) => {
           expect(command).toEqual(
             command[1] === "--version"
-              ? [binary + ".envden-new", "--version"]
+              ? [binary + ".envden-new" + (process.platform === "win32" ? ".exe" : ""), "--version"]
               : [binary, "update", "--post-install"],
           );
         },
@@ -158,3 +158,83 @@ for (const windows of [false, true])
       await rm(root, { recursive: true, force: true });
     }
   });
+
+for (const windows of [false, true])
+  test(`backup failure cleans staged binary: ${windows}`, async () => {
+    const root = await mkdtemp(join(tmpdir(), "envden-backup-"));
+    const binary = join(root, "envden");
+
+    try {
+      await atomicWrite(binary, "old");
+      await mkdir(binary + ".envden-old");
+
+      await Promise.resolve(
+        expect(
+          replaceBinary(binary, new Uint8Array([1]), windows, async () => {}),
+        ).rejects.toThrow(),
+      );
+
+      expect(await readFile(binary, "utf8")).toBe("old");
+      expect((await readdir(root)).some((name) => name.includes("envden-new"))).toBe(false);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+test("concurrent updates refuse the second before downloading", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-concurrent-update-"));
+
+  try {
+    const adapters = createAdapters({
+      home: root,
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    const binary = join(root, "envden");
+    await atomicWrite(join(root, "install-method"), "script");
+    let entered!: () => void;
+    let release!: () => void;
+
+    const started = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+
+    const paused = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const first = selfUpdate(adapters, {
+      binary,
+      fetcher: async () => {
+        entered();
+        await paused;
+
+        return new Response(null, {
+          status: 302,
+          headers: { location: `https://github.com/${RELEASE_REPOSITORY}/releases/tag/v0.0.0` },
+        });
+      },
+    });
+
+    await started;
+
+    try {
+      await Promise.resolve(
+        expect(
+          selfUpdate(adapters, {
+            binary,
+            fetcher: async () => {
+              throw new Error("must not download");
+            },
+          }),
+        ).rejects.toMatchObject({ code: "CONFLICT", message: "Another envden update is running" }),
+      );
+    } finally {
+      release();
+      await first;
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

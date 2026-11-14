@@ -28,16 +28,22 @@ export async function replaceBinary(
 
   const old = `${path}.envden-old`;
 
-  if (windows) await rename(path, old);
-  else await copyFile(path, old);
+  let backedUp = false;
 
   try {
+    if (windows) await rename(path, old);
+    else await copyFile(path, old);
+
+    backedUp = true;
     await rename(temporary, path);
     await after();
     if (!windows) await rm(old, { force: true });
   } catch (cause) {
-    if (windows) await rm(path, { force: true });
-    await rename(old, path);
+    if (backedUp) {
+      if (windows) await rm(path, { force: true });
+      await rename(old, path);
+    }
+
     await rm(temporary, { force: true });
     throw cause;
   }
