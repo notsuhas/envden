@@ -23,3 +23,12 @@ test("untracking one copy preserves the other checkout's removal", async () => {
   await pull(f.first, f.opts);
   expect(await Bun.file(f.aStore).exists()).toBe(false);
 });
+
+test("untracking a dangling store link removes the owned link", async () => {
+  const { rm, lstat } = await import("node:fs/promises");
+  const f = await fixture();
+  const targets = await approveLayout(f, ["copy", "link"]);
+  await rm(targets[1]!.store);
+  expect(await untrack(f.second, targets[1]!.root)).toEqual([]);
+  expect(await lstat(join(targets[1]!.root, ".env")).catch(() => undefined)).toBeUndefined();
+});

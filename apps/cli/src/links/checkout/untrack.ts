@@ -2,6 +2,7 @@ import {
   readDeletion,
   requestDeletion,
 } from "../../sync/local/reconciliation/operation/deletion.ts";
+import { readBytes } from "../../sync/local/files.ts";
 import { removeConflictTargets } from "../../sync/local/conflicts.ts";
 import { removeCheckoutBases } from "./bases.ts";
 import { join } from "node:path";
@@ -40,12 +41,7 @@ export async function untrack(adapters: TAdapters, path: string) {
         if (!remaining) cancelled.push(...intent.targets);
       }
 
-      const placement = adapters.placement("copy", root);
-      const destination = join(root, link.path);
-      const status = await placement.inspect(link.store, destination);
-
-      if (status === "linked" || status === "relinkable")
-        await placement.place(link.store, destination);
+      await detachFile(adapters, link);
     }
 
     await removeCheckoutBases(
@@ -63,4 +59,19 @@ export async function untrack(adapters: TAdapters, path: string) {
 
     return cancelled;
   });
+}
+
+async function detachFile(
+  adapters: TAdapters,
+  link: Parameters<typeof removeCheckoutBases>[1][number],
+) {
+  const placement = adapters.placement("copy", link.root);
+  const destination = join(link.root, link.path);
+  const status = await placement.inspect(link.store, destination);
+
+  if (status === "linked" || status === "relinkable") {
+    if ((await readBytes(link.store)) === undefined)
+      await placement.remove(link.store, destination);
+    else await placement.place(link.store, destination);
+  }
 }
