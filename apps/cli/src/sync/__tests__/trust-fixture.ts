@@ -1,3 +1,4 @@
+import { removeFile } from "../remove.ts";
 import { expect } from "bun:test";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
@@ -39,7 +40,7 @@ export async function seedScenario(
   }
 
   if (scenario === "unapproved-deletion") {
-    await writeBytes(f.aStore, undefined);
+    await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
     await push(f.first, f.opts);
     await writeBytes(path, edited);
   } else if (scenario.startsWith("untracked")) {
@@ -65,11 +66,12 @@ export async function seedScenario(
     await push(f.first, f.opts);
     await writeBytes(path, bytes("TOKEN=local-test-value\nA=local\n"));
   } else {
+    if (scenario === "deletion-side") await removeFile(f.second, path, { yes: true, now: f.now });
     await writeBytes(path, edited);
 
     await writeBytes(
       target.store,
-      scenario === "edit-deletion" ? undefined : bytes("TOKEN=store-edit\n"),
+      scenario === "deletion-side" ? undefined : bytes("TOKEN=store-edit\n"),
     );
   }
 
@@ -106,6 +108,7 @@ export async function finishScenario(
   }
 
   await prepareResolution(scenario, f, state, target);
+  if (scenario === "prune-root" || scenario === "untrack-root") return;
 
   const result = await resolveConflict(f.second, {
     file: ".env",
@@ -115,7 +118,7 @@ export async function finishScenario(
 
   expect(await conflictRecords(f.second.home)).toHaveLength(0);
   if (scenario.startsWith("unapproved")) expect(await readBytes(path)).toEqual(edited);
-  if (scenario === "edit-deletion") expect(await readBytes(target.store)).toBeUndefined();
+  if (scenario === "deletion-side") expect(await readBytes(target.store)).toBeUndefined();
 
   if (scenario === "edit-content")
     expect(await readBytes(target.store)).toEqual(bytes("TOKEN=edited-resolution\n"));
@@ -137,6 +140,11 @@ async function verifyLateBackups(result: Awaited<ReturnType<typeof resolveConfli
 }
 
 async function prepareResolution(scenario: string, f: TFixture, state: TState, target: TTarget) {
+  if (scenario === "deletion-side") {
+    const record = (await conflictRecords(f.second.home))[0]!;
+    await writeBytes(record.file, undefined);
+  }
+
   if (scenario === "edit-content") {
     const record = (await conflictRecords(f.second.home))[0]!;
     await writeBytes(record.file, bytes("TOKEN=edited-resolution\n"));
@@ -151,13 +159,13 @@ async function prepareResolution(scenario: string, f: TFixture, state: TState, t
     await rm(target.root, { recursive: true });
     const { pruneMissingCheckouts } = await import("../../links/prune.ts");
     await pruneMissingCheckouts(f.second.home, state, () => {});
-    expect((await conflictRecords(f.second.home))[0]!.targets).toHaveLength(0);
+    expect(await conflictRecords(f.second.home)).toHaveLength(0);
   }
 
   if (scenario === "untrack-root") {
     const { untrack } = await import("../../links/checkout/untrack.ts");
     await untrack(f.second, target.root);
-    expect((await conflictRecords(f.second.home))[0]!.targets).toHaveLength(0);
+    expect(await conflictRecords(f.second.home)).toHaveLength(0);
   }
 
   if (scenario === "removed") await rm(target.root, { recursive: true });

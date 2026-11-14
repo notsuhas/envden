@@ -38,6 +38,8 @@ export function createSharedFixture() {
       f.checkout.root,
       f.checkoutB.root,
       join(f.root, "copy"),
+      join(f.root, "new-copy"),
+      join(f.root, "checkout-c"),
       join(f.root, "approved-other"),
     ]) {
       await rm(root, { recursive: true, force: true });

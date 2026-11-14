@@ -1,6 +1,8 @@
+import { rm } from "node:fs/promises";
+import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
-import { rm } from "node:fs/promises";
+
 import { createSharedFixture } from "./shared-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
@@ -43,9 +45,9 @@ for (const [base, stored, copied, agreed] of [
       const result = await pull(f.first, f.opts);
 
       if (base && stored === undefined) {
-        expect(result.conflicts).toBe(0);
+        expect(result.conflicts).toBe(1);
         expect(await readBytes(store)).toBeUndefined();
-        expect(await readBytes(join(copy.root, ".env.new"))).toBeUndefined();
+        expect(await readBytes(join(copy.root, ".env.new"))).toEqual(portContent(copied));
 
         return;
       }
@@ -82,7 +84,7 @@ for (const copy of [false, true])
 
         await configureUntrackedCopy(adapters.home, checkout.root, copy, choice);
 
-        await rm(f.aStore);
+        await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
         await push(f.first, f.opts);
         await atomicWrite(join(checkout.root, ".env"), "TOKEN=recreated\n");
         const state = (await loadState(adapters.home))!;

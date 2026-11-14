@@ -8,7 +8,9 @@ import { atomicWrite } from "../../state/store/files.ts";
 
 import { push, pull } from "../engine.ts";
 
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
 
 test("sync race", async () => {
   const fixture = await syncFixture();

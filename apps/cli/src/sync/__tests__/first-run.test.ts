@@ -10,7 +10,9 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { linkFile } from "../../links/file.ts";
 import { firstRun } from "../first-run.ts";
 
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
 
 test("sync first-run", async () => {
   const fixture = await syncFixture();

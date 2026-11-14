@@ -1,7 +1,10 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { symlink, rm } from "node:fs/promises";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
+
 import { pull, push } from "../engine.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { linkCheckout } from "../../links/place.ts";

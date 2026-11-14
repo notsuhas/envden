@@ -46,6 +46,7 @@ test("command help and shared stub exit", async () => {
     "status",
     "diff",
     "resolve",
+    "rm",
     "alias",
     "device",
     "server",

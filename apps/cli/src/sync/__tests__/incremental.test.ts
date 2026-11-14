@@ -1,6 +1,9 @@
 import type { TFetch } from "../../client/fetch.ts";
 import { test, expect } from "bun:test";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
+
 import { pull, push } from "../engine.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";

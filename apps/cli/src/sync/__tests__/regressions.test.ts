@@ -1,3 +1,4 @@
+import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
@@ -81,7 +82,7 @@ test("newly tracked copy cannot resurrect a server tombstone", async () => {
   const f = await syncFixture();
 
   try {
-    await rm(f.aStore);
+    await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
     await push(f.first, f.opts);
     await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=stale\n");
     const state = (await loadState(f.second.home))!;

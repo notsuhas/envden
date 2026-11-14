@@ -1,5 +1,6 @@
+import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
-import { rm, mkdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 
 import { join } from "node:path";
 import { loadState, saveState } from "../../state/store/repository.ts";
@@ -11,7 +12,7 @@ import { syncFixture } from "./flows.ts";
 
 test("sync rotation", async () => {
   const fixture = await syncFixture();
-  const { first, second, aStore, now, opts } = fixture;
+  const { first, second, now, opts } = fixture;
 
   try {
     await pull(second, opts);
@@ -34,7 +35,7 @@ test("sync rotation", async () => {
       };
     };
 
-    await rm(aStore);
+    await removeFile(first, join(fixture.checkout.root, ".env"), { yes: true, now });
     await push(first, opts);
     await pull(second, opts);
     expect(await Bun.file(bStore).exists()).toBe(false);

@@ -30,7 +30,7 @@ for (const scenario of [
   "unapproved-deletion",
   "unapproved",
   "retry",
-  "edit-deletion",
+  "deletion-side",
   "edit-content",
   "changed-after-conflict",
   "merge-retry",

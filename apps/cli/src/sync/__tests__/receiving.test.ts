@@ -2,7 +2,10 @@ import { storePath } from "../../store/path.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
+
 import { syncContext } from "../remote/context.ts";
 import { sealUpload } from "../remote/seal.ts";
 import { reconcile } from "../local/reconcile.ts";

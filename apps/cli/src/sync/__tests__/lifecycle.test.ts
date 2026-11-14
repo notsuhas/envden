@@ -1,3 +1,4 @@
+import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
@@ -5,14 +6,16 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { pull, push } from "../engine.ts";
 import { readRemoteNotice, remoteNotice } from "../../notice/remote.ts";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
 
 test("tombstones remove link records and do not require ignore permission", async () => {
   const f = await syncFixture();
 
   try {
     await pull(f.second, f.opts);
-    await rm(f.aStore);
+    await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
     await push(f.first, f.opts);
 
     f.second.repo.ensureIgnored = async () => {
