@@ -67,7 +67,8 @@ jobs:
           #!/bin/sh
           echo '{"BackendState":"Running","Self":{"DNSName":"ci.example.ts.net."},"CertDomains":["ci.example.ts.net"]}'
           EOF
-          sudo install -m 0755 "$RUNNER_TEMP/tailscale" /usr/local/bin/tailscale
+          bin=/usr/local/bin; [ "$RUNNER_OS" = Linux ] && bin=/usr/bin
+          sudo install -m 0755 "$RUNNER_TEMP/tailscale" "$bin/tailscale"
       # Bun's pseudo-terminal support is POSIX-only, so Windows runs the smoke test alone
       - if: runner.os != 'Windows'
         run: bun apps/cli/scripts/e2e.ts apps/cli/dist/${{ matrix.asset }}
