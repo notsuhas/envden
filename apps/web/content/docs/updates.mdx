@@ -51,7 +51,7 @@ The server can require a newer client through its signed minimum version. A refu
 
 ## Data migrations
 
-Newer binaries migrate local and server data forward after saving `pre-<version>` backups. An older binary refuses data in a newer format. Downgrade only before new-format data exists. Migration backups expire after 30 days.
+Server database migrations save a `pre-<version>` backup before changing an existing database. Backups expire after 30 days. The server refuses incompatible database formats. The CLI requires the current strict local state format and rejects other formats as "Unreadable local state". It does not migrate or automatically back up local state.
 
 Use `envden device ls` to see each device's last-seen version. `envden status --json` includes `update.available` and `update.required` for tools.
 
