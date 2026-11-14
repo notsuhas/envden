@@ -38,3 +38,9 @@ test("memory keychain requires explicit operations and returns independent bytes
   value?.fill(9);
   expect(await adapter.get("key")).toEqual(new Uint8Array([1]));
 });
+
+test("fake keychain forwards fallback notices", () => {
+  expect(createFakeKeychainAdapter({ takeFallbackNotice: () => true }).takeFallbackNotice?.()).toBe(
+    true,
+  );
+});
