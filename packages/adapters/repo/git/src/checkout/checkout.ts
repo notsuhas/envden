@@ -43,7 +43,12 @@ export async function checkoutAt(
     ? await upstreamId(root, resolveHost)
     : undefined;
 
+  const directory = await lstat(gitDir);
+  const rootStat = await lstat(await realpath(root));
+
   return {
+    identity: `${directory.dev}:${directory.ino}:${directory.birthtimeMs}:${rootStat.ino}:${rootStat.birthtimeMs}`,
+    rootDevice: rootStat.dev,
     ...(upstreamRepoId ? { upstreamRepoId } : {}),
     root: await realpath(root),
     repoId,

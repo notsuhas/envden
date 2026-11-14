@@ -35,3 +35,10 @@ test("approval binds git directory and remote, including worktrees", () => {
 
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("approved");
 });
+
+test("recreated checkouts require a new approval", () => {
+  const state = emptyState("test");
+  const checkout = { root: "/repo", gitDir: "/repo/.git", repoId: "host/repo", identity: "old" };
+  state.approved.push(checkout);
+  expect(checkoutApproval(state, { ...checkout, identity: "new" })).toBe("ask");
+});

@@ -24,7 +24,8 @@ async function lockedlinkCheckout(
     if (!(await approve(checkout))) return;
   }
 
-  if (!state.approved.some((item) => item.root === checkout.root)) state.approved.push(checkout);
+  state.approved = state.approved.filter((item) => item.root !== checkout.root);
+  state.approved.push(checkout);
 
   const placement = await supportedPlacement(adapters, checkout.root, copy);
 

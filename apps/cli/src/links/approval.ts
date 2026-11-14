@@ -18,6 +18,7 @@ export function checkoutApproval(
     (item) =>
       item.root === checkout.root &&
       item.gitDir === checkout.gitDir &&
+      item.identity === checkout.identity &&
       (state.aliases[item.repoId] ?? item.repoId) ===
         (state.aliases[checkout.repoId] ?? checkout.repoId),
   )

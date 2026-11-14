@@ -4,6 +4,8 @@ export interface ICheckout {
   repoId: string;
   upstreamRepoId?: string;
   gitDir: string;
+  identity?: string;
+  rootDevice?: number;
   registeredWorktree?: boolean;
 }
 

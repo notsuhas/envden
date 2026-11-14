@@ -15,7 +15,13 @@ export interface ILocalState {
   keyring?: string;
   files?: string;
   session?: { unlockedUntil: number | null; freshUntil: number };
-  approved: { root: string; gitDir: string; repoId: string }[];
+  approved: {
+    root: string;
+    gitDir: string;
+    repoId: string;
+    identity?: string;
+    rootDevice?: number;
+  }[];
   links: { root: string; path: string; store: string; mode: "link" | "copy"; localOnly?: true }[];
   aliases: Record<string, string>;
   telemetry: boolean;
