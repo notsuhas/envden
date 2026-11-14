@@ -26,6 +26,7 @@ for (const detached of [true, false])
         };
 
         f.first.repo = createFakeRepoAdapter({
+          caseInsensitive: async () => false,
           checkoutAt: async () => checkout,
           ensureIgnored: async () => {},
         });
@@ -99,6 +100,7 @@ test.if(process.platform !== "win32")(
       let placements = 0;
 
       f.first.repo = createFakeRepoAdapter({
+        caseInsensitive: async () => false,
         checkoutAt: async () => checkout,
         ensureIgnored: async () => {
           if (++placements === 2) throw new Error("interrupted pull");

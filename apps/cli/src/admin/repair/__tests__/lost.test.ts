@@ -25,6 +25,7 @@ for (const recovered of [true, false])
       };
 
       f.first.repo = createFakeRepoAdapter({
+        caseInsensitive: async () => false,
         checkoutAt: async () => checkout,
         envFiles: async () => [".env"],
         ensureIgnored: async () => {},
@@ -52,6 +53,7 @@ for (const recovered of [true, false])
       };
 
       second.repo = createFakeRepoAdapter({
+        caseInsensitive: async () => false,
         checkoutAt: async () => checkoutB,
         ensureIgnored: async () => {},
       });

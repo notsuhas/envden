@@ -82,6 +82,7 @@ test("an already applied entry reuses its base without downloading its blob", as
     const checkout = { root, gitDir: join(root, ".git"), repoId: "repo" };
 
     f.first.repo = createFakeRepoAdapter({
+      caseInsensitive: async () => false,
       checkoutAt: async () => checkout,
       ensureIgnored: async () => {},
     });

@@ -69,6 +69,7 @@ export async function syncFixture() {
     await atomicWrite(join(checkout.root, ".env"), "TOKEN=local-test-value\n");
 
     first.repo = createFakeRepoAdapter({
+      caseInsensitive: async () => false,
       checkoutAt: async () => checkout,
       envFiles: async () => [".env"],
       ensureIgnored: async () => {},
@@ -98,6 +99,7 @@ export async function syncFixture() {
     };
 
     second.repo = createFakeRepoAdapter({
+      caseInsensitive: async () => false,
       checkoutAt: async () => checkoutB,
       ensureIgnored: async () => {},
     });

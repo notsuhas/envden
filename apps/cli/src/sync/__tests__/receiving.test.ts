@@ -20,7 +20,15 @@ test("receiver filters unsafe env names and continues after placement failures",
 
     const repoId = f.checkout.repoId;
 
-    for (const path of [".env.bad", ".env.good", ".envrc", ".npmrc", "node_modules/.env"]) {
+    for (const path of [
+      ".env.bad",
+      ".env.good",
+      ".env.COLLISION",
+      ".env.collision",
+      ".envrc",
+      ".npmrc",
+      "node_modules/.env",
+    ]) {
       context.checkpoint.files.entries.push(
         await sealUpload(
           context,
@@ -37,8 +45,11 @@ test("receiver filters unsafe env names and continues after placement failures",
       if (path === ".env.bad") throw new EnvdenError("CONFLICT", "Refusing a tracked env file");
     };
 
+    f.second.repo.caseInsensitive = async () => true;
+
     const result = await reconcile(context, new Set([repoId]), { entries: [] }, new Set());
-    expect(result.conflicts).toBe(1);
+    expect(result.conflicts).toBe(2);
+    expect(result.failedStores.has(storePath(f.second.home, repoId, ".env.collision"))).toBe(true);
     expect(result.failedStores.has(storePath(f.second.home, repoId, ".env.bad"))).toBe(true);
     expect(await Bun.file(join(f.checkoutB.root, ".env.good")).exists()).toBe(true);
 

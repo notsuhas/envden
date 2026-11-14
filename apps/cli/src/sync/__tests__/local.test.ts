@@ -72,7 +72,11 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
     keychain: createMemoryKeychainAdapter([]),
   });
 
-  adapters.repo = createFakeRepoAdapter({ checkoutAt: async () => checkout });
+  adapters.repo = createFakeRepoAdapter({
+    caseInsensitive: async () => false,
+    checkoutAt: async () => checkout,
+  });
+
   const state = emptyState("test");
   state.approved.push(checkout);
   const options = { now: () => 1, fetcher: fetch, cwd: join(fixture, "nested") };
@@ -85,6 +89,7 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
   );
 
   adapters.repo = createFakeRepoAdapter({
+    caseInsensitive: async () => false,
     checkoutAt: async () => ({ ...checkout, repoId: "changed" }),
   });
 

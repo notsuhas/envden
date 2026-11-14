@@ -24,6 +24,7 @@ test("sync first-run", async () => {
     };
 
     third.repo = createFakeRepoAdapter({
+      caseInsensitive: async () => false,
       checkoutAt: async () => checkoutC,
       ensureIgnored: async () => {},
     });

@@ -12,6 +12,8 @@ export function createFakeRepoAdapter(
     checkoutAt: operations.checkoutAt?.bind(operations) ?? unexpected("repo.checkoutAt"),
     worktrees: operations.worktrees?.bind(operations) ?? unexpected("repo.worktrees"),
     envFiles,
+    caseInsensitive:
+      operations.caseInsensitive?.bind(operations) ?? unexpected("repo.caseInsensitive"),
     isIgnored: operations.isIgnored?.bind(operations) ?? unexpected("repo.isIgnored"),
     ensureIgnored: operations.ensureIgnored?.bind(operations) ?? unexpected("repo.ensureIgnored"),
   };

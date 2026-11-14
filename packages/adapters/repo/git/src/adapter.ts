@@ -1,3 +1,4 @@
+import { caseInsensitive } from "./checkout/case.ts";
 import { repoFailure } from "./failures/operation.ts";
 import type { IRepoAdapter } from "@envden/core/adapters";
 import { checkoutAt } from "./checkout/checkout.ts";
@@ -16,6 +17,7 @@ export function createGitRepoAdapter(
 ): IRepoAdapter {
   return {
     id: "git",
+    caseInsensitive: (root) => caseInsensitive(root).catch(repoFailure),
     checkoutAt: (path) =>
       checkoutAt(path, options.resolveSshHost ?? resolveSshHost).catch(repoFailure),
     worktrees: (checkout) => worktrees(checkout).catch(repoFailure),

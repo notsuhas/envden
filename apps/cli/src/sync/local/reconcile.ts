@@ -1,3 +1,4 @@
+import { collisionEntries } from "./validation/entries.ts";
 import { reconcileUnpublished } from "./unpublished.ts";
 import { acceptsEnvPath } from "@envden/core/adapters";
 import { readConfig } from "../../settings/config.ts";
@@ -25,17 +26,20 @@ export async function reconcile(
   let changed = 0;
   const failedStores = new Set<string>();
 
-  for (const entry of context.checkpoint.files.entries) {
+  const collisions = await collisionEntries(context, repos);
+
+  for (const entry of selectedEntries(context, repos, rules)) {
     const beforeConflicts = conflicts;
     const name = entryName(context, entry);
-    if (!repos.has(name.repoId)) continue;
+    const store = storePath(context.adapters.home, name.repoId, name.path);
 
-    if (!acceptsEnvPath(name.path, rules)) {
-      context.options.report?.(sanitizeTerminal(`Skipped env file: ${name.path}`));
+    if (collisions.has(entry)) {
+      failedStores.add(store);
+      conflicts++;
+      report(context, `Could not place env file: ${name.path}`);
       continue;
     }
 
-    const store = storePath(context.adapters.home, name.repoId, name.path);
     const targets = await reconciliationTargets(context, repos, name, store);
     if (!targets.length) continue;
     const server = await serverContent(context, entry, targets[0]!, store, applied);
@@ -59,11 +63,11 @@ export async function reconcile(
       } catch {
         failedStores.add(store);
         conflicts++;
-        context.options.report?.(sanitizeTerminal(`Could not place env file: ${target.path}`));
+        report(context, `Could not place env file: ${target.path}`);
       }
     }
 
-    if (targets.length && conflicts === beforeConflicts)
+    if (conflicts === beforeConflicts)
       applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
 
     await saveAppliedFiles(context.adapters.home, applied);
@@ -95,4 +99,23 @@ async function serverContent(
       : await entryContent(context, entry);
 
   return server;
+}
+
+function report(context: TSyncContext, message: string) {
+  context.options.report?.(sanitizeTerminal(message));
+}
+
+function selectedEntries(
+  context: TSyncContext,
+  repos: Set<string>,
+  rules: Parameters<typeof acceptsEnvPath>[1],
+) {
+  return context.checkpoint.files.entries.filter((entry) => {
+    const name = entryName(context, entry);
+    if (!repos.has(name.repoId)) return false;
+    if (acceptsEnvPath(name.path, rules)) return true;
+    report(context, `Skipped env file: ${name.path}`);
+
+    return false;
+  });
 }
