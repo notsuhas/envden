@@ -88,10 +88,16 @@ for (const modes of layouts)
                 expect(await readBytes(item.store)).toEqual(chosen.get(item.path));
           });
 
-        test("all choices stay resolved", async () => {
+        test("all choices push and pull without conflicts", async () => {
           await push(f.second, f.opts);
           expect((await pull(f.second, f.opts)).conflicts).toBe(0);
+        });
+
+        test("resolved choices do not change on pull", async () => {
           expect((await pull(f.second, f.opts)).changed).toBe(0);
+        });
+
+        test("observer receives chosen files", async () => {
           await pull(f.third, f.opts);
 
           for (const item of f.cases)
