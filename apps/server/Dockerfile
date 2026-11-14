@@ -15,4 +15,5 @@ RUN chmod 755 /usr/local/bin/entrypoint && mkdir -p /data /var/lib/tailscale /va
 USER 10001:10001
 ENV ENVDEN_PORT=4280
 VOLUME ["/data", "/var/lib/tailscale"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD wget -q -O /dev/null "http://127.0.0.1:${ENVDEN_PORT}/v1/hello?challenge=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" && tailscale status --json | grep -Eq '"BackendState"[[:space:]]*:[[:space:]]*"Running"'
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

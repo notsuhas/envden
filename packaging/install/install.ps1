@@ -10,10 +10,11 @@ if ($Platform) { Write-Output "windows-$arch"; return }
 $repo = 'notsuhas/envden'
 if ($repo.Contains('REPLACE')) { throw 'Maintainer must configure the release repository' }
 $version = $env:ENVDEN_VERSION
-if (!$version -or $version -eq 'latest') { $base = "https://github.com/$repo/releases/latest/download" }
-elseif ($version -match '^v[0-9]+\.[0-9]+\.[0-9]+$') { $base = "https://github.com/$repo/releases/download/$version" }
-else { throw 'Invalid ENVDEN_VERSION' }
-$bin = Join-Path $env:LOCALAPPDATA 'envden/bin'
+if (!$version -or $version -ceq 'latest') { $base = "https://github.com/$repo/releases/latest/download" }
+elseif ($version -cmatch '\Av(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z') { $base = "https://github.com/$repo/releases/download/$version" }
+else { throw 'Invalid ENVDEN_VERSION: expected latest or vX.Y.Z (stable, no leading zeros)' }
+$bin = $env:ENVDEN_INSTALL_DIR
+if (!$bin) { $bin = Join-Path $env:LOCALAPPDATA 'envden/bin' }
 $homeDir = $env:ENVDEN_HOME
 if (!$homeDir) { $homeDir = Join-Path $HOME '.envden' }
 $work = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
@@ -29,7 +30,7 @@ try {
   if ($lines.Count -ne 1) { throw 'Missing or duplicate checksum' }
   if ((Get-FileHash $download -Algorithm SHA256).Hash.ToLowerInvariant() -ne $lines[0].Substring(0,64)) { throw 'Checksum mismatch' }
   New-Item -ItemType Directory -Force -Path $bin,$homeDir | Out-Null
-  $staged = Join-Path $bin '.envden-install.exe'
+  $staged = Join-Path $bin ('.envden-install-' + [guid]::NewGuid().ToString() + '.exe')
   Copy-Item $download $staged -Force
   Move-Item $staged (Join-Path $bin 'envden.exe') -Force
   [IO.File]::WriteAllText((Join-Path $homeDir 'install-method'), "script")

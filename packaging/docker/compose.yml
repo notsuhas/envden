@@ -11,7 +11,7 @@ services:
       test:
         [
           CMD-SHELL,
-          'wget -q -O /dev/null "http://127.0.0.1:$${ENVDEN_PORT:-4280}/v1/hello?challenge=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" && tailscale status --json >/dev/null',
+          'wget -q -O /dev/null "http://127.0.0.1:$${ENVDEN_PORT:-4280}/v1/hello?challenge=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" && tailscale status --json | grep -Eq ''"BackendState"[[:space:]]*:[[:space:]]*"Running"''',
         ]
       interval: 30s
       timeout: 5s
@@ -19,7 +19,7 @@ services:
       retries: 3
     restart: unless-stopped
     environment:
-      TS_AUTHKEY: ${TS_AUTHKEY:?Set TS_AUTHKEY}
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
       TS_HOSTNAME: envden
     volumes:
       - envden-data:/data
