@@ -9,8 +9,8 @@ import type { ILocalState } from "../../state/model.ts";
 import { text } from "../../client/encoding.ts";
 import { readHistory } from "../history.ts";
 import { saveState } from "../../state/store/repository.ts";
-import { appliedFiles, saveAppliedFiles } from "../../sync/local/applied.ts";
-import { writeBytes } from "../../sync/local/files.ts";
+import { recordPushed } from "./record.ts";
+import { resumeInitialFiles } from "./resume.ts";
 
 async function attemptPushInitialFiles(
   adapters: TAdapters,
@@ -32,7 +32,11 @@ async function attemptPushInitialFiles(
   const history = await readHistory(client, vaultId);
   const previous = history.headers.at(-1)!;
 
-  if (previous.body.seq !== 1n) return;
+  if (previous.body.seq !== 1n) {
+    await resumeInitialFiles(adapters, now);
+
+    return;
+  }
 
   const key = await adapters.keychain.get(`envden/${adapters.home}/epoch/1`);
   const idKey = await adapters.keychain.get(`envden/${adapters.home}/id-key`);
@@ -77,17 +81,6 @@ async function attemptPushInitialFiles(
   await saveState(adapters.home, state);
 
   await recordPushed(adapters.home, files, bases);
-}
-
-// the pushed files are now this device's synced baseline, so nothing reads as changed
-async function recordPushed(home: string, files: p.IFiles, bases: Map<string, Uint8Array>) {
-  const applied = await appliedFiles(home);
-
-  for (const entry of files.entries)
-    applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
-
-  await saveAppliedFiles(home, applied);
-  for (const [path, bytes] of bases) await writeBytes(path, bytes);
 }
 
 export function pushInitialFiles(...args: Parameters<typeof attemptPushInitialFiles>) {

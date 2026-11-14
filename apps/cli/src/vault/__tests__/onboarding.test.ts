@@ -66,6 +66,23 @@ test("pairing stores only headers through its approved checkpoint", async () => 
   }
 });
 
+test("resumed setup records the committed file baseline", async () => {
+  const { rm } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const { appliedFiles } = await import("../../sync/local/applied.ts");
+  const { pushInitialFiles } = await import("../initial/push.ts");
+  const flow = await pairedFlow();
+
+  try {
+    await rm(join(flow.first.home, "state", "applied-files.json"));
+    const state = (await loadState(flow.first.home))!;
+    await pushInitialFiles(flow.first, state, flow.now);
+    expect(Object.keys(await appliedFiles(flow.first.home))).toHaveLength(1);
+  } finally {
+    await flow.cleanup();
+  }
+});
+
 test("pairing resends persisted messages and accepts its committed swap after interruption", async () => {
   const flow = await pairedFlow(undefined, true);
 
