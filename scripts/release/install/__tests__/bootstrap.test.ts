@@ -138,7 +138,7 @@ $env:PROCESSOR_ARCHITECTURE = [Runtime.InteropServices.RuntimeInformation]::OSAr
         "v1.2.3",
       ]) {
         const result = spawnTrusted(
-          join(process.env.PROGRAMFILES ?? "C:\Program Files", "PowerShell", "7", "pwsh.exe"),
+          join(process.env.PROGRAMFILES ?? "C:/Program Files", "PowerShell", "7", "pwsh.exe"),
           ["-NoProfile", "-File", harness],
           {
             sync: true,
