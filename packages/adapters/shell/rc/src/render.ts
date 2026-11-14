@@ -1,3 +1,4 @@
+import { renderPhysical } from "./render/physical.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { isAbsolute, join } from "node:path";
 import { start, end } from "./markers.ts";
@@ -24,20 +25,20 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   local root approved=0 cache=${quote(join(state, "notice"))} now modified
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*) approved=1; break ;; esac
+    if _envden_inside "$root" "$physical"; then approved=1; break; fi
   done 2>/dev/null < ${quote(join(state, "approved-checkouts"))}
   local offered=${quote(join(state, "track-offered"))} root_seen=0 day line
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*)
+    if _envden_inside "$root" "$physical"; then
       root_seen=0
       while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
       fi
-      break ;;
-    esac
+      break
+    fi
   done 2>/dev/null < ${quote(join(state, "track-offers"))}
   day=$(date +%Y-%m-%d)
   while IFS= read -r line; do
@@ -73,8 +74,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   set -l approved 0
   if test -f ${quote(join(state, "approved-checkouts"))}
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
-      if test -n "$root"; and test "$prefix" = "$root/"
+      if test -n "$root"; and _envden_inside "$root" "$physical"
         set approved 1
         break
       end
@@ -83,8 +83,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   set -l offered ${quote(join(state, "track-offered"))}
   if test -f ${quote(join(state, "track-offers"))}
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
-      if test -n "$root"; and test "$prefix" = "$root/"
+      if test -n "$root"; and _envden_inside "$root" "$physical"
         if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
           printf '%s\\n' 'envden: env files found; run envden track'
           printf '%s\\n' "$root" >> "$offered"
@@ -122,9 +121,10 @@ _envden_notice`;
     case "powershell":
       body = `if (!$global:EnvdenPreviousPrompt) { $global:EnvdenPreviousPrompt = $function:prompt }
 function global:prompt {
-  $physical = (Get-Location).ProviderPath
+  $physical = _envden_physical_path ((Get-Location).ProviderPath)
+  $insensitive = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts-insensitive"))} -ErrorAction SilentlyContinue)
   $cache = ${psQuote(join(state, "notice"))}
-  $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
+  $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($insensitive -ccontains $_) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
   $changed = $global:EnvdenLastDirectory -cne $PWD.Path
   $global:EnvdenLastDirectory = $PWD.Path
   if ($changed) {
@@ -164,5 +164,5 @@ function global:prompt {
       break;
   }
 
-  return `${start}\n${body}\n${end}\n`;
+  return `${start}\n${renderPhysical(shell)}\n${body}\n${end}\n`;
 }

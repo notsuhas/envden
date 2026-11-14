@@ -25,6 +25,6 @@ export async function untrack(adapters: TAdapters, path: string) {
     state.links = state.links.filter((item) => item.root !== root);
     state.approved = state.approved.filter((item) => item.root !== root);
     await saveState(adapters.home, state);
-    await refreshNotice(adapters.home, state);
+    await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
   });
 }

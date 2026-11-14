@@ -17,7 +17,7 @@ export function createGitRepoAdapter(
 ): IRepoAdapter {
   return {
     id: "git",
-    caseInsensitive: (root) => caseInsensitive(root).catch(repoFailure),
+    caseInsensitive: (root, readOnly) => caseInsensitive(root, readOnly).catch(repoFailure),
     checkoutAt: (path) =>
       checkoutAt(path, options.resolveSshHost ?? resolveSshHost).catch(repoFailure),
     worktrees: (checkout) => worktrees(checkout).catch(repoFailure),

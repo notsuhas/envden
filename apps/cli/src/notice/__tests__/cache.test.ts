@@ -17,9 +17,28 @@ test("notice lists approved changed repos without reading values into output", a
     await atomicWrite(store, "SECRET=never-print\n");
     state.links.push({ root: "/repo", path: ".env", store, mode: "link" });
     expect(await noticeStatus(home, state)).toHaveLength(1);
-    await refreshNotice(home, state);
+    await refreshNotice(home, state, async () => true);
+
+    expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
+      "/repo\n",
+    );
+
     expect(await cachedNotice(home)).toBe("envden: github.com/test/repo out of sync\n");
     expect(await readFile(join(home, "state", "approved-checkouts"), "utf8")).toBe("/repo\n");
+    await refreshNotice(home, state, async () => false);
+
+    expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
+      "\n",
+    );
+
+    await refreshNotice(home, state, async () => {
+      throw new Error("Unavailable root");
+    });
+
+    expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
+      "\n",
+    );
+
     state.links[0]!.localOnly = true;
     expect(await noticeStatus(home, state)).toEqual([]);
   } finally {

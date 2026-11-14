@@ -17,7 +17,7 @@ export interface IEnvFileRules {
 
 export interface IRepoAdapter {
   readonly id: string;
-  caseInsensitive(root: string): Promise<boolean>;
+  caseInsensitive(root: string, readOnly?: boolean): Promise<boolean>;
   checkoutAt(path: string): Promise<ICheckout | undefined>;
   worktrees(checkout: ICheckout): Promise<string[]>;
   envFiles(checkout: ICheckout, options?: IEnvFileRules): Promise<string[]>;

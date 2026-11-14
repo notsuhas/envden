@@ -2,6 +2,16 @@
 
 exports[`zsh hook snapshot 1`] = `
 "# >>> envden >>>
+_envden_inside() {
+  local directory="$2"
+  while [ -n "$directory" ]; do
+    [ "$directory" -ef "$1" ] && return 0
+    [ "$directory" != / ] || break
+    directory="\${directory%/*}"
+    [ -n "$directory" ] || directory=/
+  done
+  return 1
+}
 _envden_notice() {
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
   _envden_last_pwd="$PWD"
@@ -9,20 +19,20 @@ _envden_notice() {
   local root approved=0 cache='/home/test/.envden/state/notice' now modified
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*) approved=1; break ;; esac
+    if _envden_inside "$root" "$physical"; then approved=1; break; fi
   done 2>/dev/null < '/home/test/.envden/state/approved-checkouts'
   local offered='/home/test/.envden/state/track-offered' root_seen=0 day line
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*)
+    if _envden_inside "$root" "$physical"; then
       root_seen=0
       while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
       fi
-      break ;;
-    esac
+      break
+    fi
   done 2>/dev/null < '/home/test/.envden/state/track-offers'
   day=$(date +%Y-%m-%d)
   while IFS= read -r line; do
@@ -52,6 +62,16 @@ _envden_notice
 
 exports[`bash hook snapshot 1`] = `
 "# >>> envden >>>
+_envden_inside() {
+  local directory="$2"
+  while [ -n "$directory" ]; do
+    [ "$directory" -ef "$1" ] && return 0
+    [ "$directory" != / ] || break
+    directory="\${directory%/*}"
+    [ -n "$directory" ] || directory=/
+  done
+  return 1
+}
 _envden_notice() {
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
   _envden_last_pwd="$PWD"
@@ -59,20 +79,20 @@ _envden_notice() {
   local root approved=0 cache='/home/test/.envden/state/notice' now modified
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*) approved=1; break ;; esac
+    if _envden_inside "$root" "$physical"; then approved=1; break; fi
   done 2>/dev/null < '/home/test/.envden/state/approved-checkouts'
   local offered='/home/test/.envden/state/track-offered' root_seen=0 day line
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$physical/" in "$root/"*)
+    if _envden_inside "$root" "$physical"; then
       root_seen=0
       while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
       fi
-      break ;;
-    esac
+      break
+    fi
   done 2>/dev/null < '/home/test/.envden/state/track-offers'
   day=$(date +%Y-%m-%d)
   while IFS= read -r line; do
@@ -100,14 +120,26 @@ _envden_notice
 
 exports[`fish hook snapshot 1`] = `
 "# >>> envden >>>
+function _envden_inside
+  set -l directory $argv[2]
+  while test -n "$directory"
+    if test "$directory" -ef "$argv[1]"
+      return 0
+    end
+    if test "$directory" = /
+      break
+    end
+    set directory (path dirname -- "$directory")
+  end
+  return 1
+end
 function _envden_notice --on-variable PWD
   set -l cache '/home/test/.envden/state/notice'
   set -l physical (pwd -P)
   set -l approved 0
   if test -f '/home/test/.envden/state/approved-checkouts'
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
-      if test -n "$root"; and test "$prefix" = "$root/"
+      if test -n "$root"; and _envden_inside "$root" "$physical"
         set approved 1
         break
       end
@@ -116,8 +148,7 @@ function _envden_notice --on-variable PWD
   set -l offered '/home/test/.envden/state/track-offered'
   if test -f '/home/test/.envden/state/track-offers'
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
-      if test -n "$root"; and test "$prefix" = "$root/"
+      if test -n "$root"; and _envden_inside "$root" "$physical"
         if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
           printf '%s\\n' 'envden: env files found; run envden track'
           printf '%s\\n' "$root" >> "$offered"
@@ -156,11 +187,25 @@ _envden_notice
 
 exports[`powershell hook snapshot 1`] = `
 "# >>> envden >>>
+function _envden_physical_path([string]$path) {
+  if (!$path) { return '' }
+  $directory = Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+  if (!$directory) { return '' }
+  if ($directory.LinkType) {
+    try { $target = $directory.ResolveLinkTarget($true) } catch { return '' }
+    if ($target) { return _envden_physical_path $target.FullName }
+  }
+  if (!$directory.Parent) { return $directory.FullName }
+  $parent = _envden_physical_path $directory.Parent.FullName
+  if (!$parent) { return '' }
+  return [IO.Path]::Combine($parent, $directory.Name)
+}
 if (!$global:EnvdenPreviousPrompt) { $global:EnvdenPreviousPrompt = $function:prompt }
 function global:prompt {
-  $physical = (Get-Location).ProviderPath
+  $physical = _envden_physical_path ((Get-Location).ProviderPath)
+  $insensitive = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts-insensitive' -ErrorAction SilentlyContinue)
   $cache = '/home/test/.envden/state/notice'
-  $approved = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts' -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
+  $approved = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts' -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($insensitive -ccontains $_) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
   $changed = $global:EnvdenLastDirectory -cne $PWD.Path
   $global:EnvdenLastDirectory = $PWD.Path
   if ($changed) {

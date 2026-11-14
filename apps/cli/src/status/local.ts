@@ -41,7 +41,8 @@ export async function localStatus(
     server = "unknown";
   }
 
-  if (refresh) await refreshNotice(adapters.home, state);
+  if (refresh)
+    await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
 
   return {
     configured: true,

@@ -78,7 +78,10 @@ async function sync(
 
         try {
           await settleRemoteNotice(context);
-          await refreshNotice(adapters.home, context.state);
+
+          await refreshNotice(adapters.home, context.state, (root) =>
+            adapters.repo.caseInsensitive(root, true),
+          );
         } catch {
           options.report?.("Notice refresh failed; sync completed");
         }

@@ -48,7 +48,7 @@ async function lockedrunSetup(
 
   await setupCheckouts(adapters, state, { ...options, now });
   await pushInitialFiles(adapters, state, now);
-  await refreshNotice(adapters.home, state);
+  await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
 }
 
 async function createState(

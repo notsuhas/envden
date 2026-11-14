@@ -87,6 +87,18 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
         expect((await run(checkout)).match(/out of sync/g)).toHaveLength(1);
         expect(await run(sibling)).toBe("");
         expect((await run(alias)).match(/out of sync/g)).toHaveLength(1);
+        const spelling = checkout.slice(0, -4) + "REPO";
+
+        if (
+          await import("node:fs/promises").then((fs) =>
+            fs.access(spelling).then(
+              () => true,
+              () => false,
+            ),
+          )
+        )
+          expect((await run(spelling)).match(/out of sync/g)).toHaveLength(1);
+
         expect(Bun.file(join(home, "result")).size).toBe(0);
         await utimes(join(state, "notice"), new Date(0), new Date(0));
         await execTrusted("mkfifo", [join(home, "result")]);

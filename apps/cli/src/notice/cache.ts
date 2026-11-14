@@ -27,12 +27,28 @@ export async function noticeStatus(home: string, state: ILocalState) {
   return [...repos].map((repoId) => ({ repoId, status: "local changes" }));
 }
 
-async function lockedrefreshNotice(home: string, state: ILocalState): Promise<void> {
+async function lockedrefreshNotice(
+  home: string,
+  state: ILocalState,
+  caseInsensitive: (root: string) => Promise<boolean>,
+): Promise<void> {
   const roots = state.approved
     .map((item) => item.root)
     .filter((root) => sanitizeTerminal(root) === root && !/[\r\n]/.test(root));
 
   await atomicWrite(join(home, "state", "approved-checkouts"), roots.join("\n") + "\n");
+
+  const insensitive = await Promise.all(
+    roots.map(async (root) =>
+      (await caseInsensitive(root).catch(() => false)) ? root : undefined,
+    ),
+  );
+
+  await atomicWrite(
+    join(home, "state", "approved-checkouts-insensitive"),
+    insensitive.filter((root) => root !== undefined).join("\n") + "\n",
+  );
+
   const local = await noticeStatus(home, state);
   const remote = await readRemoteNotice(home);
   const repos = [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])];

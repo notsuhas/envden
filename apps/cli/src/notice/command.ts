@@ -29,7 +29,7 @@ async function lockedcommandNotice(
   if (!refresh) await reportPendingJoins(adapters.home);
   const remote = await readRemoteNotice(adapters.home);
 
-  await refreshNotice(adapters.home, state);
+  await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
   const update = await updateStatus(adapters.home);
   await cacheOffers(adapters, state, cwd, update, now);
   const local = await noticeStatus(adapters.home, state);
