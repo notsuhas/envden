@@ -1,4 +1,3 @@
-import { requireNativePlacement } from "../native/required.ts";
 import { backupContents } from "../backups/write.ts";
 import { libc } from "../native/libc.ts";
 import { placeNative } from "../native/place.ts";
@@ -24,8 +23,6 @@ export async function place(
   runtime = { platform: process.platform, libc },
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
-
-  requireNativePlacement(runtime.platform, runtime.libc);
 
   if (runtime.libc) {
     placeNative(mode, root, path, storePath, undefined, backupDirectory);

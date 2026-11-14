@@ -79,7 +79,7 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
 
   await rejects(
     place("copy", checkout, store, destination, undefined, { ...fallback, platform: "darwin" }),
-    /Native placement/,
+    /Backup directory/,
   );
 });
 

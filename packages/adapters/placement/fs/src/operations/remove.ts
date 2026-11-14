@@ -2,7 +2,6 @@ import { EnvdenError } from "@envden/core/errors";
 import { unlink } from "node:fs/promises";
 import { libc } from "../native/libc.ts";
 import { removeNative } from "../native/remove.ts";
-import { requireNativePlacement } from "../native/required.ts";
 import { checkoutRelative } from "../paths/checkout-relative.ts";
 import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
 import { isStoreLink } from "./link.ts";
@@ -15,7 +14,6 @@ export async function remove(
   runtime = { platform: process.platform, libc },
 ) {
   const path = checkoutRelative(root, checkoutPath);
-  requireNativePlacement(runtime.platform, runtime.libc);
 
   if (runtime.libc) {
     // Missing parents need no creation; unsafe existing parents must still fail.

@@ -1,3 +1,4 @@
+import { statSymbol } from "./stat.ts";
 import { constants } from "node:fs";
 import { EnvdenError } from "@envden/core/errors";
 
@@ -40,7 +41,7 @@ export function loadLibc(bind = bindLibc) {
     try {
       return bind(path);
     } catch {
-      // Try the next libc candidate; callers reject missing native support.
+      // Try the next libc candidate; callers retain the non-native fallback.
     }
   }
 
@@ -53,9 +54,12 @@ function bindLibc(path: string) {
   const statName =
     process.platform === "darwin" && process.arch === "x64" ? "fstatat$INODE64" : "fstatat";
 
-  const statLibrary = ffi!.dlopen(path, {
-    [statName]: { args: ["i32", "ptr", "ptr", "i32"], returns: "i32" },
-  });
+  const stat = bindStat(path, statName);
+
+  if (!stat) {
+    library.close();
+    throw new EnvdenError("NOT_IMPLEMENTED", "Native stat symbols are unavailable");
+  }
 
   const errorName = process.platform === "darwin" ? "__error" : "__errno_location";
   const errorLibrary = ffi!.dlopen(path, { [errorName]: { args: [], returns: "ptr" } });
@@ -63,10 +67,43 @@ function bindLibc(path: string) {
 
   return {
     symbols: library.symbols,
-    fstatat: statLibrary.symbols[statName]!,
-    handles: [library, statLibrary, errorLibrary],
+    fstatat: stat.call,
+    handles: [library, stat.library, errorLibrary],
     errno: () => new Int32Array(ffi!.toArrayBuffer(errno!()!, 0, 4))[0],
   };
+}
+
+function bindStat(path: string, preferred: string) {
+  for (const name of [preferred, "__fxstatat"]) {
+    const choice = statSymbol([name], process.platform, process.arch);
+    if (!choice) continue;
+
+    try {
+      const library = ffi!.dlopen(path, {
+        [name]: {
+          args:
+            choice.version === undefined
+              ? ["i32", "ptr", "ptr", "i32"]
+              : ["i32", "i32", "ptr", "ptr", "i32"],
+          returns: "i32",
+        },
+      });
+
+      const symbol = library.symbols[name]!;
+
+      return {
+        library,
+        call: (fd: number, path: Buffer, buffer: Buffer, flags: number) =>
+          choice.version === undefined
+            ? symbol(fd, path, buffer, flags)
+            : symbol(choice.version, fd, path, buffer, flags),
+      };
+    } catch {
+      // Older glibc exposes only the versioned entry point.
+    }
+  }
+
+  return undefined;
 }
 
 export const libc = loadLibc();

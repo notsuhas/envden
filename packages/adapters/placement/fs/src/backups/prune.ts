@@ -2,7 +2,6 @@ import { closeSync } from "node:fs";
 import { readdir, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import { requireNativePlacement } from "../native/required.ts";
 import { libc } from "../native/libc.ts";
 import { openParent } from "../native/directory.ts";
 import { statOrMissing } from "../operations/stat.ts";
@@ -18,7 +17,6 @@ export async function pruneBackups(dir: string, now: number, maxAgeDays = 30): P
   if (!directory.isDirectory() || directory.isSymbolicLink())
     throw new EnvdenError("INVALID_INPUT", "Unsafe backup directory");
 
-  requireNativePlacement(process.platform, libc);
   const cutoff = now - maxAgeDays * 86400000;
   const fd = libc ? openParent(dir, ".entry", false) : undefined;
 
