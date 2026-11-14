@@ -15,6 +15,12 @@ test("file keys remain authoritative and existing OS keys never fall back", asyn
     const adapter = createOsKeychainAdapter({ home });
     expect(await adapter.get("file")).toEqual(new Uint8Array([2]));
     expect(get).not.toHaveBeenCalled();
+    await adapter.delete("file");
+    const reopened = createOsKeychainAdapter({ home });
+    expect(await reopened.get("file")).toBeUndefined();
+    await reopened.set("file", new Uint8Array([5]));
+    expect(await reopened.get("file")).toEqual(new Uint8Array([5]));
+    expect(get).not.toHaveBeenCalled();
     await rejects(adapter.set("os", new Uint8Array([3])));
     get.mockRejectedValue(new Error("locked"));
     await rejects(adapter.get("os"));

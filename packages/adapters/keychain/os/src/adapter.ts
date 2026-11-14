@@ -1,7 +1,7 @@
 import { keychainFailure } from "./failures/operation.ts";
 import { EnvdenError } from "@envden/core/errors";
-import { mkdir, readFile, rename, rm, open } from "node:fs/promises";
-import { restrictAccess } from "./permissions/private.ts";
+import { readFile } from "node:fs/promises";
+import { hasFileSource, writeKeyFile, removeKeyFile } from "./files/source.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { IKeychainAdapter } from "@envden/core/adapters";
@@ -85,13 +85,15 @@ class OsKeychainAdapter implements IKeychainAdapter {
       return undefined;
     }
 
+    if (await hasFileSource(this.path(name))) return undefined;
+
     const value = await Bun.secrets.get(this.options(name));
 
     return value === null ? undefined : new Uint8Array(Buffer.from(value, "base64"));
   }
 
   async set(name: string, value: Uint8Array) {
-    if (!this.fileOnly && (await this.fileValue(name)) === undefined) {
+    if (!(await this.fileBacked(name))) {
       const existing = await Bun.secrets.get(this.options(name));
 
       try {
@@ -108,39 +110,19 @@ class OsKeychainAdapter implements IKeychainAdapter {
       }
     }
 
-    await mkdir(this.directory, { recursive: true, mode: 0o700 });
-    await restrictAccess(this.directory, true);
-    const temporary = join(this.directory, `${crypto.randomUUID()}.tmp`);
+    await writeKeyFile(this.path(name), value);
+  }
 
-    try {
-      const file = await open(temporary, "wx", 0o600);
-
-      try {
-        await file.writeFile(value);
-        await file.sync();
-      } finally {
-        await file.close();
-      }
-
-      await restrictAccess(temporary);
-      await rename(temporary, this.path(name));
-
-      if (process.platform !== "win32") {
-        const directory = await open(this.directory, "r");
-
-        try {
-          await directory.sync();
-        } finally {
-          await directory.close();
-        }
-      }
-    } finally {
-      await rm(temporary, { force: true });
-    }
+  private async fileBacked(name: string) {
+    return (
+      this.fileOnly ||
+      (await hasFileSource(this.path(name))) ||
+      (await this.fileValue(name)) !== undefined
+    );
   }
 
   async delete(name: string) {
-    if (!this.fileOnly && (await this.fileValue(name)) === undefined) {
+    if (!(await this.fileBacked(name))) {
       try {
         await Bun.secrets.delete(this.options(name));
       } catch {
@@ -149,9 +131,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
           "Keychain unavailable; key deletion could not be confirmed",
         );
       }
-    }
-
-    await rm(this.path(name), { force: true });
+    } else await removeKeyFile(this.path(name));
   }
 }
 
