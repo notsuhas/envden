@@ -34,7 +34,7 @@ for (const refund of [false, true])
     }
   });
 
-for (const material of ["files"] as const)
+for (const material of ["files", "keyring"] as const)
   test(`swap quota includes ${material} and rolls back the head`, () => {
     const dir = temp();
     const storage = createSqliteStorageAdapter(dir, 0);
@@ -56,7 +56,10 @@ for (const material of ["files"] as const)
             vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
             ...(material === "files"
               ? { files: { hash, bytes: hash, versions: [] } }
-              : { state: [{ kind: "keyring", key: hash, bytes: hash }] }),
+              : {
+                  files: { hash, bytes: new Uint8Array(), versions: [] },
+                  state: [{ kind: "keyring", key: hash, bytes: hash }],
+                }),
           },
           0,
         ),

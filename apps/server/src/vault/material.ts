@@ -1,3 +1,4 @@
+import { EnvdenError } from "@envden/core/errors";
 import { storedVersions } from "./versions.ts";
 import type { IStoredSwap } from "@envden/core/adapters";
 import {
@@ -12,6 +13,12 @@ import {
 
 export function storedSwap(swap: ISwap, digest: Uint8Array): IStoredSwap {
   const h = swap.header.body;
+  // PROTOCOL sections 2 and 4: box overhead, keyring fields, then one 36-byte key per prior epoch.
+  const keyringLimit = 1 + 24 + 16 + 2 + 32 + 4 + 32 + 4 + 36 * (h.epoch - 1);
+
+  if (swap.keyring && swap.keyring.length > keyringLimit)
+    throw new EnvdenError("INVALID_DATA", "Keyring exceeds epoch history size");
+
   const state: NonNullable<IStoredSwap["state"]> = [];
   if (swap.keyring) state.push({ kind: "keyring", key: h.keyringHash, bytes: swap.keyring });
   if (swap.envelope) state.push({ kind: "envelope", key: new Uint8Array(), bytes: swap.envelope });
