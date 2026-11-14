@@ -45,7 +45,12 @@ export function createProgram() {
     const state = await loadState(createAdapters().home).catch(() => undefined);
     setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);
     if (command.name() !== "status" || !command.opts().refreshCache) active = command;
-    if (["status", "version", "config", "help", "update"].includes(command.name())) return;
+
+    if (
+      command.opts().json ||
+      ["status", "version", "config", "help", "update"].includes(command.name())
+    )
+      return;
 
     try {
       const notice = await commandNotice(createAdapters(), Date.now(), fetch, false, process.cwd());

@@ -1,3 +1,4 @@
+import { basePath } from "./files.ts";
 import * as p from "@envden/core/protocol";
 import { text } from "../../client/encoding.ts";
 import { join } from "node:path";
@@ -25,7 +26,8 @@ export async function hasAppliedEntry(
   );
 }
 
-export async function markAppliedEntry(home: string, encoded: string) {
+export async function markAppliedEntry(home: string, encoded: string, store?: string) {
+  if (store) await atomicWrite(basePath(home, store) + ".entry", encoded);
   const entry = p.decode(p.FileEntryCodec, new Uint8Array(Buffer.from(encoded, "base64url")));
   const applied = await appliedFiles(home);
   applied[p.base32(entry.fileId)] = encoded;

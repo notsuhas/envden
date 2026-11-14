@@ -1,3 +1,4 @@
+import { heldBackFiles } from "../../sync/local/lineage/held-back.ts";
 import { sanitizeTerminal, terminalJson } from "../../output/sanitize.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
@@ -19,7 +20,8 @@ export const statusCommand = new Command("status")
       !options.refreshCache,
     );
 
-    const status = { ...notice, ...(await localStatus(adapters)) };
+    const heldBack = await heldBackFiles(adapters);
+    const status = { ...notice, ...(await localStatus(adapters)), heldBack };
 
     if (!options.refreshCache)
       console.log(
@@ -28,6 +30,7 @@ export const statusCommand = new Command("status")
           : status.configured
             ? [
                 `envden: server ${status.server}`,
+                ...heldBack.map((item) => `envden: held back ${item.path}: ${item.reason}`),
                 ...status.links
                   .filter(
                     (link) => link.status === "detached" || ("conflict" in link && link.conflict),

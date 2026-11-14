@@ -7,6 +7,7 @@ import { conflictRecords } from "../../sync/local/conflicts.ts";
 import { resolveConflict } from "../../sync/resolve.ts";
 
 export const resolveCommand = new Command("resolve")
+  .option("--json", "Print the result as JSON")
   .argument("[file]")
   .option("--list", "List unresolved conflicts")
   .option("--repo <path>", "Select a checkout")

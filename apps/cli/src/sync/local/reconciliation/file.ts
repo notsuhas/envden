@@ -61,7 +61,7 @@ export async function reconcileFile(
     return { changed: Number(snapshot.restored), conflicts: 1 };
   }
 
-  return applyFile(context, snapshot, store, resolution.next);
+  return applyFile(context, snapshot, store, resolution.next, entry);
 }
 
 async function resolveFileState(
@@ -109,6 +109,7 @@ async function applyFile(
   snapshot: Awaited<ReturnType<typeof readFileState>>,
   store: string,
   next: Uint8Array | undefined,
+  entry: p.IFileEntry | undefined,
 ) {
   const { stored, server, snapshots } = snapshot;
 
@@ -123,6 +124,7 @@ async function applyFile(
     store,
     next,
     server,
+    entry ? text(p.FileEntryCodec.write(entry)) : null,
   );
 
   return { changed, conflicts: 0 };
@@ -147,13 +149,19 @@ function decideFile(
     server,
     repair,
     detached,
-    choosing,
+    choosing: choosing || snapshot.deletionInvalid,
     applied: !!entry && snapshot.encoded === text(p.FileEntryCodec.write(entry)),
     tombstone: entry?.state === 2 || entry?.state === 4,
     deleting: snapshot.deleting,
   });
 
-  return { local, mine, action, repair, detached };
+  return {
+    local,
+    mine,
+    action: snapshot.deletionInvalid ? { kind: "conflict" as const } : action,
+    repair,
+    detached,
+  };
 }
 
 function conflictTheirs(

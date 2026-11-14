@@ -5,7 +5,11 @@ import type { ISyncOptions } from "./model.ts";
 import { login } from "../session/login.ts";
 import { consent, secret } from "../output/questions.ts";
 
-export function syncOptions(options: { all?: boolean; yes?: boolean }): ISyncOptions {
+export function syncOptions(options: {
+  all?: boolean;
+  yes?: boolean;
+  json?: boolean;
+}): ISyncOptions {
   return {
     ...options,
     cwd: process.cwd(),
@@ -30,6 +34,8 @@ export function syncOptions(options: { all?: boolean; yes?: boolean }): ISyncOpt
 
       return choice;
     },
-    report: (message) => console.log(sanitizeTerminal(message)),
+    report: (message) => {
+      if (!options.json) console.log(sanitizeTerminal(message));
+    },
   };
 }

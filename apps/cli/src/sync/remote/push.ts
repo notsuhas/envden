@@ -1,8 +1,12 @@
+import { atomicWrite } from "../../state/store/files.ts";
+import { entryName } from "./content.ts";
+import { storePath } from "../../store/path.ts";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { requestDeletion } from "../local/reconciliation/operation/deletion.ts";
 import { saveBase } from "../local/reconciliation/history.ts";
 import { saveAttempt } from "./attempt/record.ts";
+import { reportBlocked } from "./attempt/notices.ts";
 import { blockedStores } from "./attempt/blocked.ts";
 import { uploadLink } from "./upload.ts";
 import { appliedFiles, saveAppliedFiles } from "../local/applied.ts";
@@ -21,6 +25,7 @@ export async function uploadChanges(
   const seen = new Map<string, Uint8Array | undefined>();
 
   const blocked = await blockedStores(context, failedStores);
+  await reportBlocked(context, blocked);
 
   for (const link of context.state.links) {
     if (!blocked.has(link.store)) await uploadLink(context, repos, link, files, changed, seen);
@@ -61,6 +66,7 @@ export async function uploadChanges(
   await saveAttempt(
     context,
     files.entries.filter((entry) => seen.has(p.base32(entry.fileId))),
+    header,
   );
 
   await context.client.rpc.v1.swap.$post(
@@ -73,8 +79,17 @@ export async function uploadChanges(
   const applied = await appliedFiles(context.adapters.home);
 
   for (const entry of files.entries) {
-    if (seen.has(p.base32(entry.fileId)))
-      applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
+    if (seen.has(p.base32(entry.fileId))) {
+      const encoded = text(p.FileEntryCodec.write(entry));
+      applied[p.base32(entry.fileId)] = encoded;
+      const name = entryName(context, entry);
+
+      await atomicWrite(
+        basePath(context.adapters.home, storePath(context.adapters.home, name.repoId, name.path)) +
+          ".entry",
+        encoded,
+      );
+    }
   }
 
   for (const item of changed.values()) await saveBase(item.base, item.bytes, context.options.now());

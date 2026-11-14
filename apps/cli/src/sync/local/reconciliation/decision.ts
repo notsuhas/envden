@@ -1,3 +1,5 @@
+import { derivePlaceVersion } from "../lineage/versions.ts";
+import { contentHash } from "./operation/guards.ts";
 import { same } from "../files.ts";
 
 interface IContent {
@@ -30,7 +32,7 @@ export function deriveContentAction(input: IContent) {
   if (
     (linked || mine !== undefined) &&
     !same(server, previous) &&
-    !same(mine, previous) &&
+    derivePlaceVersion(contentHash(mine), contentHash(previous), true) === "edited" &&
     !same(mine, server)
   )
     return { kind: "choose" } as const;

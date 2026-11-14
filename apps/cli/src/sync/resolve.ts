@@ -38,17 +38,27 @@ export function resolveConflict(
     const bytes = await resolutionBytes(options.choice, record, server);
 
     const preserved: string[] = [];
+    const backups: { source: string; path: string }[] = [];
 
     for (const path of [record.mine, record.server, record.remote, ...record.alternatives]) {
       const saved = await backup(adapters.home, path, now);
-      if (saved) preserved.push(saved);
+
+      if (saved) {
+        preserved.push(saved);
+        backups.push({ source: path, path: saved });
+      }
     }
 
     const storeBackup = await backup(adapters.home, record.store, now);
-    if (storeBackup) preserved.push(storeBackup);
+
+    if (storeBackup) {
+      preserved.push(storeBackup);
+      backups.push({ source: record.store, path: storeBackup });
+    }
 
     await recordDeletion(adapters.home, record, bytes);
 
+    await rm(basePath(adapters.home, record.store) + ".pending", { force: true });
     await writeBytes(record.store, bytes);
 
     const placementReports = await placeResolution(
@@ -79,6 +89,7 @@ export function resolveConflict(
       preserved,
       placementReports,
       backups: join(adapters.home, "conflicts", "backups"),
+      savedBackups: backups,
     };
   });
 }
@@ -140,7 +151,7 @@ async function placeResolution(
 
   if (record.entry) {
     await saveBase(record.base, server, now);
-    await markAppliedEntry(adapters.home, record.entry);
+    await markAppliedEntry(adapters.home, record.entry, record.store);
   }
 
   return reports;
@@ -189,8 +200,12 @@ async function recordDeletion(
   record: Awaited<ReturnType<typeof conflictRecords>>[number],
   bytes: Uint8Array | undefined,
 ) {
-  if (bytes === undefined && (record.deleted || record.mineDeleted))
-    await requestDeletion(home, record.store, true);
+  await requestDeletion(
+    home,
+    record.store,
+    bytes === undefined && (record.deleted || record.mineDeleted),
+    record.entry ?? undefined,
+  );
 }
 
 function requireContent(bytes: Uint8Array | undefined) {

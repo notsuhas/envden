@@ -3,7 +3,7 @@ import { same } from "../files.ts";
 
 type TBytes = Uint8Array | undefined;
 
-export function deriveFileContent(
+function deriveFileContent(
   store: TBytes,
   copies: {
     bytes: TBytes;

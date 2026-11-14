@@ -6,6 +6,7 @@ import { pull } from "../../sync/engine.ts";
 import { syncOptions } from "../../sync/command.ts";
 
 export const pullCommand = new Command("pull")
+  .option("--json", "Print the result as JSON")
   .option("--all", "Sync all repos")
   .option("--yes", "Confirm clean changes")
   .action(async (options) => {

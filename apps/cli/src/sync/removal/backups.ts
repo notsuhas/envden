@@ -9,8 +9,9 @@ export async function preserveRemoval(
   targets: ILocalState["links"],
   records: IConflictRecord[],
   now: number,
+  report?: (message: string) => void,
 ) {
-  const preserved: string[] = [];
+  const preserved: { source: string; path: string }[] = [];
 
   const paths = [
     store,
@@ -29,7 +30,11 @@ export async function preserveRemoval(
 
   for (const source of paths) {
     const saved = await backup(adapters.home, source, now);
-    if (saved) preserved.push(saved);
+
+    if (saved) {
+      preserved.push({ source, path: saved });
+      report?.(`Saved ${source}: ${saved}`);
+    }
   }
 
   return preserved;

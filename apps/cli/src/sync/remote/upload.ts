@@ -43,7 +43,11 @@ export async function uploadLink(
 
   const previous = context.checkpoint.files.entries.find((item) => p.equal(item.fileId, fileId));
 
-  if (bytes === undefined && !(await deletionRequested(context.adapters.home, link.store))) return;
+  if (
+    bytes === undefined &&
+    (!previous || !(await deletionRequested(context.adapters.home, link.store)))
+  )
+    return;
 
   const baseline = await uploadBaseline(context, previous);
 

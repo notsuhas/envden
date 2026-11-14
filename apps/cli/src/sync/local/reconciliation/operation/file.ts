@@ -1,3 +1,6 @@
+import * as p from "@envden/core/protocol";
+import { markAppliedEntry } from "../../applied.ts";
+import { text } from "../../../../client/encoding.ts";
 import { deletionRequested } from "./deletion.ts";
 import { canResume, contentHash, operationHashes } from "./guards.ts";
 import { sanitizeTerminal } from "../../../../output/sanitize.ts";
@@ -16,6 +19,8 @@ interface IOperation {
   before: (string | null)[];
   next: string | null;
   server: string | null;
+  header: string;
+  entry: string | null;
 }
 
 export async function resumeFile(context: TSyncContext, store: string) {
@@ -28,13 +33,20 @@ export async function resumeFile(context: TSyncContext, store: string) {
 
   const current = await operationHashes(context, store, operation.targets);
 
-  if (!canResume(operation.before, current, contentHash(next))) {
+  await recoverPlaces(context, store, operation, current, next);
+
+  if (
+    operation.header !==
+      text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")) ||
+    !canResume(operation.before, current, contentHash(next))
+  ) {
     await writeBytes(path, undefined);
 
     return;
   }
 
-  await finishFile(context, store, operation.targets, next, server);
+  await finishFile(context, store, operation.targets, next, server, operation.entry);
+  if (operation.entry) await markAppliedEntry(context.adapters.home, operation.entry);
   await writeBytes(path, undefined);
 }
 
@@ -44,11 +56,12 @@ export async function commitFile(
   store: string,
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
+  entry: string | null,
 ) {
   const before = await operationHashes(context, store, targets);
 
   if (before.every((hash) => hash === contentHash(next))) {
-    await finishFile(context, store, targets, next, server);
+    await finishFile(context, store, targets, next, server, entry);
 
     return;
   }
@@ -58,6 +71,8 @@ export async function commitFile(
     JSON.stringify({
       targets,
       before,
+      entry,
+      header: text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")),
       next: next === undefined ? null : Buffer.from(next).toString("base64"),
       server: server === undefined ? null : Buffer.from(server).toString("base64"),
     } satisfies IOperation),
@@ -72,6 +87,7 @@ async function finishFile(
   targets: TTarget[],
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
+  entry: string | null,
 ) {
   if (!same(await readBytes(store), next)) {
     const saved = await backup(context.adapters.home, store, context.options.now());
@@ -84,6 +100,7 @@ async function finishFile(
     await atomicWrite(store, next);
   }
 
+  if (entry) await atomicWrite(basePath(context.adapters.home, store) + ".entry", entry);
   await placeTargets(context, store, targets, next, server);
 
   await saveBase(basePath(context.adapters.home, store), server, context.options.now());
@@ -109,5 +126,26 @@ async function placeTargets(
         next,
         context.options.now(),
       );
+  }
+}
+
+async function recoverPlaces(
+  context: TSyncContext,
+  store: string,
+  operation: IOperation,
+  current: (string | null)[],
+  next: Uint8Array | undefined,
+) {
+  if (operation.entry && current[0] === contentHash(next))
+    await atomicWrite(basePath(context.adapters.home, store) + ".entry", operation.entry);
+
+  for (const [index, target] of operation.targets.entries()) {
+    if (target.mode !== "copy" || current[index + 1] !== contentHash(next)) continue;
+
+    await saveBase(
+      basePath(context.adapters.home, store, target.root),
+      next,
+      context.options.now(),
+    );
   }
 }

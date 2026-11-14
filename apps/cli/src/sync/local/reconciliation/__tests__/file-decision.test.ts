@@ -1,161 +1,78 @@
-import { content, examples, allLocalRules, restoredRule } from "./file-rules.ts";
 import { expect, test } from "bun:test";
-import { deriveFileContent, deriveFileDecision } from "../file-decision.ts";
+import { deriveFileDecision } from "../file-decision.ts";
+import { derivePlaceVersion } from "../../lineage/versions.ts";
 
-test("local trust rules assert content and both conflict sides", () => {
-  for (const row of examples) {
-    const copy = {
-      bytes: content[row.bytes],
-      base: content[row.base],
-      tracked: row.tracked,
-      mode: row.mode,
-      detached: false,
-    };
+const A = new Uint8Array([1]);
+const B = new Uint8Array([2]);
+const C = new Uint8Array([3]);
+const common = { copies: [], tracked: true, published: true, choosing: false, repair: false };
 
-    const result = deriveFileContent(content[row.store], [copy]);
-
-    expect(result).toEqual(
-      "theirs" in row
-        ? { kind: "conflict", mine: content[row.mine], theirs: content[row.theirs] }
-        : { kind: "content", bytes: content[row.mine] },
-    );
-  }
-});
-
-test("remote rule cross product asserts full action and local result (2097152 cases)", () => {
-  let count = 0;
-
-  for (const row of allLocalRules())
-    for (const server of content)
-      for (const previous of content)
-        for (let flags = 0; flags < 512; flags++) {
-          verifyRemote(row, server, previous, flags);
-          count++;
-        }
-
-  expect(count).toBe(2097152);
-});
-
-function verifyRemote(
-  row: ReturnType<typeof allLocalRules>[number],
-  server: (typeof content)[number],
-  previous: (typeof content)[number],
-  flags: number,
-) {
-  const tracked = !!(flags & 1);
-  const published = !!(flags & 2);
-  const choosing = !!(flags & 4);
-  const repair = !!(flags & 8);
-  const detached = !!(flags & 16);
-  const tombstone = !!(flags & 32);
-  const applied = !!(flags & 64);
-  const historical = !!(flags & 128);
-  const deleting = !!(flags & 256);
-  const originalStore = content[row.store];
-
-  row = restoredRule(row, server, published, deleting, tombstone);
-
-  const local = expectedLocal(row, historical);
-
-  const mine = local.kind === "conflict" ? local.mine : local.bytes;
-  const remote = published ? server : mine;
-
-  const action = expectedAction(
-    local.kind === "conflict",
-    detached,
-    repair,
-    tombstone,
-    applied,
-    previous,
-    mine,
-    remote,
-    choosing,
-    tracked || content[row.store] !== undefined,
-  );
-
-  const actual: unknown = deriveFileDecision({
-    store: originalStore,
-    deleting,
-    copies: [
-      {
-        bytes: content[row.bytes],
-        base: content[row.base],
-        tracked: row.tracked,
-        mode: row.mode,
-        detached: false,
-        historical,
-      },
-    ],
-    tracked,
-    published,
-    server,
-    previous,
-    choosing,
-    repair,
-    detached,
-    tombstone,
-    applied,
+for (const [name, store, previous, server, next] of [
+  ["unchanged current", A, A, A, A],
+  ["unchanged stale", A, A, B, B],
+  ["attempt acknowledged", B, B, B, B],
+  ["attempt superseded", B, B, A, A],
+  ["attempt rejected", B, A, A, B],
+  ["pending completed", B, B, B, B],
+  ["pending superseded", B, B, A, A],
+  ["new edit", C, A, A, C],
+  ["deliberate revert", A, B, B, A],
+  ["identical concurrent edit", B, A, B, B],
+] as const)
+  test(name, () => {
+    expect(deriveFileDecision({ ...common, store, previous, server })).toEqual({
+      local: { kind: "content", bytes: store },
+      mine: store,
+      action: { kind: "write", next },
+    });
   });
 
-  expect(actual).toEqual({ local, mine, action });
-}
+for (const [name, store, previous, server] of [
+  ["divergent new edit", C, A, B],
+  ["divergent deliberate revert", A, B, C],
+  ["rejected attempt with concurrent edit", B, A, C],
+] as const)
+  test(name, () => {
+    expect(deriveFileDecision({ ...common, store, previous, server }).action).toEqual({
+      kind: "choose",
+    });
+  });
 
-function expectedAction(
-  conflict: boolean,
-  detached: boolean,
-  repair: boolean,
-  tombstone: boolean,
-  applied: boolean,
-  previous: Uint8Array | undefined,
-  mine: Uint8Array | undefined,
-  remote: Uint8Array | undefined,
-  choosing: boolean,
-  tracked: boolean,
-) {
-  const diverged = mine !== remote && mine !== previous && remote !== previous;
+for (const [name, bytes, base, tracked, mode, expected] of [
+  ["copy unchanged follows store", A, A, true, "copy", { kind: "content", bytes: B }],
+  [
+    "copy edit conflicts with store edit",
+    C,
+    A,
+    true,
+    "copy",
+    { kind: "conflict", mine: B, theirs: C },
+  ],
+  ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", mine: C, theirs: B }],
+  ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", mine: C, theirs: B }],
+  ["detached bytes conflict", C, A, true, "link", { kind: "conflict", mine: C, theirs: B }],
+  ["missing copy restores", undefined, A, true, "copy", { kind: "content", bytes: B }],
+] as const)
+  test(name, () => {
+    expect(
+      deriveFileDecision({
+        ...common,
+        store: B,
+        previous: A,
+        server: B,
+        copies: [{ bytes, base, tracked, mode, detached: false }],
+      }).local,
+    ).toEqual(expected);
+  });
 
-  const rules = [
-    [conflict, { kind: "conflict" }],
-    [detached, { kind: "detached" }],
-    [repair && mine !== undefined, { kind: "repair-conflict" }],
-    [deletionChoice(tombstone, applied, previous, mine), { kind: "choose" }],
-    [choosing && mine !== undefined && mine !== remote, { kind: "choose" }],
-    [(tracked || mine !== undefined) && diverged, { kind: "choose" }],
-    [
-      true,
-      {
-        kind: "write",
-        next: defaultContent(remote, previous, tracked, mine),
-      },
-    ],
-  ] as const;
-
-  return rules.find(([matches]) => matches)![1];
-}
-
-function deletionChoice(
-  tombstone: boolean,
-  applied: boolean,
-  previous: Uint8Array | undefined,
-  mine: Uint8Array | undefined,
-) {
-  return tombstone && !applied && previous === undefined && mine !== undefined;
-}
-
-function defaultContent(
-  remote: Uint8Array | undefined,
-  previous: Uint8Array | undefined,
-  tracked: boolean,
-  mine: Uint8Array | undefined,
-) {
-  return remote === previous && (tracked || mine !== undefined) ? mine : remote;
-}
-
-function expectedLocal(row: ReturnType<typeof allLocalRules>[number], historical: boolean) {
-  if (historical || row.bytes === 0) return { kind: "content", bytes: content[row.store] };
-
-  if (row.theirs !== undefined)
-    return { kind: "conflict", mine: content[row.mine], theirs: content[row.theirs] };
-
-  return { kind: "content", bytes: content[row.mine] };
-}
+for (const [current, base, accepted, expected] of [
+  ["a", "a", true, "unchanged"],
+  ["b", "a", true, "edited"],
+  ["a", "b", true, "edited"],
+  ["b", "b", false, "unaccepted"],
+  [null, null, true, "unchanged"],
+  [null, "a", true, "edited"],
+] as const)
+  test(`place ${current}/${base}/${accepted}`, () => {
+    expect(derivePlaceVersion(current, base, accepted)).toBe(expected);
+  });

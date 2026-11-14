@@ -114,11 +114,24 @@ function reportRepairs(
 }
 
 async function countedSync(adapters: TAdapters, options: ISyncOptions, pushing: boolean) {
-  const result = await sync(adapters, options, pushing);
+  const reports: string[] = [];
+
+  const result = await sync(
+    adapters,
+    {
+      ...options,
+      report: (message) => {
+        reports.push(message);
+        options.report?.(message);
+      },
+    },
+    pushing,
+  );
+
   const counts = commandCounts.getStore();
   if (counts) Object.assign(counts, { changed: result.changed, conflicts: result.conflicts });
 
-  return result;
+  return { ...result, reports };
 }
 
 async function syncAttempt(

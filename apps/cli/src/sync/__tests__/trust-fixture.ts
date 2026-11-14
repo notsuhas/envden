@@ -118,7 +118,7 @@ export async function finishScenario(
 
   expect(await conflictRecords(f.second.home)).toHaveLength(0);
   if (scenario.startsWith("unapproved")) expect(await readBytes(path)).toEqual(edited);
-  if (scenario === "deletion-side") expect(await readBytes(target.store)).toBeUndefined();
+  if (scenario === "deletion-side") expect(await readBytes(target.store)).toEqual(original);
 
   if (scenario === "edit-content")
     expect(await readBytes(target.store)).toEqual(bytes("TOKEN=edited-resolution\n"));

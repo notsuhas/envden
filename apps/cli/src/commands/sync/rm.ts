@@ -15,11 +15,20 @@ export const rmCommand = new Command("rm")
       interactive: !!process.stdin.isTTY,
       confirm: consent,
       now: Date.now,
+      report: (message) => (options.json ? console.error : console.log)(sanitizeTerminal(message)),
     });
 
     if (options.json) console.log(terminalJson(result));
     else {
-      for (const saved of result.preserved) console.log(sanitizeTerminal(`Saved backup: ${saved}`));
-      console.log("Removed locally; run envden push to delete everywhere");
+      for (const path of result.skipped)
+        console.log(sanitizeTerminal(`Skipped ${path}: run envden track to approve this checkout`));
+
+      console.log(
+        result.kind === "blocked"
+          ? "Removal held back; approve the skipped checkout first"
+          : result.publish === "next-push"
+            ? "Removed locally; run envden push to delete everywhere"
+            : "Removed unpublished file locally",
+      );
     }
   });

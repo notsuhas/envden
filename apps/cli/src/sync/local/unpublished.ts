@@ -1,3 +1,5 @@
+import { readBytes } from "./files.ts";
+import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../remote/context.ts";
@@ -20,6 +22,11 @@ export async function reconcileUnpublished(context: TSyncContext, repos: Set<str
         (item) =>
           item.store === link.store && !item.localOnly && !context.skippedRoots.has(item.root),
       );
+
+      if (link.mode === "link" && (await readBytes(link.store)) === undefined) {
+        context.options.report?.(sanitizeTerminal(`${link.path}: content was lost outside envden`));
+        throw new EnvdenError("NOT_FOUND", "Unpublished env file content is missing");
+      }
 
       conflicts += (await reconcileFile(context, targets, link.store, undefined, new Set()))
         .conflicts;
