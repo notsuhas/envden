@@ -3,9 +3,9 @@ import { Reveal } from "@/components/landing/ui/motion/reveal.tsx";
 import { DeferredArt } from "@/components/landing/art/deferred.tsx";
 
 const POINTS = [
-  { value: "0 accounts", label: "self-hosted" },
-  { value: "1 binary", label: "your hardware" },
-  { value: "$0", label: "free and MIT" },
+  { value: "0", unit: "accounts", label: "self-hosted" },
+  { value: "1", unit: "binary", label: "your hardware" },
+  { value: "$0", unit: "to pay", label: "free and MIT" },
 ];
 
 export function Yours() {
@@ -31,8 +31,9 @@ export function Yours() {
               key={point.value}
               className="den-cell min-w-0 px-5 py-4 text-sm text-den-ink sm:px-8"
             >
-              <p className="font-mono text-[2.5rem] text-den-lantern tabular-nums leading-tight">
-                {point.value}
+              <p className="flex flex-col font-mono text-den-lantern">
+                <span className="text-[2.5rem] leading-tight tabular-nums">{point.value}</span>
+                <span className="text-sm">{point.unit}</span>
               </p>
               <p className="mt-2 font-mono text-[11px] text-den-muted">{point.label}</p>
             </li>
