@@ -6,3 +6,5 @@ export type { IPlacementAdapter, TPlacementMode } from "./placement.ts";
 export type { IShellAdapter } from "./shell.ts";
 
 export { prepareCommit, writeCommitState } from "./storage/commit.ts";
+
+export { acceptsEnvPath } from "./env-files.ts";

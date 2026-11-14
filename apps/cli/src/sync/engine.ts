@@ -1,7 +1,7 @@
 import { commandCounts } from "../output/counts.ts";
 import { followServerMove } from "../admin/move/follow.ts";
 import { readHistory } from "../vault/history.ts";
-import { pruneBackups } from "./local/retention.ts";
+import { pruneBackups, pruneBaseHistory } from "./local/retention.ts";
 import { entryName } from "./remote/content.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
@@ -73,9 +73,15 @@ async function sync(
 
       if (result.kind !== "retry") {
         await pruneBackups(adapters.home, options.now());
+        await pruneBaseHistory(adapters.home, options.now());
         await adapters.prunePlacementBackups(options.now());
-        await settleRemoteNotice(context);
-        await refreshNotice(adapters.home, context.state);
+
+        try {
+          await settleRemoteNotice(context);
+          await refreshNotice(adapters.home, context.state);
+        } catch {
+          options.report?.("Notice refresh failed; sync completed");
+        }
 
         return { ...result, changed };
       }
@@ -136,14 +142,17 @@ async function syncAttempt(
   if (!pushing)
     return { kind: "pulled" as const, changed: result.changed, conflicts: result.conflicts };
 
-  if (result.conflicts || (await conflictRecords(adapters.home)).length)
-    return { kind: "conflict" as const, changed: result.changed, conflicts: result.conflicts };
+  const conflicts = Math.max(result.conflicts, (await conflictRecords(adapters.home)).length);
 
   try {
-    const uploaded = await uploadChanges(context, repos);
+    const uploaded = await uploadChanges(context, repos, result.failedStores);
     await persistCheckpoint(context);
 
-    return { kind: "pushed" as const, changed: uploaded, conflicts: 0 };
+    return {
+      kind: conflicts ? ("conflict" as const) : ("pushed" as const),
+      changed: uploaded,
+      conflicts,
+    };
   } catch (error) {
     if (!(error instanceof EnvdenError) || error.code !== "HEAD_MOVED") throw error;
 

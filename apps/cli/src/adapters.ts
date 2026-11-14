@@ -27,7 +27,7 @@ export function createAdapters(options?: {
     keychain:
       options?.keychain ??
       createOsKeychainAdapter({ home, fileOnly: process.env.ENVDEN_KEYCHAIN === "file" }),
-    repo: createGitRepoAdapter(),
+    repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
     placement: (mode: TPlacementMode, root: string) =>
       createFsPlacementAdapter(mode, root, join(home, "conflicts")),
     shell: (shell: "zsh" | "bash" | "fish" | "powershell") =>

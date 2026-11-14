@@ -8,7 +8,11 @@ import { resolveSshHost } from "./repo-id/ssh.ts";
 import { worktrees } from "./checkout/worktrees.ts";
 
 export function createGitRepoAdapter(
-  options: { resolveSshHost?: (host: string) => Promise<string>; skipFolders?: string[] } = {},
+  options: {
+    resolveSshHost?: (host: string) => Promise<string>;
+    skipFolders?: string[];
+    storeRoot?: string;
+  } = {},
 ): IRepoAdapter {
   return {
     id: "git",
@@ -16,10 +20,14 @@ export function createGitRepoAdapter(
       checkoutAt(path, options.resolveSshHost ?? resolveSshHost).catch(repoFailure),
     worktrees: (checkout) => worktrees(checkout).catch(repoFailure),
     envFiles: (checkout, rules) =>
-      envFiles(checkout, {
-        ...rules,
-        extraSkipped: [...(options.skipFolders ?? []), ...(rules?.extraSkipped ?? [])],
-      }).catch(repoFailure),
+      envFiles(
+        checkout,
+        {
+          ...rules,
+          extraSkipped: [...(options.skipFolders ?? []), ...(rules?.extraSkipped ?? [])],
+        },
+        options.storeRoot,
+      ).catch(repoFailure),
     isIgnored: (checkout, path) => isIgnored(checkout, path).catch(repoFailure),
     ensureIgnored: (checkout, path) => ensureIgnored(checkout, path).catch(repoFailure),
   };

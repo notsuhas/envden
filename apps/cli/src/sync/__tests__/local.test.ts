@@ -150,12 +150,15 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
         choice === "take-server"
           ? "KEY=remote\n"
           : choice === "keep-mine"
-            ? "KEY=mine\n"
+            ? "unrelated checkout bytes"
             : "KEY=edited\n",
       );
 
       expect(new TextDecoder().decode(await readBytes(base))).toBe("KEY=remote\n");
       expect(await conflictRecords(home)).toEqual([]);
+
+      for (const path of [file, server, file + ".mine"])
+        expect(await readBytes(path)).toBeUndefined();
     } finally {
       await rm(home, { recursive: true, force: true });
     }

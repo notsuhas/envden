@@ -7,6 +7,7 @@ import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 
+import { linkFile } from "../../links/file.ts";
 import { firstRun } from "../first-run.ts";
 
 import { syncFixture } from "./flows.ts";
@@ -53,5 +54,28 @@ test("sync first-run", async () => {
     }
   } finally {
     await fixture.cleanup();
+  }
+});
+
+test("tracking after join does not invent an agreed server base", async () => {
+  const f = await syncFixture();
+
+  try {
+    const state = (await loadState(f.second.home))!;
+    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n");
+
+    await linkFile(
+      f.second,
+      state,
+      f.checkoutB,
+      f.second.placement("link", f.checkoutB.root),
+      ".env",
+    );
+
+    await saveState(f.second.home, state);
+    const { pull } = await import("../engine.ts");
+    expect((await pull(f.second, f.opts)).conflicts).toBe(1);
+  } finally {
+    await f.cleanup();
   }
 });

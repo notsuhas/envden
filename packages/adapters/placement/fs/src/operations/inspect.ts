@@ -37,6 +37,13 @@ export async function inspect(
     return (await isStoreLink(storePath, checkoutPath)) ? "linked" : "detached";
 
   if (!stat.isFile()) return "detached";
+
+  return inspectRegular(mode, storePath, checkoutPath);
+}
+
+async function inspectRegular(mode: TPlacementMode, storePath: string, checkoutPath: string) {
+  if (!(await statOrMissing(storePath))) return "detached";
+
   const matches = (await readFile(checkoutPath)).equals(await readFile(storePath));
   if (!matches) return "detached";
 

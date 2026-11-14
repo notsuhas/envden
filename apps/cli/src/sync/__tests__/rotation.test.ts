@@ -63,7 +63,7 @@ test("interrupted rotation placement preserves a compatible checkpoint and resum
       if (++placements === 2) throw new Error("placement crash");
     };
 
-    await Promise.resolve(expect(pull(second, opts)).rejects.toThrow("placement crash"));
+    expect((await pull(second, opts)).conflicts).toBe(1);
     expect(await second.keychain.get(`envden/${second.home}/epoch/2`)).not.toBeUndefined();
     const interrupted = (await loadState(second.home))!;
     expect(interrupted.keyring).not.toBe(before.keyring);

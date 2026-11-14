@@ -1,3 +1,4 @@
+import { fileSizeNotice } from "../sync/local/validation/size.ts";
 import { basePath, readBytes, writeBytes } from "../sync/local/files.ts";
 import { choose } from "../output/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
@@ -24,23 +25,26 @@ export async function linkFile(
   const existing = state.links.find((item) => item.root === checkout.root && item.path === path);
 
   if (existing) {
-    if (existing.localOnly) return;
-    const current = adapters.placement(existing.mode, checkout.root);
-    const status = await current.inspect(existing.store, destination);
+    await relinkExisting(adapters, checkout, placement, destination, existing);
 
-    if (status === "relinkable" || status === "linked") {
-      if (existing.mode !== placement.mode) {
-        await placement.place(existing.store, destination);
+    return;
+  }
 
-        await copyBase(adapters.home, existing.store, checkout.root, placement.mode);
-        existing.mode = placement.mode;
-      } else if (status === "relinkable") await current.place(existing.store, destination);
+  if ((await lstat(destination)).isSymbolicLink()) {
+    if ((await placement.inspect(store, destination)) !== "linked") {
+      console.error(`envden: skipped symlink ${sanitizeTerminal(destination)}`);
+
+      return;
     }
+
+    state.links.push({ root: checkout.root, path, store, mode: placement.mode });
 
     return;
   }
 
   const choice = await storeChoice(store, destination, choose);
+
+  if (choice === "oversized") return;
 
   if (choice === "skip") {
     console.error(`envden: ${sanitizeTerminal(destination)} differs from store; skipped`);
@@ -77,6 +81,13 @@ async function storeChoice(
   choose: (path: string) => Promise<"separate" | "store" | "skip">,
 ) {
   const content = await readFile(destination);
+  const notice = fileSizeNotice(destination, content);
+
+  if (notice) {
+    console.error(notice);
+
+    return "oversized";
+  }
 
   try {
     const stat = await lstat(store);
@@ -102,4 +113,23 @@ async function copyBase(
 ) {
   if (mode !== "copy") return;
   await writeBytes(basePath(home, store, root), await readBytes(basePath(home, store)));
+}
+
+async function relinkExisting(
+  adapters: TAdapters,
+  checkout: ICheckout,
+  placement: IPlacementAdapter,
+  destination: string,
+  existing: ILocalState["links"][number],
+) {
+  if (existing.localOnly) return;
+  const current = adapters.placement(existing.mode, checkout.root);
+  const status = await current.inspect(existing.store, destination);
+  if (status !== "relinkable" && status !== "linked") return;
+
+  if (existing.mode !== placement.mode) {
+    await placement.place(existing.store, destination);
+    await copyBase(adapters.home, existing.store, checkout.root, placement.mode);
+    existing.mode = placement.mode;
+  } else if (status === "relinkable") await current.place(existing.store, destination);
 }

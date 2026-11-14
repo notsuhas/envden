@@ -24,7 +24,7 @@ export async function applyTarget(
   if (!same(mine, next)) {
     await backup(
       context.adapters.home,
-      target.mode === "link" && linked && status !== "detached" ? store : destination,
+      usesStore(target.mode, linked, status) ? store : destination,
       context.options.now(),
     );
 
@@ -32,7 +32,7 @@ export async function applyTarget(
   }
 
   const checkout = context.state.approved.find((item) => item.root === target.root)!;
-  await context.adapters.repo.ensureIgnored(checkout, target.path);
+  if (next) await context.adapters.repo.ensureIgnored(checkout, target.path);
 
   if (!same(await readBytes(store), next)) {
     await backup(context.adapters.home, store, context.options.now());
@@ -47,8 +47,17 @@ export async function applyTarget(
     await placement.remove(store, destination);
   }
 
+  if (!next && server === undefined)
+    context.state.links = context.state.links.filter(
+      (item) => item.root !== target.root || item.path !== target.path,
+    );
+
   await journalPlacement(context.adapters.home, context.state);
-  await saveBase(base, server);
+  await saveBase(base, server, context.options.now());
 
   return { changed, conflicts: 0 };
+}
+
+function usesStore(mode: string, linked: boolean, status: string) {
+  return mode === "link" && (linked || status === "linked") && status !== "detached";
 }

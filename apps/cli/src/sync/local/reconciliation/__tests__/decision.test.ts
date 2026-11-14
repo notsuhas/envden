@@ -67,11 +67,14 @@ test("base history recognizes an older synced checkout without accepting a templ
 
   try {
     const base = join(root, "base");
-    await saveBase(base, mine);
-    await saveBase(base, server);
+    await saveBase(base, mine, 1);
+    await saveBase(base, server, 2);
     expect(await matchesBase(base, mine)).toBe(true);
     expect(await matchesBase(base, server)).toBe(true);
     expect(await matchesBase(base, previous)).toBe(false);
+    await saveBase(base, previous, 2592000002);
+    expect(await matchesBase(base, mine)).toBe(false);
+    expect(await matchesBase(base, server)).toBe(true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -84,7 +84,7 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
       };
     };
 
-    await Promise.resolve(expect(pull(second, opts)).rejects.toThrow("interrupted placement"));
+    expect((await pull(second, opts)).conflicts).toBe(1);
     expect(await readFile(join(checkoutB.root, ".env"), "utf8")).toBe("TOKEN=new-version\n");
     second.placement = placement;
     const oldServer = await fixture.serve({ dataDir: snapshot, port: 0, now: opts.now });

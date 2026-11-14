@@ -1,3 +1,6 @@
+import { acceptsEnvPath } from "@envden/core/adapters";
+import { readConfig } from "../settings/config.ts";
+import { receivesFile } from "../sync/local/receiving.ts";
 import { addPendingJoins } from "./pending.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { appliedFiles } from "../sync/local/applied.ts";
@@ -39,6 +42,7 @@ export async function settleRemoteNotice(context: TSyncContext) {
 
 async function pendingRepos(context: TSyncContext) {
   const applied = await appliedFiles(context.adapters.home);
+  const rules = (await readConfig(context.adapters.home))["env-files"];
 
   const approved = new Set(
     context.state.approved.map((item) => context.state.aliases[item.repoId] ?? item.repoId),
@@ -49,7 +53,13 @@ async function pendingRepos(context: TSyncContext) {
   for (const entry of context.checkpoint.files.entries) {
     if (applied[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry))) continue;
     const name = entryName(context, entry);
-    if (approved.has(name.repoId)) repos.add(name.repoId);
+
+    if (
+      approved.has(name.repoId) &&
+      acceptsEnvPath(name.path, rules) &&
+      receivesFile(context.state, name)
+    )
+      repos.add(name.repoId);
   }
 
   return { checkedAt: context.options.now(), repos: [...repos] };

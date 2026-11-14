@@ -44,7 +44,7 @@ for (const detached of [true, false])
         const old = new TextEncoder().encode("SECRET=old\n");
         const server = new TextEncoder().encode("SECRET=remote\n");
         await atomicWrite(store, old);
-        await saveBase(basePath(f.first.home, store), old);
+        await saveBase(basePath(f.first.home, store), old, f.now());
         await atomicWrite(join(checkout.root, ".env.example"), detached ? "SECRET=example\n" : old);
         await cp(join(checkout.root, ".env.example"), join(checkout.root, ".env"));
 

@@ -1,3 +1,4 @@
+import { fileSizeNotice } from "../local/validation/size.ts";
 import { sealUpload } from "./seal.ts";
 import * as p from "@envden/core/protocol";
 import { join } from "node:path";
@@ -30,17 +31,15 @@ export async function uploadLink(
     link.mode === "copy" ? link.root : undefined,
   );
 
-  const status = await context.adapters
-    .placement(link.mode, link.root)
-    .inspect(link.store, join(link.root, link.path));
+  const bytes = await uploadBytes(context, link);
 
-  if (status === "detached")
-    throw new EnvdenError("CONFLICT", "Detached checkout; resolve local content before pushing");
+  const notice = fileSizeNotice(link.path, bytes);
 
-  const bytes =
-    status === "missing"
-      ? undefined
-      : await readBytes(link.mode === "link" ? link.store : join(link.root, link.path));
+  if (notice) {
+    context.options.report?.(notice);
+
+    return;
+  }
 
   const previous = context.checkpoint.files.entries.find((item) => p.equal(item.fileId, fileId));
 
@@ -86,8 +85,22 @@ async function uploadBaseline(
   base: string,
   previous: p.IFileEntry | undefined,
 ) {
-  const baseline =
-    (await readBytes(base)) ?? (previous ? await entryContent(context, previous) : undefined);
+  if (!previous) return undefined;
+
+  const baseline = (await readBytes(base)) ?? (await entryContent(context, previous));
 
   return baseline;
+}
+
+async function uploadBytes(context: TSyncContext, link: ILocalState["links"][number]) {
+  const status = await context.adapters
+    .placement(link.mode, link.root)
+    .inspect(link.store, join(link.root, link.path));
+
+  if (status === "detached")
+    throw new EnvdenError("CONFLICT", "Detached checkout; resolve local content before pushing");
+
+  return status === "missing"
+    ? undefined
+    : await readBytes(link.mode === "link" ? link.store : join(link.root, link.path));
 }

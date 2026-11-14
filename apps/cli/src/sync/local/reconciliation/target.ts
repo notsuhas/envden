@@ -4,7 +4,6 @@ import { consumeRepair } from "../../remote/repairs.ts";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
-import { entryContent } from "../../remote/content.ts";
 import { basePath, readBytes, same } from "../files.ts";
 import { recordConflict, conflictRecords } from "../conflicts.ts";
 
@@ -21,7 +20,7 @@ export async function reconcileTarget(
   server: Uint8Array | undefined,
   entry: p.IFileEntry,
   name: { path: string },
-  oldFiles: p.IFiles,
+  _oldFiles: p.IFiles,
   noFastForward: ReadonlySet<string>,
   choose?: TChoose,
 ) {
@@ -50,7 +49,7 @@ export async function reconcileTarget(
 
   const mine = await readBytes(useStore ? store : destination);
 
-  const baseline = await targetBaseline(context, previous, oldFiles, entry);
+  const baseline = previous;
 
   const action = deriveContentAction({
     linked,
@@ -146,17 +145,4 @@ async function resolvedStatus(
   }
 
   return status;
-}
-
-async function targetBaseline(
-  context: TSyncContext,
-  previous: Uint8Array | undefined,
-  oldFiles: p.IFiles,
-  entry: p.IFileEntry,
-) {
-  let baseline = previous;
-  const old = oldFiles.entries.find((item) => p.equal(item.fileId, entry.fileId));
-  if (!baseline && old) baseline = await entryContent(context, old);
-
-  return baseline;
 }

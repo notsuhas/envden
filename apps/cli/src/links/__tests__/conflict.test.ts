@@ -53,3 +53,25 @@ for (const choice of ["separate", "store", "skip"] as const)
       await rm(root, { recursive: true, force: true });
     }
   });
+
+test("link refuses oversized files without creating a store entry", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-size-"));
+
+  try {
+    const adapters = createAdapters({
+      home: join(root, "home"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    });
+
+    adapters.repo.ensureIgnored = async () => {};
+    const checkout = { root, gitDir: join(root, ".git"), repoId: "host/repo" };
+    await atomicWrite(join(root, ".env"), new Uint8Array(1048577));
+    const state = emptyState("test");
+    await linkFile(adapters, state, checkout, adapters.placement("link", root), ".env");
+    expect(state.links).toHaveLength(0);
+    expect(await Bun.file(storePath(adapters.home, checkout.repoId, ".env")).exists()).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

@@ -1,3 +1,4 @@
+import { fileSizeNotice } from "../../sync/local/validation/size.ts";
 import { readFile } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -26,6 +27,13 @@ export async function initialEntries(
     const repoId = state.aliases[checkout.repoId] ?? checkout.repoId;
     const fileId = p.fileId(idKey, repoId, link.path);
     const content = new Uint8Array(await readFile(link.store));
+
+    const notice = fileSizeNotice(link.path, content);
+
+    if (notice) {
+      console.error(notice);
+      continue;
+    }
 
     bases.set(
       basePath(adapters.home, link.store, link.mode === "copy" ? link.root : undefined),

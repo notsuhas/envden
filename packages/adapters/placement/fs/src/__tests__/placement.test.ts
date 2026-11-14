@@ -162,3 +162,14 @@ test.skipIf(process.platform !== "win32")(
     }
   },
 );
+
+test("inspection reports a regular file beside a missing store as detached", async () => {
+  const { checkout, store } = await setup();
+  const destination = join(checkout, ".env");
+  await writeFile(destination, "RESTORED=yes\n");
+  await unlink(store);
+
+  expect(await createFsPlacementAdapter("link", checkout).inspect(store, destination)).toBe(
+    "detached",
+  );
+});

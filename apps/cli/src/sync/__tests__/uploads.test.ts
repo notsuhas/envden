@@ -110,3 +110,40 @@ test("an already applied entry reuses its base without downloading its blob", as
     await f.close();
   }
 });
+
+test("push skips an oversized file and reports only its path", async () => {
+  const f = await fixture();
+
+  try {
+    const reports: string[] = [];
+
+    const context = await syncContext(f.first, {
+      now: f.now,
+      yes: true,
+      fetcher: f.fetcher,
+      report: (message) => reports.push(message),
+    });
+
+    const root = join(f.root, "oversized");
+    const store = join(f.first.home, "store", "oversized");
+    const bytes = new Uint8Array(1048577);
+    await atomicWrite(store, bytes);
+    await atomicWrite(join(root, ".env.large"), bytes);
+    context.state.approved.push({ root, gitDir: join(root, ".git"), repoId: "repo" });
+    const files: IFiles = { entries: [] };
+
+    await uploadLink(
+      context,
+      new Set(["repo"]),
+      { root, path: ".env.large", store, mode: "copy" },
+      files,
+      new Map(),
+      new Map(),
+    );
+
+    expect(files.entries).toHaveLength(0);
+    expect(reports).toEqual(["Skipped oversized env file: .env.large exceeds 1 MiB"]);
+  } finally {
+    await f.close();
+  }
+});

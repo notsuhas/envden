@@ -1,46 +1,24 @@
+import { git as hardenedGit } from "../exec/git.ts";
+import { repo, git } from "./fixture.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { rejects } from "node:assert/strict";
-import { afterEach, expect, test } from "bun:test";
-import { execTrustedSync as execFileSync } from "@envden/core/process";
+import { expect, test } from "bun:test";
+import { tmpdir } from "node:os";
 import {
-  mkdtemp,
   mkdir,
+  rm,
   readFile,
   realpath,
-  rm,
   symlink,
   writeFile,
   chmod,
   link,
   access,
 } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join, normalize } from "node:path";
 import { resolveSshHost } from "../repo-id/ssh.ts";
-import { git as hardenedGit } from "../exec/git.ts";
 import vectors from "./repo-id-vectors.json";
 import { createGitRepoAdapter, normalizeRepoId } from "../index.ts";
-
-const roots: string[] = [];
-
-afterEach(async () => {
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
-
-function git(root: string, ...args: string[]) {
-  return execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim();
-}
-
-async function repo() {
-  const root = await mkdtemp(join(tmpdir(), "envden-git-"));
-  roots.push(root);
-  git(root, "init", "-q");
-  git(root, "config", "user.email", "test@example.test");
-  git(root, "config", "user.name", "test");
-  git(root, "remote", "add", "origin", "git@work:Team/Repo.git");
-
-  return root;
-}
 
 const adapter = createGitRepoAdapter({ resolveSshHost: async () => "GitHub.com" });
 

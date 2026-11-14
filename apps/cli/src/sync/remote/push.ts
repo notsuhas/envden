@@ -1,17 +1,28 @@
+import { conflictRecords } from "../local/conflicts.ts";
 import { uploadLink } from "./upload.ts";
 import { appliedFiles, saveAppliedFiles } from "../local/applied.ts";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
-import { writeBytes } from "../local/files.ts";
+import { basePath, writeBytes } from "../local/files.ts";
 
-export async function uploadChanges(context: TSyncContext, repos: Set<string>) {
+export async function uploadChanges(
+  context: TSyncContext,
+  repos: Set<string>,
+  failedStores: ReadonlySet<string>,
+) {
   const files: p.IFiles = { entries: [...context.checkpoint.files.entries] };
   const changed = new Map<string, { base: string; bytes: Uint8Array | undefined }>();
   const seen = new Map<string, Uint8Array | undefined>();
 
-  for (const link of context.state.links)
-    await uploadLink(context, repos, link, files, changed, seen);
+  const blocked = new Set([
+    ...failedStores,
+    ...(await conflictRecords(context.adapters.home)).map((record) => record.store),
+  ]);
+
+  for (const link of context.state.links) {
+    if (!blocked.has(link.store)) await uploadLink(context, repos, link, files, changed, seen);
+  }
 
   if (!changed.size) return 0;
   files.entries.sort((a, b) => p.compare(a.fileId, b.fileId));
@@ -61,6 +72,17 @@ export async function uploadChanges(context: TSyncContext, repos: Set<string>) {
 
   await saveAppliedFiles(context.adapters.home, applied);
   for (const item of changed.values()) await writeBytes(item.base, item.bytes);
+
+  context.state.links = context.state.links.filter(
+    (link) =>
+      link.localOnly ||
+      !changed.has(
+        basePath(context.adapters.home, link.store, link.mode === "copy" ? link.root : undefined),
+      ) ||
+      changed.get(
+        basePath(context.adapters.home, link.store, link.mode === "copy" ? link.root : undefined),
+      )!.bytes !== undefined,
+  );
 
   return changed.size;
 }
