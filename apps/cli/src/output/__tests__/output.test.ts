@@ -85,3 +85,23 @@ for (const [code, exit] of [
   ["INTERNAL", 1],
 ] as const)
   test(`exit status for ${code}`, () => expect(errorExitCode(code)).toBe(exit));
+
+test("stdout sanitizes device names and nested report paths", async () => {
+  const { spyOn } = await import("bun:test");
+  const { withTerminalErrors } = await import("../errors.ts");
+  const log = spyOn(console, "log").mockImplementation(() => {});
+  const table = spyOn(console, "table").mockImplementation(() => {});
+
+  try {
+    await withTerminalErrors(async () => {
+      console.log("name\x1b\x07");
+      console.table([{ path: "repo\u202e/path" }]);
+    });
+
+    expect(log.mock.calls).toEqual([["name"]]);
+    expect(table.mock.calls).toEqual([[[{ path: "repo/path" }]]]);
+  } finally {
+    log.mockRestore();
+    table.mockRestore();
+  }
+});
