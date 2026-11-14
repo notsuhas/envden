@@ -143,3 +143,30 @@ jobs:
       - name: Refresh signed feed
         if: github.event_name != 'push'
         run: gh release upload "$RELEASE_TAG" release/release*.bin --clobber
+
+  npm:
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - name: Build the npm package from the release checksums
+        run: |
+          gh release download "$GITHUB_REF_NAME" -p SHA256SUMS -D npm-release
+          bun --tsconfig-override scripts/tsconfig.json scripts/release/npm-package.ts "${GITHUB_REF_NAME#v}" npm-release/SHA256SUMS npm-release/package
+      # trusted publishing: npm exchanges the GitHub OIDC token, so no NPM_TOKEN secret
+      - run: npx -y npm@11 publish ./npm-release/package --access public

@@ -2,7 +2,25 @@
   "name": "envden",
   "version": "0.1.0",
   "private": true,
+  "description": "Sync whole .env files across your machines, end-to-end encrypted, through a server you host.",
+  "keywords": [
+    "cli",
+    "dotenv",
+    "encryption",
+    "env",
+    "secrets",
+    "self-hosted",
+    "sync",
+    "tailscale"
+  ],
+  "homepage": "https://envden.theclau.de",
+  "bugs": "https://github.com/notsuhas/envden/issues",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/notsuhas/envden.git",
+    "directory": "packaging/npm"
+  },
   "bin": {
     "envden": "bin/launch.js"
   },

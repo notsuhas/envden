@@ -13,7 +13,7 @@ Done:
 
 Still needed:
 
-- npm: log in (`npm login`), add an `NPM_TOKEN` or publish by hand, and drop `private` from `packaging/npm/package.json` when publishing.
+- npm: the release workflow's `npm` job publishes with trusted publishing (`npm trust github envden --file release.yml --repo notsuhas/envden --env release`). No token is stored.
 - After the first image push, make the GHCR package public.
 - `ENVDEN_TELEMETRY_KEY` (repository variable): a PostHog project key. Empty disables telemetry.
 - `TS_AUTHKEY` at deployment, never at build time. Enable HTTPS certificates and Serve in the tailnet.
@@ -35,7 +35,7 @@ After verifying a release, run from the repository root with `gh` authenticated 
 bun scripts/release/publish-channels.ts <version>
 ```
 
-Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads `SHA256SUMS`, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. npm publishing remains manual.
+Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads `SHA256SUMS`, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. The release workflow publishes npm itself through `scripts/release/npm-package.ts`.
 
 winget manifests go to `packaging/dist/winget/<version>/`. Follow the printed instructions to open the PR in `microsoft/winget-pkgs` yourself. Dry runs keep winget manifests in the temporary directory too.
 
