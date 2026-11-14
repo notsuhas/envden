@@ -1,3 +1,4 @@
+import { preservePendingAncestor } from "../../sync/local/reconciliation/operation/file.ts";
 import { rm } from "node:fs/promises";
 import { basePath } from "../../sync/local/files.ts";
 import type { ILocalState } from "../../state/model.ts";
@@ -8,6 +9,7 @@ export async function removeCheckoutBases(
   remaining: ILocalState["links"],
 ) {
   for (const link of removed) {
+    await preservePendingAncestor(home, link.store);
     await rm(basePath(home, link.store) + ".pending", { force: true });
     const bases = [basePath(home, link.store, link.root)];
 

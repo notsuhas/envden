@@ -149,3 +149,14 @@ async function recoverPlaces(
     );
   }
 }
+
+export async function preservePendingAncestor(home: string, store: string) {
+  const base = basePath(home, store);
+  const saved = await optionalRead(base + ".pending");
+  if (!saved) return;
+  const operation: IOperation = JSON.parse(saved);
+  const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
+
+  if (operation.entry && contentHash(await readBytes(store)) === contentHash(next))
+    await atomicWrite(base + ".entry", operation.entry);
+}

@@ -53,6 +53,8 @@ for (const lostBase of [false, true])
       const { rm } = await import("node:fs/promises");
       const { basePath } = await import("../local/files.ts");
       await rm(basePath(f.second.home, targets[0]!.store) + ".entry");
+      const { untrack } = await import("../../links/checkout/untrack.ts");
+      await untrack(f.second, targets[1]!.root);
     }
 
     await atomicWrite(f.aStore, "TOKEN=local-test-value\n");
@@ -119,6 +121,10 @@ test("an excluded local edit is held back even when the server is unchanged", as
 
   const result = await push(f.second, f.opts);
   expect(result.changed).toBe(0);
+
+  expect((await heldBackFiles(f.second)).some((item) => item.reason.includes("env-files"))).toBe(
+    true,
+  );
 
   expect(
     result.reports.some(
