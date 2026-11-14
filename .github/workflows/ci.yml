@@ -60,3 +60,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.target }}
       - run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.asset }}
+      # Bun's pseudo-terminal support is POSIX-only, so Windows runs the smoke test alone
+      - if: runner.os != 'Windows'
+        run: bun apps/cli/scripts/e2e.ts apps/cli/dist/${{ matrix.asset }}
