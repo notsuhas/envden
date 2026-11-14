@@ -2,15 +2,8 @@ name: Release
 on:
   push:
     tags: ["v*"]
-  schedule:
-    - cron: "23 6 * * 1"
-  workflow_dispatch: {}
 permissions:
   contents: read
-concurrency:
-  group: release-${{ github.event_name == 'push' && github.ref || 'resign' }}
-  cancel-in-progress: false
-  queue: max
 jobs:
   build:
     if: github.event_name == 'push'
@@ -91,20 +84,31 @@ jobs:
     needs: [build, image]
     permissions:
       contents: write
-    uses: ./.github/workflows/sign-feed.yml
-    secrets: inherit
-    with:
-      tag_release: true
-      first_release: ${{ vars.ENVDEN_FIRST_RELEASE == '1' }}
-  resign:
-    if: github.event_name != 'push'
-    permissions:
-      contents: write
-    uses: ./.github/workflows/sign-feed.yml
-    secrets: inherit
-    with:
-      tag_release: false
-      first_release: false
+    runs-on: ubuntu-24.04
+    environment: release
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+          path: release
+      - name: Hash release builds
+        run: bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
+      - name: Publish release
+        run: gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-checksums
+          path: release/SHA256SUMS
+          if-no-files-found: error
   promote-image:
     if: github.event_name == 'push'
     needs: [publish, image]
@@ -119,7 +123,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Promote signed release image
+      - name: Promote release image
         env:
           IMAGE: ghcr.io/${{ vars.ENVDEN_GHCR_NAMESPACE }}/envden
           DIGEST: ${{ needs.image.outputs.digest }}
@@ -155,3 +159,27 @@ jobs:
           bun --tsconfig-override scripts/tsconfig.json scripts/release/npm-package.ts "${GITHUB_REF_NAME#v}" npm-release/SHA256SUMS npm-release/package
       # trusted publishing: npm exchanges the GitHub OIDC token, so no NPM_TOKEN secret
       - run: npx -y npm@11.21.2 publish ./npm-release/package --access public
+
+  channels:
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.ENVDEN_CHANNELS_TOKEN }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - name: Configure channel publishing
+        run: |
+          gh auth setup-git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Publish package channels
+        run: bun scripts/release/publish-channels.ts "${GITHUB_REF_NAME#v}"

@@ -1,3 +1,4 @@
+import { latestRelease } from "../updates/github.ts";
 import { retryBusy } from "./retry.ts";
 import { serverFetch } from "./fetch.ts";
 import { hc } from "hono/client";
@@ -126,8 +127,14 @@ async function checkServerMinimum(response: Response, options: IClientOptions) {
   if (response.status === 426) {
     const verified = await hello(options.address, options.pin, options.fetcher, MIN_SERVER);
 
-    if (p.compareSemver(options.version, verified.hello.minClient) < 0)
+    if (p.compareSemver(options.version, verified.hello.minClient) < 0) {
+      const latest = await latestRelease(options.fetcher).catch(() => undefined);
+
+      if (latest && p.compareSemver(verified.hello.minClient, latest) > 0)
+        throw new EnvdenError("CLIENT_TOO_OLD", "The server requires a version that doesn't exist");
+
       throw new EnvdenError("CLIENT_TOO_OLD", "Update envden to meet the signed server minimum");
+    }
 
     throw new EnvdenError("INVALID_DATA", "Server rejected a supported client");
   }

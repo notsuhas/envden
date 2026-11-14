@@ -1,3 +1,4 @@
+import { readUpdateCache } from "../../updates/cache.ts";
 import { test, expect } from "bun:test";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -61,7 +62,7 @@ test("command notice honors environment opt-out without persisting it", async ()
       true,
     );
 
-    expect((await loadState(home))?.lastFeedCheck).toBeUndefined();
+    expect((await readUpdateCache(home)).checkedAt).toBeUndefined();
   } finally {
     if (previous === undefined) delete process.env.ENVDEN_NO_UPDATE_CHECK;
     else process.env.ENVDEN_NO_UPDATE_CHECK = previous;

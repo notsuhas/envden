@@ -18,7 +18,6 @@ export const ErrorCodeSchema = z.enum([
   "MOVING",
   "SERVER_TOO_OLD",
   "CLIENT_TOO_OLD",
-  "UNSAFE_VERSION",
   "NOT_IMPLEMENTED",
   "INTERNAL",
   "SERVER_UNREACHABLE",

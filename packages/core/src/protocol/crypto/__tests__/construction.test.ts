@@ -9,15 +9,7 @@ const key = from(vector.key),
   keys = p.generateDeviceKeys(rng);
 
 test("labels separate all signature roles", () => {
-  const labels = [
-    "entry",
-    "manifest",
-    "repair-report",
-    "request",
-    "server-hello",
-    "release",
-    "sk-proof",
-  ];
+  const labels = ["entry", "manifest", "repair-report", "request", "server-hello", "sk-proof"];
 
   for (const label of labels) {
     const sig = p.Sign(key, label, key);

@@ -1,4 +1,4 @@
-import { compareSemver } from "@envden/core/protocol";
+import { updateStatus } from "../updates/status.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { conflictRecords } from "../sync/local/conflicts.ts";
 import { hello } from "../client/hello.ts";
@@ -8,7 +8,7 @@ import type { TAdapters } from "../adapters.ts";
 import { loadState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
-import { VERSION, MIN_SERVER } from "../version.ts";
+import { MIN_SERVER } from "../version.ts";
 
 export async function localStatus(
   adapters: TAdapters,
@@ -22,7 +22,7 @@ export async function localStatus(
       configured: false,
       server: "unknown",
       links: [],
-      update: { available: false, required: false },
+      update: await updateStatus(adapters.home),
     };
 
   const conflicts = await conflictRecords(adapters.home);
@@ -48,14 +48,7 @@ export async function localStatus(
     vaultId: state.vaultId,
     server,
     links,
-    update: deriveUpdateStatus(state),
-  };
-}
-
-export function deriveUpdateStatus(state: { latest?: string; release?: { unsafe: string[] } }) {
-  return {
-    available: !!state.latest && compareSemver(state.latest, VERSION) > 0,
-    required: state.release?.unsafe.includes(VERSION) ?? false,
+    update: await updateStatus(adapters.home),
   };
 }
 

@@ -53,38 +53,48 @@ test("request signs the exact body, query and pin; locked retries once", async (
   });
 });
 
-test("426 trusts the fresh signed hello, never the unsigned minimum", async () => {
-  const { options, server } = await fixture();
+for (const latest of [undefined, "v1.0.0"])
+  test(`426 trusts the fresh signed hello, never the unsigned minimum: ${latest}`, async () => {
+    const { options, server } = await fixture();
 
-  const fetcher: TFetch = async (url) => {
-    const address = new URL(url instanceof Request ? url.url : url.toString());
+    const fetcher: TFetch = async (url) => {
+      const address = new URL(url instanceof Request ? url.url : url.toString());
 
-    if (address.pathname !== "/v1/hello")
-      return Response.json({ minClient: "99.0.0" }, { status: 426 });
+      if (address.hostname.endsWith("github.com") && latest) {
+        if (address.hostname === "api.github.com") return Response.json({ tag_name: latest });
 
-    const signed = p.buildHello(
-      {
-        challenge: binary(address.searchParams.get("challenge")!),
-        host: address.hostname,
-        serverSignPub: server.objPub,
-        appVersion: "1.0.0",
-        minClient: "2.0.0",
-        protocols: [1],
-      },
-      server.objSk,
-    );
+        return new Response(null, { status: 503 });
+      }
 
-    return Response.json({ hello: text(p.signedCodec(p.ServerHelloCodec).write(signed)) });
-  };
+      if (address.pathname !== "/v1/hello")
+        return Response.json({ minClient: "99.0.0" }, { status: 426 });
 
-  expect(createClient({ ...options, fetcher }).request("/v1/test")).rejects.toMatchObject({
-    code: "CLIENT_TOO_OLD",
+      const signed = p.buildHello(
+        {
+          challenge: binary(address.searchParams.get("challenge")!),
+          host: address.hostname,
+          serverSignPub: server.objPub,
+          appVersion: "1.0.0",
+          minClient: "2.0.0",
+          protocols: [1],
+        },
+        server.objSk,
+      );
+
+      return Response.json({ hello: text(p.signedCodec(p.ServerHelloCodec).write(signed)) });
+    };
+
+    expect(createClient({ ...options, fetcher }).request("/v1/test")).rejects.toMatchObject({
+      code: "CLIENT_TOO_OLD",
+      message: latest
+        ? "The server requires a version that doesn't exist"
+        : "Update envden to meet the signed server minimum",
+    });
+
+    expect(hello(options.address, p.randomBytes(32), fetcher, "0.0.0")).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
-
-  expect(hello(options.address, p.randomBytes(32), fetcher, "0.0.0")).rejects.toMatchObject({
-    code: "UNAUTHORIZED",
-  });
-});
 
 test("typed routes use the signed binary transport", async () => {
   const { options, greeting } = await fixture();

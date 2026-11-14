@@ -11,7 +11,7 @@ export const configCommand = new Command("config")
   .argument("[key]")
   .argument("[values...]")
   .description(
-    "Get/set telemetry, update-check, agent-merge, allow-version, unlock-period, placement <path> link|copy or env-files <JSON>",
+    "Get/set telemetry, update-check, agent-merge, unlock-period, placement <path> link|copy or env-files <JSON>",
   )
   .action(async (key, values) => {
     const value = values?.[0];
@@ -40,8 +40,6 @@ export const configCommand = new Command("config")
         return;
       }
 
-      requireInteractiveOverride(key, !!process.stdin.isTTY);
-
       console.log(JSON.stringify(await setConfig(key, value, createAdapters().home), null, 2));
 
       return;
@@ -54,16 +52,7 @@ export const configCommand = new Command("config")
 
 function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: string | undefined) {
   if (key) {
-    if (
-      ![
-        "telemetry",
-        "update-check",
-        "agent-merge",
-        "allow-version",
-        "placement",
-        "env-files",
-      ].includes(key)
-    )
+    if (!["telemetry", "update-check", "agent-merge", "placement", "env-files"].includes(key))
       throw new EnvdenError("INVALID_INPUT", "Unknown config key");
 
     console.log(JSON.stringify(Reflect.get(config, key) ?? null));
@@ -80,13 +69,5 @@ function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: strin
         null,
         2,
       ),
-    );
-}
-
-function requireInteractiveOverride(key: string, interactive: boolean) {
-  if (key === "allow-version" && !interactive)
-    throw new EnvdenError(
-      "INVALID_INPUT",
-      "Accepting an unsafe version requires your own terminal",
     );
 }

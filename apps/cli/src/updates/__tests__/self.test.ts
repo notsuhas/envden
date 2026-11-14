@@ -7,14 +7,14 @@ import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
-import { releaseConfig } from "../release-config.ts";
+import { RELEASE_REPOSITORY } from "../github.ts";
 import { runUpdateCheck } from "../run.ts";
 import { currentReleasePlatform } from "../self/platform.ts";
 import { selfUpdate } from "../self.ts";
 import { replaceBinary, cleanupOldBinary } from "../replace.ts";
 
 for (const valid of [true, false])
-  test(`script self-update verifies signed build hash: ${valid}`, async () => {
+  test(`script self-update verifies release checksum: ${valid}`, async () => {
     const root = await mkdtemp(join(tmpdir(), "envden-update-"));
 
     const adapters = createAdapters({
@@ -34,35 +34,11 @@ for (const valid of [true, false])
       hookSnippet: () => "",
     });
 
-    const original = { ...releaseConfig };
-    const primary = p.generateRecoveryKeys();
-    const backup = p.generateRecoveryKeys();
     const build = new TextEncoder().encode("new binary");
-
-    const body: p.IRelease = {
-      generation: 1,
-      seq: 1n,
-      issuedAt: 100n,
-      expires: 2592000100n,
-      latest: "1.0.0",
-      unsafe: [],
-      builds: [{ platform: currentReleasePlatform(), sha256: p.sha256(build) }],
-      revokePrimary: 0,
-      next: undefined,
-    };
-
-    const feed = p.ReleaseFeedCodec.write({
-      body,
-      signatures: [{ key: 0, sig: p.Sign(primary.objSk, "release", p.ReleaseCodec.write(body)) }],
-    });
+    const platform = currentReleasePlatform();
+    const asset = `envden-${platform}${platform.startsWith("windows-") ? ".exe" : ""}`;
 
     try {
-      releaseConfig.trust = {
-        generation: 1,
-        keys: { primary: primary.objPub, backup: backup.objPub },
-      };
-
-      releaseConfig.buildUrl = () => "https://build.invalid/envden";
       await atomicWrite(join(adapters.home, "install-method"), "script");
       const binary = join(root, "envden");
       await atomicWrite(binary, "old binary");
@@ -74,15 +50,20 @@ for (const valid of [true, false])
         },
         now: 200,
         fetcher: async (input, options) => {
+          const url = input instanceof Request ? input.url : input.toString();
+
+          if (url.endsWith("/latest"))
+            return new Response(null, {
+              status: 302,
+              headers: { location: `https://github.com/${RELEASE_REPOSITORY}/releases/tag/v1.0.0` },
+            });
+
           expect(options?.redirect).toBe("follow");
 
-          return new Response(
-            (input instanceof Request ? input.url : input.toString()).includes("build.invalid")
-              ? valid
-                ? build
-                : new Uint8Array([0])
-              : feed,
-          );
+          if (url.endsWith("SHA256SUMS"))
+            return new Response(`${Buffer.from(p.sha256(build)).toString("hex")}  ${asset}\n`);
+
+          return new Response(valid ? build : new Uint8Array([0]));
         },
       });
 
@@ -96,8 +77,6 @@ for (const valid of [true, false])
         false,
       );
     } finally {
-      releaseConfig.trust = original.trust;
-      releaseConfig.buildUrl = original.buildUrl;
       await rm(root, { recursive: true, force: true });
     }
   });
@@ -109,6 +88,8 @@ test("fresh update check does not configure a vault", async () => {
     await runUpdateCheck(
       createAdapters({ home: root, userHome: root, keychain: createMemoryKeychainAdapter([]) }),
       100,
+      true,
+      async () => new Response(null, { status: 404 }),
     );
 
     expect(await loadState(root)).toBeUndefined();

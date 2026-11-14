@@ -11,7 +11,6 @@ interface IConfig {
   telemetry: boolean;
   "update-check": boolean;
   "agent-merge": boolean;
-  "allow-version"?: string;
 }
 
 export function parseConfig(value: unknown): IConfig {
@@ -42,11 +41,7 @@ export async function setConfig(key: string, value: string, home: string) {
     const next = parseConfig({
       ...current,
       [key]:
-        key === "placement" || key === "env-files"
-          ? parseStructured(value)
-          : key === "allow-version"
-            ? value
-            : parseToggle(value),
+        key === "placement" || key === "env-files" ? parseStructured(value) : parseToggle(value),
     });
 
     const location = await ensurePaths(home);
@@ -94,9 +89,6 @@ function validateSetting(key: string, item: unknown) {
       return validatePlacement(item);
     case "env-files":
       return parseEnvFileRules(item);
-    case "allow-version":
-      if (typeof item === "string" && /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(item)) return;
-      throw new EnvdenError("INVALID_INPUT", "Invalid allow-version");
     default:
       if (["telemetry", "update-check", "agent-merge"].includes(key) && typeof item === "boolean")
         return;

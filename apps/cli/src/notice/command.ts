@@ -1,22 +1,17 @@
 import { reportPendingJoins } from "./pending.ts";
 import { boundedFetch } from "./fetch.ts";
 import { cacheOffers } from "./offers.ts";
-import { compareSemver } from "@envden/core/protocol";
-import { rememberRelease, restoreReleases } from "../updates/persistence.ts";
+import { runUpdateCheck } from "../updates/run.ts";
+import { updateStatus } from "../updates/status.ts";
 import { cleanupOldBinary } from "../updates/replace.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { sep, resolve } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import type { TFetch } from "../client/fetch.ts";
-import { loadState, saveState } from "../state/store/repository.ts";
-import { checkRelease } from "../updates/check.ts";
-import { releaseConfig } from "../updates/release-config.ts";
-import { readConfig } from "../settings/config.ts";
-import { updateCheckEnabled } from "../settings/privacy.ts";
+import { loadState } from "../state/store/repository.ts";
 import { refreshNotice, noticeStatus } from "./cache.ts";
 import { readRemoteNotice, remoteNotice } from "./remote.ts";
-import { VERSION } from "../version.ts";
 
 async function lockedcommandNotice(
   adapters: TAdapters,
@@ -27,19 +22,16 @@ async function lockedcommandNotice(
   localOnly = false,
 ) {
   await cleanupOldBinary(process.execPath, process.platform === "win32");
+  if (!refresh && !localOnly) await runUpdateCheck(adapters, now, false, fetcher);
   const state = await loadState(adapters.home);
-  if (!state) return { repos: [], update: { available: false, required: false } };
-  const stored = await restoreReleases(adapters.home, releaseConfig.trust, now);
-  if (stored) state.release = stored;
-  const config = await readConfig(adapters.home);
-
-  if (!refresh && !localOnly) await refreshRelease(adapters, state, now, fetcher);
+  if (!state) return { repos: [], update: await updateStatus(adapters.home) };
 
   if (!refresh) await reportPendingJoins(adapters.home);
   const remote = await readRemoteNotice(adapters.home);
 
   await refreshNotice(adapters.home, state);
-  await cacheOffers(adapters, state, cwd, updateNotice(state, config), now);
+  const update = await updateStatus(adapters.home);
+  await cacheOffers(adapters, state, cwd, update, now);
   const local = await noticeStatus(adapters.home, state);
 
   const currentRepo = currentRepoId(state, cwd);
@@ -48,7 +40,7 @@ async function lockedcommandNotice(
     repos: [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])]
       .filter((repo) => repo !== currentRepo)
       .map(sanitizeTerminal),
-    update: updateNotice(state, config),
+    update,
   };
 }
 
@@ -110,31 +102,4 @@ function currentRepoId(state: NonNullable<Awaited<ReturnType<typeof loadState>>>
   const currentRepo = current && (state.aliases[current.repoId] ?? current.repoId);
 
   return currentRepo;
-}
-
-function updateNotice(
-  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
-  config: Awaited<ReturnType<typeof readConfig>>,
-) {
-  return {
-    available: !!state.latest && compareSemver(state.latest, VERSION) > 0,
-    required:
-      (state.release?.unsafe.includes(VERSION) ?? false) && config["allow-version"] !== VERSION,
-  };
-}
-
-async function refreshRelease(
-  adapters: TAdapters,
-  state: NonNullable<Awaited<ReturnType<typeof loadState>>>,
-  now: number,
-  fetcher: TFetch,
-) {
-  const config = await readConfig(adapters.home);
-
-  if (updateCheckEnabled(config["update-check"])) {
-    const result = await checkRelease(state, releaseConfig.trust, now, fetcher);
-    if (result.kind === "checked") await rememberRelease(adapters.home, result.feed, state.release);
-  }
-
-  await saveState(adapters.home, state);
 }

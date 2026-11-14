@@ -35,6 +35,6 @@ chmod 755 "$staged"
 mv -f "$staged" "$bin/envden"
 printf 'script' > "$home/install-method"
 echo "Installed $bin/envden. Add $bin to PATH."
-echo 'Bootstrap verified SHA256SUMS over HTTPS; it does not authenticate the signed feed.'
+echo 'Verified SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.'
 }
 main "$@"

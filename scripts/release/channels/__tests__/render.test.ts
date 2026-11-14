@@ -25,7 +25,7 @@ describe("SHA256SUMS", () => {
     ["extension", fixture.replace("windows-x64.exe", "windows-x64"), "Unexpected release asset"],
     ["invalid hash", fixture.replace(/^./, "g"), "Invalid SHA256SUMS"],
     ["short hash", fixture.slice(1), "Invalid SHA256SUMS"],
-    ["extra", `${fixture}${"a".repeat(64)}  release.bin\n`, "Unexpected release asset"],
+    ["extra", `${fixture}${"a".repeat(64)}  unknown.txt\n`, "Unexpected release asset"],
   ])("rejects %s", (_name, contents, message) => {
     expect(() => parseChecksums(contents!)).toThrow(message);
   });

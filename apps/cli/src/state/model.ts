@@ -1,5 +1,4 @@
 import type { IDeviceListState } from "@envden/core/chain";
-import type { IReleaseState } from "@envden/core/protocol";
 
 export interface ILocalState {
   format: 1;
@@ -26,8 +25,6 @@ export interface ILocalState {
   aliases: Record<string, string>;
   telemetry: boolean;
   updateCheck: boolean;
-  release?: IReleaseState;
-  lastFeedCheck?: number;
   latest?: string;
 }
 

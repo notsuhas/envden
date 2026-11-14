@@ -1,73 +1,37 @@
+import { compareSemver } from "@envden/core/protocol";
 import type { TFetch } from "../client/fetch.ts";
-import {
-  type IReleaseTrust,
-  acceptRelease,
-  initialReleaseState,
-  compareSemver,
-} from "@envden/core/protocol";
-import type { ILocalState } from "../state/model.ts";
-
-import { releaseConfig } from "./release-config.ts";
+import { latestRelease } from "./github.ts";
 import { VERSION } from "../version.ts";
 
+export interface IUpdateCache {
+  checkedAt?: number;
+  latest?: string;
+  message?: string;
+}
+
 export async function checkRelease(
-  state: ILocalState,
-  trust: IReleaseTrust | undefined,
+  state: IUpdateCache,
   now: number,
   fetcher: TFetch,
   force = false,
 ) {
-  if (!force && state.lastFeedCheck !== undefined && now - state.lastFeedCheck < 86400000)
+  if (!force && state.checkedAt !== undefined && now - state.checkedAt < 86400000)
     return { kind: "skipped" as const };
 
-  if (!trust)
-    return { kind: "unavailable" as const, message: "Release signing keys are not configured" };
-
   try {
-    const trusted = initialReleaseState(trust, state.release);
-
-    const url = releaseConfig.url.replace(
-      /release-g\d+\.bin$/,
-      `release-g${trusted.generation}.bin`,
-    );
-
-    const response = await fetcher(url, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(2000),
-    });
-
-    if (!response.ok)
-      return { kind: "unavailable" as const, message: "Cannot confirm envden is up to date" };
-
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    const accepted = acceptRelease(bytes, trusted, BigInt(now));
-
-    if (!accepted.ok)
-      return { kind: "unavailable" as const, message: "Cannot verify the release feed" };
-
-    state.release = accepted.value.state;
-    state.latest = accepted.value.release.latest;
+    state.latest = await latestRelease(fetcher);
+    delete state.message;
 
     return {
       kind: "checked" as const,
       latest: state.latest,
       available: compareSemver(state.latest, VERSION) > 0,
-      required: state.release.unsafe.includes(VERSION),
-      expired: accepted.value.expired,
-      release: accepted.value.release,
-      feed: bytes,
     };
   } catch {
-    return { kind: "unavailable" as const, message: "Cannot confirm envden is up to date" };
+    state.message = "Cannot confirm envden is up to date";
+
+    return { kind: "unavailable" as const, message: state.message };
   } finally {
-    state.lastFeedCheck = now;
+    state.checkedAt = now;
   }
-}
-
-export function releaseCheckSummary(result: Awaited<ReturnType<typeof checkRelease>>) {
-  if (result.kind !== "checked") return result;
-
-  const { kind, latest, available, required, expired } = result;
-
-  return { kind, latest, available, required, expired };
 }

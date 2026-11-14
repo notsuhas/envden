@@ -1,3 +1,4 @@
+import { readUpdateCache } from "../../updates/cache.ts";
 import { restorePlacement, clearPlacement } from "../journal/placement.ts";
 import { storeHeaders, restoreHeaders } from "./headers.ts";
 import { withStateLock } from "../lock/lock.ts";
@@ -32,7 +33,7 @@ export async function saveState(home: string, state: ILocalState): Promise<void>
   await withStateLock(home, async () => {
     await privateDirectory(home);
     const headerRefs = await storeHeaders(home, state.headers);
-    const { headers: _headers, ...record } = state;
+    const { headers: _headers, latest: _latest, ...record } = state;
 
     await atomicWrite(
       join(home, "state", "device.json"),
@@ -65,6 +66,11 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
     )
       throw new Error("Invalid state");
 
+    Reflect.deleteProperty(value, "release");
+    Reflect.deleteProperty(value, "lastFeedCheck");
+    delete value.latest;
+    const latest = (await readUpdateCache(home)).latest;
+    if (latest) value.latest = latest;
     await restorePlacement(home, value);
 
     return value;

@@ -68,7 +68,6 @@ test("command help and shared stub exit", async () => {
 test("noninteractive safety gates", async () => {
   expect((await cli(["setup"])).stderr).toContain("Missing choices:");
   expect((await cli(["push"])).stderr).toContain("requires --yes");
-  expect((await cli(["config", "allow-version", "1.0.0"])).stderr).toContain("own terminal");
 });
 
 for (const [keep, take, choice] of [

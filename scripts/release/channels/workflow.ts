@@ -1,8 +1,5 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { releaseConfig } from "@envden/cli/src/updates/release-config.ts";
-import { verifiedFeed } from "../feed-policy.ts";
-import { assetName } from "../../../apps/cli/scripts/targets.ts";
 import { command } from "./commands.ts";
 import { publishRepository, writeOutput } from "./publish.ts";
 import { parseChecksums, renderNpmPackage, renderTemplate } from "./render.ts";
@@ -30,40 +27,20 @@ export async function downloadChecksums(version: string, directory: string) {
         "--repo",
         "notsuhas/envden",
         "--pattern",
-        `release-g${releaseConfig.trust?.generation}.bin`,
+        "SHA256SUMS",
         "--dir",
         directory,
       ],
       root,
     );
 
-    await writeVerifiedChecksums(version, directory);
+    parseChecksums(await readFile(join(directory, "SHA256SUMS"), "utf8"));
   } catch (cause) {
     throw new Error(
-      `Could not verify release feed for notsuhas/envden v${version}. Check that the release exists and gh is authenticated.`,
+      `Could not download release checksums for notsuhas/envden v${version}. Check that the release exists and gh is authenticated.`,
       { cause },
     );
   }
-}
-
-async function writeVerifiedChecksums(version: string, directory: string) {
-  const trust = releaseConfig.trust;
-  if (!trust) throw new Error("Built-in release trust required");
-
-  const feed = verifiedFeed(
-    new Uint8Array(await readFile(join(directory, `release-g${trust.generation}.bin`))),
-    trust,
-  );
-
-  if (feed.latest !== version || feed.expires <= BigInt(Date.now()))
-    throw new Error("Feed version mismatch or expired feed");
-
-  await writeFile(
-    join(directory, "SHA256SUMS"),
-    feed.builds
-      .map((build) => `${Buffer.from(build.sha256).toString("hex")}  ${assetName(build.platform)}`)
-      .join("\n") + "\n",
-  );
 }
 
 export async function renderFiles(version: string, directory: string, dryRun: boolean) {

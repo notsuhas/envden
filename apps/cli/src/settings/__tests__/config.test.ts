@@ -22,7 +22,6 @@ test("config validates, persists and uses private paths", async () => {
 
     expect(setConfig("bad", "on", home)).rejects.toThrow();
     expect(() => parseConfig({ telemetry: "yes" })).toThrow();
-    expect(() => parseConfig({ "allow-version": "latest" })).toThrow();
   } finally {
     await rm(home, { recursive: true, force: true });
   }

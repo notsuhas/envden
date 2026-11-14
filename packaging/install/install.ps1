@@ -34,6 +34,6 @@ try {
   Move-Item $staged (Join-Path $bin 'envden.exe') -Force
   [IO.File]::WriteAllText((Join-Path $homeDir 'install-method'), "script")
   Write-Output "Installed envden. Add $bin to your user PATH."
-  Write-Output 'Bootstrap verified SHA256SUMS over HTTPS; it does not authenticate the signed feed.'
+  Write-Output 'Verified SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.'
 } finally { Remove-Item $work -Recurse -Force }
 } @args

@@ -1,3 +1,4 @@
+import { updateStatus } from "../updates/status.ts";
 import { mkdtemp, symlink, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { TAdapters } from "../adapters.ts";
@@ -29,6 +30,7 @@ export async function doctor(adapters: TAdapters, location: ReturnType<typeof pa
   return {
     keychain: (await adapters.keychain.available()) ? "os" : "file-fallback",
     symlinks,
+    update: await updateStatus(adapters.home),
     tailscale: await adapters.network.status(),
     https: await adapters.network.checkHttpsCertificate(),
     shells,

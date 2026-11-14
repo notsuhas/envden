@@ -104,7 +104,7 @@ export function createProgram() {
 function reportCommandNotice(notice: Awaited<ReturnType<typeof commandNotice>>) {
   for (const repo of notice.repos) console.error(`envden: ${repo} out of sync`);
   if (notice.update.available) console.error("envden: update available; run envden update");
-  if (notice.update.required) console.error("envden: this version is unsafe; update required");
+  if (notice.update.required) console.error("envden: update required; run envden update");
 }
 
 function commandName(command: CommandUnknownOpts): string {

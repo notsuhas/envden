@@ -19,7 +19,7 @@ export const statusCommand = new Command("status")
       !options.refreshCache,
     );
 
-    const status = { ...(await localStatus(adapters)), ...notice };
+    const status = { ...notice, ...(await localStatus(adapters)) };
 
     if (!options.refreshCache)
       console.log(
@@ -36,10 +36,14 @@ export const statusCommand = new Command("status")
                     (link) =>
                       `envden: ${link.root}/${link.path} ${"conflict" in link && link.conflict ? "conflict" : "detached"}`,
                   ),
+                ...(status.update.message ? [status.update.message] : []),
                 ...notice.repos.map((repo) => `envden: ${repo} out of sync`),
               ]
                 .map(sanitizeTerminal)
                 .join("\n")
-            : "envden: not configured",
+            : [
+                "envden: not configured",
+                ...(status.update.message ? [status.update.message] : []),
+              ].join("\n"),
       );
   });

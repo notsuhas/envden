@@ -104,8 +104,6 @@ test("status succeeds while another command owns the state lock", async () => {
 test("ordinary status reads cached notices without a network request", async () => {
   const { saveState } = await import("../../state/store/repository.ts");
   const { emptyState } = await import("../../state/model.ts");
-  const { releaseConfig } = await import("../../updates/release-config.ts");
-  const trust = releaseConfig.trust;
   const root = await mkdtemp(join(tmpdir(), "envden-local-status-"));
   const previous = process.env.ENVDEN_HOME;
   const log = spyOn(console, "log").mockImplementation(() => {});
@@ -120,17 +118,11 @@ test("ordinary status reads cached notices without a network request", async () 
   );
 
   try {
-    releaseConfig.trust = {
-      generation: 1,
-      keys: { primary: new Uint8Array(32), backup: new Uint8Array(32) },
-    };
-
     process.env.ENVDEN_HOME = root;
     await saveState(root, emptyState("test"));
     await createProgram().parseAsync(["node", "envden", "status"]);
     expect(network).not.toHaveBeenCalled();
   } finally {
-    releaseConfig.trust = trust;
     log.mockRestore();
     network.mockRestore();
 

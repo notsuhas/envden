@@ -1,68 +1,127 @@
-import type { TFetch } from "../../client/fetch.ts";
 import { test, expect } from "bun:test";
-import * as p from "@envden/core/protocol";
-import { checkRelease, releaseCheckSummary } from "../check.ts";
-import { emptyState } from "../../state/model.ts";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
+import { createAdapters } from "../../adapters.ts";
+import { latestRelease, RELEASE_REPOSITORY } from "../github.ts";
+import { checkRelease, type IUpdateCache } from "../check.ts";
+import { runUpdateCheck } from "../run.ts";
+import { readUpdateCache, cleanupReleaseState } from "../cache.ts";
+import { atomicWrite } from "../../state/store/files.ts";
+import type { TFetch } from "../../client/fetch.ts";
 
-test("signed feed applies unsafe versions, refuses replay and skips daily fetches", async () => {
-  const primary = p.generateRecoveryKeys();
-  const backup = p.generateRecoveryKeys();
-  const trust = { generation: 1, keys: { primary: primary.objPub, backup: backup.objPub } };
-  const state = emptyState("test");
-
-  const body: p.IRelease = {
-    generation: 1,
-    seq: 1n,
-    issuedAt: 1000n,
-    expires: 2592001000n,
-    latest: "1.0.0",
-    unsafe: ["0.0.0"],
-    builds: [],
-    revokePrimary: 0,
-    next: undefined,
-  };
-
-  const bytes = p.ReleaseFeedCodec.write({
-    body,
-    signatures: [{ key: 0, sig: p.Sign(primary.objSk, "release", p.ReleaseCodec.write(body)) }],
+const redirect = (tag = "v1.2.3") =>
+  new Response(null, {
+    status: 302,
+    headers: { location: `https://github.com/${RELEASE_REPOSITORY}/releases/tag/${tag}` },
   });
 
+test("public redirect resolves the tag without the API", async () => {
   let calls = 0;
 
-  const fetcher: TFetch = async (_input, options) => {
-    expect(options?.redirect).toBe("follow");
-    calls++;
+  expect(
+    await latestRelease(async (_, options) => {
+      calls++;
+      expect(options?.redirect).toBe("manual");
 
-    return new Response(bytes);
-  };
+      return redirect();
+    }),
+  ).toBe("1.2.3");
 
-  const result = await checkRelease(state, trust, 2000, fetcher);
-  expect(result.kind).toBe("checked");
+  expect(calls).toBe(1);
+});
 
-  expect(JSON.parse(JSON.stringify(releaseCheckSummary(result)))).toEqual({
-    kind: "checked",
-    latest: "1.0.0",
-    available: true,
-    required: false,
-    expired: false,
+test("lookup falls back to API when the redirect fails", async () => {
+  const urls: string[] = [];
+
+  expect(
+    await latestRelease(async (input) => {
+      urls.push(input instanceof Request ? input.url : input.toString());
+
+      return urls.length === 1
+        ? new Response(null, { status: 503 })
+        : Response.json({ tag_name: "v2.0.0" });
+    }),
+  ).toBe("2.0.0");
+
+  expect(urls[1]).toBe(`https://api.github.com/repos/${RELEASE_REPOSITORY}/releases/latest`);
+});
+
+for (const tag of ["v1.2.3-beta", "1.2.3", "v01.2.3", "v1.2", "v1.2.3+build"])
+  test(`malformed stable tag is refused: ${tag}`, async () => {
+    let calls = 0;
+
+    await Promise.resolve(
+      expect(
+        latestRelease(async () =>
+          ++calls === 1 ? redirect(tag) : Response.json({ tag_name: tag }),
+        ),
+      ).rejects.toThrow("Invalid release tag"),
+    );
   });
 
-  expect(state.release?.unsafe).toEqual(["0.0.0"]);
-  expect((await checkRelease(state, trust, 3000, fetcher)).kind).toBe("skipped");
-  expect(calls).toBe(1);
-  const invalid: TFetch = async () => new Response(new Uint8Array([1, 2]));
-  expect((await checkRelease(state, trust, 4000, invalid, true)).kind).toBe("unavailable");
-  expect(state.release?.primary?.seq).toBe(1n);
-});
+test("daily cache limits both successful and failed lookups", async () => {
+  const cache: IUpdateCache = {};
+  let calls = 0;
 
-test("unconfigured checks never use the network", async () => {
-  const state = emptyState("test");
+  const fetcher: TFetch = async () => {
+    calls++;
 
-  const network: TFetch = async () => {
-    throw new Error("Unexpected network");
+    return redirect();
   };
 
-  state.updateCheck = false;
-  expect((await checkRelease(state, undefined, 1, network)).kind).toBe("unavailable");
-  expect((await checkRelease(state, undefined, 1, network, true)).kind).toBe("unavailable");
+  expect((await checkRelease(cache, 100, fetcher)).kind).toBe("checked");
+  expect((await checkRelease(cache, 101, fetcher)).kind).toBe("skipped");
+  expect(calls).toBe(1);
+
+  const failing: TFetch = async () => {
+    throw new Error("offline");
+  };
+
+  expect((await checkRelease(cache, 86400100, failing)).kind).toBe("unavailable");
+  expect((await checkRelease(cache, 86400101, fetcher)).kind).toBe("skipped");
+  expect(cache.message).toContain("Cannot confirm");
 });
+
+for (const optOut of ["config", "env", "none"])
+  test(`daily check persists independently of vault and honours opt-out: ${optOut}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-check-"));
+    const before = process.env.ENVDEN_NO_UPDATE_CHECK;
+    let calls = 0;
+
+    try {
+      if (optOut === "env") process.env.ENVDEN_NO_UPDATE_CHECK = "1";
+      else delete process.env.ENVDEN_NO_UPDATE_CHECK;
+
+      await atomicWrite(
+        join(home, "config.json"),
+        JSON.stringify({ "update-check": optOut !== "config" }),
+      );
+
+      const adapters = createAdapters({
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter([]),
+      });
+
+      const fetcher: TFetch = async () => {
+        calls++;
+
+        return redirect();
+      };
+
+      await runUpdateCheck(adapters, 10, false, fetcher);
+      await runUpdateCheck(adapters, 11, false, fetcher);
+      expect(calls).toBe(optOut === "none" ? 1 : 0);
+      expect((await readUpdateCache(home)).latest).toBe(optOut === "none" ? "1.2.3" : undefined);
+      await atomicWrite(join(home, "state", "releases.json"), "obsolete");
+      await cleanupReleaseState(home);
+      expect(await Bun.file(join(home, "state", "releases.json")).exists()).toBe(false);
+    } finally {
+      if (before === undefined) delete process.env.ENVDEN_NO_UPDATE_CHECK;
+      else process.env.ENVDEN_NO_UPDATE_CHECK = before;
+
+      await rm(home, { recursive: true, force: true });
+    }
+  });

@@ -2,8 +2,7 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@envden/core/protocol": ["../packages/core/src/protocol/index.ts"],
-      "@envden/cli/src/updates/release-config.ts": ["../apps/cli/src/updates/release-config.ts"]
+      "@envden/core/protocol": ["../packages/core/src/protocol/index.ts"]
     }
   },
   "include": ["release", "adapter", "new-adapter.ts"]
