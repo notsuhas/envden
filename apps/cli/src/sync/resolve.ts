@@ -44,7 +44,7 @@ export function resolveConflict(
     if (bytes) await placement.place(record.store, destination);
     else await placement.remove(record.store, destination);
 
-    if (!bytes) await removeResolvedLink(adapters.home, record.root, record.path);
+    await updateResolvedLink(adapters.home, record, bytes !== undefined);
 
     await saveBase(record.base, server, now);
     await saveAgreement(adapters.home, record, bytes, now);
@@ -74,10 +74,16 @@ async function resolutionBytes(
   );
 }
 
-async function removeResolvedLink(home: string, root: string, path: string) {
+async function updateResolvedLink(
+  home: string,
+  record: Awaited<ReturnType<typeof conflictRecords>>[number],
+  present: boolean,
+) {
   const state = await loadState(home);
   if (!state) return;
+  const { root, path, store, mode } = record;
   state.links = state.links.filter((item) => item.root !== root || item.path !== path);
+  if (present) state.links.push({ root, path, store, mode });
   await saveState(home, state);
 }
 

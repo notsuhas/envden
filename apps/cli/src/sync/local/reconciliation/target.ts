@@ -65,19 +65,8 @@ export async function reconcileTarget(
     repair: noFastForward.has(p.base32(entry.fileId)),
   });
 
-  if (needsConflict(action.kind, !!choose, !!detachedChoice)) {
-    await recordConflict(
-      context,
-      { ...target, base, entry: text(p.FileEntryCodec.write(entry)) },
-      mine,
-      server,
-    );
-
-    if (action.kind === "repair-conflict")
-      await consumeRepair(context.adapters.home, p.base32(entry.fileId));
-
-    return { changed: 0, conflicts: 1 };
-  }
+  if (needsConflict(action.kind, !!choose, !!detachedChoice))
+    return saveTargetConflict(context, { ...target, base }, entry, { mine, server }, noFastForward);
 
   const resolution =
     action.kind === "write"
@@ -92,16 +81,8 @@ export async function reconcileTarget(
           server,
         );
 
-  if (resolution.kind === "conflict") {
-    await recordConflict(
-      context,
-      { ...target, base, entry: text(p.FileEntryCodec.write(entry)) },
-      mine,
-      server,
-    );
-
-    return { changed: 0, conflicts: 1 };
-  }
+  if (resolution.kind === "conflict")
+    return saveTargetConflict(context, { ...target, base }, entry, { mine, server }, noFastForward);
 
   return applyTarget(
     context,
@@ -160,4 +141,24 @@ async function resolvedStatus(
   }
 
   return status;
+}
+
+async function saveTargetConflict(
+  context: TSyncContext,
+  target: Parameters<typeof recordConflict>[1],
+  entry: p.IFileEntry,
+  content: { mine: Uint8Array | undefined; server: Uint8Array | undefined },
+  noFastForward: ReadonlySet<string>,
+) {
+  await recordConflict(
+    context,
+    { ...target, entry: text(p.FileEntryCodec.write(entry)) },
+    content.mine,
+    content.server,
+  );
+
+  const id = p.base32(entry.fileId);
+  if (noFastForward.has(id)) await consumeRepair(context.adapters.home, id);
+
+  return { changed: 0, conflicts: 1 };
 }

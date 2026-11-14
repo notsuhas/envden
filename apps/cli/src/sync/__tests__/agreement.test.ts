@@ -55,22 +55,34 @@ for (const [base, stored, copied, agreed] of [
   });
 
 for (const copy of [false, true])
-  for (const choice of ["applied", "keep-mine", "take-server", "repair"] as const)
+  for (const choice of [
+    "applied",
+    "keep-mine",
+    "take-server",
+    "repair",
+    "untracked-repair",
+  ] as const)
     test(`tombstone re-add: copy=${copy}, choice=${choice}`, async () => {
       const f = await syncFixture();
 
       try {
         const adapters = choice === "applied" ? f.first : f.second;
         const checkout = choice === "applied" ? f.checkout : f.checkoutB;
+
+        await configureUntrackedCopy(adapters.home, checkout.root, copy, choice);
+
         await rm(f.aStore);
         await push(f.first, f.opts);
         await atomicWrite(join(checkout.root, ".env"), "TOKEN=recreated\n");
         const state = (await loadState(adapters.home))!;
         adapters.repo.envFiles = async () => [".env"];
-        await linkCheckout(adapters, state, checkout, async () => true, copy);
+
+        if (choice !== "untracked-repair")
+          await linkCheckout(adapters, state, checkout, async () => true, copy);
+
         await saveState(adapters.home, state);
 
-        if (choice === "repair") {
+        if (choice === "repair" || choice === "untracked-repair") {
           const { savePendingRepairs } = await import("../remote/repairs.ts");
           const { syncContext } = await import("../remote/context.ts");
           const p = await import("@envden/core/protocol");
@@ -90,14 +102,14 @@ for (const copy of [false, true])
 
           await resolveConflict(adapters, {
             file: ".env",
-            choice: choice === "repair" ? "keep-mine" : choice,
+            choice: choice === "take-server" ? "take-server" : "keep-mine",
             now: f.now,
           });
 
           const next = await push(adapters, f.opts);
           expect(next.kind).not.toBe("conflict");
 
-          if (choice === "keep-mine" || choice === "repair") expect(next.kind).toBe("pushed");
+          if (choice !== "take-server") expect(next.kind).toBe("pushed");
           else expect(await Bun.file(join(checkout.root, ".env")).exists()).toBe(false);
         }
       } finally {
@@ -107,4 +119,10 @@ for (const copy of [false, true])
 
 function portContent(value: string | undefined) {
   return value === undefined ? undefined : new TextEncoder().encode(`PORT=${value}\n`);
+}
+
+async function configureUntrackedCopy(home: string, root: string, copy: boolean, choice: string) {
+  if (!copy || choice !== "untracked-repair") return;
+  const { setConfig } = await import("../../settings/config.ts");
+  await setConfig("placement", JSON.stringify({ [root]: "copy" }), home);
 }
