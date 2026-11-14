@@ -1,3 +1,5 @@
+import { EnvdenError } from "../../errors/index.ts";
+import { protectSource, SourceFailure } from "./source-errors.ts";
 import type { IDeviceListState } from "../devices/state.ts";
 import type { TEntry } from "../../protocol/index.ts";
 import {
@@ -35,7 +37,8 @@ export async function acceptManifest(input: {
   localFileIds: ReadonlySet<string>;
 }): Promise<TManifestResult> {
   try {
-    const { checkpoint: c, head, source } = input;
+    const { checkpoint: c, head } = input;
+    const source = protectSource(input.source);
     const hash = (h: ISigned<IManifestHeader>) => objectHash(ManifestHeaderCodec, h, "manifest");
 
     const prior = priorManifest(c, head, input.storedHeaders);
@@ -94,8 +97,8 @@ export async function acceptManifest(input: {
       repairs,
       noFastForward,
     };
-  } catch {
-    return { kind: "invalid" };
+  } catch (error) {
+    return invalidManifest(error);
   }
 }
 
@@ -194,4 +197,11 @@ function priorManifest(
   }
 
   return { kind: "advance" };
+}
+
+function invalidManifest(error: unknown): TManifestResult {
+  if (error instanceof SourceFailure) throw error.cause;
+  if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
+
+  return { kind: "invalid" };
 }

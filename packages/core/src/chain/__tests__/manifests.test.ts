@@ -1,5 +1,12 @@
+import { EnvdenError } from "../../errors/index.ts";
 import { expect, test } from "bun:test";
-import { base32, ManifestHeaderCodec, objectHash, signObject } from "../../protocol/index.ts";
+import {
+  EntryCodec,
+  base32,
+  ManifestHeaderCodec,
+  objectHash,
+  signObject,
+} from "../../protocol/index.ts";
 import { acceptManifest } from "../manifests/accept.ts";
 import { headerDescent, entryDescent } from "../manifests/descent.ts";
 import { manifestFixture } from "./manifest-fixture.ts";
@@ -162,3 +169,56 @@ test("unsigned divergent headers are invalid at equal sequence and during descen
   f.headers.set(base32(objectHash(ManifestHeaderCodec, bad, "manifest")), bad);
   expect((await acceptManifest(f.acceptInput(head))).kind).toBe("invalid");
 });
+
+for (const longer of [false, true]) {
+  test(`sibling device list at ${longer ? "greater" : "equal"} manifest sequence is a fork`, async () => {
+    const f = manifestFixture();
+
+    const sibling = signObject(
+      EntryCodec,
+      {
+        ...f.epoch.body,
+        kind: 3,
+        payload: {
+          change: { ...f.change(f.state), epoch: 1, keyCommit: bytes(77) },
+        },
+      },
+      f.a.keys.objSk,
+      "entry",
+    );
+
+    for (const entry of [f.genesis, sibling])
+      f.entries.set(base32(objectHash(EntryCodec, entry, "entry")), entry);
+
+    const fork = signedHeader(f.header, {
+      seq: f.header.body.seq,
+      listHead: objectHash(EntryCodec, sibling, "entry"),
+    });
+
+    f.headers.set(base32(objectHash(ManifestHeaderCodec, fork, "manifest")), fork);
+    const head = longer ? signedHeader(fork, { op: 1 }) : fork;
+    expect((await acceptManifest(f.acceptInput(head))).kind).toBe("fork");
+    const forged = { ...sibling, signature: bytes(0, 64) };
+    f.entries.set(base32(objectHash(EntryCodec, sibling, "entry")), forged);
+    expect((await acceptManifest(f.acceptInput(head))).kind).toBe("invalid");
+  });
+}
+
+for (const method of ["header", "files"] as const) {
+  test(`manifest preserves ${method} source failures`, async () => {
+    const f = manifestFixture();
+    const head = f.push();
+
+    for (const failure of [
+      new Error("source failure"),
+      new EnvdenError("NOT_FOUND", "Source unavailable"),
+      new EnvdenError("INVALID_DATA", "Source unavailable"),
+    ]) {
+      f.source[method] = () => {
+        throw failure;
+      };
+
+      await Promise.resolve(expect(acceptManifest(f.acceptInput(head))).rejects.toBe(failure));
+    }
+  });
+}
