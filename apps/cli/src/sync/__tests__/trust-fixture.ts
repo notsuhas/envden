@@ -107,7 +107,12 @@ export async function finishScenario(
     expect(await readBytes(target.store)).toEqual(original);
 
   if (scenario === "local-sides") {
-    expect([await readBytes(record.mine), await readBytes(record.server)]).toContainEqual(edited);
+    expect(await readBytes(record.mine)).toEqual(bytes("TOKEN=store-edit\n"));
+    expect(await readBytes(record.server)).toEqual(original);
+
+    expect(await Promise.all(record.alternatives.map((path) => readBytes(path)))).toContainEqual(
+      edited,
+    );
 
     expect(reports.join("\n")).toContain(path);
   }

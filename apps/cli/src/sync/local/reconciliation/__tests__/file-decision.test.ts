@@ -41,7 +41,7 @@ for (const [name, store, previous, server] of [
 for (const [name, bytes, base, tracked, mode, expected] of [
   ["copy unchanged follows store", A, A, true, "copy", { kind: "content", bytes: B }],
   [
-    "copy edit conflicts with store edit",
+    "copy edit conflicts with synced store",
     C,
     A,
     true,
@@ -70,6 +70,7 @@ for (const [name, bytes, base, tracked, mode, expected] of [
         ...common,
         store: B,
         previous: A,
+        recorded: B,
         server: B,
         copies: [{ bytes, base, tracked, mode, detached: false }],
       }).local,
@@ -87,3 +88,35 @@ for (const [current, base, accepted, expected] of [
   test(`place ${current}/${base}/${accepted}`, () => {
     expect(derivePlaceVersion(current, base, accepted)).toBe(expected);
   });
+
+for (const [name, store, recorded, previous, server, deleting, mine, theirs] of [
+  ["store edit is mine", B, A, A, A, false, B, C],
+  ["pending removal is mine", undefined, A, A, A, true, undefined, C],
+  ["synced store leaves copy edit as mine", B, B, B, B, false, C, B],
+] as const)
+  test(name, () => {
+    expect(
+      deriveFileDecision({
+        ...common,
+        store,
+        recorded,
+        previous,
+        server,
+        deleting,
+        copies: [{ bytes: C, base: A, tracked: true, mode: "copy", detached: false }],
+      }).local,
+    ).toEqual({ kind: "conflict", mine, theirs });
+  });
+
+test("copy already at server does not conflict with unchanged stale store", () => {
+  expect(
+    deriveFileDecision({
+      ...common,
+      store: A,
+      recorded: A,
+      previous: A,
+      server: B,
+      copies: [{ bytes: B, base: C, tracked: true, mode: "copy", detached: false }],
+    }).action,
+  ).toEqual({ kind: "write", next: B });
+});

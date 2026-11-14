@@ -38,7 +38,7 @@ export async function reconcileFile(
   )
     return { changed: Number(snapshot.restored), conflicts: 1 };
 
-  const { resolution, mine, local, repair } = await resolveFileState(
+  const { resolution, mine, repair } = await resolveFileState(
     context,
     snapshot,
     entry,
@@ -56,7 +56,7 @@ export async function reconcileFile(
         targets,
       },
       mine,
-      conflictTheirs(snapshot, local),
+      snapshot.server,
       [stored, server, ...snapshots.map((item) => item.bytes)],
     );
 
@@ -89,7 +89,7 @@ async function resolveFileState(
           local,
           snapshots[0]!.target.path,
           chooser,
-          conflictTheirs(snapshot, local),
+          snapshot.server,
         )
       : action.kind === "write"
         ? action
@@ -106,7 +106,7 @@ async function resolveFileState(
   if (repair || (local.kind !== "conflict" && action.kind === "conflict"))
     resolution = { kind: "conflict" };
 
-  return { resolution, mine, local, repair };
+  return { resolution, mine, repair };
 }
 
 async function applyFile(
@@ -169,15 +169,6 @@ function decideFile(
     repair,
     detached,
   };
-}
-
-function conflictTheirs(
-  snapshot: Awaited<ReturnType<typeof readFileState>>,
-  local: ReturnType<typeof deriveFileDecision>["local"],
-) {
-  return local.kind === "conflict" && same(snapshot.server, snapshot.previous)
-    ? local.theirs
-    : snapshot.server;
 }
 
 async function resolveLocalConflict(

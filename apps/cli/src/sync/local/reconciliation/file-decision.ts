@@ -14,6 +14,7 @@ function deriveFileContent(
     historical?: boolean;
   }[],
   deleted = false,
+  storeEdited = false,
 ) {
   const edits: TBytes[] = [];
 
@@ -22,7 +23,7 @@ function deriveFileContent(
   };
 
   for (const copy of copies) {
-    for (const bytes of targetEdits(store, copy, deleted)) add(bytes);
+    for (const bytes of targetEdits(store, copy, deleted, storeEdited)) add(bytes);
   }
 
   if (edits.length > 1) return { kind: "conflict", mine: edits[0], theirs: edits[1] } as const;
@@ -45,6 +46,7 @@ export function deriveFileDecision(
     store,
     input.copies.filter((copy) => !(same(copy.bytes, input.server) && same(store, input.previous))),
     !!input.deleting || (input.published && !!input.tombstone),
+    !!input.deleting || !same(store, input.recorded ?? input.previous),
   );
 
   const mine = local.kind === "conflict" ? local.mine : local.bytes;
@@ -68,6 +70,7 @@ function targetEdits(
   store: TBytes,
   copy: Parameters<typeof deriveFileContent>[1][number],
   deleted: boolean,
+  storeEdited: boolean,
 ): TBytes[] {
   if (copy.bytes === undefined || same(copy.bytes, store) || copy.historical) return [];
 
@@ -75,12 +78,18 @@ function targetEdits(
 
   if (copy.mode === "link") return same(store, copy.base) ? [copy.bytes] : [store, copy.bytes];
 
-  return copyEdits(store, copy.bytes, copy.base, deleted);
+  return copyEdits(store, copy.bytes, copy.base, deleted, storeEdited);
 }
 
-function copyEdits(store: TBytes, bytes: Uint8Array, base: Uint8Array, deleted: boolean): TBytes[] {
+function copyEdits(
+  store: TBytes,
+  bytes: Uint8Array,
+  base: Uint8Array,
+  deleted: boolean,
+  storeEdited: boolean,
+): TBytes[] {
   if (same(bytes, base)) return store === undefined && !deleted ? [store, bytes] : [];
   if (same(store, base)) return [bytes];
 
-  return [bytes, store];
+  return storeEdited ? [store, bytes] : [bytes, store];
 }
