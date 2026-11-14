@@ -1,3 +1,4 @@
+import { powerShellProfile } from "./files/powershell-profile.ts";
 import { bashRcPath } from "./files/bash-profile.ts";
 import { shellFailure } from "./failures/operation.ts";
 import { readFile } from "node:fs/promises";
@@ -25,17 +26,20 @@ class RcShellAdapter implements IShellAdapter {
   private readonly home: string;
   private readonly envdenHome: string;
   private readonly backupDirectory: string | undefined;
+  private readonly resolveProfile: () => string | undefined;
 
   constructor(
     shell: TShell,
     home = homedir(),
     envdenHome = process.env.ENVDEN_HOME ?? join(home, ".envden"),
     backupDirectory?: string,
+    resolveProfile = () => (home === homedir() ? powerShellProfile() : undefined),
   ) {
     this.id = shell;
     this.home = home;
     this.envdenHome = envdenHome;
     this.backupDirectory = backupDirectory;
+    this.resolveProfile = resolveProfile;
   }
 
   rcPath() {
@@ -47,9 +51,12 @@ class RcShellAdapter implements IShellAdapter {
       case "fish":
         return join(this.home, ".config", "fish", "config.fish");
       case "powershell":
-        return process.platform === "win32"
-          ? join(this.home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1")
-          : join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1");
+        return (
+          this.resolveProfile() ??
+          (process.platform === "win32"
+            ? join(this.home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1")
+            : join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1"))
+        );
     }
   }
 
@@ -93,8 +100,9 @@ export function createRcShellAdapter(
   home?: string,
   envdenHome?: string,
   backupDirectory?: string,
+  resolveProfile?: () => string | undefined,
 ): IShellAdapter {
-  const adapter = new RcShellAdapter(shell, home, envdenHome, backupDirectory);
+  const adapter = new RcShellAdapter(shell, home, envdenHome, backupDirectory, resolveProfile);
 
   return {
     id: adapter.id,

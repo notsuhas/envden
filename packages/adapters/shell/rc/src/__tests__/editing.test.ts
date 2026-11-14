@@ -229,3 +229,23 @@ test("macOS bash chooses a login profile unless it sources bashrc", async () => 
     await rm(home, { recursive: true, force: true });
   }
 });
+
+for (const [file, content, expected] of [
+  [".profile", "# user", ".profile"],
+  [".bash_login", "# user", ".bash_login"],
+  [".bashrc", "# >>> envden >>>", ".bashrc"],
+  [".bash_profile", "[ -f ~/.bashrc ] && . ~/.bashrc", ".bashrc"],
+  [".bash_profile", "if true; then . ~/.bashrc; fi", ".bashrc"],
+  [".bash_profile", "[[ -r ~/.bashrc ]] && source ~/.bashrc", ".bashrc"],
+  [".bash_profile", "# source ~/.bashrc", ".bash_profile"],
+])
+  test(`bash selects ${expected} for ${content}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-login-"));
+
+    try {
+      await writeFile(join(home, file!), content!);
+      expect(bashRcPath(home, "darwin")).toBe(join(home, expected!));
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });

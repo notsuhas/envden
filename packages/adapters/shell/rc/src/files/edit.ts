@@ -2,7 +2,7 @@ import { constants } from "node:fs";
 import { mkdir, open, realpath, rename, rm, lstat, chmod } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import { verifyWindowsOwner } from "./windows.ts";
+import { rcStat } from "./stat.ts";
 import { backupRc } from "./backup.ts";
 
 interface IEditHooks {
@@ -58,11 +58,7 @@ async function readRc(
   const file = await open(resolved, flags, 0o600);
 
   try {
-    const stat = await file.stat();
-
-    validateRc(stat);
-
-    if (process.platform === "win32") await verifyWindowsOwner(resolved);
+    const stat = await rcStat(file, resolved);
 
     await hooks.opened?.();
     const original = await file.readFile();
@@ -116,15 +112,6 @@ async function resolveRc(path: string, transform: (current: string) => string) {
   }
 
   return { resolved, flags };
-}
-
-function validateRc(stat: Awaited<ReturnType<typeof lstat>>) {
-  if (
-    !stat.isFile() ||
-    stat.nlink !== 1 ||
-    (process.platform !== "win32" && stat.uid !== process.getuid?.())
-  )
-    throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
 }
 
 function sameRc(
