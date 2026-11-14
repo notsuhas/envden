@@ -40,7 +40,11 @@ function recoverFile(
 ) {
   const { bytes } = context;
 
-  if (temporary) {
+  if (
+    temporary ||
+    (bytes("SELECT hash AS bytes FROM blob_garbage WHERE vault=? AND hash=?", vaultId, hash) &&
+      !bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", vaultId, hash))
+  ) {
     unlinkSync(path);
 
     return;

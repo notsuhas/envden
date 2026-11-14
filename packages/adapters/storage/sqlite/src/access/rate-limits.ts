@@ -28,7 +28,7 @@ export function createRateLimits(context: TContext) {
             .get(key)?.count ?? 0;
 
         if (count >= (bucket.kind === "mailbox" ? 20 : 5)) {
-          const strikes = (row?.strikes ?? 0) + 1;
+          const strikes = (row && now - row.until < 86400000 ? row.strikes : 0) + 1;
 
           run(
             "INSERT OR REPLACE INTO buckets VALUES(?,?,?)",
@@ -53,7 +53,7 @@ export function createRateLimits(context: TContext) {
           .get(receipt, now - 900000);
 
         if (!row) return false;
-        run("UPDATE buckets SET until=0 WHERE key=?", row.bucket);
+        run("UPDATE buckets SET until=0,strikes=0 WHERE key=?", row.bucket);
 
         return true;
       })

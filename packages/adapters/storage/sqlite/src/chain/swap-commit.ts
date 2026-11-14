@@ -1,3 +1,4 @@
+import { checkQuota } from "../db/quota.ts";
 import { prepareCommit, writeCommitState } from "@envden/core/adapters";
 import type { IStorageAdapter, IStoredSwap } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
@@ -76,6 +77,7 @@ export function createSwapCommit(
         writeCommitState(storage, vault, swap);
 
         writeMetadata(context, storage, vault, swap, now);
+        checkQuota(context, vault);
 
         run("INSERT INTO digests VALUES(?,?)", vault, swap.bodyDigest);
         run("UPDATE vaults SET head=? WHERE id=?", swap.header.hash, vault);

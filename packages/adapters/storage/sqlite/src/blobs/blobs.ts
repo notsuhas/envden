@@ -1,3 +1,4 @@
+import { vaultUsage } from "../db/quota.ts";
 import { syncDirectory } from "../db/directory.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TContext } from "../db/context.ts";
@@ -34,11 +35,7 @@ export function createBlobs(context: TContext) {
     if (verify && !equal(verify(bytes), hash)) throw new Error("Blob hash mismatch");
 
     db.transaction(() => {
-      const used = db
-        .query<{ size: number }, [Uint8Array]>(
-          "SELECT COALESCE(SUM(size),0) AS size FROM blob_usage WHERE vault=?",
-        )
-        .get(vault)!.size;
+      const used = vaultUsage(context, vault);
 
       const prior =
         db

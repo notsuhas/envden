@@ -36,7 +36,8 @@ export type TStateKind =
   | "move-session"
   | "setup-issued"
   | "server-identity"
-  | "pairing-index";
+  | "pairing-index"
+  | "mailbox-joiner";
 
 export interface IStateWrite {
   kind: TStateKind;
@@ -136,6 +137,7 @@ interface IChainStorage {
     limit?: number,
     maxBytes?: number,
   ): IStoredHeader[];
+  headersForFiles?(vaultId: Uint8Array, hash: Uint8Array): IStoredHeader[];
   header(vaultId: Uint8Array, hash: Uint8Array): IStoredHeader | undefined;
   entries(
     vaultId: Uint8Array,

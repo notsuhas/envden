@@ -65,3 +65,49 @@ test("migration replaces an interrupted backup and live requests prune expired s
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("startup does not adopt blobs pending deletion after discard", async () => {
+  const { H } = await import("@envden/core/protocol");
+  const dir = temp();
+  const vault = new Uint8Array([1]);
+  const content = new Uint8Array([4, 5, 6]);
+  const hash = H("blob", content);
+  const first = createSqliteStorageAdapter(dir, 0);
+  first.putBlob(vault, hash, content);
+  first.close();
+  const db = new Database(join(dir, "envden.sqlite"));
+  db.run("DELETE FROM blobs; DELETE FROM blob_usage");
+  db.query("INSERT INTO blob_garbage VALUES(?,?)").run(vault, hash);
+  db.close();
+  const storage = createSqliteStorageAdapter(dir, 0);
+
+  try {
+    expect(storage.getBlob(vault, hash)).toBeUndefined();
+    expect(existsSync(join(dir, "blobs", "01", Buffer.from(hash).toString("hex")))).toBe(false);
+  } finally {
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("startup preserves a blob re-uploaded after garbage was recorded", async () => {
+  const { H } = await import("@envden/core/protocol");
+  const dir = temp();
+  const vault = new Uint8Array([1]);
+  const content = new Uint8Array([4, 5, 6]);
+  const hash = H("blob", content);
+  const first = createSqliteStorageAdapter(dir, 0);
+  first.putBlob(vault, hash, content);
+  first.close();
+  const db = new Database(join(dir, "envden.sqlite"));
+  db.query("INSERT INTO blob_garbage VALUES(?,?)").run(vault, hash);
+  db.close();
+  const storage = createSqliteStorageAdapter(dir, 0);
+
+  try {
+    expect(storage.getBlob(vault, hash)).toEqual(content);
+  } finally {
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

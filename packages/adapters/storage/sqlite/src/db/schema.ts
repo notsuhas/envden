@@ -1,3 +1,4 @@
+import { migrateV3 } from "./migrations/v3.ts";
 import { migrateV2 } from "./migrations/v2.ts";
 import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
@@ -63,15 +64,15 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     const version =
       db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0;
 
-    if (version > 2)
+    if (version > 3)
       throw new Error(
-        `Database schema ${version} is newer than supported schema 2; update envden.`,
+        `Database schema ${version} is newer than supported schema 3; update envden.`,
       );
 
-    if (version === 2) return;
+    if (version === 3) return;
 
     if (existed) {
-      const backup = join(dataDir, `pre-${version === 0 ? 1 : 2}`);
+      const backup = join(dataDir, `pre-${version === 0 ? 1 : version + 1}`);
       const fd = openSync(backup, "w", 0o600);
 
       try {
@@ -85,7 +86,8 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     }
 
     if (version === 0) migrateV1(db);
-    migrateV2(db);
+    if (version < 2) migrateV2(db);
+    migrateV3(db);
   }).immediate();
 }
 
