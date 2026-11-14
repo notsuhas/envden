@@ -32,7 +32,7 @@ export async function startServer(
 
   const lines = output.split("\n").map((line) => line.trim());
   const url = /listening on (\S+)/.exec(output)![1]!.replace(/\/$/, "");
-  const token = lines.find((line) => line && !line.includes("listening on"));
+  const token = lines.find((line) => line.startsWith("envden-setup-1:"));
 
   if (!token) throw failure("envden serve printed no setup token", output);
 

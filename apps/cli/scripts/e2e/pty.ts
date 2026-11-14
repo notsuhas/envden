@@ -57,16 +57,18 @@ export class PtySession {
     return this.raw.replace(ANSI, "");
   }
 
-  async expect(text: string | RegExp): Promise<string> {
+  async expect(
+    text: string | RegExp,
+    deadline: AbortSignal = AbortSignal.timeout(E2E_TIMEOUT),
+  ): Promise<string> {
     const pattern = toPattern(text);
-    const deadline = Date.now() + E2E_TIMEOUT;
     let found = this.find(pattern);
 
     while (found === undefined) {
-      if (this.child.exitCode !== null || Date.now() > deadline)
+      if (this.child.exitCode !== null || deadline.aborted)
         throw failure(`${this.label}: expected ${pattern}`, this.output());
 
-      await this.idle();
+      await this.idle(deadline);
       found = this.find(pattern);
     }
 
@@ -81,10 +83,25 @@ export class PtySession {
     return found[1] ?? found[0];
   }
 
-  private idle(): Promise<void> {
-    return new Promise((resolve) => {
-      this.wake = resolve;
-      setTimeout(resolve, 250);
+  private idle(deadline: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        deadline.removeEventListener("abort", abort);
+        this.wake = () => {};
+      };
+
+      const abort = () => {
+        cleanup();
+        reject(failure(`${this.label}: terminal deadline expired`, this.output()));
+      };
+
+      this.wake = () => {
+        cleanup();
+        resolve();
+      };
+
+      deadline.addEventListener("abort", abort, { once: true });
+      if (deadline.aborted) abort();
     });
   }
 
