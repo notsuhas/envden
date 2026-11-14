@@ -1,3 +1,4 @@
+import { markAppliedEntry } from "./local/applied.ts";
 import { removeCheckoutBases } from "../links/checkout/bases.ts";
 import { preserveRemoval } from "./removal/backups.ts";
 import { resolve, join } from "node:path";
@@ -50,6 +51,9 @@ export function removeFile(
 
     await writeBytes(selected.store, undefined);
     await removeCheckoutBases(adapters.home, targets, []);
+
+    for (const record of records.filter((record) => record.store === selected.store))
+      if (record.entry) await markAppliedEntry(adapters.home, record.entry);
 
     await saveConflicts(
       adapters.home,

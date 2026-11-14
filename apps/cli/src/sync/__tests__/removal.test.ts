@@ -94,3 +94,27 @@ async function removePlaces(
         force: true,
       });
 }
+
+test("confirmed rm discards an existing conflict without recreating it on push", async () => {
+  const { atomicWrite } = await import("../../state/store/files.ts");
+  const { loadState } = await import("../../state/store/repository.ts");
+  const f = await fixture();
+  await pull(f.second, f.opts);
+  const store = (await loadState(f.second.home))!.links[0]!.store;
+  await atomicWrite(store, "TOKEN=mine\n");
+  await atomicWrite(f.aStore, "TOKEN=remote\n");
+  await push(f.first, f.opts);
+  expect((await pull(f.second, f.opts)).conflicts).toBe(1);
+
+  const removed = await removeFile(f.second, join(f.checkoutB.root, ".env"), {
+    yes: true,
+    now: f.now,
+  });
+
+  const saved = await Promise.all(removed.preserved.map((path) => Bun.file(path).text()));
+  expect(saved).toContain("TOKEN=mine\n");
+  expect(saved).toContain("TOKEN=remote\n");
+  expect((await push(f.second, f.opts)).conflicts).toBe(0);
+  await pull(f.first, f.opts);
+  expect(await readBytes(f.aStore)).toBeUndefined();
+});
