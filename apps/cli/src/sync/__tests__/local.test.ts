@@ -114,6 +114,15 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
 
     const checkout = join(home, "checkout");
 
+    adapters.repo = createFakeRepoAdapter({
+      checkoutAt: async () => ({
+        root: checkout,
+        gitDir: join(checkout, ".git"),
+        repoId: "host/repo",
+      }),
+      ensureIgnored: async () => {},
+    });
+
     try {
       const store = join(home, "store", ".env");
       const file = join(home, "conflicts", "edited");

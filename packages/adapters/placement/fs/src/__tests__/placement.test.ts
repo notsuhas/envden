@@ -41,13 +41,23 @@ test.skipIf(process.platform === "win32")(
     const outside = join(root, "outside");
     await mkdir(outside);
     await symlink(outside, join(checkout, "apps"));
-    await rejects(adapter.place(store, join(checkout, "apps/.env")), /parent/);
+
+    await rejects(
+      adapter.place(store, join(checkout, "apps/.env"), async () => {}),
+      /parent/,
+    );
+
     await symlink(store, join(checkout, ".env"));
     const unrelated = join(root, "unrelated");
     await writeFile(unrelated, "keep");
-    await rejects(adapter.place(unrelated, join(checkout, ".env")), /unrelated/);
+
+    await rejects(
+      adapter.place(unrelated, join(checkout, ".env"), async () => {}),
+      /unrelated/,
+    );
+
     expect(await readFile(store, "utf8")).toBe("A=secret\n");
-    await rejects(adapter.place(store, join(checkout, "../escape")));
+    await rejects(adapter.place(store, join(checkout, "../escape"), async () => {}));
   },
 );
 
@@ -58,9 +68,9 @@ for (const mode of ["copy", "link"] as const)
     const adapter = createFsPlacementAdapter(mode, checkout, backups);
     const destination = join(checkout, ".env");
     await writeFile(destination, "LOCAL=keep\n");
-    await adapter.place(store, destination);
-    await adapter.place(store, destination);
-    await adapter.place(store, destination);
+    await adapter.place(store, destination, async () => {});
+    await adapter.place(store, destination, async () => {});
+    await adapter.place(store, destination, async () => {});
     const names = await readdir(backups);
     expect(names).toHaveLength(1);
     const backup = join(backups, names[0]!);
@@ -74,7 +84,7 @@ for (const mode of ["copy", "link"] as const)
 
     await unlink(destination);
     await writeFile(destination, "A=secret\n");
-    await adapter.place(store, destination);
+    await adapter.place(store, destination, async () => {});
     expect(await readdir(backups)).toEqual(names);
   });
 
@@ -84,7 +94,9 @@ test("backup directory is required for differing content and cannot be in checko
   await writeFile(destination, "keep");
 
   for (const backups of [undefined, join(checkout, "conflicts"), join(checkout, "..conflicts")])
-    await rejects(createFsPlacementAdapter("copy", checkout, backups).place(store, destination));
+    await rejects(
+      createFsPlacementAdapter("copy", checkout, backups).place(store, destination, async () => {}),
+    );
 
   expect(await readFile(destination, "utf8")).toBe("keep");
   expect(await readdir(checkout)).toEqual([".env"]);
@@ -145,7 +157,7 @@ test("parent identity rejects replacement directories even without symlinks", as
 test.skipIf(process.platform === "win32")("copy placement uses private POSIX modes", async () => {
   const { checkout, store } = await setup();
   const destination = join(checkout, "nested", ".env");
-  await createFsPlacementAdapter("copy", checkout).place(store, destination);
+  await createFsPlacementAdapter("copy", checkout).place(store, destination, async () => {});
   for (const file of [store, destination]) expect((await lstat(file)).mode & 0o777).toBe(0o600);
   expect((await lstat(join(checkout, "nested"))).mode & 0o777).toBe(0o700);
 });
@@ -155,7 +167,7 @@ test.skipIf(process.platform !== "win32")(
   async () => {
     const { checkout, store } = await setup();
     const destination = join(checkout, ".env");
-    await createFsPlacementAdapter("copy", checkout).place(store, destination);
+    await createFsPlacementAdapter("copy", checkout).place(store, destination, async () => {});
 
     for (const file of [store, destination]) {
       expect(execFileSync("icacls", [file], { encoding: "utf8" })).not.toContain("(I)");

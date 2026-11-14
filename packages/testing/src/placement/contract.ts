@@ -18,16 +18,16 @@ export function placementContract(
         await writeFile(store, "A=1\n");
 
         if (!(await adapter.supported(root))) {
-          await rejects(adapter.place(store, checkout));
+          await rejects(adapter.place(store, checkout, async () => {}));
 
           return;
         }
 
         expect(await adapter.inspect(store, checkout)).toBe("missing");
-        await adapter.place(store, checkout);
+        await adapter.place(store, checkout, async () => {});
         expect(await readFile(checkout, "utf8")).toBe("A=1\n");
         expect(await adapter.inspect(store, checkout)).toBe("linked");
-        await adapter.place(store, checkout);
+        await adapter.place(store, checkout, async () => {});
         expect(await adapter.inspect(store, checkout)).toBe("linked");
         await adapter.remove(store, checkout);
         await adapter.remove(store, checkout);
@@ -57,11 +57,11 @@ export function placementContract(
         const adapter = factory(checkout);
         const store = join(root, "store");
         await writeFile(store, "A=1\n");
-        await rejects(adapter.place(store, join(root, "outside")));
+        await rejects(adapter.place(store, join(root, "outside"), async () => {}));
         await rejects(adapter.inspect(store, join(root, "outside")));
         await rejects(adapter.remove(store, join(root, "outside")));
         await mkdir(join(checkout, ".env"));
-        await rejects(adapter.place(store, join(checkout, ".env")));
+        await rejects(adapter.place(store, join(checkout, ".env"), async () => {}));
       }));
   });
 }

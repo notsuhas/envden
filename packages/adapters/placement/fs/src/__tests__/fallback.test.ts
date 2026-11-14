@@ -15,10 +15,10 @@ for (const mode of ["copy", "link"] as const)
   test(`fallback ${mode} creates private parents, replaces matching files and removes safely`, async () => {
     const { checkout, store } = await setup();
     const destination = join(checkout, "nested/.env");
-    await place(mode, checkout, store, destination, undefined, fallback);
+    await place(mode, checkout, store, destination, undefined, fallback, async () => {});
     expect(await readFile(destination, "utf8")).toBe("A=secret\n");
     expect((await lstat(destination)).isSymbolicLink()).toBe(mode === "link");
-    await place(mode, checkout, store, destination, undefined, fallback);
+    await place(mode, checkout, store, destination, undefined, fallback, async () => {});
     await remove(checkout, store, destination, fallback);
     expect(await readdir(join(checkout, "nested"))).toEqual([]);
     await remove(checkout, store, destination, fallback);
@@ -39,7 +39,15 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
     await symlink(parent, join(checkout, "unsafe"));
 
     await rejects(
-      place("copy", checkout, store, join(checkout, "unsafe/.env"), undefined, fallback),
+      place(
+        "copy",
+        checkout,
+        store,
+        join(checkout, "unsafe/.env"),
+        undefined,
+        fallback,
+        async () => {},
+      ),
       /Unsafe checkout parent/,
     );
 
@@ -50,7 +58,7 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
   await mkdir(destination);
 
   await rejects(
-    place("copy", checkout, store, destination, undefined, fallback),
+    place("copy", checkout, store, destination, undefined, fallback, async () => {}),
     /Destination is not a file/,
   );
 
@@ -58,19 +66,24 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
   await rm(destination, { recursive: true });
   await symlink(store, destination);
   await rejects(remove(checkout, undefined, destination, fallback), /unrelated/);
-  await rejects(place("copy", checkout, alias, destination, undefined, fallback), /unrelated/);
+
+  await rejects(
+    place("copy", checkout, alias, destination, undefined, fallback, async () => {}),
+    /unrelated/,
+  );
+
   await unlink(destination);
 
   for (const source of [alias, checkout])
     await rejects(
-      place("copy", checkout, source, destination, undefined, fallback),
+      place("copy", checkout, source, destination, undefined, fallback, async () => {}),
       /Store source/,
     );
 
   await writeFile(destination, "keep");
 
   await rejects(
-    place("copy", checkout, store, destination, undefined, fallback),
+    place("copy", checkout, store, destination, undefined, fallback, async () => {}),
     /Backup directory/,
   );
 
@@ -78,7 +91,15 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
   expect(await readFile(destination, "utf8")).toBe("keep");
 
   await rejects(
-    place("copy", checkout, store, destination, undefined, { ...fallback, platform: "darwin" }),
+    place(
+      "copy",
+      checkout,
+      store,
+      destination,
+      undefined,
+      { ...fallback, platform: "darwin" },
+      async () => {},
+    ),
     /Backup directory/,
   );
 });

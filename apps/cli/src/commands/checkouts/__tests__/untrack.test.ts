@@ -28,6 +28,7 @@ for (const deleted of [false, true])
         });
 
         adapters.repo.checkoutAt = async () => checkout;
+        adapters.repo.ensureIgnored = async () => {};
         const store = join(adapters.home, "store", ".env");
         const destination = join(checkout.root, ".env");
         await atomicWrite(store, "PORT=1");

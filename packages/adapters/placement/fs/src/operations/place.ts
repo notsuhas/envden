@@ -1,3 +1,4 @@
+import { temporaryName, prepareTemporaryFile } from "../paths/temporary.ts";
 import { backupContents } from "../backups/write.ts";
 import { libc } from "../native/libc.ts";
 import { placeNative } from "../native/place.ts";
@@ -9,7 +10,6 @@ import type { TPlacementMode } from "@envden/core/adapters";
 import { statOrMissing } from "./stat.ts";
 import { isStoreLink } from "./link.ts";
 import { checkoutRelative } from "../paths/checkout-relative.ts";
-import { randomUUID } from "node:crypto";
 import { lstat, open, rename, rm, symlink } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { safeParents } from "../paths/safe-parents.ts";
@@ -21,8 +21,11 @@ export async function place(
   checkoutPath: string,
   backupDirectory?: string,
   runtime = { platform: process.platform, libc },
+  prepareTemporary?: (path: string) => Promise<void>,
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
+
+  await prepareTemporaryFile(mode, path, prepareTemporary);
 
   if (runtime.libc) {
     placeNative(mode, root, path, storePath, undefined, backupDirectory);
@@ -47,7 +50,9 @@ export async function place(
     throw new EnvdenError("INVALID_INPUT", "Store source is not a regular file");
 
   await privateFile(storePath);
-  const temporary = join(dirname(destination), `.envden-${randomUUID()}`);
+  const temporary = join(dirname(destination), temporaryName(path));
+
+  await rm(temporary, { force: true });
 
   let staged;
 

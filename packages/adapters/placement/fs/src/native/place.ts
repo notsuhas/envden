@@ -1,6 +1,6 @@
+import { temporaryName } from "../paths/temporary.ts";
 import { closeSync, constants, fstatSync, readFileSync, openSync, fchmodSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
-import { randomUUID } from "node:crypto";
 import { EnvdenError } from "@envden/core/errors";
 import type { TPlacementMode } from "@envden/core/adapters";
 import { assertIdentity, linkTarget, openParent, readAt, writeAt } from "./directory.ts";
@@ -17,7 +17,7 @@ export function placeNative(
 ) {
   const fd = openParent(root, path);
   const name = basename(path);
-  const temporary = `.envden-${randomUUID()}`;
+  const temporary = temporaryName(path);
   let staged: Buffer | undefined;
 
   try {
@@ -34,6 +34,7 @@ export function placeNative(
     }
 
     const contents = readStore(storePath);
+    if (identity(fd, temporary)) checked(libc!.symbols.unlinkat(fd, cstring(temporary), 0));
 
     if (mode === "link")
       checked(libc!.symbols.symlinkat(cstring(resolve(storePath)), fd, cstring(temporary)));

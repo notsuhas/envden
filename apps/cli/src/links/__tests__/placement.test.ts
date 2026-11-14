@@ -125,6 +125,7 @@ test("copy flags and mode switches preserve checkout bases", async () => {
     await setConfig("env-files", JSON.stringify(rules), adapters.home);
 
     adapters.repo = createFakeRepoAdapter({
+      checkoutAt: async () => checkout,
       envFiles: async (_checkout, options) => {
         expect(options).toEqual(rules);
 
