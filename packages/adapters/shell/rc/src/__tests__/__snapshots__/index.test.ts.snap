@@ -13,20 +13,21 @@ _envden_inside() {
   return 1
 }
 _envden_notice() {
-  [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
+  local saved_status=$?
+  [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical="\${PWD:A}"
   local root approved=0 cache='/home/test/.envden/state/notice' now modified
-  while IFS= read -r root; do
+  [ -r '/home/test/.envden/state/approved-checkouts' ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then approved=1; break; fi
   done 2>/dev/null < '/home/test/.envden/state/approved-checkouts'
   local offered='/home/test/.envden/state/track-offered' root_seen=0 day line
-  while IFS= read -r root; do
+  [ -r '/home/test/.envden/state/track-offers' ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then
       root_seen=0
-      while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
+      [ -r "$offered" ] && while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
@@ -35,7 +36,7 @@ _envden_notice() {
     fi
   done 2>/dev/null < '/home/test/.envden/state/track-offers'
   day=$(date +%Y-%m-%d)
-  while IFS= read -r line; do
+  [ -r '/home/test/.envden/state/notice-update' ] && while IFS= read -r line; do
     case "$line" in
       'envden: update required; run envden update') printf '%s\\n' "$line" ;;
       'envden: update available; run envden update')
@@ -51,6 +52,7 @@ _envden_notice() {
   if [ "$((now - modified))" -gt 60 ]; then
     (env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden'\\''s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &)
   fi
+  return "$saved_status"
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook -d chpwd _envden_notice
@@ -73,20 +75,21 @@ _envden_inside() {
   return 1
 }
 _envden_notice() {
-  [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
+  local saved_status=$?
+  [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical="$(pwd -P)"
   local root approved=0 cache='/home/test/.envden/state/notice' now modified
-  while IFS= read -r root; do
+  [ -r '/home/test/.envden/state/approved-checkouts' ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then approved=1; break; fi
   done 2>/dev/null < '/home/test/.envden/state/approved-checkouts'
   local offered='/home/test/.envden/state/track-offered' root_seen=0 day line
-  while IFS= read -r root; do
+  [ -r '/home/test/.envden/state/track-offers' ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then
       root_seen=0
-      while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
+      [ -r "$offered" ] && while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
@@ -95,7 +98,7 @@ _envden_notice() {
     fi
   done 2>/dev/null < '/home/test/.envden/state/track-offers'
   day=$(date +%Y-%m-%d)
-  while IFS= read -r line; do
+  [ -r '/home/test/.envden/state/notice-update' ] && while IFS= read -r line; do
     case "$line" in
       'envden: update required; run envden update') printf '%s\\n' "$line" ;;
       'envden: update available; run envden update')
@@ -111,6 +114,7 @@ _envden_notice() {
   if [ "$((now - modified))" -gt 60 ]; then
     (env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden'\\''s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &)
   fi
+  return "$saved_status"
 }
 case ";\${PROMPT_COMMAND:-};" in *'_envden_notice;'*) ;; *) PROMPT_COMMAND="_envden_notice;\${PROMPT_COMMAND:-}" ;; esac
 _envden_notice
@@ -134,6 +138,7 @@ function _envden_inside
   return 1
 end
 function _envden_notice --on-variable PWD
+  set -l saved_status $status
   set -l cache '/home/test/.envden/state/notice'
   set -l physical (pwd -P)
   set -l approved 0
@@ -179,6 +184,7 @@ function _envden_notice --on-variable PWD
     env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden'\\''s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &
     disown
   end
+  return $saved_status
 end
 _envden_notice
 # <<< envden <<<
@@ -202,6 +208,8 @@ function _envden_physical_path([string]$path) {
 }
 if (!$global:EnvdenPreviousPrompt) { $global:EnvdenPreviousPrompt = $function:prompt }
 function global:prompt {
+  $envdenSuccess = $?
+  $envdenExitCode = $global:LASTEXITCODE
   $physical = _envden_physical_path ((Get-Location).ProviderPath)
   $insensitive = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts-insensitive' -ErrorAction SilentlyContinue)
   $cache = '/home/test/.envden/state/notice'
@@ -239,6 +247,8 @@ function global:prompt {
       $process.Dispose()
     }
   }
+  $global:LASTEXITCODE = $envdenExitCode
+  if (!$envdenSuccess) { Write-Error 'Previous command failed' -ErrorAction Ignore }
   & $global:EnvdenPreviousPrompt
 }
 # <<< envden <<<

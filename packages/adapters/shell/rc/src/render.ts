@@ -12,6 +12,16 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     throw new EnvdenError("INVALID_INPUT", "Hook paths must be absolute and single-line");
 
   const state = join(envdenHome, "state");
+
+  const paths = {
+    notice: quote(join(state, "notice")),
+    approved: quote(join(state, "approved-checkouts")),
+    offered: quote(join(state, "track-offered")),
+    offers: quote(join(state, "track-offers")),
+    update: quote(join(state, "notice-update")),
+    day: quote(join(state, "update-offered-day")),
+  };
+
   const command = `env -u BUN_OPTIONS -u BUN_BE_BUN ${quote(binaryPath)} status --refresh-cache`;
   let body: string;
 
@@ -19,44 +29,46 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     case "bash":
     case "zsh": {
       body = `_envden_notice() {
-  [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
+  local saved_status=$?
+  [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical=${shell === "zsh" ? '"${PWD:A}"' : '"$(pwd -P)"'}
-  local root approved=0 cache=${quote(join(state, "notice"))} now modified
-  while IFS= read -r root; do
+  local root approved=0 cache=${paths.notice} now modified
+  [ -r ${paths.approved} ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then approved=1; break; fi
-  done 2>/dev/null < ${quote(join(state, "approved-checkouts"))}
-  local offered=${quote(join(state, "track-offered"))} root_seen=0 day line
-  while IFS= read -r root; do
+  done 2>/dev/null < ${paths.approved}
+  local offered=${paths.offered} root_seen=0 day line
+  [ -r ${paths.offers} ] && while IFS= read -r root; do
     [ -n "$root" ] || continue
     if _envden_inside "$root" "$physical"; then
       root_seen=0
-      while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
+      [ -r "$offered" ] && while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
         printf '%s\\n' 'envden: env files found; run envden track'
         printf '%s\\n' "$root" >> "$offered"
       fi
       break
     fi
-  done 2>/dev/null < ${quote(join(state, "track-offers"))}
+  done 2>/dev/null < ${paths.offers}
   day=$(date +%Y-%m-%d)
-  while IFS= read -r line; do
+  [ -r ${paths.update} ] && while IFS= read -r line; do
     case "$line" in
       'envden: update required; run envden update') printf '%s\\n' "$line" ;;
       'envden: update available; run envden update')
-        if [ "$(cat -- ${quote(join(state, "update-offered-day"))} 2>/dev/null)" != "$day" ]; then
+        if [ "$(cat -- ${paths.day} 2>/dev/null)" != "$day" ]; then
           printf '%s\\n' "$line"
-          printf '%s\\n' "$day" > ${quote(join(state, "update-offered-day"))}
+          printf '%s\\n' "$day" > ${paths.day}
         fi ;;
     esac
-  done 2>/dev/null < ${quote(join(state, "notice-update"))}
+  done 2>/dev/null < ${paths.update}
   if [ "$approved" = 1 ] && [ -f "$cache" ]; then LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"; fi
   now=$(date +%s)
   modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=$(stat -f %m "$cache" 2>/dev/null) || modified=0
   if [ "$((now - modified))" -gt 60 ]; then
     (${command} </dev/null >/dev/null 2>&1 &)
   fi
+  return "$saved_status"
 }
 `;
 
@@ -69,19 +81,20 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     }
     case "fish":
       body = `function _envden_notice --on-variable PWD
-  set -l cache ${quote(join(state, "notice"))}
+  set -l saved_status $status
+  set -l cache ${paths.notice}
   set -l physical (pwd -P)
   set -l approved 0
-  if test -f ${quote(join(state, "approved-checkouts"))}
+  if test -f ${paths.approved}
     while read -l root
       if test -n "$root"; and _envden_inside "$root" "$physical"
         set approved 1
         break
       end
-    end < ${quote(join(state, "approved-checkouts"))}
+    end < ${paths.approved}
   end
-  set -l offered ${quote(join(state, "track-offered"))}
-  if test -f ${quote(join(state, "track-offers"))}
+  set -l offered ${paths.offered}
+  if test -f ${paths.offers}
     while read -l root
       if test -n "$root"; and _envden_inside "$root" "$physical"
         if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
@@ -90,21 +103,21 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
         end
         break
       end
-    end < ${quote(join(state, "track-offers"))}
+    end < ${paths.offers}
   end
   set -l day (date +%Y-%m-%d)
-  if test -f ${quote(join(state, "notice-update"))}
+  if test -f ${paths.update}
     while read -l line
       switch "$line"
         case 'envden: update required; run envden update'
           printf '%s\\n' "$line"
         case 'envden: update available; run envden update'
-          if test (cat -- ${quote(join(state, "update-offered-day"))} 2>/dev/null; or echo missing) != "$day"
+          if test (cat -- ${paths.day} 2>/dev/null; or echo missing) != "$day"
             printf '%s\\n' "$line"
-            printf '%s\\n' "$day" > ${quote(join(state, "update-offered-day"))}
+            printf '%s\\n' "$day" > ${paths.day}
           end
       end
-    end < ${quote(join(state, "notice-update"))}
+    end < ${paths.update}
   end
   if test "$approved" = 1; and test -f "$cache"
     env LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"
@@ -114,6 +127,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     ${command} </dev/null >/dev/null 2>&1 &
     disown
   end
+  return $saved_status
 end
 _envden_notice`;
 
@@ -121,6 +135,8 @@ _envden_notice`;
     case "powershell":
       body = `if (!$global:EnvdenPreviousPrompt) { $global:EnvdenPreviousPrompt = $function:prompt }
 function global:prompt {
+  $envdenSuccess = $?
+  $envdenExitCode = $global:LASTEXITCODE
   $physical = _envden_physical_path ((Get-Location).ProviderPath)
   $insensitive = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts-insensitive"))} -ErrorAction SilentlyContinue)
   $cache = ${psQuote(join(state, "notice"))}
@@ -158,6 +174,8 @@ function global:prompt {
       $process.Dispose()
     }
   }
+  $global:LASTEXITCODE = $envdenExitCode
+  if (!$envdenSuccess) { Write-Error 'Previous command failed' -ErrorAction Ignore }
   & $global:EnvdenPreviousPrompt
 }`;
 

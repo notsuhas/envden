@@ -39,6 +39,7 @@ for (const operation of ["install", "uninstall"] as const) {
       expect(await readFile(target, "utf8")).toContain("# user\n");
       const names = await readdir(backups);
       expect(names).toHaveLength(1);
+      expect(names[0]).toMatch(/^\.envden-backup-[0-9a-f-]{36}$/);
       const backup = join(backups, names[0]!);
       expect(await readFile(backup, "utf8")).toBe(original);
       if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
@@ -80,8 +81,7 @@ for (const step of ["resolved", "opened", "read"] as const) {
         { [step]: swap },
       );
 
-      if (step === "resolved") await Promise.resolve(expect(editing).rejects.toThrow());
-      else await editing;
+      await Promise.resolve(expect(editing).rejects.toThrow());
 
       expect(result).not.toContain("PRIVATE BYTES");
       expect(await readFile(privateFile, "utf8")).toBe("PRIVATE BYTES");
@@ -180,6 +180,52 @@ test("rc editing replaces read-only files and preserves their permissions", asyn
     expect(await readdir(home)).toEqual(["rc"]);
   } finally {
     await chmod(path, 0o600);
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("rc append during editing is retained and reported as a conflict", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-rc-append-"));
+  const path = join(home, "rc");
+
+  try {
+    await writeFile(path, "original");
+
+    await Promise.resolve(
+      expect(
+        editRc(path, () => "replacement", undefined, {
+          read: () => writeFile(path, "original appended"),
+        }),
+      ).rejects.toMatchObject({ code: "CONFLICT" }),
+    );
+
+    expect(await readFile(path, "utf8")).toBe("original appended");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+import { bashRcPath } from "../files/bash-profile.ts";
+
+test("macOS bash chooses a login profile unless it sources bashrc", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-profile-"));
+
+  try {
+    expect(bashRcPath(home, "darwin")).toBe(join(home, ".bash_profile"));
+
+    if (process.platform === "darwin")
+      expect(createRcShellAdapter("bash", home).rcPath()).toBe(join(home, ".bash_profile"));
+
+    await writeFile(join(home, ".bash_profile"), "# user\n");
+    expect(bashRcPath(home, "darwin")).toBe(join(home, ".bash_profile"));
+
+    if (process.platform === "darwin")
+      expect(createRcShellAdapter("bash", home).rcPath()).toBe(join(home, ".bash_profile"));
+
+    await writeFile(join(home, ".bash_profile"), 'source "$HOME/.bashrc"\n');
+    expect(bashRcPath(home, "darwin")).toBe(join(home, ".bashrc"));
+    expect(bashRcPath(home, "linux")).toBe(join(home, ".bashrc"));
+  } finally {
     await rm(home, { recursive: true, force: true });
   }
 });

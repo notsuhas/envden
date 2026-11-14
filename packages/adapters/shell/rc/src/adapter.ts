@@ -1,3 +1,4 @@
+import { bashRcPath } from "./files/bash-profile.ts";
 import { shellFailure } from "./failures/operation.ts";
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -42,7 +43,7 @@ class RcShellAdapter implements IShellAdapter {
       case "zsh":
         return join(this.home, ".zshrc");
       case "bash":
-        return join(this.home, ".bashrc");
+        return bashRcPath(this.home);
       case "fish":
         return join(this.home, ".config", "fish", "config.fish");
       case "powershell":

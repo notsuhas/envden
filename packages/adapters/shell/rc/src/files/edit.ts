@@ -34,7 +34,10 @@ export async function editRc(
     }
 
     const current = await lstat(resolved);
-    if (current.dev !== stat.dev || current.ino !== stat.ino) return;
+
+    if (!sameRc(current, stat))
+      throw new EnvdenError("CONFLICT", "Shell configuration changed during editing");
+
     await replaceRc(temporary, resolved, stat);
   } finally {
     await rm(temporary, { force: true });
@@ -85,8 +88,7 @@ async function replaceRc(
     if (!(cause instanceof Error && "code" in cause && cause.code === "EPERM")) throw cause;
     const current = await lstat(destination);
 
-    if (current.dev !== expected.dev || current.ino !== expected.ino || current.mode & 0o200)
-      throw cause;
+    if (!sameRc(current, expected) || current.mode & 0o200) throw cause;
 
     await chmod(destination, current.mode | 0o200);
 
@@ -123,4 +125,13 @@ function validateRc(stat: Awaited<ReturnType<typeof lstat>>) {
     (process.platform !== "win32" && stat.uid !== process.getuid?.())
   )
     throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
+}
+
+function sameRc(
+  current: Awaited<ReturnType<typeof lstat>>,
+  expected: Awaited<ReturnType<typeof lstat>>,
+) {
+  return (["dev", "ino", "size", "mtimeMs", "ctimeMs"] as const).every(
+    (key) => current[key] === expected[key],
+  );
 }

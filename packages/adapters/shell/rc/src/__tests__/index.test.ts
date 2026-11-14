@@ -80,6 +80,7 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
           );
 
           expect(await child.exited).toBe(0);
+          expect(await new Response(child.stderr).text()).toBe("");
 
           return new Response(child.stdout).text();
         };
@@ -170,4 +171,22 @@ test("PowerShell doubles all single quote delimiters in paths", () => {
   const path = join(tmpdir(), "a’‘‚‛b");
   const snippet = createRcShellAdapter("powershell").hookSnippet(path);
   expect(snippet).toContain("a’’‘‘‚‚‛‛b");
+});
+
+test("bash hook preserves the exit status for following prompt commands", async () => {
+  if (process.platform === "win32" || !Bun.which("bash")) return;
+  const home = await mkdtemp(join(tmpdir(), "envden-status-"));
+
+  try {
+    const snippet = createRcShellAdapter("bash", home).hookSnippet("/bin/true");
+
+    const { stdout } = await execTrusted("bash", [
+      "-c",
+      `${snippet}\nfalse; _envden_notice; printf '%s' "$?"; unset _envden_last_pwd; false; _envden_notice; printf '%s' "$?"`,
+    ]);
+
+    expect(stdout).toBe("11");
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
 });

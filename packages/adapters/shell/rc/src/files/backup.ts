@@ -33,7 +33,7 @@ export async function backupRc(directory: string, original: Uint8Array) {
     )
       throw new EnvdenError("INVALID_INPUT", "Unsafe shell backup directory");
 
-    const file = await open(join(directory, `rc-${randomUUID()}`), "wx", 0o600);
+    const file = await open(join(directory, `.envden-backup-${randomUUID()}`), "wx", 0o600);
 
     try {
       await file.writeFile(original);
