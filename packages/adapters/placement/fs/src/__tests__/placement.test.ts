@@ -170,7 +170,7 @@ test.skipIf(process.platform !== "win32")(
     await createFsPlacementAdapter("copy", checkout).place(store, destination, async () => {});
 
     for (const file of [store, destination]) {
-      expect(execFileSync("icacls", [file], { encoding: "utf8" })).not.toContain("(I)");
+      expect(execFileSync("icacls", [file])).not.toContain("(I)");
     }
   },
 );

@@ -34,7 +34,7 @@ test.skipIf(process.platform !== "win32")(
     try {
       const path = join(root, "kit.json");
       await writeKit(path, {});
-      expect(execFileSync("icacls", [path], { encoding: "utf8" })).not.toContain("(I)");
+      expect(execFileSync("icacls", [path])).not.toContain("(I)");
     } finally {
       await rm(root, { recursive: true, force: true });
     }

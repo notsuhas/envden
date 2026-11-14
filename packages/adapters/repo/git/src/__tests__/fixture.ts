@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 
 export function git(root: string, ...args: string[]) {
-  return execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim();
+  return execFileSync("git", ["-C", root, ...args]).trim();
 }
 
 export async function repo() {

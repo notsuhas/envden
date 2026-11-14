@@ -75,7 +75,7 @@ test.skipIf(process.platform !== "win32")(
       const directory = join(home, "state", "keys");
 
       for (const file of await readdir(directory)) {
-        const acl = execFileSync("icacls", [join(directory, file)], { encoding: "utf8" });
+        const acl = execFileSync("icacls", [join(directory, file)]);
         expect(acl).not.toContain("(I)");
       }
     } finally {

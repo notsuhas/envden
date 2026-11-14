@@ -67,11 +67,7 @@ export async function execTrusted(name: string, args: string[], options: TOption
   return { stdout, stderr };
 }
 
-export function execTrustedSync(
-  name: string,
-  args: string[],
-  options: { encoding?: "utf8"; cwd?: string } = {},
-) {
+export function execTrustedSync(name: string, args: string[], options: { cwd?: string } = {}) {
   const result = spawnTrusted(name, args, {
     ...(options.cwd ? { cwd: options.cwd } : {}),
     sync: true,
