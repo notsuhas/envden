@@ -22,17 +22,23 @@ export async function pruneBackups(dir: string, now: number, maxAgeDays = 30): P
 
   try {
     for (const name of await readdir(dir)) {
-      if (!/^\.envden-backup-[0-9a-f-]{36}$/.test(name)) continue;
+      const match = /^\.envden-backup-(\d+)-[0-9a-f-]{36}$/.exec(name);
+      if (!match || Number(match[1]) >= cutoff) continue;
 
-      if (fd !== undefined) pruneAt(fd, name, cutoff);
-      else await pruneWindows(join(dir, name), cutoff);
+      if (fd !== undefined) pruneAt(fd, name);
+      else await pruneWindows(join(dir, name));
     }
   } finally {
     if (fd !== undefined) closeSync(fd);
   }
 }
 
-async function pruneWindows(path: string, cutoff: number) {
+async function pruneWindows(path: string) {
   const stat = await statOrMissing(path);
-  if (stat?.isFile() && stat.mtimeMs < cutoff) await unlink(path);
+
+  if (stat?.isFile() && !stat.isSymbolicLink())
+    await unlink(path).catch((error: unknown) => {
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") return;
+      throw error;
+    });
 }

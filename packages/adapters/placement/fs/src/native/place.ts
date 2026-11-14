@@ -14,6 +14,7 @@ export function placeNative(
   storePath: string,
   beforeRename?: () => void,
   backupDirectory?: string,
+  now = Date.now,
 ) {
   const fd = openParent(root, path);
   const name = basename(path);
@@ -42,7 +43,10 @@ export function placeNative(
 
     staged = identity(fd, temporary);
     assertIdentity(fd, name, before);
-    if (previous && !previous.equals(contents)) backupContents(root, backupDirectory, previous);
+
+    if (previous && !previous.equals(contents))
+      backupContents(root, backupDirectory, previous, undefined, now);
+
     assertIdentity(fd, name, before);
     assertIdentity(fd, temporary, staged);
     beforeRename?.();

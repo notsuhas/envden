@@ -23,6 +23,7 @@ export function backupContents(
     libc,
     spawn: (args: string[]) => spawnTrusted("icacls", args, { sync: true }).exitCode,
   },
+  now = Date.now,
 ) {
   if (!directory) throw new EnvdenError("INVALID_INPUT", "Backup directory is required");
   const path = resolve(directory);
@@ -30,7 +31,7 @@ export function backupContents(
 
   mkdirSync(path, { recursive: true, mode: 0o700 });
   assertOutside(realpathSync(root), realpathSync(path));
-  const name = `.envden-backup-${randomUUID()}`;
+  const name = `.envden-backup-${now()}-${randomUUID()}`;
 
   if (runtime.libc) {
     const fd = openParent(path, name, false);

@@ -17,6 +17,7 @@ export function createAdapters(options?: {
   userHome: string;
   keychain: IKeychainAdapter;
   fetcher?: TFetch;
+  now?: () => number;
 }) {
   const userHome = options?.userHome ?? homedir();
   const home = resolve(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
@@ -29,7 +30,7 @@ export function createAdapters(options?: {
     keychain: options?.keychain ?? visibleKeychain(home),
     repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
     placement: (mode: TPlacementMode, root: string): IPlacementAdapter => {
-      const placement = createFsPlacementAdapter(mode, root, join(home, "conflicts"));
+      const placement = createFsPlacementAdapter(mode, root, join(home, "conflicts"), options?.now);
 
       return {
         ...placement,

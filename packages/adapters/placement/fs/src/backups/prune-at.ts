@@ -2,7 +2,7 @@ import { closeSync, constants, fstatSync } from "node:fs";
 import { assertIdentity } from "../native/directory.ts";
 import { checked, cstring, identity, libc, openAt } from "../native/libc.ts";
 
-export function pruneAt(fd: number, name: string, cutoff: number) {
+export function pruneAt(fd: number, name: string) {
   const before = identity(fd, name);
   if (!before) return;
   const link = Buffer.alloc(1);
@@ -11,7 +11,7 @@ export function pruneAt(fd: number, name: string, cutoff: number) {
 
   try {
     const stat = fstatSync(file);
-    if (!stat.isFile() || stat.mtimeMs >= cutoff) return;
+    if (!stat.isFile()) return;
     assertIdentity(fd, name, before);
     checked(libc!.symbols.unlinkat(fd, cstring(name), 0));
   } finally {

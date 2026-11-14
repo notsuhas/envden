@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { lstat, utimes } from "node:fs/promises";
+import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { setConfig } from "../../settings/config.ts";
 import { atomicWrite } from "../../state/store/files.ts";
@@ -14,14 +14,12 @@ test("sync honors copy preference and prunes adapter backups after placement", a
   const expired = join(
     second.home,
     "conflicts",
-    ".envden-backup-00000000-0000-0000-0000-000000000000",
+    ".envden-backup-0-00000000-0000-0000-0000-000000000000",
   );
 
   try {
     await setConfig("placement", JSON.stringify({ [checkoutB.root]: "copy" }), second.home);
     await atomicWrite(expired, "old backup");
-    const old = new Date(opts.now() - 31 * 86400000);
-    await utimes(expired, old, old);
     const prune = second.prunePlacementBackups;
     const calls: number[] = [];
 

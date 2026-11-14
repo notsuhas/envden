@@ -39,6 +39,7 @@ export async function syncFixture(directory?: string) {
     const homes = ["first", "second", "third"].map((name) =>
       createAdapters({
         fetcher,
+        now,
         home: join(root, name),
         userHome: join(root, name),
         keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),

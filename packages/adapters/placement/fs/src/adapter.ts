@@ -10,6 +10,7 @@ export function createFsPlacementAdapter(
   mode: TPlacementMode,
   checkoutRoot: string,
   backupDirectory?: string,
+  now = Date.now,
 ): IPlacementAdapter {
   const root = resolve(checkoutRoot);
 
@@ -25,6 +26,7 @@ export function createFsPlacementAdapter(
         backupDirectory,
         undefined,
         prepareTemporary,
+        now,
       ).catch(placementFailure),
     remove: (storePath, checkoutPath) =>
       remove(root, storePath, checkoutPath).catch(placementFailure),

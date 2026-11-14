@@ -22,13 +22,14 @@ export async function place(
   backupDirectory?: string,
   runtime = { platform: process.platform, libc },
   prepareTemporary?: (path: string) => Promise<void>,
+  now = Date.now,
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
 
   await prepareTemporaryFile(mode, path, prepareTemporary);
 
   if (runtime.libc) {
-    placeNative(mode, root, path, storePath, undefined, backupDirectory);
+    placeNative(mode, root, path, storePath, undefined, backupDirectory, now);
 
     return;
   }
@@ -84,7 +85,7 @@ export async function place(
     }
 
     await verifyParents(parents, destination);
-    await backupDestination(root, backupDirectory, destination, existing, storePath, parents);
+    await backupDestination(root, backupDirectory, destination, existing, storePath, parents, now);
     await verifyParents(parents, destination);
 
     if (!sameIdentity(existing, await statOrMissing(destination)))
@@ -123,6 +124,7 @@ async function backupDestination(
   existing: Awaited<ReturnType<typeof statOrMissing>>,
   storePath: string,
   parents: Awaited<ReturnType<typeof parentIdentity>>,
+  now: () => number,
 ) {
   if (!existing) return;
 
@@ -140,7 +142,9 @@ async function backupDestination(
 
     try {
       await verifyParents(parents, destination);
-      if (!contents.equals(await store.readFile())) backupContents(root, backupDirectory, contents);
+
+      if (!contents.equals(await store.readFile()))
+        backupContents(root, backupDirectory, contents, undefined, now);
     } finally {
       await store.close();
     }

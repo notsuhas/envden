@@ -106,14 +106,14 @@ test("pruning uses caller time and keeps recent, unrelated and symlink entries",
   const { root } = await setup();
   const backups = join(root, "conflicts");
   await mkdir(backups);
-  const old = ".envden-backup-11111111-1111-1111-1111-111111111111";
-  const recent = ".envden-backup-22222222-2222-2222-2222-222222222222";
+  const old = ".envden-backup-0-11111111-1111-1111-1111-111111111111";
+  const recent = ".envden-backup-4000000000-22222222-2222-2222-2222-222222222222";
   for (const name of [old, recent, "keep"]) await writeFile(join(backups, name), "keep");
-  await utimes(join(backups, old), 0, 0);
-  await utimes(join(backups, recent), 4000000, 4000000);
+  await utimes(join(backups, old), 4000000, 4000000);
+  await utimes(join(backups, recent), 0, 0);
 
   if (process.platform !== "win32") {
-    const alias = ".envden-backup-33333333-3333-3333-3333-333333333333";
+    const alias = ".envden-backup-0-33333333-3333-3333-3333-333333333333";
     await symlink(join(backups, old), join(backups, alias));
     await pruneBackups(backups, 4000000000);
     expect((await lstat(join(backups, alias))).isSymbolicLink()).toBe(true);
@@ -184,4 +184,24 @@ test("inspection reports a regular file beside a missing store as detached", asy
   expect(await createFsPlacementAdapter("link", checkout).inspect(store, destination)).toBe(
     "detached",
   );
+});
+
+test("placement backup creation uses the injected clock", async () => {
+  const { root, checkout, store } = await setup();
+  const backups = join(root, "conflicts");
+  const now = 1800000000000;
+  const destination = join(checkout, ".env");
+  await writeFile(destination, "old");
+
+  await createFsPlacementAdapter("copy", checkout, backups, () => now).place(
+    store,
+    destination,
+    async () => {},
+  );
+
+  const names = await readdir(backups);
+  expect(names).toHaveLength(1);
+  expect(names[0]).toStartWith(`.envden-backup-${now}-`);
+  await pruneBackups(backups, now);
+  expect(await readdir(backups)).toEqual(names);
 });
