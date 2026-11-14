@@ -146,8 +146,12 @@ A device must leave its current vault before pairing with another. There is no l
 
 - The server entry is live content, a tombstone, or absent. The device separately records the entry it applied; its decrypted content comes from the local blob cache, never a target's base.
 - There is one shared store file and N targets. A link's content is the store itself; a copy has its own bytes and a base last agreed with the store.
-- Decide once for all targets before writing. A one-place edit propagates; distinct edits conflict. The store never moves backwards without a user choice, and a copy base advances only after copy and store agree.
-- Keep one conflict per file, with recorded mine and theirs. Resolution uses those saved bytes and settles every target. Preserve other versions in reported backups before replacing them.
+- Decide once for all targets before writing. Only a tracked copy with a recorded base equal to the current store may replace the store, and only when its bytes differ from that base. A copy still equal to its base follows the store. Different non-base bytes in two places conflict.
+- A link is the store by definition. A regular file replacing a tracked link relinks when it equals the store or retained base history; otherwise it conflicts. Historical bytes never become a copy edit.
+- Untracked targets and tracked copies without a base never win silently. Bytes equal to the store or applied server content adopt the store; different bytes require a choice or a reported conflict. `--yes` does not approve them.
+- Missing copies are restored from the store on pull and push, like missing links. Removing a target is not a request to delete the file everywhere. There is no explicit CLI command for deleting a tracked file everywhere yet.
+- Persist the chosen content before changing the store, and retain that operation until placement and bases finish. Retrying an interrupted merge completes that operation. Content and directory entries are durable before state references them; unchanged durable bytes need no rewrite.
+- Keep one conflict per file, with recorded mine and theirs. When the server is unchanged, local conflicts offer the two local versions. Name every other local version and its saved path. Resolution uses saved bytes, touches only still-approved, present targets, and keeps its record until placement and bases finish so retry can complete. Untracking or pruning a checkout removes its conflict targets. Editing an absent mine keeps a deletion unless the user creates the conflict file.
 - Repeating pull changes nothing. Unpublished files have no server base. After an applied deletion, tracking an old worktree's surviving env file is a deliberate re-add and publishes it again.
 
 - Explicit only. `envden push` / `envden pull` in a checkout act on its repo; `--all` acts on everything in one manifest swap.

@@ -30,7 +30,7 @@ export async function fileSnapshot(
   const useStore = target.mode === "link" && status !== "detached";
   const bytes = useStore ? stored : await readBytes(destination);
 
-  const previous = (await readBytes(base)) ?? (!tracked ? applied : undefined);
+  const previous = await readBytes(base);
 
   const detached =
     target.mode === "link" &&
@@ -38,5 +38,16 @@ export async function fileSnapshot(
     !same(bytes, stored) &&
     !(await matchesBase(base, bytes));
 
-  return { target, tracked, useStore, bytes, base: previous, detached };
+  return {
+    target,
+    tracked,
+    useStore,
+    bytes,
+    base: previous,
+    detached,
+    mode: target.mode,
+    historical:
+      (tracked && target.mode === "link" && status === "detached" && !detached) ||
+      ((!tracked || previous === undefined) && bytes !== undefined && same(bytes, applied)),
+  };
 }

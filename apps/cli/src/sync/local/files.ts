@@ -1,6 +1,6 @@
 import { sha256, base32 } from "@envden/core/protocol";
-import { readFile, lstat, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, lstat, rm, open } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { withStateLock } from "../../state/lock/lock.ts";
 import { atomicWrite } from "../../state/store/files.ts";
@@ -30,8 +30,21 @@ export function basePath(home: string, store: string, root?: string): string {
 }
 
 export async function writeBytes(path: string, bytes: Uint8Array | undefined): Promise<void> {
-  if (bytes === undefined) await rm(path, { force: true });
-  else await atomicWrite(path, bytes);
+  if (same(await readBytes(path), bytes)) return;
+
+  if (bytes === undefined) {
+    await rm(path, { force: true });
+
+    if (process.platform !== "win32") {
+      const directory = await open(dirname(path), "r");
+
+      try {
+        await directory.sync();
+      } finally {
+        await directory.close();
+      }
+    }
+  } else await atomicWrite(path, bytes);
 }
 
 export async function withSyncLock<T>(home: string, action: () => Promise<T>): Promise<T> {

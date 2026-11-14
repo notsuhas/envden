@@ -1,3 +1,4 @@
+import { removeConflictTargets } from "../../sync/local/conflicts.ts";
 import { removeCheckoutBases } from "./bases.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
@@ -28,6 +29,8 @@ export async function untrack(adapters: TAdapters, path: string) {
       state.links.filter((item) => item.root === root),
       state.links.filter((item) => item.root !== root),
     );
+
+    await removeConflictTargets(adapters.home, root);
 
     state.links = state.links.filter((item) => item.root !== root);
     state.approved = state.approved.filter((item) => item.root !== root);

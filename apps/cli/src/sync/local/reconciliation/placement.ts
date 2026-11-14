@@ -1,4 +1,6 @@
+import { sanitizeTerminal } from "../../../output/sanitize.ts";
 import { readBytes, same } from "../files.ts";
+import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TSyncContext } from "../../remote/context.ts";
 import { backup } from "../conflicts.ts";
@@ -11,29 +13,52 @@ export async function placeFileTarget(
   bytes: Uint8Array | undefined,
   preserveDeleted = false,
 ) {
+  const checkout = context.state.approved.find((item) => item.root === target.root);
+  if (!checkout || !(await lstat(target.root).catch(() => undefined))?.isDirectory()) return false;
+
   const destination = join(target.root, target.path);
   const placement = context.adapters.placement(target.mode, target.root);
   const status = await placement.inspect(target.store, destination);
 
   const identical = status === "linked" || same(await readBytes(destination), bytes);
-  if (!identical) await backup(context.adapters.home, destination, context.options.now());
+
+  if (!identical) {
+    const saved = await backup(context.adapters.home, destination, context.options.now());
+    if (saved) context.options.report?.(sanitizeTerminal(`Saved ${destination}: ${saved}`));
+  }
 
   if (bytes !== undefined) {
-    const checkout = context.state.approved.find((item) => item.root === target.root)!;
     await context.adapters.repo.ensureIgnored(checkout, target.path);
 
     if (target.mode === "copy" ? !identical : status !== "linked")
       await placement.place(target.store, destination);
 
-    if (!context.state.links.some((item) => item.root === target.root && item.path === target.path))
-      context.state.links.push(target);
+    trackTarget(context, target);
   } else {
-    if (target.mode === "copy" || status === "linked")
-      await placement.remove(target.store, destination);
-
-    if (!preserveDeleted)
-      context.state.links = context.state.links.filter(
-        (item) => item.root !== target.root || item.path !== target.path,
-      );
+    await removeTarget(context, target, status, preserveDeleted);
   }
+
+  return true;
+}
+
+function trackTarget(context: Pick<TSyncContext, "state">, target: TTarget) {
+  if (!context.state.links.some((item) => item.root === target.root && item.path === target.path))
+    context.state.links.push(target);
+}
+
+async function removeTarget(
+  context: Pick<TSyncContext, "adapters" | "state">,
+  target: TTarget,
+  status: string,
+  preserveDeleted: boolean,
+) {
+  if (target.mode === "copy" || status === "linked")
+    await context.adapters
+      .placement(target.mode, target.root)
+      .remove(target.store, join(target.root, target.path));
+
+  if (!preserveDeleted)
+    context.state.links = context.state.links.filter(
+      (item) => item.root !== target.root || item.path !== target.path,
+    );
 }

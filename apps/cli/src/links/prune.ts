@@ -1,3 +1,4 @@
+import { removeConflictTargets } from "../sync/local/conflicts.ts";
 import { removeCheckoutBases } from "./checkout/bases.ts";
 import { dirname } from "node:path";
 import { lstat } from "node:fs/promises";
@@ -28,6 +29,8 @@ export async function pruneMissingCheckouts(
           state.links.filter((item) => item.root === approval.root),
           state.links.filter((item) => item.root !== approval.root),
         );
+
+        await removeConflictTargets(home, approval.root);
 
         state.links = state.links.filter((item) => item.root !== approval.root);
         notice(`Missing checkout removed: ${approval.root}`);

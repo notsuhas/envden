@@ -36,25 +36,44 @@ export function resolveConflict(
 
     const bytes = await resolutionBytes(options.choice, record, server);
 
-    for (const path of [record.mine, record.server, ...record.alternatives])
-      await backup(adapters.home, path, now);
+    const preserved: string[] = [];
 
-    await backup(adapters.home, record.store, now);
+    for (const path of [record.mine, record.server, record.remote, ...record.alternatives]) {
+      const saved = await backup(adapters.home, path, now);
+      if (saved) preserved.push(saved);
+    }
+
+    const storeBackup = await backup(adapters.home, record.store, now);
+    if (storeBackup) preserved.push(storeBackup);
     await writeBytes(record.store, bytes);
 
-    await placeResolution(adapters, record, bytes, server, now);
+    const placementReports = await placeResolution(
+      adapters,
+      record,
+      bytes,
+      await readBytes(record.remote),
+      now,
+    );
 
     await saveConflicts(
       adapters.home,
       records.filter((item) => item !== record),
     );
 
-    for (const path of [record.file, record.server, record.mine, ...record.alternatives])
+    for (const path of [
+      record.file,
+      record.server,
+      record.remote,
+      record.mine,
+      ...record.alternatives,
+    ])
       await rm(path, { force: true });
 
     return {
       kind: "resolved" as const,
       path: record.path,
+      preserved,
+      placementReports,
       backups: join(adapters.home, "conflicts", "backups"),
     };
   });
@@ -97,8 +116,10 @@ async function placeResolution(
 
   if (!state) throw new EnvdenError("NOT_FOUND", "Local sync state is unavailable");
 
+  const reports: string[] = [];
+
   for (const target of record.targets)
-    await resolveTarget(adapters, state, record, target, bytes, server, now);
+    await resolveTarget(adapters, state, record, target, bytes, server, now, reports);
 
   await saveState(adapters.home, state);
 
@@ -106,6 +127,8 @@ async function placeResolution(
     await saveBase(record.base, server, now);
     await markAppliedEntry(adapters.home, record.entry);
   }
+
+  return reports;
 }
 
 async function resolveTarget(
@@ -116,15 +139,26 @@ async function resolveTarget(
   bytes: Uint8Array | undefined,
   server: Uint8Array | undefined,
   now: number,
+  reports: string[],
 ) {
-  await placeFileTarget(
-    { adapters, state, options: { now: () => now, fetcher: adapters.fetcher } },
+  const placed = await placeFileTarget(
+    {
+      adapters,
+      state,
+      options: {
+        now: () => now,
+        fetcher: adapters.fetcher,
+        report: (message) => reports.push(message),
+      },
+    },
     target,
     bytes,
     record.entry
       ? p.decode(p.FileEntryCodec, binary(record.entry)).state === 1
       : server !== undefined,
   );
+
+  if (!placed) return;
 
   const base = basePath(
     adapters.home,

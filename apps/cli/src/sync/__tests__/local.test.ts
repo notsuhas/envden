@@ -142,6 +142,7 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
       await saveConflicts(home, [
         {
           entry: null,
+          remote: server,
           alternatives: [],
           targets: [{ root: checkout, path: ".env", store, mode: "copy" }],
           store,

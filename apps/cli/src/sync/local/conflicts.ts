@@ -4,9 +4,10 @@ import { sha256, base32 } from "@envden/core/protocol";
 import { join } from "node:path";
 import type { TSyncContext } from "../remote/context.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
-import { readBytes, writeBytes } from "./files.ts";
+import { readBytes, writeBytes, same } from "./files.ts";
 
 export interface IConflictRecord {
+  remote: string;
   alternatives: string[];
   targets: TSyncContext["state"]["links"];
   entry: string | null;
@@ -44,7 +45,7 @@ export async function recordConflict(
   context: TSyncContext,
   target: Omit<
     IConflictRecord,
-    "file" | "server" | "mine" | "deleted" | "mineDeleted" | "alternatives"
+    "remote" | "file" | "server" | "mine" | "deleted" | "mineDeleted" | "alternatives"
   >,
   mine: Uint8Array | undefined,
   server: Uint8Array | undefined,
@@ -59,9 +60,27 @@ export async function recordConflict(
   );
 
   if (records.some((item) => item.base === target.base)) return;
-  await writeBytes(file, mine ?? new Uint8Array());
+  await writeBytes(file, mine);
   await writeBytes(file + ".server", server);
   await writeBytes(file + ".mine", mine);
+  await writeBytes(file + ".remote", variants[1]);
+
+  const sources = [
+    target.store,
+    "server",
+    ...target.targets.map((item) => join(item.root, item.path)),
+  ];
+
+  for (const [side, bytes] of [
+    ["Mine", mine],
+    ["Theirs", server],
+  ] as const) {
+    const source = sources[variants.findIndex((value) => same(value, bytes))] ?? target.store;
+
+    context.options.report?.(
+      sanitizeTerminal(`${side}: ${source}; saved ${file}.${side === "Mine" ? "mine" : "server"}`),
+    );
+  }
 
   const alternatives: string[] = [];
 
@@ -70,10 +89,15 @@ export async function recordConflict(
     const path = file + `.variant-${index}`;
     await writeBytes(path, bytes);
     alternatives.push(path);
+
+    const source = sources[index]!;
+
+    context.options.report?.(sanitizeTerminal(`Saved ${source}: ${path}`));
   }
 
   records.push({
     alternatives,
+    remote: file + ".remote",
     ...target,
     file,
     server: file + ".server",
@@ -89,9 +113,23 @@ export async function recordConflict(
   );
 }
 
-export async function backup(home: string, path: string, now: number): Promise<void> {
+export async function backup(home: string, path: string, now: number): Promise<string | undefined> {
   const bytes = await readBytes(path);
 
-  if (bytes)
-    await atomicWrite(join(home, "conflicts", "backups", `${now}-${crypto.randomUUID()}`), bytes);
+  if (bytes) {
+    const saved = join(home, "conflicts", "backups", `${now}-${crypto.randomUUID()}`);
+    await atomicWrite(saved, bytes);
+
+    return saved;
+  }
+}
+
+export async function removeConflictTargets(home: string, root: string) {
+  const records = await conflictRecords(home);
+  if (!records.some((record) => record.targets.some((target) => target.root === root))) return;
+
+  for (const record of records)
+    record.targets = record.targets.filter((target) => target.root !== root);
+
+  await saveConflicts(home, records);
 }

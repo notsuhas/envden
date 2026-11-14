@@ -1,17 +1,15 @@
 import { fileSnapshot } from "./snapshot.ts";
-import { placeFileTarget } from "./placement.ts";
+import { commitFile, resumeFile } from "./operation/file.ts";
 import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
 import { text, binary } from "../../../client/encoding.ts";
 import { entryContent } from "../../remote/content.ts";
 import { appliedFiles } from "../applied.ts";
-import { basePath, readBytes, same, writeBytes } from "../files.ts";
-import { backup, conflictRecords, recordConflict } from "../conflicts.ts";
+import { basePath, readBytes, same } from "../files.ts";
+import { conflictRecords, recordConflict } from "../conflicts.ts";
 import { deriveFileDecision } from "./file-decision.ts";
-import { saveBase } from "./history.ts";
 import { resolveContent } from "./resolution.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
-import { journalPlacement } from "../../../state/journal/placement.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -23,6 +21,8 @@ export async function reconcileFile(
   repairs: ReadonlySet<string>,
   choose?: Parameters<typeof resolveContent>[5],
 ) {
+  await resumeFile(context, store);
+
   if ((await conflictRecords(context.adapters.home)).some((item) => item.store === store))
     return { changed: 0, conflicts: 1 };
 
@@ -47,7 +47,7 @@ export async function reconcileFile(
         targets,
       },
       mine,
-      conflictTheirs(entry, local, server),
+      conflictTheirs(snapshot, local),
       [stored, server, ...snapshots.map((item) => item.bytes)],
     );
 
@@ -56,7 +56,7 @@ export async function reconcileFile(
     return { changed: 0, conflicts: 1 };
   }
 
-  return applyFile(context, snapshot, store, entry, resolution.next);
+  return applyFile(context, snapshot, store, resolution.next);
 }
 
 async function readFileState(
@@ -93,20 +93,31 @@ async function resolveFileState(
 
   const { local, mine, action, repair, detached } = decideFile(snapshot, entry, repairs, !!choose);
 
-  let resolution =
-    action.kind === "write"
-      ? action
-      : await resolveContent(
-          context,
-          snapshots[0]!.target.path,
-          mine,
-          server,
-          previous,
-          choose ?? (detached && context.options.interactive ? context.options.choose : undefined),
-          server,
-        );
+  const chooser =
+    choose ?? (detached && context.options.interactive ? context.options.choose : undefined);
 
-  if (local.kind === "conflict" || repair) resolution = { kind: "conflict" };
+  let resolution =
+    local.kind === "conflict"
+      ? await resolveLocalConflict(
+          context,
+          local,
+          snapshots[0]!.target.path,
+          chooser,
+          conflictTheirs(snapshot, local),
+        )
+      : action.kind === "write"
+        ? action
+        : await resolveContent(
+            context,
+            snapshots[0]!.target.path,
+            mine,
+            server,
+            previous,
+            chooser,
+            server,
+          );
+
+  if (repair) resolution = { kind: "conflict" };
 
   return { resolution, mine, local, repair };
 }
@@ -115,29 +126,20 @@ async function applyFile(
   context: TSyncContext,
   snapshot: Awaited<ReturnType<typeof readFileState>>,
   store: string,
-  entry: p.IFileEntry | undefined,
   next: Uint8Array | undefined,
 ) {
-  const { stored, server, snapshots, base } = snapshot;
-  let changed = same(stored, next) ? 0 : 1;
-  if (changed) await backup(context.adapters.home, store, context.options.now());
-  await writeBytes(store, next);
+  const { stored, server, snapshots } = snapshot;
 
-  for (const item of snapshots) {
-    if (!same(item.bytes, next)) changed++;
-    await placeFileTarget(context, item.target, next, server !== undefined);
+  const changed =
+    Number(!same(stored, next)) + snapshots.filter((item) => !same(item.bytes, next)).length;
 
-    const copyBase = basePath(
-      context.adapters.home,
-      store,
-      item.target.mode === "copy" ? item.target.root : undefined,
-    );
-
-    await saveBase(copyBase, item.target.mode === "copy" ? next : server, context.options.now());
-  }
-
-  await saveBase(base, server, context.options.now());
-  await journalPlacement(context.adapters.home, context.state);
+  await commitFile(
+    context,
+    snapshots.map((item) => item.target),
+    store,
+    next,
+    server,
+  );
 
   return { changed, conflicts: 0 };
 }
@@ -170,11 +172,24 @@ function decideFile(
 }
 
 function conflictTheirs(
-  entry: p.IFileEntry | undefined,
+  snapshot: Awaited<ReturnType<typeof readFileState>>,
   local: ReturnType<typeof deriveFileDecision>["local"],
-  server: Uint8Array | undefined,
 ) {
-  if (entry) return server;
+  return local.kind === "conflict" && same(snapshot.server, snapshot.previous)
+    ? local.theirs
+    : snapshot.server;
+}
 
-  return local.kind === "conflict" ? local.theirs : server;
+async function resolveLocalConflict(
+  context: TSyncContext,
+  local: Extract<ReturnType<typeof deriveFileDecision>["local"], { kind: "conflict" }>,
+  path: string,
+  choose: Parameters<typeof resolveContent>[5],
+  theirs: Uint8Array | undefined,
+) {
+  if (!choose || context.options.interactive === false) return { kind: "conflict" } as const;
+  const choice = await choose(path);
+  if (choice === "merge") return { kind: "conflict" } as const;
+
+  return { kind: "write", next: choice === "keep-mine" ? local.mine : theirs } as const;
 }
