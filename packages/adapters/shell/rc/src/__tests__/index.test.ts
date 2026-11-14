@@ -14,6 +14,14 @@ for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
 
     expect(snippet).toContain(
       shell === "powershell"
+        ? "(Get-Location).ProviderPath"
+        : shell === "zsh"
+          ? "${PWD:A}"
+          : "pwd -P",
+    );
+
+    expect(snippet).toContain(
+      shell === "powershell"
         ? ".TotalSeconds -gt 60"
         : shell === "fish"
           ? ") -gt 60"
@@ -32,15 +40,17 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
     `${shell} prints only inside an approved checkout and sanitizes refresh`,
     async () => {
       const home = await realpath(await mkdtemp(join(tmpdir(), "envden-hook-")));
-      const { mkdir, utimes } = await import("node:fs/promises");
+      const { mkdir, utimes, symlink } = await import("node:fs/promises");
 
       try {
         const state = join(home, ".envden", "state");
         const checkout = join(home, "repo");
         const sibling = join(home, "repo-other");
+        const alias = join(home, "alias");
         await mkdir(state, { recursive: true });
         await mkdir(checkout);
         await mkdir(sibling);
+        await symlink(checkout, alias);
         await writeFile(join(state, "approved-checkouts"), `${checkout}\n`);
         await writeFile(join(state, "notice"), "envden: out of sync\n");
         const binary = join(home, "envden");
@@ -54,17 +64,20 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
         const snippet = createRcShellAdapter(shell, home).hookSnippet(binary);
 
         const run = async (cwd: string) => {
-          const child = spawnTrusted([shell, "-c", `${snippet}\n_envden_notice\n_envden_notice`], {
-            cwd,
-            stdout: "pipe",
-            stderr: "pipe",
-            env: {
-              ...process.env,
-              BUN_OPTIONS: "poison",
-              BUN_BE_BUN: "1",
-              ENVDEN_TEST_RESULT: join(home, "result"),
+          const child = spawnTrusted(
+            [shell, "-c", `cd -- "$1"\n${snippet}\n_envden_notice\n_envden_notice`, "--", cwd],
+            {
+              cwd,
+              stdout: "pipe",
+              stderr: "pipe",
+              env: {
+                ...process.env,
+                BUN_OPTIONS: "poison",
+                BUN_BE_BUN: "1",
+                ENVDEN_TEST_RESULT: join(home, "result"),
+              },
             },
-          });
+          );
 
           expect(await child.exited).toBe(0);
 
@@ -73,6 +86,7 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
 
         expect((await run(checkout)).match(/out of sync/g)).toHaveLength(1);
         expect(await run(sibling)).toBe("");
+        expect((await run(alias)).match(/out of sync/g)).toHaveLength(1);
         expect(Bun.file(join(home, "result")).size).toBe(0);
         await utimes(join(state, "notice"), new Date(0), new Date(0));
         await execTrusted("mkfifo", [join(home, "result")]);

@@ -20,15 +20,16 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
       body = `_envden_notice() {
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return 0
   _envden_last_pwd="$PWD"
+  local physical=${shell === "zsh" ? '"${PWD:A}"' : '"$(pwd -P)"'}
   local root approved=0 cache=${quote(join(state, "notice"))} now modified
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$PWD/" in "$root/"*) approved=1; break ;; esac
+    case "$physical/" in "$root/"*) approved=1; break ;; esac
   done 2>/dev/null < ${quote(join(state, "approved-checkouts"))}
   local offered=${quote(join(state, "track-offered"))} root_seen=0 day line
   while IFS= read -r root; do
     [ -n "$root" ] || continue
-    case "$PWD/" in "$root/"*)
+    case "$physical/" in "$root/"*)
       root_seen=0
       while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
       if [ "$root_seen" = 0 ]; then
@@ -68,10 +69,11 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     case "fish":
       body = `function _envden_notice --on-variable PWD
   set -l cache ${quote(join(state, "notice"))}
+  set -l physical (pwd -P)
   set -l approved 0
   if test -f ${quote(join(state, "approved-checkouts"))}
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$PWD/")
+      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
       if test -n "$root"; and test "$prefix" = "$root/"
         set approved 1
         break
@@ -81,7 +83,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   set -l offered ${quote(join(state, "track-offered"))}
   if test -f ${quote(join(state, "track-offers"))}
     while read -l root
-      set -l prefix (string sub -l (string length -- "$root/") -- "$PWD/")
+      set -l prefix (string sub -l (string length -- "$root/") -- "$physical/")
       if test -n "$root"; and test "$prefix" = "$root/"
         if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
           printf '%s\\n' 'envden: env files found; run envden track'
@@ -120,14 +122,15 @@ _envden_notice`;
     case "powershell":
       body = `if (!$global:EnvdenPreviousPrompt) { $global:EnvdenPreviousPrompt = $function:prompt }
 function global:prompt {
+  $physical = (Get-Location).ProviderPath
   $cache = ${psQuote(join(state, "notice"))}
-  $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($PWD.Path.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
+  $approved = @(Get-Content -LiteralPath ${psQuote(join(state, "approved-checkouts"))} -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
   $changed = $global:EnvdenLastDirectory -cne $PWD.Path
   $global:EnvdenLastDirectory = $PWD.Path
   if ($changed) {
     $offered = ${psQuote(join(state, "track-offered"))}
     foreach ($root in @(Get-Content -LiteralPath ${psQuote(join(state, "track-offers"))} -ErrorAction SilentlyContinue)) {
-      if ($root -and (($PWD.Path.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($root.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })))) {
+      if ($root -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($root.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })))) {
         if (@(Get-Content -LiteralPath $offered -ErrorAction SilentlyContinue) -cnotcontains $root) {
           Write-Host 'envden: env files found; run envden track'
           Add-Content -LiteralPath $offered -Value $root
