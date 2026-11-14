@@ -110,3 +110,9 @@ envden push --yes
 `rm` asks before discarding local edits or conflicts, backs up every local version, and removes the file from all local targets and the store. The next push publishes the deletion. Other devices remove the file on pull, or conflict if they have edits. Missing files alone are restored.
 
 Use `--yes` to confirm without a terminal and `--json` for the result and backup paths. Success exits 0; refusal or cancellation exits 2; an unknown tracked path or an I/O failure exits 1. To add it again after publishing deletion, create the file and track the checkout again.
+
+A lost push response is checked against the verified history, even if another device has since pushed again. Retrying a partial pull fast-forwards superseded server bytes. Deliberate local reverts still push.
+
+`rm` records deletion only after removing local files. Recreating a target cancels pending removal. Resolving to live content also clears removal intent. A changed server entry requires another confirmation; unpublished files are removed locally without a tombstone. Checkouts needing approval are skipped. Backup reports include the source and saved path.
+
+Push reports held-back files with a reason and next action, including conflicts, placement failures and `env-files` exclusions. `status` checks current approvals, rules, conflicts and placement state. JSON includes these reports.
