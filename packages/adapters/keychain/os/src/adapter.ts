@@ -76,26 +76,17 @@ class OsKeychainAdapter implements IKeychainAdapter {
     return join(this.directory, "os.file");
   }
 
-  private async markOs() {
-    if (!(await hasFileSource(join(this.directory, "os"))))
-      await durableWrite(this.marker(), new Uint8Array());
-  }
-
-  private async readOs(name: string, required = false) {
-    try {
-      const value = await Bun.secrets.get(this.options(name));
-      if (value !== null) await this.markOs().catch(() => {});
-
-      return value;
-    } catch (cause) {
-      if (
-        required ||
-        !keychainUnavailable(cause) ||
-        (await hasFileSource(join(this.directory, "os")))
-      )
-        throw new EnvdenError("LOCKED", "Vault keys unavailable", { cause });
+  private async readOs(name: string, required: boolean) {
+    if (!(await hasFileSource(join(this.directory, "os")))) {
+      if (required) throw new EnvdenError("LOCKED", "Vault keys unavailable");
 
       return null;
+    }
+
+    try {
+      return await Bun.secrets.get(this.options(name));
+    } catch (cause) {
+      throw new EnvdenError("LOCKED", "Vault keys unavailable", { cause });
     }
   }
 
@@ -122,8 +113,6 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
   async set(name: string, value: Uint8Array) {
     if (!(await this.fileBacked(name))) {
-      const existing = await this.readOs(name);
-
       try {
         await Bun.secrets.set({
           ...this.options(name),
@@ -135,11 +124,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
         return;
       } catch (cause) {
-        if (
-          existing !== null ||
-          !keychainUnavailable(cause) ||
-          (await hasFileSource(join(this.directory, "os")))
-        )
+        if (!keychainUnavailable(cause) || (await hasFileSource(join(this.directory, "os"))))
           throw cause;
 
         this.fallbackNotice = true;

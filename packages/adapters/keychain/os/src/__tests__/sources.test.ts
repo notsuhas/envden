@@ -1,6 +1,6 @@
 import { rejects } from "node:assert/strict";
 import { expect, spyOn, test } from "bun:test";
-import { mkdtemp, rm, readdir, mkdir, writeFile, stat } from "node:fs/promises";
+import { mkdtemp, rm, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createOsKeychainAdapter } from "../adapter.ts";
@@ -13,6 +13,8 @@ test("file keys remain authoritative and existing OS keys never fall back", asyn
 
   try {
     await createOsKeychainAdapter({ home, fileOnly: true }).set("file", new Uint8Array([2]));
+    set.mockResolvedValueOnce(undefined);
+    await createOsKeychainAdapter({ home }).set("os", new Uint8Array([1]));
     const adapter = createOsKeychainAdapter({ home });
     expect(await adapter.get("file")).toEqual(new Uint8Array([2]));
     expect(get).not.toHaveBeenCalled();
@@ -74,7 +76,7 @@ for (const failure of [
 
       if (failure !== "unavailable") {
         await rejects(adapter.set("key", new Uint8Array([7])));
-        await rejects(adapter.get("key"));
+        expect(await adapter.get("key")).toBeUndefined();
       } else {
         expect(await adapter.get("key")).toBeUndefined();
         await adapter.set("key", new Uint8Array([7]));
@@ -89,7 +91,7 @@ for (const failure of [
   });
 }
 
-test("file-only deletion leaves OS keys untouched without inventing a file source", async () => {
+test("file-only deletion leaves OS keys untouched and unmarked reads use file fallback", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-delete-"));
   let value: string | null = "AQ==";
   const get = spyOn(Bun.secrets, "get").mockImplementation(async () => value);
@@ -103,8 +105,9 @@ test("file-only deletion leaves OS keys untouched without inventing a file sourc
   try {
     await createOsKeychainAdapter({ home, fileOnly: true }).delete("os");
     expect(remove).not.toHaveBeenCalled();
-    expect(await createOsKeychainAdapter({ home }).get("os")).toEqual(new Uint8Array([1]));
-    expect(await readdir(home)).toEqual(["state"]);
+    expect(await createOsKeychainAdapter({ home }).get("os")).toBeUndefined();
+    expect(get).not.toHaveBeenCalled();
+    expect(await readdir(home)).toEqual([]);
   } finally {
     get.mockRestore();
     remove.mockRestore();
@@ -120,7 +123,7 @@ for (const operation of ["get", "set", "delete"] as const) {
     const remove = spyOn(Bun.secrets, "delete").mockRejectedValue(new Error("unavailable"));
 
     try {
-      await createOsKeychainAdapter({ home }).get("old");
+      await createOsKeychainAdapter({ home }).set("old", new Uint8Array([1]));
       get.mockRejectedValue(new Error("unavailable"));
       set.mockRejectedValue(new Error("unavailable"));
       const adapter = createOsKeychainAdapter({ home });
@@ -216,25 +219,3 @@ test("a successful OS write persists home history across adapters", async () => 
     await rm(home, { recursive: true, force: true });
   }
 });
-
-for (const blocked of [false, true])
-  test(`successful OS reads tolerate marker writes and preserve existing markers: ${blocked}`, async () => {
-    const home = await mkdtemp(join(tmpdir(), "envden-marker-"));
-    const get = spyOn(Bun.secrets, "get").mockResolvedValue("AQ==");
-    const directory = join(home, "state", "keys");
-    const marker = join(directory, "os.file");
-
-    try {
-      await mkdir(directory, { recursive: true });
-
-      if (blocked) await mkdir(marker);
-      else await writeFile(marker, "existing");
-
-      const before = await stat(marker);
-      expect(await createOsKeychainAdapter({ home }).get("key")).toEqual(new Uint8Array([1]));
-      expect((await stat(marker)).mtimeMs).toBe(before.mtimeMs);
-    } finally {
-      get.mockRestore();
-      await rm(home, { recursive: true, force: true });
-    }
-  });
