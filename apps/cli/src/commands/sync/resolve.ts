@@ -1,3 +1,5 @@
+import { EnvdenError } from "@envden/core/errors";
+import { readConfig } from "../../settings/config.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
@@ -16,6 +18,16 @@ export const resolveCommand = new Command("resolve")
 
       return;
     }
+
+    if (
+      (options.keepMine || options.takeServer) &&
+      !process.stdin.isTTY &&
+      !(await readConfig(createAdapters().home))["agent-merge"]
+    )
+      throw new EnvdenError(
+        "INVALID_INPUT",
+        "Resolution requires a terminal; use --list, or config agent-merge on before --keep-mine/--take-server",
+      );
 
     console.log(
       terminalJson(

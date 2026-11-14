@@ -159,7 +159,7 @@ User-owned tool directories remain outside envden's control if the user personal
 - `envden agent install` puts one skill in `~/.agents/skills/envden/` (the shared format most coding agents read) and links it into `~/.claude/skills/` for Claude Code.
 - Setup is agent-drivable like `t3 up`: every question has a flag, `--yes` takes defaults, and with no terminal and missing choices envden stops and lists the flags it needs. `envden status --json` and `envden doctor --json` report state.
 - Agents never handle secrets or approvals: for the master password, a pairing code or approving a checkout, envden tells the agent to ask the user to run the step in their own terminal.
-- Non-interactive pushes require `--yes`. Conflicts are never auto-resolved for an agent; with `envden config agent-merge on`, the skill may help edit the conflict file (a convention, not a security boundary).
+- Non-interactive pushes require `--yes`. Conflict resolution with `--keep-mine` or `--take-server` requires a terminal unless `agent-merge` is on. Conflicts are never auto-resolved for an agent; with `envden config agent-merge on`, the skill may help edit the conflict file (a convention, not a security boundary).
 - Docs have a "Set up envden with your agent" page with one prompt to paste.
 
 ## Setup

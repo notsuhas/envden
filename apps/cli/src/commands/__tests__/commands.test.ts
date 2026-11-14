@@ -79,3 +79,9 @@ for (const [keep, take, choice] of [
   test(`resolution choice ${keep} ${take}`, () => {
     expect(resolutionChoice(keep, take)).toBe(choice);
   });
+
+test("unattended resolution lists the terminal and agent override choices", async () => {
+  const result = await cli(["resolve", "file", "--keep-mine"]);
+  expect(result.code).toBe(2);
+  expect(result.stderr).toContain("agent-merge");
+});
