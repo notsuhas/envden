@@ -3,7 +3,7 @@ import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdminContext } from "../shared/context.ts";
 import type { THistory } from "../../vault/history.ts";
-import { readHistory } from "../../vault/history.ts";
+import { submitAdmin } from "../shared/submission.ts";
 
 export async function dropDevices(context: TAdminContext, initial: THistory, without: string[]) {
   let history = initial;
@@ -19,9 +19,7 @@ export async function dropDevices(context: TAdminContext, initial: THistory, wit
       throw new EnvdenError("INVALID_INPUT", "Cannot drop this device or the last device");
 
     const swap = await revocationSwap(context, history, device, context.now());
-    await context.client.request("/v1/swap", "POST", p.SwapCodec.write(swap));
-
-    history = await readHistory(context.client, context.vaultId);
+    history = (await submitAdmin(context, swap)).history;
   }
 
   return history;

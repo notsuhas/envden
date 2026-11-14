@@ -1,3 +1,5 @@
+import { join } from "node:path";
+import { optionalRead } from "../../../state/store/files.ts";
 import { saveClose } from "../resume.ts";
 import * as p from "@envden/core/protocol";
 import { repairLoginDecision } from "@envden/core/chain";
@@ -21,6 +23,18 @@ export async function closeRepair(
   );
 
   if (restoredIndex < 0) throw new EnvdenError("INVALID_DATA", "Restored head is not on the chain");
+
+  const evidence = await optionalRead(
+    join(adapters.home, "state", `repair-restored-${text(context.repairId)}`),
+  );
+
+  const evidenceIndex = history.headers.findIndex(
+    (h) => evidence === text(p.objectHash(p.ManifestHeaderCodec, h, "manifest")),
+  );
+
+  if (evidenceIndex < restoredIndex)
+    throw new EnvdenError("INVALID_DATA", "Restored head exceeds the observed restore point");
+
   const after = history.headers.slice(restoredIndex + 1).map((h) => h.body);
 
   const finish = await repairLogin(

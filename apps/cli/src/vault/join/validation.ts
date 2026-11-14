@@ -60,3 +60,9 @@ export async function verifiedBlob(
 
   return bytes;
 }
+
+export function historyHasHeader(history: THistory, hash: Uint8Array) {
+  return history.headers.some((header) =>
+    p.equal(p.objectHash(p.ManifestHeaderCodec, header, "manifest"), hash),
+  );
+}

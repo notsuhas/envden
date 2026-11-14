@@ -45,3 +45,23 @@ test("onboarding completion resumes and unlocks joined homes", async () => {
     await flow.cleanup();
   }
 });
+
+test("pairing stores only headers through its approved checkpoint", async () => {
+  const { rotateVault } = await import("../../admin/devices/rotate.ts");
+  const { pull } = await import("../../sync/engine.ts");
+
+  const flow = await pairedFlow(async (f) => {
+    await rotateVault(f.first, "master password", f.now);
+  });
+
+  try {
+    expect((await loadState(flow.second.home))?.headers).toHaveLength(3);
+    await pull(flow.second, { now: flow.now, fetcher: flow.fetcher, all: true });
+    const state = (await loadState(flow.second.home))!;
+    expect(state.headers).toHaveLength(4);
+    await pull(flow.second, { now: flow.now, fetcher: flow.fetcher, all: true });
+    expect((await loadState(flow.second.home))?.headers).toHaveLength(4);
+  } finally {
+    await flow.cleanup();
+  }
+});

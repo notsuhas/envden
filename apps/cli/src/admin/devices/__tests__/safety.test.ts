@@ -132,3 +132,86 @@ test("unknown device does not ask for credentials and confirmation precedes remo
     await f.close();
   }
 });
+
+test("a dropped rotation acknowledgement cannot advance the local checkpoint", async () => {
+  const { rotateVault } = await import("../rotate.ts");
+  const f = await fixture();
+
+  try {
+    const fetcher: typeof f.fetcher = async (input, init) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname === "/v1/swap") return Response.json({ ok: true });
+
+      return f.fetcher(input, init);
+    };
+
+    await Promise.resolve(
+      expect(rotateVault(f.first, "old password", f.now, fetcher)).rejects.toMatchObject({
+        code: "INVALID_DATA",
+      }),
+    );
+  } finally {
+    await f.close();
+  }
+});
+
+test("checkpoint advances reject a signed header with an invalid operation shape", async () => {
+  const p = await import("@envden/core/protocol");
+  const { acceptJoin } = await import("../../../vault/join/accept.ts");
+  const f = await fixture();
+
+  try {
+    const context = await adminContext(f.first, f.now);
+    const history = await currentHistory(context);
+    const previous = history.headers.at(-1)!;
+
+    const header = p.signObject(
+      p.ManifestHeaderCodec,
+      {
+        ...previous.body,
+        seq: previous.body.seq + 1n,
+        prev: p.objectHash(p.ManifestHeaderCodec, previous, "manifest"),
+        op: 1,
+      },
+      context.identity.keys.objSk,
+      "manifest",
+    );
+
+    history.headers.push(header);
+
+    const { createClient } = await import("../../../client/request.ts");
+
+    const client = createClient({
+      address: f.result.kit.server,
+      pin: history.state.serverPin,
+      vaultId: context.vaultId,
+      identity: context.identity,
+      now: f.now,
+      version: "0.1.0",
+      fetcher: async (input, init) => {
+        if (
+          new URL(input instanceof Request ? input.url : input.toString()).pathname === "/v1/head"
+        )
+          return new Response(p.signedCodec(p.ManifestHeaderCodec).write(header));
+
+        return f.fetcher(input, init);
+      },
+    });
+
+    await Promise.resolve(
+      expect(
+        acceptJoin(
+          f.first,
+          client,
+          context.identity,
+          f.result.kit.server,
+          history.state.serverPin,
+          history,
+          p.objectHash(p.ManifestHeaderCodec, header, "manifest"),
+        ),
+      ).rejects.toMatchObject({ code: "INVALID_DATA" }),
+    );
+  } finally {
+    await f.close();
+  }
+});

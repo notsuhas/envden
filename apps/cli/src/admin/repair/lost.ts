@@ -1,3 +1,5 @@
+import { EnvdenError } from "@envden/core/errors";
+import { submitAdmin } from "../shared/submission.ts";
 import { join } from "node:path";
 import { atomicWrite } from "../../state/store/files.ts";
 import * as p from "@envden/core/protocol";
@@ -25,6 +27,9 @@ export async function fixLost(
         context.client,
         `/v1/files/${text(header.body.filesHash)}`,
       );
+
+      if (bytes && !p.equal(p.H("files", bytes), header.body.filesHash))
+        throw new EnvdenError("INVALID_DATA", "File list hash mismatch");
 
       return { header: header.body, files: bytes ? p.decode(p.FilesCodec, bytes) : undefined };
     }),
@@ -104,5 +109,5 @@ export async function fixLost(
     report.join("\n"),
   );
 
-  await context.client.request("/v1/swap", "POST", p.SwapCodec.write(swap));
+  await submitAdmin(context, swap);
 }

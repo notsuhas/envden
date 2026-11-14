@@ -1,3 +1,5 @@
+import { historyHasHeader } from "../../vault/join/validation.ts";
+import { rm } from "node:fs/promises";
 import { optionalObject } from "../shared/transfer.ts";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
@@ -26,7 +28,13 @@ export async function resumeClose(
   const swap = p.decode(p.SwapCodec, binary(saved));
   const close = swap.entries[0]?.body;
   const repairId = p.H("repair-id", p.decodeToken("repair", token).secret);
-  if (close?.kind !== 6 || !p.equal(close.payload.repairId, repairId)) return;
+
+  if (close?.kind !== 6 || !p.equal(close.payload.repairId, repairId)) {
+    await rm(join(adapters.home, "state", "repair-close"), { force: true });
+
+    return;
+  }
+
   const context = await adminContext(adapters, now, fetcher);
   let history;
 
@@ -39,12 +47,10 @@ export async function resumeClose(
 
   const hash = p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest");
 
-  if (
-    !history.headers.some((header) =>
-      p.equal(p.objectHash(p.ManifestHeaderCodec, header, "manifest"), hash),
-    )
-  )
+  if (!historyHasHeader(history, hash)) {
+    await rm(join(adapters.home, "state", "repair-close"), { force: true });
     throw new EnvdenError("FORK", "Repair close is not on the server chain");
+  }
 
   await acceptJoin(
     adapters,
@@ -64,7 +70,7 @@ export async function resumeClose(
 
   if (restoredIndex < 0) throw new EnvdenError("INVALID_DATA", "Missing restored checkpoint");
 
-  return {
+  const result = {
     kind: "finished" as const,
     report: await optionalRead(join(adapters.home, "state", `repair-report-${text(repairId)}`)),
     replaceKit: refuseSecretKeyProof(
@@ -75,4 +81,8 @@ export async function resumeClose(
       !!envelope && p.equal(p.H("envelope-blob", envelope), swap.header.body.envelopeHash),
     ),
   };
+
+  await rm(join(adapters.home, "state", "repair-close"), { force: true });
+
+  return result;
 }

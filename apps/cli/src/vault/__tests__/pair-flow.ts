@@ -26,7 +26,9 @@ function signal() {
   return { promise, resolve };
 }
 
-export async function pairedFlow() {
+export async function pairedFlow(
+  beforeResume?: (flow: Awaited<ReturnType<typeof setupFlow>>) => Promise<void>,
+) {
   const flow = await setupFlow();
   const { root, now, first, second, address, result, fetcher } = flow;
 
@@ -118,6 +120,8 @@ export async function pairedFlow() {
       clientVersion: null,
       unconfirmed: true,
     });
+
+    await beforeResume?.(flow);
 
     expect((await resumeJoiner(second, joinerClient, joiner, address, pin)).vaultId).toBe(
       result.kit.vaultId,

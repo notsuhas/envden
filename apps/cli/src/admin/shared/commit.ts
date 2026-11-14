@@ -1,17 +1,13 @@
 import { join } from "node:path";
-import { unlink } from "node:fs/promises";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import { atomicWrite } from "../../state/store/files.ts";
 import { acceptJoin } from "../../vault/join/accept.ts";
-import { readHistory } from "../../vault/history.ts";
+import { submitAdmin } from "./submission.ts";
 import type { TAdminContext } from "./context.ts";
 
 export async function commitAdmin(context: TAdminContext, swap: p.ISwap) {
-  const pending = join(context.adapters.home, "state", "admin-swap.bin");
-  await atomicWrite(pending, p.encode(p.SwapCodec, swap));
-  await context.client.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
-  const history = await readHistory(context.client, context.vaultId);
+  const { history } = await submitAdmin(context, swap);
   const server = context.local.server;
   if (!server) throw new EnvdenError("NOT_FOUND", "Missing server configuration");
 
@@ -28,6 +24,4 @@ export async function commitAdmin(context: TAdminContext, swap: p.ISwap) {
   if (swap.envelope) {
     await atomicWrite(join(context.adapters.home, "state", "envelope.bin"), swap.envelope);
   }
-
-  await unlink(pending);
 }

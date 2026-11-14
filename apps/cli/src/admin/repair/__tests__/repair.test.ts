@@ -1,4 +1,4 @@
-import { checkCrash } from "./crash.ts";
+import { checkCrash, checkRestorePoint } from "./crash.ts";
 import * as p from "@envden/core/protocol";
 import { changePassword } from "../../recovery/credentials.ts";
 import { kitRejoin } from "../../rejoin/kit.ts";
@@ -93,6 +93,8 @@ for (const [mode, crash, drop] of [
         now: f.now,
         fetcher: f.fetcher,
       };
+
+      await checkRestorePoint(f.first, options, mode, crash);
 
       await checkCrash(f.first, options, crash);
 

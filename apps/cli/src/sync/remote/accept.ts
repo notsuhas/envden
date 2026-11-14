@@ -108,7 +108,9 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
 
   if (result.kind !== "accepted") throw new EnvdenError("INVALID_DATA", "Invalid manifest history");
   context.checkpoint = result.checkpoint;
-  context.headers.push(...result.headers);
+  const bySeq = new Map(context.headers.map((header) => [header.body.seq, header]));
+  for (const header of result.headers) bySeq.set(header.body.seq, header);
+  context.headers = [...bySeq.values()].sort((a, b) => (a.body.seq < b.body.seq ? -1 : 1));
   context.entries = entries.filter((item) => item.body.seq <= head.body.listSeq);
 
   if (keyring) {

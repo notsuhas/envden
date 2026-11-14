@@ -1,3 +1,4 @@
+import { acceptJoin } from "../../vault/join/accept.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
 import { localRepairChain } from "./chain.ts";
 import { join } from "node:path";
@@ -7,6 +8,7 @@ import { isReusedRepairToken } from "@envden/core/chain";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { binary, text } from "../../client/encoding.ts";
 import { readHistory } from "../../vault/history.ts";
 import { adminContext } from "../shared/context.ts";
@@ -63,6 +65,11 @@ async function lockeduploadRepair(
   if (chain.kind !== "valid") throw new EnvdenError("INVALID_DATA", "Invalid stored chain");
   const stored = { headers, entries, state: chain.state };
   const remoteHead = remote.headers.at(-1)!;
+  const evidence = join(adapters.home, "state", `repair-restored-${text(context.repairId)}`);
+
+  if ((await optionalRead(evidence)) === undefined)
+    await atomicWrite(evidence, text(p.objectHash(p.ManifestHeaderCodec, remoteHead, "manifest")));
+
   const localHead = headers.at(-1)!;
 
   if (localHead.body.seq > remoteHead.body.seq)
@@ -118,6 +125,17 @@ async function lockeduploadRepair(
     );
 
   const history = await readHistory(context.client, context.vaultId);
+
+  await acceptJoin(
+    adapters,
+    context.client,
+    context.identity,
+    context.local.server!.address,
+    history.state.serverPin,
+    history,
+    p.objectHash(p.ManifestHeaderCodec, history.headers.at(-1)!, "manifest"),
+  );
+
   blobs.sort(p.compare);
 
   const report = p.signObject(

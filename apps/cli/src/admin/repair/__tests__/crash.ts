@@ -1,3 +1,5 @@
+import * as p from "@envden/core/protocol";
+import { loadState } from "../../../state/store/repository.ts";
 import type { TFetch } from "../../../client/fetch.ts";
 import { expect } from "bun:test";
 import { finishRepair } from "../finish.ts";
@@ -46,5 +48,36 @@ export async function checkCrash(
 function shouldCrashAfter(crash: TCrash, path: string, closed: boolean) {
   if (crash === "after-close") return path === "/v1/repair/finish";
 
-  return crash === "adoption" && closed && path.startsWith("/v1/keyrings/");
+  return crash === "adoption" && closed && path === "/v1/head";
+}
+
+export async function checkRestorePoint(
+  adapters: Parameters<typeof finishRepair>[0],
+  options: Parameters<typeof finishRepair>[1],
+  mode: string,
+  crash: string,
+) {
+  if (mode !== "password" || crash !== "after-close") return;
+  const local = (await loadState(adapters.home))!;
+
+  await Promise.resolve(
+    expect(
+      finishRepair(adapters, {
+        ...options,
+        fetcher: async (input, init) => {
+          const response = await options.fetcher(input, init);
+
+          if (
+            new URL(input instanceof Request ? input.url : input.toString()).pathname !==
+            "/v1/repair/status"
+          )
+            return response;
+
+          const status = p.RepairStatusSchema.parse(await response.json());
+
+          return Response.json({ ...status, restoredHead: local.checkpoint });
+        },
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_DATA" }),
+  );
 }
