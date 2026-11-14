@@ -64,7 +64,10 @@ export async function processIdentity(): Promise<string | undefined> {
       boot ??= (await readFile("/proc/sys/kernel/random/boot_id", "utf8")).trim();
       namespace = await readlink("/proc/self/ns/pid");
     } else if (process.platform === "darwin" && !boot) {
-      boot = (await exec("sysctl", ["-n", "kern.boottime"])).stdout.trim();
+      boot = (await exec("sysctl", ["-n", "kern.boottime"])).stdout
+        .match(/sec\s*=\s*(\d+),\s*usec\s*=\s*(\d+)/)
+        ?.slice(1)
+        .join(":");
     } else if (process.platform === "win32" && !boot) {
       boot = (
         await exec("powershell", [

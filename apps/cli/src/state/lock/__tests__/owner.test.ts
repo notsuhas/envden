@@ -1,3 +1,4 @@
+import { machineIdentity } from "../identity.ts";
 import * as trusted from "@envden/core/process";
 import { processIdentity } from "../process.ts";
 import { expect, test, spyOn } from "bun:test";
@@ -32,6 +33,7 @@ test("lock reclamation separates hosts, boots and PID namespaces", () => {
 test("boot discovery is cached for the lifetime of the process", async () => {
   const identity = await processIdentity();
   expect(identity).toBeDefined();
+  if (process.platform === "darwin") expect(machineIdentity(identity!)?.boot).toMatch(/^\d+:\d+$/);
   const probe = spyOn(trusted, "execTrusted");
 
   try {
