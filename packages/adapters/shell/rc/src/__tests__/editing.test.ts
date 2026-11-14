@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import {
+  chmod,
   link,
   mkdtemp,
   readFile,
@@ -161,6 +162,24 @@ test("rc install preserves non-UTF-8 bytes, mode and CRLF without duplicate bloc
     await adapter.uninstall();
     expect(await readFile(adapter.rcPath())).toEqual(original);
   } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("rc editing replaces read-only files and preserves their permissions", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-rc-readonly-"));
+  const path = join(home, "rc");
+
+  try {
+    await writeFile(path, "# user\n");
+    await chmod(path, 0o444);
+    const mode = (await stat(path)).mode & 0o777;
+    await editRc(path, (current) => current + "# edited\n");
+    expect(await readFile(path, "utf8")).toBe("# user\n# edited\n");
+    expect((await stat(path)).mode & 0o777).toBe(mode);
+    expect(await readdir(home)).toEqual(["rc"]);
+  } finally {
+    await chmod(path, 0o600);
     await rm(home, { recursive: true, force: true });
   }
 });

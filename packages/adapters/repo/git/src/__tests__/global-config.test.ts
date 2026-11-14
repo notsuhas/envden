@@ -14,7 +14,7 @@ test("git ignores global execution settings while retaining safe directories", a
 
   await writeFile(
     join(home, ".gitconfig"),
-    `[envden]\n test = global\n[safe]\n directory = ${root}\n`,
+    `[envden]\n test = global\n[safe]\n directory = ${JSON.stringify(root)}\n`,
   );
 
   process.env.HOME = home;

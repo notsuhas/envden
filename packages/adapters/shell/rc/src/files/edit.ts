@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { mkdir, open, realpath, rename, rm, lstat } from "node:fs/promises";
+import { mkdir, open, realpath, rename, rm, lstat, chmod } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { verifyWindowsOwner } from "./windows.ts";
@@ -17,18 +17,39 @@ export async function editRc(
   backupDirectory?: string,
   hooks: IEditHooks = {},
 ) {
-  await mkdir(dirname(path), { recursive: true });
-  let resolved: string;
-  let flags = constants.O_RDWR | constants.O_NOFOLLOW;
+  const edit = await readRc(path, transform, backupDirectory, hooks);
+  if (!edit) return;
+  const { resolved, stat, next } = edit;
+  const temporary = join(dirname(resolved), `.envden-rc-${crypto.randomUUID()}`);
 
   try {
-    resolved = await realpath(path);
-  } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
-    if (transform("") === "") return;
-    resolved = path;
-    flags |= constants.O_CREAT | constants.O_EXCL;
+    const replacement = await open(temporary, "wx", stat.mode & 0o777);
+
+    try {
+      await replacement.chmod(stat.mode & 0o777);
+      await replacement.writeFile(Buffer.from(next, "latin1"));
+      await replacement.sync();
+    } finally {
+      await replacement.close();
+    }
+
+    const current = await lstat(resolved);
+    if (current.dev !== stat.dev || current.ino !== stat.ino) return;
+    await replaceRc(temporary, resolved, stat);
+  } finally {
+    await rm(temporary, { force: true });
   }
+}
+
+async function readRc(
+  path: string,
+  transform: (current: string) => string,
+  backupDirectory: string | undefined,
+  hooks: IEditHooks,
+) {
+  const target = await resolveRc(path, transform);
+  if (!target) return;
+  const { resolved, flags } = target;
 
   await hooks.resolved?.();
   const file = await open(resolved, flags, 0o600);
@@ -36,12 +57,7 @@ export async function editRc(
   try {
     const stat = await file.stat();
 
-    if (
-      !stat.isFile() ||
-      stat.nlink !== 1 ||
-      (process.platform !== "win32" && stat.uid !== process.getuid?.())
-    )
-      throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
+    validateRc(stat);
 
     if (process.platform === "win32") await verifyWindowsOwner(resolved);
 
@@ -52,21 +68,59 @@ export async function editRc(
     if (next === original.toString("latin1")) return;
     if (backupDirectory) await backupRc(backupDirectory, original);
 
-    const temporary = join(dirname(resolved), `.envden-rc-${crypto.randomUUID()}`);
-    const replacement = await open(temporary, "wx", stat.mode & 0o777);
-
-    try {
-      await replacement.chmod(stat.mode & 0o777);
-      await replacement.writeFile(Buffer.from(next, "latin1"));
-      await replacement.sync();
-      const current = await lstat(resolved);
-      if (current.dev !== stat.dev || current.ino !== stat.ino) return;
-      await rename(temporary, resolved);
-    } finally {
-      await replacement.close();
-      await rm(temporary, { force: true });
-    }
+    return { resolved, stat, next };
   } finally {
     await file.close();
   }
+}
+
+async function replaceRc(
+  temporary: string,
+  destination: string,
+  expected: Awaited<ReturnType<typeof lstat>>,
+) {
+  try {
+    await rename(temporary, destination);
+  } catch (cause) {
+    if (!(cause instanceof Error && "code" in cause && cause.code === "EPERM")) throw cause;
+    const current = await lstat(destination);
+
+    if (current.dev !== expected.dev || current.ino !== expected.ino || current.mode & 0o200)
+      throw cause;
+
+    await chmod(destination, current.mode | 0o200);
+
+    try {
+      await rename(temporary, destination);
+    } catch (error) {
+      await chmod(destination, current.mode);
+      throw error;
+    }
+  }
+}
+
+async function resolveRc(path: string, transform: (current: string) => string) {
+  await mkdir(dirname(path), { recursive: true });
+  let resolved: string;
+  let flags = constants.O_RDONLY | constants.O_NOFOLLOW;
+
+  try {
+    resolved = await realpath(path);
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    if (transform("") === "") return;
+    resolved = path;
+    flags |= constants.O_CREAT | constants.O_EXCL;
+  }
+
+  return { resolved, flags };
+}
+
+function validateRc(stat: Awaited<ReturnType<typeof lstat>>) {
+  if (
+    !stat.isFile() ||
+    stat.nlink !== 1 ||
+    (process.platform !== "win32" && stat.uid !== process.getuid?.())
+  )
+    throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
 }
