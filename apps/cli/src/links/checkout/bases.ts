@@ -20,7 +20,6 @@ export async function removeCheckoutBases(
 
     for (const base of bases) {
       await rm(base, { force: true });
-      await rm(base + ".history", { recursive: true, force: true });
     }
   }
 }
