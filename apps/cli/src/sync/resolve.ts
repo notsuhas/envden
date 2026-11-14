@@ -88,7 +88,7 @@ async function resolutionBytes(
   record: Awaited<ReturnType<typeof conflictRecords>>[number],
   server: Uint8Array | undefined,
 ) {
-  if (choice === "take-server") return server;
+  if (choice === "take-server") return record.deleted ? undefined : requireContent(server);
 
   if (choice === "edit") {
     const edited = await readBytes(record.file);
@@ -102,7 +102,7 @@ async function resolutionBytes(
     return edited;
   }
 
-  return record.mineDeleted ? undefined : readBytes(record.mine);
+  return record.mineDeleted ? undefined : requireContent(await readBytes(record.mine));
 }
 
 function matchesConflict(
@@ -191,4 +191,11 @@ async function recordDeletion(
 ) {
   if (bytes === undefined && (record.deleted || record.mineDeleted))
     await requestDeletion(home, record.store, true);
+}
+
+function requireContent(bytes: Uint8Array | undefined) {
+  if (bytes === undefined)
+    throw new EnvdenError("INVALID_INPUT", "Recorded conflict content is missing");
+
+  return bytes;
 }
