@@ -159,3 +159,37 @@ jobs:
           bun --tsconfig-override scripts/tsconfig.json scripts/release/npm-package.ts "${GITHUB_REF_NAME#v}" npm-release/SHA256SUMS npm-release/package
       # trusted publishing: npm exchanges the GitHub OIDC token, so no NPM_TOKEN secret
       - run: npx -y npm@11.21.2 publish ./npm-release/package --access public
+
+  homebrew:
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: notsuhas/homebrew-tap
+          ssh-key: ${{ secrets.ENVDEN_HOMEBREW_TAP_KEY }}
+          path: homebrew-tap
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-checksums
+          path: homebrew-release
+      - name: Render the formula from the release checksums
+        run: |
+          bun --tsconfig-override scripts/tsconfig.json scripts/release/homebrew-formula.ts "${GITHUB_REF_NAME#v}" homebrew-release/SHA256SUMS homebrew-tap/Formula/envden.rb
+      - name: Push the formula
+        working-directory: homebrew-tap
+        run: |
+          git add Formula/envden.rb
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "envden ${GITHUB_REF_NAME#v}"
+          git push origin HEAD

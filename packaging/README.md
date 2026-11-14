@@ -11,7 +11,8 @@ Done:
 
 Still needed:
 
-- Homebrew and Scoop are published by hand after each release with `publish-channels.ts` (below); winget submission is manual too.
+- Homebrew: the release workflow's `homebrew` job pushes the formula to the tap with a write deploy key on `notsuhas/homebrew-tap`, stored as `ENVDEN_HOMEBREW_TAP_KEY` in the `release` environment.
+- Scoop is published by hand after each release with `publish-channels.ts` (below); winget submission is manual too.
 - npm: the release workflow's `npm` job publishes with trusted publishing (`npm trust github envden --file release.yml --repo notsuhas/envden --env release`). No token is stored.
 - After the first image push, make the GHCR package public.
 - `ENVDEN_TELEMETRY_KEY` (repository variable): a PostHog project key. Empty disables telemetry.
@@ -32,7 +33,7 @@ After verifying a release, run from the repository root with `gh` authenticated 
 bun scripts/release/publish-channels.ts <version>
 ```
 
-Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads SHA256SUMS from the requested tag, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. The release workflow publishes npm itself through `scripts/release/npm-package.ts`.
+Use the version without `v`. Add `--dry-run` to render and print diffs without committing or pushing. The script downloads SHA256SUMS from the requested tag, validates all CLI targets, pushes only the envden formula and Scoop manifest, and adds a Scoop README if missing. It keeps rendered files in the printed temporary directory, including the npm package with `private: true`. The release workflow publishes npm and Homebrew itself through `scripts/release/npm-package.ts` and `scripts/release/homebrew-formula.ts`, so the script finds the formula already current.
 
 winget manifests go to `packaging/dist/winget/<version>/`. Follow the printed instructions to open the PR in `microsoft/winget-pkgs` yourself. Dry runs keep winget manifests in the temporary directory too.
 
