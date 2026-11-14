@@ -16,11 +16,11 @@ test("status says unknown only when the transport cannot reach the server", asyn
       ).server,
     ).toBe("unknown");
 
-    await Promise.resolve(
+    for (const status of [403, 500])
       expect(
-        localStatus(f.first, false, async () => new Response("bad hello", { status: 403 })),
-      ).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
-    );
+        (await localStatus(f.first, false, async () => new Response("bad hello", { status })))
+          .server,
+      ).toBe("error");
   } finally {
     await f.close();
   }

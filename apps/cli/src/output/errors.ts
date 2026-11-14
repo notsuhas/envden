@@ -1,5 +1,5 @@
 import { format } from "node:util";
-import { sanitizeTerminal } from "./sanitize.ts";
+import { sanitizeTerminal, sanitizeConsole } from "./sanitize.ts";
 
 export async function withTerminalErrors<T>(action: () => Promise<T>): Promise<T> {
   const log = console.log;
@@ -27,7 +27,7 @@ export async function withTerminalErrors<T>(action: () => Promise<T>): Promise<T
 }
 
 function sanitizeValue(value: unknown): unknown {
-  if (typeof value === "string") return sanitizeTerminal(value);
+  if (typeof value === "string") return sanitizeConsole(value);
   if (Array.isArray(value)) return value.map(sanitizeValue);
 
   if (value && typeof value === "object")

@@ -37,8 +37,8 @@ export async function localStatus(
   try {
     await hello(state.server.address, binary(state.server.pin), fetcher, MIN_SERVER);
   } catch (cause) {
-    if (!(cause instanceof EnvdenError) || cause.code !== "SERVER_UNREACHABLE") throw cause;
-    server = "unknown";
+    server =
+      cause instanceof EnvdenError && cause.code === "SERVER_UNREACHABLE" ? "unknown" : "error";
   }
 
   if (refresh)

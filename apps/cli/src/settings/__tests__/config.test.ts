@@ -1,6 +1,6 @@
 import { telemetryEnabled, updateCheckEnabled } from "../privacy.ts";
 import { expect, test } from "bun:test";
-import { mkdtemp, rm, stat } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseConfig, readConfig, setConfig } from "../config.ts";
@@ -10,6 +10,8 @@ test("config validates, persists and uses private paths", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-config-"));
 
   try {
+    expect((await readConfig(home)).telemetry).toBe(false);
+    await writeFile(paths(home).config, JSON.stringify({ "allow-version": "0.1.0" }));
     expect((await readConfig(home)).telemetry).toBe(false);
     await setConfig("telemetry", "on", home);
     expect((await readConfig(home)).telemetry).toBe(true);

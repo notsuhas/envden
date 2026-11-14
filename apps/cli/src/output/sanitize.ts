@@ -8,3 +8,10 @@ export function terminalJson(value: unknown): string {
     typeof item === "string" ? sanitizeTerminal(item) : item,
   );
 }
+
+export function sanitizeConsole(value: string): string {
+  return value
+    .split(/([\n\t])/)
+    .map((part) => (part === "\n" || part === "\t" ? part : sanitizeTerminal(part)))
+    .join("");
+}

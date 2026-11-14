@@ -94,11 +94,11 @@ test("stdout sanitizes device names and nested report paths", async () => {
 
   try {
     await withTerminalErrors(async () => {
-      console.log("name\x1b\x07");
+      console.log("name\x1b\x07\n\tstatus");
       console.table([{ path: "repo\u202e/path" }]);
     });
 
-    expect(log.mock.calls).toEqual([["name"]]);
+    expect(log.mock.calls).toEqual([["name\n\tstatus"]]);
     expect(table.mock.calls).toEqual([[[{ path: "repo/path" }]]]);
   } finally {
     log.mockRestore();

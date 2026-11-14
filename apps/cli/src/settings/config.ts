@@ -24,7 +24,10 @@ export function parseConfig(value: unknown): IConfig {
 
 export async function readConfig(home: string) {
   try {
-    return parseConfig(JSON.parse(await readFile(paths(home).config, "utf8")));
+    const value: unknown = JSON.parse(await readFile(paths(home).config, "utf8"));
+    if (value && typeof value === "object") Reflect.deleteProperty(value, "allow-version");
+
+    return parseConfig(value);
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT")
       return parseConfig({});
