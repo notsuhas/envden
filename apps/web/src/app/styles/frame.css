@@ -90,17 +90,20 @@
   background: repeating-linear-gradient(90deg, var(--den-line-strong) 0 1px, transparent 1px 24px);
   pointer-events: none;
 }
-.den-frame > main::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 -1px;
-  width: 2px;
-  background: var(--den-lantern);
-  transform: scaleY(0);
-  transform-origin: top;
-  animation: den-frame-draw linear both;
-  animation-timeline: scroll(root);
-  pointer-events: none;
+/* mobile Safari flickers a page-tall scroll-driven layer while touch-scrolling */
+@media (pointer: fine) {
+  .den-frame > main::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 -1px;
+    width: 2px;
+    background: var(--den-lantern);
+    transform: scaleY(0);
+    transform-origin: top;
+    animation: den-frame-draw linear both;
+    animation-timeline: scroll(root);
+    pointer-events: none;
+  }
 }
 @keyframes den-frame-draw {
   to {
