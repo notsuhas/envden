@@ -1,5 +1,4 @@
-import { writeKit } from "../../vault/recovery/output.ts";
-import { terminalJson } from "../../output/sanitize.ts";
+import { reportReplacementKit } from "./output.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { confirmedPassword } from "../../onboarding/password.ts";
 import { secret } from "../../output/questions.ts";
@@ -16,8 +15,7 @@ export async function runVaultAdmin(
 ) {
   if (action === "replace") {
     const kit = await replaceKit(adapters, await prompt("Master password"), now);
-    if (kitOut) await writeKit(kitOut, kit);
-    console.log(terminalJson(kit));
+    await reportReplacementKit(kit, kitOut);
 
     return;
   }

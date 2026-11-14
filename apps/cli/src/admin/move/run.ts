@@ -83,6 +83,7 @@ async function lockedmoveServer(
   await switchServer(adapters, address, options.now, options.fetcher);
   await rm(join(directory, "move-swap.bin"), { force: true });
   await rm(join(directory, "move-address"), { force: true });
+  await rm(join(directory, "move-pin"), { force: true });
   await adapters.keychain.delete(tokenSlot);
 }
 

@@ -113,6 +113,7 @@ for (const crash of [false, true])
       }
 
       expect((await loadState(f.first.home))?.server?.address).toBe(address);
+      expect(await Bun.file(join(f.first.home, "state", "move-pin")).exists()).toBe(false);
 
       await kitJoin(f.home("after-move"), {
         ...f.result.kit,
@@ -195,6 +196,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
     });
 
     expect((await loadState(f.first.home))?.server?.address).toBe(address);
+    expect(await Bun.file(join(f.first.home, "state", "move-pin")).exists()).toBe(false);
   } finally {
     log.mockRestore();
     await destination.server.stop(true);

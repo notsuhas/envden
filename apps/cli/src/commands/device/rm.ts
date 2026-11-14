@@ -1,4 +1,4 @@
-import { writeKit } from "../../vault/recovery/output.ts";
+import { reportReplacementKit } from "../vault/output.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
@@ -27,10 +27,7 @@ export const deviceRmCommand = new Command("rm")
       },
     );
 
-    if (result.kit) {
-      if (options.kitOut) await writeKit(options.kitOut, result.kit);
-      console.log(terminalJson(result.kit));
-    }
+    if (result.kit) await reportReplacementKit(result.kit, options.kitOut);
 
     console.log("Device removed");
   });
