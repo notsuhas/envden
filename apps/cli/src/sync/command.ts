@@ -1,5 +1,5 @@
+import { PromptCancelled } from "../state/cancelled.ts";
 import { select, isCancel } from "@clack/prompts";
-import { EnvdenError } from "@envden/core/errors";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import type { ISyncOptions } from "./model.ts";
 import { login } from "../session/login.ts";
@@ -26,7 +26,7 @@ export function syncOptions(options: { all?: boolean; yes?: boolean }): ISyncOpt
         ],
       });
 
-      if (isCancel(choice)) throw new EnvdenError("INVALID_INPUT", "Cancelled");
+      if (isCancel(choice)) throw new PromptCancelled();
 
       return choice;
     },

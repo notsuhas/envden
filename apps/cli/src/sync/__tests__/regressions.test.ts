@@ -94,7 +94,7 @@ test("newly tracked copy cannot resurrect a server tombstone", async () => {
 });
 
 test("cancel at detached prompt aborts push", async () => {
-  const { EnvdenError } = await import("@envden/core/errors");
+  const { PromptCancelled } = await import("../../state/cancelled.ts");
   const f = await syncFixture();
 
   try {
@@ -108,7 +108,7 @@ test("cancel at detached prompt aborts push", async () => {
           ...f.opts,
           interactive: true,
           choose: async () => {
-            throw new EnvdenError("INVALID_INPUT", "Cancelled");
+            throw new PromptCancelled();
           },
         }),
       ).rejects.toMatchObject({ code: "INVALID_INPUT" }),

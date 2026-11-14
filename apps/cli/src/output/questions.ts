@@ -1,9 +1,10 @@
+import { PromptCancelled } from "../state/cancelled.ts";
 import { confirm, password, text, select, multiselect } from "@clack/prompts";
 import { sanitizeTerminal } from "./sanitize.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 function answer<T extends string | boolean>(value: T | symbol): T {
-  if (typeof value === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+  if (typeof value === "symbol") throw new PromptCancelled();
 
   return value;
 }
@@ -87,7 +88,7 @@ export async function chooseMany(
     options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
   });
 
-  if (typeof result === "symbol") throw new EnvdenError("INVALID_INPUT", "Cancelled");
+  if (typeof result === "symbol") throw new PromptCancelled();
 
   return result;
 }

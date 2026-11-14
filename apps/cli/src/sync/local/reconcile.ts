@@ -1,3 +1,4 @@
+import { PromptCancelled } from "../../state/cancelled.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { collisionEntries } from "./validation/entries.ts";
 import { reconcileUnpublished } from "./unpublished.ts";
@@ -120,7 +121,7 @@ function selectedEntries(
 }
 
 function reportPlacementFailure(context: TSyncContext, path: string, error: unknown) {
-  if (error instanceof EnvdenError && error.code === "INVALID_INPUT") throw error;
+  if (error instanceof PromptCancelled) throw error;
   const code = error instanceof EnvdenError ? error.code : "UNKNOWN";
   report(context, `Could not place env file (${code}): ${path}`);
 }
