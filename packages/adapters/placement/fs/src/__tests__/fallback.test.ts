@@ -1,5 +1,5 @@
 import { rejects } from "node:assert/strict";
-import { expect, test } from "bun:test";
+import { expect, test, spyOn } from "bun:test";
 import { lstat, mkdir, readFile, readdir, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import { userInfo } from "node:os";
 import { join } from "node:path";
@@ -149,4 +149,26 @@ test("fallback backup requires private ACLs before writing and rejects checkout 
   await unlink(alias);
   await symlink(checkout, alias);
   expect(() => backupContents(checkout, alias, contents)).toThrow("outside checkout");
+});
+
+import * as parents from "../paths/parent-identity.ts";
+
+test("fallback preserves the original error and removes staged plaintext", async () => {
+  const { checkout, store } = await setup();
+  const original = new Error("original failure");
+
+  const verify = spyOn(parents, "verifyParents")
+    .mockRejectedValueOnce(original)
+    .mockRejectedValue(new Error("cleanup failure"));
+
+  try {
+    await rejects(
+      place("copy", checkout, store, join(checkout, ".env"), undefined, fallback, async () => {}),
+      (error) => error === original,
+    );
+
+    expect(await readdir(checkout)).toEqual([]);
+  } finally {
+    verify.mockRestore();
+  }
 });

@@ -98,7 +98,6 @@ export async function place(
     // Windows: parent replacement after this check remains possible.
     await rename(temporary, destination);
   } finally {
-    await verifyParents(parents, destination);
     const leftover = await statOrMissing(temporary);
 
     if (staged && leftover?.dev === staged.dev && leftover.ino === staged.ino)
