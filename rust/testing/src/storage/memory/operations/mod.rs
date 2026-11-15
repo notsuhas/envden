@@ -1,6 +1,7 @@
+mod access;
+mod blobs;
+mod chain;
+mod lifecycle;
 mod mailboxes;
-mod operations0;
-mod operations1;
-mod operations2;
-mod operations3;
-mod operations4;
+mod state;
+mod vault;

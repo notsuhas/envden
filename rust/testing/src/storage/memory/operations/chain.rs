@@ -1,11 +1,23 @@
 use super::super::data::*;
 use envden_core::{adapters::*, errors::Result};
+
 impl IMemory {
+    pub(in crate::storage::memory) fn find_committed(
+        &self,
+        vault_id: &[u8],
+        digest: &[u8],
+    ) -> Result<bool> {
+        let guard = self.data.lock();
+        let d = guard.borrow_mut();
+        Ok(d.digests.contains(&pair(vault_id, digest)))
+    }
+
     pub(in crate::storage::memory) fn head(&self, vault_id: &[u8]) -> Result<Option<Vec<u8>>> {
         let guard = self.data.lock();
         let d = guard.borrow_mut();
         Ok(d.heads.get(vault_id).cloned())
     }
+
     pub(in crate::storage::memory) fn commit_swap(
         &self,
         vault_id: &[u8],
@@ -21,6 +33,7 @@ impl IMemory {
         }
         result
     }
+
     pub(in crate::storage::memory) fn headers(
         &self,
         vault_id: &[u8],
@@ -39,6 +52,7 @@ impl IMemory {
             max_bytes,
         ))
     }
+
     pub(in crate::storage::memory) fn headers_for_files(
         &self,
         vault_id: &[u8],
@@ -47,6 +61,7 @@ impl IMemory {
         let _ = (vault_id, hash);
         Err(fail("Unexpected fake operation: storage.headersForFiles"))
     }
+
     pub(in crate::storage::memory) fn header(
         &self,
         vault_id: &[u8],
@@ -61,6 +76,7 @@ impl IMemory {
             .find(|r| r.hash == hash)
             .cloned())
     }
+
     pub(in crate::storage::memory) fn entries(
         &self,
         vault_id: &[u8],
@@ -79,6 +95,7 @@ impl IMemory {
             max_bytes,
         ))
     }
+
     pub(in crate::storage::memory) fn put_file_list(
         &self,
         vault_id: &[u8],
@@ -88,6 +105,7 @@ impl IMemory {
         let _ = (vault_id, files, now);
         Err(fail("Unexpected fake operation: storage.putFileList"))
     }
+
     pub(in crate::storage::memory) fn file_list(
         &self,
         vault_id: &[u8],
@@ -98,33 +116,5 @@ impl IMemory {
         Ok(d.lists
             .get(&pair(vault_id, hash))
             .map(|(f, _, _)| f.bytes.clone()))
-    }
-    pub(in crate::storage::memory) fn state(
-        &self,
-        vault_id: &[u8],
-        kind: TStateKind,
-        key: &[u8],
-    ) -> Result<Option<Vec<u8>>> {
-        let guard = self.data.lock();
-        let d = guard.borrow_mut();
-        Ok(d.states
-            .get(&(vault_id.to_vec(), kind, key.to_vec()))
-            .cloned())
-    }
-    pub(in crate::storage::memory) fn states(
-        &self,
-        vault_id: &[u8],
-        kind: TStateKind,
-    ) -> Result<Vec<IStateEntry>> {
-        let guard = self.data.lock();
-        let d = guard.borrow_mut();
-        Ok(d.states
-            .iter()
-            .filter(|((v, k, _), _)| v == vault_id && *k == kind)
-            .map(|((_, _, key), bytes)| IStateEntry {
-                key: key.clone(),
-                bytes: bytes.clone(),
-            })
-            .collect())
     }
 }

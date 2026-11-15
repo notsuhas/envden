@@ -1,5 +1,6 @@
 use super::super::data::*;
 use envden_core::{adapters::*, errors::Result};
+
 impl IMemory {
     pub(in crate::storage::memory) fn put_session(
         &self,
@@ -23,6 +24,7 @@ impl IMemory {
         );
         Ok(())
     }
+
     pub(in crate::storage::memory) fn session(
         &self,
         vault_id: &[u8],
@@ -36,6 +38,7 @@ impl IMemory {
             .filter(|(_, expires)| *expires > now)
             .map(|(b, _)| b.clone()))
     }
+
     pub(in crate::storage::memory) fn consume_session(
         &self,
         vault_id: &[u8],
@@ -49,6 +52,7 @@ impl IMemory {
             .filter(|(_, expires)| *expires > now)
             .map(|(b, _)| b))
     }
+
     pub(in crate::storage::memory) fn charge(
         &self,
         vault_id: &[u8],
@@ -94,6 +98,7 @@ impl IMemory {
         }
         Ok(TRateCharge::Charged { receipt })
     }
+
     pub(in crate::storage::memory) fn refund(&self, receipt: &str, now: u64) -> Result<bool> {
         let guard = self.data.lock();
         let mut d = guard.borrow_mut();
@@ -108,5 +113,35 @@ impl IMemory {
             *until = 0;
         }
         Ok(true)
+    }
+
+    pub(in crate::storage::memory) fn remember_nonce(
+        &self,
+        device: &[u8],
+        nonce: &[u8],
+        now: u64,
+    ) -> Result<bool> {
+        let guard = self.data.lock();
+        let mut d = guard.borrow_mut();
+        let key = pair(device, nonce);
+        if d.nonces.get(&key).is_some_and(|e| *e > now) {
+            return Ok(false);
+        }
+        d.nonces.insert(key, now + 600000);
+        Ok(true)
+    }
+
+    pub(in crate::storage::memory) fn approver(
+        &self,
+        vault_id: &[u8],
+        device: &[u8],
+        now: u64,
+    ) -> Result<Option<Vec<u8>>> {
+        let guard = self.data.lock();
+        let d = guard.borrow_mut();
+        Ok(d.approvers
+            .get(&pair(vault_id, device))
+            .filter(|(_, e)| *e > now)
+            .map(|(b, _)| b.clone()))
     }
 }

@@ -1,5 +1,6 @@
 use super::super::data::*;
 use envden_core::{adapters::*, errors::Result};
+
 impl IMemory {
     pub(in crate::storage::memory) fn open_mailbox(
         &self,
@@ -29,6 +30,7 @@ impl IMemory {
         d.openings.get_mut(vault_id).unwrap().push(now);
         Ok(Some(mailbox))
     }
+
     pub(in crate::storage::memory) fn mailbox(
         &self,
         vault_id: &[u8],
@@ -42,6 +44,7 @@ impl IMemory {
             .filter(|(v, b)| v == vault_id && b.expires_at > now)
             .map(|(_, b)| b.clone()))
     }
+
     pub(in crate::storage::memory) fn write_mailbox(
         &self,
         vault_id: &[u8],
@@ -82,6 +85,7 @@ impl IMemory {
             .insert(slot, bytes.to_vec());
         Ok(TMailboxWrite::Written)
     }
+
     pub(in crate::storage::memory) fn close_mailbox(
         &self,
         vault_id: &[u8],
@@ -93,18 +97,5 @@ impl IMemory {
             d.mailboxes.shift_remove(&number);
         }
         Ok(())
-    }
-    pub(in crate::storage::memory) fn approver(
-        &self,
-        vault_id: &[u8],
-        device: &[u8],
-        now: u64,
-    ) -> Result<Option<Vec<u8>>> {
-        let guard = self.data.lock();
-        let d = guard.borrow_mut();
-        Ok(d.approvers
-            .get(&pair(vault_id, device))
-            .filter(|(_, e)| *e > now)
-            .map(|(b, _)| b.clone()))
     }
 }

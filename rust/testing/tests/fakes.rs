@@ -10,5 +10,7 @@ mod repo;
 mod shell;
 #[path = "fakes/storage.rs"]
 mod storage;
+#[path = "fakes/storage_queries.rs"]
+mod storage_queries;
 #[path = "fakes/storage_state.rs"]
 mod storage_state;
