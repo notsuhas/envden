@@ -22,6 +22,7 @@ export const setupCommand = withPreferences(
 )
   .option("--scan-root <path...>", "Roots to scan for repos")
   .option("--exclude-root <path...>", "Roots to skip")
+  .option("--verbose", "List each repo and env file the scan skipped")
   .action(async (options) => {
     const missing = missingSetupFlags(!!process.stdin.isTTY, options);
 

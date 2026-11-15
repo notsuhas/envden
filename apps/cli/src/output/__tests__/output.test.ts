@@ -1,7 +1,7 @@
 import { VERSION } from "../../version.ts";
 import { test, expect } from "bun:test";
 import { sanitizeTerminal, terminalJson } from "../sanitize.ts";
-import { telemetryPayload } from "../telemetry.ts";
+import { telemetryPayload } from "../telemetry/report.ts";
 import { errorExitCode } from "../exit-code.ts";
 
 test("terminal strings strip C0, C1, escape and bidi controls", () => {

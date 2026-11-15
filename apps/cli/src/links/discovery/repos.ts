@@ -1,0 +1,131 @@
+import type { Dirent } from "node:fs";
+import { readdir, realpath } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
+import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
+import { projectFolder, skippedFolder, type IFolderPlace } from "./folders.ts";
+import { identify, type IRepoSkip } from "./identify.ts";
+
+interface IDiscoveryScope {
+  roots: string[];
+  excluded?: string[] | undefined;
+  home?: string | undefined;
+}
+
+interface IDiscoveryEvents {
+  report?: (skip: IRepoSkip) => void;
+  progress?: (found: number) => void;
+}
+
+interface IWalk {
+  repo: IRepoAdapter;
+  found: Map<string, ICheckout>;
+  visited: Set<string>;
+  excludes: string[];
+  home: string | undefined;
+  events: IDiscoveryEvents;
+}
+
+export async function discoverRepos(
+  repo: IRepoAdapter,
+  scope: IDiscoveryScope,
+  events: IDiscoveryEvents = {},
+): Promise<ICheckout[]> {
+  const excludes = await Promise.all((scope.excluded ?? []).map(realOrResolved));
+  const home = scope.home === undefined ? undefined : await realOrResolved(scope.home);
+  const walk: IWalk = { repo, found: new Map(), visited: new Set(), excludes, home, events };
+
+  for (const root of scope.roots) await walkFolder(walk, resolve(root), true);
+
+  return [...walk.found.values()];
+}
+
+// folders may link elsewhere (~/Work on another volume); walk real paths so each is seen once
+async function walkFolder(walk: IWalk, path: string, root = false): Promise<void> {
+  const real = await realpath(path).catch(() => undefined);
+  if (!real || !unseen(walk, real)) return;
+  walk.visited.add(real);
+  const entries = await readdir(real, { withFileTypes: true }).catch(() => undefined);
+  if (!entries) return;
+
+  // clones inside a checkout are vendored code; a scan root and an unidentified git init are walked
+  if (entries.some((entry) => entry.name === ".git") && (await collect(walk, real)) && !root)
+    return;
+
+  const place = {
+    home: real === walk.home,
+    project: projectFolder(entries.map((entry) => entry.name)),
+  };
+
+  for (const entry of entries)
+    if (canDescend(entry, place)) await walkFolder(walk, join(real, entry.name));
+}
+
+async function collect(walk: IWalk, path: string) {
+  const checkout = await identify(walk.repo, path, report(walk));
+  if (!checkout) return false;
+  add(walk, checkout);
+  await collectWorktrees(walk, checkout);
+  await collectSubmodules(walk, checkout);
+
+  return true;
+}
+
+// registered worktrees count even under hidden folders (~/.t3/worktrees), which the walk never enters
+async function collectWorktrees(walk: IWalk, checkout: ICheckout) {
+  for (const worktree of await listed(() => walk.repo.worktrees(checkout))) {
+    if (walk.found.has(worktree) || excludedPath(worktree, walk.excludes)) continue;
+    const next = await identify(walk.repo, worktree, report(walk));
+    if (next) add(walk, next);
+  }
+}
+
+async function collectSubmodules(walk: IWalk, checkout: ICheckout) {
+  const paths = (await listed(() => walk.repo.submodules(checkout)))
+    .map((path) => resolve(checkout.root, path))
+    .filter((path) => placeInRoot(checkout.root, path) === "inside");
+
+  for (const submodule of paths) {
+    const real = await realpath(submodule).catch(() => undefined);
+    if (!real || !unseen(walk, real)) continue;
+    walk.visited.add(real);
+    if (await isCheckout(real)) await collect(walk, real);
+  }
+}
+
+// one repo git can't list (an old git, a broken .gitmodules) never stops the scan
+function listed(list: () => Promise<string[]>) {
+  return list().catch((): string[] => []);
+}
+
+function add(walk: IWalk, checkout: ICheckout) {
+  walk.found.set(checkout.root, checkout);
+  walk.events.progress?.(walk.found.size);
+}
+
+function report(walk: IWalk) {
+  return walk.events.report ?? (() => {});
+}
+
+function unseen(walk: IWalk, real: string) {
+  return !walk.visited.has(real) && !excludedPath(real, walk.excludes);
+}
+
+function excludedPath(path: string, excludes: string[]) {
+  return excludes.some((excluded) => placeInRoot(excluded, path) !== "outside");
+}
+
+function realOrResolved(path: string) {
+  return realpath(path).catch(() => resolve(path));
+}
+
+// the entry's own name decides, so a visible link to ~/.projects is walked
+function canDescend(entry: Dirent, place: IFolderPlace) {
+  return (entry.isDirectory() || entry.isSymbolicLink()) && !skippedFolder(entry.name, place);
+}
+
+async function isCheckout(path: string) {
+  const entries = await readdir(path).catch((): string[] => []);
+
+  return entries.includes(".git");
+}

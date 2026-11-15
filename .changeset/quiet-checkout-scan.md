@@ -1,0 +1,5 @@
+---
+"@envden/cli": patch
+---
+
+The checkout scan in `setup` and `track` no longer enters hidden folders (`~/.codex`, `~/.gradle`, …), dependency folders like `Pods` or `vendor`, or clones nested inside a checkout, so it no longer walks for minutes. Agent worktrees under hidden folders are still found through `git worktree list`. A spinner shows progress, and skipped repos are counted in one line instead of one line each; `--verbose` lists them. Build folders like `target` are skipped only inside a project and tool folders like `~/go` or `~/AppData` only in your home folder, a folder is judged by its own name (so `~/code -> ~/.projects` is scanned), and a stray `git init` no longer hides the repos inside it. Scans work with git older than 2.36, and one repo git can't list no longer stops the scan. The `--verbose` hint repeats the command you ran. When a checkout's `.env` is your own symlink to a regular file, envden offers once per target to manage it: the checkouts then use the synced copy instead of that file, and `untrack` puts your link back. A link to another env file in the same checkout is left alone.

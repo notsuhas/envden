@@ -1,10 +1,11 @@
 import { rmCommand } from "./commands/sync/rm.ts";
+import { skipsNotices } from "./output/quiet-commands.ts";
 import { setUntrustedRoots } from "@envden/core/process";
 import { loadState } from "./state/store/repository.ts";
 import { shellCommand } from "./commands/shell/shell.ts";
 import { untrackCommand } from "./commands/checkouts/untrack.ts";
 import { sanitizeTerminal } from "./output/sanitize.ts";
-import { reportTelemetry, commandOutcome } from "./output/telemetry.ts";
+import { reportTelemetry, commandOutcome } from "./output/telemetry/report.ts";
 import { commandCounts } from "./output/counts.ts";
 import { trackCommand } from "./commands/checkouts/track.ts";
 import { localOnlyCommand } from "./commands/checkouts/local-only.ts";
@@ -50,11 +51,7 @@ export function createProgram(now: () => number) {
     setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);
     if (command.name() !== "status" || !command.opts().refreshCache) active = command;
 
-    if (
-      command.opts().json ||
-      ["status", "version", "config", "help", "update"].includes(command.name())
-    )
-      return;
+    if (skipsNotices(command.name(), Boolean(command.opts().json))) return;
 
     try {
       const notice = await commandNotice(

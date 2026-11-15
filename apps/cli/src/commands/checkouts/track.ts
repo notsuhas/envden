@@ -11,6 +11,7 @@ export const trackCommand = new Command("track")
   )
   .description("Scan, approve and link checkout env files")
   .option("--copy", "Place real copies instead of links")
+  .option("--verbose", "List each repo and env file the scan skipped")
   .action(async (path, options) => {
     const adapters = createAdapters(undefined, Date.now);
 
@@ -20,6 +21,8 @@ export const trackCommand = new Command("track")
       await setupCheckouts(adapters, state, {
         scanRoot: [path],
         copy: !!options.copy,
+        verbose: !!options.verbose,
+        command: "track",
         now: Date.now,
       });
     });

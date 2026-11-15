@@ -5,7 +5,9 @@ import {
 import { readBytes } from "../../sync/local/files.ts";
 import { removeConflictTargets } from "../../sync/local/conflicts.ts";
 import { removeCheckoutBases } from "./bases.ts";
-import { join } from "node:path";
+import { symlink } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { regularTarget } from "../takeover/target.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
@@ -77,9 +79,15 @@ async function detachFile(
   const destination = join(link.root, link.path);
   const status = await placement.inspect(link.store, destination);
 
-  if (status === "linked" || status === "relinkable") {
-    if ((await readBytes(link.store)) === undefined)
-      await placement.remove(link.store, destination);
-    else await placement.place(link.store, destination);
-  }
+  if (status !== "linked" && status !== "relinkable") return;
+
+  if (
+    link.originalLink &&
+    (await regularTarget(resolve(dirname(destination), link.originalLink)))
+  ) {
+    await placement.remove(link.store, destination);
+    await symlink(link.originalLink, destination);
+  } else if ((await readBytes(link.store)) === undefined)
+    await placement.remove(link.store, destination);
+  else await placement.place(link.store, destination);
 }

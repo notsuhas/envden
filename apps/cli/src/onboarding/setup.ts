@@ -22,6 +22,8 @@ import { optionalRead } from "../state/store/files.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { secret, input, consent } from "../output/prompts/questions.ts";
+import { hostLocally } from "./host/local.ts";
+import { rehostServer } from "./host/rehost.ts";
 import type { ILocalState } from "../state/model.ts";
 
 interface ISetupOptions {
@@ -37,6 +39,7 @@ interface ISetupOptions {
   shell?: TShell | "none";
   scanRoot?: string[];
   excludeRoot?: string[];
+  verbose?: boolean;
 }
 
 async function lockedrunSetup(
@@ -49,13 +52,13 @@ async function lockedrunSetup(
   let state;
 
   if (existing?.vaultId && !existing.creationPending) {
-    if (options.hostServer) await adapters.hostServer(await adapters.serverPort());
+    if (options.hostServer) await rehostServer(adapters, existing);
     state = existing;
 
     await updatePreferences(adapters, options);
   } else state = await createState(adapters, options, now, existing?.vaultId);
 
-  await setupCheckouts(adapters, state, { ...options, now });
+  await setupCheckouts(adapters, state, { ...options, command: "setup", now });
   await pushInitialFiles(adapters, state, now);
 
   await refreshNotice(
@@ -142,26 +145,6 @@ async function checkServer(address: string, token: string, fetcher: TFetch) {
 
   if (!p.equal(server.pin, p.decodeToken("setup", token).serverPin))
     throw new EnvdenError("INVALID_INPUT", "This setup token is for a different server");
-}
-
-async function hostLocally(adapters: TAdapters, options: ISetupOptions) {
-  const https = await adapters.network.checkHttpsCertificate();
-  if (https.kind !== "ready") throw new EnvdenError("INVALID_INPUT", https.message);
-
-  const host =
-    options.hostServer ||
-    (!options.server &&
-      process.stdin.isTTY &&
-      (await consent("Host the server on this machine? An always-on host is recommended.")));
-
-  if (!host) return undefined;
-
-  const token = options.setupToken === undefined ? await adapters.localSetupToken() : undefined;
-  const port = await adapters.serverPort();
-  await adapters.hostServer(port);
-  console.log("Server installed on this machine");
-
-  return { address: await adapters.network.expose(port), token };
 }
 
 // --kit-out is the scripted path, so it writes only the JSON that join --recovery-kit reads.

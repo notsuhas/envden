@@ -184,7 +184,7 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
 });
 
 test("shell cache refresh never reports command telemetry", async () => {
-  const telemetry = await import("../telemetry.ts");
+  const telemetry = await import("../telemetry/report.ts");
   const report = spyOn(telemetry, "reportTelemetry").mockImplementation(async () => {});
   const root = await mkdtemp(join(tmpdir(), "envden-hook-telemetry-"));
   const previous = process.env.ENVDEN_HOME;
@@ -227,6 +227,33 @@ test("preAction uses the supplied command clock exactly once", async () => {
     if (previous === undefined) delete process.env.ENVDEN_HOME;
     else process.env.ENVDEN_HOME = previous;
 
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+// a recovery-kit join is a security warning the user must see, not the telemetry child
+test("the telemetry child leaves a pending recovery notice for the user's next command", async () => {
+  const { writeFile, readFile, mkdir } = await import("node:fs/promises");
+  const root = await mkdtemp(join(tmpdir(), "envden-telemetry-child-"));
+
+  try {
+    const pending = join(root, "state", "pending-recovery.json");
+    await mkdir(join(root, "state"), { recursive: true });
+    await writeFile(pending, JSON.stringify({ entry: "laptop" }));
+
+    const child = spawnTrusted(
+      ["bun", fileURLToPath(new URL("../../main.ts", import.meta.url)), "telemetry-send"],
+      {
+        env: { ...process.env, ENVDEN_HOME: root, ENVDEN_NO_UPDATE_CHECK: "1" },
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
+    expect(await child.exited).toBe(0);
+    expect(await new Response(child.stderr).text()).toBe("");
+    expect(JSON.parse(await readFile(pending, "utf8"))).toEqual({ entry: "laptop" });
+  } finally {
     await rm(root, { recursive: true, force: true });
   }
 });

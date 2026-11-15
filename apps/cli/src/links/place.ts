@@ -1,7 +1,8 @@
 import { supportedPlacement } from "./checkout/supported.ts";
 import { readConfig } from "../settings/config.ts";
 import { withStateLock } from "../state/lock/lock.ts";
-import { linkFile } from "./file.ts";
+import { linkFile, type IOwnLink } from "./file.ts";
+import { siblingLink } from "./takeover/sibling.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
@@ -16,7 +17,7 @@ async function lockedlinkCheckout(
   approve: (checkout: ICheckout) => Promise<boolean>,
   copy = false,
   report: (message: string) => void = console.error,
-): Promise<void> {
+): Promise<IOwnLink[]> {
   const approval = checkoutApproval(state, checkout);
 
   if (approval === "changed")
@@ -25,7 +26,7 @@ async function lockedlinkCheckout(
   if (approval === "ask") {
     if (await autoApprovedWorktree(adapters, state, checkout))
       report(worktreeApprovedNotice(checkout));
-    else if (!(await approve(checkout))) return;
+    else if (!(await approve(checkout))) return [];
   }
 
   state.approved = state.approved.filter((item) => item.root !== checkout.root);
@@ -33,11 +34,19 @@ async function lockedlinkCheckout(
 
   const placement = await supportedPlacement(adapters, checkout.root, copy);
 
-  for (const path of await adapters.repo.envFiles(
+  const ownLinks: IOwnLink[] = [];
+
+  const paths = await adapters.repo.envFiles(
     checkout,
     (await readConfig(adapters.home))["env-files"],
-  ))
-    await linkFile(adapters, state, checkout, placement, path);
+  );
+
+  for (const path of paths) {
+    const result = await linkFile(adapters, state, checkout, placement, path);
+    if (result.kind === "own-link") ownLinks.push(result.link);
+  }
+
+  return ownLinks.filter((link) => !siblingLink(link, paths));
 }
 
 export function linkCheckout(...args: Parameters<typeof lockedlinkCheckout>) {

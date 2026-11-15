@@ -1,46 +1,52 @@
-import { readConfig } from "../settings/config.ts";
-import { chooseMany } from "../output/prompts/questions.ts";
-import { EnvdenError } from "@envden/core/errors";
-import { vaultRepos, offerForkAlias } from "../links/fork.ts";
-import { withStateLock } from "../state/lock/lock.ts";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
-import { loadState, saveState } from "../state/store/repository.ts";
-import { discoverRepos } from "../links/discovery.ts";
-import { linkCheckout } from "../links/place.ts";
-import { checkoutLabel } from "../links/approval.ts";
-import { realHome } from "../output/home-path.ts";
-import { autoApprovedWorktree } from "../links/checkout/worktree.ts";
-import { consent } from "../output/prompts/questions.ts";
-
 import type { ILocalState } from "../state/model.ts";
+import { vaultRepos, offerForkAlias } from "../links/fork.ts";
+import { withStateLock } from "../state/lock/lock.ts";
+import { loadState, saveState } from "../state/store/repository.ts";
+import { linkCheckout } from "../links/place.ts";
+import type { IOwnLink } from "../links/file.ts";
+import { offerTakeover } from "../links/takeover/offer.ts";
+import { realHome } from "../output/home-path.ts";
+import { consent } from "../output/prompts/questions.ts";
+import { findCheckouts } from "./checkouts/find.ts";
+import { chosenCheckouts } from "./checkouts/choose.ts";
+import { reportOwnLinks, reportRepoSkips } from "./checkouts/report.ts";
+import { rescanCommand, type TScanCommand } from "./checkouts/rescan.ts";
 
-interface IEligible {
-  checkout: ICheckout;
-  files: string[];
+interface ICheckoutOptions {
+  copy?: boolean;
+  scanRoot?: string[];
+  excludeRoot?: string[];
+  approve?: (checkout: ICheckout) => Promise<boolean>;
+  now: () => number;
+  alias?: (source: string, target: string) => Promise<boolean>;
+  takeOver?: (question: string) => Promise<boolean>;
+  verbose?: boolean;
+  command?: TScanCommand;
 }
 
 async function lockedsetupCheckouts(
   adapters: TAdapters,
   state: ILocalState,
-  options: {
-    copy?: boolean;
-    scanRoot?: string[];
-    excludeRoot?: string[];
-    approve?: (checkout: ICheckout) => Promise<boolean>;
-    now: () => number;
-    alias?: (source: string, target: string) => Promise<boolean>;
-  },
+  options: ICheckoutOptions,
 ) {
-  const repos = await scanCheckouts(adapters, options);
-
   const storedRepos = await vaultRepos(adapters, state, options.now);
+  const { eligible, skips } = await findCheckouts(adapters, state, storedRepos, options);
+  const home = await realHome(adapters.userHome);
 
-  const eligible = await eligibleCheckouts(adapters, state, repos, storedRepos);
+  const report = {
+    verbose: options.verbose,
+    command: rescanCommand(options.command ?? "track", options, home),
+  };
+
+  reportRepoSkips(skips, home, report);
 
   const selected = options.approve
     ? eligible.map((item) => item.checkout)
     : await chosenCheckouts(adapters, state, eligible);
+
+  const ownLinks: IOwnLink[] = [];
 
   for (const checkout of selected) {
     await offerForkAlias(
@@ -54,34 +60,23 @@ async function lockedsetupCheckouts(
 
     await saveState(adapters.home, state, adapters.now);
 
-    await linkCheckout(
-      adapters,
-      state,
-      checkout,
-      options.approve ?? (async () => true),
-      options.copy,
+    ownLinks.push(
+      ...(await linkCheckout(
+        adapters,
+        state,
+        checkout,
+        options.approve ?? (async () => true),
+        options.copy,
+      )),
     );
 
     await saveState(adapters.home, state, adapters.now);
   }
-}
 
-async function scanCheckouts(
-  adapters: TAdapters,
-  options: { scanRoot?: string[]; excludeRoot?: string[] },
-) {
-  const skipped: string[] = [];
+  const left = await offerTakeover(adapters, state, ownLinks, options.copy, options.takeOver);
 
-  const repos = await discoverRepos(
-    adapters.repo,
-    options.scanRoot ?? [adapters.userHome],
-    options.excludeRoot ?? [],
-    (path, reason) => skipped.push(`${path}: skipped: ${reason}`),
-  );
-
-  for (const message of skipped) console.error(message);
-
-  return repos;
+  await saveState(adapters.home, state, adapters.now);
+  reportOwnLinks(left, home, report);
 }
 
 export function setupCheckouts(...args: Parameters<typeof lockedsetupCheckouts>) {
@@ -90,63 +85,4 @@ export function setupCheckouts(...args: Parameters<typeof lockedsetupCheckouts>)
     await lockedsetupCheckouts(args[0], state, args[2]);
     Object.assign(args[1], state);
   });
-}
-
-async function chosenCheckouts(adapters: TAdapters, state: ILocalState, eligible: IEligible[]) {
-  const automatic: ICheckout[] = [];
-  const asked: IEligible[] = [];
-
-  // checkouts approved on an earlier run relink without asking again
-  for (const item of eligible)
-    if (
-      state.approved.some((approved) => approved.root === item.checkout.root) ||
-      (await autoApprovedWorktree(adapters, state, item.checkout))
-    )
-      automatic.push(item.checkout);
-    else asked.push(item);
-
-  return [...automatic, ...(await chooseCheckouts(adapters, state, asked))];
-}
-
-async function chooseCheckouts(adapters: TAdapters, state: ILocalState, asked: IEligible[]) {
-  if (!asked.length) return [];
-
-  if (!process.stdin.isTTY)
-    throw new EnvdenError(
-      "INVALID_INPUT",
-      "Approve checkouts in your own terminal with envden track",
-    );
-
-  const home = await realHome(adapters.userHome);
-
-  const roots = await chooseMany(
-    "Sync env files for these checkouts?",
-    asked.map((item) => ({
-      value: item.checkout.root,
-      label: checkoutLabel(state, item.checkout, item.files, home),
-    })),
-  );
-
-  if (!roots.length) console.log("No checkouts selected. Add one later with: envden track <path>");
-
-  return asked.map((item) => item.checkout).filter((checkout) => roots.includes(checkout.root));
-}
-
-async function eligibleCheckouts(
-  adapters: TAdapters,
-  state: ILocalState,
-  repos: ICheckout[],
-  storedRepos: ReadonlySet<string>,
-) {
-  const eligible: IEligible[] = [];
-  const rules = (await readConfig(adapters.home))["env-files"];
-
-  for (const checkout of repos) {
-    const files = await adapters.repo.envFiles(checkout, rules);
-
-    if (files.length || storedRepos.has(state.aliases[checkout.repoId] ?? checkout.repoId))
-      eligible.push({ checkout, files });
-  }
-
-  return eligible;
 }

@@ -189,3 +189,14 @@ test("the hosted server keeps its port, or takes a free one instead of another a
 
   expect(installedPort("no port here")).toBeUndefined();
 });
+
+// Task Scheduler's defaults skip the task on battery, stop it when unplugged and kill it after 72 hours
+test("the Windows task keeps the server running on battery, without a time limit, and restarts it", () => {
+  const settings = /<Settings>(.*)<\/Settings>/.exec(
+    serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 4783).content,
+  )?.[1];
+
+  expect(settings).toBe(
+    "<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><ExecutionTimeLimit>PT0S</ExecutionTimeLimit><RestartOnFailure><Interval>PT1M</Interval><Count>999</Count></RestartOnFailure>",
+  );
+});

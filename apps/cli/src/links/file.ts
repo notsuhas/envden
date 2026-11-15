@@ -3,8 +3,8 @@ import { basePath, readBytes, writeBytes } from "../sync/local/files.ts";
 import { choose } from "../output/prompts/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { homePath, realHome } from "../output/home-path.ts";
-import { readFile, readlink, lstat } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, readlink, lstat, realpath } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
@@ -13,6 +13,15 @@ import { atomicWrite } from "../state/store/files.ts";
 import { storePath } from "../store/path.ts";
 import type { IPlacementAdapter } from "@envden/core/adapters";
 
+export interface IOwnLink {
+  checkout: ICheckout;
+  path: string;
+  link: string;
+  target: string;
+}
+
+type TLinkResult = { kind: "done" } | { kind: "own-link"; link: IOwnLink };
+
 export async function linkFile(
   adapters: TAdapters,
   state: ILocalState,
@@ -20,7 +29,7 @@ export async function linkFile(
   placement: IPlacementAdapter,
   path: string,
   choose: (path: string) => Promise<"separate" | "store" | "skip"> = chooseVersion,
-) {
+): Promise<TLinkResult> {
   const destination = join(checkout.root, path);
   const store = storePath(adapters.home, state.aliases[checkout.repoId] ?? checkout.repoId, path);
   const existing = state.links.find((item) => item.root === checkout.root && item.path === path);
@@ -28,19 +37,19 @@ export async function linkFile(
   if (existing) {
     await relinkExisting(adapters, checkout, placement, destination, existing);
 
-    return;
+    return { kind: "done" };
   }
 
   if ((await lstat(destination)).isSymbolicLink()) {
+    // the user's own link: the caller offers to take it over or counts it
     if ((await placement.inspect(store, destination)) !== "linked") {
-      const shown = homePath(destination, await realHome(adapters.userHome));
-      const target = await readlink(destination);
+      const link = await readlink(destination);
+      const target = resolve(dirname(destination), link);
 
-      console.error(
-        `envden: skipped ${sanitizeTerminal(shown)}: it links to ${sanitizeTerminal(target)}, and envden only syncs files it owns`,
-      );
-
-      return;
+      return {
+        kind: "own-link",
+        link: { checkout, path, link, target: await realpath(target).catch(() => target) },
+      };
     }
 
     if (!(await exists(store))) {
@@ -48,22 +57,22 @@ export async function linkFile(
       const shown = homePath(destination, await realHome(adapters.userHome));
       console.error(`envden: removed ${sanitizeTerminal(shown)}, a link to a deleted copy`);
 
-      return;
+      return { kind: "done" };
     }
 
     state.links.push({ root: checkout.root, path, store, mode: placement.mode });
 
-    return;
+    return { kind: "done" };
   }
 
   const choice = await storeChoice(store, destination, choose, adapters.now);
 
-  if (choice === "oversized") return;
+  if (choice === "oversized") return { kind: "done" };
 
   if (choice === "skip") {
     console.error(`envden: ${sanitizeTerminal(destination)} differs from the synced copy; skipped`);
 
-    return;
+    return { kind: "done" };
   }
 
   await adapters.repo.ensureIgnored(checkout, path);
@@ -71,7 +80,7 @@ export async function linkFile(
   if (choice === "separate") {
     state.links.push({ root: checkout.root, path, store, mode: "copy", localOnly: true });
 
-    return;
+    return { kind: "done" };
   }
 
   await placement.place(store, destination);
@@ -84,6 +93,8 @@ export async function linkFile(
     );
 
   state.links.push({ root: checkout.root, path, store, mode: placement.mode });
+
+  return { kind: "done" };
 }
 
 async function chooseVersion(path: string): Promise<"separate" | "store" | "skip"> {

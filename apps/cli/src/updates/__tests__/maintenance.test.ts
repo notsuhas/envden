@@ -133,3 +133,47 @@ test("refresh rewrites an installed service and hooks with the stable Homebrew p
     await rm(root, { recursive: true, force: true });
   }
 });
+
+// the installer writes the task definition as UTF-16LE, which schtasks expects
+test("refresh keeps the port of a Windows task definition", async () => {
+  const { serviceDefinition } = await import("../../agent/service/generate.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-refresh-task-"));
+
+  try {
+    const adapters = createAdapters(
+      { home: join(root, "home"), userHome: root, keychain: createMemoryKeychainAdapter([]) },
+      fixtureClock,
+    );
+
+    const ports: number[] = [];
+
+    adapters.hostServer = async (port) => {
+      ports.push(port);
+
+      return { log: "", path: "" };
+    };
+
+    adapters.shell = () => ({
+      id: "test",
+      installed: async () => false,
+      install: async () => {},
+      uninstall: async () => {},
+      rcPath: () => "",
+      hookSnippet: () => "",
+    });
+
+    const { content } = serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 51234);
+
+    await atomicWrite(
+      join(adapters.home, "envden-task.xml"),
+      Buffer.from(content, "utf16le"),
+      fixtureClock,
+    );
+
+    await refreshInstallation(adapters, "win32");
+
+    expect(ports).toEqual([51234]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

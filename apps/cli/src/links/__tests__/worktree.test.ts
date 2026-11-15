@@ -8,7 +8,8 @@ import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { emptyState } from "../../state/model.ts";
 import { linkCheckout } from "../place.ts";
 import { pruneMissingCheckouts } from "../prune.ts";
-import { discoverRepos } from "../discovery.ts";
+import { discoverRepos } from "../discovery/repos.ts";
+import type { IRepoSkip } from "../discovery/identify.ts";
 import { setConfig } from "../../settings/config.ts";
 
 const fixtureClock = () => 1800000000000;
@@ -162,15 +163,19 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
       fixtureClock,
     );
 
-    const skipped: string[] = [];
+    const skipped: IRepoSkip[] = [];
 
-    const found = await discoverRepos(adapters.repo, [root], [], (path, reason) =>
-      skipped.push(path + ": " + reason),
+    const found = await discoverRepos(
+      adapters.repo,
+      { roots: [root] },
+      {
+        report: (skip) => skipped.push(skip),
+      },
     );
 
     expect(found.map((item) => item.repoId)).toEqual(["example.com/good"]);
-    expect(skipped).toHaveLength(4);
-    expect(skipped.some((item) => item.includes("Unsupported git remote"))).toBe(true);
+    expect(skipped.map((skip) => skip.kind)).toEqual(["remote", "remote", "remote", "remote"]);
+    expect(skipped.some((skip) => skip.reason === "Unsupported git remote")).toBe(true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

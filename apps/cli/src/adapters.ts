@@ -42,13 +42,13 @@ export function createAdapters(
     hostname: options?.hostname ?? hostname(),
     fetcher: options?.fetcher ?? fetch,
     keychain: options?.keychain ?? deviceKeychain(home),
-    repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
+    repo: createGitRepoAdapter(),
     placement: (mode: TPlacementMode, root: string): IPlacementAdapter => {
       const placement = createFsPlacementAdapter(mode, root, join(home, "conflicts"), now);
 
       return {
         ...placement,
-        place: (store, destination, prepare) =>
+        place: (store, destination, prepare, replacingLink) =>
           placement.place(
             store,
             destination,
@@ -58,6 +58,7 @@ export function createAdapters(
                 if (!checkout) throw new EnvdenError("NOT_FOUND", "Checkout is unavailable");
                 await adapters.repo.ensureIgnored(checkout, path);
               }),
+            replacingLink,
           ),
       };
     },

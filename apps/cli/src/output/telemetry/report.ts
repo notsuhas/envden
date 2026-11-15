@@ -1,13 +1,14 @@
-import { TELEMETRY_KEY } from "../settings/build-config.ts";
+import { TELEMETRY_KEY } from "../../settings/build-config.ts";
 import { join } from "node:path";
 import { ErrorCodeSchema, isEnvdenError } from "@envden/core/errors";
 import type { TErrorCode } from "@envden/core/errors";
-import type { TAdapters } from "../adapters.ts";
-import { readConfig } from "../settings/config.ts";
-import { telemetryEnabled } from "../settings/privacy.ts";
-import { atomicWrite, optionalRead } from "../state/store/files.ts";
-import { withStateLock } from "../state/lock/lock.ts";
-import { VERSION } from "../version.ts";
+import type { TAdapters } from "../../adapters.ts";
+import { readConfig } from "../../settings/config.ts";
+import { telemetryEnabled } from "../../settings/privacy.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
+import { withStateLock } from "../../state/lock/lock.ts";
+import { VERSION } from "../../version.ts";
+import { sendInBackground } from "./background.ts";
 
 interface IEvent {
   command: string;
@@ -41,7 +42,11 @@ export function telemetryPayload(id: string, event: IEvent) {
   };
 }
 
-export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
+export async function reportTelemetry(
+  adapters: TAdapters,
+  event: IEvent,
+  send: (body: string) => void = sendInBackground,
+) {
   const projectKey = TELEMETRY_KEY;
   if (!projectKey) return;
 
@@ -59,13 +64,7 @@ export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
       return generated;
     });
 
-    await fetch("https://us.i.posthog.com/capture/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_key: projectKey, ...telemetryPayload(id, event) }),
-      signal: AbortSignal.timeout(200),
-      redirect: "error",
-    });
+    send(JSON.stringify({ api_key: projectKey, ...telemetryPayload(id, event) }));
   } catch {
     // Telemetry never affects a command's outcome.
   }

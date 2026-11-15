@@ -21,7 +21,15 @@ export interface ILocalState {
     identity?: string;
     rootDevice?: number;
   }[];
-  links: { root: string; path: string; store: string; mode: "link" | "copy"; localOnly?: true }[];
+  links: {
+    root: string;
+    path: string;
+    store: string;
+    mode: "link" | "copy";
+    localOnly?: true;
+    // the user's own link text, restored by untrack
+    originalLink?: string;
+  }[];
   aliases: Record<string, string>;
   telemetry: boolean;
   updateCheck: boolean;

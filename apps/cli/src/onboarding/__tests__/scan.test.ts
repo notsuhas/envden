@@ -78,3 +78,37 @@ test("checkout setup reloads state after preferences have allowed another writer
     await f.close();
   }
 });
+
+test("the skipped summary repeats the scan that ran, with --verbose", async () => {
+  const { spyOn } = await import("bun:test");
+  const { EnvdenError } = await import("@envden/core/errors");
+  const root = await realpath(await mkdtemp(join(tmpdir(), "envden-scan-hint-")));
+  const output = spyOn(console, "error").mockImplementation(() => {});
+
+  try {
+    const adapters = createAdapters(
+      { home: join(root, "envden"), userHome: root, keychain: createMemoryKeychainAdapter([]) },
+      fixtureClock,
+    );
+
+    await mkdir(join(root, "My Work", "app", ".git"), { recursive: true });
+
+    adapters.repo.checkoutAt = async () => {
+      throw new EnvdenError("INVALID_INPUT", "No git remote");
+    };
+
+    const scan = { scanRoot: [join(root, "My Work")], now: () => 100 };
+    await setupCheckouts(adapters, emptyState("test"), { ...scan, command: "track" });
+    await setupCheckouts(adapters, emptyState("test"), { ...scan, command: "setup" });
+    await setupCheckouts(adapters, emptyState("test"), { now: () => 100 });
+
+    expect(output.mock.calls.flat().filter((line) => line.startsWith("Skipped"))).toEqual([
+      "Skipped 1 repo without a usable git remote. Run envden track ~/'My Work' --verbose to list it.",
+      "Skipped 1 repo without a usable git remote. Run envden setup --scan-root ~/'My Work' --verbose to list it.",
+      "Skipped 1 repo without a usable git remote. Run envden track ~ --verbose to list it.",
+    ]);
+  } finally {
+    output.mockRestore();
+    await rm(root, { recursive: true, force: true });
+  }
+});

@@ -13,11 +13,13 @@ export type TPreferenceOptions = {
 };
 
 export async function setupPreferences(adapters: TAdapters, options: TPreferenceOptions) {
+  // a person at the prompt sees Yes first; unattended runs (--yes, agents) still leave it off
   const telemetry = await consentPreference(
     options.telemetry,
     options.yes,
     false,
     "Enable anonymous telemetry?",
+    true,
   );
 
   const updateCheck = await consentPreference(
@@ -39,10 +41,11 @@ async function consentPreference(
   yes: boolean | undefined,
   fallback: boolean,
   question: string,
+  prompted = fallback,
 ) {
   const decision = deriveConsent(value, yes || !process.stdin.isTTY, fallback);
 
-  return decision.kind === "selected" ? decision.value : consent(question, fallback);
+  return decision.kind === "selected" ? decision.value : consent(question, prompted);
 }
 
 async function installShell(adapters: TAdapters, options: TPreferenceOptions) {
@@ -74,6 +77,7 @@ async function installAgentPreference(adapters: TAdapters, options: TPreferenceO
     (agent.kind === "ask" &&
       (await consent(
         "Install the agent skill? It teaches AI coding agents like Claude Code and Codex to use envden safely",
+        true,
       )))
   )
     await installAgent(adapters.userHome, adapters.now).catch(

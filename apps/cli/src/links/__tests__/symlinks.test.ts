@@ -11,7 +11,8 @@ import { linkCheckout } from "../place.ts";
 
 const fixtureClock = () => 1800000000000;
 
-test("a .env that is the user's own link is skipped with its target named and left alone", async () => {
+// the scan groups these by target to offer a takeover, or counts them in one summary line
+test("a .env that is the user's own link is returned with its target, left alone and not printed", async () => {
   const { mkdir, readlink, realpath, symlink, writeFile } = await import("node:fs/promises");
   const root = await realpath(await mkdtemp(join(tmpdir(), "envden-own-link-")));
   const warnings: string[] = [];
@@ -38,15 +39,21 @@ test("a .env that is the user's own link is skipped with its target named and le
     await writeFile(join(root, "shared", ".env"), "SHARED=1\n");
     await symlink(join("..", "shared", ".env"), destination);
     const state = emptyState("test");
-    await linkCheckout(adapters, state, checkout, async () => true);
+    const ownLinks = await linkCheckout(adapters, state, checkout, async () => true);
+
+    expect(ownLinks).toEqual([
+      {
+        checkout,
+        path: ".env",
+        link: join("..", "shared", ".env"),
+        target: join(root, "shared", ".env"),
+      },
+    ]);
 
     expect(state.links).toHaveLength(0);
     expect(await readlink(destination)).toBe(join("..", "shared", ".env"));
     expect(await readFile(join(root, "shared", ".env"), "utf8")).toBe("SHARED=1\n");
-
-    expect(warnings).toEqual([
-      "envden: skipped ~/checkout/.env: it links to ../shared/.env, and envden only syncs files it owns",
-    ]);
+    expect(warnings).toEqual([]);
   } finally {
     console.error = original;
     await rm(root, { recursive: true, force: true });
