@@ -1,6 +1,6 @@
 {
   "name": "envden",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "private": true,
   "description": "Sync whole .env files across your machines, end-to-end encrypted, through a server you host.",
   "keywords": [

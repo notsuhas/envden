@@ -1,5 +1,17 @@
 # @envden/cli
 
+## 0.3.8
+
+### Patch Changes
+
+- 8265a12: Rerunning `envden setup --host-server` keeps the server's port instead of moving it away from what Tailscale and your devices use. On Windows, the server's scheduled task now runs on battery, has no 72-hour limit and restarts after a failure, `envden update` keeps a non-default port, and the server's key and database are restricted to your user.
+  
+  `envden serve` no longer creates CLI state in your home folder or checks for notices from the server it is starting.
+- 8265a12: The checkout scan in `setup` and `track` no longer enters hidden folders (`~/.codex`, `~/.gradle`, …), dependency folders like `Pods` or `vendor`, or clones nested inside a checkout, so it no longer walks for minutes. Agent worktrees under hidden folders are still found through `git worktree list`. A spinner shows progress, and skipped repos are counted in one line instead of one line each; `--verbose` lists them. Build folders like `target` are skipped only inside a project and tool folders like `~/go` or `~/AppData` only in your home folder, a folder is judged by its own name (so `~/code -> ~/.projects` is scanned), and a stray `git init` no longer hides the repos inside it. Scans work with git older than 2.36, and one repo git can't list no longer stops the scan. The `--verbose` hint repeats the command you ran. When a checkout's `.env` is your own symlink to a regular file, envden offers once per target to manage it: the checkouts then use the synced copy instead of that file, and `untrack` puts your link back. A link to another env file in the same checkout is left alone.
+- 8265a12: Telemetry works: events are sent by a short background process after each command, so they arrive and commands never wait on the network. Before, a 200 ms limit cut every request off. Interactive setup now has Yes selected for telemetry and the agent skill; `--yes` and runs without a terminal still leave telemetry off. The background sender passes on proxy and CA settings, and no longer reads or clears notices meant for you, such as a device joining with the recovery kit.
+- 8265a12: Telemetry goes to a PostHog project used only by envden, which drops IP addresses on arrival. The website counts page views without cookies, and asks once before using cookies for replays and heatmaps.
+- @envden/server@0.3.8
+
 ## 0.3.7
 
 ### Patch Changes

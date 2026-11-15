@@ -1,5 +1,9 @@
 # @envden/server
 
+## 0.3.8
+
+No changes in this release.
+
 ## 0.3.7
 
 No changes in this release.
