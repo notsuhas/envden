@@ -1,0 +1,13 @@
+[package]
+name = "envden-testing"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+[lints]
+workspace = true
+[dependencies]
+envden-core = { path = "../core" }
+tempfile = "3"
+parking_lot = "0.12"
+indexmap = "2"
