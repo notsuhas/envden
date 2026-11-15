@@ -9,3 +9,5 @@ pub use parser::parse;
 mod dispatch;
 pub use dispatch::{DefaultActions, DefaultHooks, ICommandActions, ICommandHooks, dispatch};
 mod validation;
+
+mod finish;
