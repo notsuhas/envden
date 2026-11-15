@@ -50,16 +50,17 @@ export const ErrorResponseSchema = z
   .object({ error: ErrorCodeSchema, hint: z.string().optional() })
   .strict();
 
+export const UnlockWindowSchema = z
+  .object({
+    unlockedUntil: z.number().int().nonnegative().nullable(),
+    freshUntil: z.number().int().nonnegative(),
+  })
+  .strict();
+
 export const LoginFinishResponseSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("ticket") }).strict(),
   z.object({ kind: z.literal("staged") }).strict(),
-  z
-    .object({
-      kind: z.literal("unlocked"),
-      unlockedUntil: z.number().int().nonnegative().nullable(),
-      freshUntil: z.number().int().nonnegative(),
-    })
-    .strict(),
+  UnlockWindowSchema.extend({ kind: z.literal("unlocked") }),
 ]);
 
 export const RegistrationResponseSchema = z.object({ kind: z.literal("registered") }).strict();

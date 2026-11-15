@@ -157,7 +157,7 @@ test("candidate chooses newest existing older version and stops at tombstones or
 test("repair login and SK refusal derive from post-restore operations and envelope match", () => {
   const f = fixture();
 
-  for (let op = 1; op <= 12; op++) {
+  for (let op = 1; op <= 13; op++) {
     const headers = [{ ...f.header.body, op }];
     expect(repairLoginDecision(headers)).toBe([8, 9].includes(op) ? "register" : "login");
     expect(refuseSecretKeyProof(headers, true)).toBe([5, 7].includes(op));

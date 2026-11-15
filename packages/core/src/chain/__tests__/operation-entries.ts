@@ -59,6 +59,9 @@ export function operationEntries(
       }),
     ];
 
+  if (op === 13)
+    entries = [f.entry(state, { kind: 7, payload: { device: f.a.record.id, name: "laptop" } })];
+
   return entries;
 }
 

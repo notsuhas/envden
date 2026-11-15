@@ -169,6 +169,8 @@ interface IBlobStorage {
   ): void;
   getBlob(vaultId: Uint8Array, hash: Uint8Array): Uint8Array | undefined;
   blobHashes(vaultId: Uint8Array): Uint8Array[];
+  // The bytes counted against the vault's storage quota.
+  vaultUsage(vaultId: Uint8Array): number;
   prune(vaultId: Uint8Array, policy: IHistoryPolicy, now: number): { lists: number; blobs: number };
 }
 

@@ -52,6 +52,6 @@ export const ManifestHeaderCodec = codec<IManifestHeader>(
       b16.write(v.signer),
     ),
   (v) => {
-    if (v.op > 12) throw new EnvdenError("UPDATE_REQUIRED", "Unknown operation");
+    if (v.op > 13) throw new EnvdenError("UPDATE_REQUIRED", "Unknown operation");
   },
 );

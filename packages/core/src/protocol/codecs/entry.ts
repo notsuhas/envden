@@ -13,6 +13,8 @@ import { type IServerMoved } from "./entry-payloads/server-moved.ts";
 import { ServerMovedCodec } from "./entry-payloads/server-moved.ts";
 import { type IRepairDone } from "./entry-payloads/repair-done.ts";
 import { RepairDoneCodec } from "./entry-payloads/repair-done.ts";
+import { type IRenameDevice } from "./entry-payloads/rename-device.ts";
+import { RenameDeviceCodec } from "./entry-payloads/rename-device.ts";
 import { codec, u8, concat, tagged, b32, u64, b16, header } from "../encoding/binary.ts";
 
 export type TEntryPayload =
@@ -22,7 +24,8 @@ export type TEntryPayload =
   | { kind: 3; payload: INewEpoch }
   | { kind: 4; payload: IReplaceRecovery }
   | { kind: 5; payload: IServerMoved }
-  | { kind: 6; payload: IRepairDone };
+  | { kind: 6; payload: IRepairDone }
+  | { kind: 7; payload: IRenameDevice };
 
 export const payloadCodec = codec<TEntryPayload>(
   (r) => {
@@ -41,6 +44,8 @@ export const payloadCodec = codec<TEntryPayload>(
         return { kind: 5, payload: ServerMovedCodec.read(r) };
       case 6:
         return { kind: 6, payload: RepairDoneCodec.read(r) };
+      case 7:
+        return { kind: 7, payload: RenameDeviceCodec.read(r) };
       default:
         throw new EnvdenError("UPDATE_REQUIRED", "Unknown entry kind");
     }
@@ -61,6 +66,8 @@ export const payloadCodec = codec<TEntryPayload>(
         return concat(u8.write(v.kind), ServerMovedCodec.write(v.payload));
       case 6:
         return concat(u8.write(v.kind), RepairDoneCodec.write(v.payload));
+      case 7:
+        return concat(u8.write(v.kind), RenameDeviceCodec.write(v.payload));
     }
   },
 );

@@ -43,6 +43,7 @@ test("all entry payloads round trip; unknown kind/type/version rejected", () => 
     { kind: 4, payload: { recovery: rec, change } },
     { kind: 5, payload: { oldPin: z, newPin: z, newAddress: "server.example" } },
     { kind: 6, payload: { repairId: z, restoredHead: z } },
+    { kind: 7, payload: { device: id, name: "laptop" } },
   ];
 
   for (const variant of variants) {
@@ -53,7 +54,7 @@ test("all entry payloads round trip; unknown kind/type/version rejected", () => 
     for (const [offset, v] of [
       [0, 255],
       [1, 2],
-      [74, 7],
+      [74, 8],
     ]) {
       const bad = bytes.slice();
       bad[offset!] = v!;
@@ -107,13 +108,15 @@ test("every structured codec is exact and validates nested records", () => {
 test("semantic rejection rules", () => {
   expect(() => p.encode(p.DeviceRecordCodec, { ...device, id: new Uint8Array(16) })).toThrow();
 
-  for (const name of ["", "a".repeat(65), "laptop\u200B", "\u202Elaptop"])
+  for (const name of ["", "a".repeat(65), "laptop\u200B", "\u202Elaptop"]) {
     expect(() => p.encode(p.DeviceRecordCodec, { ...device, name })).toThrow();
+    expect(() => p.encode(p.RenameDeviceCodec, { device: id, name })).toThrow();
+  }
 
   expect(() => p.encode(p.RecoveryRecordCodec, { ...rec, id: new Uint8Array(16) })).toThrow();
   expect(() => p.encode(p.WrapCodec, { ...wrap, ct: z })).toThrow();
   expect(() => p.encode(p.EpochChangeCodec, { ...change, wraps: [wrap, wrap] })).toThrow();
-  expect(() => p.encode(p.ManifestHeaderCodec, { ...manifest, op: 13 })).toThrow();
+  expect(() => p.encode(p.ManifestHeaderCodec, { ...manifest, op: 14 })).toThrow();
 
   expect(() =>
     p.encode(p.KeyringCodec, { vaultId: z, epoch: 3, idKey: z, older: [{ epoch: 2, key: z }] }),
@@ -169,7 +172,7 @@ test("malformed bytes have coded errors and future operations require an update"
   const manifestOperationOffset =
     p.header(2).length + manifest.vaultId.length + p.u64.write(manifest.seq).length;
 
-  future[manifestOperationOffset] = 13;
+  future[manifestOperationOffset] = 14;
 
   expect(() => p.decode(p.ManifestHeaderCodec, future)).toThrow(
     expect.objectContaining({ code: "UPDATE_REQUIRED" }),

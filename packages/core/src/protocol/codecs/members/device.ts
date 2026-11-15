@@ -2,6 +2,7 @@ import { codec, b16, b32, concat, requireValue, compare } from "../../encoding/b
 import { str } from "../../encoding/strings.ts";
 import { deviceId } from "../../keys/identifiers.ts";
 import { validateEdPublic, validateEncPublic } from "../../keys/validation.ts";
+import { isDeviceName } from "./device-name.ts";
 
 export interface IDeviceRecord {
   id: Uint8Array;
@@ -30,9 +31,7 @@ export const DeviceRecordCodec = codec<IDeviceRecord>(
       b32.write(v.reqPub),
     ),
   (v) => {
-    const length = new TextEncoder().encode(v.name).length;
-    requireValue(length >= 1 && length <= 64, "Device name length");
-    requireValue(!/\p{Cf}/u.test(v.name), "Invisible character in device name");
+    requireValue(isDeviceName(v.name), "Invalid device name");
 
     validateEncPublic(v.encPub);
     validateEdPublic(v.objPub);

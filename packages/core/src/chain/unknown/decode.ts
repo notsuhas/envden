@@ -22,8 +22,8 @@ export function decodeServerObject<T>(input: {
   const unknownFormat =
     raw[0] !== tag ||
     raw[1] !== 1 ||
-    (input.label === "entry" && raw.length >= 155 && raw[74]! > 6) ||
-    (input.label === "manifest" && raw.length >= 123 && raw[42]! > 12);
+    (input.label === "entry" && raw.length >= 155 && raw[74]! > 7) ||
+    (input.label === "manifest" && raw.length >= 123 && raw[42]! > 13);
 
   const result = classifyUnknownData({
     ...input,

@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { FilesCodec, H, ManifestHeaderCodec, signObject } from "../../protocol/index.ts";
 import { validateSwap } from "../swaps/validate.ts";
+import { operationRequirement } from "../swaps/operation.ts";
 import { bytes } from "./fixtures.ts";
 import { swapFixture } from "./swap-fixture.ts";
 
@@ -19,9 +20,10 @@ const requirements: TAuthorization[] = [
   "move-session",
   "repair-token",
   "repair-token",
+  "unlocked",
 ];
 
-for (let op = 1; op <= 12; op++) {
+for (let op = 1; op <= 13; op++) {
   test(`op ${op} accepts exact shape and reports authorization`, () => {
     const f = swapFixture(op);
     const result = validateSwap(f.swap, f.context);
@@ -60,6 +62,15 @@ for (let op = 1; op <= 12; op++) {
     ).toBe("invalid");
   });
 }
+
+test("op 13 requires the header signer to be the renamed device", () => {
+  const f = swapFixture(13);
+  const header = { ...f.swap.header.body, signer: f.b.record.id };
+
+  expect(() =>
+    operationRequirement(f.context.previous.body, header, f.swap.entries, f.context.state),
+  ).toThrow();
+});
 
 test("op10 forwarding on N permits any member and checks N's pin", () => {
   const f = swapFixture(10);

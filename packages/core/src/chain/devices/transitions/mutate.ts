@@ -46,6 +46,13 @@ export function transitionEntry(state: IDeviceListState, e: TEntry) {
       check(!repairIds.has(id(e.payload.repairId)));
       repairIds.add(id(e.payload.repairId));
       break;
+    case 7: {
+      const d = devices.get(id(e.payload.device));
+      check(d && equal(e.signer, d.id));
+      check(![...devices.values()].some((v) => v.name === e.payload.name));
+      devices.set(id(d.id), { ...d, name: e.payload.name });
+      break;
+    }
   }
 
   return { devices, everUsedIds, repairIds, commits, recovery, serverPin };

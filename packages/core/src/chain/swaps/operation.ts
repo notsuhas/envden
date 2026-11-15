@@ -22,7 +22,7 @@ export function operationRequirement(
   onNewServer = false,
 ): TAuthorization {
   const op = header.op;
-  check(Number.isInteger(op) && op >= 1 && op <= 12);
+  check(Number.isInteger(op) && op >= 1 && op <= 13);
   const entry = entries[0]?.body;
   check(entries.length === ([1, 8, 11].includes(op) ? 0 : 1));
   const epochChange = [4, 5, 6, 7, 9].includes(op);
@@ -75,6 +75,11 @@ const requirements: Record<number, TRequirement> = {
     check(entry?.kind === 6);
 
     return "repair-token";
+  },
+  13: (header, entry) => {
+    check(entry?.kind === 7 && equal(header.signer, entry.signer));
+
+    return "unlocked";
   },
 };
 

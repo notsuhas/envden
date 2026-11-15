@@ -5,6 +5,7 @@ export * from "./codecs/entry-payloads/add-device.ts";
 export * from "./codecs/entry-payloads/genesis.ts";
 export * from "./codecs/entry-payloads/new-epoch.ts";
 export * from "./codecs/entry-payloads/remove-device.ts";
+export * from "./codecs/entry-payloads/rename-device.ts";
 export * from "./codecs/entry-payloads/repair-done.ts";
 export * from "./codecs/entry-payloads/replace-recovery.ts";
 export * from "./codecs/entry-payloads/server-moved.ts";
@@ -18,6 +19,7 @@ export * from "./codecs/manifests/files.ts";
 export * from "./codecs/manifests/header.ts";
 export * from "./codecs/manifests/swap.ts";
 export * from "./codecs/members/device.ts";
+export * from "./codecs/members/device-name.ts";
 export * from "./codecs/members/recovery.ts";
 export * from "./codecs/pairing/approver.ts";
 export * from "./codecs/pairing/joiner.ts";
@@ -63,5 +65,6 @@ export * from "./versions/semver.ts";
 
 export * from "./codecs/server/http.ts";
 export * from "./codecs/server/data.ts";
+export * from "./codecs/server/status.ts";
 
 export { verifyRawObject } from "./crypto/objects/raw.ts";
