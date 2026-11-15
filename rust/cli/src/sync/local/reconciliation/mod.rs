@@ -14,3 +14,5 @@ pub mod ancestry;
 mod tests;
 
 pub mod placement;
+
+mod conflict;

@@ -1,16 +1,12 @@
+pub mod history;
+use history::current_head;
+
 use super::{
     context::ISyncContext,
     repairs::{pending_repairs, save_pending_repairs},
     source::IRemoteSource,
 };
-use crate::{
-    client::{binary, decode_history_header, text},
-    state::files::atomic_write,
-    vault::{
-        history::{ILocalHistory, IVaultHistory, read_history},
-        join::decode_verified_state,
-    },
-};
+use crate::{client::text, state::files::atomic_write, vault::history::IVaultHistory};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::{chain as c, protocol as p};
 use std::{
@@ -21,27 +17,6 @@ use std::{
 pub struct IAcceptedHead {
     pub repairs: Vec<p::IFileEntry>,
     pub no_fast_forward: Vec<String>,
-}
-
-pub fn local_history(context: &ISyncContext<'_>) -> Result<ILocalHistory> {
-    let strings = |key: &str| {
-        context.state[key]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter_map(|v| v.as_str().map(str::to_owned))
-            .collect()
-    };
-    Ok(ILocalHistory {
-        entries: strings("entries"),
-        headers: strings("headers"),
-        latest: context.state["latest"].as_str().map(str::to_owned),
-        verified_state: context
-            .state
-            .get("verifiedState")
-            .map(decode_verified_state)
-            .transpose()?,
-    })
 }
 
 pub fn accept_head(
@@ -183,38 +158,4 @@ pub fn accept_head(
         repairs,
         no_fast_forward: pending,
     })
-}
-
-fn current_head(
-    context: &ISyncContext<'_>,
-    history: Option<IVaultHistory>,
-) -> Result<(IVaultHistory, p::ISigned<p::IManifestHeader>)> {
-    let raw = context.client.request("/v1/head", "GET", None)?.body;
-    let local = local_history(context)?;
-    let remote = match history {
-        Some(history) => history,
-        None => read_history(&context.client, &context.vault_id, Some(&local))?,
-    };
-    if let Some(head) = remote
-        .headers
-        .iter()
-        .find(|h| p::encode(*h).is_ok_and(|bytes| bytes == raw))
-        .cloned()
-    {
-        return Ok((remote, head));
-    }
-    let remote = read_history(&context.client, &context.vault_id, Some(&local))?;
-    let stored = local
-        .headers
-        .iter()
-        .map(|h| binary(h))
-        .collect::<Result<Vec<_>>>()?;
-    let head = decode_history_header(
-        &raw,
-        &remote.entries,
-        &stored,
-        local.latest.as_deref().unwrap_or(crate::version::VERSION),
-        Some(&remote.states),
-    )?;
-    Ok((remote, head))
 }

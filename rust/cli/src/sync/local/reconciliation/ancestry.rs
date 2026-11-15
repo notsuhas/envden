@@ -16,6 +16,7 @@ use envden_protocol::protocol as p;
 use std::path::Path;
 
 pub struct IAncestry {
+    pub server: Option<Vec<u8>>,
     pub encoded: Option<String>,
     pub previous: Option<Vec<u8>>,
     pub reappeared: bool,
@@ -32,7 +33,6 @@ pub fn ancestry(
     store: &str,
     targets: &[IConflictTarget],
     entry: Option<&p::IFileEntry>,
-    server: Option<&[u8]>,
 ) -> Result<IAncestry> {
     let home = &context.adapters.home;
     let now = (context.options.now)();
@@ -51,6 +51,7 @@ pub fn ancestry(
             }
         },
     )?;
+    read_deletion(home, store, now)?;
     let corrupt = read_bytes(&suffix(&base, ".corrupt"))?.is_some();
     let applied = applied_files(home)?;
     let encoded = if corrupt {
@@ -68,6 +69,10 @@ pub fn ancestry(
     let previous = encoded
         .as_deref()
         .map(|e| entry_content(context, &p::decode::<p::IFileEntry>(&binary(e)?)?))
+        .transpose()?
+        .flatten();
+    let server = entry
+        .map(|entry| entry_content(context, entry))
         .transpose()?
         .flatten();
     let mut reappeared = None;
@@ -108,14 +113,15 @@ pub fn ancestry(
     let before = read_bytes(Path::new(store))?.or(reappeared.clone());
     let restored = before.is_none() && server.is_some() && !deleting && !corrupt;
     if restored {
-        write_bytes(Path::new(store), server, now)?;
+        write_bytes(Path::new(store), server.as_deref(), now)?;
     }
     let stored = if restored {
-        server.map(<[u8]>::to_vec)
+        server.clone()
     } else {
         before.clone()
     };
     Ok(IAncestry {
+        server,
         encoded,
         previous,
         reappeared: reappeared.is_some(),

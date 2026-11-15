@@ -9,7 +9,8 @@ use std::fs;
 fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool) {
     use std::{cell::Cell, collections::HashSet, rc::Rc};
     use sync::local::{
-        conflicts::IConflictTarget, files::base_path, reconciliation::file::reconcile_file,
+        conflicts::IConflictTarget, files::base_path,
+        reconciliation::file::reconcile_file_with_choice,
     };
     {
         let (_d, a, server, _) = fixture::fixture();
@@ -80,12 +81,13 @@ fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool)
             }
             .into())
         }));
-        let result = reconcile_file(
+        let result = reconcile_file_with_choice(
             &mut c,
             &[target],
             store.to_str().unwrap(),
             Some(&e),
             &repairs,
+            None,
         );
         if interrupted {
             assert!(result.is_err());
@@ -117,12 +119,13 @@ fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool)
             fs::write(&store, remote).unwrap();
             let target: IConflictTarget =
                 serde_json::from_value(c.state["links"][0].clone()).unwrap();
-            let again = reconcile_file(
+            let again = reconcile_file_with_choice(
                 &mut c,
                 &[target],
                 store.to_str().unwrap(),
                 Some(&e),
                 &HashSet::new(),
+                None,
             );
             assert_eq!(again.unwrap().1, 0);
         }

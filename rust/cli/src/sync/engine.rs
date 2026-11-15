@@ -1,5 +1,5 @@
 use super::{
-    local::{reconcile::reconcile, selection::selected_repos},
+    local::{reconcile::reconcile_with_choice, selection::selected_repos},
     remote::{
         accept::accept_head,
         context::{ISyncOptions, sync_context},
@@ -21,12 +21,32 @@ pub fn sync(
     sync_with_unlock(adapters, options, transport, pushing, None)
 }
 
+pub fn first_sync(
+    adapters: &IAdapters,
+    options: ISyncOptions,
+    transport: Rc<dyn ITransport>,
+) -> Result<Value> {
+    let choose = options.choose.clone();
+    run_sync(adapters, options, transport, false, None, choose)
+}
+
 pub fn sync_with_unlock(
+    adapters: &IAdapters,
+    options: ISyncOptions,
+    transport: Rc<dyn ITransport>,
+    pushing: bool,
+    unlock: Option<&crate::admin::r#move::follow::TMoveUnlock<'_>>,
+) -> Result<Value> {
+    run_sync(adapters, options, transport, pushing, unlock, None)
+}
+
+fn run_sync(
     adapters: &IAdapters,
     mut options: ISyncOptions,
     transport: Rc<dyn ITransport>,
     pushing: bool,
     unlock: Option<&crate::admin::r#move::follow::TMoveUnlock<'_>>,
+    choose: Option<super::remote::context::TChoose>,
 ) -> Result<Value> {
     if pushing && !options.interactive && !options.yes {
         return Err(EnvdenError::new(
@@ -45,7 +65,7 @@ pub fn sync_with_unlock(
     }));
     with_state_lock(&adapters.home, (options.now)(), || {
         let mut context = sync_context(adapters, options, transport)?;
-        let local = super::remote::accept::local_history(&context)?;
+        let local = super::remote::accept::history::local_history(&context)?;
         let mut history =
             crate::vault::history::read_history(&context.client, &context.vault_id, Some(&local))?;
         if let Some(client) = crate::admin::r#move::follow::follow_server_move(
@@ -59,7 +79,7 @@ pub fn sync_with_unlock(
             history = crate::vault::history::read_history(
                 &context.client,
                 &context.vault_id,
-                Some(&super::remote::accept::local_history(&context)?),
+                Some(&super::remote::accept::history::local_history(&context)?),
             )?;
         }
         let mut initial_history = Some(history);
@@ -96,17 +116,18 @@ pub fn sync_with_unlock(
                 None => crate::vault::history::read_history(
                     &context.client,
                     &context.vault_id,
-                    Some(&super::remote::accept::local_history(&context)?),
+                    Some(&super::remote::accept::history::local_history(&context)?),
                 )?,
             };
             let accepted = accept_head(&mut context, Some(history), false)?;
             super::repairs::report_repairs(&context, &accepted.repairs)?;
             persist_checkpoint(&mut context)?;
             super::remote::attempt::record::acknowledge(&context)?;
-            let result = reconcile(
+            let result = reconcile_with_choice(
                 &mut context,
                 &repos,
                 &accepted.no_fast_forward.into_iter().collect(),
+                choose.clone(),
             )?;
             persist_checkpoint(&mut context)?;
             let conflicts = if pushing {

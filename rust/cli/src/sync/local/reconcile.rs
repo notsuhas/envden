@@ -1,6 +1,6 @@
 use super::{
     applied::{applied_files, save_applied_files},
-    reconciliation::{file::reconcile_file, targets::targets},
+    reconciliation::{file::reconcile_file_with_choice, targets::targets},
 };
 use crate::{
     output::sanitize_terminal,
@@ -24,6 +24,15 @@ pub fn reconcile(
     context: &mut ISyncContext<'_>,
     repos: &HashSet<String>,
     repairs: &HashSet<String>,
+) -> Result<IReconciled> {
+    reconcile_with_choice(context, repos, repairs, None)
+}
+
+pub fn reconcile_with_choice(
+    context: &mut ISyncContext<'_>,
+    repos: &HashSet<String>,
+    repairs: &HashSet<String>,
+    choose: Option<crate::sync::remote::context::TChoose>,
 ) -> Result<IReconciled> {
     let mut applied = applied_files(&context.adapters.home)?;
     let rules = super::validation::rules::env_rules(&context.adapters.home)?;
@@ -58,7 +67,15 @@ pub fn reconcile(
             if targets.is_empty() {
                 return Ok(None);
             }
-            reconcile_file(context, &targets, &store, Some(&entry), repairs).map(Some)
+            reconcile_file_with_choice(
+                context,
+                &targets,
+                &store,
+                Some(&entry),
+                repairs,
+                choose.clone(),
+            )
+            .map(Some)
         })();
         match outcome {
             Ok(None) => continue,

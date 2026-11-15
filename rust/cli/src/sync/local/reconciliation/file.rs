@@ -11,48 +11,46 @@ use crate::{
     sync::{
         local::{
             conflicts::{
-                IConflictTarget, conflict_records,
-                record::{IConflictSeed, IConflictSides, record_conflict},
-                save_conflicts,
+                IConflictTarget,
+                record::{IConflictSeed, IConflictSides},
             },
             files::{base_path, read_bytes},
         },
-        remote::{content::entry_content, context::ISyncContext},
+        remote::context::ISyncContext,
     },
 };
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
 use std::collections::HashSet;
 
-pub fn reconcile_file(
+pub fn reconcile_file_with_choice(
     context: &mut ISyncContext<'_>,
     targets: &[IConflictTarget],
     store: &str,
     entry: Option<&p::IFileEntry>,
     repairs: &HashSet<String>,
+    choose: Option<crate::sync::remote::context::TChoose>,
 ) -> Result<(usize, usize)> {
     resume_file(context, store)?;
     if targets.is_empty() {
         return Ok((0, 0));
     }
     let base = base_path(&context.adapters.home, store, None);
-    let server = entry
-        .map(|e| entry_content(context, e))
-        .transpose()?
-        .flatten();
-    let lineage = super::ancestry::ancestry(context, store, targets, entry, server.as_deref())?;
+    let lineage = super::ancestry::ancestry(context, store, targets, entry)?;
+    let server = lineage.server;
     let ancestor = lineage.encoded;
     let previous = lineage.previous;
     let stored = lineage.stored;
-    let recorded = read_bytes(&base)?;
     let deleting = lineage.deleting;
     let snapshots = targets
         .iter()
         .map(|t| snapshot(context, t, stored.as_deref(), previous.as_deref()))
         .collect::<Result<Vec<_>>>()?;
+    let recorded = read_bytes(&base)?;
     let tombstone = entry.is_some_and(|e| matches!(e.state, 2 | 4));
     let decision = derive_file_decision(IFileDecisionInput {
         content: IContent {
+            choosing: choose.is_some() || lineage.invalid,
             reappeared: lineage.reappeared,
             previous: previous.as_deref(),
             server: server.as_deref(),
@@ -88,33 +86,29 @@ pub fn reconcile_file(
         deleting,
         store: stored.as_deref(),
     });
-    let records = conflict_records(&context.adapters.home)?;
-    if records.iter().any(|r| r.store == store) {
-        let writable = matches!(decision.action, TContentAction::Write(_))
-            && !lineage.invalid
-            && !lineage.corrupt
-            && stored == server
-            && snapshots
-                .iter()
-                .all(|s| s.bytes.is_none() || s.bytes == server);
-        if !writable {
-            return Ok((usize::from(lineage.restored), 1));
-        }
-        save_conflicts(
-            &context.adapters.home,
-            &records
-                .into_iter()
-                .filter(|r| r.store != store)
-                .collect::<Vec<_>>(),
-            (context.options.now)(),
-        )?;
+    let writable = matches!(decision.action, TContentAction::Write(_))
+        && !lineage.invalid
+        && !lineage.corrupt
+        && stored == server
+        && snapshots
+            .iter()
+            .all(|s| s.bytes.is_none() || s.bytes == server);
+    if super::operation::conflict::blocks_file(
+        &context.adapters.home,
+        store,
+        writable,
+        (context.options.now)(),
+    )? {
+        return Ok((usize::from(lineage.restored), 1));
     }
     let mine = decision.sides.mine;
-    let chooser = context
-        .options
-        .choose
-        .clone()
-        .filter(|_| context.options.interactive && snapshots.iter().any(|s| s.detached));
+    let chooser = choose.or_else(|| {
+        context
+            .options
+            .choose
+            .clone()
+            .filter(|_| context.options.interactive && snapshots.iter().any(|s| s.detached))
+    });
     let local_conflict = matches!(
         decision.sides.local,
         super::sides::TLocalContent::Conflict(_)
@@ -157,10 +151,8 @@ pub fn reconcile_file(
             let first = &targets[0];
             let mut variants = vec![stored.as_deref(), server.as_deref()];
             variants.extend(snapshots.iter().map(|s| s.bytes.as_deref()));
-            let author =
-                entry.and_then(|e| super::super::conflicts::author::entry_author(context, e));
-            let message = record_conflict(
-                &context.adapters.home,
+            super::conflict::record_file_conflict(
+                context,
                 IConflictSeed {
                     cwd: context
                         .options
@@ -182,21 +174,9 @@ pub fn reconcile_file(
                     tombstone,
                 },
                 &variants,
-                author.as_deref(),
-                (context.options.now)(),
+                entry,
+                entry.is_some_and(|e| repairs.contains(&p::base32(&e.file_id))),
             )?;
-            if let Some(entry) = entry.filter(|e| repairs.contains(&p::base32(&e.file_id))) {
-                crate::sync::remote::repairs::consume_repair(
-                    &context.adapters.home,
-                    &p::base32(&entry.file_id),
-                    (context.options.now)(),
-                )?;
-            }
-            if let Some(message) = message
-                && let Some(report) = &context.options.report
-            {
-                report(&message);
-            }
             Ok((usize::from(lineage.restored), 1))
         }
         TResolution::Write(next) => {

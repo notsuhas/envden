@@ -7,3 +7,5 @@ pub mod commit;
 pub mod resume;
 
 pub mod preserve;
+
+pub(super) mod conflict;

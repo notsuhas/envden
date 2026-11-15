@@ -1,6 +1,6 @@
 use super::{
     conflicts::IConflictTarget, files::read_bytes, reconcile::IReconciled,
-    reconciliation::file::reconcile_file,
+    reconciliation::file::reconcile_file_with_choice,
 };
 use crate::{
     links::checkout::repo::checkout_repo, output::sanitize_terminal,
@@ -63,7 +63,7 @@ pub(super) fn reconcile_unpublished(
                     "Unpublished env file content is missing",
                 ));
             }
-            reconcile_file(context, &targets, store, None, &HashSet::new())
+            reconcile_file_with_choice(context, &targets, store, None, &HashSet::new(), None)
                 .map(|(_, conflicts)| conflicts)
         })();
         match outcome {

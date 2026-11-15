@@ -26,8 +26,6 @@ pub(super) fn finish_file(
             targets.first(),
             synced.as_deref(),
         )?;
-    }
-    if crate::sync::local::files::read_bytes(Path::new(store))?.as_deref() != next {
         write_bytes(Path::new(store), next, now)?;
     } else if let Some(next) = next
         && crate::sync::local::files::read_bytes(&base_path(&context.adapters.home, store, None))?
