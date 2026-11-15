@@ -3,18 +3,29 @@ use crate::{
     client::UreqTransport,
     output::{print, terminal_json},
     program::IInvocation,
-    sync::{command::sync_options, engine::sync},
+    sync::{command::sync_options, engine::sync_with_unlock},
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use std::rc::Rc;
 
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let pushing = invocation.command.name == "push";
-    let result = sync(
+    let result = sync_with_unlock(
         adapters,
         sync_options(invocation, adapters),
         Rc::new(UreqTransport),
         pushing,
+        Some(&|client, vault_id| {
+            crate::session::login(
+                client,
+                vault_id,
+                crate::session::TPassword::Prompt(&mut |_| {
+                    crate::output::prompts::secret("Master password", |_| None)
+                }),
+                envden_protocol::protocol::TLoginPurpose::Unlock,
+            )
+            .map(|_| ())
+        }),
     )?;
     let changed = result["changed"].as_u64().unwrap_or(0);
     let conflicts = result["conflicts"].as_u64().unwrap_or(0);
