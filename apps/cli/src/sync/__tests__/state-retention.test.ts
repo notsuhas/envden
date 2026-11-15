@@ -18,6 +18,9 @@ test("expired state backups and interrupted writes are removed without losing li
     `state/record.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
     `state/attempts/record.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
     `state/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
+    `state/headers/nested/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
+    `state/update/state/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
+    `base/nested/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
     `state/blobs/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
     `state/file-lists/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
     `base/file.pending.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
@@ -57,9 +60,13 @@ test("expired state backups and interrupted writes are removed without losing li
   }
 });
 
-test("retention leaves update state and lock directories to their owners", async () => {
+test("retention skips lock directories at every depth", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-retention-"));
-  const paths = ["state/update/state/write.lock/.0-abcd.tmp", "base/write.lock/.0-abcd.tmp"];
+
+  const paths = [
+    "state/update/state/write.lock/.1700000000000_12345678-abcd-4000-8000-000000000000.tmp",
+    "base/write.lock/.1700000000000_12345678-abcd-4000-8000-000000000000.tmp",
+  ];
 
   try {
     for (const path of paths) await atomicWrite(join(home, path), "owner", fixtureClock);
