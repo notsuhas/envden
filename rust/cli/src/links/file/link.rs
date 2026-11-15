@@ -1,24 +1,22 @@
-use super::checkout::placement::place_file;
+use super::{
+    base::{copy_base, mode_name},
+    choice::choose_version,
+    existing::relink_existing,
+};
 use crate::{
     adapters::IAdapters,
+    links::checkout::placement::place_file,
     output::{home_path, sanitize_terminal},
     state::files::{atomic_write, failure},
     store::store_path,
-    sync::local::{
-        files::{base_path, read_bytes, write_bytes},
-        validation::size::file_size_notice,
-    },
+    sync::local::validation::size::file_size_notice,
 };
 use envden_core::{
-    adapters::{ICheckout, IPlacementAdapter, TPlacementMode, TPlacementState},
+    adapters::{ICheckout, IPlacementAdapter, TPlacementState},
     errors::{EnvdenError, ErrorCode, Result},
 };
 use serde_json::{Value, json};
-use std::{
-    fs,
-    io::{self, IsTerminal},
-    path::Path,
-};
+use std::{fs, path::Path};
 
 #[derive(Clone, Debug)]
 pub struct IOwnLink {
@@ -38,7 +36,7 @@ pub fn link_file(
     let destination = Path::new(&checkout.root).join(path);
     let store = store_path(
         &adapters.home,
-        super::approval::repo_of(state, &checkout.repo_id),
+        crate::links::approval::repo_of(state, &checkout.repo_id),
         path,
     )?;
     let links = state["links"]
@@ -133,86 +131,4 @@ pub fn link_file(
     copy_base(adapters, &store_text, &checkout.root, placement.mode())?;
     links.push(json!({"root":checkout.root,"path":path,"store":store_text,"mode":mode_name(placement.mode())}));
     Ok(None)
-}
-
-fn choose_version(path: &str) -> Result<String> {
-    if !io::stdin().is_terminal() {
-        return Ok("skip".into());
-    }
-    crate::output::prompts::choose(
-        &format!("{path} differs from the synced copy"),
-        &[
-            ("separate".into(), "Keep separate (local only)".into()),
-            ("store".into(), "Use the synced version".into()),
-        ],
-        None,
-    )
-}
-
-pub fn mode_name(mode: TPlacementMode) -> &'static str {
-    if mode == TPlacementMode::Copy {
-        "copy"
-    } else {
-        "link"
-    }
-}
-
-fn copy_base(adapters: &IAdapters, store: &str, root: &str, mode: TPlacementMode) -> Result<()> {
-    if mode == TPlacementMode::Copy {
-        write_bytes(
-            &base_path(&adapters.home, store, Some(root)),
-            read_bytes(Path::new(store))?.as_deref(),
-            (adapters.now)(),
-        )?;
-    }
-    Ok(())
-}
-
-fn relink_existing(
-    adapters: &IAdapters,
-    checkout: &ICheckout,
-    placement: &dyn IPlacementAdapter,
-    destination: &Path,
-    existing: &mut Value,
-) -> Result<()> {
-    if existing["localOnly"] == true {
-        return Ok(());
-    }
-    let mode = if existing["mode"] == "copy" {
-        TPlacementMode::Copy
-    } else {
-        TPlacementMode::Link
-    };
-    let current = adapters.placement(mode, Path::new(&checkout.root));
-    let store = existing["store"].as_str().unwrap_or_default();
-    let destination = destination.to_string_lossy();
-    let status = current.inspect(store, &destination)?;
-    if !matches!(
-        status,
-        TPlacementState::Relinkable | TPlacementState::Linked
-    ) {
-        return Ok(());
-    }
-    if mode != placement.mode() {
-        place_file(
-            adapters,
-            placement,
-            &checkout.root,
-            store,
-            &destination,
-            None,
-        )?;
-        copy_base(adapters, store, &checkout.root, placement.mode())?;
-        existing["mode"] = mode_name(placement.mode()).into();
-    } else if status == TPlacementState::Relinkable {
-        place_file(
-            adapters,
-            current.as_ref(),
-            &checkout.root,
-            store,
-            &destination,
-            None,
-        )?;
-    }
-    Ok(())
 }
