@@ -1,13 +1,14 @@
 import { sanitizeConsole } from "../../output/sanitize.ts";
+import { localTime } from "../../output/time.ts";
 import type { TKeyChanges, TVersionKind } from "./changes.ts";
 import type { THistoryResult } from "./run.ts";
 
 type TFile = THistoryResult["files"][number];
 
-export function historyText(result: THistoryResult) {
+export function historyText(result: THistoryResult, timeZone?: string) {
   if (result.files.length === 0) return "No env files to show";
 
-  return sanitizeConsole(result.files.map(fileText).join("\n\n"));
+  return sanitizeConsole(result.files.map((file) => fileText(file, timeZone)).join("\n\n"));
 }
 
 export function changesText(changes: TKeyChanges) {
@@ -23,7 +24,7 @@ export function changesText(changes: TKeyChanges) {
   return parts.length ? parts.join("; ") : "no key changes";
 }
 
-function fileText(file: TFile) {
+function fileText(file: TFile, timeZone?: string) {
   const single = file.checkouts.length === 1;
 
   const lines = file.versions.map((version) => {
@@ -33,7 +34,7 @@ function fileText(file: TFile) {
 
     return [
       `  v${version.version}`,
-      version.time?.slice(0, 16).replace("T", " ") ?? "unknown time    ",
+      (version.time ? localTime(version.time, timeZone) : "unknown time").padEnd(22),
       (version.device ?? (version.removedDevice ? "removed device" : "unknown device")).padEnd(16),
       kindText(version.kind, version.changes),
       ...marks,

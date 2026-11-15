@@ -88,6 +88,7 @@ test("history lists versions newest first with devices and key names only", asyn
 
     const text = historyText(result);
     expect(text).toContain("v3");
+    expect(historyText(result, "Asia/Kolkata")).toContain("GMT+5:30");
     expect(text).toContain("<- current");
     expectNoValues(text);
     expectNoValues(terminalJson(result));

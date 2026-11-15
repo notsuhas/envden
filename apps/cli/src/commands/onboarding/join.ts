@@ -5,7 +5,7 @@ import { createAdapters } from "../../adapters.ts";
 import { runJoin } from "../../onboarding/join.ts";
 
 export const joinCommand = new Command("join")
-  .argument("<server>")
+  .argument("<server>", "Server address, e.g. https://envden.your-tailnet.ts.net")
   .description("Join using a pairing code or recovery kit in your own terminal")
   .option("--recovery", "Paste a recovery secret key and vault ID")
   .option("--recovery-kit <path>", "Recovery kit path")

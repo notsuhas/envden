@@ -113,7 +113,7 @@ github.com/you/app .env
   v1  2026-11-01 11:15  laptop            added TOKEN
 ```
 
-Each version shows when it was pushed, which device pushed it ("removed device" if it has since left the vault) and the key names that changed since the version before. Values never appear. Deletions show as `deleted`, and server repairs as `restored` or `lost`. `<- current` marks the version this checkout matches. When the server has pruned older versions, the list ends with `older versions pruned`. `--json` prints the same data for scripts.
+Each version shows when it was pushed (in your local time zone), which device pushed it ("removed device" if it has since left the vault) and the key names that changed since the version before. Values never appear. Deletions show as `deleted`, and server repairs as `restored` or `lost`. `<- current` marks the version this checkout matches. When the server has pruned older versions, the list ends with `older versions pruned`. `--json` prints the same data for scripts, with times in UTC.
 
 To go back to an old version:
 
