@@ -60,28 +60,51 @@ pub(crate) fn verify_headers(
     if compare_semver(&request.client_version, &options.min_client)?.is_lt() {
         return Err(EnvdenError::new(ErrorCode::ClientTooOld, "Update required"));
     }
-    let proof = if header("envden-proof").is_empty() {
-        None
-    } else {
-        Some(binary(header("envden-proof"), None)?)
-    };
-    if member.is_some() {
-        let state = options.storage.device(&request.vault_id, &request.device)?;
-        if state
-            .as_ref()
-            .is_none_or(|state| state.client_version != request.client_version)
-        {
-            let mut state = state.unwrap_or_default();
-            state.client_version = request.client_version.clone();
-            options
-                .storage
-                .put_device(&request.vault_id, &request.device, &state)?;
-        }
-    }
 
     Ok(IAuth {
         request,
         member: member.is_some(),
-        proof,
+        proof: None,
     })
+}
+
+pub(crate) fn complete_access(
+    options: &IAppOptions,
+    auth: &mut IAuth,
+    headers: &HeaderMap,
+) -> Result<()> {
+    let proof = if headers
+        .get("envden-proof")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .is_empty()
+    {
+        None
+    } else {
+        Some(binary(
+            headers
+                .get("envden-proof")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or(""),
+            None,
+        )?)
+    };
+    if auth.member {
+        let state = options
+            .storage
+            .device(&auth.request.vault_id, &auth.request.device)?;
+        if state
+            .as_ref()
+            .is_none_or(|state| state.client_version != auth.request.client_version)
+        {
+            let mut state = state.unwrap_or_default();
+            state.client_version = auth.request.client_version.clone();
+            options
+                .storage
+                .put_device(&auth.request.vault_id, &auth.request.device, &state)?;
+        }
+    }
+
+    auth.proof = proof;
+    Ok(())
 }

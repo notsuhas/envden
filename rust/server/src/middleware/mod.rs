@@ -4,7 +4,7 @@ mod gates;
 mod verification;
 
 pub(crate) use gates::require_gate;
-pub(crate) use verification::{IAuth, verify_headers};
+pub(crate) use verification::{IAuth, complete_access, verify_headers};
 
 mod access;
 pub(crate) use access::{authorize_body, verify_mode};

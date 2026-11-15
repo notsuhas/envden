@@ -91,3 +91,19 @@ async fn zero_vault_is_rejected_and_unknown_devices_do_not_record_nonces() {
         (403, json!({"error":"LOCKED"}))
     );
 }
+
+#[tokio::test]
+async fn access_errors_precede_malformed_proof() {
+    let f = Fixture::new();
+    for (unknown, status, code) in [(true, 404, "NOT_FOUND"), (false, 403, "NOT_MEMBER")] {
+        let mut request = f.request("/v1/settings/unlock-period", "GET", &[], &f.joiner, |r| {
+            if unknown {
+                r.vault_id = [9; 32];
+            }
+        });
+        request
+            .headers_mut()
+            .insert("envden-proof", "!".parse().unwrap());
+        assert_eq!(f.run(request).await, (status, json!({"error": code})));
+    }
+}

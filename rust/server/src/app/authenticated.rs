@@ -25,7 +25,7 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
                 .and_then(|v| v.parse::<u64>().ok())
                 .is_some_and(|v| v > 0);
         let route = request_route(parts.method.as_str(), path, has_body)?;
-        let auth = verify_headers(&state.options, &parts.method, &parts.uri, &parts.headers)?;
+        let mut auth = verify_headers(&state.options, &parts.method, &parts.uri, &parts.headers)?;
         let storage = state.options.storage.as_ref();
         if !storage.has_vault(&auth.request.vault_id)?
             && path != "/v1/vault"
@@ -47,6 +47,7 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
                 "Membership required",
             ));
         }
+        crate::middleware::complete_access(&state.options, &mut auth, &parts.headers)?;
         verify_mode(&state.options, &auth, path)?;
         authorize_body(&state.options, &auth, path, parts.method.as_str())?;
         let receipt = if !auth.member && route.charge {
