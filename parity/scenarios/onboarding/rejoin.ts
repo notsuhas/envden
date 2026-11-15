@@ -37,6 +37,7 @@ async function prepare(c: Context) {
   const scan = join(home, "empty-scan");
   const kit = join(home, "kit.json");
   await mkdir(scan);
+
   const setup = c.pty("device-a", [
     "setup",
     "--server",
@@ -49,11 +50,13 @@ async function prepare(c: Context) {
     "--scan-root",
     scan,
   ]);
+
   await setup.expect("Server setup token", `${server.token}\r`);
   await setup.expect("Master password", `${password}\r`);
   await setup.expect("Confirm master password", `${password}\r`);
   await c.finish("device-a", "setup", setup);
   await c.device("device-b");
+
   const recovery = c.pty("device-b", [
     "join",
     server.url,
@@ -63,6 +66,7 @@ async function prepare(c: Context) {
     kit,
     "--yes",
   ]);
+
   await recovery.expect("Master password", `${password}\r`);
   await c.finish("device-b", "join recovery", recovery);
 
