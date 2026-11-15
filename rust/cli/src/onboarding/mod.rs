@@ -6,3 +6,10 @@ pub use decisions::{
     require_server_address,
 };
 pub use password::confirmed_password;
+
+mod checkouts;
+mod scan;
+pub use scan::{ICheckoutOptions, setup_checkouts};
+
+#[cfg(test)]
+mod scan_tests;

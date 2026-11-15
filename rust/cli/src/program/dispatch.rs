@@ -22,6 +22,20 @@ pub trait ICommandHooks {
 
 pub struct DefaultHooks;
 impl ICommandHooks for DefaultHooks {
+    fn notice(&self, _: &IInvocation<'_>, adapters: &IAdapters, now: u64) -> Result<()> {
+        let cwd = std::env::current_dir().ok();
+        let notice = crate::notice::command::command_notice(
+            adapters,
+            now,
+            &crate::updates::fetch::HttpFetcher,
+            false,
+            cwd.as_ref().and_then(|p| p.to_str()),
+            false,
+        );
+        crate::notice::command::report_command_notice(&notice);
+        Ok(())
+    }
+
     fn report(&self, invocation: &IInvocation<'_>, adapters: &IAdapters, result: &Result<()>) {
         crate::output::telemetry::report_telemetry(
             adapters,
@@ -47,7 +61,22 @@ impl ICommandActions for DefaultActions {
             .collect::<Vec<_>>()
             .as_slice()
         {
+            ["server", "move" | "switch"] => {
+                return crate::commands::server::moving::run(invocation, adapters);
+            }
+            ["ui"] => return crate::commands::ui::run::run(invocation, adapters),
+            ["track"] => return crate::commands::onboarding::run_track(invocation, adapters),
             ["unlock"] => return crate::commands::onboarding::run_unlock(adapters),
+            ["update"] => return crate::commands::maintenance::update::run(invocation, adapters),
+            ["serve"] => return crate::commands::server::serve::run(invocation, adapters),
+            ["shell", action] => return crate::commands::shell::run(action, invocation, adapters),
+            ["agent", "install"] => return crate::commands::agent::install(adapters),
+            ["doctor"] => return crate::commands::maintenance::doctor::run(invocation, adapters),
+            ["alias"] => return crate::commands::sync::alias::run(invocation, adapters),
+            ["local-only"] => {
+                return crate::commands::checkouts::local_only::run(invocation, adapters);
+            }
+            ["untrack"] => return crate::commands::checkouts::untrack::run(invocation, adapters),
             ["version"] => print(VERSION),
             ["config"] => print(&config(invocation, adapters)?),
             _ => return Err(not_implemented()),

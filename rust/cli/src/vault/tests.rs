@@ -7,7 +7,7 @@ use crate::{
 use envden_core::errors::ErrorCode;
 use envden_protocol::{chain as c, protocol as p};
 
-fn fixture() -> (IDeviceIdentity, IGenesis) {
+pub(super) fn fixture() -> (IDeviceIdentity, IGenesis) {
     let keys = p::generate_device_keys(p::random_bytes);
     let identity = IDeviceIdentity {
         keys: ISecretKeys {
