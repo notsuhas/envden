@@ -1,5 +1,13 @@
 # @envden/cli
 
+## 0.3.5
+
+### Patch Changes
+
+- a7d6140: `envden setup --host-server` on macOS waits for launchd to finish unloading the old server before loading the new one, instead of failing with "Could not install the envden login service". If loading still fails, the message includes launchd's own error.
+- 1c7581c: When a command fails because of a bug in envden, the CLI offers to report it: it saves a redacted report, then starts your coding agent (Claude Code, Codex or Gemini CLI) to find the cause and draft a GitHub issue, or opens a pre-filled issue in the browser. `ENVDEN_NO_REPORT=1` turns the offer off. A failed server service install now exits with code 1 instead of 2.
+- @envden/server@0.3.5
+
 ## 0.3.4
 
 ### Patch Changes
