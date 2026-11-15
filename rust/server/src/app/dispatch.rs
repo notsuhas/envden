@@ -32,9 +32,9 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
     }
     let path = request.uri().path().to_owned();
     let method = request.method().as_str().to_owned();
-    let public_status = request.method() == "GET" && matches!(path.as_str(), "/" | "/v1/status");
-    let public =
-        request.method() == "GET" && matches!(path.as_str(), "/" | "/v1/status" | "/v1/hello");
+    let public_status = matches!(request.method().as_str(), "GET" | "HEAD")
+        && matches!(path.as_str(), "/" | "/v1/status");
+    let public = public_status || request.method() == "GET" && path == "/v1/hello";
     let result = if public || !path.starts_with("/v1/") {
         dispatch_inner(&state, &request)
     } else {
@@ -52,13 +52,20 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
         response.headers_mut().extend(headers);
     }
 
+    if method == "HEAD" {
+        *response.body_mut() = Body::empty();
+        response
+            .headers_mut()
+            .insert("content-length", "0".parse().expect("fixed length"));
+    }
+
     response
 }
 
 fn dispatch_inner(state: &AppState, request: &Request) -> Result<Response<Body>> {
     let path = request.uri().path();
     let method = request.method().as_str();
-    if !path.starts_with("/v1/") && !(path == "/" && method == "GET") {
+    if !path.starts_with("/v1/") && !(path == "/" && matches!(method, "GET" | "HEAD")) {
         return Ok(response(404, "text/plain; charset=UTF-8", "404 Not Found"));
     }
     let has_body = request.headers().contains_key("transfer-encoding")

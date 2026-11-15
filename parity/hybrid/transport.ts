@@ -4,6 +4,10 @@ import { mkdtemp, mkdir, copyFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import * as p from "@envden/core/protocol";
+import { createRequests } from "./transport/request.ts";
+import { comparable, comparableMany } from "./transport/wire.ts";
+
+export { comparable } from "./transport/wire.ts";
 
 const root = resolve(import.meta.dir, "../..");
 const tsCommand = [join(root, "apps/cli/dist/envden"), "serve"];
@@ -73,15 +77,6 @@ async function raw(port: number, request: string) {
   });
 }
 
-export function comparable(bytes: Buffer) {
-  const boundary = bytes.indexOf("\r\n\r\n");
-  assert.ok(boundary >= 0, "complete HTTP response");
-  const lines = bytes.subarray(0, boundary).toString().split("\r\n");
-  const headers = lines.slice(1).filter((line) => !/^(date|connection|keep-alive):/i.test(line));
-
-  return { status: lines[0], headers, body: bytes.subarray(boundary + 4).toString("base64") };
-}
-
 async function runTransport() {
   const temporary = await mkdtemp(join(tmpdir(), "envden-transport-"));
   const data = join(temporary, "ts");
@@ -105,52 +100,7 @@ async function runTransport() {
     rust = await start(rustCommand, rustData, token);
     const keys = p.generateDeviceKeys();
 
-    const device = {
-      id: p.deviceId(keys),
-      name: "transport",
-      encPub: keys.encPub,
-      objPub: keys.objPub,
-      reqPub: keys.reqPub,
-    };
-
-    function signed(path: string, body = "", version = "1.0.0", bad = false) {
-      const method = body ? "POST" : "GET";
-
-      const r = {
-        serverPin: pin,
-        vaultId: new Uint8Array(32).fill(9),
-        method,
-        pathAndQuery: path,
-        bodyHash: p.sha256(Buffer.from(body)),
-        time: BigInt(Date.now()),
-        nonce: p.randomBytes(16),
-        device: device.id,
-        clientVersion: version,
-      };
-
-      const encode = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
-
-      const headers = {
-        Host: "localhost",
-        Connection: "close",
-        "Content-Length": Buffer.byteLength(body),
-        "Envden-Request": encode(p.RequestCodec.write(r)),
-        "Envden-Device": encode(r.device),
-        "Envden-Time": String(r.time),
-        "Envden-Nonce": encode(r.nonce),
-        "Envden-Body-Hash": encode(r.bodyHash),
-        "Envden-Signature": encode(
-          bad ? new Uint8Array(64) : p.signRequest(r, keys.reqSk).signature,
-        ),
-        "Envden-Device-Record": encode(p.DeviceRecordCodec.write(device)),
-        "Envden-Proof": encode(p.tokenProof("setup", p.tokenKey("setup", secret), r)),
-      };
-
-      return `${method} ${path} HTTP/1.1\r\n${Object.entries(headers)
-        .map(([name, value]) => `${name}: ${value}`)
-        .join("\r\n")}\r\n\r\n${body}`;
-    }
-
+    const signed = createRequests({ pin, secret, keys });
     const missingApprover = signed("/v1/pairing/approver");
     const replay = signed("/v1/opaque/registration/start", "{");
 
@@ -199,7 +149,28 @@ async function runTransport() {
       console.log(`PASS ${name}`);
     }
 
-    console.log(`${cases.length}/${cases.length} raw transport cases passed`);
+    const first = "GET /missing HTTP/1.1\r\nHost: localhost\r\n\r\n";
+
+    const persistent = [
+      [
+        "persistent HEAD",
+        first +
+          "HEAD /v1/status HTTP/1.1\r\nHost: localhost\r\n\r\n" +
+          cases.find(([name]) => name === "404")![1],
+      ],
+      ["persistent 413", first + cases.find(([name]) => name === "413")![1]],
+    ] satisfies [string, string][];
+
+    for (const [name, request] of persistent) {
+      const expected = comparableMany(await raw(ts.port, request));
+      const actual = comparableMany(await raw(rust.port, request));
+      assert.deepEqual(actual, expected, name);
+      console.log(`PASS ${name}`);
+    }
+
+    console.log(
+      `${cases.length + persistent.length}/${cases.length + persistent.length} raw transport cases passed`,
+    );
   } finally {
     if (ts) await stop(ts);
     if (rust) await stop(rust);
