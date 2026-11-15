@@ -71,7 +71,7 @@ pub fn link_file(
                     .into_owned(),
             }));
         }
-        if !store.try_exists().map_err(failure)? {
+        if !exists(&store)? {
             placement.remove(Some(&store_text), &destination_text)?;
             eprintln!(
                 "envden: removed {}, a link to a deleted copy",
@@ -131,4 +131,12 @@ pub fn link_file(
     copy_base(adapters, &store_text, &checkout.root, placement.mode())?;
     links.push(json!({"root":checkout.root,"path":path,"store":store_text,"mode":mode_name(placement.mode())}));
     Ok(None)
+}
+
+fn exists(path: &Path) -> Result<bool> {
+    match fs::symlink_metadata(path) {
+        Ok(_) => Ok(true),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(failure(error)),
+    }
 }
