@@ -32,3 +32,5 @@ pub mod report;
 pub mod vault;
 
 pub mod admin;
+
+pub mod pairing;

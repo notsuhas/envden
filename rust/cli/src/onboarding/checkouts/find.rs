@@ -37,6 +37,7 @@ pub(in crate::onboarding) fn find_checkouts(
         .map(|root| home_path(&root.canonicalize().unwrap_or_else(|_| root.clone()), &home))
         .collect::<Vec<_>>()
         .join(", ");
+    if std::io::IsTerminal::is_terminal(&std::io::stdout()) { println!("│"); }
     let progress = scan_progress(&shown, None);
     let skips = Mutex::new(vec![]);
     let result = (|| {

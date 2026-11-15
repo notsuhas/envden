@@ -45,9 +45,10 @@ pub fn consent(message: &str, initial: bool) -> Result<bool> {
             KeyCode::Left | KeyCode::Right | KeyCode::Up | KeyCode::Down | KeyCode::Char(' ') => {
                 value = !value
             }
-            KeyCode::Char('y' | 'Y') => value = true,
-            KeyCode::Char('n' | 'N') => value = false,
-            KeyCode::Enter => {
+            KeyCode::Enter | KeyCode::Char('y' | 'Y' | 'n' | 'N') => {
+                if let KeyCode::Char(c) = key.code {
+                    value = matches!(c, 'y' | 'Y');
+                }
                 terminal.render(&format!(
                     "{}{}  {}\n",
                     header(&message, "submit"),
@@ -146,6 +147,11 @@ fn run(
                     .map(|((_, l), _)| l.as_str())
                     .collect::<Vec<_>>()
                     .join(", ");
+                let labels = if labels.is_empty() {
+                    "none".into()
+                } else {
+                    labels
+                };
                 terminal.render(&format!(
                     "{}{}  {}\n",
                     header(&message, "submit"),
