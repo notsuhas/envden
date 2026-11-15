@@ -32,6 +32,7 @@ pub fn status_report(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
         return Ok(json!({"configured":false,"update":local["update"]}));
     }
     let state = load_state(&adapters.home)?.unwrap();
+    let held = crate::ui::view::held::held_files(adapters, &state)?;
     let changes = diff(adapters, options(adapters), transport.clone())?;
     let remote = if local["server"] == "reachable" {
         remote_files(adapters, transport).ok()
@@ -55,16 +56,32 @@ pub fn status_report(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
             local_only: link["localOnly"] == true,
             conflict: link["conflict"] == true,
             placement,
-            held_back: false,
+            held_back: held.contains_key(
+                &std::path::Path::new(root)
+                    .join(path)
+                    .to_string_lossy()
+                    .into_owned(),
+            ),
             changed: change.is_some_and(|c| c["differs"] == true),
             remote: remote.as_ref().is_some_and(|r| {
                 r.iter()
                     .any(|(id, p)| Some(id.as_str()) == repo && p == path)
             }),
         });
-        let mut record = json!({"root":root,"path":path,"state":file_state});
+        let mut record = json!({"root":root,"path":path});
         if let Some(repo) = repo {
             record["repoId"] = repo.into();
+        }
+        record["state"] = file_state.into();
+        if file_state == "held-back"
+            && let Some(kind) = held.get(
+                &std::path::Path::new(root)
+                    .join(path)
+                    .to_string_lossy()
+                    .into_owned(),
+            )
+        {
+            record["reason"] = super::held::held_reason(kind).into();
         }
         if let Some(change) = change.filter(|c| c["differs"] == true && c["kind"] == "diff") {
             record["keys"] = json!({"added":change["added"],"removed":change["removed"],"changed":change["changed"]});

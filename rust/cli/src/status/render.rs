@@ -48,6 +48,13 @@ fn configured_lines(report: &Value, cwd: &Path, user_home: &Path) -> Vec<String>
             pending.push(format!("{label}: {}", names.join(", ")));
         }
     }
+    for file in files.iter().filter(|f| f["state"] == "held-back") {
+        pending.push(format!(
+            "Held back: {}: {}",
+            display(file, cwd, user_home),
+            file["reason"].as_str().unwrap_or("run envden doctor")
+        ));
+    }
     if pending.is_empty() && report["server"] == "reachable" && report["serverChecked"] == true {
         if files.is_empty() {
             return vec!["Nothing tracked yet. Run envden track in a checkout.".into()];

@@ -57,26 +57,35 @@ pub fn restore(
         )?;
         let targets = history_targets(&context.state, &repos, &cwd, Some(file), false)?;
         let target = &targets[0];
-        let link = target
-            .link
-            .as_ref()
-            .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Env file is not tracked"))?;
-        if link["localOnly"] == true {
-            return Err(EnvdenError::new(
-                ErrorCode::InvalidInput,
-                "Env file is local only",
-            ));
-        }
-        let store = link["store"].as_str().unwrap_or_default();
-        if conflict_records(&adapters.home)?
+        let managed = target.link.as_ref();
+        let store = managed
+            .and_then(|l| l["store"].as_str())
+            .unwrap_or_default();
+        let detached = if let Some(link) = managed {
+            let mode = if link["mode"] == "copy" {
+                envden_core::adapters::TPlacementMode::Copy
+            } else {
+                envden_core::adapters::TPlacementMode::Link
+            };
+            adapters.placement(mode, Path::new(&target.root)).inspect(
+                store,
+                &Path::new(&target.root).join(&target.path).to_string_lossy(),
+            )? == envden_core::adapters::TPlacementState::Detached
+        } else {
+            false
+        };
+        let conflicted = conflict_records(&adapters.home)?
             .iter()
-            .any(|r| r.store == store)
-        {
-            return Err(EnvdenError::new(
-                ErrorCode::Conflict,
-                "Resolve the conflict before restoring a version",
-            ));
+            .any(|r| r.store == store);
+        if let Some(error) = super::refusal::restore_refusal(
+            managed.is_some(),
+            managed.is_some_and(|l| l["localOnly"] == true),
+            detached,
+            conflicted,
+        ) {
+            return Err(error);
         }
+        let link = managed.unwrap();
         let path = Path::new(&target.root).join(&target.path);
         let destination = if link["mode"] == "link" {
             Path::new(store).to_owned()

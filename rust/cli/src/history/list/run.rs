@@ -99,6 +99,6 @@ pub fn changes_json(changes: &TKeyChanges) -> Value {
     match changes {
         TKeyChanges::Unknown => "unknown".into(),
         TKeyChanges::Unparsed => "unparsed".into(),
-        TKeyChanges::Keys(d) => json!({"added":d.added,"removed":d.removed,"changed":d.changed}),
+        TKeyChanges::Keys(d) => json!({"added":d.added,"changed":d.changed,"removed":d.removed}),
     }
 }

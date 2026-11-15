@@ -18,6 +18,12 @@ pub fn server_reachability(error: &EnvdenError) -> (&'static str, String) {
         }
         if let Some(ureq) = current.downcast_ref::<ureq::Error>() {
             let reason = match ureq {
+                ureq::Error::Io(error) => Some(match error.kind() {
+                    std::io::ErrorKind::ConnectionRefused => "connection refused",
+                    std::io::ErrorKind::ConnectionReset => "connection reset",
+                    std::io::ErrorKind::TimedOut => "timed out",
+                    _ => "network error",
+                }),
                 ureq::Error::Timeout(_) => Some("timed out"),
                 ureq::Error::HostNotFound => Some("address not found"),
                 ureq::Error::Tls(_) => Some("TLS certificate rejected"),
@@ -49,6 +55,14 @@ mod tests {
             );
             assert_eq!(server_reachability(&error), ("unreachable", reason.into()));
         }
+        assert_eq!(
+            server_reachability(&EnvdenError::with_source(
+                ErrorCode::ServerUnreachable,
+                "unreachable",
+                ureq::Error::Io(std::io::Error::from(std::io::ErrorKind::ConnectionRefused))
+            )),
+            ("unreachable", "connection refused".into())
+        );
         assert_eq!(
             server_reachability(&EnvdenError::new(ErrorCode::Unauthorized, "bad pin")),
             ("error", "bad pin".into())
