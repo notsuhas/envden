@@ -25,10 +25,13 @@ pub fn install_method(
     } else {
         None
     };
-    let marker = optional_read(&home.join("install-method"))?;
-    let method = detected
-        .or(recorded)
-        .or(environment)
+    let preferred = detected.or(recorded).or(environment);
+    let marker = if preferred.is_none() {
+        optional_read(&home.join("install-method"))?
+    } else {
+        None
+    };
+    let method = preferred
         .or(marker.as_deref())
         .or_else(|| (binary.parent() == Some(home.join("bin").as_path())).then_some("script"));
     let command = match method {
@@ -52,6 +55,26 @@ pub fn install_method(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn explicit_method_does_not_read_marker() {
+        let home = tempfile::tempdir().unwrap();
+        std::fs::create_dir(home.path().join("install-method")).unwrap();
+        assert_eq!(
+            install_method(home.path(), Some("script"), Path::new("/some/envden"), None).unwrap(),
+            TInstallMethod::Script
+        );
+        assert!(matches!(
+            install_method(
+                home.path(),
+                None,
+                Path::new("/opt/homebrew/Cellar/envden/1/bin/envden"),
+                None
+            )
+            .unwrap(),
+            TInstallMethod::Manager(_)
+        ));
+    }
+
     #[test]
     fn markers_detection_and_precedence() {
         let temp = tempfile::tempdir().unwrap();
