@@ -97,3 +97,15 @@ Possible improvement: checkpoint and remove WAL files on shutdown everywhere, so
 Why: a backup taken right after shutdown on macOS needs all three files. Go matches the platform split on darwin only: `SQLITE_FCNTL_PERSIST_WAL`, plus a truncating checkpoint on close, since Apple empties the kept WAL.
 
 Bug-in-TS: no
+
+## status: approval sometimes reported missing right after a takeover
+
+Scenario: `parity/symlink-takeover`, step 4 (`status --json` on device a, run by the TS binary on both sides of a mixed run) on a heavily loaded machine.
+
+TS behaviour: once in five runs, the file showed `held-back` with "checkout needs approval; run envden track" instead of `changed`, although `track` had just approved the checkout. Reruns passed every time, so it depends on timing, not on the server implementation.
+
+Possible improvement: find the timing input (likely the checkout identity or a cached notice refreshed by a detached process) and make status deterministic.
+
+Why: status must not flip on load, and the parity suite needs every scenario to be deterministic.
+
+Bug-in-TS: likely; not yet reproduced on demand
