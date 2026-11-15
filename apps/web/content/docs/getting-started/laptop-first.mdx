@@ -13,7 +13,7 @@ envden setup --host-server
 
 This installs a login service using launchd on macOS, systemd on Linux or a Windows login service, and publishes it on your tailnet with Tailscale Serve. Setup reads the server's setup token itself, so there's nothing to paste.
 
-Choose a master password and save the recovery kit. Then approve the checkouts you want to sync. Setup places their files and pushes them.
+Choose a master password and save the recovery kit. Setup then lists the checkouts it found, all selected; press Enter to sync them or Space to leave one out. It places their files, pushes them and prints a summary.
 
 Running `envden setup` without `--server` also offers to host the server on this machine.
 
@@ -21,7 +21,7 @@ Running `envden setup` without `--server` also offers to host the server on this
 
 Your env files stay on disk when the server is unreachable. Other devices can sync only while this laptop is awake and reachable over Tailscale.
 
-Use `envden status` to check the connection. An unreachable server is reported as `envden: server unreachable` with the reason, such as `connection refused`.
+Use `envden status` to check the connection. An unreachable server shows as `Server: unreachable (connection refused)`, or with another reason.
 
 ## Move the server later
 

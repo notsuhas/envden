@@ -62,7 +62,17 @@ envden device ls
 envden device rm old-laptop
 ```
 
-The list includes the envden version each device last used. Removal asks for your password, reports the file and key names the device could read, and asks for confirmation. Later pushes use a new encryption key that the removed device never gets. Success prints `Device removed`.
+The list marks this device with `*` and shows the envden version each device last used:
+
+```text
+* mainbook  this device · v0.3.2 · has held the recovery keys
+  laptop-b  v0.3.2
+  old-mac   not confirmed yet
+```
+
+Add `--verbose` for device IDs or `--json` for the raw data.
+
+Removal asks for your password, reports the file and key names the device could read, and asks for confirmation. Later pushes use a new encryption key that the removed device never gets. Success prints `Device removed`.
 
 Rotate the exposed credentials at their providers. Removing a device cannot erase files or keys it already has. Use `--new-kit` to replace the recovery kit in the same removal.
 

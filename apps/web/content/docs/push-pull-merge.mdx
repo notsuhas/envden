@@ -14,11 +14,7 @@ envden diff
 envden push
 ```
 
-`diff` reports key names and change markers without values. `push` and `pull` print JSON results. For example, a push that uploads one file without local reconciliation changes prints:
-
-```json
-{ "kind": "pushed", "changed": 1, "conflicts": 0 }
-```
+`diff` reports key names and change markers without values. `push` and `pull` print one summary line, such as `Pushed 1 file`, `Up to date` or `Pulled 1 file; 1 conflict to resolve`. Add `--json` for a JSON result.
 
 Add `--all` to sync every tracked repo. A push lands all its files at once or none of them. If another device pushes first, envden retries on top of that push. If other devices keep pushing, it stops and asks you to try again.
 
@@ -27,7 +23,7 @@ envden pull --all
 envden push --all
 ```
 
-Pull merges unpushed edits rather than replacing them. Before overwriting a file, envden saves a backup under `~/.envden/conflicts/`. Backups expire after 30 days.
+Pull merges unpushed edits rather than replacing them. Before overwriting an edit the server doesn't have, envden saves a backup and prints `Kept your previous .env at <path>`. Versions the server already has aren't backed up; `envden history` lists them. Backups expire after 30 days.
 
 ## Choose which files to sync
 
@@ -51,34 +47,40 @@ A file becomes a conflict when both sides change the same key, or one deletes a 
 
 ## Resolve a conflict
 
-A push or pull with unresolved conflicts exits with code **3**. List them first:
+When a file has a conflict, pull leaves it as it is and prints one line for it. A push or pull with unresolved conflicts exits with code **3**.
+
+```text
+Conflict in .env: TOKEN changed here and on laptop. Edit ~/.envden/conflicts/RW09…, then run envden resolve .env
+1 conflict to resolve; nothing pulled
+```
+
+The conflict file holds both versions between git-style markers. When the other keys merge, only the conflicting keys are marked:
+
+```text
+API_URL=https://staging.example.com
+<<<<<<< this device
+TOKEN=mine
+=======
+TOKEN=theirs
+>>>>>>> server (from laptop)
+```
+
+Otherwise the markers wrap both whole files. Keep the lines you want, delete the markers, then run:
 
 ```sh
-envden resolve --list
+envden resolve .env
 ```
 
-The JSON array includes each conflict's checkout `root`, relative `path`, editable `file`, and saved `mine` and `server` paths. With no conflicts, it prints `[]`.
-
-Choose a version for one file:
+envden refuses while markers remain. To take one version as it is:
 
 ```sh
-envden resolve .env --repo /path/to/checkout --keep-mine
-envden resolve .env --repo /path/to/checkout --take-server
+envden resolve .env --keep-mine
+envden resolve .env --take-server
 ```
 
-To combine the versions yourself, edit the `file` path from `--list`, then run:
+Without a terminal, `--keep-mine` and `--take-server` need `envden config agent-merge on`. Add `--repo <path>` to pick a checkout from outside it.
 
-```sh
-envden resolve .env --repo /path/to/checkout
-```
-
-A successful resolution prints:
-
-```json
-{ "kind": "resolved", "path": ".env" }
-```
-
-The command must select exactly one conflict. Resolution updates the local file; run `envden push` to publish it.
+`envden resolve --list` shows each conflict's file and the saved copy of every version. `--list --json` prints the same records as JSON, or `[]` when there are none. Resolution updates the local file and prints `Resolved .env`; run `envden push` to publish it.
 
 ## Check status and install the shell notice
 
@@ -87,6 +89,17 @@ envden status
 envden status --json
 envden shell install zsh
 ```
+
+`envden status` works like `git status`. It lists files changed here, files newer on the server, conflicts and held-back files, each with the command that fixes it:
+
+```text
+Server: reachable
+Changed here (run envden push): .env
+Newer on server (run envden pull): api/.env
+Conflicts (run envden resolve --list): web/.env
+```
+
+When nothing is pending it prints one line, such as `In sync: 1 repo, 1 env file. Server reachable.` It shows paths and key names, never values. `--json` lists every tracked file with a `state`.
 
 The shell notice supports `zsh`, `bash`, `fish` and `powershell`. It checks a cache on shell start and `cd`, then prints a line when the checkout is out of sync. A stale cache triggers a background refresh after 60 seconds. The hook doesn't run git or write checkout files, and it doesn't push or pull.
 
