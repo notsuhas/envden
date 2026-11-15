@@ -1,4 +1,4 @@
-import { commands } from "../harness/commands.ts";
+import { commands } from "../harness/commands/catalog.ts";
 import type { IScenario } from "../harness/types.ts";
 
 export default {

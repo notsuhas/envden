@@ -42,7 +42,7 @@ Additional scenarios:
 | file-options / resolution-options | Copy placement/tracking, config, history confirmation/all, plain removal; both conflict choices, repo selection, JSON and nonterminal refusal |
 | onboarding-options | Explicit setup preferences, token/scan flags, missing join-resume state, pasted recovery join, notice-cache refresh |
 
-All command names are maintained in `harness/commands.ts`, checked against `program.ts` and the command definitions. Remaining limits prevent calling this a complete port definition of done:
+All command names are maintained in `harness/commands/catalog.ts`, checked against `program.ts` and the command definitions. Remaining limits prevent calling this a complete port definition of done:
 
 - Host-here **cannot safely run with PATH shims**: the frozen reference's `packages/core/src/process/{trust,directories,environment}.ts` resolves tools from fixed trusted system directories and discards PATH. Doctor confirms sandbox shims are bypassed. `harness/host/shims.ts` supplies logging shims for Tailscale, launchctl, systemctl, loginctl, schtasks, PowerShell and browser openers; any log produced is included in home snapshots. Full host setup (including `--host-server`) requires an isolated OS/VM with shims at those fixed paths, plus sandbox TLS forwarding for Tailscale Serve. Never run it on this shared host.
 - `lock` does not exist. Minimum expiry is 1d (`settings/unlock-period.ts`); no supported clock/short-period environment override exists. Expiry-triggered sync prompts and timed server rate-limit lockouts need elapsed time or forbidden internal-state injection. Three failed unlock attempts and subsequent successful unlock are covered.

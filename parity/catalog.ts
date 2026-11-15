@@ -1,3 +1,4 @@
+import rejoin from "./scenarios/onboarding/rejoin.ts";
 import hostHere from "./scenarios/onboarding/host-here.ts";
 import onboardingOptions from "./scenarios/onboarding/options.ts";
 import resolutionOptions from "./scenarios/files/resolution.ts";
@@ -30,6 +31,7 @@ if (
   throw new Error("Host shims require a disposable GitHub runner");
 
 export const scenarios = [
+  rejoin,
   ...(process.env.PARITY_HOST_SHIMS === "1" ? [hostHere] : []),
   onboardingOptions,
   resolutionOptions,
