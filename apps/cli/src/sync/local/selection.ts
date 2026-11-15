@@ -12,7 +12,7 @@ export async function selectedRepos(
   options: ISyncOptions,
   skippedRoots = new Set<string>(),
 ): Promise<Set<string>> {
-  await pruneMissingCheckouts(adapters.home, state, options.report ?? ignoreNotice);
+  await pruneMissingCheckouts(adapters.home, state, options.report ?? ignoreNotice, adapters.now);
   const repos = new Set<string>();
 
   for (const approved of state.approved) {

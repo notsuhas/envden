@@ -16,6 +16,8 @@ import { login } from "../../session/login.ts";
 import { openPairing, approvePairing } from "../../pairing/approver.ts";
 import { exchangeJoiner, resumeJoiner, resendJoiner } from "../../pairing/joiner.ts";
 
+const fixtureClock = () => 1800000000000;
+
 import { setupFlow } from "./setup-flow.ts";
 
 function signal() {
@@ -42,7 +44,7 @@ export async function pairedFlow(
       repoId: "github.com/example/project",
     };
 
-    await atomicWrite(join(checkout.root, ".env"), "TOKEN=local-test-value\n");
+    await atomicWrite(join(checkout.root, ".env"), "TOKEN=local-test-value\n", fixtureClock);
 
     first.repo = createFakeRepoAdapter({
       envFiles: async () => [".env"],

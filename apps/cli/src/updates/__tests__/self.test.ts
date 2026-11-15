@@ -13,15 +13,20 @@ import { currentReleasePlatform } from "../self/platform.ts";
 import { selfUpdate } from "../self.ts";
 import { replaceBinary, cleanupOldBinary } from "../replace.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const valid of [true, false])
   test(`script self-update verifies release checksum: ${valid}`, async () => {
     const root = await mkdtemp(join(tmpdir(), "envden-update-"));
 
-    const adapters = createAdapters({
-      home: join(root, "home"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     adapters.shell = (shell) => ({
       id: shell,
@@ -39,9 +44,9 @@ for (const valid of [true, false])
     const asset = `envden-${platform}${platform.startsWith("windows-") ? ".exe" : ""}`;
 
     try {
-      await atomicWrite(join(adapters.home, "install-method"), "script");
+      await atomicWrite(join(adapters.home, "install-method"), "script", fixtureClock);
       const binary = join(root, "envden");
-      await atomicWrite(binary, "old binary");
+      await atomicWrite(binary, "old binary", fixtureClock);
 
       const action = selfUpdate(adapters, {
         binary,
@@ -93,7 +98,10 @@ test("fresh update check does not configure a vault", async () => {
 
   try {
     await runUpdateCheck(
-      createAdapters({ home: root, userHome: root, keychain: createMemoryKeychainAdapter([]) }),
+      createAdapters(
+        { home: root, userHome: root, keychain: createMemoryKeychainAdapter([]) },
+        fixtureClock,
+      ),
       100,
       true,
       async () => new Response(null, { status: 404 }),
@@ -110,8 +118,17 @@ test("Windows replacement keeps the old executable for next-start cleanup", asyn
 
   try {
     const binary = join(root, "envden.exe");
-    await atomicWrite(binary, "old");
-    await replaceBinary(binary, new TextEncoder().encode("new"), true, async () => {});
+    await atomicWrite(binary, "old", fixtureClock);
+
+    await replaceBinary(
+      binary,
+      new TextEncoder().encode("new"),
+      true,
+      async () => {},
+      undefined,
+      fixtureClock,
+    );
+
     expect(await readFile(binary, "utf8")).toBe("new");
     expect(await readFile(binary + ".envden-old", "utf8")).toBe("old");
     await cleanupOldBinary(binary, true);
@@ -127,13 +144,20 @@ for (const windows of [false, true])
     const binary = join(root, "envden");
 
     try {
-      await atomicWrite(binary, "old");
+      await atomicWrite(binary, "old", fixtureClock);
 
       await Promise.resolve(
         expect(
-          replaceBinary(binary, new TextEncoder().encode("bad"), windows, async () => {
-            throw new Error("cannot start");
-          }),
+          replaceBinary(
+            binary,
+            new TextEncoder().encode("bad"),
+            windows,
+            async () => {
+              throw new Error("cannot start");
+            },
+            undefined,
+            fixtureClock,
+          ),
         ).rejects.toThrow(),
       );
 
@@ -149,6 +173,7 @@ for (const windows of [false, true])
             async () => {
               throw new Error("post-install failed");
             },
+            fixtureClock,
           ),
         ).rejects.toThrow(),
       );
@@ -165,12 +190,19 @@ for (const windows of [false, true])
     const binary = join(root, "envden");
 
     try {
-      await atomicWrite(binary, "old");
+      await atomicWrite(binary, "old", fixtureClock);
       await mkdir(binary + ".envden-old");
 
       await Promise.resolve(
         expect(
-          replaceBinary(binary, new Uint8Array([1]), windows, async () => {}),
+          replaceBinary(
+            binary,
+            new Uint8Array([1]),
+            windows,
+            async () => {},
+            undefined,
+            fixtureClock,
+          ),
         ).rejects.toThrow(),
       );
 
@@ -185,14 +217,17 @@ test("concurrent updates refuse the second before downloading", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-concurrent-update-"));
 
   try {
-    const adapters = createAdapters({
-      home: root,
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: root,
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const binary = join(root, "envden");
-    await atomicWrite(join(root, "install-method"), "script");
+    await atomicWrite(join(root, "install-method"), "script", fixtureClock);
     let entered!: () => void;
     let release!: () => void;
 

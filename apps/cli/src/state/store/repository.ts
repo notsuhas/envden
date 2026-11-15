@@ -50,15 +50,20 @@ function reviver(_key: string, value: unknown): unknown {
   return value;
 }
 
-export async function saveState(home: string, state: ILocalState): Promise<void> {
+export async function saveState(
+  home: string,
+  state: ILocalState,
+  now: () => number,
+): Promise<void> {
   await withStateLock(home, async () => {
     await privateDirectory(home);
-    const headerRefs = await storeHeaders(home, state.headers);
+    const headerRefs = await storeHeaders(home, state.headers, now);
     const { headers: _headers, latest: _latest, ...record } = state;
 
     await atomicWrite(
       join(home, "state", "device.json"),
       JSON.stringify({ ...record, headerRefs }, replacer),
+      now,
     );
 
     await clearPlacement(home);

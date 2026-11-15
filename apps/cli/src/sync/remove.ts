@@ -58,7 +58,7 @@ export function removeFile(
     );
 
     const preserved = backups.map((item) => item.path);
-    await requestDeletion(adapters.home, selected.store, false);
+    await requestDeletion(adapters.home, selected.store, false, undefined, undefined, adapters.now);
 
     await rm(basePath(adapters.home, selected.store) + ".pending", { force: true });
 
@@ -68,8 +68,8 @@ export function removeFile(
         .remove(selected.store, join(target.root, target.path));
     }
 
-    await writeBytes(selected.store, undefined);
-    await removeCheckoutBases(adapters.home, targets, []);
+    await writeBytes(selected.store, undefined, adapters.now);
+    await removeCheckoutBases(adapters.home, targets, [], adapters.now);
 
     const entry =
       records.find((record) => record.store === selected.store)?.entry ??
@@ -81,16 +81,17 @@ export function removeFile(
       true,
       entry ?? undefined,
       targets.map((target) => join(target.root, target.path)),
+      adapters.now,
     );
 
-    const published = await deletionRequested(adapters.home, selected.store);
+    const published = await deletionRequested(adapters.home, selected.store, adapters.now);
 
     if (!published) {
       state!.links = state!.links.filter((link) => link.store !== selected.store);
-      await saveState(adapters.home, state!);
+      await saveState(adapters.home, state!, adapters.now);
     }
 
-    await settleRemoval(adapters.home, selected.store, records);
+    await settleRemoval(adapters.home, selected.store, records, adapters.now);
 
     return {
       kind: "removed" as const,
@@ -121,12 +122,14 @@ async function settleRemoval(
   home: string,
   store: string,
   records: Awaited<ReturnType<typeof conflictRecords>>,
+  now: () => number,
 ) {
   for (const record of records.filter((record) => record.store === store))
-    if (record.entry) await markAppliedEntry(home, record.entry, record.store);
+    if (record.entry) await markAppliedEntry(home, record.entry, record.store, now);
 
   await saveConflicts(
     home,
     records.filter((record) => record.store !== store),
+    now,
   );
 }

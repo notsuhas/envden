@@ -7,6 +7,8 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { heldBackFiles } from "../local/lineage/held-back.ts";
 import { push } from "../engine.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 
 for (const failure of ["placement", "conflict", "inspection"] as const)
@@ -14,7 +16,8 @@ for (const failure of ["placement", "conflict", "inspection"] as const)
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy"]);
 
-    if (failure === "conflict") await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n");
+    if (failure === "conflict")
+      await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n", fixtureClock);
     else if (failure === "inspection") {
       const path = join(targets[0]!.root, ".env");
       await rm(path);
@@ -28,7 +31,7 @@ for (const failure of ["placement", "conflict", "inspection"] as const)
       };
     }
 
-    await atomicWrite(f.aStore, "TOKEN=server\n");
+    await atomicWrite(f.aStore, "TOKEN=server\n", fixtureClock);
     await push(f.first, f.opts);
     const result = await push(f.second, f.opts);
     const notices = await heldBackFiles(f.second);

@@ -9,6 +9,8 @@ import { readHistory } from "../../vault/history.ts";
 import { deviceIdentity } from "../../identity/device.ts";
 import { text } from "../../client/encoding.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("accepted recovery-signed joins report once per event and skip the joining device", async () => {
   const f = await fixture();
   const output = spyOn(console, "error").mockImplementation(() => {});
@@ -31,7 +33,7 @@ test("accepted recovery-signed joins report once per event and skip the joining 
         entries: history.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
       };
 
-      await reportRecoveryJoins(f.first.home, state, identity.record.id);
+      await reportRecoveryJoins(f.first.home, state, identity.record.id, fixtureClock);
 
       return state;
     };
@@ -59,7 +61,14 @@ test("accepted recovery-signed joins report once per event and skip the joining 
 
     if (own.kind !== 1) throw new Error("Expected join");
     output.mockClear();
-    await reportRecoveryJoins(f.home("new-notice").home, final, own.payload.device.id);
+
+    await reportRecoveryJoins(
+      f.home("new-notice").home,
+      final,
+      own.payload.device.id,
+      fixtureClock,
+    );
+
     expect(output.mock.calls.flat()).toEqual(["envden: third joined with the recovery kit"]);
   } finally {
     output.mockRestore();

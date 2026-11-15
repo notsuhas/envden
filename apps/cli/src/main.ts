@@ -6,16 +6,21 @@ import { isEnvdenError } from "@envden/core/errors";
 import { errorExitCode } from "./output/exit-code.ts";
 import { createProgram } from "./program.ts";
 
-async function runCli() {
+async function runCli(now: () => number) {
   try {
-    await withUpdateStatus(createAdapters().home, () => createProgram().parseAsync());
+    await withUpdateStatus(createAdapters(undefined, now).home, () =>
+      createProgram(now).parseAsync(),
+    );
   } catch (error) {
     if (isEnvdenError(error) && error.code === "CLIENT_TOO_OLD")
-      await recordUpdateRequired(createAdapters().home, error);
+      await recordUpdateRequired(createAdapters(undefined, now).home, error, now);
 
     console.error(sanitizeTerminal(error instanceof Error ? error.message : "Command failed"));
     process.exitCode = isEnvdenError(error) ? errorExitCode(error.code) : 1;
   }
 }
 
-if (import.meta.main) await withTerminalErrors(runCli);
+if (import.meta.main) {
+  const commandTime = Date.now();
+  await withTerminalErrors(() => runCli(() => commandTime));
+}

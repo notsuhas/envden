@@ -60,6 +60,7 @@ async function lockedexchangeJoiner(
         ke3: finish.finishLoginRequest,
         message: text(message),
       }),
+      adapters.now,
     );
   });
 

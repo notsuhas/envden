@@ -48,7 +48,13 @@ async function lockedrunSetup(
 
   await setupCheckouts(adapters, state, { ...options, now });
   await pushInitialFiles(adapters, state, now);
-  await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
+
+  await refreshNotice(
+    adapters.home,
+    state,
+    (root) => adapters.repo.caseInsensitive(root, true),
+    adapters.now,
+  );
 }
 
 async function createState(
@@ -81,7 +87,7 @@ async function createState(
 
   await setupPreferences(adapters, options);
 
-  await saveState(adapters.home, result.state);
+  await saveState(adapters.home, result.state, adapters.now);
 
   return result.state;
 }

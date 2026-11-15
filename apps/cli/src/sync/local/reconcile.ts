@@ -57,10 +57,10 @@ export async function reconcile(
     if (conflicts === beforeConflicts)
       applied[p.base32(entry.fileId)] = text(p.FileEntryCodec.write(entry));
 
-    await saveAppliedFiles(context.adapters.home, applied);
+    await saveAppliedFiles(context.adapters.home, applied, context.options.now);
   }
 
-  await saveAppliedFiles(context.adapters.home, applied);
+  await saveAppliedFiles(context.adapters.home, applied, context.options.now);
 
   return { changed, conflicts, failedStores };
 }

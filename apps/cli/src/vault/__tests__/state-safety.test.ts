@@ -5,6 +5,8 @@ import { setupVault } from "../setup.ts";
 import { kitJoin } from "../recovery/kit.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const missing of [
   "epoch/1",
   "id-key",
@@ -104,7 +106,7 @@ test("join refuses a foreign committed vault without changing state or keys", as
 
   try {
     const state = { ...f.result.state, vaultId: "foreign-vault", aliases: { old: "preserved" } };
-    await saveState(f.second.home, state);
+    await saveState(f.second.home, state, fixtureClock);
     const key = new Uint8Array(32).fill(7);
     await f.second.keychain.set(`envden/${f.second.home}/id-key`, key);
 

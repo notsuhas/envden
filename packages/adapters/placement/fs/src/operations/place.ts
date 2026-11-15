@@ -19,10 +19,10 @@ export async function place(
   root: string,
   storePath: string,
   checkoutPath: string,
-  backupDirectory?: string,
+  backupDirectory: string | undefined,
   runtime = { platform: process.platform, libc },
-  prepareTemporary?: (path: string) => Promise<void>,
-  now = Date.now,
+  prepareTemporary: ((path: string) => Promise<void>) | undefined,
+  now: () => number,
 ): Promise<void> {
   const path = checkoutRelative(root, checkoutPath);
 

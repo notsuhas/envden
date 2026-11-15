@@ -10,14 +10,19 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { linkCheckout } from "../place.ts";
 import { markLocalOnly } from "../local-only.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("placement requires approval, relinks equal detached copies and preserves differing files", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-links-"));
 
-  const adapters = createAdapters({
-    home: join(root, "home"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter([]),
-  });
+  const adapters = createAdapters(
+    {
+      home: join(root, "home"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    },
+    fixtureClock,
+  );
 
   const state = emptyState("test");
 
@@ -39,14 +44,14 @@ test("placement requires approval, relinks equal detached copies and preserves d
   const destination = join(checkout.root, ".env");
 
   try {
-    await atomicWrite(destination, "PORT=3000\n");
+    await atomicWrite(destination, "PORT=3000\n", fixtureClock);
     await linkCheckout(adapters, state, checkout, async () => false);
     expect(state.links).toHaveLength(0);
     await linkCheckout(adapters, state, checkout, async () => true);
     expect(excludes).toBe(1);
     const link = state.links[0]!;
     await unlink(destination);
-    await atomicWrite(destination, "PORT=3000\n");
+    await atomicWrite(destination, "PORT=3000\n", fixtureClock);
 
     await linkCheckout(adapters, state, checkout, async () => {
       throw new Error("Repeated approval");
@@ -56,7 +61,7 @@ test("placement requires approval, relinks equal detached copies and preserves d
       "linked",
     );
 
-    await atomicWrite(destination, "PORT=4000\n");
+    await atomicWrite(destination, "PORT=4000\n", fixtureClock);
     await linkCheckout(adapters, state, checkout, async () => true);
     expect(await readFile(link.store, "utf8")).toBe("PORT=3000\n");
     await markLocalOnly(adapters, state, checkout.root, ".env");
@@ -71,11 +76,14 @@ test("container offers are recorded once per checkout", async () => {
   const { checkoutPlacement } = await import("../checkout/mode.ts");
   const root = await mkdtemp(join(tmpdir(), "envden-copy-"));
 
-  const adapters = createAdapters({
-    home: join(root, "home"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter([]),
-  });
+  const adapters = createAdapters(
+    {
+      home: join(root, "home"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    },
+    fixtureClock,
+  );
 
   const checkout = {
     root: join(root, "checkout"),
@@ -84,8 +92,8 @@ test("container offers are recorded once per checkout", async () => {
   };
 
   try {
-    await atomicWrite(join(checkout.root, ".env"), "A=1");
-    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch");
+    await atomicWrite(join(checkout.root, ".env"), "A=1", fixtureClock);
+    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch", fixtureClock);
     let offered = 0;
 
     const ask = async () => {
@@ -106,11 +114,14 @@ test("copy flags and mode switches preserve checkout bases", async () => {
   const { readConfig, setConfig } = await import("../../settings/config.ts");
   const root = await mkdtemp(join(tmpdir(), "envden-copy-"));
 
-  const adapters = createAdapters({
-    home: join(root, "home"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter([]),
-  });
+  const adapters = createAdapters(
+    {
+      home: join(root, "home"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    },
+    fixtureClock,
+  );
 
   const checkout = {
     root: join(root, "checkout"),
@@ -119,8 +130,8 @@ test("copy flags and mode switches preserve checkout bases", async () => {
   };
 
   try {
-    await atomicWrite(join(checkout.root, ".env"), "A=1");
-    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch");
+    await atomicWrite(join(checkout.root, ".env"), "A=1", fixtureClock);
+    await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch", fixtureClock);
     const rules = { include: [".env"], exclude: [], extraSkipped: ["generated"] };
     await setConfig("env-files", JSON.stringify(rules), adapters.home);
 
@@ -146,7 +157,7 @@ test("copy flags and mode switches preserve checkout bases", async () => {
     expect(state.links[0]?.mode).toBe("link");
     const { basePath } = await import("../../sync/local/files.ts");
     const store = state.links[0]!.store;
-    await atomicWrite(basePath(adapters.home, store), "A=1");
+    await atomicWrite(basePath(adapters.home, store), "A=1", fixtureClock);
     await setCheckoutPlacement(adapters, checkout.root, "copy");
     await linkCheckout(adapters, state, checkout, async () => true);
     expect(await readFile(basePath(adapters.home, store, checkout.root), "utf8")).toBe("A=1");
@@ -164,11 +175,14 @@ for (const interactive of [false, true])
     const { readConfig } = await import("../../settings/config.ts");
     const root = await mkdtemp(join(tmpdir(), "envden-unsupported-"));
 
-    const adapters = createAdapters({
-      home: join(root, "home"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const placement = adapters.placement;
 

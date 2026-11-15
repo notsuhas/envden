@@ -2,6 +2,8 @@ import { test, expect } from "bun:test";
 import { deriveAlias } from "../alias.ts";
 import { isWithinRoot } from "../discovery.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const [source, target, aliases, kind] of [
   ["", "b", {}, "invalid"],
   ["a", "", {}, "invalid"],
@@ -36,11 +38,14 @@ import { aliasRepo } from "../alias.ts";
 test("alias updates persist without losing prior aliases and rejected chains leave state unchanged", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-alias-"));
 
-  const adapters = createAdapters({
-    home,
-    userHome: home,
-    keychain: createMemoryKeychainAdapter([]),
-  });
+  const adapters = createAdapters(
+    {
+      home,
+      userHome: home,
+      keychain: createMemoryKeychainAdapter([]),
+    },
+    fixtureClock,
+  );
 
   try {
     await Promise.resolve(
@@ -49,7 +54,7 @@ test("alias updates persist without losing prior aliases and rejected chains lea
 
     const state = emptyState("test");
     state.aliases = { old: "canonical" };
-    await saveState(home, state);
+    await saveState(home, state, fixtureClock);
     await aliasRepo(adapters, "a", "b");
     const saved = await loadState(home);
     expect(saved?.aliases).toEqual({ old: "canonical", a: "b" });

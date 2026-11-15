@@ -126,10 +126,14 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   if (readOnly) return { repairs: result.repairs, noFastForward: pending };
 
   for (const [hash, files] of fileLists)
-    await atomicWrite(join(adapters.home, "state", "file-lists", hash), p.FilesCodec.write(files));
+    await atomicWrite(
+      join(adapters.home, "state", "file-lists", hash),
+      p.FilesCodec.write(files),
+      context.options.now,
+    );
 
   for (const id of result.noFastForward) pending.add(id);
-  await savePendingRepairs(adapters.home, pending);
+  await savePendingRepairs(adapters.home, pending, context.options.now);
 
   return { repairs: result.repairs, noFastForward: pending };
 }

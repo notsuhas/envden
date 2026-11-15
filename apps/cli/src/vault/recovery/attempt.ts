@@ -53,7 +53,7 @@ export async function prepareKitJoin(adapters: TAdapters, options: IKitJoin) {
         !resuming && !(await loadState(adapters.home))?.checkpoint,
       );
 
-  await atomicWrite(pending, attempt);
+  await atomicWrite(pending, attempt, adapters.now);
 
   const client = createClient({
     address: options.address,

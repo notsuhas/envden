@@ -19,7 +19,7 @@ const attemptSchema = z.object({
 export async function readAttempts(
   adapters: TAdapters,
   links: ILocalState["links"],
-  now = Date.now,
+  now: () => number,
   report?: (message: string) => void,
 ) {
   const directory = join(adapters.home, "state", "attempts");
@@ -31,7 +31,7 @@ export async function readAttempts(
     const path = join(directory, receipt);
 
     if (name.endsWith(".invalid")) {
-      await holdCorruptAttempt(adapters.home, links, path);
+      await holdCorruptAttempt(adapters.home, links, path, adapters.now);
       await rm(join(directory, name), { force: true });
       continue;
     }
@@ -48,7 +48,7 @@ export async function readAttempts(
 
     if (record) attempts.push({ path, ...record });
     else {
-      await holdCorruptAttempt(adapters.home, links, path);
+      await holdCorruptAttempt(adapters.home, links, path, adapters.now);
       await rm(marker, { force: true });
     }
   }
@@ -56,8 +56,13 @@ export async function readAttempts(
   return attempts.sort((a, b) => Number(BigInt(a.sequence) - BigInt(b.sequence)));
 }
 
-async function holdCorruptAttempt(home: string, links: ILocalState["links"], path: string) {
-  for (const link of links) await atomicWrite(basePath(home, link.store) + ".corrupt", path);
+async function holdCorruptAttempt(
+  home: string,
+  links: ILocalState["links"],
+  path: string,
+  now: () => number,
+) {
+  for (const link of links) await atomicWrite(basePath(home, link.store) + ".corrupt", path, now);
 }
 
 function decodeAttempt(saved: string, name: string) {

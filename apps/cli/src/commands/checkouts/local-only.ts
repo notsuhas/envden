@@ -11,11 +11,12 @@ export const localOnlyCommand = new Command("local-only")
   .argument("<file>")
   .description("Keep a managed file local to this checkout")
   .action(async (file) => {
-    const adapters = createAdapters();
+    const commandTime = Date.now();
+    const adapters = createAdapters(undefined, () => commandTime);
+    const absolute = resolve(file);
 
     await withStateLock(adapters.home, async () => {
       const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
-      const absolute = resolve(file);
       const link = state.links.find((item) => resolve(item.root, item.path) === absolute);
       if (!link) throw new EnvdenError("NOT_FOUND", "File is not managed by envden");
       await markLocalOnly(adapters, state, link.root, relative(link.root, absolute));

@@ -5,15 +5,18 @@ import type { ISyncOptions } from "./model.ts";
 import { login } from "../session/login.ts";
 import { consent, secret } from "../output/questions.ts";
 
-export function syncOptions(options: {
-  all?: boolean;
-  yes?: boolean;
-  json?: boolean;
-}): ISyncOptions {
+export function syncOptions(
+  options: {
+    all?: boolean;
+    yes?: boolean;
+    json?: boolean;
+  },
+  now: () => number,
+): ISyncOptions {
   return {
     ...options,
     cwd: process.cwd(),
-    now: Date.now,
+    now,
     fetcher: fetch,
     interactive: !!process.stdin.isTTY,
     confirm: (keys) => consent(`Merge changes to ${keys.join(", ")}?`),

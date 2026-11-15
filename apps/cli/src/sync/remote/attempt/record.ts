@@ -31,7 +31,12 @@ export async function saveAttempt(
   });
 
   const receipt = text(p.sha256(new TextEncoder().encode(document)));
-  await atomicWrite(join(context.adapters.home, "state", "attempts", receipt), document);
+
+  await atomicWrite(
+    join(context.adapters.home, "state", "attempts", receipt),
+    document,
+    context.options.now,
+  );
 }
 
 export async function acknowledgeAttempt(context: TSyncContext) {
@@ -80,15 +85,27 @@ async function applyAttempt(
             place === basePath(context.adapters.home, store, link.root),
         )
       )
-        await saveBase(place, content);
+        await saveBase(place, content, context.options.now);
     }
 
-    await atomicWrite(basePath(context.adapters.home, store) + ".entry", encoded);
+    await atomicWrite(
+      basePath(context.adapters.home, store) + ".entry",
+      encoded,
+      context.options.now,
+    );
+
     applied[id] = encoded;
 
-    if (await deletionRequested(context.adapters.home, store))
-      await requestDeletion(context.adapters.home, store, content !== undefined, encoded);
+    if (await deletionRequested(context.adapters.home, store, context.options.now))
+      await requestDeletion(
+        context.adapters.home,
+        store,
+        content !== undefined,
+        encoded,
+        undefined,
+        context.options.now,
+      );
   }
 
-  await saveAppliedFiles(context.adapters.home, applied);
+  await saveAppliedFiles(context.adapters.home, applied, context.options.now);
 }

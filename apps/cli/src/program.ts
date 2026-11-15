@@ -32,7 +32,7 @@ import { agentCommand } from "./commands/agent/agent.ts";
 import { createAdapters } from "./adapters.ts";
 import { commandNotice } from "./notice/command.ts";
 
-export function createProgram() {
+export function createProgram(now: () => number) {
   const program = new Command()
     .name("envden")
     .description("Encrypted whole-file env sync over your private network")
@@ -42,7 +42,9 @@ export function createProgram() {
   let active: CommandUnknownOpts | undefined;
 
   program.hook("preAction", async (_program, command) => {
-    const state = await loadState(createAdapters().home).catch(() => undefined);
+    const commandTime = Date.now();
+
+    const state = await loadState(createAdapters(undefined, now).home).catch(() => undefined);
     setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);
     if (command.name() !== "status" || !command.opts().refreshCache) active = command;
 
@@ -53,7 +55,14 @@ export function createProgram() {
       return;
 
     try {
-      const notice = await commandNotice(createAdapters(), Date.now(), fetch, false, process.cwd());
+      const notice = await commandNotice(
+        createAdapters(undefined, now),
+        commandTime,
+        fetch,
+        false,
+        process.cwd(),
+      );
+
       reportCommandNotice(notice);
     } catch {
       // Notices must never prevent a command from running.
@@ -95,7 +104,7 @@ export function createProgram() {
         () => parse(...args),
         async (outcome) => {
           if (active)
-            await reportTelemetry(createAdapters(), {
+            await reportTelemetry(createAdapters(undefined, now), {
               command: commandName(active),
               ...outcome,
               ...commandCounts.getStore(),

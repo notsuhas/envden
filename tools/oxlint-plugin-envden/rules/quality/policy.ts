@@ -38,6 +38,12 @@ export default defineRule({
     const lines = context.sourceCode.text.split("\n");
     const report = (node: ESTree.Node, message: string) => context.report({ node, message });
 
+    function checkTest(node: ESTree.MemberExpression) {
+      if (!test) return;
+      const message = testCall(name(node.property), lines[node.loc.start.line - 2] ?? "");
+      if (message) report(node, message);
+    }
+
     return {
       Program() {
         for (const comment of context.sourceCode.getAllComments()) {
@@ -57,16 +63,9 @@ export default defineRule({
         if (!test && /^@envden\/testing(?:\/|$)/.test(String(node.source.value)))
           report(node, "Production code must not import @envden/testing.");
       },
-      CallExpression(node) {
-        const callee = node.callee;
-        if (callee.type !== "MemberExpression") return;
-
-        if (checkClock && ambientClock(callee)) report(node, "Pass time as an argument.");
-      },
       MemberExpression(node) {
-        if (!test) return;
-        const message = testCall(name(node.property), lines[node.loc.start.line - 2] ?? "");
-        if (message) report(node, message);
+        if (checkClock && ambientClock(node)) report(node, "Pass time as an argument.");
+        checkTest(node);
       },
       NewExpression(node) {
         if (checkClock && name(node.callee) === "Date" && node.arguments.length === 0)

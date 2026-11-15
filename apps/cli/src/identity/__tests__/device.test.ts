@@ -6,6 +6,8 @@ import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { deviceId } from "@envden/core/protocol";
 import { deviceIdentity } from "../device.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("three independent keypairs survive reload in their namespace", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-identity-"));
 
@@ -45,7 +47,7 @@ test("configured state cannot silently replace a missing identity", async () => 
   try {
     const { saveState } = await import("../../state/store/repository.ts");
     const { emptyState } = await import("../../state/model.ts");
-    await saveState(root, { ...emptyState("joined"), vaultId: "configured" });
+    await saveState(root, { ...emptyState("joined"), vaultId: "configured" }, fixtureClock);
     const keychain = createMemoryKeychainAdapter(["get"]);
 
     await Promise.resolve(

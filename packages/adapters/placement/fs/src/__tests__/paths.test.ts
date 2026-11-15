@@ -36,7 +36,7 @@ test("existing local Unicode copies can be inspected and removed", async () => {
     await mkdir(folder);
     await writeFile(store, "same");
     await writeFile(local, "same");
-    const adapter = createFsPlacementAdapter("copy", root);
+    const adapter = createFsPlacementAdapter("copy", root, undefined, () => 1800000000000);
     expect(await adapter.inspect(store, local)).toBe("linked");
     await adapter.remove(store, local);
     expect(await adapter.inspect(store, local)).toBe("missing");

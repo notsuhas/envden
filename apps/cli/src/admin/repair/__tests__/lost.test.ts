@@ -12,6 +12,8 @@ import { push, pull } from "../../../sync/engine.ts";
 import { uploadRepair } from "../upload.ts";
 import { finishRepair } from "../finish.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const recovered of [true, false])
   test(`accept-lost ${recovered ? "recovers an older version" : "marks a file lost"} and offline pull crosses op 11`, async () => {
     const f = await fixture();
@@ -31,7 +33,7 @@ for (const recovered of [true, false])
         ensureIgnored: async () => {},
       });
 
-      await atomicWrite(join(checkout.root, ".env"), "VALUE=older\n");
+      await atomicWrite(join(checkout.root, ".env"), "VALUE=older\n", fixtureClock);
       const state = (await loadState(f.first.home))!;
       await linkCheckout(f.first, state, checkout, async () => true);
       await pushInitialFiles(f.first, state, f.now);
@@ -61,7 +63,7 @@ for (const recovered of [true, false])
       await mkdir(checkoutB.root, { recursive: true });
       const bState = (await loadState(second.home))!;
       bState.approved.push(checkoutB);
-      await saveState(second.home, bState);
+      await saveState(second.home, bState, fixtureClock);
       const opts = { now: f.now, fetcher: f.fetcher, all: true, yes: true };
       await pull(second, opts);
       const aStore = (await loadState(f.first.home))!.links[0]!.store;
@@ -75,11 +77,11 @@ for (const recovered of [true, false])
       const point = async (home: typeof f.first) => {
         const local = (await loadState(home.home))!;
         local.server!.address = current.server.url.toString();
-        await saveState(home.home, local);
+        await saveState(home.home, local, fixtureClock);
       };
 
       await point(f.first);
-      await atomicWrite(aStore, "VALUE=newest\n");
+      await atomicWrite(aStore, "VALUE=newest\n", fixtureClock);
       await push(f.first, opts);
       await rm(join(f.first.home, "state", "blobs"), { recursive: true, force: true });
 
@@ -117,7 +119,7 @@ for (const recovered of [true, false])
       if (finish.kind === "finished")
         expect(finish.report).toContain(recovered ? "recovered from" : "lost;");
 
-      await atomicWrite(aStore, "VALUE=after-repair\n");
+      await atomicWrite(aStore, "VALUE=after-repair\n", fixtureClock);
       await push(f.first, opts);
       const reports: string[] = [];
       const pulled = await pull(second, { ...opts, report: (message) => reports.push(message) });

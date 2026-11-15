@@ -7,6 +7,8 @@ import { join } from "node:path";
 import { createProgram } from "../../program.ts";
 import { setConfig } from "../../settings/config.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("runtime environment cannot enable telemetry in an unconfigured build", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-telemetry-"));
   const names = ["ENVDEN_HOME", "ENVDEN_TELEMETRY_KEY", "ENVDEN_TELEMETRY", "DO_NOT_TRACK"];
@@ -32,7 +34,7 @@ test("runtime environment cannot enable telemetry in an unconfigured build", asy
     process.env.ENVDEN_TELEMETRY_KEY = "test-project";
     delete process.env.ENVDEN_TELEMETRY;
     delete process.env.DO_NOT_TRACK;
-    const program = createProgram();
+    const program = createProgram(fixtureClock);
     await program.parseAsync(["node", "envden", "version"]);
     expect(requests).toHaveLength(0);
     await setConfig("telemetry", "on", root);
@@ -87,7 +89,7 @@ test("status succeeds while another command owns the state lock", async () => {
   try {
     await ready;
     process.env.ENVDEN_HOME = root;
-    await createProgram().parseAsync(["node", "envden", "status"]);
+    await createProgram(fixtureClock).parseAsync(["node", "envden", "status"]);
     expect(log.mock.calls.flat()).toContain("envden: not configured");
   } finally {
     release();
@@ -119,8 +121,8 @@ test("ordinary status reads cached notices without a network request", async () 
 
   try {
     process.env.ENVDEN_HOME = root;
-    await saveState(root, emptyState("test"));
-    await createProgram().parseAsync(["node", "envden", "status"]);
+    await saveState(root, emptyState("test"), fixtureClock);
+    await createProgram(fixtureClock).parseAsync(["node", "envden", "status"]);
     expect(network).not.toHaveBeenCalled();
   } finally {
     log.mockRestore();
@@ -158,7 +160,7 @@ test("shell cache refresh records an unapproved cwd without terminal output", as
 
     await writeFile(join(checkout, ".gitignore"), ".env\n");
     await writeFile(join(checkout, ".env"), "KEY=value\n");
-    await saveState(home, emptyState("test"));
+    await saveState(home, emptyState("test"), fixtureClock);
 
     const cli = spawnTrusted(
       [
@@ -189,7 +191,9 @@ test("shell cache refresh never reports command telemetry", async () => {
 
   try {
     process.env.ENVDEN_HOME = root;
-    await createProgram().parseAsync(["node", "envden", "status", "--refresh-cache"]);
+
+    await createProgram(fixtureClock).parseAsync(["node", "envden", "status", "--refresh-cache"]);
+
     expect(report).not.toHaveBeenCalled();
   } finally {
     report.mockRestore();

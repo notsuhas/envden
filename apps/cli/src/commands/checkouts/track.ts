@@ -10,7 +10,9 @@ export const trackCommand = new Command("track")
   .description("Scan, approve and link checkout env files")
   .option("--copy", "Place real copies instead of links")
   .action(async (path, options) => {
-    const adapters = createAdapters();
+    const commandTime = Date.now();
+
+    const adapters = createAdapters(undefined, () => commandTime);
 
     await withStateLock(adapters.home, async () => {
       const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
@@ -18,7 +20,7 @@ export const trackCommand = new Command("track")
       await setupCheckouts(adapters, state, {
         scanRoot: [path],
         copy: !!options.copy,
-        now: () => Date.now(),
+        now: () => commandTime,
       });
     });
   });

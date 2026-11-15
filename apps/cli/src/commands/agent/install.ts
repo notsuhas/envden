@@ -3,6 +3,8 @@ import { createAdapters } from "../../adapters.ts";
 import { installAgent } from "../../agent/install.ts";
 
 export const agentInstallCommand = new Command("install").action(async () => {
-  await installAgent(createAdapters().userHome);
+  const commandTime = Date.now();
+
+  await installAgent(createAdapters(undefined, () => commandTime).userHome, () => commandTime);
   console.log("Agent skill installed");
 });

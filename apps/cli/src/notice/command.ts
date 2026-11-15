@@ -23,10 +23,16 @@ async function lockedcommandNotice(
   const state = await loadState(adapters.home);
   if (!state) return { repos: [], update: await updateStatus(adapters.home) };
 
-  if (!refresh) await reportPendingJoins(adapters.home);
+  if (!refresh) await reportPendingJoins(adapters.home, adapters.now);
   const remote = await readRemoteNotice(adapters.home);
 
-  await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
+  await refreshNotice(
+    adapters.home,
+    state,
+    (root) => adapters.repo.caseInsensitive(root, true),
+    adapters.now,
+  );
+
   const update = await updateStatus(adapters.home);
   await cacheOffers(adapters, state, cwd, update, now);
   const local = await noticeStatus(adapters.home, state);
@@ -53,7 +59,7 @@ export async function commandNotice(
 
   try {
     if (!refresh) {
-      await withStateLock(adapters.home, () => reportPendingJoins(adapters.home));
+      await withStateLock(adapters.home, () => reportPendingJoins(adapters.home, adapters.now));
     }
 
     if (!localOnly) {

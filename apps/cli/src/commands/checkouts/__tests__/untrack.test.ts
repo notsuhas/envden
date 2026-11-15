@@ -9,6 +9,8 @@ import { atomicWrite } from "../../../state/store/files.ts";
 import { saveState, loadState } from "../../../state/store/repository.ts";
 import { untrack } from "../../../links/checkout/untrack.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const deleted of [false, true])
   for (const mode of ["link", "copy"] as const)
     test(`untrack preserves ${mode} files, deleted=${deleted} and removes approval`, async () => {
@@ -21,24 +23,27 @@ for (const deleted of [false, true])
           repoId: "host/repo",
         };
 
-        const adapters = createAdapters({
-          home: join(root, "home"),
-          userHome: root,
-          keychain: createMemoryKeychainAdapter([]),
-        });
+        const adapters = createAdapters(
+          {
+            home: join(root, "home"),
+            userHome: root,
+            keychain: createMemoryKeychainAdapter([]),
+          },
+          fixtureClock,
+        );
 
         adapters.repo.checkoutAt = async () => checkout;
         adapters.repo.ensureIgnored = async () => {};
         const store = join(adapters.home, "store", ".env");
         const destination = join(checkout.root, ".env");
-        await atomicWrite(store, "PORT=1");
-        await atomicWrite(destination, "PORT=1");
+        await atomicWrite(store, "PORT=1", fixtureClock);
+        await atomicWrite(destination, "PORT=1", fixtureClock);
         await adapters.placement(mode, checkout.root).place(store, destination);
-        if (mode === "copy") await atomicWrite(destination, "PORT=2");
+        if (mode === "copy") await atomicWrite(destination, "PORT=2", fixtureClock);
         const state = emptyState("test");
         state.approved.push(checkout);
         state.links.push({ root: checkout.root, path: ".env", store, mode });
-        await saveState(adapters.home, state);
+        await saveState(adapters.home, state, fixtureClock);
         if (deleted) await unlink(destination);
         await untrack(adapters, join(checkout.root, "nested"));
 

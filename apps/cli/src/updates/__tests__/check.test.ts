@@ -11,6 +11,8 @@ import { readUpdateCache } from "../cache.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import type { TFetch } from "../../client/fetch.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const redirect = (tag = "v1.2.3") =>
   new Response(null, {
     status: 302,
@@ -97,13 +99,17 @@ for (const optOut of ["config", "env", "none"])
       await atomicWrite(
         join(home, "config.json"),
         JSON.stringify({ "update-check": optOut !== "config" }),
+        fixtureClock,
       );
 
-      const adapters = createAdapters({
-        home,
-        userHome: home,
-        keychain: createMemoryKeychainAdapter([]),
-      });
+      const adapters = createAdapters(
+        {
+          home,
+          userHome: home,
+          keychain: createMemoryKeychainAdapter([]),
+        },
+        fixtureClock,
+      );
 
       const fetcher: TFetch = async () => {
         calls++;
@@ -150,11 +156,14 @@ test("explicit checks bypass disabled automatic checks and fetch outside the loc
   try {
     await setConfig("update-check", "off", home);
 
-    const adapters = createAdapters({
-      home,
-      userHome: home,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const result = await runUpdateCheck(adapters, 100, true, async () => {
       expect(await Bun.file(join(home, "state", "write.lock", "owner.json")).exists()).toBe(false);

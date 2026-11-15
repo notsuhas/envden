@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { atomicWrite } from "../../state/store/files.ts";
 import { installMethod } from "../install.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("installer marker is at home root and selects the manual command", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-method-"));
 
@@ -19,11 +21,11 @@ test("installer marker is at home root and selects the manual command", async ()
       ["scoop", ["scoop", "update", "envden"]],
       ["winget", ["winget", "upgrade", "envden"]],
     ] as const) {
-      await atomicWrite(join(root, "install-method"), method);
+      await atomicWrite(join(root, "install-method"), method, fixtureClock);
       expect(await installMethod(root)).toEqual({ kind: "manager", command: [...command] });
     }
 
-    await atomicWrite(join(root, "install-method"), "unknown");
+    await atomicWrite(join(root, "install-method"), "unknown", fixtureClock);
 
     await Promise.resolve(
       expect(installMethod(root)).rejects.toMatchObject({ code: "INVALID_INPUT" }),
@@ -62,7 +64,7 @@ test("script marker wins over a bare Homebrew-style bin path", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-stale-method-"));
 
   try {
-    await atomicWrite(join(root, "install-method"), "script");
+    await atomicWrite(join(root, "install-method"), "script", fixtureClock);
 
     for (const binary of ["/opt/homebrew/bin/envden", "/usr/local/bin/envden"])
       expect(await installMethod(root, undefined, binary)).toEqual({ kind: "script" });

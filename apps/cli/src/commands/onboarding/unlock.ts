@@ -4,6 +4,14 @@ import { secret } from "../../output/questions.ts";
 import { unlockDevice } from "../../session/unlock.ts";
 
 export const unlockCommand = new Command("unlock").action(async () => {
-  await unlockDevice(createAdapters(), await secret("Master password"), () => Date.now(), fetch);
+  const commandTime = Date.now();
+
+  await unlockDevice(
+    createAdapters(undefined, () => commandTime),
+    await secret("Master password"),
+    () => commandTime,
+    fetch,
+  );
+
   console.log("Unlocked");
 });

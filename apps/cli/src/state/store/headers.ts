@@ -3,13 +3,13 @@ import { join } from "node:path";
 import { atomicWrite, optionalRead } from "./files.ts";
 import { EnvdenError } from "@envden/core/errors";
 
-export async function storeHeaders(home: string, headers: string[]) {
+export async function storeHeaders(home: string, headers: string[], now: () => number) {
   const refs: string[] = [];
 
   for (const header of headers) {
     const hash = createHash("sha256").update(header).digest("hex");
     const path = join(home, "state", "headers", hash);
-    if ((await optionalRead(path)) === undefined) await atomicWrite(path, header);
+    if ((await optionalRead(path)) === undefined) await atomicWrite(path, header, now);
     refs.push(hash);
   }
 

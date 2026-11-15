@@ -13,9 +13,11 @@ import { pushInitialFiles } from "../../vault/initial/push.ts";
 import { saveState, loadState } from "../../state/store/repository.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export async function syncFixture(directory?: string) {
   const root = directory ?? (await mkdtemp(join(tmpdir(), "envden-sync-")));
-  const now = () => 1800000000000;
+  const now = fixtureClock;
   const log = spyOn(console, "log").mockImplementation(() => {});
   const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
@@ -37,13 +39,15 @@ export async function syncFixture(directory?: string) {
     if (typeof token !== "string") throw new Error("Missing setup token");
 
     const homes = ["first", "second", "third"].map((name) =>
-      createAdapters({
-        fetcher,
+      createAdapters(
+        {
+          fetcher,
+          home: join(root, name),
+          userHome: join(root, name),
+          keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+        },
         now,
-        home: join(root, name),
-        userHome: join(root, name),
-        keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
-      }),
+      ),
     );
 
     const first = homes[0]!,
@@ -67,7 +71,7 @@ export async function syncFixture(directory?: string) {
       repoId: "github.com/example/project",
     };
 
-    await atomicWrite(join(checkout.root, ".env"), "TOKEN=local-test-value\n");
+    await atomicWrite(join(checkout.root, ".env"), "TOKEN=local-test-value\n", now);
 
     first.repo = createFakeRepoAdapter({
       caseInsensitive: async () => false,
@@ -108,7 +112,7 @@ export async function syncFixture(directory?: string) {
     await mkdir(checkoutB.root, { recursive: true });
     const bState = (await loadState(second.home))!;
     bState.approved.push(checkoutB);
-    await saveState(second.home, bState);
+    await saveState(second.home, bState, now);
 
     return {
       serve: (options: Parameters<typeof serve>[0]) =>

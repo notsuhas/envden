@@ -14,7 +14,11 @@ import { acceptJoin } from "../../vault/join/accept.ts";
 import { refuseSecretKeyProof } from "@envden/core/chain";
 
 export async function saveClose(adapters: TAdapters, swap: p.ISwap) {
-  await atomicWrite(join(adapters.home, "state", "repair-close"), text(p.SwapCodec.write(swap)));
+  await atomicWrite(
+    join(adapters.home, "state", "repair-close"),
+    text(p.SwapCodec.write(swap)),
+    adapters.now,
+  );
 }
 
 export async function resumeClose(

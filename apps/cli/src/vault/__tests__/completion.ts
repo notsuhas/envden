@@ -12,6 +12,8 @@ import type { TDeviceIdentity } from "../../identity/device.ts";
 import type { setupVault } from "../setup.ts";
 import { openPairing, approvePairing } from "../../pairing/approver.ts";
 
+const fixtureClock = () => 1800000000000;
+
 import { promptPairing } from "../../pairing/prompt.ts";
 import { finishPairing } from "../../pairing/finish.ts";
 import { recoveryJoin } from "../../onboarding/join/recovery.ts";
@@ -45,12 +47,15 @@ interface ICompletion {
 export async function checkCompletion(input: ICompletion) {
   const { first, client, identity, address, pin, vaultId, now, root, kit, fetcher } = input;
 
-  const fourth = createAdapters({
-    fetcher,
-    home: join(root, "fourth"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
-  });
+  const fourth = createAdapters(
+    {
+      fetcher,
+      home: join(root, "fourth"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+    },
+    fixtureClock,
+  );
 
   const nextAttempt = await openPairing(client, pin);
   const fourthIdentity = await deviceIdentity(fourth.keychain, fourth.home, "fourth");
@@ -117,19 +122,22 @@ export async function checkCompletion(input: ICompletion) {
   const kitPath = join(root, "kit.json");
   await writeFile(kitPath, JSON.stringify(kit));
 
-  const fifth = createAdapters({
-    fetcher,
-    home: join(root, "fifth"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
-  });
+  const fifth = createAdapters(
+    {
+      fetcher,
+      home: join(root, "fifth"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+    },
+    fixtureClock,
+  );
 
   await recoveryJoin(fifth, address, "fifth", kitPath, now, async () => "master password");
   expect((await loadState(fifth.home))?.vaultId).toBe(kit.vaultId);
 
   const saved = (await loadState(first.home))!;
   delete saved.session;
-  await saveState(first.home, saved);
+  await saveState(first.home, saved, fixtureClock);
   await unlockDevice(first, "master password", now, fetcher);
   const unlocked = (await loadState(first.home))!;
   expect(unlocked.session?.unlockedUntil).toBeGreaterThan(now());

@@ -42,7 +42,7 @@ export async function linkFile(
     return;
   }
 
-  const choice = await storeChoice(store, destination, choose);
+  const choice = await storeChoice(store, destination, choose, adapters.now);
 
   if (choice === "oversized") return;
 
@@ -63,7 +63,11 @@ export async function linkFile(
   await placement.place(store, destination);
 
   if (placement.mode === "copy")
-    await writeBytes(basePath(adapters.home, store, checkout.root), await readBytes(store));
+    await writeBytes(
+      basePath(adapters.home, store, checkout.root),
+      await readBytes(store),
+      adapters.now,
+    );
 
   state.links.push({ root: checkout.root, path, store, mode: placement.mode });
 }
@@ -83,6 +87,7 @@ async function storeChoice(
   store: string,
   destination: string,
   choose: (path: string) => Promise<"separate" | "store" | "skip">,
+  now: () => number,
 ) {
   const content = await readFile(destination);
   const notice = fileSizeNotice(destination, content);
@@ -102,7 +107,7 @@ async function storeChoice(
     if (!(await readFile(store)).equals(content)) return choose(destination);
   } catch (cause) {
     if (cause instanceof Error && "code" in cause && cause.code === "ENOENT")
-      await atomicWrite(store, content);
+      await atomicWrite(store, content, now);
     else throw cause;
   }
 
@@ -114,9 +119,10 @@ async function copyBase(
   store: string,
   root: string,
   mode: IPlacementAdapter["mode"],
+  now: () => number,
 ) {
   if (mode !== "copy") return;
-  await writeBytes(basePath(home, store, root), await readBytes(store));
+  await writeBytes(basePath(home, store, root), await readBytes(store), now);
 }
 
 async function relinkExisting(
@@ -133,7 +139,7 @@ async function relinkExisting(
 
   if (existing.mode !== placement.mode) {
     await placement.place(existing.store, destination);
-    await copyBase(adapters.home, existing.store, checkout.root, placement.mode);
+    await copyBase(adapters.home, existing.store, checkout.root, placement.mode, adapters.now);
     existing.mode = placement.mode;
   } else if (status === "relinkable") await current.place(existing.store, destination);
 }

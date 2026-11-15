@@ -4,11 +4,11 @@ import { rm } from "node:fs/promises";
 import type { ILocalState } from "../model.ts";
 import { atomicWrite, optionalRead } from "../store/files.ts";
 
-export async function journalPlacement(home: string, state: ILocalState) {
+export async function journalPlacement(home: string, state: ILocalState, now: () => number) {
   const path = join(home, "state", "placement.json");
   const bytes = JSON.stringify({ checkpoint: state.checkpoint, links: state.links });
   if ((await optionalRead(path)) === bytes) return;
-  await atomicWrite(path, bytes);
+  await atomicWrite(path, bytes, now);
 }
 
 export async function restorePlacement(home: string, state: ILocalState) {

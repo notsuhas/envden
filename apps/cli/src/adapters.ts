@@ -12,17 +12,22 @@ import { createRcShellAdapter } from "@envden/adapter-shell-rc";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
 import type { IKeychainAdapter, IPlacementAdapter, TPlacementMode } from "@envden/core/adapters";
 
-export function createAdapters(options?: {
-  home?: string;
-  userHome: string;
-  keychain: IKeychainAdapter;
-  fetcher?: TFetch;
-  now?: () => number;
-}) {
+export function createAdapters(
+  options:
+    | {
+        home?: string;
+        userHome: string;
+        keychain: IKeychainAdapter;
+        fetcher?: TFetch;
+      }
+    | undefined,
+  now: () => number,
+) {
   const userHome = options?.userHome ?? homedir();
   const home = resolve(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
 
   const adapters = {
+    now,
     prunePlacementBackups: (now: number) => pruneBackups(join(home, "conflicts"), now, 30),
     home,
     userHome,
@@ -30,7 +35,7 @@ export function createAdapters(options?: {
     keychain: options?.keychain ?? visibleKeychain(home),
     repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
     placement: (mode: TPlacementMode, root: string): IPlacementAdapter => {
-      const placement = createFsPlacementAdapter(mode, root, join(home, "conflicts"), options?.now);
+      const placement = createFsPlacementAdapter(mode, root, join(home, "conflicts"), now);
 
       return {
         ...placement,
@@ -51,15 +56,18 @@ export function createAdapters(options?: {
       createRcShellAdapter(shell, userHome, home, join(home, "conflicts")),
     network: createTailscaleNetworkAdapter(),
     hostServer: () =>
-      installHostService({
-        platform: process.platform,
-        executable: process.execPath,
-        userHome,
-        home,
-        uid: process.getuid?.() ?? 0,
-        write: atomicWrite,
-        run: runServiceCommand,
-      }),
+      installHostService(
+        {
+          platform: process.platform,
+          executable: process.execPath,
+          userHome,
+          home,
+          uid: process.getuid?.() ?? 0,
+          write: (path, bytes) => atomicWrite(path, bytes, now),
+          run: runServiceCommand,
+        },
+        now,
+      ),
   };
 
   return adapters;

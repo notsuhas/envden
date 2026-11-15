@@ -17,11 +17,15 @@ export async function appliedFiles(home: string): Promise<Record<string, string>
   );
 }
 
-export async function saveAppliedFiles(home: string, files: Record<string, string>): Promise<void> {
+export async function saveAppliedFiles(
+  home: string,
+  files: Record<string, string>,
+  now: () => number,
+): Promise<void> {
   const path = join(home, "state", "applied-files.json");
   const bytes = JSON.stringify(files);
   if ((await optionalRead(path)) === bytes) return;
-  await atomicWrite(path, bytes);
+  await atomicWrite(path, bytes, now);
 }
 
 export async function hasAppliedEntry(
@@ -35,10 +39,15 @@ export async function hasAppliedEntry(
   );
 }
 
-export async function markAppliedEntry(home: string, encoded: string, store?: string) {
-  if (store) await atomicWrite(basePath(home, store) + ".entry", encoded);
+export async function markAppliedEntry(
+  home: string,
+  encoded: string,
+  store: string | undefined,
+  now: () => number,
+) {
+  if (store) await atomicWrite(basePath(home, store) + ".entry", encoded, now);
   const entry = p.decode(p.FileEntryCodec, new Uint8Array(Buffer.from(encoded, "base64url")));
   const applied = await appliedFiles(home);
   applied[p.base32(entry.fileId)] = encoded;
-  await saveAppliedFiles(home, applied);
+  await saveAppliedFiles(home, applied, now);
 }

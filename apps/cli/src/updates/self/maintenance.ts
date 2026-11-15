@@ -11,7 +11,7 @@ export async function refreshInstallation(adapters: TAdapters, binary: string) {
         (await optionalRead(join(adapters.userHome, ".agents", "skills", "envden", "SKILL.md"))) !==
         undefined
       )
-        await installAgent(adapters.userHome);
+        await installAgent(adapters.userHome, adapters.now);
     },
     () => restartHostService(adapters.userHome, adapters.home),
     ...(["zsh", "bash", "fish", "powershell"] as const).map((shell) => async () => {

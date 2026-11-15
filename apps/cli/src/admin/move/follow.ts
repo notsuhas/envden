@@ -70,7 +70,7 @@ export async function followServerMove(
     throw new EnvdenError("INVALID_DATA", "Destination pin does not match the move");
 
   context.local.server = { address: target.newAddress, pin: text(target.newPin), protocol: 1 };
-  await saveState(context.adapters.home, context.local);
+  await saveState(context.adapters.home, context.local, context.now);
 
   return { kind: "moved" as const, client };
 }

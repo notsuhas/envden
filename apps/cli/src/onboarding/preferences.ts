@@ -72,7 +72,7 @@ async function installAgentPreference(adapters: TAdapters, options: TPreferenceO
     agent.kind === "install" ||
     (agent.kind === "ask" && (await consent("Install the agent skill?")))
   )
-    await installAgent(adapters.userHome);
+    await installAgent(adapters.userHome, adapters.now);
 }
 
 export async function updatePreferences(adapters: TAdapters, options: TPreferenceOptions) {

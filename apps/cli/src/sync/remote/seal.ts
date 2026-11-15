@@ -28,7 +28,11 @@ export async function sealUpload(
       { init: { body: new Uint8Array(blob) } },
     );
 
-    await atomicWrite(join(context.adapters.home, "state", "blobs", text(blobHash)), blob);
+    await atomicWrite(
+      join(context.adapters.home, "state", "blobs", text(blobHash)),
+      blob,
+      context.options.now,
+    );
   }
 
   const next: p.IFileEntry = {

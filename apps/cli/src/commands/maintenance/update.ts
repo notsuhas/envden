@@ -9,7 +9,9 @@ export const updateCommand = new Command("update")
   .option("--check")
   .option("--post-install", "Refresh installed integrations")
   .action(async (options) => {
-    const adapters = createAdapters();
+    const commandTime = Date.now();
+
+    const adapters = createAdapters(undefined, () => commandTime);
 
     if (options.postInstall) {
       await refreshInstallation(adapters, process.execPath);
@@ -18,7 +20,7 @@ export const updateCommand = new Command("update")
     }
 
     const result = options.check
-      ? await runUpdateCheck(adapters, Date.now())
+      ? await runUpdateCheck(adapters, commandTime)
       : await selfUpdate(adapters, {
           fetcher: fetch,
           binary: process.execPath,

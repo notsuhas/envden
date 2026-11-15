@@ -14,14 +14,17 @@ export async function privateDirectory(path: string): Promise<void> {
 export async function atomicWrite(
   path: string,
   bytes: string | Uint8Array,
-  now = Date.now,
+  now: () => number,
 ): Promise<void> {
   const parent = dirname(path);
 
   if ([...owned].some((root) => inside(root, parent))) await privateDirectory(parent);
   else await prepareDirectory(parent);
 
-  const temporary = join(dirname(path), `.${now()}-${crypto.randomUUID()}.tmp`);
+  const temporary = join(
+    dirname(path),
+    `.${String(now()).padStart(13, "0")}_${crypto.randomUUID()}.tmp`,
+  );
 
   try {
     const file = await open(temporary, "wx", 0o600);

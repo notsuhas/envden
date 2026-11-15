@@ -45,7 +45,11 @@ export async function entryContent(
   );
 
   if (!cached)
-    await atomicWrite(join(context.adapters.home, "state", "blobs", text(entry.blobHash)), box);
+    await atomicWrite(
+      join(context.adapters.home, "state", "blobs", text(entry.blobHash)),
+      box,
+      context.options.now,
+    );
 
   return value.content;
 }

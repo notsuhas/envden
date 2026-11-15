@@ -3,6 +3,8 @@ import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import { createSharedFixture } from "./shared-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
@@ -33,15 +35,15 @@ for (const [base, stored, copied, agreed] of [
       const state = (await loadState(f.first.home))!;
       const copy = { ...f.checkout, root: join(f.root, "copy") };
       f.first.repo.envFiles = async () => [".env.new"];
-      await atomicWrite(join(f.checkout.root, ".env.new"), "PORT=1\n");
+      await atomicWrite(join(f.checkout.root, ".env.new"), "PORT=1\n", fixtureClock);
       await linkCheckout(f.first, state, f.checkout, async () => true);
-      await atomicWrite(join(copy.root, ".env.new"), "PORT=1\n");
+      await atomicWrite(join(copy.root, ".env.new"), "PORT=1\n", fixtureClock);
       await linkCheckout(f.first, state, copy, async () => true, true);
-      await saveState(f.first.home, state);
+      await saveState(f.first.home, state, fixtureClock);
       const store = state.links.find((link) => link.path === ".env.new")!.store;
       if (!base) await rm(basePath(f.first.home, store, copy.root));
-      await writeBytes(store, portContent(stored));
-      await atomicWrite(join(copy.root, ".env.new"), `PORT=${copied}\n`);
+      await writeBytes(store, portContent(stored), fixtureClock);
+      await atomicWrite(join(copy.root, ".env.new"), `PORT=${copied}\n`, fixtureClock);
       const result = await pull(f.first, f.opts);
 
       if (base && stored === undefined) {
@@ -58,7 +60,7 @@ for (const [base, stored, copied, agreed] of [
 
       if (result.conflicts) {
         await resolveConflict(f.first, { file: ".env.new", choice: "keep-mine", now: f.now });
-        await atomicWrite(join(copy.root, ".env.new"), "PORT=resolved\n");
+        await atomicWrite(join(copy.root, ".env.new"), "PORT=resolved\n", fixtureClock);
         expect((await push(f.first, f.opts)).kind).toBe("pushed");
         expect(await Bun.file(store).text()).toBe("PORT=resolved\n");
       }
@@ -86,14 +88,14 @@ for (const copy of [false, true])
 
         await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
         await push(f.first, f.opts);
-        await atomicWrite(join(checkout.root, ".env"), "TOKEN=recreated\n");
+        await atomicWrite(join(checkout.root, ".env"), "TOKEN=recreated\n", fixtureClock);
         const state = (await loadState(adapters.home))!;
         adapters.repo.envFiles = async () => [".env"];
 
         if (choice !== "untracked-repair")
           await linkCheckout(adapters, state, checkout, async () => true, copy);
 
-        await saveState(adapters.home, state);
+        await saveState(adapters.home, state, fixtureClock);
 
         if (choice === "repair" || choice === "untracked-repair") {
           const { savePendingRepairs } = await import("../remote/repairs.ts");
@@ -104,6 +106,7 @@ for (const copy of [false, true])
           await savePendingRepairs(
             adapters.home,
             new Set([p.base32(p.fileId(context.checkpoint.idKey, checkout.repoId, ".env"))]),
+            fixtureClock,
           );
         }
 

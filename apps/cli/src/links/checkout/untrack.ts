@@ -23,7 +23,7 @@ export async function untrack(adapters: TAdapters, path: string) {
     const cancelled: string[] = [];
 
     for (const link of state.links.filter((item) => item.root === root)) {
-      const intent = await readDeletion(adapters.home, link.store);
+      const intent = await readDeletion(adapters.home, link.store, adapters.now);
 
       if (intent) {
         const remaining = state.links.some(
@@ -36,6 +36,7 @@ export async function untrack(adapters: TAdapters, path: string) {
           remaining,
           intent.entry,
           intent.targets.filter((path) => path !== join(root, link.path)),
+          adapters.now,
         );
 
         if (!remaining) cancelled.push(...intent.targets);
@@ -48,14 +49,21 @@ export async function untrack(adapters: TAdapters, path: string) {
       adapters.home,
       state.links.filter((item) => item.root === root),
       state.links.filter((item) => item.root !== root),
+      adapters.now,
     );
 
-    await removeConflictTargets(adapters.home, root);
+    await removeConflictTargets(adapters.home, root, adapters.now);
 
     state.links = state.links.filter((item) => item.root !== root);
     state.approved = state.approved.filter((item) => item.root !== root);
-    await saveState(adapters.home, state);
-    await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
+    await saveState(adapters.home, state, adapters.now);
+
+    await refreshNotice(
+      adapters.home,
+      state,
+      (root) => adapters.repo.caseInsensitive(root, true),
+      adapters.now,
+    );
 
     return cancelled;
   });

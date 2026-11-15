@@ -13,6 +13,8 @@ import { createAdapters } from "../../adapters.ts";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { emptyState } from "../../state/model.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("a server consuming its deadline leaves a fresh deadline for GitHub", async () => {
   const f = await syncFixture();
   const controller = new AbortController();
@@ -52,16 +54,19 @@ test("corrupt notice caches are absent and scan history is bounded", async () =>
   const home = await mkdtemp(join(tmpdir(), "envden-notice-resilience-"));
 
   try {
-    await atomicWrite(join(home, "state", "remote-notice.json"), "{");
-    await atomicWrite(join(home, "state", "pending-recovery.json"), "null");
+    await atomicWrite(join(home, "state", "remote-notice.json"), "{", fixtureClock);
+    await atomicWrite(join(home, "state", "pending-recovery.json"), "null", fixtureClock);
     expect(await readRemoteNotice(home)).toBeUndefined();
-    await reportPendingJoins(home);
+    await reportPendingJoins(home, fixtureClock);
 
-    const adapters = createAdapters({
-      home,
-      userHome: home,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const checkout = { root: "/checkout", gitDir: "/checkout/.git", repoId: "host/repo" };
     adapters.repo.checkoutAt = async () => checkout;
@@ -70,6 +75,7 @@ test("corrupt notice caches are absent and scan history is bounded", async () =>
     await atomicWrite(
       join(home, "state", "track-scanned.json"),
       JSON.stringify(Object.fromEntries(Array.from({ length: 400 }, (_, i) => [`/old/${i}`, i]))),
+      fixtureClock,
     );
 
     await cacheOffers(

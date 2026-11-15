@@ -7,9 +7,10 @@ export async function removeCheckoutBases(
   home: string,
   removed: ILocalState["links"],
   remaining: ILocalState["links"],
+  now: () => number,
 ) {
   for (const link of removed) {
-    await preservePendingAncestor(home, link.store);
+    await preservePendingAncestor(home, link.store, now);
     await rm(basePath(home, link.store) + ".pending", { force: true });
     const bases = [basePath(home, link.store, link.root)];
 

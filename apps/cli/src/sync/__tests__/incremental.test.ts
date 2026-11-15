@@ -2,6 +2,8 @@ import type { TFetch } from "../../client/fetch.ts";
 import { test, expect } from "bun:test";
 import { createSharedFixture } from "./shared-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 import { pull, push } from "../engine.ts";
@@ -29,7 +31,7 @@ test("history requests only pages after the verified checkpoint", async () => {
       Buffer.from(local.entries.at(-1)!, "base64url"),
     );
 
-    await atomicWrite(aStore, "TOKEN=next\n");
+    await atomicWrite(aStore, "TOKEN=next\n", fixtureClock);
     await push(first, opts);
     const requests: string[] = [];
 

@@ -12,6 +12,8 @@ import { uploadRepair } from "../upload.ts";
 import { finishRepair } from "../finish.ts";
 import { saveState, loadState } from "../../../state/store/repository.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const [mode, crash, drop] of [
   ["rotate", "none", false],
   ["rotate", "before-close", true],
@@ -45,7 +47,7 @@ for (const [mode, crash, drop] of [
       const state = await loadState(home.home);
       if (!state?.server) throw new Error("Missing server");
       state.server.address = address;
-      await saveState(home.home, state);
+      await saveState(home.home, state, fixtureClock);
     };
 
     await point(f.first, current.server.url.toString());

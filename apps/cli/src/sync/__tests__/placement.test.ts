@@ -7,6 +7,8 @@ import { loadState } from "../../state/store/repository.ts";
 import { pull } from "../engine.ts";
 import { syncFixture } from "./flows.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("sync honors copy preference and prunes adapter backups after placement", async () => {
   const fixture = await syncFixture();
   const { second, checkoutB, opts } = fixture;
@@ -19,7 +21,7 @@ test("sync honors copy preference and prunes adapter backups after placement", a
 
   try {
     await setConfig("placement", JSON.stringify({ [checkoutB.root]: "copy" }), second.home);
-    await atomicWrite(expired, "old backup");
+    await atomicWrite(expired, "old backup", fixtureClock);
     const prune = second.prunePlacementBackups;
     const calls: number[] = [];
 

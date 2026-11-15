@@ -8,6 +8,8 @@ import { loadState } from "../../state/store/repository.ts";
 import { setConfig } from "../../settings/config.ts";
 import { seedScenario, finishScenario } from "./trust-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 const bytes = (value: string) => new TextEncoder().encode(value);
@@ -55,11 +57,11 @@ for (const scenario of [
       const edited = bytes(`TOKEN=${scenario}\n`);
 
       if (scenario === "historical") {
-        await writeBytes(f.aStore, edited);
+        await writeBytes(f.aStore, edited, fixtureClock);
         await push(f.first, f.opts);
         await pull(f.second, f.opts);
         await rm(path);
-        await writeBytes(path, original);
+        await writeBytes(path, original, fixtureClock);
         expect((await pull(f.second, f.opts)).conflicts).toBe(0);
         expect(await readBytes(target.store)).toEqual(original);
         expect(await Bun.file(path).bytes()).toEqual(original);

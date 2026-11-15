@@ -4,6 +4,8 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import { createSharedFixture } from "./shared-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 import { syncContext } from "../remote/context.ts";
@@ -48,7 +50,7 @@ test("receiver filters unsafe env names and continues after placement failures",
     }
 
     execTrustedSync("git", ["init", "-q", f.checkoutB.root]);
-    await atomicWrite(join(f.checkoutB.root, ".env.bad"), "KEY=tracked\n");
+    await atomicWrite(join(f.checkoutB.root, ".env.bad"), "KEY=tracked\n", fixtureClock);
     execTrustedSync("git", ["-C", f.checkoutB.root, "add", ".env.bad"]);
     await rm(join(f.checkoutB.root, ".env.bad"));
     const repo = createGitRepoAdapter();
@@ -82,13 +84,13 @@ test("invalid first-run answers report a conflict and continue placing other fil
   const f = await syncFixture();
 
   try {
-    await atomicWrite(join(f.checkout.root, ".env.good"), "GOOD=remote\n");
+    await atomicWrite(join(f.checkout.root, ".env.good"), "GOOD=remote\n", fixtureClock);
     f.first.repo.envFiles = async () => [".env.good"];
     const state = (await loadState(f.first.home))!;
     await linkCheckout(f.first, state, f.checkout, async () => true);
-    await saveState(f.first.home, state);
+    await saveState(f.first.home, state, fixtureClock);
     await push(f.first, f.opts);
-    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n");
+    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n", fixtureClock);
 
     const result = await firstSync(f.second, { ...f.opts, interactive: true }, async () => {
       throw new EnvdenError("INVALID_INPUT", "Unknown first-run choice");

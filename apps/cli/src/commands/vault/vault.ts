@@ -5,7 +5,13 @@ import { runVaultAdmin } from "./run.ts";
 export const vaultCommand = new Command("vault")
   .addCommand(
     new Command("rotate").action(async () => {
-      await runVaultAdmin(createAdapters(), "rotate", () => Date.now());
+      const commandTime = Date.now();
+
+      await runVaultAdmin(
+        createAdapters(undefined, () => commandTime),
+        "rotate",
+        () => commandTime,
+      );
     }),
   )
   .addCommand(
@@ -13,10 +19,12 @@ export const vaultCommand = new Command("vault")
       new Command("replace")
         .option("--kit-out <file>", "Write the new recovery kit to a private file")
         .action(async (options) => {
+          const commandTime = Date.now();
+
           await runVaultAdmin(
-            createAdapters(),
+            createAdapters(undefined, () => commandTime),
             "replace",
-            () => Date.now(),
+            () => commandTime,
             undefined,
             options.kitOut,
           );
@@ -27,12 +35,24 @@ export const vaultCommand = new Command("vault")
     new Command("password")
       .addCommand(
         new Command("change").action(async () => {
-          await runVaultAdmin(createAdapters(), "change", () => Date.now());
+          const commandTime = Date.now();
+
+          await runVaultAdmin(
+            createAdapters(undefined, () => commandTime),
+            "change",
+            () => commandTime,
+          );
         }),
       )
       .addCommand(
         new Command("reset").action(async () => {
-          await runVaultAdmin(createAdapters(), "reset", () => Date.now());
+          const commandTime = Date.now();
+
+          await runVaultAdmin(
+            createAdapters(undefined, () => commandTime),
+            "reset",
+            () => commandTime,
+          );
         }),
       ),
   );

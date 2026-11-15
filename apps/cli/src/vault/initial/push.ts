@@ -78,9 +78,9 @@ async function attemptPushInitialFiles(
   state.headers.push(text(p.signedCodec(p.ManifestHeaderCodec).write(header)));
   state.files = text(p.FilesCodec.write(files));
   state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, header, "manifest"));
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 
-  await recordPushed(adapters.home, files, bases);
+  await recordPushed(adapters.home, files, bases, adapters.now);
 }
 
 export function pushInitialFiles(...args: Parameters<typeof attemptPushInitialFiles>) {

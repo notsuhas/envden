@@ -3,6 +3,8 @@ import * as p from "@envden/core/protocol";
 import { createClient } from "../../client/request.ts";
 import { waitMessage, pairingResponse } from "../wait.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("mailbox waiting accepts pending replies and expires using the supplied clock", async () => {
   const keys = p.generateDeviceKeys();
   const server = p.generateRecoveryKeys();
@@ -215,8 +217,8 @@ test("timeout preserves the saved join exchange", async () => {
       fetcher: f.fetcher,
     });
 
-    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "0");
-    await atomicWrite(join(f.second.home, "state", "pair-joiner"), "saved");
+    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "0", fixtureClock);
+    await atomicWrite(join(f.second.home, "state", "pair-joiner"), "saved", fixtureClock);
     await f.second.keychain.set(`envden/${f.second.home}/pair-receive`, new Uint8Array(32));
 
     await Promise.resolve(

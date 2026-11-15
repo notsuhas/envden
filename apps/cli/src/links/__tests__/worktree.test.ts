@@ -10,6 +10,8 @@ import { linkCheckout } from "../place.ts";
 import { pruneMissingCheckouts } from "../prune.ts";
 import { discoverRepos } from "../discovery.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("real git worktree requires approval and records its root once", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-worktree-"));
   const main = join(root, "main");
@@ -42,11 +44,14 @@ test("real git worktree requires approval and records its root once", async () =
     await writeFile(join(main, ".env"), "PORT=1");
     await writeFile(join(branch, ".env"), "PORT=1");
 
-    const adapters = createAdapters({
-      home: join(root, "state"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "state"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const state = emptyState("test");
     const checkout = (await adapters.repo.checkoutAt(main))!;
@@ -80,7 +85,14 @@ test("real git worktree requires approval and records its root once", async () =
     expect(state.approved.map((item) => item.root)).toEqual([checkout.root, worktree.root]);
     await rm(branch, { recursive: true, force: true });
     const notices: string[] = [];
-    await pruneMissingCheckouts(adapters.home, state, (message) => notices.push(message));
+
+    await pruneMissingCheckouts(
+      adapters.home,
+      state,
+      (message) => notices.push(message),
+      fixtureClock,
+    );
+
     expect(state.approved.map((item) => item.root)).toEqual([checkout.root]);
     expect(state.links.every((item) => item.root !== worktree.root)).toBe(true);
     expect(notices).toHaveLength(1);
@@ -120,11 +132,14 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
         ]);
     }
 
-    const adapters = createAdapters({
-      home: join(root, "state"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "state"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const skipped: string[] = [];
 

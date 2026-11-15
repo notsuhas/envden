@@ -6,6 +6,8 @@ import { syncFixture } from "../../flows.ts";
 import { resetMatrix } from "../../matrix-fixture.ts";
 import { approveLayout } from "../../round-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 import { loadState, saveState } from "../../../../state/store/repository.ts";
 import { setConfig } from "../../../../settings/config.ts";
 import { storePath } from "../../../../store/path.ts";
@@ -105,11 +107,11 @@ async function createFresh(layout: readonly ("copy" | "link")[], key: string, di
   await resetMatrix(f, `rev-${process.pid}-${scenario++}`);
   const store = storePath(f.first.home, f.checkout.repoId, ".env");
   const path = join(f.checkout.root, ".env");
-  await writeBytes(store, new TextEncoder().encode(INIT));
+  await writeBytes(store, new TextEncoder().encode(INIT), fixtureClock);
   await f.first.placement("link", f.checkout.root).place(store, path);
   const state = (await loadState(f.first.home))!;
   state.links = [{ root: f.checkout.root, path: ".env", store, mode: "link" }];
-  await saveState(f.first.home, state);
+  await saveState(f.first.home, state, fixtureClock);
   await push(f.first, f.opts);
   const targets = await approveLayout({ ...f, aStore: store }, layout);
 

@@ -4,12 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { installAgent } from "../install.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("agent install is idempotent and notice files use the shell adapter paths", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-agent-"));
 
   try {
-    await installAgent(home);
-    await installAgent(home);
+    await installAgent(home, fixtureClock);
+    await installAgent(home, fixtureClock);
 
     expect(await readlink(join(home, ".claude", "skills", "envden"))).toBe(
       join(home, ".agents", "skills", "envden"),
@@ -29,7 +31,10 @@ test("agent install refuses an existing real destination folder", async () => {
   try {
     const { mkdir } = await import("node:fs/promises");
     await mkdir(join(home, ".claude", "skills", "envden"), { recursive: true });
-    await Promise.resolve(expect(installAgent(home)).rejects.toThrow("existing folder or file"));
+
+    await Promise.resolve(
+      expect(installAgent(home, fixtureClock)).rejects.toThrow("existing folder or file"),
+    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }

@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { symlink, rm } from "node:fs/promises";
 import { createSharedFixture } from "./shared-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 import { pull, push } from "../engine.ts";
@@ -18,13 +20,13 @@ for (const published of [false, true])
       await pull(f.second, f.opts);
       const state = (await loadState(f.second.home))!;
       f.second.repo.envFiles = async () => [".env.bad"];
-      await atomicWrite(join(f.checkoutB.root, ".env.bad"), "TOKEN=bad\n");
+      await atomicWrite(join(f.checkoutB.root, ".env.bad"), "TOKEN=bad\n", fixtureClock);
       await linkCheckout(f.second, state, f.checkoutB, async () => true, true);
-      await saveState(f.second.home, state);
+      await saveState(f.second.home, state, fixtureClock);
       if (published) await push(f.second, f.opts);
       await rm(join(f.checkoutB.root, ".env.bad"));
       await symlink(join(f.root, "elsewhere"), join(f.checkoutB.root, ".env.bad"));
-      await atomicWrite(f.aStore, "TOKEN=neighbour\n");
+      await atomicWrite(f.aStore, "TOKEN=neighbour\n", fixtureClock);
       await push(f.first, f.opts);
       const reports: string[] = [];
 
@@ -46,10 +48,10 @@ test("keep-mine restores a removed link from its recorded store edit", async () 
 
   try {
     await pull(f.second, f.opts);
-    await atomicWrite(f.aStore, "TOKEN=mine\n");
+    await atomicWrite(f.aStore, "TOKEN=mine\n", fixtureClock);
     await rm(join(f.checkout.root, ".env"));
     const second = (await loadState(f.second.home))!;
-    await atomicWrite(second.links[0]!.store, "TOKEN=theirs\n");
+    await atomicWrite(second.links[0]!.store, "TOKEN=theirs\n", fixtureClock);
     await push(f.second, f.opts);
     expect((await pull(f.first, f.opts)).conflicts).toBe(1);
     await resolveConflict(f.first, { file: ".env", choice: "keep-mine", now: f.now });
@@ -79,9 +81,11 @@ for (const initial of [undefined, "TOKEN=local-test-value\n"])
       };
 
       await mkdir(copy.root);
-      if (initial !== undefined) await atomicWrite(join(copy.root, ".env"), initial);
+
+      if (initial !== undefined) await atomicWrite(join(copy.root, ".env"), initial, fixtureClock);
+
       state.approved.push(copy);
-      await saveState(f.first.home, state);
+      await saveState(f.first.home, state, fixtureClock);
 
       f.first.repo = createFakeRepoAdapter({
         checkoutAt: async (root) => (root === copy.root ? copy : f.checkout),
@@ -90,7 +94,7 @@ for (const initial of [undefined, "TOKEN=local-test-value\n"])
       });
 
       await setConfig("placement", JSON.stringify({ [copy.root]: "copy" }), f.first.home);
-      await atomicWrite(f.aStore, "TOKEN=store-edit\n");
+      await atomicWrite(f.aStore, "TOKEN=store-edit\n", fixtureClock);
       expect((await pull(f.first, f.opts)).conflicts).toBe(0);
       expect(await Bun.file(f.aStore).text()).toBe("TOKEN=store-edit\n");
       expect(await Bun.file(join(copy.root, ".env")).text()).toBe("TOKEN=store-edit\n");

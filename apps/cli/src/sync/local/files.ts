@@ -29,7 +29,11 @@ export function basePath(home: string, store: string, root?: string): string {
   return join(home, "base", id);
 }
 
-export async function writeBytes(path: string, bytes: Uint8Array | undefined): Promise<void> {
+export async function writeBytes(
+  path: string,
+  bytes: Uint8Array | undefined,
+  now: () => number,
+): Promise<void> {
   if (same(await readBytes(path), bytes)) return;
 
   if (bytes === undefined) {
@@ -44,7 +48,7 @@ export async function writeBytes(path: string, bytes: Uint8Array | undefined): P
         await directory.close();
       }
     }
-  } else await atomicWrite(path, bytes);
+  } else await atomicWrite(path, bytes, now);
 }
 
 export async function withSyncLock<T>(home: string, action: () => Promise<T>): Promise<T> {

@@ -12,9 +12,9 @@ export function placeNative(
   root: string,
   path: string,
   storePath: string,
-  beforeRename?: () => void,
-  backupDirectory?: string,
-  now = Date.now,
+  beforeRename: (() => void) | undefined,
+  backupDirectory: string | undefined,
+  now: () => number,
 ) {
   const fd = openParent(root, path);
   const name = basename(path);

@@ -8,15 +8,20 @@ import { emptyState } from "../../state/model.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { setupCheckouts } from "../scan.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("differing worktree env files do not abort unrelated linking", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-scan-conflict-"));
 
   try {
-    const adapters = createAdapters({
-      home: join(root, "home"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const repos = ["main", "worktree", "unrelated", "empty"].map((name) => ({
       root: join(root, name),
@@ -26,7 +31,8 @@ test("differing worktree env files do not abort unrelated linking", async () => 
 
     for (const [index, repo] of repos.entries()) {
       await mkdir(repo.gitDir, { recursive: true });
-      if (index < 3) await atomicWrite(join(repo.root, ".env"), `PORT=${index + 1}`);
+
+      if (index < 3) await atomicWrite(join(repo.root, ".env"), `PORT=${index + 1}`, fixtureClock);
     }
 
     adapters.repo.checkoutAt = async (path) => repos.find((repo) => repo.root === path);
@@ -64,7 +70,7 @@ test("checkout setup reloads state after preferences have allowed another writer
     const stale = (await loadState(f.first.home))!;
     const latest = (await loadState(f.first.home))!;
     latest.aliases = { "host/new": "host/canonical" };
-    await saveState(f.first.home, latest);
+    await saveState(f.first.home, latest, fixtureClock);
     await setupCheckouts(f.first, stale, { scanRoot: [], now: f.now });
     expect(stale.aliases).toEqual(latest.aliases);
     expect((await loadState(f.first.home))?.aliases).toEqual(latest.aliases);

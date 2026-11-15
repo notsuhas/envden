@@ -11,6 +11,8 @@ import { pushInitialFiles } from "../../vault/initial/push.ts";
 import { pull, push } from "../engine.ts";
 import { createSharedFixture } from "./shared-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 for (const scenario of ["revert", "unpublished", "two copies"] as const)
@@ -23,33 +25,35 @@ for (const scenario of ["revert", "unpublished", "two copies"] as const)
       const path = join(f.checkoutB.root, scenario === "unpublished" ? ".env.new" : ".env");
 
       if (scenario === "unpublished") {
-        await atomicWrite(path, "A=1\n");
+        await atomicWrite(path, "A=1\n", fixtureClock);
         const state = (await loadState(f.second.home))!;
         f.second.repo.envFiles = async () => [".env.new"];
         await linkCheckout(f.second, state, f.checkoutB, async () => true, true);
-        await saveState(f.second.home, state);
+        await saveState(f.second.home, state, fixtureClock);
       } else if (scenario === "revert") {
-        await atomicWrite(path, "A=1\n");
+        await atomicWrite(path, "A=1\n", fixtureClock);
         await push(f.second, f.opts);
       } else {
         const state = (await loadState(f.second.home))!;
         const checkout = { ...f.checkoutB, root: join(f.root, "copy-two") };
-        await atomicWrite(join(checkout.root, ".env"), await Bun.file(path).text());
+
+        await atomicWrite(join(checkout.root, ".env"), await Bun.file(path).text(), fixtureClock);
+
         f.second.repo.envFiles = async () => [".env"];
         await linkCheckout(f.second, state, checkout, async () => true, true);
-        await saveState(f.second.home, state);
+        await saveState(f.second.home, state, fixtureClock);
         await pull(f.second, f.opts);
-        await atomicWrite(join(checkout.root, ".env"), "A=2\n");
+        await atomicWrite(join(checkout.root, ".env"), "A=2\n", fixtureClock);
         expect((await push(f.second, f.opts)).kind).toBe("pushed");
 
         return;
       }
 
-      await atomicWrite(path, "A=2\n");
+      await atomicWrite(path, "A=2\n", fixtureClock);
       expect((await push(f.second, f.opts)).kind).toBe("pushed");
 
       if (scenario === "revert") {
-        await atomicWrite(path, "A=1\n");
+        await atomicWrite(path, "A=1\n", fixtureClock);
         expect((await push(f.second, f.opts)).kind).toBe("pushed");
         expect(await Bun.file(path).text()).toBe("A=1\n");
       }
@@ -64,7 +68,7 @@ test("rerunning setup file push leaves remote edits for normal reconciliation", 
   try {
     await pull(f.second, f.opts);
     const b = (await loadState(f.second.home))!;
-    await atomicWrite(b.links[0]!.store, "TOKEN=remote-new\n");
+    await atomicWrite(b.links[0]!.store, "TOKEN=remote-new\n", fixtureClock);
     await push(f.second, f.opts);
     const resumed = await setupVault(f.first, f.setupOptions);
     await pushInitialFiles(f.first, resumed.state, f.now);
@@ -84,11 +88,11 @@ test("newly tracked copy cannot resurrect a server tombstone", async () => {
   try {
     await removeFile(f.first, join(f.checkout.root, ".env"), { yes: true, now: f.now });
     await push(f.first, f.opts);
-    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=stale\n");
+    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=stale\n", fixtureClock);
     const state = (await loadState(f.second.home))!;
     f.second.repo.envFiles = async () => [".env"];
     await linkCheckout(f.second, state, f.checkoutB, async () => true, true);
-    await saveState(f.second.home, state);
+    await saveState(f.second.home, state, fixtureClock);
     expect((await push(f.second, f.opts)).kind).toBe("conflict");
     expect(await Bun.file(join(f.checkoutB.root, ".env")).text()).toBe("TOKEN=stale\n");
   } finally {
@@ -102,9 +106,9 @@ test("cancel at detached prompt aborts push", async () => {
 
   try {
     const path = join(f.checkout.root, ".env");
-    await atomicWrite(f.aStore, "TOKEN=store-edit\n");
+    await atomicWrite(f.aStore, "TOKEN=store-edit\n", fixtureClock);
     await rm(path);
-    await atomicWrite(path, "TOKEN=detached\n");
+    await atomicWrite(path, "TOKEN=detached\n", fixtureClock);
 
     await Promise.resolve(
       expect(
@@ -138,7 +142,7 @@ test("all skips a recreated checkout even when another checkout selects its repo
 
     await mkdir(other.root);
     state.approved.push(other);
-    await saveState(f.second.home, state);
+    await saveState(f.second.home, state, fixtureClock);
 
     f.second.repo = createFakeRepoAdapter({
       checkoutAt: async (root) =>

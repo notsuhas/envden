@@ -96,7 +96,7 @@ async function restoreStore(
 
   const restored = before === undefined && server !== undefined && !deleting;
 
-  if (restored) await writeBytes(store, server);
+  if (restored) await writeBytes(store, server, context.options.now);
   const stored = restored ? server : before;
 
   return { stored, restored, deleting };
@@ -114,7 +114,16 @@ async function cancelRestoredDeletion(context: TSyncContext, targets: TTarget[],
   ]) {
     const bytes = await readBytes(path);
     if (bytes === undefined) continue;
-    await requestDeletion(context.adapters.home, store, false);
+
+    await requestDeletion(
+      context.adapters.home,
+      store,
+      false,
+      undefined,
+      undefined,
+      context.options.now,
+    );
+
     context.options.report?.(`Cancelled removal; restored env file: ${path}`);
 
     return { bytes };
@@ -125,7 +134,14 @@ async function cancelRestoredDeletion(context: TSyncContext, targets: TTarget[],
 
 async function liveDeletion(context: TSyncContext, store: string, entry: p.IFileEntry | undefined) {
   if (entry?.state === 2 || entry?.state === 4) {
-    await requestDeletion(context.adapters.home, store, false);
+    await requestDeletion(
+      context.adapters.home,
+      store,
+      false,
+      undefined,
+      undefined,
+      context.options.now,
+    );
 
     return false;
   }

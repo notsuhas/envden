@@ -5,6 +5,8 @@ import { untrack } from "../../../links/checkout/untrack.ts";
 import { read } from "./files.ts";
 import type { TModel } from "./model.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export async function extraAction(model: TModel, raw: string) {
   const d = raw[0] === "A" ? 0 : 1;
   const operation = raw.slice(1).replace(/\d$/, "");
@@ -35,11 +37,17 @@ export async function extraAction(model: TModel, raw: string) {
       break;
     }
     case "tmp":
-      await atomicWrite(join(home, "state", "attempts", ".interrupted.tmp"), '{"header":');
-      await atomicWrite(join(home, "state", "attempts", "stray"), "stray");
+      await atomicWrite(
+        join(home, "state", "attempts", ".interrupted.tmp"),
+        '{"header":',
+        fixtureClock,
+      );
+
+      await atomicWrite(join(home, "state", "attempts", "stray"), "stray", fixtureClock);
       break;
     case "corrupt":
-      await atomicWrite(join(home, "state", "attempts", "A".repeat(43)), "broken");
+      await atomicWrite(join(home, "state", "attempts", "A".repeat(43)), "broken", fixtureClock);
+
       model.dirty[d] = true;
       model.corrupt.add(d);
       break;

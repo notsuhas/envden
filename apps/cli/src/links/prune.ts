@@ -10,6 +10,7 @@ export async function pruneMissingCheckouts(
   home: string,
   state: ILocalState,
   notice: (message: string) => void,
+  now: () => number,
 ) {
   return withStateLock(home, async () => {
     for (const approval of state.approved) {
@@ -28,15 +29,16 @@ export async function pruneMissingCheckouts(
           home,
           state.links.filter((item) => item.root === approval.root),
           state.links.filter((item) => item.root !== approval.root),
+          now,
         );
 
-        await removeConflictTargets(home, approval.root);
+        await removeConflictTargets(home, approval.root, now);
 
         state.links = state.links.filter((item) => item.root !== approval.root);
         notice(`Missing checkout removed: ${approval.root}`);
       }
     }
 
-    await saveState(home, state);
+    await saveState(home, state, now);
   });
 }

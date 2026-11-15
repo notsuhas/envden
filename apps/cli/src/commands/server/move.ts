@@ -13,18 +13,23 @@ export const serverMoveCommand = new Command("move")
   .addOption(new Option("--resume").conflicts("abort"))
   .option("--abort")
   .action(async (address, options) => {
-    await moveServer(createAdapters(), {
-      address,
-      token:
-        options.resume || options.abort
-          ? options.setupToken
-          : await readToken(options.setupToken, "Server setup token"),
-      resume: options.resume,
-      abort: options.abort,
-      password: await secret("Master password"),
-      now: () => Date.now(),
-      fetcher: fetch,
-    });
+    const commandTime = Date.now();
+
+    await moveServer(
+      createAdapters(undefined, () => commandTime),
+      {
+        address,
+        token:
+          options.resume || options.abort
+            ? options.setupToken
+            : await readToken(options.setupToken, "Server setup token"),
+        resume: options.resume,
+        abort: options.abort,
+        password: await secret("Master password"),
+        now: () => commandTime,
+        fetcher: fetch,
+      },
+    );
 
     console.log("Move complete");
   });

@@ -14,13 +14,13 @@ export function decodeDeletion(saved: string) {
   return intent;
 }
 
-export async function readDeletion(home: string, store: string, now = Date.now) {
+export async function readDeletion(home: string, store: string, now: () => number) {
   const base = basePath(home, store);
 
   return recoverSyncRecord(base + ".delete", base + ".corrupt", decodeDeletion, now());
 }
 
-export async function deletionRequested(home: string, store: string, now = Date.now) {
+export async function deletionRequested(home: string, store: string, now: () => number) {
   return (await readDeletion(home, store, now)) !== undefined;
 }
 
@@ -28,14 +28,14 @@ export async function requestDeletion(
   home: string,
   store: string,
   requested: boolean,
-  entry?: string,
-  targets?: string[],
-  now = Date.now,
+  entry: string | undefined,
+  targets: string[] | undefined,
+  now: () => number,
 ) {
   const path = basePath(home, store) + ".delete";
 
   if (!requested) {
-    await writeBytes(path, undefined);
+    await writeBytes(path, undefined, now);
 
     return;
   }
@@ -47,5 +47,6 @@ export async function requestDeletion(
     await atomicWrite(
       path,
       JSON.stringify({ entry: ancestor, targets: targets ?? previous?.targets ?? [] }),
+      now,
     );
 }

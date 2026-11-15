@@ -7,6 +7,8 @@ import { createProgram } from "../../program.ts";
 import { emptyState } from "../model.ts";
 import { saveState } from "../store/repository.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("CLI startup registers approved checkouts before commands run", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-startup-"));
   const before = process.env.ENVDEN_HOME;
@@ -17,12 +19,12 @@ test("CLI startup registers approved checkouts before commands run", async () =>
   await writeFile(tool, "#!/bin/sh\nexit 0", { mode: 0o755 });
   const state = emptyState("test");
   state.approved.push({ root: checkout, gitDir: join(home, "external-git"), repoId: "test" });
-  await saveState(home, state);
+  await saveState(home, state, fixtureClock);
 
   try {
     expect(resolveTrustedExecutable(tool)).toBeDefined();
     process.env.ENVDEN_HOME = home;
-    await createProgram().parseAsync(["node", "envden", "version"]);
+    await createProgram(fixtureClock).parseAsync(["node", "envden", "version"]);
     expect(() => resolveTrustedExecutable(tool)).toThrow("Trusted executable unavailable");
   } finally {
     setUntrustedRoots([]);

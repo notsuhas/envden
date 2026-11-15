@@ -1,6 +1,8 @@
 import { caughtError } from "./checks/errors.ts";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import { loadState, saveState } from "../../../state/store/repository.ts";
 
 import { removeFile } from "../../remove.ts";
@@ -147,7 +149,7 @@ export function localActions(model: TModel) {
 
       await adoptUnlinked(d, target.root, next);
 
-      await saveState(adapters.home, next);
+      await saveState(adapters.home, next, fixtureClock);
     }
 
     trace.push(`${state.token} -> retracked places=${JSON.stringify(await places(d))}`);

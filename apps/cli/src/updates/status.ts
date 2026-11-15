@@ -17,14 +17,14 @@ export async function updateStatus(home: string) {
   };
 }
 
-export async function recordUpdateRequired(home: string, error?: unknown) {
+export async function recordUpdateRequired(home: string, error: unknown, now: () => number) {
   if (
     error instanceof EnvdenError &&
     error.message === "The server requires a version that doesn't exist"
   )
     return;
 
-  return atomicWrite(join(home, "state", "update-required"), VERSION);
+  return atomicWrite(join(home, "state", "update-required"), VERSION, now);
 }
 
 const requestHome = new AsyncLocalStorage<string>();

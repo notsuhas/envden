@@ -35,10 +35,15 @@ export async function conflictRecords(home: string): Promise<IConflictRecord[]> 
   return document.records;
 }
 
-export async function saveConflicts(home: string, records: IConflictRecord[]): Promise<void> {
+export async function saveConflicts(
+  home: string,
+  records: IConflictRecord[],
+  now: () => number,
+): Promise<void> {
   await atomicWrite(
     join(home, "state", "conflicts.json"),
     JSON.stringify({ model: "shared-store", records }),
+    now,
   );
 }
 
@@ -61,10 +66,10 @@ export async function recordConflict(
   );
 
   if (records.some((item) => item.base === target.base)) return;
-  await writeBytes(file, mine);
-  await writeBytes(file + ".server", server);
-  await writeBytes(file + ".mine", mine);
-  await writeBytes(file + ".remote", variants[1]);
+  await writeBytes(file, mine, context.options.now);
+  await writeBytes(file + ".server", server, context.options.now);
+  await writeBytes(file + ".mine", mine, context.options.now);
+  await writeBytes(file + ".remote", variants[1], context.options.now);
 
   const sources = [
     target.store,
@@ -88,7 +93,7 @@ export async function recordConflict(
   for (const [index, bytes] of variants.entries()) {
     if (bytes === undefined) continue;
     const path = file + `.variant-${index}`;
-    await writeBytes(path, bytes);
+    await writeBytes(path, bytes, context.options.now);
     alternatives.push(path);
 
     const source = sources[index]!;
@@ -107,7 +112,7 @@ export async function recordConflict(
     deleted: server === undefined,
   });
 
-  await saveConflicts(context.adapters.home, records);
+  await saveConflicts(context.adapters.home, records, context.options.now);
 
   context.options.report?.(
     sanitizeTerminal(`Conflict: ${target.path}; edit ${file}, then run envden resolve`),
@@ -118,14 +123,20 @@ export async function backup(home: string, path: string, now: number): Promise<s
   const bytes = await readBytes(path);
 
   if (bytes) {
-    const saved = join(home, "conflicts", "backups", `${now}-${crypto.randomUUID()}`);
-    await atomicWrite(saved, bytes);
+    const saved = join(
+      home,
+      "conflicts",
+      "backups",
+      `${String(now).padStart(13, "0")}_${crypto.randomUUID()}`,
+    );
+
+    await atomicWrite(saved, bytes, () => now);
 
     return saved;
   }
 }
 
-export async function removeConflictTargets(home: string, root: string) {
+export async function removeConflictTargets(home: string, root: string, now: () => number) {
   const records = await conflictRecords(home);
   if (!records.some((record) => record.targets.some((target) => target.root === root))) return;
 
@@ -165,5 +176,5 @@ export async function removeConflictTargets(home: string, root: string) {
     if (!same(stored, base) || divergent.some(Boolean)) retained.push(record);
   }
 
-  await saveConflicts(home, retained);
+  await saveConflicts(home, retained, now);
 }

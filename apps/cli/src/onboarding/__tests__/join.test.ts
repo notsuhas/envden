@@ -7,6 +7,8 @@ import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { runJoin } from "../join.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("a fresh pairing ignores the abandoned server pin", async () => {
   const f = await fixture();
   const stop = new Error("stop at code entry");
@@ -18,6 +20,7 @@ test("a fresh pairing ignores the abandoned server pin", async () => {
     await atomicWrite(
       join(home.home, "state", "pair-pin"),
       Buffer.from(p.randomBytes(32)).toString("base64url"),
+      fixtureClock,
     );
 
     await Promise.resolve(

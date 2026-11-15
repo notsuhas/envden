@@ -34,6 +34,7 @@ export async function reconcileFile(
         snapshot.snapshots.every(
           (item) => item.bytes === undefined || same(item.bytes, snapshot.server),
         ),
+      context.options.now,
     )
   )
     return { changed: Number(snapshot.restored), conflicts: 1 };
@@ -60,7 +61,8 @@ export async function reconcileFile(
       [stored, server, ...snapshots.map((item) => item.bytes)],
     );
 
-    if (repair) await consumeRepair(context.adapters.home, p.base32(entry!.fileId));
+    if (repair)
+      await consumeRepair(context.adapters.home, p.base32(entry!.fileId), context.options.now);
 
     return { changed: Number(snapshot.restored), conflicts: 1 };
   }

@@ -66,6 +66,7 @@ async function lockedrunJoin(
       atomicWrite(
         join(adapters.home, "state", "pair-pin"),
         Buffer.from(server.pin).toString("base64url"),
+        adapters.now,
       ),
     );
 

@@ -24,12 +24,15 @@ export async function fixture() {
   if (typeof token !== "string") throw new Error("Missing setup token");
 
   const home = (name: string) =>
-    createAdapters({
-      fetcher,
-      home: join(root, name),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
-    });
+    createAdapters(
+      {
+        fetcher,
+        home: join(root, name),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+      },
+      now,
+    );
 
   const first = home("first");
 

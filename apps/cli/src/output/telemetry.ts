@@ -54,7 +54,7 @@ export async function reportTelemetry(adapters: TAdapters, event: IEvent) {
       const saved = await optionalRead(path);
       if (saved) return saved;
       const generated = crypto.randomUUID();
-      await atomicWrite(path, generated);
+      await atomicWrite(path, generated, adapters.now);
 
       return generated;
     });

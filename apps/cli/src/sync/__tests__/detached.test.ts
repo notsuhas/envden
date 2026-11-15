@@ -14,6 +14,8 @@ import { conflictRecords } from "../local/conflicts.ts";
 import { saveBase } from "../local/reconciliation/history.ts";
 import { basePath } from "../local/files.ts";
 
+const fixtureClock = () => 1800000000000;
+
 for (const detached of [true, false])
   test.if(process.platform !== "win32")(
     `pull after copying a template preserves detached bytes: ${detached}`,
@@ -46,9 +48,15 @@ for (const detached of [true, false])
         context.state.links.push(target);
         const old = new TextEncoder().encode("SECRET=old\n");
         const server = new TextEncoder().encode("SECRET=remote\n");
-        await atomicWrite(store, old);
-        await saveBase(basePath(f.first.home, store), old);
-        await atomicWrite(join(checkout.root, ".env.example"), detached ? "SECRET=example\n" : old);
+        await atomicWrite(store, old, fixtureClock);
+        await saveBase(basePath(f.first.home, store), old, fixtureClock);
+
+        await atomicWrite(
+          join(checkout.root, ".env.example"),
+          detached ? "SECRET=example\n" : old,
+          fixtureClock,
+        );
+
         await cp(join(checkout.root, ".env.example"), join(checkout.root, ".env"));
 
         const applied = await sealUpload(
@@ -60,7 +68,12 @@ for (const detached of [true, false])
           old,
         );
 
-        await markAppliedEntry(f.first.home, text(p.FileEntryCodec.write(applied)));
+        await markAppliedEntry(
+          f.first.home,
+          text(p.FileEntryCodec.write(applied)),
+          undefined,
+          fixtureClock,
+        );
 
         const entry = await sealUpload(
           context,

@@ -95,10 +95,10 @@ async function lockedsetupVault(
     state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, creation.swap.header, "manifest"));
     await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
     await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
-    await saveState(adapters.home, state);
+    await saveState(adapters.home, state, adapters.now);
     await client.request("/v1/vault", "POST", bytes);
     delete state.creationPending;
-    await saveState(adapters.home, state);
+    await saveState(adapters.home, state, adapters.now);
 
     return {
       state,
@@ -169,7 +169,7 @@ async function resumeCreation(
     });
 
     delete pending.state.creationPending;
-    await saveState(adapters.home, pending.state);
+    await saveState(adapters.home, pending.state, adapters.now);
 
     return { state: pending.state, kit };
   } catch (error) {

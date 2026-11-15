@@ -11,7 +11,7 @@ test("copy prepares its exclusion before writing and replaces a leftover for thi
   const { checkout, store } = await setup();
   const destination = join(checkout, ".env");
   const temporary = temporaryName(".env");
-  const adapter = createFsPlacementAdapter("copy", checkout);
+  const adapter = createFsPlacementAdapter("copy", checkout, undefined, () => 1800000000000);
   await rejects(adapter.place(store, destination), /exclude/);
   let calls = 0;
 
@@ -44,6 +44,7 @@ test("copy prepares its exclusion before writing and replaces a leftover for thi
     async (path) => {
       expect(path).toBe(temporary);
     },
+    () => 1800000000000,
   );
 
   expect(await readdir(checkout)).toEqual([".env"]);

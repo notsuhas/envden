@@ -1,6 +1,8 @@
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import { serverBytes } from "./observation/server.ts";
 
 import { atomicWrite } from "../../../state/store/files.ts";
@@ -132,7 +134,7 @@ export function createModel(w: TWorld) {
     const before = await read(path);
     if (before === value) return false;
     recordPlaceEdit(d, t, value, before);
-    await atomicWrite(path, value);
+    await atomicWrite(path, value, fixtureClock);
     await settleUnobserved(d, t);
 
     return true;

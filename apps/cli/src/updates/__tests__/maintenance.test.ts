@@ -10,6 +10,8 @@ import { releasePlatform } from "../self/platform.ts";
 import { restartHostService } from "../../agent/service/restart.ts";
 import { installMethod } from "../install.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("release assets distinguish musl, glibc and Windows", () => {
   expect(releasePlatform("linux", "arm64")).toBe("linux-arm64-musl");
   expect(releasePlatform("linux", "x64", "2.36")).toBe("linux-x64");
@@ -21,7 +23,7 @@ test("installer environment precedes a stale marker", async () => {
   const before = process.env.ENVDEN_INSTALL_METHOD;
 
   try {
-    await atomicWrite(join(root, "install-method"), "script");
+    await atomicWrite(join(root, "install-method"), "script", fixtureClock);
     process.env.ENVDEN_INSTALL_METHOD = "brew";
 
     expect(await installMethod(root)).toEqual({
@@ -40,11 +42,14 @@ test("post-swap refresh only updates installed skills and tolerates shell failur
   const root = await mkdtemp(join(tmpdir(), "envden-refresh-"));
 
   try {
-    const adapters = createAdapters({
-      home: join(root, "home"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     let shells = 0;
 
@@ -64,7 +69,7 @@ test("post-swap refresh only updates installed skills and tolerates shell failur
     expect(shells).toBe(4);
     const skill = join(root, ".agents", "skills", "envden", "SKILL.md");
     expect(await Bun.file(skill).exists()).toBe(false);
-    await atomicWrite(skill, "old");
+    await atomicWrite(skill, "old", fixtureClock);
     await refreshInstallation(adapters, "/bin/envden");
     expect(await readFile(skill, "utf8")).toContain("Run envden status");
   } finally {
@@ -84,7 +89,13 @@ test("service restart requires an installed definition", async () => {
 
     await restartHostService(root, root, "linux", run);
     expect(calls).toEqual([]);
-    await atomicWrite(join(root, ".config", "systemd", "user", "envden.service"), "unit");
+
+    await atomicWrite(
+      join(root, ".config", "systemd", "user", "envden.service"),
+      "unit",
+      fixtureClock,
+    );
+
     await restartHostService(root, root, "linux", run);
     expect(calls).toEqual([["systemctl", "--user", "restart", "envden.service"]]);
   } finally {

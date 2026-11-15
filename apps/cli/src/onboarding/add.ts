@@ -36,7 +36,7 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
     await withStateLock(adapters.home, async () => {
       const latest = requireConfigured(await loadState(adapters.home), "Run setup first");
       latest.session = session;
-      await saveState(adapters.home, latest);
+      await saveState(adapters.home, latest, adapters.now);
     });
   }
 

@@ -9,11 +9,13 @@ export const statusCommand = new Command("status")
   .option("--json", "Machine-readable status")
   .addOption(new Option("--refresh-cache").hideHelp())
   .action(async (options) => {
-    const adapters = createAdapters();
+    const commandTime = Date.now();
+
+    const adapters = createAdapters(undefined, () => commandTime);
 
     const notice = await commandNotice(
       adapters,
-      Date.now(),
+      commandTime,
       fetch,
       !!options.refreshCache,
       process.cwd(),

@@ -1,6 +1,8 @@
 import { spyOn } from "bun:test";
 import * as files from "../../../../state/store/files.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export function placementFault(enabled: boolean) {
   let killed = false;
   let writes = 0;
@@ -13,7 +15,7 @@ export function placementFault(enabled: boolean) {
           throw new Error("Killed before written mark");
         }
 
-        await original(path, bytes);
+        await original(path, bytes, fixtureClock);
       })
     : undefined;
 

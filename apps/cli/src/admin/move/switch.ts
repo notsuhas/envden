@@ -44,7 +44,7 @@ async function lockedswitchServer(
     throw new EnvdenError("INVALID_DATA", "Server has no verified move to this pin");
 
   context.local.server = { address, pin: text(server.pin), protocol: 1 };
-  await saveState(adapters.home, context.local);
+  await saveState(adapters.home, context.local, adapters.now);
 }
 
 export function switchServer(...args: Parameters<typeof lockedswitchServer>) {

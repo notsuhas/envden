@@ -7,6 +7,8 @@ import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { binary } from "../../client/encoding.ts";
 import { exchangeJoiner } from "../joiner.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("committed join refuses before any exchange and clears pending pairing", async () => {
   const f = await setupFlow();
 
@@ -29,7 +31,7 @@ test("committed join refuses before any exchange and clears pending pairing", as
     });
 
     const saved = join(f.first.home, "state", "pair-joiner");
-    await atomicWrite(saved, "pending");
+    await atomicWrite(saved, "pending", fixtureClock);
 
     await Promise.resolve(
       expect(

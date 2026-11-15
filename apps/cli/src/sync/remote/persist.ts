@@ -19,5 +19,5 @@ export async function persistCheckpoint(context: TSyncContext): Promise<void> {
     text(p.signedCodec(p.EntryCodec).write(item)),
   );
 
-  await saveState(context.adapters.home, context.state);
+  await saveState(context.adapters.home, context.state, context.options.now);
 }

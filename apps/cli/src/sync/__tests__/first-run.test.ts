@@ -2,6 +2,8 @@ import { expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 
 import { loadState, saveState } from "../../state/store/repository.ts";
@@ -33,8 +35,8 @@ test("sync first-run", async () => {
 
     const cState = (await loadState(third.home))!;
     cState.approved.push(checkoutC);
-    await saveState(third.home, cState);
-    await atomicWrite(join(checkoutC.root, ".env"), "TOKEN=third-local\n");
+    await saveState(third.home, cState, fixtureClock);
+    await atomicWrite(join(checkoutC.root, ".env"), "TOKEN=third-local\n", fixtureClock);
     let choices = 0;
 
     await firstRun(third, {
@@ -51,7 +53,7 @@ test("sync first-run", async () => {
     const cStore = (await loadState(third.home))!.links[0]!.store;
 
     for (const choice of ["keep-mine", "merge"] as const) {
-      await atomicWrite(cStore, "TOKEN=third-local\n");
+      await atomicWrite(cStore, "TOKEN=third-local\n", fixtureClock);
       await firstRun(third, { ...opts, choose: async () => choice });
       expect(await readFile(cStore, "utf8")).toBe("TOKEN=third-local\n");
     }
@@ -65,7 +67,7 @@ test("tracking after join does not invent an agreed server base", async () => {
 
   try {
     const state = (await loadState(f.second.home))!;
-    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n");
+    await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n", fixtureClock);
 
     await linkFile(
       f.second,
@@ -75,7 +77,7 @@ test("tracking after join does not invent an agreed server base", async () => {
       ".env",
     );
 
-    await saveState(f.second.home, state);
+    await saveState(f.second.home, state, fixtureClock);
     const { pull } = await import("../engine.ts");
     expect((await pull(f.second, f.opts)).conflicts).toBe(1);
   } finally {

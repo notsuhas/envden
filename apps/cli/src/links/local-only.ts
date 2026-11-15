@@ -22,7 +22,7 @@ async function lockedmarkLocalOnly(
 
   link.mode = "copy";
   link.localOnly = true;
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 }
 
 export function markLocalOnly(...args: Parameters<typeof lockedmarkLocalOnly>) {

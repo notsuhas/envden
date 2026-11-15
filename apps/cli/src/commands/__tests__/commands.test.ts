@@ -5,6 +5,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 async function cli(args: string[]) {
   const home = await mkdtemp(join(tmpdir(), "envden-command-"));
 
@@ -109,10 +111,11 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
   const home = await mkdtemp(join(tmpdir(), "envden-command-state-"));
 
   try {
-    await saveUpdateCache(home, { message: "Cannot confirm envden is up to date" });
+    await saveUpdateCache(home, { message: "Cannot confirm envden is up to date" }, fixtureClock);
 
     for (const command of ["status", "config"]) {
-      if (command !== "status") await atomicWrite(join(home, "state", "device.json"), "{");
+      if (command !== "status")
+        await atomicWrite(join(home, "state", "device.json"), "{", fixtureClock);
 
       const child = spawnTrusted(
         [process.execPath, join(import.meta.dir, "../../main.ts"), command],

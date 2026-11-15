@@ -5,11 +5,13 @@ import { tmpdir } from "node:os";
 import { atomicWrite, optionalRead } from "../store/files.ts";
 import { recoverSyncRecord } from "../store/records.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("interrupted quarantine retains the corruption hold", async () => {
   const root = await fs.mkdtemp(join(tmpdir(), "envden-corrupt-"));
   const path = join(root, "entry");
   const marker = join(root, "hold");
-  await atomicWrite(path, "{invalid");
+  await atomicWrite(path, "{invalid", fixtureClock);
   const rename = fs.rename;
 
   const moving = spyOn(fs, "rename").mockImplementation(async (source, destination) => {

@@ -10,7 +10,13 @@ export const pushCommand = new Command("push")
   .option("--all", "Sync all repos")
   .option("--yes", "Confirm clean changes")
   .action(async (options) => {
-    const result = await push(createAdapters(), syncOptions(options));
+    const commandTime = Date.now();
+
+    const result = await push(
+      createAdapters(undefined, () => commandTime),
+      syncOptions(options, () => commandTime),
+    );
+
     console.log(terminalJson(result));
 
     if (result.conflicts || result.kind === "conflict")

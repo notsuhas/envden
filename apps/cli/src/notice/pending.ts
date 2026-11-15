@@ -18,7 +18,12 @@ async function pendingJoins(home: string): Promise<Record<string, string>> {
   }
 }
 
-export async function addPendingJoins(home: string, entries: string[], ownId: Uint8Array) {
+export async function addPendingJoins(
+  home: string,
+  entries: string[],
+  ownId: Uint8Array,
+  now: () => number,
+) {
   const pending = await pendingJoins(home);
 
   const seen = new Set<string>(
@@ -29,11 +34,11 @@ export async function addPendingJoins(home: string, entries: string[], ownId: Ui
     if (!seen.has(id)) pending[id] = name;
   }
 
-  await atomicWrite(join(home, "state", "pending-recovery.json"), JSON.stringify(pending));
+  await atomicWrite(join(home, "state", "pending-recovery.json"), JSON.stringify(pending), now);
 }
 
-export async function reportPendingJoins(home: string) {
+export async function reportPendingJoins(home: string, now: () => number) {
   const pending = await pendingJoins(home);
-  await printRecoveryJoins(home, pending);
-  await atomicWrite(join(home, "state", "pending-recovery.json"), "{}");
+  await printRecoveryJoins(home, pending, now);
+  await atomicWrite(join(home, "state", "pending-recovery.json"), "{}", now);
 }

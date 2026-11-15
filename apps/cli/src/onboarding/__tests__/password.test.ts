@@ -4,6 +4,8 @@ import { createAdapters } from "../../adapters.ts";
 import { test, expect } from "bun:test";
 import { confirmedPassword } from "../password.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("master password needs a matching second entry", async () => {
   let prompts = 0;
 
@@ -41,11 +43,14 @@ test("setup checks Tailscale HTTPS before collecting secrets", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-https-"));
 
   try {
-    const adapters = createAdapters({
-      home: root,
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: root,
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     adapters.network.checkHttpsCertificate = async () => false;
 
@@ -64,11 +69,14 @@ for (const action of ["change", "reset"] as const)
     await Promise.resolve(
       expect(
         runVaultAdmin(
-          createAdapters({
-            home: "/unused",
-            userHome: "/unused",
-            keychain: createMemoryKeychainAdapter([]),
-          }),
+          createAdapters(
+            {
+              home: "/unused",
+              userHome: "/unused",
+              keychain: createMemoryKeychainAdapter([]),
+            },
+            fixtureClock,
+          ),
           action,
           () => 0,
           async (label) => {

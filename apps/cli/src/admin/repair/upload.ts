@@ -68,7 +68,11 @@ async function lockeduploadRepair(
   const evidence = join(adapters.home, "state", `repair-restored-${text(context.repairId)}`);
 
   if ((await optionalRead(evidence)) === undefined)
-    await atomicWrite(evidence, text(p.objectHash(p.ManifestHeaderCodec, remoteHead, "manifest")));
+    await atomicWrite(
+      evidence,
+      text(p.objectHash(p.ManifestHeaderCodec, remoteHead, "manifest")),
+      adapters.now,
+    );
 
   const localHead = headers.at(-1)!;
 

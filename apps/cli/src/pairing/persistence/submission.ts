@@ -37,5 +37,9 @@ export async function resumeApproval(adapters: TAdapters, client: TClient, vault
 }
 
 export async function saveApproval(adapters: TAdapters, mailbox: number, bytes: Uint8Array) {
-  await atomicWrite(join(adapters.home, "state", "pair-swap"), `${mailbox}:${text(bytes)}`);
+  await atomicWrite(
+    join(adapters.home, "state", "pair-swap"),
+    `${mailbox}:${text(bytes)}`,
+    adapters.now,
+  );
 }

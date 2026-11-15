@@ -2,6 +2,8 @@ import { test, expect } from "bun:test";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { runSetup } from "../setup.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("completed setup skips credentials, kit and certificate prompts", async () => {
   const f = await fixture();
 
@@ -72,10 +74,10 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
     };
 
     const store = join(f.first.home, "store", ".env");
-    await atomicWrite(store, "PORT=1");
+    await atomicWrite(store, "PORT=1", fixtureClock);
     state.approved.push(source);
     state.links.push({ root: source.root, path: ".env", store, mode: "link" });
-    await saveState(f.first.home, state);
+    await saveState(f.first.home, state, fixtureClock);
     await pushInitialFiles(f.first, state, f.now);
 
     const checkout = {

@@ -20,7 +20,7 @@ export function resolveConflict(
     file?: string;
     repo?: string;
     choice: "keep-mine" | "take-server" | "edit";
-    now?: () => number;
+    now: () => number;
   },
 ) {
   return withSyncLock(adapters.home, async () => {
@@ -31,7 +31,7 @@ export function resolveConflict(
     if (matches.length !== 1)
       throw new EnvdenError("INVALID_INPUT", "Name exactly one conflict file");
 
-    const now = (options.now ?? Date.now)();
+    const now = options.now();
     const record = matches[0]!;
     const server = record.deleted ? undefined : await readBytes(record.server);
 
@@ -56,11 +56,11 @@ export function resolveConflict(
       backups.push({ source: record.store, path: storeBackup });
     }
 
-    await recordDeletion(adapters.home, record, bytes);
+    await recordDeletion(adapters.home, record, bytes, () => now);
 
     await rm(basePath(adapters.home, record.store) + ".pending", { force: true });
     await rm(basePath(adapters.home, record.store) + ".corrupt", { force: true });
-    await writeBytes(record.store, bytes);
+    await writeBytes(record.store, bytes, () => now);
 
     const placementReports = await placeResolution(
       adapters,
@@ -73,6 +73,7 @@ export function resolveConflict(
     await saveConflicts(
       adapters.home,
       records.filter((item) => item !== record),
+      () => now,
     );
 
     for (const path of [
@@ -148,11 +149,11 @@ async function placeResolution(
   for (const target of record.targets)
     await resolveTarget(adapters, state, record, target, bytes, server, now, reports);
 
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 
   if (record.entry) {
-    await saveBase(record.base, bytes);
-    await markAppliedEntry(adapters.home, record.entry, record.store);
+    await saveBase(record.base, bytes, adapters.now);
+    await markAppliedEntry(adapters.home, record.entry, record.store, adapters.now);
   }
 
   return reports;
@@ -193,13 +194,14 @@ async function resolveTarget(
     target.mode === "copy" ? target.root : undefined,
   );
 
-  await saveBase(base, bytes);
+  await saveBase(base, bytes, adapters.now);
 }
 
 async function recordDeletion(
   home: string,
   record: Awaited<ReturnType<typeof conflictRecords>>[number],
   bytes: Uint8Array | undefined,
+  now: () => number,
 ) {
   await requestDeletion(
     home,
@@ -207,6 +209,7 @@ async function recordDeletion(
     bytes === undefined && (record.deleted || record.mineDeleted),
     record.entry ?? undefined,
     record.targets.map((target) => join(target.root, target.path)),
+    now,
   );
 }
 

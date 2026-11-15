@@ -9,10 +9,12 @@ import { untrack } from "../../../links/checkout/untrack.ts";
 import { linkFile } from "../../../links/file.ts";
 import { read, serverBytes, type TRun } from "./fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export async function edit(run: TRun, device: number, bytes: string) {
   const path = join(run.roots[device]!, ".env");
   run.model.user(device, await read(path), bytes);
-  await atomicWrite(device === 0 ? run.stores[device]! : path, bytes);
+  await atomicWrite(device === 0 ? run.stores[device]! : path, bytes, fixtureClock);
 }
 
 export async function receive(run: TRun, device: number, fail = false) {
@@ -96,7 +98,7 @@ export async function retrack(run: TRun, device: number) {
   if ((await read(path)) !== undefined)
     await linkFile(adapters, next, checkout, adapters.placement("copy", root), ".env");
 
-  await saveState(adapters.home, next);
+  await saveState(adapters.home, next, fixtureClock);
 }
 
 function expectedFailure(error: unknown, code: string) {

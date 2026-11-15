@@ -37,7 +37,7 @@ export async function resumeInitialFiles(adapters: TAdapters, now: () => number)
   }
 
   await persistCheckpoint(context);
-  await recordPushed(adapters.home, checkpoint.files, bases);
+  await recordPushed(adapters.home, checkpoint.files, bases, adapters.now);
 }
 
 function matchingLinks(

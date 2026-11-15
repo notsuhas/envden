@@ -15,10 +15,32 @@ for (const mode of ["copy", "link"] as const)
   test(`fallback ${mode} creates private parents, replaces matching files and removes safely`, async () => {
     const { checkout, store } = await setup();
     const destination = join(checkout, "nested/.env");
-    await place(mode, checkout, store, destination, undefined, fallback, async () => {});
+
+    await place(
+      mode,
+      checkout,
+      store,
+      destination,
+      undefined,
+      fallback,
+      async () => {},
+      () => 1800000000000,
+    );
+
     expect(await readFile(destination, "utf8")).toBe("A=secret\n");
     expect((await lstat(destination)).isSymbolicLink()).toBe(mode === "link");
-    await place(mode, checkout, store, destination, undefined, fallback, async () => {});
+
+    await place(
+      mode,
+      checkout,
+      store,
+      destination,
+      undefined,
+      fallback,
+      async () => {},
+      () => 1800000000000,
+    );
+
     await remove(checkout, store, destination, fallback);
     expect(await readdir(join(checkout, "nested"))).toEqual([]);
     await remove(checkout, store, destination, fallback);
@@ -47,6 +69,7 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
         undefined,
         fallback,
         async () => {},
+        () => 1800000000000,
       ),
       /Unsafe checkout parent/,
     );
@@ -58,7 +81,16 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
   await mkdir(destination);
 
   await rejects(
-    place("copy", checkout, store, destination, undefined, fallback, async () => {}),
+    place(
+      "copy",
+      checkout,
+      store,
+      destination,
+      undefined,
+      fallback,
+      async () => {},
+      () => 1800000000000,
+    ),
     /Destination is not a file/,
   );
 
@@ -68,7 +100,16 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
   await rejects(remove(checkout, undefined, destination, fallback), /unrelated/);
 
   await rejects(
-    place("copy", checkout, alias, destination, undefined, fallback, async () => {}),
+    place(
+      "copy",
+      checkout,
+      alias,
+      destination,
+      undefined,
+      fallback,
+      async () => {},
+      () => 1800000000000,
+    ),
     /unrelated/,
   );
 
@@ -76,14 +117,32 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
 
   for (const source of [alias, checkout])
     await rejects(
-      place("copy", checkout, source, destination, undefined, fallback, async () => {}),
+      place(
+        "copy",
+        checkout,
+        source,
+        destination,
+        undefined,
+        fallback,
+        async () => {},
+        () => 1800000000000,
+      ),
       /Store source/,
     );
 
   await writeFile(destination, "keep");
 
   await rejects(
-    place("copy", checkout, store, destination, undefined, fallback, async () => {}),
+    place(
+      "copy",
+      checkout,
+      store,
+      destination,
+      undefined,
+      fallback,
+      async () => {},
+      () => 1800000000000,
+    ),
     /Backup directory/,
   );
 
@@ -99,6 +158,7 @@ test("fallback refuses unsafe roots, parents, sources and destinations without c
       undefined,
       { ...fallback, platform: "darwin" },
       async () => {},
+      () => 1800000000000,
     ),
     /Backup directory/,
   );
@@ -123,7 +183,8 @@ test("fallback backup requires private ACLs before writing and rejects checkout 
       return status;
     };
 
-    const write = () => backupContents(checkout, backups, contents, { libc: undefined, spawn });
+    const write = () =>
+      backupContents(checkout, backups, contents, { libc: undefined, spawn }, () => 1800000000000);
 
     if (status) {
       expect(write).toThrow("restrict backup access");
@@ -138,17 +199,26 @@ test("fallback backup requires private ACLs before writing and rejects checkout 
   await symlink(backups, alias);
 
   expect(() =>
-    backupContents(checkout, alias, contents, {
-      libc: undefined,
-      spawn: () => {
-        throw new Error("unsafe backup reached ACL restriction");
+    backupContents(
+      checkout,
+      alias,
+      contents,
+      {
+        libc: undefined,
+        spawn: () => {
+          throw new Error("unsafe backup reached ACL restriction");
+        },
       },
-    }),
+      () => 1800000000000,
+    ),
   ).toThrow("Unsafe backup directory");
 
   await unlink(alias);
   await symlink(checkout, alias);
-  expect(() => backupContents(checkout, alias, contents)).toThrow("outside checkout");
+
+  expect(() => backupContents(checkout, alias, contents, undefined, () => 1800000000000)).toThrow(
+    "outside checkout",
+  );
 });
 
 import * as parents from "../paths/parent-identity.ts";
@@ -163,7 +233,16 @@ test("fallback preserves the original error and removes staged plaintext", async
 
   try {
     await rejects(
-      place("copy", checkout, store, join(checkout, ".env"), undefined, fallback, async () => {}),
+      place(
+        "copy",
+        checkout,
+        store,
+        join(checkout, ".env"),
+        undefined,
+        fallback,
+        async () => {},
+        () => 1800000000000,
+      ),
       (error) => error === original,
     );
 

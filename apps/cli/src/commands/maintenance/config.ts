@@ -14,38 +14,64 @@ export const configCommand = new Command("config")
     "Get/set telemetry, update-check, agent-merge, unlock-period, placement <path> link|copy or env-files <JSON>",
   )
   .action(async (key, values) => {
+    const commandTime = Date.now();
+
     const value = values?.[0];
 
     if (key === "placement" && value !== undefined) {
       if (values?.length !== 2)
         throw new EnvdenError("INVALID_INPUT", "Expected placement <checkout> link|copy");
 
-      console.log(JSON.stringify(await setCheckoutPlacement(createAdapters(), value, values[1])));
+      console.log(
+        JSON.stringify(
+          await setCheckoutPlacement(
+            createAdapters(undefined, () => commandTime),
+            value,
+            values[1],
+          ),
+        ),
+      );
 
       return;
     }
 
     if (key === "unlock-period" && value === undefined) {
-      console.log(JSON.stringify(await getUnlockPeriod(createAdapters(), () => Date.now())));
+      console.log(
+        JSON.stringify(
+          await getUnlockPeriod(
+            createAdapters(undefined, () => commandTime),
+            () => commandTime,
+          ),
+        ),
+      );
 
       return;
     }
 
     if (value !== undefined && key !== undefined) {
       if (key === "unlock-period") {
-        await setUnlockPeriod(createAdapters(), value, await secret("Master password"), () =>
-          Date.now(),
+        await setUnlockPeriod(
+          createAdapters(undefined, () => commandTime),
+          value,
+          await secret("Master password"),
+          () => commandTime,
         );
 
         return;
       }
 
-      console.log(JSON.stringify(await setConfig(key, value, createAdapters().home), null, 2));
+      console.log(
+        JSON.stringify(
+          await setConfig(key, value, createAdapters(undefined, () => commandTime).home),
+          null,
+          2,
+        ),
+      );
 
       return;
     }
 
-    const config = await readConfig(createAdapters().home);
+    const config = await readConfig(createAdapters(undefined, () => commandTime).home);
 
     reportConfig(config, key);
   });

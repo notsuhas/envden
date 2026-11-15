@@ -35,14 +35,17 @@ export async function resumeFile(context: TSyncContext, store: string) {
       text(p.objectHash(p.ManifestHeaderCodec, context.checkpoint.header, "manifest")) ||
     !canResume(operation.before, current, contentHash(next), operation.written)
   ) {
-    await writeBytes(path, undefined);
+    await writeBytes(path, undefined, context.options.now);
 
     return;
   }
 
   await finishFile(context, store, operation.targets, next, server, operation.entry, operation);
-  if (operation.entry) await markAppliedEntry(context.adapters.home, operation.entry);
-  await writeBytes(path, undefined);
+
+  if (operation.entry)
+    await markAppliedEntry(context.adapters.home, operation.entry, undefined, context.options.now);
+
+  await writeBytes(path, undefined, context.options.now);
 }
 
 export async function commitFile(
@@ -75,6 +78,7 @@ export async function commitFile(
       next: next === undefined ? null : Buffer.from(next).toString("base64"),
       server: server === undefined ? null : Buffer.from(server).toString("base64"),
     } satisfies TOperation),
+    context.options.now,
   );
 
   await resumeFile(context, store);
@@ -92,21 +96,27 @@ async function finishFile(
   if (!same(await readBytes(store), next)) {
     const saved = await backup(context.adapters.home, store, context.options.now());
     if (saved) context.options.report?.(sanitizeTerminal(`Saved ${store}: ${saved}`));
-    await writeBytes(store, next);
+    await writeBytes(store, next, context.options.now);
   } else if (
     next !== undefined &&
     !same(await readBytes(basePath(context.adapters.home, store)), next)
   ) {
-    await atomicWrite(store, next);
+    await atomicWrite(store, next, context.options.now);
   }
 
   if (operation) await markWritten(context, store, operation, 0);
 
-  if (entry) await atomicWrite(basePath(context.adapters.home, store) + ".entry", entry);
-  await saveBase(basePath(context.adapters.home, store), next);
+  if (entry)
+    await atomicWrite(
+      basePath(context.adapters.home, store) + ".entry",
+      entry,
+      context.options.now,
+    );
+
+  await saveBase(basePath(context.adapters.home, store), next, context.options.now);
   await placeTargets(context, store, targets, next, server, operation);
 
-  await journalPlacement(context.adapters.home, context.state);
+  await journalPlacement(context.adapters.home, context.state, context.options.now);
 }
 
 async function placeTargets(
@@ -118,7 +128,8 @@ async function placeTargets(
   operation?: TOperation,
 ) {
   const preserveDeleted =
-    server !== undefined || (await deletionRequested(context.adapters.home, store));
+    server !== undefined ||
+    (await deletionRequested(context.adapters.home, store, context.options.now));
 
   for (const [index, target] of targets.entries()) {
     if (!(await placeFileTarget(context, target, next, preserveDeleted))) continue;
@@ -126,7 +137,11 @@ async function placeTargets(
     if (operation) await markWritten(context, store, operation, index + 1);
 
     if (target.mode === "copy")
-      await saveBase(basePath(context.adapters.home, store, target.root), next);
+      await saveBase(
+        basePath(context.adapters.home, store, target.root),
+        next,
+        context.options.now,
+      );
   }
 }
 
@@ -138,26 +153,30 @@ async function recoverPlaces(
 ) {
   if (operation.written[0]) {
     if (operation.entry)
-      await atomicWrite(basePath(context.adapters.home, store) + ".entry", operation.entry);
+      await atomicWrite(
+        basePath(context.adapters.home, store) + ".entry",
+        operation.entry,
+        context.options.now,
+      );
 
-    await saveBase(basePath(context.adapters.home, store), next);
+    await saveBase(basePath(context.adapters.home, store), next, context.options.now);
   }
 
   for (const [index, target] of operation.targets.entries()) {
     if (target.mode !== "copy" || !operation.written[index + 1]) continue;
 
-    await saveBase(basePath(context.adapters.home, store, target.root), next);
+    await saveBase(basePath(context.adapters.home, store, target.root), next, context.options.now);
   }
 }
 
-export async function preservePendingAncestor(home: string, store: string) {
+export async function preservePendingAncestor(home: string, store: string, now: () => number) {
   const base = basePath(home, store);
-  const operation = await readOperation(base + ".pending");
+  const operation = await readOperation(base + ".pending", now);
   if (!operation) return;
   const next = operation.next === null ? undefined : Buffer.from(operation.next, "base64");
 
   if (operation.entry && contentHash(await readBytes(store)) === contentHash(next))
-    await atomicWrite(base + ".entry", operation.entry);
+    await atomicWrite(base + ".entry", operation.entry, now);
 }
 
 async function markWritten(
@@ -167,7 +186,12 @@ async function markWritten(
   index: number,
 ) {
   operation.written[index] = true;
-  await atomicWrite(basePath(context.adapters.home, store) + ".pending", JSON.stringify(operation));
+
+  await atomicWrite(
+    basePath(context.adapters.home, store) + ".pending",
+    JSON.stringify(operation),
+    context.options.now,
+  );
 }
 
 async function copiesRecorded(

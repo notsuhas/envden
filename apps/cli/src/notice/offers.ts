@@ -18,7 +18,7 @@ export async function cacheOffers(
   if (cwd) await scanOffer(adapters, state, cwd, roots, now);
 
   const pending = [...roots].filter((root) => !state.approved.some((item) => item.root === root));
-  await atomicWrite(path, pending.join("\n") + (pending.length ? "\n" : ""));
+  await atomicWrite(path, pending.join("\n") + (pending.length ? "\n" : ""), adapters.now);
   const lines = [];
   if (update.available) lines.push("envden: update available; run envden update");
   if (update.required) lines.push("envden: update required; run envden update");
@@ -26,6 +26,7 @@ export async function cacheOffers(
   await atomicWrite(
     join(adapters.home, "state", "notice-update"),
     lines.join("\n") + (lines.length ? "\n" : ""),
+    adapters.now,
   );
 }
 
@@ -55,7 +56,7 @@ async function scanOffer(
 
   if (files.length) roots.add(checkout.root);
   scans[checkout.root] = now;
-  await atomicWrite(path, JSON.stringify(scans));
+  await atomicWrite(path, JSON.stringify(scans), adapters.now);
 }
 
 async function recentScans(path: string, now: number): Promise<Record<string, number>> {

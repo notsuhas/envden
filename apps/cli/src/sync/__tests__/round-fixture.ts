@@ -6,6 +6,8 @@ import { loadState, saveState } from "../../state/store/repository.ts";
 import { setConfig } from "../../settings/config.ts";
 import { pull } from "../engine.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export async function approveLayout(
   f: Awaited<ReturnType<typeof syncFixture>>,
   modes: readonly ("link" | "copy")[],
@@ -30,7 +32,7 @@ export async function approveLayout(
     caseInsensitive: async () => false,
   });
 
-  await saveState(f.second.home, state);
+  await saveState(f.second.home, state, fixtureClock);
 
   await setConfig(
     "placement",
@@ -56,7 +58,7 @@ export async function approveThird(f: Awaited<ReturnType<typeof syncFixture>>) {
     caseInsensitive: async () => false,
   });
 
-  await saveState(f.third.home, state);
+  await saveState(f.third.home, state, fixtureClock);
   await pull(f.third, f.opts);
 
   return join(checkout.root, ".env");

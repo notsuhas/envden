@@ -15,7 +15,7 @@ async function lockedAliasRepo(adapters: TAdapters, source: string, target: stri
   if (decision.kind === "chain") throw new EnvdenError("CONFLICT", "Alias chains are not allowed");
 
   state.aliases[source] = target;
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 }
 
 export function deriveAlias(aliases: Record<string, string>, source: string, target: string) {

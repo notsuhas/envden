@@ -8,9 +8,11 @@ import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { setupVault } from "../setup.ts";
 
+const fixtureClock = () => 1800000000000;
+
 export async function setupFlow() {
   const root = await mkdtemp(join(tmpdir(), "envden-cli-flow-"));
-  const now = () => 1800000000000;
+  const now = fixtureClock;
   const log = spyOn(console, "log").mockImplementation(() => {});
   const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
@@ -32,12 +34,15 @@ export async function setupFlow() {
     if (typeof token !== "string") throw new Error("Missing setup token");
 
     const homes = ["first", "second", "third"].map((name) =>
-      createAdapters({
-        fetcher,
-        home: join(root, name),
-        userHome: join(root, name),
-        keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
-      }),
+      createAdapters(
+        {
+          fetcher,
+          home: join(root, name),
+          userHome: join(root, name),
+          keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+        },
+        now,
+      ),
     );
 
     const first = homes[0]!;

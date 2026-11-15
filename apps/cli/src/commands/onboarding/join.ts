@@ -17,9 +17,11 @@ export const joinCommand = new Command("join")
   .option("--agent <choice>", "Agent skill: on or off")
   .option("--resume", "Fetch the committed approver message")
   .action(async (server, options) => {
-    const adapters = createAdapters();
+    const commandTime = Date.now();
+
+    const adapters = createAdapters(undefined, () => commandTime);
 
     if ((await loadState(adapters.home))?.checkpoint)
-      await runRejoin(adapters, server, options, () => Date.now());
-    else await runJoin(adapters, server, options, () => Date.now());
+      await runRejoin(adapters, server, options, () => commandTime);
+    else await runJoin(adapters, server, options, () => commandTime);
   });

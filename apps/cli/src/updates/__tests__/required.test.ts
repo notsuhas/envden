@@ -7,6 +7,8 @@ import { fixture } from "../../client/__tests__/fixture.ts";
 import { createClient } from "../../client/request.ts";
 import { recordUpdateRequired, withUpdateStatus, updateStatus } from "../status.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("a successful authenticated request clears a previous update refusal", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-required-"));
   const f = await fixture();
@@ -15,10 +17,11 @@ test("a successful authenticated request clears a previous update refusal", asyn
     await recordUpdateRequired(
       home,
       new EnvdenError("CLIENT_TOO_OLD", "The server requires a version that doesn't exist"),
+      fixtureClock,
     );
 
     expect((await updateStatus(home)).required).toBe(false);
-    await recordUpdateRequired(home);
+    await recordUpdateRequired(home, undefined, fixtureClock);
 
     const client = createClient({
       ...f.options,

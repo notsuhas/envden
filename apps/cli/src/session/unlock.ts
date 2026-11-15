@@ -32,7 +32,7 @@ async function lockedunlockDevice(
 
   const session = await login(client, p.unbase32(state.vaultId), password);
   if (session) state.session = session;
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 }
 
 export function unlockDevice(...args: Parameters<typeof lockedunlockDevice>) {

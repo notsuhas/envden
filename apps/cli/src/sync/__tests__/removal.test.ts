@@ -8,6 +8,8 @@ import { removeFile } from "../remove.ts";
 import { pull, push } from "../engine.ts";
 import { readBytes, basePath } from "../local/files.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 
 for (const modes of layouts) {
@@ -101,8 +103,8 @@ test("confirmed rm discards an existing conflict without recreating it on push",
   const f = await fixture();
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
-  await atomicWrite(store, "TOKEN=mine\n");
-  await atomicWrite(f.aStore, "TOKEN=remote\n");
+  await atomicWrite(store, "TOKEN=mine\n", fixtureClock);
+  await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
   await push(f.first, f.opts);
   expect((await pull(f.second, f.opts)).conflicts).toBe(1);
 

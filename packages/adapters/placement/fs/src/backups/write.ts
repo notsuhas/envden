@@ -23,7 +23,7 @@ export function backupContents(
     libc,
     spawn: (args: string[]) => spawnTrusted("icacls", args, { sync: true }).exitCode,
   },
-  now = Date.now,
+  now: () => number,
 ) {
   if (!directory) throw new EnvdenError("INVALID_INPUT", "Backup directory is required");
   const path = resolve(directory);

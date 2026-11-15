@@ -8,13 +8,15 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
 import type { TFetch } from "../../client/fetch.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 
 test("accepted attempt superseded by another device's revert is stale", async () => {
   const f = await fixture();
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
-  await atomicWrite(store, "TOKEN=remote\n");
+  await atomicWrite(store, "TOKEN=remote\n", fixtureClock);
 
   const lost: TFetch = async (input, init) => {
     const response = await f.fetcher(input, init);
@@ -27,7 +29,7 @@ test("accepted attempt superseded by another device's revert is stale", async ()
 
   await Promise.resolve(expect(push(f.second, { ...f.opts, fetcher: lost })).rejects.toThrow());
   await pull(f.first, f.opts);
-  await atomicWrite(f.aStore, "TOKEN=local-test-value\n");
+  await atomicWrite(f.aStore, "TOKEN=local-test-value\n", fixtureClock);
   await push(f.first, f.opts);
   expect((await push(f.second, f.opts)).changed).toBe(0);
   expect(await Bun.file(store).text()).toBe("TOKEN=local-test-value\n");
@@ -37,7 +39,7 @@ for (const lostBase of [false, true])
   test(`partially placed server version superseded by a revert is stale; lost base ${lostBase}`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy", "link"]);
-    await atomicWrite(f.aStore, "TOKEN=remote\n");
+    await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
     const original = f.second.repo.ensureIgnored.bind(f.second.repo);
 
@@ -57,7 +59,7 @@ for (const lostBase of [false, true])
       await untrack(f.second, targets[1]!.root);
     }
 
-    await atomicWrite(f.aStore, "TOKEN=local-test-value\n");
+    await atomicWrite(f.aStore, "TOKEN=local-test-value\n", fixtureClock);
     await push(f.first, f.opts);
     expect((await push(f.second, f.opts)).changed).toBe(0);
 
@@ -76,7 +78,7 @@ for (const mode of ["copy", "link"] as const)
     const path = join(targets[0]!.root, ".env");
     await removeFile(f.second, path, { yes: true, now: f.now });
     await rm(path, { force: true });
-    await atomicWrite(path, "TOKEN=local-test-value\n");
+    await atomicWrite(path, "TOKEN=local-test-value\n", fixtureClock);
     const reports: string[] = [];
 
     expect(
@@ -96,7 +98,7 @@ test("live resolution clears deletion intent before a later missing store", asyn
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
   await removeFile(f.second, join(f.checkoutB.root, ".env"), { yes: true, now: f.now });
-  await atomicWrite(f.aStore, "TOKEN=remote\n");
+  await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
   await push(f.first, f.opts);
   expect((await push(f.second, f.opts)).conflicts).toBe(1);
   await resolveConflict(f.second, { file: ".env", choice: "take-server", now: f.now });
@@ -111,7 +113,7 @@ test("an excluded local edit is held back even when the server is unchanged", as
   const f = await fixture();
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
-  await atomicWrite(store, "TOKEN=excluded\n");
+  await atomicWrite(store, "TOKEN=excluded\n", fixtureClock);
 
   await setConfig(
     "env-files",
@@ -149,7 +151,7 @@ test("lost unpublished link content is reported and remains tracked", async () =
   const f = await fixture();
   const state = (await loadState(f.second.home))!;
   const path = join(f.checkoutB.root, ".env.new");
-  await atomicWrite(path, "TOKEN=new\n");
+  await atomicWrite(path, "TOKEN=new\n", fixtureClock);
 
   await linkFile(
     f.second,
@@ -159,7 +161,7 @@ test("lost unpublished link content is reported and remains tracked", async () =
     ".env.new",
   );
 
-  await saveState(f.second.home, state);
+  await saveState(f.second.home, state, fixtureClock);
   await rm(state.links[0]!.store);
   const result = await push(f.second, f.opts);
   expect(result.conflicts).toBe(1);
@@ -180,7 +182,7 @@ test("removing an unpublished file only untracks locally", async () => {
   const f = await fixture();
   const state = (await loadState(f.second.home))!;
   const path = join(f.checkoutB.root, ".env.new");
-  await atomicWrite(path, "TOKEN=new\n");
+  await atomicWrite(path, "TOKEN=new\n", fixtureClock);
 
   await linkFile(
     f.second,
@@ -190,7 +192,7 @@ test("removing an unpublished file only untracks locally", async () => {
     ".env.new",
   );
 
-  await saveState(f.second.home, state);
+  await saveState(f.second.home, state, fixtureClock);
   const result = await removeFile(f.second, path, { yes: true, now: f.now });
   expect(result.publish).toBe("none");
   expect((await push(f.second, f.opts)).changed).toBe(0);
@@ -209,7 +211,7 @@ test("failed removal never records deletion intent", async () => {
   const destination = join(targets[1]!.root, ".env");
   await rm(destination);
   const unrelated = join(f.root, "unrelated-env");
-  await atomicWrite(unrelated, "TOKEN=unrelated\n");
+  await atomicWrite(unrelated, "TOKEN=unrelated\n", fixtureClock);
   await symlink(unrelated, destination);
 
   await Promise.resolve(
@@ -218,7 +220,8 @@ test("failed removal never records deletion intent", async () => {
     ).rejects.toThrow(),
   );
 
-  expect(await deletionRequested(f.second.home, targets[0]!.store)).toBe(false);
+  expect(await deletionRequested(f.second.home, targets[0]!.store, fixtureClock)).toBe(false);
+
   expect(await Bun.file(targets[0]!.store).text()).toBe("TOKEN=local-test-value\n");
   expect(await Bun.file(unrelated).text()).toBe("TOKEN=unrelated\n");
 });

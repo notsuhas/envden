@@ -42,6 +42,7 @@ async function update(
     process.platform === "win32",
     options.run ? (path) => options.run!([path, "--version"]) : undefined,
     () => postInstall(options.binary, options.run),
+    adapters.now,
   );
 
   return { kind: "updated" as const };

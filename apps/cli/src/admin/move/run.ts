@@ -69,8 +69,8 @@ async function lockedmoveServer(
       : {}),
   });
 
-  await atomicWrite(join(directory, "move-address"), address);
-  await atomicWrite(join(directory, "move-pin"), text(pin));
+  await atomicWrite(join(directory, "move-address"), address, adapters.now);
+  await atomicWrite(join(directory, "move-pin"), text(pin), adapters.now);
   let swap: p.ISwap;
 
   swap = await preparedSwap(context, destination, directory, pin, address, options);
@@ -134,7 +134,8 @@ async function preparedSwap(
     );
 
     swap = adminSwap(history, context.identity, 10, options.now(), { entries: [entry] });
-    await atomicWrite(join(directory, "move-swap.bin"), p.encode(p.SwapCodec, swap));
+
+    await atomicWrite(join(directory, "move-swap.bin"), p.encode(p.SwapCodec, swap), context.now);
   }
 
   return swap;

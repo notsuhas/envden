@@ -24,7 +24,7 @@ export async function promptPairing(
     const expiresAt = Math.min(serverExpiry, now() + 600000);
 
     await withStateLock(adapters.home, () =>
-      atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt)),
+      atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt), adapters.now),
     );
 
     await interaction.waitMessage(client, `/v1/pairing/mailboxes/${mailbox}/KE2`, now, expiresAt);

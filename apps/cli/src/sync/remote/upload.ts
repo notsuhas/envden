@@ -45,7 +45,8 @@ export async function uploadLink(
 
   if (
     bytes === undefined &&
-    (!previous || !(await deletionRequested(context.adapters.home, link.store)))
+    (!previous ||
+      !(await deletionRequested(context.adapters.home, link.store, context.options.now)))
   )
     return;
 
@@ -53,7 +54,7 @@ export async function uploadLink(
 
   if (
     same(bytes, baseline) &&
-    (previous || !(await deletionRequested(context.adapters.home, link.store)))
+    (previous || !(await deletionRequested(context.adapters.home, link.store, context.options.now)))
   )
     return;
 

@@ -80,7 +80,7 @@ async function lockedacceptJoin(
   state.files = text(files);
   await adapters.keychain.set(`envden/${adapters.home}/epoch/${header.body.epoch}`, key);
   await adapters.keychain.set(`envden/${adapters.home}/id-key`, ring.idKey);
-  await saveState(adapters.home, state);
+  await saveState(adapters.home, state, adapters.now);
 
   return state;
 }

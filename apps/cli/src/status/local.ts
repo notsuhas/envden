@@ -42,7 +42,12 @@ export async function localStatus(
   }
 
   if (refresh)
-    await refreshNotice(adapters.home, state, (root) => adapters.repo.caseInsensitive(root, true));
+    await refreshNotice(
+      adapters.home,
+      state,
+      (root) => adapters.repo.caseInsensitive(root, true),
+      adapters.now,
+    );
 
   return {
     configured: true,

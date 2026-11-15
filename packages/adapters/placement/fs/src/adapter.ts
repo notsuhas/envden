@@ -9,8 +9,8 @@ import { inspect } from "./operations/inspect.ts";
 export function createFsPlacementAdapter(
   mode: TPlacementMode,
   checkoutRoot: string,
-  backupDirectory?: string,
-  now = Date.now,
+  backupDirectory: string | undefined,
+  now: () => number,
 ): IPlacementAdapter {
   const root = resolve(checkoutRoot);
 

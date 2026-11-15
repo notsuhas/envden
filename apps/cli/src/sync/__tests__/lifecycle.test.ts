@@ -8,6 +8,8 @@ import { pull, push } from "../engine.ts";
 import { readRemoteNotice, remoteNotice } from "../../notice/remote.ts";
 import { createSharedFixture } from "./shared-fixture.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const syncFixture = createSharedFixture();
 
 test("tombstones remove link records and do not require ignore permission", async () => {
@@ -36,8 +38,8 @@ test("pull adopts an unjournaled store link", async () => {
     await pull(f.second, f.opts);
     const state = (await loadState(f.second.home))!;
     state.links = [];
-    await saveState(f.second.home, state);
-    await atomicWrite(f.aStore, "TOKEN=changed\n");
+    await saveState(f.second.home, state, fixtureClock);
+    await atomicWrite(f.aStore, "TOKEN=changed\n", fixtureClock);
     await push(f.first, f.opts);
     expect((await pull(f.second, f.opts)).conflicts).toBe(0);
     expect((await loadState(f.second.home))!.links).toHaveLength(1);
@@ -60,7 +62,7 @@ test("local-only files never appear in remote notices", async () => {
       localOnly: true,
     });
 
-    await saveState(f.second.home, state);
+    await saveState(f.second.home, state, fixtureClock);
     expect((await remoteNotice(f.second, f.opts)).repos).toEqual([]);
     await pull(f.second, f.opts);
     expect((await readRemoteNotice(f.second.home))!.repos).toEqual([]);
@@ -73,7 +75,7 @@ test("notice failure does not fail a committed push", async () => {
   const f = await syncFixture();
 
   try {
-    await atomicWrite(f.aStore, "TOKEN=changed\n");
+    await atomicWrite(f.aStore, "TOKEN=changed\n", fixtureClock);
     await rm(join(f.first.home, "state", "remote-notice.json"), { force: true });
     const { mkdir } = await import("node:fs/promises");
     await mkdir(join(f.first.home, "state", "remote-notice.json"));
@@ -91,7 +93,7 @@ test("unpublished detached files can resolve while other files push", async () =
     const { resolveConflict } = await import("../resolve.ts");
     const state = (await loadState(f.first.home))!;
     const destination = join(f.checkout.root, ".env.local");
-    await atomicWrite(destination, "KEY=original\n");
+    await atomicWrite(destination, "KEY=original\n", fixtureClock);
 
     await linkFile(
       f.first,
@@ -101,9 +103,9 @@ test("unpublished detached files can resolve while other files push", async () =
       ".env.local",
     );
 
-    await saveState(f.first.home, state);
-    await atomicWrite(destination, "KEY=detached\n");
-    await atomicWrite(f.aStore, "TOKEN=other-change\n");
+    await saveState(f.first.home, state, fixtureClock);
+    await atomicWrite(destination, "KEY=detached\n", fixtureClock);
+    await atomicWrite(f.aStore, "TOKEN=other-change\n", fixtureClock);
     const result = await push(f.first, f.opts);
     expect(result.conflicts).toBe(1);
     expect(result.changed).toBe(1);

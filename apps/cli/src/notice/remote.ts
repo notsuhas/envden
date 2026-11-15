@@ -20,12 +20,13 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const result = await pendingRepos(context);
 
   await withStateLock(adapters.home, async () => {
-    await writeRemoteNotice(adapters.home, result);
+    await writeRemoteNotice(adapters.home, result, adapters.now);
 
     await addPendingJoins(
       adapters.home,
       context.entries.map((entry) => text(p.signedCodec(p.EntryCodec).write(entry))),
       context.identity.record.id,
+      adapters.now,
     );
   });
 
@@ -36,7 +37,7 @@ export async function settleRemoteNotice(context: TSyncContext) {
   const result = await pendingRepos(context);
 
   await withStateLock(context.adapters.home, () =>
-    writeRemoteNotice(context.adapters.home, result),
+    writeRemoteNotice(context.adapters.home, result, context.options.now),
   );
 }
 
@@ -65,8 +66,12 @@ async function pendingRepos(context: TSyncContext) {
   return { checkedAt: context.options.now(), repos: [...repos] };
 }
 
-function writeRemoteNotice(home: string, notice: { checkedAt: number; repos: string[] }) {
-  return atomicWrite(join(home, "state", "remote-notice.json"), JSON.stringify(notice));
+function writeRemoteNotice(
+  home: string,
+  notice: { checkedAt: number; repos: string[] },
+  now: () => number,
+) {
+  return atomicWrite(join(home, "state", "remote-notice.json"), JSON.stringify(notice), now);
 }
 
 export async function readRemoteNotice(

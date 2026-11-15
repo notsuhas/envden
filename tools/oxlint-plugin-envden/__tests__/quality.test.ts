@@ -3,7 +3,8 @@ import { runFixture } from "./utils.ts";
 
 test("rejects ambient time, focused tests, unexplained skips, suppressions, production fakes and hex colours", () => {
   const result = runFixture("quality-policy", {
-    "packages/core/src/time.ts": "Date.now(); new Date(); new Date(0);",
+    "packages/core/src/time.ts":
+      "Date.now(); new Date(); new Date(0); function f(now = Date.now) {}",
     "apps/cli/src/commands/clock.ts": "Date.now();",
     "apps/web/src/colour.ts": 'const colour = "#ffffff";',
     "apps/server/src/fake.ts": 'import { fake } from "@envden/testing";',
@@ -11,5 +12,5 @@ test("rejects ambient time, focused tests, unexplained skips, suppressions, prod
       'test.only("a", () => {});\ntest.skip("b", () => {});\n// https://github.com/a/b/issues/1\ntest.skip("c", () => {});\n// @ts-expect-error\nconst x = 1;',
   });
 
-  expect(result.diagnostics).toHaveLength(7);
+  expect(result.diagnostics).toHaveLength(8);
 });

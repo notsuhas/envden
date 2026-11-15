@@ -8,6 +8,8 @@ import { createAdapters } from "../../adapters.ts";
 import { emptyState } from "../../state/model.ts";
 import { linkCheckout } from "../place.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("copy leftovers remain excluded from git add and disappear on the next placement", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-copy-ignore-"));
   const checkoutRoot = join(root, "checkout");
@@ -21,11 +23,14 @@ test("copy leftovers remain excluded from git add and disappear on the next plac
     await git("remote", "add", "origin", "https://example.com/team/repo.git");
     await writeFile(join(checkoutRoot, ".env"), "KEY=test\n");
 
-    const adapters = createAdapters({
-      home: join(root, "home"),
-      userHome: root,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const checkout = (await adapters.repo.checkoutAt(checkoutRoot))!;
     await adapters.repo.ensureIgnored(checkout, ".env");

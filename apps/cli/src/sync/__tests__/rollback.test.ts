@@ -3,6 +3,8 @@ import { expect, test } from "bun:test";
 import { cp } from "node:fs/promises";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import type { TFetch } from "../../client/fetch.ts";
 
 import { atomicWrite } from "../../state/store/files.ts";
@@ -19,14 +21,14 @@ test("sync rollback", async () => {
     // Restore an older database through a second in-process server.
     const snapshot = join(root, "snapshot");
     await cp(join(root, "server"), snapshot, { recursive: true });
-    await atomicWrite(aStore, "TOKEN=restored\n");
+    await atomicWrite(aStore, "TOKEN=restored\n", fixtureClock);
     await push(first, opts);
     const oldServer = await fixture.serve({ dataDir: snapshot, port: 0, now: opts.now });
 
     const stored = (await loadState(first.home))!;
     const original = stored.server!.address;
     stored.server!.address = oldServer.server.url.toString();
-    await saveState(first.home, stored);
+    await saveState(first.home, stored, fixtureClock);
 
     try {
       const oldFetch: TFetch = (input, init) => {
@@ -43,7 +45,7 @@ test("sync rollback", async () => {
       );
     } finally {
       stored.server!.address = original;
-      await saveState(first.home, stored);
+      await saveState(first.home, stored, fixtureClock);
       await oldServer.server.stop(true);
       oldServer.storage.close();
       oldServer.stopPruning();
@@ -62,13 +64,13 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
   try {
     const snapshot = join(root, "interrupted-snapshot");
     await cp(join(root, "server"), snapshot, { recursive: true });
-    await atomicWrite(aStore, "TOKEN=new-version\n");
+    await atomicWrite(aStore, "TOKEN=new-version\n", fixtureClock);
     await push(first, opts);
     const state = (await loadState(second.home))!;
     const extraRoot = join(root, "extra-checkout");
     await mkdir(extraRoot);
     state.approved.push({ ...checkoutB, root: extraRoot, gitDir: join(extraRoot, ".git") });
-    await saveState(second.home, state);
+    await saveState(second.home, state, fixtureClock);
     const placement = second.placement;
     let placements = 0;
 
@@ -92,7 +94,7 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
     const stored = (await loadState(second.home))!;
     const original = stored.server!.address;
     stored.server!.address = oldServer.server.url.toString();
-    await saveState(second.home, stored);
+    await saveState(second.home, stored, fixtureClock);
 
     try {
       const oldFetch: TFetch = (input, init) => {
@@ -111,7 +113,7 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
       expect(await readFile(join(checkoutB.root, ".env"), "utf8")).toBe("TOKEN=new-version\n");
     } finally {
       stored.server!.address = original;
-      await saveState(second.home, stored);
+      await saveState(second.home, stored, fixtureClock);
       await oldServer.server.stop(true);
       oldServer.storage.close();
       oldServer.stopPruning();

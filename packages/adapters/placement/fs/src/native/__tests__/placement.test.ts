@@ -39,10 +39,18 @@ for (const mode of ["copy", "link"] as const)
       const { checkout, outside, store } = await setup();
       const parent = join(checkout, "nested");
 
-      placeNative(mode, checkout, "nested/.env", store, () => {
-        renameSync(parent, join(checkout, "moved"));
-        symlinkSync(outside, parent);
-      });
+      placeNative(
+        mode,
+        checkout,
+        "nested/.env",
+        store,
+        () => {
+          renameSync(parent, join(checkout, "moved"));
+          symlinkSync(outside, parent);
+        },
+        undefined,
+        () => 1800000000000,
+      );
 
       expect(await readdir(outside)).toEqual([]);
       expect(await readFile(join(checkout, "moved/.env"), "utf8")).toBe("SECRET=1\n");
@@ -111,6 +119,7 @@ test.skipIf(!libc)("backup reads stay anchored after a parent swap", async () =>
       symlinkSync(outside, parent);
     },
     backups,
+    () => 1800000000000,
   );
 
   const names = await readdir(backups);

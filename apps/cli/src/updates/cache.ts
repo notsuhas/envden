@@ -28,6 +28,6 @@ export async function readUpdateCache(home: string): Promise<IUpdateCache> {
   }
 }
 
-export function saveUpdateCache(home: string, cache: IUpdateCache) {
-  return atomicWrite(join(home, "state", "updates.json"), JSON.stringify(cache));
+export function saveUpdateCache(home: string, cache: IUpdateCache, now: () => number) {
+  return atomicWrite(join(home, "state", "updates.json"), JSON.stringify(cache), now);
 }

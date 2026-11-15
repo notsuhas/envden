@@ -11,6 +11,8 @@ import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { openPairing } from "../approver.ts";
 import { exchangeJoiner } from "../joiner.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("timeout before KE2 clears unusable resume markers and requests a fresh code", async () => {
   const f = await setupFlow();
 
@@ -42,8 +44,8 @@ test("timeout before KE2 clears unusable resume markers and requests a fresh cod
       version: "0.0.0",
     });
 
-    await atomicWrite(join(f.second.home, "state", "pair-pin"), "saved");
-    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "saved");
+    await atomicWrite(join(f.second.home, "state", "pair-pin"), "saved", fixtureClock);
+    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "saved", fixtureClock);
 
     await Promise.resolve(
       expect(

@@ -10,11 +10,13 @@ export const deviceRmCommand = new Command("rm")
   .option("--kit-out <file>", "Write the new recovery kit to a private file")
   .option("--new-kit", "Replace the recovery kit in the same swap")
   .action(async (device, options) => {
+    const commandTime = Date.now();
+
     const result = await removeDevice(
-      createAdapters(),
+      createAdapters(undefined, () => commandTime),
       device,
       () => secret("Master password"),
-      () => Date.now(),
+      () => commandTime,
       fetch,
       options.newKit,
       () => consent("This device held recovery keys. Replace the recovery kit in this removal?"),

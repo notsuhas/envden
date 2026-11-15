@@ -7,6 +7,8 @@ import { pull, push } from "../engine.ts";
 import { conflictRecords } from "../local/conflicts.ts";
 import { readBytes, basePath } from "../local/files.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 
 for (const edit of ["target", "store", "none"] as const)
@@ -14,7 +16,7 @@ for (const edit of ["target", "store", "none"] as const)
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy", "link"]);
     const store = targets[0]!.store;
-    await atomicWrite(f.aStore, "TOKEN=remote\n");
+    await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
     const placement = f.second.placement;
 
@@ -33,7 +35,7 @@ for (const edit of ["target", "store", "none"] as const)
     expect((await pull(f.second, f.opts)).conflicts).toBe(1);
     expect(await readBytes(basePath(f.second.home, store) + ".pending")).toBeDefined();
     const edited = edit === "store" ? store : join(targets[0]!.root, ".env");
-    if (edit !== "none") await atomicWrite(edited, "TOKEN=later\n");
+    if (edit !== "none") await atomicWrite(edited, "TOKEN=later\n", fixtureClock);
     f.second.placement = placement;
     await pull(f.second, f.opts);
 
@@ -65,7 +67,7 @@ for (const step of [
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy", "link"]);
     const store = targets[0]!.store;
-    await atomicWrite(f.aStore, "TOKEN=remote\n");
+    await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
     let failures = 0;
     const original = files.atomicWrite;
@@ -84,7 +86,7 @@ for (const step of [
       if (!step.startsWith("copy") && path === paths[step] && !failures++)
         throw new Error("injected write failure");
 
-      await original(path, bytes);
+      await original(path, bytes, fixtureClock);
     });
 
     f.second.placement = (mode, root) => {

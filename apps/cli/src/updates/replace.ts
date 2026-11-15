@@ -9,6 +9,7 @@ export async function replaceBinary(
   windows: boolean,
   verify = verifyBinary,
   after = async () => {},
+  now: () => number,
 ) {
   const stat = await lstat(path);
 
@@ -16,7 +17,7 @@ export async function replaceBinary(
     throw new EnvdenError("INVALID_INPUT", "Unsafe binary destination");
 
   const temporary = `${path}.envden-new${windows ? ".exe" : ""}`;
-  await atomicWrite(temporary, bytes);
+  await atomicWrite(temporary, bytes, now);
   await chmod(temporary, 0o755);
 
   try {

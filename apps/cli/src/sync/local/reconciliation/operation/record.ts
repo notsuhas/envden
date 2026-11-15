@@ -24,7 +24,7 @@ export type TOperation = z.infer<typeof operationSchema>;
 
 export async function readOperation(
   path: string,
-  now = Date.now,
+  now: () => number,
   report?: (message: string) => void,
 ) {
   return recoverSyncRecord(

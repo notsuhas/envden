@@ -37,7 +37,11 @@ export function recoveryJoins(values: string[], ownId?: Uint8Array) {
   return notices;
 }
 
-export async function printRecoveryJoins(home: string, notices: Record<string, string>) {
+export async function printRecoveryJoins(
+  home: string,
+  notices: Record<string, string>,
+  now: () => number,
+) {
   const path = join(home, "state", "recovery-notice");
   const seen = new Set<string>(JSON.parse((await optionalRead(path)) ?? "[]"));
 
@@ -47,9 +51,14 @@ export async function printRecoveryJoins(home: string, notices: Record<string, s
     seen.add(id);
   }
 
-  await atomicWrite(path, JSON.stringify([...seen]));
+  await atomicWrite(path, JSON.stringify([...seen]), now);
 }
 
-export async function reportRecoveryJoins(home: string, state: ILocalState, ownId?: Uint8Array) {
-  await printRecoveryJoins(home, recoveryJoins(state.entries, ownId));
+export async function reportRecoveryJoins(
+  home: string,
+  state: ILocalState,
+  ownId: Uint8Array | undefined,
+  now: () => number,
+) {
+  await printRecoveryJoins(home, recoveryJoins(state.entries, ownId), now);
 }

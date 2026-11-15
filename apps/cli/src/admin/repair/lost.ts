@@ -107,6 +107,7 @@ export async function fixLost(
   await atomicWrite(
     join(context.adapters.home, "state", `repair-report-${text(repairId)}`),
     report.join("\n"),
+    context.now,
   );
 
   await submitAdmin(context, swap);

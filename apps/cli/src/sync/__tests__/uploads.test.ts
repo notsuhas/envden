@@ -7,6 +7,8 @@ import { syncContext } from "../remote/context.ts";
 import { uploadLink } from "../remote/upload.ts";
 import type { IFiles } from "@envden/core/protocol";
 
+const fixtureClock = () => 1800000000000;
+
 test("two copies of one store upload one blob and retain both bases", async () => {
   const f = await fixture();
 
@@ -29,12 +31,12 @@ test("two copies of one store upload one blob and retain both bases", async () =
     const seen = new Map<string, Uint8Array | undefined>();
     const store = join(f.first.home, "store", ".env");
 
-    await atomicWrite(store, "KEY=changed\n");
+    await atomicWrite(store, "KEY=changed\n", fixtureClock);
 
     for (const name of ["one", "two"]) {
       const root = join(f.root, name);
       context.state.approved.push({ root, gitDir: join(root, ".git"), repoId: "repo" });
-      await atomicWrite(join(root, ".env"), "KEY=changed\n");
+      await atomicWrite(join(root, ".env"), "KEY=changed\n", fixtureClock);
 
       await uploadLink(
         context,
@@ -130,8 +132,8 @@ test("push skips an oversized file and reports only its path", async () => {
     const root = join(f.root, "oversized");
     const store = join(f.first.home, "store", "oversized");
     const bytes = new Uint8Array(1048577);
-    await atomicWrite(store, bytes);
-    await atomicWrite(join(root, ".env.large"), bytes);
+    await atomicWrite(store, bytes, fixtureClock);
+    await atomicWrite(join(root, ".env.large"), bytes, fixtureClock);
     context.state.approved.push({ root, gitDir: join(root, ".git"), repoId: "repo" });
     const files: IFiles = { entries: [] };
 

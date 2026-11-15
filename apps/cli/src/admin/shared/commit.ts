@@ -22,6 +22,10 @@ export async function commitAdmin(context: TAdminContext, swap: p.ISwap) {
   );
 
   if (swap.envelope) {
-    await atomicWrite(join(context.adapters.home, "state", "envelope.bin"), swap.envelope);
+    await atomicWrite(
+      join(context.adapters.home, "state", "envelope.bin"),
+      swap.envelope,
+      context.now,
+    );
   }
 }

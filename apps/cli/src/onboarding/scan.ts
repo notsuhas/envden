@@ -41,7 +41,7 @@ async function lockedsetupCheckouts(
       options.alias ?? ((source, target) => consent(`Alias ${source} to ${target}?`)),
     );
 
-    await saveState(adapters.home, state);
+    await saveState(adapters.home, state, adapters.now);
 
     await linkCheckout(
       adapters,
@@ -51,7 +51,7 @@ async function lockedsetupCheckouts(
       options.copy,
     );
 
-    await saveState(adapters.home, state);
+    await saveState(adapters.home, state, adapters.now);
   }
 }
 

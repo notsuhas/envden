@@ -6,6 +6,8 @@ import { layouts } from "./matrix-cases.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { pull, push } from "../engine.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 const A = "TOKEN=local-test-value\n";
 const B = "TOKEN=new\n";
@@ -22,8 +24,8 @@ for (const modes of layouts)
     test(`${modes.join("+")}: ${name}`, async () => {
       const f = await fixture();
       const targets = await approveLayout(f, modes);
-      await atomicWrite(targets[0]!.store, store);
-      await atomicWrite(f.aStore, remote);
+      await atomicWrite(targets[0]!.store, store, fixtureClock);
+      await atomicWrite(f.aStore, remote, fixtureClock);
       await push(f.first, f.opts);
       const result = await pull(f.second, f.opts);
       expect(result.conflicts).toBe(conflicts);
@@ -47,9 +49,9 @@ for (const [name, store, copied, remote, expected, conflicts] of [
   test(name, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["copy", "copy", "link"]);
-    await atomicWrite(targets[0]!.store, store);
-    await atomicWrite(join(targets[0]!.root, ".env"), copied);
-    await atomicWrite(f.aStore, remote);
+    await atomicWrite(targets[0]!.store, store, fixtureClock);
+    await atomicWrite(join(targets[0]!.root, ".env"), copied, fixtureClock);
+    await atomicWrite(f.aStore, remote, fixtureClock);
     await push(f.first, f.opts);
     expect((await pull(f.second, f.opts)).conflicts).toBe(conflicts);
     expect(await Bun.file(targets[0]!.store).text()).toBe(expected);

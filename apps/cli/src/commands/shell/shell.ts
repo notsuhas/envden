@@ -8,6 +8,12 @@ export const shellCommand = new Command("shell").description("Manage the shell n
 for (const action of ["install", "uninstall"] as const)
   shellCommand.addCommand(
     new Command(action).argument("[shell]").action(async (shell) => {
-      await manageShell(createAdapters(), action, shell ?? (await shellChoice()));
+      const commandTime = Date.now();
+
+      await manageShell(
+        createAdapters(undefined, () => commandTime),
+        action,
+        shell ?? (await shellChoice()),
+      );
     }),
   );

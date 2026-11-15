@@ -3,6 +3,8 @@ import { read } from "./files.ts";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 
+const fixtureClock = () => 1800000000000;
+
 import { atomicWrite } from "../../../state/store/files.ts";
 
 import { INIT } from "./fixtures/world.ts";
@@ -94,7 +96,7 @@ export function actions(model: TModel) {
       const bytes = value ? `TOKEN=${value}\n` : INIT;
       const before = await read(path);
       await rm(path, { force: true });
-      await atomicWrite(path, bytes);
+      await atomicWrite(path, bytes, fixtureClock);
       if (bytes !== before) model.recordPlaceEdit(d, t, bytes, before);
       await model.settleUnobserved(d, t);
       trace.push(`${state.token} -> detached write ${JSON.stringify(bytes)}`);

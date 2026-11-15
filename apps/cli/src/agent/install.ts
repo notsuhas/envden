@@ -13,10 +13,10 @@ Use envden rm <path> --yes only when the user explicitly asks to delete that env
 Never resolve conflicts or update the binary without the user's approval. Use envden update --check to check releases.
 `;
 
-export async function installAgent(userHome: string): Promise<void> {
+export async function installAgent(userHome: string, now: () => number): Promise<void> {
   const target = join(userHome, ".agents", "skills", "envden");
   const link = join(userHome, ".claude", "skills", "envden");
-  await atomicWrite(join(target, "SKILL.md"), skill);
+  await atomicWrite(join(target, "SKILL.md"), skill, now);
   await mkdir(join(userHome, ".claude", "skills"), { recursive: true });
 
   try {

@@ -7,6 +7,8 @@ import { emptyState } from "../../state/model.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { noticeStatus, refreshNotice, cachedNotice } from "../cache.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("notice lists approved changed repos without reading values into output", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-notice-"));
 
@@ -14,10 +16,10 @@ test("notice lists approved changed repos without reading values into output", a
     const state = emptyState("test");
     state.approved.push({ root: "/repo", gitDir: "/repo/.git", repoId: "github.com/test/repo" });
     const store = join(home, "store", ".env");
-    await atomicWrite(store, "SECRET=never-print\n");
+    await atomicWrite(store, "SECRET=never-print\n", fixtureClock);
     state.links.push({ root: "/repo", path: ".env", store, mode: "link" });
     expect(await noticeStatus(home, state)).toHaveLength(1);
-    await refreshNotice(home, state, async () => true);
+    await refreshNotice(home, state, async () => true, fixtureClock);
 
     expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
       "/repo\n",
@@ -25,15 +27,20 @@ test("notice lists approved changed repos without reading values into output", a
 
     expect(await cachedNotice(home)).toBe("envden: github.com/test/repo out of sync\n");
     expect(await readFile(join(home, "state", "approved-checkouts"), "utf8")).toBe("/repo\n");
-    await refreshNotice(home, state, async () => false);
+    await refreshNotice(home, state, async () => false, fixtureClock);
 
     expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
       "\n",
     );
 
-    await refreshNotice(home, state, async () => {
-      throw new Error("Unavailable root");
-    });
+    await refreshNotice(
+      home,
+      state,
+      async () => {
+        throw new Error("Unavailable root");
+      },
+      fixtureClock,
+    );
 
     expect(await readFile(join(home, "state", "approved-checkouts-insensitive"), "utf8")).toBe(
       "\n",
@@ -55,14 +62,17 @@ test("command notice honors environment opt-out without persisting it", async ()
   const previous = process.env.ENVDEN_NO_UPDATE_CHECK;
 
   try {
-    await saveState(home, emptyState("test"));
+    await saveState(home, emptyState("test"), fixtureClock);
     process.env.ENVDEN_NO_UPDATE_CHECK = "1";
 
-    const adapters = createAdapters({
-      home,
-      userHome: home,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const result = await commandNotice(adapters, 100, async () => {
       throw new Error("Unexpected fetch");
@@ -97,11 +107,14 @@ test("notice caches missed env checkouts and sanitized update text", async () =>
   const home = await mkdtemp(join(tmpdir(), "envden-offers-"));
 
   try {
-    const adapters = createAdapters({
-      home,
-      userHome: home,
-      keychain: createMemoryKeychainAdapter([]),
-    });
+    const adapters = createAdapters(
+      {
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter([]),
+      },
+      fixtureClock,
+    );
 
     const checkout = {
       root: join(home, "repo"),
@@ -119,7 +132,7 @@ test("notice caches missed env checkouts and sanitized update text", async () =>
     };
 
     const state = emptyState("test");
-    await atomicWrite(join(home, "state", "track-offers"), "/bad\u001b[31m\n");
+    await atomicWrite(join(home, "state", "track-offers"), "/bad\u001b[31m\n", fixtureClock);
     await cacheOffers(adapters, state, checkout.root, { available: true, required: true });
     expect(await readFile(join(home, "state", "track-offers"), "utf8")).toBe(checkout.root + "\n");
 

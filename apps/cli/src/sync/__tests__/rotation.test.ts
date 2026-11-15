@@ -2,6 +2,8 @@ import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { mkdir } from "node:fs/promises";
 
+const fixtureClock = () => 1800000000000;
+
 import { join } from "node:path";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
@@ -55,7 +57,7 @@ test("interrupted rotation placement preserves a compatible checkpoint and resum
     const extra = { ...fixture.checkoutB, root: join(fixture.root, "extra") };
     await mkdir(extra.root);
     before.approved.push(extra);
-    await saveState(second.home, before);
+    await saveState(second.home, before, fixtureClock);
     await rotateVault(first, "master password", now);
     const ensureIgnored = second.repo.ensureIgnored.bind(second.repo);
     let placements = 0;

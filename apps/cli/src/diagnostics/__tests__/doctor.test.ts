@@ -7,15 +7,20 @@ import { createAdapters } from "../../adapters.ts";
 import { paths } from "../../settings/paths.ts";
 import { doctor } from "../doctor.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("doctor uses injected adapters and explicit paths including HTTPS checks", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-doctor-"));
 
   try {
-    const adapters = createAdapters({
-      home,
-      userHome: home,
-      keychain: createMemoryKeychainAdapter(["available"]),
-    });
+    const adapters = createAdapters(
+      {
+        home,
+        userHome: home,
+        keychain: createMemoryKeychainAdapter(["available"]),
+      },
+      fixtureClock,
+    );
 
     adapters.network.status = async () => ({
       ready: true,

@@ -12,7 +12,7 @@ export async function resumeMoveAddress(context: TAdminContext, directory: strin
   const header = history.headers.at(-1)!;
 
   if (moved?.body.kind === 5 && header.body.op === 10) {
-    await atomicWrite(join(directory, "move-pin"), text(moved.body.payload.newPin));
+    await atomicWrite(join(directory, "move-pin"), text(moved.body.payload.newPin), context.now);
 
     await atomicWrite(
       join(directory, "move-swap.bin"),
@@ -27,6 +27,7 @@ export async function resumeMoveAddress(context: TAdminContext, directory: strin
         opaqueRecord: undefined,
         approver: undefined,
       }),
+      context.now,
     );
 
     return moved.body.payload.newAddress;

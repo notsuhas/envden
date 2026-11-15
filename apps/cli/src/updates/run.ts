@@ -18,7 +18,7 @@ export async function runUpdateCheck(
   const result = await checkRelease(state, now, fetcher, force);
 
   if (result.kind !== "skipped")
-    await withStateLock(adapters.home, () => saveUpdateCache(adapters.home, state));
+    await withStateLock(adapters.home, () => saveUpdateCache(adapters.home, state, adapters.now));
 
   return result;
 }

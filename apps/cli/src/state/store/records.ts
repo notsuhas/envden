@@ -30,8 +30,8 @@ export async function recoverSyncRecord<T>(
     return await readSyncRecord(path, decode);
   } catch (error) {
     if (!(error instanceof EnvdenError) || error.code !== "INVALID_DATA") throw error;
-    const backup = path + ".corrupt-" + now + "-" + crypto.randomUUID();
-    await atomicWrite(marker, backup);
+    const backup = path + ".corrupt-" + String(now).padStart(13, "0") + "_" + crypto.randomUUID();
+    await atomicWrite(marker, backup, () => now);
     await rename(path, backup);
 
     report?.(

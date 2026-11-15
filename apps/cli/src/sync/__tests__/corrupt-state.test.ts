@@ -13,6 +13,8 @@ import { removeFile } from "../remove.ts";
 import { untrack } from "../../links/checkout/untrack.ts";
 import { deletionRequested } from "../local/reconciliation/operation/deletion.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 
 for (const suffix of [".entry", ".pending", ".delete", "attempt"])
@@ -26,9 +28,9 @@ for (const suffix of [".entry", ".pending", ".delete", "attempt"])
         ? join(f.second.home, "state", "attempts", "A".repeat(43))
         : basePath(f.second.home, store) + suffix;
 
-    await atomicWrite(path, "{invalid");
+    await atomicWrite(path, "{invalid", fixtureClock);
     await utimes(path, new Date(0), new Date(0));
-    await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n");
+    await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n", fixtureClock);
     const result = await push(f.second, f.opts);
     expect(result.conflicts).toBe(1);
     expect(result.changed).toBe(0);
@@ -48,7 +50,7 @@ test("invalid applied state is a named EnvdenError", async () => {
   const f = await fixture();
   await approveLayout(f, ["copy"]);
   const path = join(f.second.home, "state", "applied-files.json");
-  await atomicWrite(path, "{invalid");
+  await atomicWrite(path, "{invalid", fixtureClock);
 
   try {
     await pull(f.second, f.opts);
@@ -64,16 +66,24 @@ test("untrack cancels removal and tolerates a corrupt pending record", async () 
   const targets = await approveLayout(f, ["copy"]);
   const target = targets[0]!;
   await removeFile(f.second, join(target.root, ".env"), { yes: true, now: f.now });
-  await atomicWrite(basePath(f.second.home, target.store) + ".pending", "{invalid");
+
+  await atomicWrite(basePath(f.second.home, target.store) + ".pending", "{invalid", fixtureClock);
+
   expect(await untrack(f.second, target.root)).toEqual([join(target.root, ".env")]);
-  expect(await deletionRequested(f.second.home, target.store)).toBe(false);
+  expect(await deletionRequested(f.second.home, target.store, fixtureClock)).toBe(false);
 });
 
 test("untracking one target preserves a shared corrupt-state hold", async () => {
   const f = await fixture();
   const targets = await approveLayout(f, ["copy", "copy"]);
-  await atomicWrite(targets[0]!.store, "TOKEN=unknown\n");
-  await atomicWrite(basePath(f.second.home, targets[0]!.store) + ".pending", "{invalid");
+  await atomicWrite(targets[0]!.store, "TOKEN=unknown\n", fixtureClock);
+
+  await atomicWrite(
+    basePath(f.second.home, targets[0]!.store) + ".pending",
+    "{invalid",
+    fixtureClock,
+  );
+
   await untrack(f.second, targets[1]!.root);
   const result = await push(f.second, f.opts);
   expect(result.conflicts).toBe(1);

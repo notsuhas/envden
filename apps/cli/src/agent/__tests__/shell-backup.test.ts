@@ -6,14 +6,19 @@ import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 
+const fixtureClock = () => 1800000000000;
+
 test("CLI shell wiring backs up rc files in private conflicts storage", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-shell-backup-"));
 
-  const adapters = createAdapters({
-    home: join(root, "envden"),
-    userHome: root,
-    keychain: createMemoryKeychainAdapter([]),
-  });
+  const adapters = createAdapters(
+    {
+      home: join(root, "envden"),
+      userHome: root,
+      keychain: createMemoryKeychainAdapter([]),
+    },
+    fixtureClock,
+  );
 
   try {
     const original = "export LOCAL_CONFIG=1\n";

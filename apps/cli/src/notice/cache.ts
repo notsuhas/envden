@@ -31,12 +31,13 @@ async function lockedrefreshNotice(
   home: string,
   state: ILocalState,
   caseInsensitive: (root: string) => Promise<boolean>,
+  now: () => number,
 ): Promise<void> {
   const roots = state.approved
     .map((item) => item.root)
     .filter((root) => sanitizeTerminal(root) === root && !/[\r\n]/.test(root));
 
-  await atomicWrite(join(home, "state", "approved-checkouts"), roots.join("\n") + "\n");
+  await atomicWrite(join(home, "state", "approved-checkouts"), roots.join("\n") + "\n", now);
 
   const insensitive = await Promise.all(
     roots.map(async (root) =>
@@ -47,6 +48,7 @@ async function lockedrefreshNotice(
   await atomicWrite(
     join(home, "state", "approved-checkouts-insensitive"),
     insensitive.filter((root) => root !== undefined).join("\n") + "\n",
+    now,
   );
 
   const local = await noticeStatus(home, state);
@@ -57,6 +59,7 @@ async function lockedrefreshNotice(
     join(home, "state", "notice"),
     repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`).join("\n") +
       (repos.length ? "\n" : ""),
+    now,
   );
 }
 

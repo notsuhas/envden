@@ -9,6 +9,8 @@ import { pull, push } from "../engine.ts";
 import { removeFile } from "../remove.ts";
 import type { TFetch } from "../../client/fetch.ts";
 
+const fixtureClock = () => 1800000000000;
+
 const fixture = createSharedFixture();
 const initial = "TOKEN=local-test-value\n";
 const edited = "TOKEN=edited\n";
@@ -34,7 +36,7 @@ test("acknowledgement leaves skipped copy ancestors unchanged", async () => {
   f.second.repo.checkoutAt = async (root) =>
     root === targets[1]!.root ? undefined : original(root);
 
-  await atomicWrite(join(targets[0]!.root, ".env"), edited);
+  await atomicWrite(join(targets[0]!.root, ".env"), edited, fixtureClock);
   await loseResponse(f);
   f.second.repo.checkoutAt = original;
   await push(f.second, f.opts);
@@ -45,11 +47,11 @@ for (const unpushed of [false, true])
   test(`tracked detached revert is an edit; unpushed store ${unpushed}`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["link"]);
-    await atomicWrite(targets[0]!.store, edited);
+    await atomicWrite(targets[0]!.store, edited, fixtureClock);
     if (!unpushed) await push(f.second, f.opts);
     const path = join(targets[0]!.root, ".env");
     await rm(path);
-    await atomicWrite(path, initial);
+    await atomicWrite(path, initial, fixtureClock);
     const result = await push(f.second, f.opts);
 
     if (unpushed) expect(result.conflicts).toBe(1);
@@ -60,7 +62,7 @@ for (const command of [push, pull])
   test(`acknowledgement preserves a later removal on ${command.name}`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, ["copy"]);
-    await atomicWrite(join(targets[0]!.root, ".env"), edited);
+    await atomicWrite(join(targets[0]!.root, ".env"), edited, fixtureClock);
     await loseResponse(f);
     await removeFile(f.second, join(targets[0]!.root, ".env"), { yes: true, now: f.now });
     await command(f.second, f.opts);
@@ -72,7 +74,7 @@ for (const mode of ["copy", "link"] as const)
   test(`pending resume preserves a written ${mode} reverted by the user`, async () => {
     const f = await fixture();
     const targets = await approveLayout(f, [mode, "copy"]);
-    await atomicWrite(f.aStore, edited);
+    await atomicWrite(f.aStore, edited, fixtureClock);
     await push(f.first, f.opts);
     const original = f.second.repo.ensureIgnored.bind(f.second.repo);
 
@@ -87,6 +89,7 @@ for (const mode of ["copy", "link"] as const)
     await atomicWrite(
       mode === "link" ? targets[0]!.store : join(targets[0]!.root, ".env"),
       initial,
+      fixtureClock,
     );
 
     await push(f.second, f.opts);
@@ -96,8 +99,8 @@ for (const mode of ["copy", "link"] as const)
 test("already matching copy records its content before a placement failure", async () => {
   const f = await fixture();
   const targets = await approveLayout(f, ["link", "copy"]);
-  await atomicWrite(targets[0]!.store, edited);
-  await atomicWrite(join(targets[1]!.root, ".env"), edited);
+  await atomicWrite(targets[0]!.store, edited, fixtureClock);
+  await atomicWrite(join(targets[1]!.root, ".env"), edited, fixtureClock);
   const original = f.second.repo.ensureIgnored.bind(f.second.repo);
 
   f.second.repo.ensureIgnored = async (checkout, path) => {
@@ -107,7 +110,7 @@ test("already matching copy records its content before a placement failure", asy
 
   expect((await pull(f.second, f.opts)).conflicts).toBe(1);
   f.second.repo.ensureIgnored = original;
-  await atomicWrite(join(targets[1]!.root, ".env"), initial);
+  await atomicWrite(join(targets[1]!.root, ".env"), initial, fixtureClock);
   expect((await push(f.second, f.opts)).conflicts).toBe(0);
   expect(await serverBytes(f)).toBe(initial);
   expect(await Bun.file(join(targets[1]!.root, ".env")).text()).toBe(initial);
