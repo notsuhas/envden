@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pinnedInstall } from "./paths.ts";
 import { EnvdenError } from "@envden/core/errors";
-import { consent } from "../../output/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 
 async function runCommand(
   command: string[],

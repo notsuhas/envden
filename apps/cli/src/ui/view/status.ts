@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { checkoutRepo } from "../../links/checkout/repo.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { checkoutApproval } from "../../links/approval.ts";
 import { readRemoteNotice } from "../../notice/remote.ts";
@@ -47,7 +48,7 @@ export async function dashboardStatus(
   const facts = { diffs, heldBack, conflicts, remote };
 
   const rows = local.links.map((link) => {
-    const repoId = repoOf(state, link.root);
+    const repoId = checkoutRepo(state, link.root);
 
     return {
       repoId: repoId ?? "unapproved",
@@ -96,12 +97,6 @@ function fileView(link: TLink, repoId: string | undefined, facts: IFileFacts): I
 
 function conflictOf(conflicts: IConflictView[], link: TLink) {
   return conflicts.find((item) => item.path === link.path && item.roots.includes(link.root));
-}
-
-function repoOf(state: ILocalState, root: string) {
-  const approved = state.approved.find((item) => item.root === root);
-
-  return approved && (state.aliases[approved.repoId] ?? approved.repoId);
 }
 
 async function checkoutApprovals(adapters: TAdapters, state: ILocalState) {

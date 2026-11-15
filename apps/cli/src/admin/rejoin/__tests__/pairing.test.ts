@@ -2,7 +2,7 @@ import { expect, spyOn, test } from "bun:test";
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import * as p from "@envden/core/protocol";
-import * as questions from "../../../output/questions.ts";
+import * as questions from "../../../output/prompts/questions.ts";
 import { atomicWrite, optionalRead } from "../../../state/store/files.ts";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 import { runRejoin } from "../run.ts";

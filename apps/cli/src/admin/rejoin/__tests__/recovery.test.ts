@@ -1,6 +1,6 @@
 import type { TEntry } from "@envden/core/protocol";
 import { expect, spyOn, test } from "bun:test";
-import * as questions from "../../../output/questions.ts";
+import * as questions from "../../../output/prompts/questions.ts";
 import { runRejoin } from "../run.ts";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 

@@ -1,9 +1,9 @@
 import { replacementKitOutput } from "../vault/output.ts";
-import { exposureText } from "../../output/render/devices.ts";
+import { exposureText } from "../../output/render/devices/devices.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { removeDevice } from "../../admin/devices/remove.ts";
-import { secret, consent } from "../../output/questions.ts";
+import { secret, consent } from "../../output/prompts/questions.ts";
 
 export const deviceRmCommand = new Command("rm")
   .description("Remove a device and re-key the vault so it can't read new changes")

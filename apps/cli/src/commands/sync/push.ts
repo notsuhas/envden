@@ -1,6 +1,6 @@
 import { EnvdenError } from "@envden/core/errors";
 import { terminalJson } from "../../output/sanitize.ts";
-import { syncText } from "../../output/render/sync.ts";
+import { syncText } from "../../output/render/sync/sync.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { push } from "../../sync/engine.ts";
@@ -14,8 +14,11 @@ export const pushCommand = new Command("push")
   .action(async (options) => {
     const result = await push(createAdapters(undefined, Date.now), syncOptions(options, Date.now));
 
-    console.log(options.json ? terminalJson(result) : syncText("push", result));
+    const conflicted = result.conflicts || result.kind === "conflict";
 
-    if (result.conflicts || result.kind === "conflict")
-      throw new EnvdenError("CONFLICT", "Run envden resolve --list to see the conflicts");
+    if (options.json) console.log(terminalJson(result));
+    else if (!conflicted) console.log(syncText("push", result));
+
+    // the conflict lines above already name each file; this summary sets exit code 3
+    if (conflicted) throw new EnvdenError("CONFLICT", syncText("push", result));
   });

@@ -3,9 +3,9 @@ import { readBytes, same } from "../../files.ts";
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TSyncContext } from "../../../remote/context.ts";
-import { backup } from "../../conflicts.ts";
 import { approvedCheckout } from "../../../../links/approval.ts";
 import { targetSkip } from "./skip.ts";
+import { keepUnsynced } from "./unsynced.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -14,6 +14,7 @@ export async function placeFileTarget(
   target: TTarget,
   bytes: Uint8Array | undefined,
   preserveDeleted = false,
+  synced?: Uint8Array,
 ) {
   if (!(await lstat(target.root).catch(() => undefined))?.isDirectory()) return false;
   const destination = join(target.root, target.path);
@@ -31,10 +32,7 @@ export async function placeFileTarget(
 
   const identical = status === "linked" || same(await readBytes(destination), bytes);
 
-  if (!identical) {
-    const saved = await backup(context.adapters.home, destination, context.options.now());
-    if (saved) context.options.report?.(sanitizeTerminal(`Saved ${destination}: ${saved}`));
-  }
+  if (!identical) await keepUnsynced(context, destination, target, synced);
 
   if (bytes !== undefined) {
     await context.adapters.repo.ensureIgnored(checkout!, target.path);

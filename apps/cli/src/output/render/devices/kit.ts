@@ -1,4 +1,4 @@
-import { sanitizeConsole } from "../sanitize.ts";
+import { sanitizeConsole } from "../../sanitize.ts";
 
 interface IKit {
   vaultId: string;

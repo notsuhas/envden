@@ -1,5 +1,5 @@
 import { writeKit } from "../../vault/recovery/output.ts";
-import { printKit } from "../../output/render/kit.ts";
+import { printKit } from "../../output/render/devices/kit.ts";
 import type { IReplacementKit } from "../../admin/recovery/credentials.ts";
 
 export async function reportReplacementKit(kit: IReplacementKit, path?: string) {

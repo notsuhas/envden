@@ -122,7 +122,7 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
 
 test("interactive setup hosts a server and takes its setup token without asking", async () => {
   const { spyOn } = await import("bun:test");
-  const questions = await import("../../output/questions.ts");
+  const questions = await import("../../output/prompts/questions.ts");
   const f = await fixture();
   const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
   const consent = spyOn(questions, "consent").mockResolvedValue(true);
@@ -162,7 +162,7 @@ test("interactive setup hosts a server and takes its setup token without asking"
 test("setup checks the address and token against the server before the name and password", async () => {
   const { spyOn } = await import("bun:test");
   const p = await import("@envden/core/protocol");
-  const questions = await import("../../output/questions.ts");
+  const questions = await import("../../output/prompts/questions.ts");
   const f = await fixture();
   const asked = new Error("asked a question");
   const input = spyOn(questions, "input").mockRejectedValue(asked);

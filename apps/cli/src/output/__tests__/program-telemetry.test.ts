@@ -90,7 +90,7 @@ test("status succeeds while another command owns the state lock", async () => {
     await ready;
     process.env.ENVDEN_HOME = root;
     await createProgram(fixtureClock).parseAsync(["node", "envden", "status"]);
-    expect(log.mock.calls.flat()).toContain("envden: not set up. Run envden setup or envden join");
+    expect(log.mock.calls.flat()).toContain("Not set up yet. Run envden setup or envden join");
   } finally {
     release();
     await running;

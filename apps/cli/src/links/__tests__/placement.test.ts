@@ -72,6 +72,37 @@ test("placement requires approval, relinks equal detached copies and preserves d
   }
 });
 
+test("a link into a deleted store is removed instead of tracked", async () => {
+  const { mkdir, symlink } = await import("node:fs/promises");
+  const { storePath } = await import("../../store/path.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-dangling-"));
+
+  const adapters = createAdapters(
+    { home: join(root, "home"), userHome: root, keychain: createMemoryKeychainAdapter([]) },
+    fixtureClock,
+  );
+
+  const checkout = {
+    root: join(root, "checkout"),
+    gitDir: join(root, "checkout", ".git"),
+    repoId: "host/repo",
+  };
+
+  const destination = join(checkout.root, ".env");
+  adapters.repo = createFakeRepoAdapter({ envFiles: async () => [".env"] });
+
+  try {
+    await mkdir(checkout.root, { recursive: true });
+    await symlink(storePath(adapters.home, checkout.repoId, ".env"), destination);
+    const state = emptyState("test");
+    await linkCheckout(adapters, state, checkout, async () => true);
+    expect(state.links).toHaveLength(0);
+    await Promise.resolve(expect(lstat(destination)).rejects.toMatchObject({ code: "ENOENT" }));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("container offers are recorded once per checkout", async () => {
   const { checkoutPlacement } = await import("../checkout/mode.ts");
   const root = await mkdtemp(join(tmpdir(), "envden-copy-"));

@@ -28,26 +28,22 @@ const original =
 const edited =
   "# shared settings\nAPI_URL=https://api.example.com\n\n\n# edited on device A\nTOKEN=two # inline note\nNEW_KEY=\n";
 
-function unlinked(link: { status: string; conflict: boolean }): boolean {
-  return link.status !== "linked" || link.conflict;
-}
-
 async function inSync(device: IDevice, step: string): Promise<void> {
   const output = await run(`${device.name} status`, [binary, "status", "--json"], device.env);
 
   const report = JSON.parse(output) as {
     configured: boolean;
     server: string;
-    repos: string[];
-    links: { status: string; conflict: boolean }[];
+    serverChecked: boolean;
+    files: { state: string }[];
   };
 
   const problems = [
     !report.configured,
     report.server !== "reachable",
-    report.repos.length > 0,
-    report.links.length === 0,
-    report.links.some(unlinked),
+    !report.serverChecked,
+    report.files.length === 0,
+    report.files.some((file) => file.state !== "in-sync"),
   ];
 
   if (problems.some(Boolean)) throw failure(`${device.name} is not in sync ${step}`, output);
@@ -96,7 +92,7 @@ async function main(server: IServer): Promise<void> {
   await setup.steps([
     { expect: "Master password", send: `${password}\r` },
     { expect: "Confirm master password", send: `${password}\r` },
-    { expect: "Approve checkouts to track", send: " \r" },
+    { expect: "Sync env files for these checkouts", send: "\r" },
   ]);
 
   await setup.succeeds();
@@ -125,8 +121,8 @@ async function main(server: IServer): Promise<void> {
   await add.succeeds();
 
   await joining.steps([
-    { expect: "Approve checkouts to track", send: " \r" },
-    { expect: "Joined" },
+    { expect: "Sync env files for these checkouts", send: "\r" },
+    { expect: "Joined as" },
   ]);
 
   await joining.succeeds();

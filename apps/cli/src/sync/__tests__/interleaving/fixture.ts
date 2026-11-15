@@ -5,6 +5,7 @@ import { Reference } from "./model.ts";
 import { syncContext } from "../../remote/context.ts";
 import { acceptHead } from "../../remote/accept.ts";
 import { entryContent, entryName } from "../../remote/content.ts";
+import { conflictRecords } from "../../local/conflicts.ts";
 
 export const read = async (path: string) =>
   Bun.file(path)
@@ -48,9 +49,12 @@ export async function serverBytes(f: TRun["f"]) {
 
 export async function verifySurvival(run: TRun) {
   for (const report of run.reports) {
-    const match = /^Saved .*: (.+)$/.exec(report) ?? /; saved (.+)$/.exec(report);
+    const match = /^Saved .*: (.+)$/.exec(report) ?? /^Kept your previous .* at (.+)$/.exec(report);
     if (match) run.saved.push(match[1]!);
   }
+
+  for (const device of run.devices)
+    for (const record of await conflictRecords(device.home)) run.saved.push(...record.alternatives);
 
   run.model.survive(await Promise.all([...run.stores, ...run.paths, ...run.saved].map(read)));
 }

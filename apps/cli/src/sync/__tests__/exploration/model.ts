@@ -88,19 +88,28 @@ export function createModel(w: TWorld) {
   const absorb = (reports: string[]) => {
     for (const report of reports) {
       const match =
-        /^Saved .*: (.+)$/.exec(report) ??
-        /; saved (.+)$/.exec(report) ??
-        /^Conflict: .*; edit (.+), then run/.exec(report);
+        /^Saved .*: (.+)$/.exec(report) ?? /^Kept your previous .* at (.+)$/.exec(report);
 
       if (match) saved.add(match[1]!);
     }
   };
 
+  const reachable = async () => {
+    const strict = new Set<string | undefined>([...(await places(0)), ...(await places(1))]);
+    for (const path of saved) strict.add(await read(path));
+    // Pushed versions stay in server history, so overwriting them needs no local backup.
+    for (const value of commits) strict.add(value);
+
+    for (const device of w.devices.slice(0, 2))
+      for (const record of await conflictRecords(device!.home))
+        for (const path of record.alternatives) strict.add(await read(path));
+
+    return strict;
+  };
+
   const survive = async () => {
     if (!required.size) return;
-    const strict = new Set<string | undefined>();
-    for (const v of [...(await places(0)), ...(await places(1))]) strict.add(v);
-    for (const path of saved) strict.add(await read(path));
+    const strict = await reachable();
     const missing = [...required].filter((v) => !strict.has(v));
     if (!missing.length) return;
     const anywhere = await backups();

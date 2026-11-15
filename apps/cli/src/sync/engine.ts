@@ -63,7 +63,6 @@ async function sync(
     );
 
     const repos = await selectedRepos(adapters, context.state, options, context.skippedRoots);
-    let changed = 0;
 
     for (let attempt = 0; attempt < 3; attempt++) {
       if (attempt) history = await readHistory(context.client, context.vaultId, context.state);
@@ -72,8 +71,6 @@ async function sync(
       reportRepairs(context, accepted.repairs);
 
       const result = await syncAttempt(context, repos, accepted.noFastForward, pushing, choose);
-
-      changed += result.changed;
 
       if (result.kind !== "retry") {
         await pruneBackups(adapters.home, options.now());
@@ -92,7 +89,7 @@ async function sync(
           options.report?.("Notice refresh failed; sync completed");
         }
 
-        return { ...result, changed };
+        return result;
       }
     }
 
@@ -181,6 +178,6 @@ async function syncAttempt(
   } catch (error) {
     if (!(error instanceof EnvdenError) || error.code !== "HEAD_MOVED") throw error;
 
-    return { kind: "retry" as const, changed: result.changed };
+    return { kind: "retry" as const, changed: 0, conflicts };
   }
 }

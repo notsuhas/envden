@@ -2,14 +2,13 @@ import { readOperation, type TOperation } from "./record.ts";
 import * as p from "@envden/core/protocol";
 import { markAppliedEntry } from "../../applied.ts";
 import { text } from "../../../../client/encoding.ts";
+import { keepUnsynced, syncedContent } from "../placement/unsynced.ts";
 import { deletionRequested } from "./deletion.ts";
 import { canResume, contentHash, operationHashes } from "./guards.ts";
-import { sanitizeTerminal } from "../../../../output/sanitize.ts";
 import type { TSyncContext } from "../../../remote/context.ts";
 import { atomicWrite } from "../../../../state/store/files.ts";
 import { journalPlacement } from "../../../../state/journal/placement.ts";
 import { basePath, readBytes, same, writeBytes } from "../../files.ts";
-import { backup } from "../../conflicts.ts";
 import { placeFileTarget } from "../placement/target.ts";
 import { saveBase } from "../history.ts";
 
@@ -93,9 +92,10 @@ async function finishFile(
   entry: string | null,
   operation?: TOperation,
 ) {
+  const synced = await syncedContent(context, store);
+
   if (!same(await readBytes(store), next)) {
-    const saved = await backup(context.adapters.home, store, context.options.now());
-    if (saved) context.options.report?.(sanitizeTerminal(`Saved ${store}: ${saved}`));
+    await keepUnsynced(context, store, targets[0], synced);
     await writeBytes(store, next, context.options.now);
   } else if (
     next !== undefined &&
@@ -114,7 +114,7 @@ async function finishFile(
     );
 
   await saveBase(basePath(context.adapters.home, store), next, context.options.now);
-  await placeTargets(context, store, targets, next, server, operation);
+  await placeTargets(context, store, targets, next, server, synced, operation);
 
   await journalPlacement(context.adapters.home, context.state, context.options.now);
 }
@@ -125,6 +125,7 @@ async function placeTargets(
   targets: TTarget[],
   next: Uint8Array | undefined,
   server: Uint8Array | undefined,
+  synced: Uint8Array | undefined,
   operation?: TOperation,
 ) {
   const preserveDeleted =
@@ -132,7 +133,7 @@ async function placeTargets(
     (await deletionRequested(context.adapters.home, store, context.options.now));
 
   for (const [index, target] of targets.entries()) {
-    if (!(await placeFileTarget(context, target, next, preserveDeleted))) continue;
+    if (!(await placeFileTarget(context, target, next, preserveDeleted, synced))) continue;
 
     if (operation) await markWritten(context, store, operation, index + 1);
 

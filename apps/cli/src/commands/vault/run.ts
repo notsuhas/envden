@@ -1,7 +1,7 @@
 import { replacementKitOutput } from "./output.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { confirmedPassword } from "../../onboarding/password.ts";
-import { secret } from "../../output/questions.ts";
+import { secret } from "../../output/prompts/questions.ts";
 import { rotateVault } from "../../admin/devices/rotate.ts";
 import { replaceKit, changePassword } from "../../admin/recovery/credentials.ts";
 import { resetPassword } from "../../admin/recovery/reset.ts";

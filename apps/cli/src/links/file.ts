@@ -1,7 +1,8 @@
 import { fileSizeNotice } from "../sync/local/validation/size.ts";
 import { basePath, readBytes, writeBytes } from "../sync/local/files.ts";
-import { choose } from "../output/questions.ts";
+import { choose } from "../output/prompts/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
+import { homePath, realHome } from "../output/home-path.ts";
 import { readFile, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
@@ -33,6 +34,14 @@ export async function linkFile(
   if ((await lstat(destination)).isSymbolicLink()) {
     if ((await placement.inspect(store, destination)) !== "linked") {
       console.error(`envden: skipped symlink ${sanitizeTerminal(destination)}`);
+
+      return;
+    }
+
+    if (!(await exists(store))) {
+      await placement.remove(store, destination);
+      const shown = homePath(destination, await realHome(adapters.userHome));
+      console.error(`envden: removed ${sanitizeTerminal(shown)}, a link to a deleted copy`);
 
       return;
     }
@@ -142,4 +151,15 @@ async function relinkExisting(
     await copyBase(adapters.home, existing.store, checkout.root, placement.mode, adapters.now);
     existing.mode = placement.mode;
   } else if (status === "relinkable") await current.place(existing.store, destination);
+}
+
+async function exists(path: string) {
+  try {
+    await lstat(path);
+
+    return true;
+  } catch (cause) {
+    if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return false;
+    throw cause;
+  }
 }

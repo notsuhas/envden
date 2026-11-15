@@ -1,7 +1,7 @@
 import { Argument, Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { manageShell } from "../../agent/shell.ts";
-import { shellChoice } from "../../output/questions.ts";
+import { shellChoice } from "../../output/prompts/questions.ts";
 import { SHELLS } from "../../onboarding/decisions.ts";
 
 const SHELL_ACTIONS = {

@@ -7,7 +7,7 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";
-import { input } from "../output/questions.ts";
+import { input } from "../output/prompts/questions.ts";
 import { waitMessage } from "./wait.ts";
 import { exchangeJoiner } from "./joiner.ts";
 

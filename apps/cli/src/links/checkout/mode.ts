@@ -1,7 +1,7 @@
 import type { Dirent } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { readConfig, setConfig } from "../../settings/config.ts";
-import { consent } from "../../output/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 import type { TAdapters } from "../../adapters.ts";
 
 export async function checkoutPlacement(

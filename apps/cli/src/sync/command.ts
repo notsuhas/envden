@@ -3,7 +3,7 @@ import { select, isCancel } from "@clack/prompts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import type { ISyncOptions } from "./model.ts";
 import { login } from "../session/login.ts";
-import { consent, secret } from "../output/questions.ts";
+import { consent, secret } from "../output/prompts/questions.ts";
 
 export function syncOptions(
   options: {

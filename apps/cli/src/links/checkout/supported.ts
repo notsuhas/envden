@@ -1,6 +1,6 @@
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
-import { consent } from "../../output/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 import { checkoutPlacement } from "./mode.ts";
 
 export async function supportedPlacement(

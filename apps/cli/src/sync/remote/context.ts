@@ -4,12 +4,13 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { ISyncOptions } from "../model.ts";
 import { loadState } from "../../state/store/repository.ts";
+import { NOT_SET_UP } from "../../state/configured.ts";
 
 export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
   const state = await loadState(adapters.home);
 
   if (!state?.server || !state.vaultId || !state.checkpoint || !state.files || !state.keyring)
-    throw new EnvdenError("NOT_FOUND", "Not set up. Run envden setup or envden join");
+    throw new EnvdenError("NOT_FOUND", NOT_SET_UP);
 
   const { identity, vaultId, client } = await vaultConnection(
     adapters,

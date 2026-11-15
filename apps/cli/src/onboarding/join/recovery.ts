@@ -1,5 +1,5 @@
 import type { TAdapters } from "../../adapters.ts";
-import { secret } from "../../output/questions.ts";
+import { secret } from "../../output/prompts/questions.ts";
 import { readKit } from "../../vault/recovery/read.ts";
 import { kitJoin } from "../../vault/recovery/kit.ts";
 

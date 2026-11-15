@@ -3,14 +3,14 @@ import * as p from "@envden/core/protocol";
 import type { TFetch } from "../client/fetch.ts";
 import { hello } from "../client/hello.ts";
 import { MIN_SERVER } from "../version.ts";
-import { readToken } from "../output/token.ts";
+import { readToken } from "../output/prompts/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit, secretKeyProblem } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
-import { printKit } from "../output/render/kit.ts";
+import { printKit } from "../output/render/devices/kit.ts";
 import type { ISetupKit } from "../vault/recovery/pending-kit.ts";
 import { confirmedPassword } from "./password.ts";
-import { askDeviceName } from "../output/device-name.ts";
+import { askDeviceName } from "../output/prompts/device-name.ts";
 import { setupCheckouts } from "./scan.ts";
 import { setupPreferences, updatePreferences } from "./preferences.ts";
 import type { TAdapters } from "../adapters.ts";
@@ -20,7 +20,8 @@ import { setupVault } from "../vault/setup.ts";
 import { optionalRead } from "../state/store/files.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
-import { secret, input, consent } from "../output/questions.ts";
+import { secret, input, consent } from "../output/prompts/questions.ts";
+import type { ILocalState } from "../state/model.ts";
 
 interface ISetupOptions {
   server?: string;
@@ -41,7 +42,7 @@ async function lockedrunSetup(
   adapters: TAdapters,
   options: ISetupOptions,
   now: () => number,
-): Promise<void> {
+): Promise<ILocalState> {
   const existing = await loadState(adapters.home);
 
   let state;
@@ -62,6 +63,8 @@ async function lockedrunSetup(
     (root) => adapters.repo.caseInsensitive(root, true),
     adapters.now,
   );
+
+  return state;
 }
 
 async function createState(

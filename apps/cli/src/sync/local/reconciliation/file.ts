@@ -23,7 +23,7 @@ export async function reconcileFile(
   await resumeFile(context, store);
 
   const snapshot = await readFileState(context, targets, store, entry);
-  const { base, server, stored, snapshots } = snapshot;
+  const { base, server, stored, snapshots, previous } = snapshot;
 
   if (
     await blocksFile(
@@ -56,7 +56,7 @@ export async function reconcileFile(
         entry: entry ? text(p.FileEntryCodec.write(entry)) : null,
         targets,
       },
-      { mine, theirs },
+      { mine, theirs, ...(previous ? { previous } : {}) },
       [stored, server, ...snapshots.map((item) => item.bytes)],
     );
 
@@ -118,10 +118,9 @@ async function applyFile(
 ) {
   const { stored, server, snapshots } = snapshot;
 
-  const changed =
-    Number(snapshot.restored) +
-    Number(!same(stored, next)) +
-    snapshots.filter((item) => !same(item.bytes, next)).length;
+  const changed = Number(
+    snapshot.restored || !same(stored, next) || snapshots.some((item) => !same(item.bytes, next)),
+  );
 
   await commitFile(
     context,

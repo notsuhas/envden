@@ -10,6 +10,7 @@ import { push, pull } from "../engine.ts";
 
 import { diff } from "../diff.ts";
 import { resolveConflict } from "../resolve.ts";
+import { conflictRecords } from "../local/conflicts.ts";
 
 import { syncFixture } from "./flows.ts";
 
@@ -27,6 +28,15 @@ test("sync conflict", async () => {
     await push(first, opts);
     expect((await pull(second, opts)).conflicts).toBe(1);
     expect(await readFile(bStore, "utf8")).toContain("A=mine");
+    const [record] = await conflictRecords(second.home);
+
+    expect(await readFile(record!.file, "utf8")).toBe(
+      "TOKEN=local-test-value\n<<<<<<< this device\nA=mine\n=======\nA=remote\n>>>>>>> server (from first)\nB=one\n",
+    );
+
+    const edit = { file: ".env", now: opts.now, choice: "edit" } as const;
+    const refused = await resolveConflict(second, edit).catch((error: Error) => error.message);
+    expect(refused).toStartWith("Conflict markers are still in");
     await resolveConflict(second, { file: ".env", now: opts.now, choice: "take-server" });
     expect(await readFile(bStore, "utf8")).toContain("A=remote");
   } finally {

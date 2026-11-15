@@ -1,5 +1,5 @@
 import { terminalJson } from "../../output/sanitize.ts";
-import { diffText } from "../../output/render/diff.ts";
+import { diffText } from "../../output/render/sync/diff.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { diff } from "../../sync/diff.ts";

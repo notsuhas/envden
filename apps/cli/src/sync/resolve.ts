@@ -10,6 +10,7 @@ import { saveBase } from "./local/reconciliation/history.ts";
 import { resolve } from "node:path";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
+import { hasConflictMarkers } from "@envden/core/merge";
 import type { TAdapters } from "../adapters.ts";
 import { conflictRecords, saveConflicts, backup } from "./local/conflicts.ts";
 import { readBytes, writeBytes, withSyncLock } from "./local/files.ts";
@@ -25,8 +26,7 @@ export function resolveConflict(
 ) {
   return withSyncLock(adapters.home, async () => {
     const records = await conflictRecords(adapters.home);
-
-    const matches = records.filter((item) => matchesConflict(item, options));
+    const matches = selectConflicts(records, options);
 
     if (matches.length !== 1)
       throw new EnvdenError("INVALID_INPUT", "Name exactly one conflict file");
@@ -111,34 +111,49 @@ async function resolutionBytes(
     return record.deleted ? undefined : requireContent(server);
   }
 
-  if (choice === "edit") {
-    const edited = await readBytes(record.file);
-
-    if (edited === undefined && !record.mineDeleted)
-      throw new EnvdenError(
-        "INVALID_INPUT",
-        "Conflict file is missing; choose a recorded deletion side explicitly",
-      );
-
-    return edited;
-  }
+  if (choice === "edit") return editedBytes(record);
 
   return record.mineDeleted ? undefined : requireContent(await readBytes(record.mine));
 }
 
-function matchesConflict(
-  item: Awaited<ReturnType<typeof conflictRecords>>[number],
+async function editedBytes(record: Awaited<ReturnType<typeof conflictRecords>>[number]) {
+  const edited = await readBytes(record.file);
+
+  if (edited === undefined && !record.mineDeleted)
+    throw new EnvdenError(
+      "INVALID_INPUT",
+      "Conflict file is missing; choose a recorded deletion side explicitly",
+    );
+
+  if (edited && hasConflictMarkers(edited))
+    throw new EnvdenError(
+      "INVALID_INPUT",
+      `Conflict markers are still in ${record.file}. Edit it, or pass --keep-mine or --take-server`,
+    );
+
+  return edited;
+}
+
+function selectConflicts(
+  records: Awaited<ReturnType<typeof conflictRecords>>,
   options: { repo?: string; file?: string },
 ) {
   const repo = options.repo ? resolve(options.repo) : undefined;
-  if (repo && !item.targets.some((target) => target.root === repo)) return false;
-  if (!options.file) return true;
 
-  return (
-    item.path === options.file ||
-    item.file === options.file ||
-    item.targets.some((target) => resolve(options.file!) === join(target.root, item.path))
+  const scoped = records.filter(
+    (item) => !repo || item.targets.some((target) => target.root === repo),
   );
+
+  const { file } = options;
+  if (!file) return scoped;
+
+  const placed = scoped.filter(
+    (item) =>
+      item.file === file ||
+      item.targets.some((target) => resolve(file) === join(target.root, item.path)),
+  );
+
+  return placed.length ? placed : scoped.filter((item) => item.path === file);
 }
 
 async function placeResolution(

@@ -71,32 +71,42 @@ export function createProgram(now: () => number) {
     }
   });
 
-  program.addCommand(shellCommand);
-  program.addCommand(trackCommand);
-  program.addCommand(untrackCommand);
-  program.addCommand(localOnlyCommand);
-  program.addCommand(setupCommand);
-  program.addCommand(unlockCommand);
-  program.addCommand(joinCommand);
-  program.addCommand(statusCommand);
-  program.addCommand(diffCommand);
-  program.addCommand(historyCommand);
-  program.addCommand(resolveCommand);
-  program.addCommand(rmCommand);
-  program.addCommand(aliasCommand);
-  program.addCommand(serveCommand);
-  program.addCommand(updateCommand);
-  program.addCommand(configCommand);
-  program.addCommand(doctorCommand);
-  program.addCommand(versionCommand);
-  program.addCommand(pushCommand);
-  program.addCommand(pullCommand);
-  program.addCommand(deviceCommand);
-  program.addCommand(serverCommand);
-  program.addCommand(agentCommand);
-  program.addCommand(uiCommand);
+  addGroup(program, "Get started:", [setupCommand, joinCommand]);
 
-  program.addCommand(vaultCommand);
+  addGroup(program, "Daily use:", [
+    statusCommand,
+    pushCommand,
+    pullCommand,
+    diffCommand,
+    resolveCommand,
+    historyCommand,
+  ]);
+
+  addGroup(program, "Files:", [
+    trackCommand,
+    untrackCommand,
+    localOnlyCommand,
+    rmCommand,
+    aliasCommand,
+  ]);
+
+  addGroup(program, "Devices and vault:", [
+    deviceCommand,
+    vaultCommand,
+    serverCommand,
+    unlockCommand,
+  ]);
+
+  addGroup(program, "Maintenance:", [
+    configCommand,
+    doctorCommand,
+    updateCommand,
+    uiCommand,
+    agentCommand,
+    shellCommand,
+    serveCommand,
+    versionCommand,
+  ]);
 
   const parse = program.parseAsync.bind(program);
 
@@ -119,6 +129,11 @@ export function createProgram(now: () => number) {
   };
 
   return program;
+}
+
+function addGroup(program: Command, heading: string, commands: CommandUnknownOpts[]) {
+  program.commandsGroup(heading);
+  for (const command of commands) program.addCommand(command);
 }
 
 function reportCommandNotice(notice: Awaited<ReturnType<typeof commandNotice>>) {

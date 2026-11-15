@@ -25,7 +25,11 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const result = await pendingRepos(context);
 
   await withStateLock(adapters.home, async () => {
-    await writeRemoteNotice(adapters.home, result, adapters.now);
+    await writeRemoteNotice(
+      adapters.home,
+      { checkedAt: result.checkedAt, repos: result.repos },
+      adapters.now,
+    );
 
     await addPendingJoins(
       adapters.home,
@@ -42,7 +46,11 @@ export async function settleRemoteNotice(context: TSyncContext) {
   const result = await pendingRepos(context);
 
   await withStateLock(context.adapters.home, () =>
-    writeRemoteNotice(context.adapters.home, result, context.options.now),
+    writeRemoteNotice(
+      context.adapters.home,
+      { checkedAt: result.checkedAt, repos: result.repos },
+      context.options.now,
+    ),
   );
 }
 
@@ -54,7 +62,7 @@ async function pendingRepos(context: TSyncContext) {
     context.state.approved.map((item) => context.state.aliases[item.repoId] ?? item.repoId),
   );
 
-  const repos = new Set<string>();
+  const files: { repoId: string; path: string }[] = [];
 
   for (const entry of readableEntries(context)) {
     if (applied[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry))) continue;
@@ -65,10 +73,12 @@ async function pendingRepos(context: TSyncContext) {
       acceptsEnvPath(name.path, rules) &&
       receivesFile(context.state, name)
     )
-      repos.add(name.repoId);
+      files.push({ repoId: name.repoId, path: name.path });
   }
 
-  return { checkedAt: context.options.now(), repos: [...repos] };
+  const repos = [...new Set(files.map((file) => file.repoId))];
+
+  return { checkedAt: context.options.now(), repos, files };
 }
 
 function writeRemoteNotice(home: string, notice: TRemoteNotice, now: () => number) {

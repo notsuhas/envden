@@ -1,8 +1,8 @@
 import type { TPreferenceOptions } from "../../onboarding/preferences.ts";
 import { readKit } from "../../vault/recovery/read.ts";
 import type { TAdapters } from "../../adapters.ts";
-import { secret } from "../../output/questions.ts";
-import { askDeviceName } from "../../output/device-name.ts";
+import { secret } from "../../output/prompts/questions.ts";
+import { askDeviceName } from "../../output/prompts/device-name.ts";
 import { completeJoin } from "../../onboarding/complete-join.ts";
 import { pairingJoin } from "../../onboarding/join/pairing.ts";
 import { kitRejoin } from "./kit.ts";

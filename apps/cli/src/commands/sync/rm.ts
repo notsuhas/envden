@@ -1,6 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
-import { consent } from "../../output/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 import { terminalJson, sanitizeTerminal } from "../../output/sanitize.ts";
 import { removeFile } from "../../sync/remove.ts";
 

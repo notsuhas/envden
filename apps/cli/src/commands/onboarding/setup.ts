@@ -4,6 +4,8 @@ import { createAdapters } from "../../adapters.ts";
 import { runSetup } from "../../onboarding/setup.ts";
 import { missingSetupFlags } from "./missing-setup-flags.ts";
 import { withPreferences } from "./options.ts";
+import { setupSummary } from "../../output/render/devices/summary.ts";
+import { realHome } from "../../output/home-path.ts";
 
 export const setupCommand = withPreferences(
   new Command("setup")
@@ -29,5 +31,8 @@ export const setupCommand = withPreferences(
       throw new EnvdenError("INVALID_INPUT", "Setup choices require your own terminal");
     }
 
-    await runSetup(createAdapters(undefined, Date.now), options, Date.now);
+    const adapters = createAdapters(undefined, Date.now);
+    const state = await runSetup(adapters, options, Date.now);
+
+    for (const line of setupSummary(state, await realHome(adapters.userHome))) console.log(line);
   });

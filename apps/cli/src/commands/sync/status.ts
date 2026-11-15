@@ -1,61 +1,31 @@
-import { heldBackFiles } from "../../sync/local/lineage/held-back.ts";
-import { sanitizeTerminal, terminalJson } from "../../output/sanitize.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { commandNotice } from "../../notice/command.ts";
-import { localStatus } from "../../status/local.ts";
+import { realHome } from "../../output/home-path.ts";
+import { terminalJson } from "../../output/sanitize.ts";
+import { statusText } from "../../output/render/sync/status.ts";
+import { statusReport } from "../../status/report.ts";
 
 export const statusCommand = new Command("status")
-  .description("Show what is out of sync, held back or in conflict")
+  .description("Show what changed here, what's newer on the server and what needs attention")
   .option("--json", "Machine-readable status")
   .addOption(new Option("--refresh-cache").hideHelp())
   .action(async (options) => {
-    const commandTime = Date.now();
-
     const adapters = createAdapters(undefined, Date.now);
 
-    const notice = await commandNotice(
-      adapters,
-      commandTime,
-      fetch,
-      !!options.refreshCache,
-      process.cwd(),
-      !options.refreshCache,
+    if (options.refreshCache) {
+      await commandNotice(adapters, Date.now(), fetch, true, process.cwd());
+
+      return;
+    }
+
+    const report = await statusReport(adapters);
+
+    await commandNotice(adapters, Date.now(), fetch, false, process.cwd(), true);
+
+    console.log(
+      options.json
+        ? terminalJson(report)
+        : statusText(report, { cwd: process.cwd(), userHome: await realHome(adapters.userHome) }),
     );
-
-    const heldBack = await heldBackFiles(adapters);
-    const status = { ...notice, ...(await localStatus(adapters)), heldBack };
-
-    if (!options.refreshCache)
-      console.log(
-        options.json
-          ? terminalJson(status)
-          : status.configured
-            ? [
-                serverLine(status),
-                ...heldBack.map((item) => `envden: held back ${item.path}: ${item.reason}`),
-                ...status.links
-                  .filter(
-                    (link) => link.status === "detached" || ("conflict" in link && link.conflict),
-                  )
-                  .map(
-                    (link) =>
-                      `envden: ${link.root}/${link.path} ${"conflict" in link && link.conflict ? "conflict" : "detached"}`,
-                  ),
-                ...(status.update.message ? [status.update.message] : []),
-                ...notice.repos.map((repo) => `envden: ${repo} out of sync`),
-              ]
-                .map(sanitizeTerminal)
-                .join("\n")
-            : [
-                "envden: not set up. Run envden setup or envden join",
-                ...(status.update.message ? [status.update.message] : []),
-              ].join("\n"),
-      );
   });
-
-function serverLine(status: { server: string; serverReason?: string }) {
-  return status.serverReason
-    ? `envden: server ${status.server}: ${status.serverReason}`
-    : `envden: server ${status.server}`;
-}

@@ -1,5 +1,5 @@
-import { sanitizeConsole } from "../sanitize.ts";
-import type { exposedNames } from "../../admin/devices/exposure.ts";
+import { sanitizeConsole } from "../../sanitize.ts";
+import type { exposedNames } from "../../../admin/devices/exposure.ts";
 
 export function exposureText(exposure: Awaited<ReturnType<typeof exposedNames>>) {
   const lines = exposure.files.length

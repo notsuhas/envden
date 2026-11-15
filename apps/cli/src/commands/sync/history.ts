@@ -1,7 +1,7 @@
 import { EnvdenError } from "@envden/core/errors";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
-import { consent } from "../../output/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import { fileHistory } from "../../history/list/run.ts";
 import { historyText } from "../../history/list/render.ts";

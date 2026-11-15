@@ -10,8 +10,8 @@ import { binary } from "../client/encoding.ts";
 import { login } from "../session/login.ts";
 import { openPairing, approvePairing } from "../pairing/approver.ts";
 import { waitMessage } from "../pairing/wait.ts";
-import { secret, consent } from "../output/questions.ts";
-import { pairingText, pairedText } from "../output/render/devices.ts";
+import { secret, consent } from "../output/prompts/questions.ts";
+import { pairingText, pairedText } from "../output/render/devices/devices.ts";
 import { VERSION } from "../version.ts";
 
 async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promise<void> {

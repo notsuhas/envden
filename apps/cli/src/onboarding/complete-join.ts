@@ -4,7 +4,7 @@ import { loadState } from "../state/store/repository.ts";
 import { requireConfigured } from "../state/configured.ts";
 import { setupCheckouts } from "./scan.ts";
 import { firstRun } from "../sync/first-run.ts";
-import { chooseResolution } from "../output/questions.ts";
+import { chooseResolution } from "../output/prompts/questions.ts";
 
 export async function completeJoin(
   adapters: TAdapters,

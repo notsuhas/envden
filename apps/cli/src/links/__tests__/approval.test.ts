@@ -1,6 +1,6 @@
 import { test, expect } from "bun:test";
 import { sep } from "node:path";
-import { approvalPrompt, checkoutApproval } from "../approval.ts";
+import { checkoutLabel, checkoutApproval } from "../approval.ts";
 import { emptyState } from "../../state/model.ts";
 import { storePath } from "../../store/path.ts";
 
@@ -26,15 +26,25 @@ test("approval binds git directory and remote, including worktrees", () => {
   ).toBe("ask");
 
   expect(
-    approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
-  ).toBe("Approve worktree /code/forged of example/repo?");
+    checkoutLabel(
+      state,
+      { ...checkout, root: "/code/forged", registeredWorktree: true },
+      [".env"],
+      "/code",
+    ),
+  ).toBe("~/forged, worktree of example/repo (.env)");
 
+  expect(checkoutLabel(state, checkout, [".env", "api/.env"], "/home/me")).toBe(
+    "/code/main (.env, api/.env)",
+  );
+
+  expect(checkoutLabel(state, checkout, [], "/code")).toBe("~/main (files from the vault)");
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("changed");
   state.aliases["host/other"] = checkout.repoId;
 
   expect(
-    approvalPrompt(state, { ...checkout, root: "/code/forged", registeredWorktree: true }),
-  ).toBe("Approve worktree /code/forged of example/repo?");
+    checkoutLabel(state, { ...checkout, root: "/code/forged", registeredWorktree: true }, [], "/"),
+  ).toBe("~/code/forged, worktree of example/repo (files from the vault)");
 
   expect(checkoutApproval(state, { ...checkout, repoId: "host/other" })).toBe("approved");
 });

@@ -2,7 +2,7 @@ import { setCheckoutPlacement } from "../../settings/placement.ts";
 import { getUnlockPeriod, setUnlockPeriod } from "../../settings/unlock-period.ts";
 import { settingRequest } from "../../settings/request.ts";
 import { configText, settingText, unlockPeriodText } from "../../output/render/settings.ts";
-import { secret } from "../../output/questions.ts";
+import { secret } from "../../output/prompts/questions.ts";
 import { createAdapters, type TAdapters } from "../../adapters.ts";
 import { requireConfigured } from "../../state/configured.ts";
 import { loadState } from "../../state/store/repository.ts";

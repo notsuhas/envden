@@ -1,6 +1,6 @@
-import { PromptCancelled } from "../state/cancelled.ts";
+import { PromptCancelled } from "../../state/cancelled.ts";
 import { confirm, password, text, select, multiselect } from "@clack/prompts";
-import { sanitizeTerminal } from "./sanitize.ts";
+import { sanitizeTerminal } from "../sanitize.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 type TCheck = (value: string) => string | undefined;
@@ -54,7 +54,9 @@ export async function consent(message: string, initialValue = false): Promise<bo
 }
 
 export async function shellChoice(): Promise<"zsh" | "bash" | "fish" | "powershell" | "none"> {
-  const message = "Install the shell notice?";
+  const message =
+    "Install the shell notice? It prints a line when you cd into a checkout whose env files need a push or pull";
+
   terminal(message);
 
   return answer<"zsh" | "bash" | "fish" | "powershell" | "none">(
@@ -65,7 +67,7 @@ export async function shellChoice(): Promise<"zsh" | "bash" | "fish" | "powershe
         { value: "bash" as const, label: "bash" },
         { value: "fish" as const, label: "fish" },
         { value: "powershell" as const, label: "PowerShell" },
-        { value: "none" as const, label: "None" },
+        { value: "none" as const, label: "No, skip it" },
       ],
     }),
   );
@@ -112,6 +114,7 @@ export async function chooseMany(
   const result = await multiselect({
     message: sanitizeTerminal(message),
     required: false,
+    initialValues: options.map((option) => option.value),
     options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
   });
 

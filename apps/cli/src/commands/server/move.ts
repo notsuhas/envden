@@ -1,9 +1,9 @@
 import { EnvdenError } from "@envden/core/errors";
-import { readToken } from "../../output/token.ts";
+import { readToken } from "../../output/prompts/token.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { moveServer } from "../../admin/move/run.ts";
-import { secret } from "../../output/questions.ts";
+import { secret } from "../../output/prompts/questions.ts";
 import { requireServerAddress } from "../../onboarding/decisions.ts";
 
 export const serverMoveCommand = new Command("move")

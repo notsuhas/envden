@@ -6,7 +6,7 @@ import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { deviceIdentity, type TDeviceIdentity } from "../../identity/device.ts";
 import { readIdentity } from "../../identity/stored.ts";
-import { askDeviceName } from "../../output/device-name.ts";
+import { askDeviceName } from "../../output/prompts/device-name.ts";
 import { finishPairing } from "../../pairing/finish.ts";
 import { clearJoiner } from "../../pairing/persistence/cleanup.ts";
 import { promptPairing } from "../../pairing/prompt.ts";

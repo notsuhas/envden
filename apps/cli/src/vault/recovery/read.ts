@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { EnvdenError } from "@envden/core/errors";
-import { input, secret } from "../../output/questions.ts";
+import { input, secret } from "../../output/prompts/questions.ts";
 import { parseKit, secretKeyProblem, vaultIdProblem } from "./input.ts";
 
 export async function readKit(path?: string, promptSecret = secret, promptInput = input) {

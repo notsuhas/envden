@@ -68,7 +68,7 @@ test("command help and shared stub exit", async () => {
   ]) {
     const result = await cli(args);
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("Not set up. Run envden setup or envden join");
+    expect(result.stderr).toContain("Not set up yet. Run envden setup or envden join");
   }
 
   const status = await cli(["status", "--json"]);
@@ -139,7 +139,7 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
 
       if (command === "status")
         expect(stdout.trim().split("\n")).toEqual([
-          "envden: not set up. Run envden setup or envden join",
+          "Not set up yet. Run envden setup or envden join",
           "Cannot confirm envden is up to date",
         ]);
     }

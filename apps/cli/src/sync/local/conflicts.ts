@@ -2,7 +2,12 @@ import type { deriveFileSides } from "./reconciliation/content/sides.ts";
 import { conflictDocumentSchema } from "./conflicts/schema.ts";
 import { readSyncRecord } from "../../state/store/records.ts";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
-import { sha256, base32 } from "@envden/core/protocol";
+import { sha256, base32, decode, FileEntryCodec } from "@envden/core/protocol";
+import { markConflicts } from "@envden/core/merge";
+import { conflictNotice } from "../../output/render/sync/conflicts.ts";
+import { binary } from "../../client/encoding.ts";
+import { entryAuthor } from "./conflicts/author.ts";
+import { checkoutPath } from "./reconciliation/placement/display.ts";
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TSyncContext } from "../remote/context.ts";
@@ -54,7 +59,7 @@ export async function recordConflict(
     IConflictRecord,
     "remote" | "file" | "server" | "mine" | "deleted" | "mineDeleted" | "alternatives"
   >,
-  sides: Pick<ReturnType<typeof deriveFileSides>, "mine" | "theirs">,
+  sides: Pick<ReturnType<typeof deriveFileSides>, "mine" | "theirs"> & { previous?: Uint8Array },
   variants: (Uint8Array | undefined)[] = [],
 ): Promise<void> {
   const { mine, theirs } = sides;
@@ -68,47 +73,29 @@ export async function recordConflict(
   );
 
   if (records.some((item) => item.base === target.base)) return;
-  await writeBytes(file, mine, context.options.now);
+  const device = target.entry ? await entryAuthor(context, entryOf(target.entry)) : undefined;
+
+  const marked =
+    mine && server
+      ? markConflicts(sides.previous, mine, server, {
+          mine: "this device",
+          theirs: device ? `server (from ${device})` : "server",
+        })
+      : undefined;
+
+  await writeBytes(file, marked?.bytes ?? mine, context.options.now);
   await writeBytes(file + ".server", server, context.options.now);
   await writeBytes(file + ".mine", mine, context.options.now);
   await writeBytes(file + ".remote", variants[1], context.options.now);
 
-  const sources = [
-    target.store,
-    "server",
-    ...target.targets.map((item) => join(item.root, item.path)),
-  ];
-
-  for (const [side, bytes] of [
-    ["Mine", mine],
-    ["Theirs", server],
-  ] as const) {
-    if (side === "Theirs" && theirs.kind === "absent") {
-      context.options.report?.(
-        "Theirs: no server entry; keep mine or edit the local conflict file",
-      );
-
-      continue;
-    }
-
-    const source = conflictSource(side, bytes, sources, variants, target.store);
-
-    context.options.report?.(
-      sanitizeTerminal(`${side}: ${source}; saved ${file}.${side === "Mine" ? "mine" : "server"}`),
-    );
-  }
-
   const alternatives: string[] = [];
 
   for (const [index, bytes] of variants.entries()) {
-    if (bytes === undefined) continue;
+    if (bytes === undefined || variants.slice(0, index).some((item) => same(item, bytes))) continue;
+
     const path = file + `.variant-${index}`;
     await writeBytes(path, bytes, context.options.now);
     alternatives.push(path);
-
-    const source = sources[index]!;
-
-    context.options.report?.(sanitizeTerminal(`Saved ${source}: ${path}`));
   }
 
   records.push({
@@ -125,7 +112,17 @@ export async function recordConflict(
   await saveConflicts(context.adapters.home, records, context.options.now);
 
   context.options.report?.(
-    sanitizeTerminal(`Conflict: ${target.path}; edit ${file}, then run envden resolve`),
+    sanitizeTerminal(
+      conflictNotice({
+        path: checkoutPath(context.options.cwd, target.root, target.path),
+        file,
+        ...(device ? { device } : {}),
+        ...(marked?.kind === "keys" ? { keys: marked.keys } : {}),
+        marked: marked !== undefined,
+        mine: mine === undefined ? "deleted" : "live",
+        theirs: theirs.kind,
+      }),
+    ),
   );
 }
 
@@ -189,15 +186,6 @@ export async function removeConflictTargets(home: string, root: string, now: () 
   await saveConflicts(home, retained, now);
 }
 
-function conflictSource(
-  side: string,
-  bytes: Uint8Array | undefined,
-  sources: string[],
-  variants: (Uint8Array | undefined)[],
-  store: string,
-) {
-  if (bytes === undefined) return "deleted";
-  if (side === "Theirs") return "server";
-
-  return sources[variants.findIndex((value) => same(value, bytes))] ?? store;
+function entryOf(encoded: string) {
+  return decode(FileEntryCodec, binary(encoded));
 }

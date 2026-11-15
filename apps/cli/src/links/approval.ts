@@ -1,5 +1,6 @@
 import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 import type { ILocalState } from "../state/model.ts";
+import { homePath } from "../output/home-path.ts";
 
 export function checkoutApproval(
   state: ILocalState,
@@ -36,14 +37,20 @@ export async function approvedCheckout(
   return checkout && checkoutApproval(state, checkout) === "approved" ? checkout : undefined;
 }
 
-export function approvalPrompt(state: ILocalState, checkout: ICheckout): string {
+export function checkoutLabel(
+  state: ILocalState,
+  checkout: ICheckout,
+  files: string[],
+  userHome: string,
+): string {
   const worktree =
     checkout.registeredWorktree &&
     state.approved.some(
       (item) => item.gitDir === checkout.gitDir && item.repoId === checkout.repoId,
     );
 
-  return worktree
-    ? `Approve worktree ${checkout.root} of ${checkout.repoId}?`
-    : `Approve env files in ${checkout.root}?`;
+  const path = homePath(checkout.root, userHome);
+  const found = files.length ? files.join(", ") : "files from the vault";
+
+  return worktree ? `${path}, worktree of ${checkout.repoId} (${found})` : `${path} (${found})`;
 }

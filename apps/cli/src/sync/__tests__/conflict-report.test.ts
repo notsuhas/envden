@@ -4,7 +4,7 @@ import { syncContext } from "../remote/context.ts";
 import { recordConflict, conflictRecords } from "../local/conflicts.ts";
 import { basePath, readBytes } from "../local/files.ts";
 
-test("a deletion side is named and every extra local version is saved and reported", async () => {
+test("a deletion side is named and every extra local version is saved in one short report", async () => {
   const f = await syncFixture();
   const reports: string[] = [];
 
@@ -25,12 +25,10 @@ test("a deletion side is named and every extra local version is saved and report
       [undefined, new TextEncoder().encode("SERVER"), copy],
     );
 
-    expect(reports.some((line) => line.startsWith("Mine: deleted;"))).toBe(true);
     const record = (await conflictRecords(f.first.home))[0]!;
     expect(record.mineDeleted).toBe(true);
-    const path = record.alternatives.at(-1)!;
-    expect(await readBytes(path)).toEqual(copy);
-    expect(reports.some((line) => line.endsWith(path))).toBe(true);
+    expect(await readBytes(record.alternatives.at(-1)!)).toEqual(copy);
+    expect(reports).toEqual([expect.stringMatching(/^Conflict in .*\.env: deleted here and/)]);
   } finally {
     await f.cleanup();
   }

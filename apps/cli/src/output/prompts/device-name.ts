@@ -1,4 +1,4 @@
-import { suggestedDeviceName } from "../identity/name/suggested.ts";
+import { suggestedDeviceName } from "../../identity/name/suggested.ts";
 import { input } from "./questions.ts";
 
 export async function askDeviceName(

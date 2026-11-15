@@ -1,6 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
-import { secret } from "../../output/questions.ts";
+import { secret } from "../../output/prompts/questions.ts";
 import { unlockDevice } from "../../session/unlock.ts";
 
 export const unlockCommand = new Command("unlock")

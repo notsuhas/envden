@@ -57,7 +57,7 @@ test("terminal error sink sanitizes scan diagnostics and thrown error text", asy
 });
 
 test("selection wrappers reject unattended approval and file choices", async () => {
-  const { choose, chooseMany } = await import("../questions.ts");
+  const { choose, chooseMany } = await import("../prompts/questions.ts");
   const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 
   try {

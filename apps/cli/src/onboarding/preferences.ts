@@ -2,7 +2,7 @@ import { deriveConsent, deriveShell, deriveAgent, type TShell } from "./decision
 import { readConfig, setConfig } from "../settings/config.ts";
 import type { TAdapters } from "../adapters.ts";
 import { installAgent } from "../agent/install.ts";
-import { consent, shellChoice } from "../output/questions.ts";
+import { consent, shellChoice } from "../output/prompts/questions.ts";
 
 export type TPreferenceOptions = {
   telemetry?: "on" | "off";
@@ -42,7 +42,7 @@ async function consentPreference(
 ) {
   const decision = deriveConsent(value, yes || !process.stdin.isTTY, fallback);
 
-  return decision.kind === "selected" ? decision.value : consent(question);
+  return decision.kind === "selected" ? decision.value : consent(question, fallback);
 }
 
 async function installShell(adapters: TAdapters, options: TPreferenceOptions) {
@@ -60,7 +60,10 @@ async function installAgentPreference(adapters: TAdapters, options: TPreferenceO
 
   if (
     agent.kind === "install" ||
-    (agent.kind === "ask" && (await consent("Install the agent skill?")))
+    (agent.kind === "ask" &&
+      (await consent(
+        "Install the agent skill? It teaches AI coding agents like Claude Code and Codex to use envden safely",
+      )))
   )
     await installAgent(adapters.userHome, adapters.now);
 }

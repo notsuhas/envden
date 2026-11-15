@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { sanitizeConsole } from "../sanitize.ts";
-import type { diff } from "../../sync/diff.ts";
+import { sanitizeConsole } from "../../sanitize.ts";
+import type { diff } from "../../../sync/diff.ts";
 
 type TDiffFile = Awaited<ReturnType<typeof diff>>[number];
 

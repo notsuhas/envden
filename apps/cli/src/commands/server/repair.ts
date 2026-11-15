@@ -1,11 +1,11 @@
-import { readToken } from "../../output/token.ts";
+import { readToken } from "../../output/prompts/token.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { uploadRepair } from "../../admin/repair/upload.ts";
 import { finishRepair } from "../../admin/repair/finish.ts";
 import { runVaultAdmin } from "../vault/run.ts";
 import { repairText } from "../../output/render/repair.ts";
-import { secret, consent } from "../../output/questions.ts";
+import { secret, consent } from "../../output/prompts/questions.ts";
 
 export const serverRepairCommand = new Command("repair")
   .description(

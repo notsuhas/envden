@@ -29,6 +29,8 @@ for (const modes of layouts)
       await push(f.first, f.opts);
       const result = await pull(f.second, f.opts);
       expect(result.conflicts).toBe(conflicts);
+      // One env file counts once, however many checkouts it's placed in.
+      if (name === "remote edit") expect(result.changed).toBe(1);
       expect(await Bun.file(targets[0]!.store).text()).toBe(expected);
 
       if (!conflicts) {

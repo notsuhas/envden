@@ -150,8 +150,8 @@ async function verifyLateBackups(result: Awaited<ReturnType<typeof resolveConfli
   const preserved = await Promise.all(result.preserved.map((path) => readBytes(path)));
   expect(preserved).toContainEqual(bytes("TOKEN=later-store\n"));
 
-  const paths = result.placementReports.map((message) =>
-    message.slice(message.lastIndexOf(": ") + 2),
+  const paths = result.placementReports.map(
+    (message) => /^Kept your previous .* at (.+)$/.exec(message)?.[1] ?? "",
   );
 
   expect(await Promise.all(paths.map((path) => readBytes(path)))).toContainEqual(
