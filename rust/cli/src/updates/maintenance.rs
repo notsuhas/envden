@@ -31,9 +31,7 @@ pub fn refresh_installation(adapters: &IAdapters) {
         let adapter = adapters.shell(shell);
         refresh(adapter.installed().and_then(|installed| {
             if installed {
-                adapter.install(&super::self_update::paths::stable_executable(
-                    &adapters.executable.to_string_lossy(),
-                ))
+                adapter.install(&adapters.executable.to_string_lossy())
             } else {
                 Ok(())
             }
