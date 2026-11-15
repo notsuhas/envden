@@ -64,6 +64,7 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
     let name = crate::onboarding::setup::device_name(options)?;
     let password = confirmed_password(|label| secret(label, |_| None), 3, |v| eprintln!("{v}"))?;
     let token = p::decode_token(p::TTokenKind::Setup, &token)?;
+    hello(&address, Some(&token.1), &UreqTransport, MIN_SERVER)?;
     let identity = device_identity(
         &*adapters.keychain,
         &adapters.home,
