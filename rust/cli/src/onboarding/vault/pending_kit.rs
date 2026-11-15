@@ -52,11 +52,15 @@ pub(super) fn report(
 ) -> Result<()> {
     if let Some(path) = options["kitOut"].as_str() {
         crate::vault::recovery::write_kit(std::path::Path::new(path), kit)?;
-        println!("Recovery kit saved to {path}");
+        println!("{}", kit_saved(path));
         Ok(())
     } else {
         crate::vault::recovery::pdf::report_kit(kit, &adapters.user_home, name, (adapters.now)())
     }
+}
+
+fn kit_saved(path: &str) -> String {
+    crate::output::sanitize_console(&format!("Recovery kit saved to {path}"))
 }
 
 pub(super) fn replace_lost(
@@ -101,6 +105,14 @@ mod tests {
         identity::device_identity,
         vault::{create_genesis, create_vault_swap},
     };
+    #[test]
+    fn kit_saved_strips_terminal_controls() {
+        assert_eq!(
+            kit_saved("kit\u{001b}[31m\u{202e}.json"),
+            "Recovery kit saved to kit[31m.json"
+        );
+    }
+
     #[test]
     fn resumed_kit_must_match_pending_vault() {
         let dir = tempfile::tempdir().unwrap();
