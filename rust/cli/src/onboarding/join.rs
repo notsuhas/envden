@@ -23,7 +23,10 @@ use serde_json::{Value, json};
 use std::path::Path;
 
 pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
-    crate::pairing::persistence::guard(adapters)?;
+    crate::state::files::private_directory(&adapters.home)?;
+    with_state_lock(&adapters.home, (adapters.now)(), || {
+        crate::pairing::persistence::guard(adapters)
+    })?;
     let mut state = if options["recovery"] == true || options["recoveryKit"].is_string() {
         let name = device_name(options)?;
         let kit = read_kit(options["recoveryKit"].as_str().map(Path::new))?;

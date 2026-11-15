@@ -111,7 +111,16 @@ fn run(
                 sanitize_terminal(label)
             ));
         }
-        screen.push_str(&format!("{}\n", color("36", "└")));
+        screen.push_str(&format!(
+            "{}  {}\n{}\n",
+            color("36", "│"),
+            if multiple {
+                "↑/↓ to navigate • Space: select • Enter: confirm"
+            } else {
+                "↑/↓ to navigate • Enter: confirm"
+            },
+            color("36", "└")
+        ));
         terminal.render(&screen)?;
         let key = terminal.key()?;
         if key.code == KeyCode::Esc

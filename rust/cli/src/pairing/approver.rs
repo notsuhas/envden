@@ -5,7 +5,7 @@ use crate::{
     onboarding::vault::add_swap::add_swap,
     output::{
         prompts::{consent, secret},
-        sanitize_terminal,
+        sanitize_console,
     },
     session::{TPassword, login},
     state::{
@@ -51,7 +51,7 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
     let attempt = prepare(&pin, number)?;
     println!(
         "{}",
-        sanitize_terminal(&format!(
+        sanitize_console(&format!(
             "On the new device run: envden join {}\nand enter code {} (valid 10 minutes). Keep this running.",
             client.options.address, attempt.code
         ))
@@ -102,7 +102,10 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
     let mut swap = add_swap(
         &history,
         candidate,
-        (connection.identity.record.id, &connection.identity.keys.obj_sk),
+        (
+            connection.identity.record.id,
+            &connection.identity.keys.obj_sk,
+        ),
         epoch,
         2,
         &connection.identity,
@@ -119,6 +122,6 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
     )?);
     super::persistence::save_approval(adapters, number, &swap)?;
     super::persistence::submit(adapters, client)?;
-    println!("{}", sanitize_terminal(&format!("Device {name} added")));
+    println!("{}", sanitize_console(&format!("Device {name} added")));
     Ok(())
 }

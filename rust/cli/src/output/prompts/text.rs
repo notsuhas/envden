@@ -34,7 +34,7 @@ fn ask(
     loop {
         let text: String = value.iter().collect();
         let display = if password {
-            "▪".repeat(value.len())
+            "▪".repeat(text.encode_utf16().count())
         } else {
             text.clone()
         };
@@ -97,6 +97,29 @@ fn ask(
             KeyCode::Right => cursor = (cursor + 1).min(value.len()),
             KeyCode::Home => cursor = 0,
             KeyCode::End => cursor = value.len(),
+            KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => cursor = 0,
+            KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                cursor = value.len()
+            }
+            KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                cursor = cursor.saturating_sub(1)
+            }
+            KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                cursor = (cursor + 1).min(value.len())
+            }
+            KeyCode::Char('k') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                value.truncate(cursor)
+            }
+            KeyCode::Char('w') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                let end = cursor;
+                while cursor > 0 && value[cursor - 1].is_whitespace() {
+                    cursor -= 1;
+                }
+                while cursor > 0 && !value[cursor - 1].is_whitespace() {
+                    cursor -= 1;
+                }
+                value.drain(cursor..end);
+            }
             KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 value.clear();
                 cursor = 0;

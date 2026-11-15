@@ -22,24 +22,12 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             "No pairing exchange to resume",
         ));
     }
-    let identity = if resume {
-        let bytes = adapters
-            .keychain
-            .get(&format!("envden/{}/device", adapters.home.display()), false)?
-            .ok_or_else(|| {
-                EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume")
-            })?;
-        read_identity(&bytes)?
+    let name = if resume {
+        None
     } else {
         let name = device_name(options)?;
         super::persistence::clear(adapters)?;
-        device_identity(
-            &*adapters.keychain,
-            &adapters.home,
-            &name,
-            !load_state(&adapters.home)?.is_some_and(|s| s.get("checkpoint").is_some()),
-            (adapters.now)(),
-        )?
+        Some(name)
     };
     let expected = if resume {
         std::fs::read_to_string(adapters.home.join("state/pair-pin"))
@@ -50,6 +38,23 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
         None
     };
     let server = hello(address, expected.as_ref(), &UreqTransport, MIN_SERVER)?;
+    let identity = if resume {
+        let bytes = adapters
+            .keychain
+            .get(&format!("envden/{}/device", adapters.home.display()), false)?
+            .ok_or_else(|| {
+                EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume")
+            })?;
+        read_identity(&bytes)?
+    } else {
+        device_identity(
+            &*adapters.keychain,
+            &adapters.home,
+            name.as_deref().expect("new join"),
+            !load_state(&adapters.home)?.is_some_and(|s| s.get("checkpoint").is_some()),
+            (adapters.now)(),
+        )?
+    };
     let client = connection(adapters, address, server.pin, [0; 32], &identity);
     if !resume {
         atomic_write(
@@ -115,8 +120,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     let expiry = std::fs::read_to_string(adapters.home.join("state/pair-expiry"))
         .ok()
         .and_then(|v| v.parse::<u64>().ok());
-    if resume
-        && expiry.is_some_and(|v| (adapters.now)() < v)
+    if expiry.is_some_and(|v| (adapters.now)() < v)
         && let Ok(saved) = std::fs::read_to_string(adapters.home.join("state/pair-joiner"))
     {
         let value: Value = serde_json::from_str(&saved).map_err(|e| {
