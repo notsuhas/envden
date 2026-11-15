@@ -1,0 +1,9900 @@
+{
+  "glob": [
+    {
+      "pattern": "*",
+      "path": "",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "*",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "x/a/y",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a/b/",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**/*",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**/*",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**/*",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "x/a/y",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**/*",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**/*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/*.env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": ".env.*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a/b/",
+      "want": true
+    },
+    {
+      "pattern": "a/**",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/*/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a?",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "a?",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "?",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "?",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!a]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[^a]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-c]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "[.]env",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[.]env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{.env,.env.*}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,{b,c}}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a\\*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "!a",
+      "path": "",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "!a",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "x/a/y",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a/b/",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "!a",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "!!a",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "!!a",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "!!a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a//b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": ".env.local",
+      "want": true
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "*.{env,local}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}/**/.env*",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a[0-9]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "a***b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a***b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/***/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!/]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "[a/]",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "[a/]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a/]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "**/a*",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a/**/b/**/c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a**/b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "**a",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "**.env",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**.env",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**.env",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-z]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[é😀]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a*",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a.local",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a1",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a\nb",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a😀",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a\r",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "{a*,b?}",
+      "path": "a ",
+      "want": true
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a/b/",
+      "want": true
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a/b,c}/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": ".env",
+      "want": true
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/{.env,*.env}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/b/c.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/b",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a//b",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/x/b",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/x/y/b",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "b/c/.env",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/b/c",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/x/b/y/c",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "x/a/y",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a/b/",
+      "want": true
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "**/{a,b}/**",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}{a,b}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "😀",
+      "want": true
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "/",
+      "want": true
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": ".",
+      "want": true
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "é",
+      "want": true
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[!a-c]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "c",
+      "want": true
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "[a-cx-z]",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a,b",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a",
+      "want": true
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "b",
+      "want": true
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b,c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "ab",
+      "want": true
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "a{b,c",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": ".env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": ".env.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/b/c.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "ab",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a*",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a//b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/x/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/x/y/b",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a.local",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "b/c/.env",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a1",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": ".",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a\nb",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/b/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/x/b/y/c",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "é",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a😀",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "x/a/y",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a/b/",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a\r",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a ",
+      "want": false
+    },
+    {
+      "pattern": "{a,b}}",
+      "path": "a ",
+      "want": false
+    }
+  ],
+  "accept": [
+    {
+      "path": ".env",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": ".env.local",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "foo/.env",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {},
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {},
+      "want": true
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "include": [
+          "*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "include": []
+      },
+      "want": false
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "exclude": []
+      },
+      "want": true
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "include": [
+          "**/.env*"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "include": [
+          "*.env",
+          "{.env,.env.*}"
+        ],
+        "exclude": [
+          "*.local"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "extraSkipped": [
+          "FOO"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.local",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".env.example",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENV",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": ".envrc",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".ENVRC",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "node_modules/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "NODE_MODULES/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "src/.env.sample",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "x/.env.SAMPLE",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "src/.env\nx",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "foo/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "x/foo.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    },
+    {
+      "path": "vendor/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": ".git/.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": false
+    },
+    {
+      "path": "foo//.env",
+      "rules": {
+        "include": [
+          "!*.example"
+        ]
+      },
+      "want": true
+    }
+  ]
+}

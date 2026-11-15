@@ -1,0 +1,1193 @@
+[
+  {
+    "op": "parse",
+    "args": [
+      "AEE9MQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xAA=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xAA==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0AMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0AMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScA"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax",
+      "key": "A"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2MA"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2MA",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xAEI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xAEI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "CUE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "CUE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xCQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xCQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0JMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0JMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScJ"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScJ",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2MJ"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2MJ",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xCUI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xCUI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "CkE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "CkE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xCg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xCg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0KMQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScK"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScK",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2MK"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2MK",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xCkI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xCg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        },
+        {
+          "key": "B",
+          "raw": "Qj0y",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "C0E9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "C0E9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xCw=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xCw==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0LMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0LMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScL"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScL",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2ML"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2ML",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xC0I9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xC0I9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "DEE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "DEE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xDA=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xDA==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0MMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0MMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScM"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScM",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2MM"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2MM",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xDEI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xDEI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "DUE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "DUE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xDQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0NMQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScN"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2MN"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xDUI9Mg=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "IEE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "IEE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xIA=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xIA==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0gMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0gMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScg"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScg",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2Mg"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2Mg",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xIEI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xIEI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "f0E9MQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xfw=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xfw==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT1/MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT1/MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMSd/"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax",
+      "key": "A"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2N/"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2N/",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xf0I9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xf0I9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "hUE9MQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xhQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xhQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT2FMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT2FMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMSeF"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax",
+      "key": "A"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2OF"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2OF",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xhUI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xhUI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "oEE9MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "oEE9MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xoA=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xoA==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT2gMQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT2gMQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMSeg"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMSeg",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2Og"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2Og",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0xoEI9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0xoEI9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "/0E9MQ=="
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0x/w=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0x/w==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT3/MQ=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT3/MQ==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMSf/"
+    ],
+    "result": {
+      "kind": "conflict",
+      "reason": "unsupported-syntax",
+      "key": "A"
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0nMScgI2P/"
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0nMScgI2P/",
+          "exported": false,
+          "quote": "'",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  },
+  {
+    "op": "parse",
+    "args": [
+      "QT0x/0I9Mg=="
+    ],
+    "result": {
+      "kind": "parsed",
+      "head": "",
+      "entries": [
+        {
+          "key": "A",
+          "raw": "QT0x/0I9Mg==",
+          "exported": false,
+          "quote": "",
+          "active": true
+        }
+      ],
+      "tail": ""
+    }
+  }
+]
