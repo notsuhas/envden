@@ -11,6 +11,7 @@ import { createGitRepoAdapter } from "@envden/adapter-repo-git";
 import { createFsPlacementAdapter, pruneBackups } from "@envden/adapter-placement-fs";
 import { createRcShellAdapter } from "@envden/adapter-shell-rc";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
+import { localSetupToken } from "@envden/server";
 import type { IKeychainAdapter, IPlacementAdapter, TPlacementMode } from "@envden/core/adapters";
 
 export function createAdapters(
@@ -61,6 +62,7 @@ export function createAdapters(
     shell: (shell: "zsh" | "bash" | "fish" | "powershell") =>
       createRcShellAdapter(shell, userHome, home, join(home, "conflicts")),
     network: createTailscaleNetworkAdapter(),
+    localSetupToken: () => localSetupToken(join(home, "server"), now()),
     hostServer: () =>
       installHostService(
         {

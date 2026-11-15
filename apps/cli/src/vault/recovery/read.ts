@@ -1,12 +1,19 @@
 import { readFile } from "node:fs/promises";
+import { EnvdenError } from "@envden/core/errors";
 import { input, secret } from "../../output/questions.ts";
-import { parseKit } from "./input.ts";
+import { parseKit, secretKeyProblem, vaultIdProblem } from "./input.ts";
 
 export async function readKit(path?: string, promptSecret = secret, promptInput = input) {
-  return path
-    ? parseKit(JSON.parse(await readFile(path, "utf8")))
-    : parseKit({
-        secretKey: await promptSecret("Recovery secret key"),
-        vaultId: await promptInput("Vault ID"),
-      });
+  if (path) return parseKit(await readKitFile(path));
+
+  const secretKey = await promptSecret("Recovery secret key", secretKeyProblem);
+  const vaultId = await promptInput("Vault ID", true, undefined, vaultIdProblem);
+
+  return { secretKey: secretKey.trim(), vaultId: vaultId.trim() };
+}
+
+async function readKitFile(path: string) {
+  return readFile(path, "utf8").catch((cause: unknown) => {
+    throw new EnvdenError("INVALID_INPUT", "Can't read the recovery kit file", { cause });
+  });
 }

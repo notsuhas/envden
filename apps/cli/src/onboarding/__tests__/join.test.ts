@@ -12,7 +12,7 @@ const fixtureClock = () => 1800000000000;
 test("a fresh pairing ignores the abandoned server pin", async () => {
   const f = await fixture();
   const stop = new Error("stop at code entry");
-  const prompt = spyOn(questions, "secret").mockRejectedValue(stop);
+  const prompt = spyOn(questions, "input").mockRejectedValue(stop);
 
   try {
     const home = f.home("abandoned");

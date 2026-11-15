@@ -1,11 +1,38 @@
 import { z } from "zod";
+import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 
-const kitSchema = z.object({ vaultId: z.string(), secretKey: z.string() });
+const kitSchema = z.object({
+  vaultId: z.string().refine((value) => !vaultIdProblem(value)),
+  secretKey: z.string().refine((value) => !secretKeyProblem(value)),
+});
 
-export function parseKit(kit: unknown) {
-  const result = kitSchema.safeParse(kit);
-  if (!result.success) throw new EnvdenError("INVALID_INPUT", "Invalid recovery kit");
+function decodes(decode: () => Uint8Array, length: number) {
+  try {
+    return decode().length === length;
+  } catch {
+    return false;
+  }
+}
 
-  return result.data;
+export function secretKeyProblem(text: string) {
+  return decodes(() => p.decodeSecretKey(text.trim()), 16)
+    ? undefined
+    : "Not a secret key. Copy the EK1-… line from your recovery kit";
+}
+
+export function vaultIdProblem(text: string) {
+  return decodes(() => p.unbase32(text.trim()), 32)
+    ? undefined
+    : "Not a vault ID. Copy it from your recovery kit";
+}
+
+export function parseKit(text: string) {
+  try {
+    const kit = kitSchema.parse(JSON.parse(text));
+
+    return { vaultId: kit.vaultId.trim(), secretKey: kit.secretKey.trim() };
+  } catch (cause) {
+    throw new EnvdenError("INVALID_INPUT", "Not a recovery kit file", { cause });
+  }
 }

@@ -2,10 +2,11 @@ import { withStateLock } from "../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
+import { NOT_SET_UP } from "../state/configured.ts";
 
 async function lockedAliasRepo(adapters: TAdapters, source: string, target: string): Promise<void> {
   const state = await loadState(adapters.home);
-  if (!state) throw new EnvdenError("NOT_FOUND", "Run setup first");
+  if (!state) throw new EnvdenError("NOT_FOUND", NOT_SET_UP);
 
   const decision = deriveAlias(state.aliases, source, target);
 

@@ -8,7 +8,7 @@ export const unlockCommand = new Command("unlock")
   .action(async () => {
     await unlockDevice(
       createAdapters(undefined, Date.now),
-      await secret("Master password"),
+      (retry) => secret(retry ? "Wrong master password. Try again" : "Master password"),
       Date.now,
       fetch,
     );

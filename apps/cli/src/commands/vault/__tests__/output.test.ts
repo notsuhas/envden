@@ -11,9 +11,10 @@ test("replacement kit stays private on success and is recoverable after a write 
 
   try {
     const path = join(home, "kit.json");
-    await reportReplacementKit({ secretKey: "first" }, path);
-    expect(log).not.toHaveBeenCalled();
-    await reportReplacementKit({ secretKey: "replacement" }, path);
+    const kit = { vaultId: "VAULT", server: "https://envden.example" };
+    await reportReplacementKit({ ...kit, secretKey: "first" }, path);
+    expect(log.mock.calls.flat().join("")).not.toContain("first");
+    await reportReplacementKit({ ...kit, secretKey: "replacement" }, path);
     expect(await readFile(path, "utf8")).toContain("first");
     expect(log.mock.calls.flat().join("")).toContain("replacement");
     expect(error.mock.calls.flat().join("")).not.toContain("replacement");
@@ -39,7 +40,7 @@ for (const existing of [false, true])
 
       if (existing) {
         expect(await readFile(path, "utf8")).toBe("original");
-        expect(JSON.parse(String(log.mock.calls[0]?.[0])).secretKey).toBeString();
+        expect(log.mock.calls.flat().join("")).toMatch(/Secret key: +\S+/);
       } else {
         const { secretKey } = JSON.parse(await readFile(path, "utf8"));
         expect(secretKey).toBeString();

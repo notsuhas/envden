@@ -1,5 +1,4 @@
 import { updateStatus } from "../updates/status.ts";
-import { EnvdenError } from "@envden/core/errors";
 import { conflictRecords } from "../sync/local/conflicts.ts";
 import { hello } from "../client/hello.ts";
 import { binary } from "../client/encoding.ts";
@@ -9,6 +8,7 @@ import { loadState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { join } from "node:path";
 import { MIN_SERVER } from "../version.ts";
+import { serverReachability } from "./reachability.ts";
 
 export async function localStatus(
   adapters: TAdapters,
@@ -32,13 +32,12 @@ export async function localStatus(
     conflict: conflicts.some((record) => record.root === link.root && record.path === link.path),
   }));
 
-  let server = "reachable";
+  let reachability: { server: string; reason?: string } = { server: "reachable" };
 
   try {
     await hello(state.server.address, binary(state.server.pin), fetcher, MIN_SERVER);
-  } catch (cause) {
-    server =
-      cause instanceof EnvdenError && cause.code === "SERVER_UNREACHABLE" ? "unknown" : "error";
+  } catch (error) {
+    reachability = serverReachability(error);
   }
 
   if (refresh)
@@ -52,7 +51,8 @@ export async function localStatus(
   return {
     configured: true,
     vaultId: state.vaultId,
-    server,
+    server: reachability.server,
+    ...(reachability.reason ? { serverReason: reachability.reason } : {}),
     links,
     update: await updateStatus(adapters.home),
   };

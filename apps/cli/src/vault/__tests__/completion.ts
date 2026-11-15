@@ -93,7 +93,7 @@ export async function checkCompletion(input: ICompletion) {
   );
 
   await promptPairing(fourth, fourthClient, fourthIdentity, pin, now, {
-    secret: async () => nextAttempt.code,
+    input: async () => nextAttempt.code,
     waitMessage: async (_client, path, _now, expiry) => {
       expect(path).toBe(
         `/v1/pairing/mailboxes/${p.normalizePairingCode(nextAttempt.code).mailbox}/KE2`,
@@ -145,8 +145,25 @@ export async function checkCompletion(input: ICompletion) {
   await Promise.resolve(
     expect(unlockDevice(first, "wrong password", now, fetcher)).rejects.toMatchObject({
       code: "UNAUTHORIZED",
+      message: "Wrong master password",
     }),
   );
 
   expect((await loadState(first.home))?.session).toEqual(unlocked.session);
+
+  const asked: boolean[] = [];
+
+  const answers = async (retry: boolean) => {
+    asked.push(retry);
+
+    return "wrong password";
+  };
+
+  await Promise.resolve(
+    expect(unlockDevice(first, answers, now, fetcher)).rejects.toMatchObject({
+      message: "Wrong master password",
+    }),
+  );
+
+  expect(asked).toEqual([false, true, true]);
 }

@@ -1,8 +1,14 @@
-import type { TShell } from "./decisions.ts";
+import { addressProblem, requireServerAddress, type TShell } from "./decisions.ts";
+import * as p from "@envden/core/protocol";
+import type { TFetch } from "../client/fetch.ts";
+import { hello } from "../client/hello.ts";
+import { MIN_SERVER } from "../version.ts";
 import { readToken } from "../output/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
-import { parseKit } from "../vault/recovery/input.ts";
+import { parseKit, secretKeyProblem } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
+import { printKit } from "../output/render/kit.ts";
+import type { ISetupKit } from "../vault/recovery/pending-kit.ts";
 import { confirmedPassword } from "./password.ts";
 import { askDeviceName } from "../output/device-name.ts";
 import { setupCheckouts } from "./scan.ts";
@@ -64,10 +70,17 @@ async function createState(
   now: () => number,
   vaultId?: string,
 ) {
-  const hostedAddress = await hostAddress(adapters, options);
+  const hosted = await hostLocally(adapters, options);
 
-  const address = options.server ?? hostedAddress ?? (await input("Server URL"));
-  const token = await readToken(options.setupToken, "Server setup token");
+  const address = requireServerAddress(
+    options.server ??
+      hosted?.address ??
+      (await input("Server address", true, undefined, addressProblem)),
+  );
+
+  const token = hosted?.token ?? (await readToken("setup", options.setupToken));
+  if (!hosted) await checkServer(address, token, adapters.fetcher);
+
   const name = await askDeviceName(options.name, adapters.hostname);
   const password = await confirmedPassword(secret);
 
@@ -81,10 +94,6 @@ async function createState(
     readResumeSecretKey: () => resumeKey(vaultId, options.kitOut),
     onKit: (kit) => reportKit(options.kitOut, kit),
   });
-
-  console.log(
-    "Store this recovery kit like a passport. Writing the password on it gives it full vault access.",
-  );
 
   await setupPreferences(adapters, options);
 
@@ -103,18 +112,35 @@ async function resumeKey(vaultId: string | undefined, kitOut: string | undefined
   if (kitOut) {
     const saved = await optionalRead(kitOut);
 
-    return saved === undefined ? undefined : parseKit(JSON.parse(saved)).secretKey;
+    return saved === undefined ? undefined : parseKit(saved).secretKey;
   }
 
-  if (!(await consent("Do you still have the recovery kit printed by the first setup run?", true)))
+  if (!(await consent("Setup stopped after printing a recovery kit. Do you still have it?", true)))
     return undefined;
 
-  return secret("Recovery secret key issued before creation");
+  return (await secret("Secret key from that kit (EK1-…)", secretKeyProblem)).trim();
 }
 
-async function hostAddress(adapters: TAdapters, options: ISetupOptions) {
-  if (!(await adapters.network.checkHttpsCertificate()))
-    throw new EnvdenError("INVALID_INPUT", "Enable Tailscale HTTPS certificates before setup");
+// Runs before the name and password questions, so a wrong address or token fails fast.
+async function checkServer(address: string, token: string, fetcher: TFetch) {
+  const server = await hello(address, undefined, fetcher, MIN_SERVER).catch((cause: unknown) => {
+    if (cause instanceof EnvdenError && ["SERVER_TOO_OLD", "UPDATE_REQUIRED"].includes(cause.code))
+      throw cause;
+
+    throw new EnvdenError(
+      "SERVER_UNREACHABLE",
+      `Can't reach ${address}. Check the address and that the server is running`,
+      { cause },
+    );
+  });
+
+  if (!p.equal(server.pin, p.decodeToken("setup", token).serverPin))
+    throw new EnvdenError("INVALID_INPUT", "This setup token is for a different server");
+}
+
+async function hostLocally(adapters: TAdapters, options: ISetupOptions) {
+  const https = await adapters.network.checkHttpsCertificate();
+  if (https.kind !== "ready") throw new EnvdenError("INVALID_INPUT", https.message);
 
   const host =
     options.hostServer ||
@@ -123,13 +149,18 @@ async function hostAddress(adapters: TAdapters, options: ISetupOptions) {
       (await consent("Host the server on this machine? An always-on host is recommended.")));
 
   if (!host) return undefined;
-  const installed = await adapters.hostServer();
-  console.log(`Server installed. Read its setup token from ${installed.log}`);
 
-  return adapters.network.expose(4783);
+  const token = options.setupToken === undefined ? await adapters.localSetupToken() : undefined;
+  await adapters.hostServer();
+  console.log("Server installed on this machine");
+
+  return { address: await adapters.network.expose(4783), token };
 }
 
-async function reportKit(path: string | undefined, kit: unknown) {
+async function reportKit(path: string | undefined, kit: ISetupKit) {
   if (path) await writeKit(path, kit);
-  else console.log(JSON.stringify(kit, null, 2));
+  printKit(kit, path);
+
+  // keep the kit on screen until it's saved, instead of scrolling it away with the next questions
+  while (!path && process.stdin.isTTY && !(await consent("Saved the recovery kit?", false)));
 }

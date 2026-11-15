@@ -9,13 +9,14 @@ export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
   const state = await loadState(adapters.home);
 
   if (!state?.server || !state.vaultId || !state.checkpoint || !state.files || !state.keyring)
-    throw new EnvdenError("NOT_FOUND", "Run envden setup or join first");
+    throw new EnvdenError("NOT_FOUND", "Not set up. Run envden setup or envden join");
 
   const { identity, vaultId, client } = await vaultConnection(
     adapters,
     { ...state, server: state.server, vaultId: state.vaultId },
     options.now,
     options.fetcher,
+    options.interactive ? options.unlock : undefined,
   );
 
   return {

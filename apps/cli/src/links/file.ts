@@ -47,7 +47,7 @@ export async function linkFile(
   if (choice === "oversized") return;
 
   if (choice === "skip") {
-    console.error(`envden: ${sanitizeTerminal(destination)} differs from store; skipped`);
+    console.error(`envden: ${sanitizeTerminal(destination)} differs from the synced copy; skipped`);
 
     return;
   }
@@ -75,9 +75,9 @@ export async function linkFile(
 async function chooseVersion(path: string): Promise<"separate" | "store" | "skip"> {
   if (!process.stdin.isTTY) return "skip";
 
-  const choice = await choose(`${path} differs from the store`, [
+  const choice = await choose(`${path} differs from the synced copy`, [
     { value: "separate" as const, label: "Keep separate (local only)" },
-    { value: "store" as const, label: "Use the store version" },
+    { value: "store" as const, label: "Use the synced version" },
   ]);
 
   return choice;

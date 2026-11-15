@@ -15,7 +15,7 @@ export const localOnlyCommand = new Command("local-only")
     const absolute = resolve(file);
 
     await withStateLock(adapters.home, async () => {
-      const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
+      const state = requireConfigured(await loadState(adapters.home));
       const link = state.links.find((item) => resolve(item.root, item.path) === absolute);
       if (!link) throw new EnvdenError("NOT_FOUND", "File is not managed by envden");
       await markLocalOnly(adapters, state, link.root, relative(link.root, absolute));

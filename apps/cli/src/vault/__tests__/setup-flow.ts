@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { loadState } from "../../state/store/repository.ts";
 import { expect, spyOn } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -17,9 +18,7 @@ export async function setupFlow() {
   const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
 
-  const token = log.mock.calls
-    .flat()
-    .find((value) => typeof value === "string" && value.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((value) => isToken("setup", value));
 
   log.mockRestore();
 

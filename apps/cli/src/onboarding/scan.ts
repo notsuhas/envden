@@ -39,7 +39,9 @@ async function lockedsetupCheckouts(
       state,
       checkout,
       storedRepos,
-      options.alias ?? ((source, target) => consent(`Alias ${source} to ${target}?`)),
+      options.alias ??
+        ((source, target) =>
+          consent(`${source} looks like a fork of ${target}. Share its env files with ${target}?`)),
     );
 
     await saveState(adapters.home, state, adapters.now);

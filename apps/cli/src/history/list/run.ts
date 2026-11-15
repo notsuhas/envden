@@ -22,7 +22,7 @@ interface IHistoryOptions {
 
 export function fileHistory(adapters: TAdapters, options: IHistoryOptions) {
   return withStateLock(adapters.home, async () => {
-    const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
+    const state = requireConfigured(await loadState(adapters.home));
 
     const repos = await selectedRepos(adapters, state, {
       now: options.now,

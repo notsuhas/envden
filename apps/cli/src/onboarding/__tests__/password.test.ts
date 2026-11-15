@@ -1,39 +1,52 @@
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { runVaultAdmin } from "../../commands/vault/run.ts";
 import { createAdapters } from "../../adapters.ts";
-import { test, expect } from "bun:test";
+import { test, expect, spyOn } from "bun:test";
 import { confirmedPassword } from "../password.ts";
 
 const fixtureClock = () => 1800000000000;
 
-test("master password needs a matching second entry", async () => {
-  let prompts = 0;
+test("master password needs a matching second entry, re-asking both in a terminal", async () => {
+  const entries = (...values: string[]) => {
+    const labels: string[] = [];
 
-  expect(
-    await confirmedPassword(async () => {
-      prompts++;
+    const prompt = async (label: string) => {
+      labels.push(label);
 
-      return "same";
-    }),
-  ).toBe("same");
+      return values.shift()!;
+    };
 
-  expect(prompts).toBe(2);
-  let first = true;
+    return { labels, prompt };
+  };
 
-  expect(
-    confirmedPassword(async () => {
-      if (first) {
-        first = false;
+  const same = entries("same", "same");
+  expect(await confirmedPassword(same.prompt, 1)).toBe("same");
+  expect(same.labels).toEqual(["Master password", "Confirm master password"]);
 
-        return "first";
-      }
+  const retried = entries("first", "second", "fixed", "fixed");
+  const log = spyOn(console, "error").mockImplementation(() => {});
 
-      return "second";
-    }),
-  ).rejects.toMatchObject({ code: "INVALID_INPUT" });
+  try {
+    expect(await confirmedPassword(retried.prompt, 3)).toBe("fixed");
+    expect(retried.labels).toHaveLength(4);
+
+    await Promise.resolve(
+      expect(confirmedPassword(entries("a", "b", "c", "d").prompt, 2)).rejects.toMatchObject({
+        code: "INVALID_INPUT",
+      }),
+    );
+
+    await Promise.resolve(
+      expect(confirmedPassword(entries("a", "b").prompt, 1)).rejects.toMatchObject({
+        code: "INVALID_INPUT",
+      }),
+    );
+  } finally {
+    log.mockRestore();
+  }
 });
 
-test("setup checks Tailscale HTTPS before collecting secrets", async () => {
+test("setup reports the network problem before collecting secrets", async () => {
   const { createAdapters } = await import("../../adapters.ts");
   const { runSetup } = await import("../setup.ts");
   const { createMemoryKeychainAdapter } = await import("@envden/testing/keychain");
@@ -52,11 +65,12 @@ test("setup checks Tailscale HTTPS before collecting secrets", async () => {
       fixtureClock,
     );
 
-    adapters.network.checkHttpsCertificate = async () => false;
+    adapters.network.checkHttpsCertificate = async () => ({
+      kind: "logged-out",
+      message: "Log in first",
+    });
 
-    await Promise.resolve(
-      expect(runSetup(adapters, {}, () => 1)).rejects.toThrow("Enable Tailscale HTTPS"),
-    );
+    await Promise.resolve(expect(runSetup(adapters, {}, () => 1)).rejects.toThrow("Log in first"));
   } finally {
     await rm(root, { recursive: true, force: true });
   }

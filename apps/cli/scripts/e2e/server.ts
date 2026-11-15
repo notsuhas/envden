@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { failure } from "./failure.ts";
 
 export interface IServer {
@@ -32,7 +33,7 @@ export async function startServer(
 
   const lines = output.split("\n").map((line) => line.trim());
   const url = /listening on (\S+)/.exec(output)![1]!.replace(/\/$/, "");
-  const token = lines.find((line) => line.startsWith("envden-setup-1:"));
+  const token = lines.find((line) => isToken("setup", line));
 
   if (!token) throw failure("envden serve printed no setup token", output);
 

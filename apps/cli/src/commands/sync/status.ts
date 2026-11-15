@@ -32,7 +32,7 @@ export const statusCommand = new Command("status")
           ? terminalJson(status)
           : status.configured
             ? [
-                `envden: server ${status.server}`,
+                serverLine(status),
                 ...heldBack.map((item) => `envden: held back ${item.path}: ${item.reason}`),
                 ...status.links
                   .filter(
@@ -48,8 +48,14 @@ export const statusCommand = new Command("status")
                 .map(sanitizeTerminal)
                 .join("\n")
             : [
-                "envden: not configured",
+                "envden: not set up. Run envden setup or envden join",
                 ...(status.update.message ? [status.update.message] : []),
               ].join("\n"),
       );
   });
+
+function serverLine(status: { server: string; serverReason?: string }) {
+  return status.serverReason
+    ? `envden: server ${status.server}: ${status.serverReason}`
+    : `envden: server ${status.server}`;
+}

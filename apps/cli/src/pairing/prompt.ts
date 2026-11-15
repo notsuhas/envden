@@ -3,10 +3,11 @@ import { join } from "node:path";
 import { atomicWrite } from "../state/store/files.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import * as p from "@envden/core/protocol";
+import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
 import type { TClient } from "../client/request.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";
-import { secret } from "../output/questions.ts";
+import { input } from "../output/questions.ts";
 import { waitMessage } from "./wait.ts";
 import { exchangeJoiner } from "./joiner.ts";
 
@@ -16,9 +17,10 @@ export async function promptPairing(
   identity: TDeviceIdentity,
   pin: Uint8Array,
   now: () => number,
-  interaction = { secret, waitMessage },
+  interaction = { input, waitMessage },
 ) {
-  const code = await interaction.secret("Pairing code");
+  const code = await interaction.input("Pairing code", true, undefined, codeProblem);
+
   const mailbox = p.normalizePairingCode(code).mailbox;
 
   await exchangeJoiner(adapters, client, identity, pin, code, async (serverExpiry) => {
@@ -32,4 +34,16 @@ export async function promptPairing(
   });
 
   console.log("Waiting for the approving device");
+}
+
+function codeProblem(value: string) {
+  try {
+    p.normalizePairingCode(value);
+
+    return undefined;
+  } catch (error) {
+    if (!(error instanceof EnvdenError)) throw error;
+
+    return error.message;
+  }
 }

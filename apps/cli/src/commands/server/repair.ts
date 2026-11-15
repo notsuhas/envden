@@ -4,19 +4,22 @@ import { createAdapters } from "../../adapters.ts";
 import { uploadRepair } from "../../admin/repair/upload.ts";
 import { finishRepair } from "../../admin/repair/finish.ts";
 import { runVaultAdmin } from "../vault/run.ts";
+import { repairText } from "../../output/render/repair.ts";
 import { secret, consent } from "../../output/questions.ts";
 
 export const serverRepairCommand = new Command("repair")
-  .description("Upload repair material to a restored server, or finish the repair")
+  .description(
+    "After a server restore, re-upload this device's data, or finish the restore with --finish",
+  )
   .option(
     "--repair-token <token>",
     "Repair token; prefer stdin for upload, use a terminal for --finish",
   )
-  .option("--finish", "Verify every report and finish the repair")
+  .option("--finish", "Check every device's upload and finish the restore")
   .option("--without <device...>", "Drop unavailable devices; they rejoin as new devices")
   .option("--accept-lost", "Accept the newest verified older version of a missing file")
   .action(async (options) => {
-    const token = await readToken(options.repairToken, "Repair token");
+    const token = await readToken("repair", options.repairToken);
 
     if (options.finish) {
       const result = await finishRepair(createAdapters(undefined, Date.now), {
@@ -28,13 +31,15 @@ export const serverRepairCommand = new Command("repair")
         fetcher: fetch,
       });
 
-      console.log(result);
+      console.log(repairText(result));
 
       await offerReplacementKit(result);
     } else {
       await uploadRepair(createAdapters(undefined, Date.now), token, Date.now);
 
-      console.log("Repair material uploaded");
+      console.log(
+        "Uploaded this device's data. Once every device has done this, run envden server repair --finish",
+      );
     }
   });
 

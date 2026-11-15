@@ -4,7 +4,7 @@ import { loadState } from "../state/store/repository.ts";
 import { requireConfigured } from "../state/configured.ts";
 import { setupCheckouts } from "./scan.ts";
 import { firstRun } from "../sync/first-run.ts";
-import { input } from "../output/questions.ts";
+import { chooseResolution } from "../output/questions.ts";
 
 export async function completeJoin(
   adapters: TAdapters,
@@ -12,7 +12,7 @@ export async function completeJoin(
   effects = { setupCheckouts, firstRun, setupPreferences },
   options: TPreferenceOptions = {},
 ) {
-  const state = requireConfigured(await loadState(adapters.home), "Join did not configure a vault");
+  const state = requireConfigured(await loadState(adapters.home));
   await effects.setupPreferences(adapters, options);
   await effects.setupCheckouts(adapters, state, { now });
 
@@ -21,13 +21,6 @@ export async function completeJoin(
     fetcher: adapters.fetcher,
     all: true,
     interactive: true,
-    choose: chooseFirstRun,
+    choose: chooseResolution,
   });
-}
-
-async function chooseFirstRun(path: string) {
-  while (true) {
-    const choice = await input(`${path}: keep-mine, take-server or merge?`);
-    if (choice === "keep-mine" || choice === "take-server" || choice === "merge") return choice;
-  }
 }

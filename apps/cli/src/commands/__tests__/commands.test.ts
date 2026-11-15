@@ -68,7 +68,7 @@ test("command help and shared stub exit", async () => {
   ]) {
     const result = await cli(args);
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("setup or join first");
+    expect(result.stderr).toContain("Not set up. Run envden setup or envden join");
   }
 
   const status = await cli(["status", "--json"]);
@@ -78,7 +78,7 @@ test("command help and shared stub exit", async () => {
 
 test("noninteractive safety gates", async () => {
   expect((await cli(["setup"])).stderr).toContain("Missing choices:");
-  expect((await cli(["push"])).stderr).toContain("requires --yes");
+  expect((await cli(["push"])).stderr).toContain("push needs --yes");
 });
 
 for (const [keep, take, choice] of [
@@ -139,7 +139,7 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
 
       if (command === "status")
         expect(stdout.trim().split("\n")).toEqual([
-          "envden: not configured",
+          "envden: not set up. Run envden setup or envden join",
           "Cannot confirm envden is up to date",
         ]);
     }

@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { test, expect, spyOn } from "bun:test";
 import { cp, rm, readFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -91,9 +92,7 @@ for (const recovered of [true, false])
       const log = spyOn(console, "log").mockImplementation(() => {});
       current = await f.serve({ dataDir: join(f.root, "backup"), port: 0, restored: true });
 
-      const token = log.mock.calls
-        .flat()
-        .find((v) => typeof v === "string" && v.startsWith("envden-repair-1:"));
+      const token = log.mock.calls.flat().find((v) => isToken("repair", v));
 
       log.mockRestore();
       if (typeof token !== "string") throw new Error("Missing repair token");

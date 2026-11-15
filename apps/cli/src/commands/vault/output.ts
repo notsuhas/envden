@@ -1,10 +1,12 @@
 import { writeKit } from "../../vault/recovery/output.ts";
-import { terminalJson } from "../../output/sanitize.ts";
+import { printKit } from "../../output/render/kit.ts";
+import type { IReplacementKit } from "../../admin/recovery/credentials.ts";
 
-export async function reportReplacementKit(kit: unknown, path?: string) {
+export async function reportReplacementKit(kit: IReplacementKit, path?: string) {
   if (path) {
     try {
       await writeKit(path, kit);
+      printKit(kit, path);
 
       return;
     } catch {
@@ -12,14 +14,14 @@ export async function reportReplacementKit(kit: unknown, path?: string) {
     }
   }
 
-  console.log(terminalJson(kit));
+  printKit(kit);
 }
 
 export function replacementKitOutput(path?: string) {
   let shown = false;
 
   return {
-    show: async (kit: unknown) => {
+    show: async (kit: IReplacementKit) => {
       await reportReplacementKit(kit, path);
       shown = true;
     },

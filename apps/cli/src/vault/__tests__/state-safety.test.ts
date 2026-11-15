@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { expect, test, spyOn } from "bun:test";
 import { join } from "node:path";
 import { setupFlow } from "./setup-flow.ts";
@@ -183,9 +184,7 @@ async function freshServer(root: string, now: () => number) {
   const network = testNetwork();
   const running = await network.serve({ dataDir: join(root, "fresh-server"), port: 0, now });
 
-  const token = log.mock.calls
-    .flat()
-    .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
   log.mockRestore();
   if (typeof token !== "string") throw new Error("Missing token");

@@ -62,7 +62,7 @@ export async function restoreVersion(adapters: TAdapters, options: IRestoreOptio
 }
 
 async function restorableTarget(adapters: TAdapters, options: IRestoreOptions) {
-  const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
+  const state = requireConfigured(await loadState(adapters.home));
 
   const repos = await selectedRepos(adapters, state, {
     now: options.now,

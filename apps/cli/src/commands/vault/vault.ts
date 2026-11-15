@@ -3,11 +3,13 @@ import { createAdapters } from "../../adapters.ts";
 import { runVaultAdmin } from "./run.ts";
 
 export const vaultCommand = new Command("vault")
-  .description("Rotate keys, replace the recovery kit, or change or reset the password")
+  .description("Re-key the vault, replace the recovery kit, or change or reset the password")
   .addCommand(
-    new Command("rotate").description("Start a new encryption epoch").action(async () => {
-      await runVaultAdmin(createAdapters(undefined, Date.now), "rotate", Date.now);
-    }),
+    new Command("rotate")
+      .description("Re-key the vault so removed devices can't read new changes")
+      .action(async () => {
+        await runVaultAdmin(createAdapters(undefined, Date.now), "rotate", Date.now);
+      }),
   )
   .addCommand(
     new Command("kit").description("Manage the recovery kit").addCommand(

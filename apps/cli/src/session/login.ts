@@ -8,11 +8,35 @@ import {
 } from "@envden/core/protocol";
 import type { TClient } from "../client/request.ts";
 
+const TRIES = 3;
+
+export type TPassword = string | ((retry: boolean) => Promise<string>);
+
+type TPurpose = "unlock" | "kit";
+
+// A prompt gets three tries at the master password; a fixed password gets one.
 export async function login(
   client: TClient,
   vaultId: Uint8Array,
+  password: TPassword,
+  purpose: TPurpose = "unlock",
+) {
+  for (let attempt = 1; ; attempt++) {
+    const value = typeof password === "string" ? password : await password(attempt > 1);
+    const result = await attemptLogin(client, vaultId, value, purpose);
+
+    if (result.kind === "done") return result.window;
+
+    if (typeof password === "string" || attempt === TRIES)
+      throw new EnvdenError("UNAUTHORIZED", "Wrong master password");
+  }
+}
+
+async function attemptLogin(
+  client: TClient,
+  vaultId: Uint8Array,
   password: string,
-  purpose: "unlock" | "kit" = "unlock",
+  purpose: TPurpose,
 ) {
   const start = await opaqueStartLogin(password);
 
@@ -30,7 +54,7 @@ export async function login(
     identifiers: unlockIdentifiers(vaultId).identifiers,
   });
 
-  if (!finish) throw new EnvdenError("UNAUTHORIZED", "Password login failed");
+  if (!finish) return { kind: "wrong-password" as const };
 
   const result = await client.request("/v1/opaque/login/finish", "POST", {
     purpose,
@@ -42,7 +66,10 @@ export async function login(
   if (!parsed.success || parsed.data.kind !== (purpose === "kit" ? "ticket" : "unlocked"))
     throw new EnvdenError("INVALID_DATA", "Invalid login result");
 
-  return parsed.data.kind === "unlocked"
-    ? { unlockedUntil: parsed.data.unlockedUntil, freshUntil: parsed.data.freshUntil }
-    : undefined;
+  const window =
+    parsed.data.kind === "unlocked"
+      ? { unlockedUntil: parsed.data.unlockedUntil, freshUntil: parsed.data.freshUntil }
+      : undefined;
+
+  return { kind: "done" as const, window };
 }

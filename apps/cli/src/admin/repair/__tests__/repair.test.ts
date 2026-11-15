@@ -64,9 +64,7 @@ for (const [mode, crash, drop] of [
       restored: true,
     });
 
-    const token = log.mock.calls
-      .flat()
-      .find((v) => typeof v === "string" && v.startsWith("envden-repair-1:"));
+    const token = log.mock.calls.flat().find((v) => p.isToken("repair", v));
 
     log.mockRestore();
 

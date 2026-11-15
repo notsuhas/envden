@@ -15,7 +15,7 @@ test("rejoin clears the abandoned exchange and prompts without the state lock", 
   const state = join(f.first.home, "state");
   let locked: unknown;
 
-  const prompt = spyOn(questions, "secret").mockImplementation(async () => {
+  const prompt = spyOn(questions, "input").mockImplementation(async () => {
     locked = await lstat(join(state, "write.lock")).catch(() => undefined);
 
     throw stop;

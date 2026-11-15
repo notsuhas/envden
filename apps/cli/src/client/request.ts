@@ -89,7 +89,7 @@ export function createClient(options: IClientOptions): IClient {
     await checkServerMinimum(response, options);
 
     if (!response.ok) {
-      const error = await responseError(response);
+      const error = await responseError(response, url.pathname);
 
       if (error.code === "LOCKED" && retry && options.unlock) {
         await options.unlock();

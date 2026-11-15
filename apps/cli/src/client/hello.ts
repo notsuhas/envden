@@ -22,25 +22,42 @@ export async function hello(
     redirect: "error",
   });
 
-  if (!response.ok) throw new EnvdenError("UNAUTHORIZED", "Server hello failed");
+  if (!response.ok)
+    throw new EnvdenError(
+      "UNAUTHORIZED",
+      "Server didn't answer as envden. Check the address points at an envden server",
+    );
+
   let body;
 
   try {
     body = p.HelloResponseSchema.parse(await response.json());
   } catch (cause) {
-    throw new EnvdenError("INVALID_DATA", "Invalid data from server", { cause });
+    throw new EnvdenError(
+      "INVALID_DATA",
+      "Server sent an invalid hello. Check the address points at an envden server",
+      { cause },
+    );
   }
 
   const signed = decodeUntrusted(p.signedCodec(p.ServerHelloCodec), binary(body.hello));
   const presented = p.serverPin(signed.body.serverSignPub);
   const result = p.verifyHello(signed, challenge, url.hostname, pin ?? presented, "0.0.0");
-  if (!result.ok) throw new EnvdenError("UNAUTHORIZED", "Server identity verification failed");
+
+  if (!result.ok)
+    throw new EnvdenError(
+      "UNAUTHORIZED",
+      "Server identity doesn't match the expected server. Check the server address",
+    );
 
   if (p.compareSemver(result.value.appVersion, minServer) < 0)
-    throw new EnvdenError("SERVER_TOO_OLD", "Update the server");
+    throw new EnvdenError("SERVER_TOO_OLD", "Server is too old for this envden. Update the server");
 
   if (!result.value.protocols.includes(1))
-    throw new EnvdenError("UPDATE_REQUIRED", "No compatible protocol");
+    throw new EnvdenError(
+      "UPDATE_REQUIRED",
+      "Server has no protocol this envden knows. Update envden",
+    );
 
   return { pin: presented, hello: result.value };
 }

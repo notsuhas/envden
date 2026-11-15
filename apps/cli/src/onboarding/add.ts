@@ -11,10 +11,11 @@ import { login } from "../session/login.ts";
 import { openPairing, approvePairing } from "../pairing/approver.ts";
 import { waitMessage } from "../pairing/wait.ts";
 import { secret, consent } from "../output/questions.ts";
+import { pairingText, pairedText } from "../output/render/devices.ts";
 import { VERSION } from "../version.ts";
 
 async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promise<void> {
-  const state = requireConfigured(await loadState(adapters.home), "Run setup first");
+  const state = requireConfigured(await loadState(adapters.home));
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, state.deviceName);
   const vaultId = p.unbase32(state.vaultId);
@@ -34,20 +35,22 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
 
   if (session) {
     await withStateLock(adapters.home, async () => {
-      const latest = requireConfigured(await loadState(adapters.home), "Run setup first");
+      const latest = requireConfigured(await loadState(adapters.home));
       latest.session = session;
       await saveState(adapters.home, latest, adapters.now);
     });
   }
 
   if (await withStateLock(adapters.home, () => resumeApproval(adapters, client, vaultId))) {
-    console.log("paired");
+    console.log(pairedText("paired"));
 
     return;
   }
 
   const attempt = await openPairing(client, pin);
-  console.log(attempt.code);
+  console.log(pairingText(state.server.address, attempt.code));
+
+  let name: string | undefined;
 
   const result = await approvePairing(
     adapters,
@@ -65,10 +68,14 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
         attempt.expiresAt,
       );
     },
-    (name) => consent(`Add ${name}?`),
+    (proposed) => {
+      name = proposed;
+
+      return consent(`Add ${proposed}?`);
+    },
   );
 
-  console.log(result.kind);
+  console.log(pairedText(result.kind, name));
 }
 
 export function runDeviceAdd(...args: Parameters<typeof lockedrunDeviceAdd>) {

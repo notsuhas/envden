@@ -15,7 +15,7 @@ export const trackCommand = new Command("track")
     const adapters = createAdapters(undefined, Date.now);
 
     await withStateLock(adapters.home, async () => {
-      const state = requireConfigured(await loadState(adapters.home), "Run setup or join first");
+      const state = requireConfigured(await loadState(adapters.home));
 
       await setupCheckouts(adapters, state, {
         scanRoot: [path],

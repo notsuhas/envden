@@ -21,7 +21,9 @@ export function syncOptions(
     interactive: !!process.stdin.isTTY,
     confirm: (keys) => consent(`Merge changes to ${keys.join(", ")}?`),
     unlock: async (client, vaultId) => {
-      await login(client, vaultId, await secret("Master password for the moved server"));
+      await login(client, vaultId, (retry) =>
+        secret(retry ? "Wrong master password. Try again" : "Master password"),
+      );
     },
     choose: async (path) => {
       const choice = await select({

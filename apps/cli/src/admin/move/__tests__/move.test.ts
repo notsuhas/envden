@@ -1,4 +1,4 @@
-import { tokenKey, decodeToken } from "@envden/core/protocol";
+import { tokenKey, decodeToken, isToken } from "@envden/core/protocol";
 import { pull } from "../../../sync/engine.ts";
 import { login } from "../../../session/login.ts";
 import type { TFetch } from "../../../client/fetch.ts";
@@ -20,9 +20,7 @@ for (const crash of [false, true])
       now: f.now,
     });
 
-    const token = log.mock.calls
-      .flat()
-      .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+    const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
     log.mockRestore();
 
@@ -139,9 +137,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
     now: f.now,
   });
 
-  const token = log.mock.calls
-    .flat()
-    .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
   try {
     if (typeof token !== "string") throw new Error("Missing setup token");
@@ -212,9 +208,7 @@ test("stale recovery kit refuses move before consuming destination token", async
     now: f.now,
   });
 
-  const token = log.mock.calls
-    .flat()
-    .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
   log.mockRestore();
 

@@ -7,16 +7,17 @@ import { loadState, saveState } from "../state/store/repository.ts";
 import { deviceIdentity } from "../identity/device.ts";
 import { createClient } from "../client/request.ts";
 import { binary } from "../client/encoding.ts";
-import { login } from "./login.ts";
+import { login, type TPassword } from "./login.ts";
 import { VERSION } from "../version.ts";
 
-async function lockedunlockDevice(
+// The password prompt runs outside the state lock so a retry never blocks other commands.
+export async function unlockDevice(
   adapters: TAdapters,
-  password: string,
+  password: TPassword,
   now: () => number,
   fetcher: TFetch,
 ) {
-  const state = requireConfigured(await loadState(adapters.home), "Run envden setup or join first");
+  const state = requireConfigured(await loadState(adapters.home));
 
   const identity = await deviceIdentity(adapters.keychain, adapters.home, state.deviceName);
 
@@ -31,10 +32,13 @@ async function lockedunlockDevice(
   });
 
   const session = await login(client, p.unbase32(state.vaultId), password);
-  if (session) state.session = session;
-  await saveState(adapters.home, state, adapters.now);
-}
 
-export function unlockDevice(...args: Parameters<typeof lockedunlockDevice>) {
-  return withStateLock(args[0].home, () => lockedunlockDevice(...args));
+  if (!session) return;
+
+  await withStateLock(adapters.home, async () => {
+    const current = requireConfigured(await loadState(adapters.home));
+
+    current.session = session;
+    await saveState(adapters.home, current, adapters.now);
+  });
 }

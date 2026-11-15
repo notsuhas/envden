@@ -26,7 +26,10 @@ async function sync(
   choose?: (path: string) => Promise<"keep-mine" | "take-server" | "merge">,
 ) {
   if (pushing && !options.interactive && !options.yes)
-    throw new EnvdenError("INVALID_INPUT", "Non-interactive push requires --yes");
+    throw new EnvdenError(
+      "INVALID_INPUT",
+      "Without a terminal, push needs --yes to confirm the changes",
+    );
 
   return withSyncLock(adapters.home, async () => {
     const context = await syncContext(adapters, options);
@@ -93,7 +96,10 @@ async function sync(
       }
     }
 
-    throw new EnvdenError("HEAD_MOVED", "Head kept moving; retry envden push");
+    throw new EnvdenError(
+      "HEAD_MOVED",
+      "Another device kept changing files during sync. Run the command again",
+    );
   });
 }
 

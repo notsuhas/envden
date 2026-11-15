@@ -120,7 +120,7 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
   }
 });
 
-test("interactive setup offers to host a server before credential entry", async () => {
+test("interactive setup hosts a server and takes its setup token without asking", async () => {
   const { spyOn } = await import("bun:test");
   const questions = await import("../../output/questions.ts");
   const f = await fixture();
@@ -131,7 +131,7 @@ test("interactive setup offers to host a server before credential entry", async 
   try {
     Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
     const adapters = f.home("host-setup");
-    adapters.network.checkHttpsCertificate = async () => true;
+    adapters.network.checkHttpsCertificate = async () => ({ kind: "ready" });
     adapters.network.expose = async () => "https://server.invalid";
     let hosted = 0;
 
@@ -142,11 +142,12 @@ test("interactive setup offers to host a server before credential entry", async 
     };
 
     await Promise.resolve(
-      expect(runSetup(adapters, {}, f.now)).rejects.toThrow("stop after hosting"),
+      expect(runSetup(adapters, { name: "laptop" }, f.now)).rejects.toThrow("stop after hosting"),
     );
 
     expect(consent.mock.calls[0]?.[0]).toContain("Host the server on this machine?");
     expect(hosted).toBe(1);
+    expect(secret.mock.calls[0]?.[0]).toBe("Master password");
   } finally {
     consent.mockRestore();
     secret.mockRestore();
@@ -158,33 +159,38 @@ test("interactive setup offers to host a server before credential entry", async 
   }
 });
 
-test("first-run choice retries a typo before accepting an answer", async () => {
+test("setup checks the address and token against the server before the name and password", async () => {
   const { spyOn } = await import("bun:test");
+  const p = await import("@envden/core/protocol");
   const questions = await import("../../output/questions.ts");
-  const { completeJoin } = await import("../complete-join.ts");
   const f = await fixture();
-
-  const prompt = spyOn(questions, "input")
-    .mockResolvedValueOnce("typo")
-    .mockResolvedValueOnce("keep-mine");
+  const asked = new Error("asked a question");
+  const input = spyOn(questions, "input").mockRejectedValue(asked);
+  const secret = spyOn(questions, "secret").mockRejectedValue(asked);
+  const server = f.running.server.url.host;
+  const token = p.encodeToken("setup", p.randomBytes(20), p.randomBytes(32));
 
   try {
-    const choices: string[] = [];
+    const adapters = f.home("early");
+    adapters.network.checkHttpsCertificate = async () => ({ kind: "ready" });
 
-    await completeJoin(f.first, f.now, {
-      setupCheckouts: async () => {},
-      setupPreferences: async () => {},
-      firstRun: async (_adapters, options) => {
-        choices.push(await options.choose(".env"));
+    await Promise.resolve(
+      expect(
+        runSetup(adapters, { server: `http://${server}`, setupToken: token }, f.now),
+      ).rejects.toThrow("This setup token is for a different server"),
+    );
 
-        return { kind: "pulled", changed: 0, conflicts: 0 };
-      },
-    });
+    await Promise.resolve(
+      expect(runSetup(adapters, { server, setupToken: token }, f.now)).rejects.toThrow(
+        `Can't reach https://${server}. Check the address and that the server is running`,
+      ),
+    );
 
-    expect(choices).toEqual(["keep-mine"]);
-    expect(prompt).toHaveBeenCalledTimes(2);
+    expect(input).not.toHaveBeenCalled();
+    expect(secret).not.toHaveBeenCalled();
   } finally {
-    prompt.mockRestore();
+    input.mockRestore();
+    secret.mockRestore();
     await f.close();
   }
 });

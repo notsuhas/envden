@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { spyOn } from "bun:test";
 import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -22,9 +23,7 @@ export async function syncFixture(directory?: string) {
   const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
 
-  const token = log.mock.calls
-    .flat()
-    .find((value) => typeof value === "string" && value.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((value) => isToken("setup", value));
 
   log.mockRestore();
 

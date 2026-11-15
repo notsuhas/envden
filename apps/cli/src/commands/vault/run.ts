@@ -38,7 +38,7 @@ export async function runVaultAdmin(
 const actions = {
   rotate: async (adapters: TAdapters, now: () => number, prompt: typeof secret) => {
     await rotateVault(adapters, await prompt("Master password"), now);
-    console.log("Epoch rotated");
+    console.log("Vault re-keyed; removed devices can't read new changes");
   },
   change: async (adapters: TAdapters, now: () => number, prompt: typeof secret) => {
     await changePassword(

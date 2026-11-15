@@ -1,3 +1,4 @@
+import { isToken } from "@envden/core/protocol";
 import { spyOn } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -16,9 +17,7 @@ export async function fixture() {
   const { serve, fetcher } = testNetwork();
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
 
-  const token = log.mock.calls
-    .flat()
-    .find((v) => typeof v === "string" && v.startsWith("envden-setup-1:"));
+  const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
   log.mockRestore();
   if (typeof token !== "string") throw new Error("Missing setup token");

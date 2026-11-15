@@ -1,8 +1,10 @@
+import { EnvdenError } from "@envden/core/errors";
 import { readToken } from "../../output/token.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { moveServer } from "../../admin/move/run.ts";
 import { secret } from "../../output/questions.ts";
+import { requireServerAddress } from "../../onboarding/decisions.ts";
 
 export const serverMoveCommand = new Command("move")
   .description("Move the vault to a new server")
@@ -13,13 +15,18 @@ export const serverMoveCommand = new Command("move")
   )
   .addOption(new Option("--resume", "Resume an interrupted move").conflicts("abort"))
   .option("--abort", "Abort an unfinished move")
-  .action(async (address, options) => {
+  .action(async (server, options) => {
+    const continuing = options.resume || options.abort;
+
+    if (!server && !continuing)
+      throw new EnvdenError(
+        "INVALID_INPUT",
+        "Give the destination server address, or --resume or --abort for an unfinished move",
+      );
+
     await moveServer(createAdapters(undefined, Date.now), {
-      address,
-      token:
-        options.resume || options.abort
-          ? options.setupToken
-          : await readToken(options.setupToken, "Server setup token"),
+      address: server && requireServerAddress(server),
+      token: continuing ? options.setupToken : await readToken("setup", options.setupToken),
       resume: options.resume,
       abort: options.abort,
       password: await secret("Master password"),
