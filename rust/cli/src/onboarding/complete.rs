@@ -42,12 +42,6 @@ fn first_run_with(
         report: None,
     })?;
     let state = crate::state::require_configured(load_state(&adapters.home)?)?;
-    crate::notice::cache::refresh_notice(
-        &adapters.home,
-        &state,
-        |root| adapters.repo.case_insensitive(root, true),
-        (adapters.now)(),
-    )?;
     Ok(state)
 }
 
@@ -69,5 +63,20 @@ mod tests {
         })
         .unwrap_err();
         assert_eq!(error.message, "test");
+    }
+    #[test]
+    fn completed_join_does_not_refresh_notice_again() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let mut state = crate::state::empty_state("test");
+        state["vaultId"] = serde_json::json!("vault");
+        state["server"] = serde_json::json!({"address":"http://server.test"});
+        crate::state::repository::save_state(&adapters.home, &state, 42).unwrap();
+        std::fs::create_dir(adapters.home.join("state/approved-checkouts")).unwrap();
+        assert_eq!(
+            first_run_with(&adapters, |_| Ok(state.clone())).unwrap(),
+            state
+        );
     }
 }
