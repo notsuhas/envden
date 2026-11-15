@@ -46,6 +46,8 @@ export async function serve(
 
     const app = createApp(appOptions);
 
+    const firstPrune = setTimeout(pruneHistorySafely, 60000, appOptions);
+    firstPrune.unref();
     const pruning = setInterval(pruneHistorySafely, 3600000, appOptions);
     pruning.unref();
 
@@ -65,6 +67,7 @@ export async function serve(
     const shutdown = async () => {
       if (stopping) return;
       stopping = true;
+      clearTimeout(firstPrune);
       clearInterval(pruning);
       process.off("SIGTERM", shutdown);
       process.off("SIGINT", shutdown);

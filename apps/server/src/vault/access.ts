@@ -17,6 +17,7 @@ export function requireRead(
 
   if (vault.restored) {
     requireRepair(options, auth);
+    if (!auth.member) throw new EnvdenError("NOT_MEMBER", "Membership required");
 
     return;
   }

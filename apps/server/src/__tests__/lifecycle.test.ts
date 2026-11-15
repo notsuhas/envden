@@ -52,3 +52,33 @@ test("pruning catches failures without logging the exception", async () => {
     f.close();
   }
 });
+
+test("pruning continues past a failing vault", async () => {
+  const f = fixture(await identity());
+  const pruned: number[] = [];
+
+  const ids = spyOn(f.storage, "vaultIds").mockImplementation(() => [
+    new Uint8Array(32).fill(1),
+    new Uint8Array(32).fill(2),
+  ]);
+
+  const prune = spyOn(f.storage, "prune").mockImplementation((vaultId) => {
+    if (vaultId[0] === 1) throw new Error("private detail");
+    pruned.push(vaultId[0]!);
+
+    return { lists: 0, blobs: 0 };
+  });
+
+  const log = spyOn(console, "error").mockImplementation(() => {});
+
+  try {
+    pruneHistorySafely(f.options);
+    expect(pruned).toEqual([0, 2]);
+    expect(log).toHaveBeenCalledTimes(1);
+  } finally {
+    ids.mockRestore();
+    prune.mockRestore();
+    log.mockRestore();
+    f.close();
+  }
+});

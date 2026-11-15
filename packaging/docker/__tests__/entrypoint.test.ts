@@ -26,3 +26,19 @@ printf server-started`;
       expect(output).not.toContain("--auth-key");
       expect(output).toContain("server-started");
     });
+
+if (process.platform !== "win32")
+  test("tailscaled starts without the auth key in its environment", () => {
+    const script = `set -eu
+mkdir() { :; }
+tailscaled() { env; }
+${source.slice(source.indexOf(": "), source.indexOf("daemon=$!"))}
+wait`;
+
+    const result = spawnSync("/bin/sh", ["-c", script], {
+      env: { PATH: process.env.PATH, TS_AUTHKEY: "tskey-secret" },
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.toString()).not.toContain("tskey-secret");
+  });

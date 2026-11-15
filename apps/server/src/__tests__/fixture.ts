@@ -4,6 +4,7 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import { createAdapters } from "../adapters.ts";
 import { createApp } from "../app.ts";
+import { createBodyBudget } from "../middleware/body-budget.ts";
 import { text } from "../http/encoding.ts";
 import type { IServerKeys } from "../http/types.ts";
 
@@ -60,7 +61,11 @@ export function candidate(name = "device") {
   return { keys, record };
 }
 
-export function fixture(serverKeys: IServerKeys, registrationRecord?: string) {
+export function fixture(
+  serverKeys: IServerKeys,
+  registrationRecord?: string,
+  reserveBody = createBodyBudget(),
+) {
   const dir = mkdtempSync(join(tmpdir(), "envden-server-"));
   const { storage } = createAdapters(dir, 1000000);
   const member = founding;
@@ -132,7 +137,7 @@ export function fixture(serverKeys: IServerKeys, registrationRecord?: string) {
     clientVersion: "1.0.0",
   });
 
-  const app = createApp(options);
+  const app = createApp(options, reserveBody);
 
   function fresh() {
     storage.putDevice(vaultId, member.record.id, {
@@ -194,6 +199,7 @@ export function fixture(serverKeys: IServerKeys, registrationRecord?: string) {
 
   return {
     app,
+    reserveBody,
     options,
     storage,
     member,

@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { fixture, identity } from "./fixture.ts";
 import { text } from "../http/encoding.ts";
-import { reserveBody } from "../middleware/body-budget.ts";
 
 for (const failure of ["signature", "hash", "budget", "setup"] as const)
   test(`${failure} enforces request body authorization`, async () => {
@@ -37,7 +36,7 @@ for (const failure of ["signature", "hash", "budget", "setup"] as const)
       { highWaterMark: 0 },
     );
 
-    const release = failure === "budget" ? reserveBody(134217728) : () => {};
+    const release = failure === "budget" ? f.reserveBody(134217728) : () => {};
 
     try {
       const response = await f.app.request(`http://server${path}`, {
@@ -110,7 +109,7 @@ test("concurrent body reservations return 503 and release after requests finish"
 
   try {
     expect((await second.response).status).toBe(503);
-    const other = reserveBody(65536, "member", f.request("/v1/swap", {}, { who: f.joiner }).r);
+    const other = f.reserveBody(65536, "member", f.request("/v1/swap", {}, { who: f.joiner }).r);
     other();
     expect((await f.request("/v1/swap", {}).send()).status).toBe(503);
   } finally {
@@ -173,7 +172,7 @@ test("membership revoked during body read cannot upload a blob", async () => {
 
 test("small declared swaps reserve their length instead of the route cap", async () => {
   const f = fixture(await identity());
-  const release = reserveBody(100663292, "member");
+  const release = f.reserveBody(100663292, "member");
 
   try {
     const { headers } = f.request("/v1/swap", {});

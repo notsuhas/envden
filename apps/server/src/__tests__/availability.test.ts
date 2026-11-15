@@ -1,6 +1,6 @@
+import { createBodyBudget } from "../middleware/body-budget.ts";
 import { expect, test } from "bun:test";
 import { vaultId, fixture, identity, candidate } from "./fixture.ts";
-import { reserveBody } from "../middleware/body-budget.ts";
 
 type TFixture = ReturnType<typeof fixture>;
 
@@ -42,7 +42,7 @@ test("two invalid non-member routes never read or reserve and members remain ava
       404, 404,
     ]);
 
-    const release = reserveBody(134217728);
+    const release = f.reserveBody(134217728);
     release();
     expect((await f.request("/v1/devices").send()).status).toBe(200);
   } finally {
@@ -51,8 +51,10 @@ test("two invalid non-member routes never read or reserve and members remain ava
 });
 
 test("public login flood is bounded before reading and cannot consume member capacity", async () => {
+  const budget = createBodyBudget();
+
   const fixtures = await Promise.all(
-    Array.from({ length: 9 }, async () => fixture(await identity())),
+    Array.from({ length: 9 }, async () => fixture(await identity(), undefined, budget)),
   );
 
   const held = fixtures.slice(0, 8).map((f) => hold(f, "/v1/opaque/login/start"));
@@ -93,8 +95,8 @@ test("public login starts are charged before reading the body", async () => {
 
 test("bodiless GETs reserve nothing even when both body budgets are full", async () => {
   const f = fixture(await identity());
-  const member = reserveBody(134217728);
-  const publicBody = reserveBody(1048576, "public");
+  const member = f.reserveBody(134217728);
+  const publicBody = f.reserveBody(1048576, "public");
   f.fresh();
 
   try {

@@ -4,6 +4,7 @@ import { parseSemver } from "@envden/core/protocol";
 import type { IAppOptions, TServerEnv } from "./http/types.ts";
 import { onError } from "./http/errors.ts";
 import { verification } from "./middleware/verification.ts";
+import { createBodyBudget } from "./middleware/body-budget.ts";
 import { registerHello } from "./routes/hello.ts";
 import { registerOpaque } from "./routes/opaque.ts";
 import { registerPairing } from "./routes/pairing.ts";
@@ -14,14 +15,14 @@ import { registerRecovery } from "./routes/data/recovery.ts";
 import { registerVault } from "./routes/data/vault.ts";
 import { registerReads } from "./routes/data/reads.ts";
 
-export function createApp(options: IAppOptions) {
+export function createApp(options: IAppOptions, reserveBody = createBodyBudget()) {
   parseSemver(options.config.appVersion);
   parseSemver(options.config.minClient);
 
   const app = new Hono<TServerEnv>()
     .onError(onError)
     .route("/", registerHello(new Hono<TServerEnv>(), options))
-    .use("/v1/*", verification(options));
+    .use("/v1/*", verification(options, reserveBody));
 
   return app
     .route("/", registerOpaque(new Hono<TServerEnv>(), options))

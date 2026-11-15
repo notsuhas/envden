@@ -233,7 +233,13 @@ test("internal failures never expose their message", async () => {
     const response = await f.request("/v1/devices").send();
     expect(response.status).toBe(500);
     expect(await response.text()).toBe('{"error":"INTERNAL"}');
-    expect(log).toHaveBeenCalledWith("envden request failed", { code: "INTERNAL", method: "GET" });
+
+    expect(log).toHaveBeenCalledWith(
+      "envden request failed",
+      expect.objectContaining({ code: "INTERNAL", method: "GET", name: "Error" }),
+    );
+
+    expect(JSON.stringify(log.mock.calls)).not.toContain("private database detail");
     log.mockRestore();
   } finally {
     f.close();

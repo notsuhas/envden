@@ -1,5 +1,6 @@
 import { requestRoute } from "../routes/policy.ts";
 import { verifiedBody } from "./access/read.ts";
+import type { TReserveBody } from "./body-budget.ts";
 import { verifyAccess } from "./access/verify.ts";
 import type { Context } from "hono";
 import type { IRequest } from "@envden/core/protocol";
@@ -18,7 +19,7 @@ import { binary, input } from "../http/encoding.ts";
 import type { IAppOptions, TServerEnv } from "../http/types.ts";
 import { membership } from "../vault/chain.ts";
 
-export function verification(options: IAppOptions) {
+export function verification(options: IAppOptions, reserveBody: TReserveBody) {
   return createMiddleware<TServerEnv>(async (c, next) => {
     const { storage, now, config } = options;
     const raw = c.req.raw;
@@ -53,7 +54,7 @@ export function verification(options: IAppOptions) {
 
     verifyAccess(c, options, request, !!member, url.pathname);
 
-    const release = await verifiedBody(c, options, route);
+    const release = await verifiedBody(c, options, route, reserveBody);
 
     try {
       if (member && !membership(storage, request.vaultId, request.device))

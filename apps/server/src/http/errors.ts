@@ -37,7 +37,13 @@ export const onError: ErrorHandler = (error, c) => {
         : "INTERNAL";
 
   if (statuses[code] === 500)
-    console.error("envden request failed", { code, method: c.req.method });
+    console.error("envden request failed", {
+      code,
+      method: c.req.method,
+      name: error.name,
+      // Frames only: the first stack line repeats the message, which may carry request data.
+      frames: error.stack?.split("\n").slice(1).join("\n"),
+    });
 
   const hint =
     code === "UNAUTHORIZED" && c.req.path.startsWith("/v1/opaque/login/")

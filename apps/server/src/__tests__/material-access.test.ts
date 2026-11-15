@@ -30,6 +30,26 @@ for (const kind of ["files", "keyring", "envelope", "skPub"])
     }
   });
 
+test("restored reads require membership as well as the repair token", async () => {
+  const f = await vaultFixture();
+
+  try {
+    await f.initialize();
+    const repair = p.randomBytes(32);
+
+    f.storage.configureVault(f.vaultId, {
+      ...f.storage.vault(f.vaultId)!,
+      restored: { repairTokenHash: repair, restoredHead: f.storage.head(f.vaultId)! },
+    });
+
+    const proof = (r: p.IRequest) => p.tokenProof("repair", repair, r);
+    expect((await f.request("/v1/head", undefined, f.b, proof)).status).toBe(403);
+    expect((await f.request("/v1/head", undefined, f.a, proof)).status).toBe(200);
+  } finally {
+    f.close();
+  }
+});
+
 for (const kind of ["keyring", "envelope", "skPub"])
   test(`repair rejects unnamed ${kind}`, async () => {
     const f = await vaultFixture();

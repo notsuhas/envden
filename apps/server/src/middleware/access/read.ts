@@ -3,7 +3,7 @@ import type { Context } from "hono";
 import type { IAppOptions, TServerEnv } from "../../http/types.ts";
 import type { requestRoute } from "../../routes/policy.ts";
 import { charge } from "../../auth/rate-limit.ts";
-import { reserveBody } from "../body-budget.ts";
+import type { TReserveBody } from "../body-budget.ts";
 import { declaredBodySize, readBody } from "../body.ts";
 import { authorizeBody } from "./body.ts";
 
@@ -11,6 +11,7 @@ export async function verifiedBody(
   c: Context<TServerEnv>,
   options: IAppOptions,
   route: ReturnType<typeof requestRoute>,
+  reserveBody: TReserveBody,
 ): Promise<() => void> {
   authorizeBody(c, options);
   const auth = c.get("auth");

@@ -1,13 +1,12 @@
 import { expect, test } from "bun:test";
 import { UnlockPeriodSchema } from "@envden/core/protocol";
 import { fixture, identity, vaultId } from "./fixture.ts";
-import { reserveBody } from "../middleware/body-budget.ts";
 
 for (const period of [null, 86400000] as const)
   test(`read unlock period ${period} requires unlocked membership, no fresh login or body budget`, async () => {
     const f = fixture(await identity());
     const path = "/v1/settings/unlock-period";
-    const release = reserveBody(134217728);
+    const release = f.reserveBody(134217728);
 
     try {
       expect((await f.request(path).send()).status).toBe(403);

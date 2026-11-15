@@ -3,6 +3,8 @@ set -eu
 : "${ENVDEN_PORT:=4280}"
 case "$ENVDEN_PORT" in ''|*[!0-9]*) echo 'Invalid ENVDEN_PORT' >&2; exit 1 ;; esac
 mkdir -p /data /var/lib/tailscale /var/run/tailscale
+auth_key=${TS_AUTHKEY:-}
+unset TS_AUTHKEY
 tailscaled --tun=userspace-networking --state=/var/lib/tailscale/tailscaled.state &
 daemon=$!
 server=
@@ -33,17 +35,16 @@ while :; do
   sleep 1
 done
 if [ "$state" = NeedsLogin ]; then
-  : "${TS_AUTHKEY:?Set TS_AUTHKEY to a Tailscale auth key for first login}"
+  [ -n "$auth_key" ] || { echo 'Set TS_AUTHKEY to a Tailscale auth key for first login' >&2; exit 1; }
   auth_file=$(mktemp /tmp/envden-auth.XXXXXX)
   chmod 600 "$auth_file"
-  printf '%s' "$TS_AUTHKEY" > "$auth_file"
-  unset TS_AUTHKEY
+  printf '%s' "$auth_key" > "$auth_file"
   timeout 30 tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false --auth-key="file:$auth_file"
   rm -f "$auth_file"
 else
   timeout 5 tailscale set --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false || echo 'Tailscale preferences unavailable; starting server' >&2
 fi
-unset TS_AUTHKEY
+unset auth_key
 if [ "$state" = Stopped ]; then
   timeout 30 tailscale up --hostname="${TS_HOSTNAME:-envden}" --accept-dns=false || echo 'Tailscale resume unavailable; starting server' >&2
 fi
