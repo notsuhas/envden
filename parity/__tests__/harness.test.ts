@@ -12,6 +12,15 @@ test("normalization preserves repeats, distinct identities and length", () => {
   expect(n.value(new Uint8Array(7))).not.toEqual(n.value(new Uint8Array(8)));
 });
 
+test("random object keys don't change how their values are classified", () => {
+  const kinds = (key: string) =>
+    Object.values(new Normalizer("/tmp/run").value({ [key]: "x".repeat(504) }) as object).map(
+      (mapped) => String(mapped).split(":")[0],
+    );
+
+  expect(kinds(`${"A".repeat(49)}key`)).toEqual(kinds("A".repeat(52)));
+});
+
 test("terminal screen applies redraws while retaining messages", () => {
   expect(terminalScreen("ready\r\nworking\x1b[1G\x1b[Jdone\r\n")).toBe("ready\ndone\n");
   expect(terminalScreen("secret\r\n\x1b[1A\x1b[2Khidden\r\n")).toBe("hidden\n");

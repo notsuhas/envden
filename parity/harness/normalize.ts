@@ -109,9 +109,14 @@ export class Normalizer {
       return Object.fromEntries(
         Object.entries(value)
           .sort(([a], [b]) => a.localeCompare(b))
-          .map(([name, item]) => [this.text(name), this.value(item, name)]),
+          .map(([name, item]) => [this.text(name), this.value(item, fieldName(name))]),
       );
 
     return value;
   }
+}
+
+// random tokens used as object keys must not be read as field names like "key" or "pin"
+function fieldName(name: string): string {
+  return /^[\w+/=-]{32,}$/.test(name) ? "" : name;
 }
