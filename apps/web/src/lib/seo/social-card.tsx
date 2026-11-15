@@ -10,7 +10,12 @@ const MUTED = "rgba(160, 157, 148, 1)";
 const LINE = "rgba(237, 233, 224, 0.16)";
 const LANTERN = "rgba(247, 190, 84, 1)";
 
-export function renderSocialCard(): ImageResponse {
+interface IPageCard {
+  title: string;
+  description?: string | undefined;
+}
+
+export function renderSocialCard(page?: IPageCard): ImageResponse {
   return new ImageResponse(
     <div
       style={{
@@ -37,26 +42,7 @@ export function renderSocialCard(): ImageResponse {
           <span style={{ color: LANTERN }}>.</span>
           {SITE_NAME}
         </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              fontSize: 84,
-              lineHeight: 1.05,
-              letterSpacing: -3,
-            }}
-          >
-            <span>Change a secret once.</span>
-            <div style={{ display: "flex" }}>
-              <span style={{ color: LANTERN }}>Every machine</span>
-              <span>&nbsp;has it.</span>
-            </div>
-          </div>
-          <div style={{ display: "flex", marginTop: 36, fontSize: 30, color: MUTED }}>
-            Self-hosted Git for your .env files · end-to-end encrypted
-          </div>
-        </div>
+        {page ? pageHeadline(page) : homeHeadline()}
         <div
           style={{
             display: "flex",
@@ -73,5 +59,54 @@ export function renderSocialCard(): ImageResponse {
       </div>
     </div>,
     SOCIAL_CARD_SIZE,
+  );
+}
+
+function homeHeadline() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          fontSize: 84,
+          lineHeight: 1.05,
+          letterSpacing: -3,
+        }}
+      >
+        <span>Change a secret once.</span>
+        <div style={{ display: "flex" }}>
+          <span style={{ color: LANTERN }}>Every machine</span>
+          <span>&nbsp;has it.</span>
+        </div>
+      </div>
+      <div style={{ display: "flex", marginTop: 36, fontSize: 30, color: MUTED }}>
+        Self-hosted Git for your .env files · end-to-end encrypted
+      </div>
+    </div>
+  );
+}
+
+function pageHeadline(page: IPageCard) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", fontSize: 26, color: LANTERN }}>Docs</div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: 16,
+          fontSize: 72,
+          lineHeight: 1.05,
+          letterSpacing: -2,
+        }}
+      >
+        {page.title}
+      </div>
+      {page.description ? (
+        <div style={{ display: "flex", marginTop: 28, fontSize: 30, color: MUTED }}>
+          {page.description}
+        </div>
+      ) : null}
+    </div>
   );
 }

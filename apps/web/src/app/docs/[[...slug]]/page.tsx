@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMDXComponents } from "@/components/docs/mdx-components.tsx";
 import { getPageMarkdownUrl } from "@/lib/routes.ts";
+import { docsMetadata } from "@/lib/seo/page-metadata.ts";
 import { source } from "@/lib/source.ts";
 
 interface IDocsRoute {
@@ -49,8 +50,10 @@ export async function generateMetadata(props: IDocsRoute): Promise<Metadata> {
   const page = source.getPage(slug);
   if (!page) notFound();
 
-  return {
+  return docsMetadata({
     title: page.data.title,
     description: page.data.description,
-  };
+    url: page.url,
+    slugs: page.slugs,
+  });
 }

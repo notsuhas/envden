@@ -1,4 +1,4 @@
-import { SOCIAL_CARD_ALT, SOCIAL_CARD_SIZE, renderSocialCard } from "@/lib/social-card.tsx";
+import { SOCIAL_CARD_ALT, SOCIAL_CARD_SIZE, renderSocialCard } from "@/lib/seo/social-card.tsx";
 
 export const alt = SOCIAL_CARD_ALT;
 
