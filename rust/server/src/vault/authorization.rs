@@ -23,11 +23,10 @@ pub(super) fn authorize(
     match required {
         TAuthorization::Unlocked => require_gate(options, auth, false)?,
         TAuthorization::Fresh => require_gate(options, auth, true)?,
-        TAuthorization::FreshOrRepairToken | TAuthorization::RepairToken => {
+        TAuthorization::RepairToken => crate::repair::require_repair(options, auth)?,
+        TAuthorization::FreshOrRepairToken => {
             if storage.vault(id)?.is_some_and(|v| v.restored.is_some()) {
-                if !has_proof(options, auth, "repair")? {
-                    return Err(unauthorized());
-                }
+                crate::repair::require_repair(options, auth)?;
             } else {
                 require_gate(options, auth, true)?;
             }
@@ -127,3 +126,7 @@ pub(super) fn authorize(
 
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "tests/authorization.rs"]
+mod tests;
