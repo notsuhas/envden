@@ -33,16 +33,7 @@ pub fn doctor(adapters: &IAdapters) -> Result<IDoctorReport> {
         .home
         .join("state")
         .join(format!("doctor-{}", uuid::Uuid::new_v4()));
-    fs::create_dir(&directory).map_err(failure)?;
-    let symlinks = (|| -> std::io::Result<()> {
-        fs::write(directory.join("target"), "")?;
-        #[cfg(unix)]
-        std::os::unix::fs::symlink(directory.join("target"), directory.join("link"))?;
-        #[cfg(windows)]
-        std::os::windows::fs::symlink_file(directory.join("target"), directory.join("link"))?;
-        Ok(())
-    })()
-    .is_ok();
+    let symlinks = super::probe::symlink_probe(&directory)?;
     fs::remove_dir_all(directory).map_err(failure)?;
     let mut shells = Vec::new();
     for (name, shell) in [
