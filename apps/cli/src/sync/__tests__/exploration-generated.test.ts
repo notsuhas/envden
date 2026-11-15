@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, expect, test } from "bun:test";
+import { afterAll, expect, test } from "bun:test";
 import {
   WORKER_COUNT,
   startWorkers,
@@ -46,7 +46,8 @@ const alphabet = [
 
 const layouts = [["copy"], ["copy", "copy"], ["link"], ["link", "copy"]] as const;
 
-beforeAll(startWorkers);
+// Workers start while the file loads, so their key-derivation setup is outside the per-test limit.
+await startWorkers();
 
 afterAll(stopWorkers);
 
