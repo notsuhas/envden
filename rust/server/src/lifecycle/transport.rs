@@ -47,7 +47,6 @@ where
                 let stream = match result {
                     Ok(stream) => stream,
                     Err(error) => {
-                        eprintln!("envden accept failed: {:?}", error.kind());
                         // ENFILE and EMFILE share these values on supported Unix platforms.
                         if matches!(error.raw_os_error(), Some(23 | 24)) {
                             let (ready, wait) = oneshot::channel();

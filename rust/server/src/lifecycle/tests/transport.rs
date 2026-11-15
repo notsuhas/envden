@@ -2,6 +2,25 @@ use super::*;
 
 #[tokio::test]
 async fn accept_errors_do_not_end_listener() {
+    if std::env::var_os("ENVDEN_TEST_ACCEPT_CHILD").is_none() {
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "lifecycle::transport::tests::accept_errors_do_not_end_listener",
+                "--nocapture",
+            ])
+            .env("ENVDEN_TEST_ACCEPT_CHILD", "1")
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert!(
+            output.stderr.is_empty(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        return;
+    }
+
     let (stop, receive) = oneshot::channel();
     let mut stop = Some(stop);
     let mut first = true;
