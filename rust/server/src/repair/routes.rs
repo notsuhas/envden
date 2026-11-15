@@ -88,11 +88,11 @@ pub(crate) fn recovery_route(
             })?;
             commit_response(super::upload_chain(options,auth,&swaps)?,false)
         },
-        Some(&"status") if repair=>{let restored=storage.vault(id)?.and_then(|v|v.restored).expect("authorized repair");response(200,"application/json",json!({"restoredHead":text(&restored.restored_head),"repairId":text(&restored.finish_progress.unwrap_or_default())}).to_string())},
+        Some(&"status") if repair=>{let restored=storage.vault(id)?.and_then(|v|v.restored).ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Repair unavailable"))?;response(200,"application/json",json!({"restoredHead":text(&restored.restored_head),"repairId":text(&restored.finish_progress.unwrap_or_default())}).to_string())},
         Some(&"reports") if repair=>response(200,"application/json",json!({"objects":storage.states(id,TStateKind::RepairReport)?.iter().map(|r|text(&r.bytes)).collect::<Vec<_>>()}).to_string()),
         Some(&"report") if repair=>{
             let report:ISigned<IRepairReport>=input(||decode(body))?;
-            let restored=storage.vault(id)?.and_then(|v|v.restored).expect("authorized repair");
+            let restored=storage.vault(id)?.and_then(|v|v.restored).ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Repair unavailable"))?;
             let headers=if storage.header(id,&report.body.head)?.is_some() {BTreeSet::from([report.body.head])} else {BTreeSet::new()};
             let reports=filter_repair_reports(std::slice::from_ref(&report),&fixed(&restored.finish_progress.unwrap_or_default())?,&vault_chain(&options.storage,id)?.1,&headers);
             if reports.is_empty() || report.body.signer!=auth.request.device {return Err(EnvdenError::new(ErrorCode::InvalidData,"Invalid repair report"));}
@@ -101,6 +101,7 @@ pub(crate) fn recovery_route(
         },
         Some(&"finish") if repair=>{
             let raw:Value=serde_json::from_slice(body).map_err(|_|EnvdenError::new(ErrorCode::InvalidInput,"Invalid JSON"))?;
+            
             let bytes=binary(raw["swap"].as_str().unwrap_or(""),None)?;
             let swap:ISwap=input(||decode(&bytes))?;
             if swap.header.body.op!=12 {return Err(EnvdenError::new(ErrorCode::InvalidInput,"Repair close required"));}

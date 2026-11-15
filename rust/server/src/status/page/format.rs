@@ -26,7 +26,9 @@ pub fn format_bytes(bytes: u64) -> String {
 
 pub fn format_uptime(seconds: u64) -> String {
     use chrono::{Datelike, Timelike};
-    let end = chrono::DateTime::from_timestamp(seconds as i64, 0).expect("uptime timestamp");
+    let Some(end) = chrono::DateTime::from_timestamp(seconds as i64, 0) else {
+        return "Invalid Date".into();
+    };
     let mut parts = Vec::new();
     for (value, unit) in [
         (u64::from(end.day() - 1), "day"),
@@ -49,7 +51,9 @@ pub fn format_uptime(seconds: u64) -> String {
 }
 
 pub fn format_when(utc: &str, now: u64) -> String {
-    let date = chrono::DateTime::parse_from_rfc3339(utc).expect("status timestamp");
+    let Ok(date) = chrono::DateTime::parse_from_rfc3339(utc) else {
+        return "Invalid Date".into();
+    };
     let difference = now as i128 - date.timestamp_millis() as i128;
     let seconds = difference.unsigned_abs() as f64 / 1000.0;
     let (scale, unit) = if seconds < 60.0 {

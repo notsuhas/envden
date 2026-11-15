@@ -98,7 +98,9 @@ pub(super) fn reads(
                 _ => "blob",
             };
             if request.method() == "PUT" && kind == "blob" {
-                let vault = storage.vault(id)?.expect("authorized vault");
+                let vault = storage
+                    .vault(id)?
+                    .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Vault unavailable"))?;
                 if vault.restored.is_some() {
                     crate::repair::require_repair(options, auth)?;
                     if !auth.member {

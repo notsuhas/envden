@@ -20,7 +20,7 @@ pub(crate) fn upload_history(
     let id = &auth.request.vault_id;
     let restored = storage.vault(id)?.is_some_and(|v| v.restored.is_some());
     let mut stored = stored_swap(swap, digest)?;
-    stored.state.as_mut().expect("swap state").retain(|w| {
+    stored.state.get_or_insert_default().retain(|w| {
         w.kind != envden_core::adapters::storage::TStateKind::OpaqueRecord
             && (!restored || w.kind != envden_core::adapters::storage::TStateKind::SkPub)
     });
@@ -155,5 +155,5 @@ pub(crate) fn upload_chain(
         Ok(())
     })?;
 
-    Ok(result.expect("nonempty history"))
+    result.ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "History unavailable"))
 }

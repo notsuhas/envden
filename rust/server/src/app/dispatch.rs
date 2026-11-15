@@ -24,11 +24,12 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
         .and_then(|v| v.parse::<u64>().ok())
         .is_some_and(|length| length > 33554432)
     {
-        return Response::builder()
-            .status(413)
-            .header("connection", "close")
-            .body(Body::empty())
-            .expect("fixed transport response");
+        let mut response = Response::new(Body::empty());
+        *response.status_mut() = axum::http::StatusCode::PAYLOAD_TOO_LARGE;
+        response
+            .headers_mut()
+            .insert("connection", axum::http::HeaderValue::from_static("close"));
+        return response;
     }
     let path = request.uri().path().to_owned();
     let method = request.method().as_str().to_owned();
@@ -46,7 +47,8 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
         for (key, value) in status_headers() {
             response.headers_mut().insert(
                 axum::http::HeaderName::from_static(key),
-                value.parse().expect("fixed status header"),
+                axum::http::HeaderValue::from_str(&value)
+                    .unwrap_or_else(|_| axum::http::HeaderValue::from_static("")),
             );
         }
         response.headers_mut().extend(headers);
@@ -56,7 +58,7 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
         *response.body_mut() = Body::empty();
         response
             .headers_mut()
-            .insert("content-length", "0".parse().expect("fixed length"));
+            .insert("content-length", axum::http::HeaderValue::from_static("0"));
     }
 
     response
@@ -76,9 +78,16 @@ fn dispatch_inner(state: &AppState, request: &Request) -> Result<Response<Body>>
             .and_then(|v| v.parse::<u64>().ok())
             .is_some_and(|v| v > 0);
     let route = request_route(method, path, has_body)?;
-    let _guard = state.options.storage_lock.lock().expect("storage lock");
+    let _guard = state
+        .options
+        .storage_lock
+        .lock()
+        .map_err(|_| EnvdenError::new(ErrorCode::Internal, "Storage lock unavailable"))?;
     if method == "GET" && matches!(path, "/" | "/v1/status") {
-        let mut status = state.status.lock().expect("status lock");
+        let mut status = state
+            .status
+            .lock()
+            .map_err(|_| EnvdenError::new(ErrorCode::Internal, "Status lock unavailable"))?;
         if !status.enabled {
             return Err(EnvdenError::new(
                 ErrorCode::NotFound,

@@ -131,5 +131,5 @@ pub(crate) fn create_vault(
         Ok(())
     })?;
 
-    Ok(result.expect("transaction result"))
+    result.ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Transaction incomplete"))
 }

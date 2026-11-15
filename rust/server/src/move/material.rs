@@ -17,7 +17,9 @@ pub(crate) fn prepare_move(
     }
     let storage = options.storage.as_ref();
     let id = &auth.request.vault_id;
-    let mut vault = storage.vault(id)?.expect("authorized vault");
+    let mut vault = storage
+        .vault(id)?
+        .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Vault unavailable"))?;
     if !vault.active {
         let header = vault_chain(&options.storage, id)?.0.body;
         for (kind, hash, key, label) in [

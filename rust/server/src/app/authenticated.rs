@@ -16,7 +16,11 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
     let (parts, body) = request.into_parts();
     let path = parts.uri.path();
     let (auth, route, reservation, receipt, capacity) = {
-        let _guard = state.options.storage_lock.lock().expect("storage lock");
+        let _guard = state
+            .options
+            .storage_lock
+            .lock()
+            .map_err(|_| EnvdenError::new(ErrorCode::Internal, "Storage lock unavailable"))?;
         let has_body = parts.headers.contains_key("transfer-encoding")
             || parts
                 .headers
@@ -92,7 +96,11 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
     };
     let bytes = read_body(body, capacity, &auth.request.body_hash).await?;
     let request = Request::from_parts(parts, Body::empty());
-    let _guard = state.options.storage_lock.lock().expect("storage lock");
+    let _guard = state
+        .options
+        .storage_lock
+        .lock()
+        .map_err(|_| EnvdenError::new(ErrorCode::Internal, "Storage lock unavailable"))?;
     let _reservation = reservation;
     let _ = route;
     if auth.member

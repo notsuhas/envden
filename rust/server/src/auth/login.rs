@@ -68,7 +68,7 @@ pub(crate) fn start_login(
     let session = format!(
         "{{\"state\":\"{}\",\"receipt\":{}}}",
         result.server_login_state,
-        serde_json::to_string(&receipt).expect("receipt string")
+        json!(receipt)
     );
     options.storage.put_session(
         &auth.request.vault_id,

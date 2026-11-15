@@ -42,7 +42,7 @@ impl BodyBudget {
             TBudget::Public => (2, 1048576, 8),
         };
         let identity = if kind == 0 { identity } else { None };
-        let mut state = self.0.lock().expect("budget lock");
+        let mut state = self.0.lock().unwrap_or_else(|error| error.into_inner());
         if bytes > 0
             && (state.reserved[kind] + bytes > capacity
                 || state.active[kind] >= concurrency
@@ -76,7 +76,7 @@ impl Drop for Reservation {
         if self.bytes == 0 {
             return;
         }
-        let mut state = self.state.lock().expect("budget lock");
+        let mut state = self.state.lock().unwrap_or_else(|error| error.into_inner());
         state.reserved[self.kind] -= self.bytes;
         state.active[self.kind] -= 1;
         if let Some((vault, device)) = &self.identity {

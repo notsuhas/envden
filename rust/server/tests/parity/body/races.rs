@@ -123,3 +123,35 @@ async fn revoked_membership_during_body_read_cannot_upload_blob() {
     assert_eq!(body, r#"{"error":"NOT_MEMBER"}"#);
     assert!(!f.options.storage.has_blob(&f.vault, &hash).unwrap());
 }
+
+#[tokio::test]
+async fn discarded_import_during_blob_body_returns_internal_error() {
+    let v = VaultFixture::new();
+    let f = &v.f;
+    let open = crate::support::token_request(
+        f,
+        "/v1/move/session",
+        "POST",
+        &[],
+        &f.member,
+        TTokenKind::Setup,
+        &v.setup,
+    );
+    assert_eq!(f.run(open).await.0, 200);
+    let blob = [8; 32];
+    let path = format!("/v1/blobs/{}", text(&h("blob", &blob)));
+    let (body, reading, release) = held(&blob);
+    let request = f
+        .request(&path, "PUT", &blob, &f.member, |_| {})
+        .map(|_| body);
+    let pending = tokio::spawn(f.app.clone().oneshot(request));
+    reading.await.unwrap();
+    assert_eq!(
+        f.send("/v1/move/discard", "POST", Value::Null, &f.member)
+            .await
+            .0,
+        200
+    );
+    release.send(()).unwrap();
+    assert_eq!(pending.await.unwrap().unwrap().status(), 500);
+}

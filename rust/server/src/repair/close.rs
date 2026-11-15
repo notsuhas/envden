@@ -52,7 +52,10 @@ pub(crate) fn close_repair(
     stored: &mut IStoredSwap,
 ) -> Result<()> {
     let id = &auth.request.vault_id;
-    let mut vault = options.storage.vault(id)?.expect("authorized vault");
+    let mut vault = options
+        .storage
+        .vault(id)?
+        .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Vault unavailable"))?;
     let restored = vault
         .restored
         .clone()

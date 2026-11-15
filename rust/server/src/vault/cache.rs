@@ -24,7 +24,7 @@ pub(super) fn verified_list(
 ) -> Result<IDeviceListState> {
     let identity = Arc::downgrade(storage);
     {
-        let mut lists = LISTS.lock().expect("chain cache lock");
+        let mut lists = LISTS.lock().unwrap_or_else(|error| error.into_inner());
         lists.retain(|entry| entry.storage.strong_count() > 0);
         if let Some(entry) = lists.iter().find(|entry| {
             Weak::ptr_eq(&entry.storage, &identity)
@@ -45,7 +45,7 @@ pub(super) fn verified_list(
             "Invalid stored chain",
         ));
     };
-    let mut lists = LISTS.lock().expect("chain cache lock");
+    let mut lists = LISTS.lock().unwrap_or_else(|error| error.into_inner());
     lists.retain(|entry| !(Weak::ptr_eq(&entry.storage, &identity) && entry.vault == vault));
     lists.push(CachedList {
         storage: identity,

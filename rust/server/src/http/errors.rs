@@ -28,7 +28,7 @@ fn respond(
     if status(error.code) == 500 {
         log(&format!(
             "envden request failed {{\n  code: \"INTERNAL\",\n  method: {},\n  name: \"Error\",\n  frames: undefined,\n}}",
-            serde_json::to_string(method).expect("method string")
+            serde_json::json!(method)
         ));
     }
 
@@ -36,11 +36,13 @@ fn respond(
 }
 
 pub(crate) fn response(status: u16, content_type: &str, body: impl Into<Body>) -> Response<Body> {
-    Response::builder()
-        .status(status)
-        .header("content-type", content_type)
-        .body(body.into())
-        .expect("fixed response headers")
+    let mut response = Response::new(body.into());
+    *response.status_mut() = axum::http::StatusCode::from_u16(status)
+        .unwrap_or(axum::http::StatusCode::INTERNAL_SERVER_ERROR);
+    if let Ok(value) = axum::http::HeaderValue::from_str(content_type) {
+        response.headers_mut().insert("content-type", value);
+    }
+    response
 }
 
 fn status(code: ErrorCode) -> u16 {

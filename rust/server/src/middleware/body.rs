@@ -24,7 +24,8 @@ pub fn declared_body_size(headers: &HeaderMap, limit: usize) -> Result<usize> {
         ));
     }
 
-    Ok(size.expect("checked size") as usize)
+    size.map(|size| size as usize)
+        .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Request too large"))
 }
 
 pub async fn read_body(body: Body, capacity: usize, expected: &[u8; 32]) -> Result<Bytes> {

@@ -115,7 +115,9 @@ pub(crate) fn move_route(
                 require_move(options, auth)?;
                 let period: IUnlockPeriod = serde_json::from_slice(body)
                     .map_err(|_| EnvdenError::new(ErrorCode::InvalidInput, "Invalid input"))?;
-                let mut vault = storage.vault(id)?.expect("authorized vault");
+                let mut vault = storage
+                    .vault(id)?
+                    .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Vault unavailable"))?;
                 vault.unlock_period = period.period;
                 storage.configure_vault(id, &vault, &[], None)?;
                 json!({"kind":"updated"})

@@ -1,6 +1,6 @@
 use super::{IStatusState, derive_quota_band, derive_server_mode};
 use crate::http::types::IAppOptions;
-use envden_core::errors::Result;
+use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::{Value, json};
 
 pub fn read_status(options: &IAppOptions, state: &IStatusState) -> Result<Value> {
@@ -16,7 +16,16 @@ pub fn read_status(options: &IAppOptions, state: &IStatusState) -> Result<Value>
         .into_iter()
         .flatten()
         .collect::<Vec<_>>();
-    let last = state.last_prune.map(|(at,ok)| json!({"at":chrono::DateTime::from_timestamp_millis(at as i64).expect("valid timestamp").to_rfc3339_opts(chrono::SecondsFormat::Millis,true),"ok":ok}));
+    let last = state
+        .last_prune
+        .map(|(at, ok)| {
+            let at = chrono::DateTime::from_timestamp_millis(at as i64)
+                .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Invalid status timestamp"))?;
+            Ok::<_, EnvdenError>(
+                json!({"at":at.to_rfc3339_opts(chrono::SecondsFormat::Millis,true),"ok":ok}),
+            )
+        })
+        .transpose()?;
     let mut result = serde_json::Map::new();
     for (key, value) in [
         ("version", json!(options.app_version)),
