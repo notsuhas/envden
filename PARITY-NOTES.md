@@ -77,3 +77,19 @@ Possible improvement: define shared structured diagnostics and filesystem error 
 Why: the Go server preserves protocol error bodies and fixed EnvdenError messages, but its sanitized internal log and native filesystem errors do not reproduce Bun stack frames or Node errno formatting byte for byte.
 
 Bug-in-TS: no
+
+## recovery PDF: DEFLATE encoder parity remains unfinished
+
+Scenario: Generate a recovery PDF from the same kit, device name and timestamps.
+TS behaviour: pdf-lib 1.17.1 uses pako's default zlib encoder for its content stream and current wall time for document metadata. The Go writer matches the tested decoded drawing operators, deterministic font resource names, standard font metrics, metadata representation and object layout, but uses Go's zlib encoder. Compressed bytes, stream length and the derived cross-reference offsets differ. Exact PDF byte parity is not complete; this is an implementation gap, not a demonstrated impossibility.
+Possible improvement: Port pako's DEFLATE encoding decisions, then compare complete PDFs with fixed metadata timestamps and expand inputs beyond the drawing-operator fixture.
+Why: Equivalent decompressed PDF streams do not imply byte-identical files.
+Bug-in-TS: no
+
+## history: large version numbers round to JavaScript precision
+
+Scenario: `history --restore 9999999999999999 .env`.
+TS behaviour: The parser accepts sixteen digits and converts them with Number, producing version 10000000000000000. Go preserves that rounding.
+Possible improvement: Reject versions above Number.MAX_SAFE_INTEGER in both implementations.
+Why: A requested version can otherwise select a different number.
+Bug-in-TS: yes

@@ -1,6 +1,5 @@
 package dailyuse
 
-import "github.com/notsuhas/envden/go/cli/program/stub"
 import "github.com/notsuhas/envden/go/lib/commander"
 
 func HistoryCommand() *commander.Command {
@@ -10,6 +9,6 @@ func HistoryCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--yes", "Confirm the restore"))
 	c.AddOption(commander.NewOption("--json", "Print the result as JSON"))
 	c.AddArgument(commander.NewArgument("[file]", "Env file path"))
-	c.Action(stub.Action)
+	c.Action(historyAction)
 	return c
 }
