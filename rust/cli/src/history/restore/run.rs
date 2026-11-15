@@ -11,7 +11,7 @@ use crate::{
     sync::{
         local::{
             conflicts::{backup, conflict_records},
-            files::{read_bytes, write_bytes},
+            files::write_bytes,
             selection::selected_repos,
         },
         remote::{
@@ -61,19 +61,14 @@ pub fn restore(
         let store = managed
             .and_then(|l| l["store"].as_str())
             .unwrap_or_default();
-        let detached = if let Some(link) = managed {
-            let mode = if link["mode"] == "copy" {
-                envden_core::adapters::TPlacementMode::Copy
-            } else {
-                envden_core::adapters::TPlacementMode::Link
-            };
-            adapters.placement(mode, Path::new(&target.root)).inspect(
-                store,
-                &Path::new(&target.root).join(&target.path).to_string_lossy(),
-            )? == envden_core::adapters::TPlacementState::Detached
+        let current = if managed.is_some() {
+            Some(crate::history::files::current::checkout_bytes(
+                adapters, target,
+            )?)
         } else {
-            false
+            None
         };
+        let detached = current.as_ref().is_some_and(|c| c.detached);
         let conflicted = conflict_records(&adapters.home)?
             .iter()
             .any(|r| r.store == store);
@@ -92,7 +87,7 @@ pub fn restore(
         } else {
             path.clone()
         };
-        let bytes = read_bytes(&destination)?;
+        let bytes = current.and_then(|c| c.bytes);
         accept_head(&mut context, None, true)?;
         let id = p::file_id(&context.checkpoint.id_key, &target.repo_id, &target.path)?;
         let (versions, _) = retained(&context, id)?;

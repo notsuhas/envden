@@ -4,7 +4,7 @@ use crate::{
     client::ITransport,
     history::{files::select::history_targets, versions::retained::retained},
     sync::{
-        local::{files::read_bytes, selection::selected_repos},
+        local::selection::selected_repos,
         remote::{
             accept::accept_head,
             context::{ISyncOptions, sync_context},
@@ -14,7 +14,7 @@ use crate::{
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
-use std::{collections::HashSet, path::Path, rc::Rc};
+use std::{collections::HashSet, rc::Rc};
 
 pub fn file_history(
     adapters: &IAdapters,
@@ -78,14 +78,7 @@ pub fn file_history(
             }
             let mut checkouts = Vec::new();
             for target in &group {
-                let path = target
-                    .link
-                    .as_ref()
-                    .filter(|l| l["mode"] == "link")
-                    .and_then(|l| l["store"].as_str())
-                    .map(|s| Path::new(s).to_owned())
-                    .unwrap_or_else(|| Path::new(&target.root).join(&target.path));
-                let bytes = read_bytes(&path)?;
+                let bytes = crate::history::files::current::checkout_bytes(adapters, target)?.bytes;
                 let mut checkout = json!({"root":target.root});
                 if let Some(version) = versions.iter().find(|v| v.content == bytes) {
                     checkout["version"] = version.entry.version.into();
