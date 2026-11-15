@@ -14,6 +14,7 @@ export async function installHostService(
     uid: number;
     write: typeof atomicWrite;
     run: (args: string[]) => Promise<void>;
+    pause: (ms: number) => Promise<void>;
   },
   now: () => number,
 ) {
@@ -35,7 +36,10 @@ export async function installHostService(
       .run(["launchctl", "bootout", `gui/${options.uid}/com.envden.server`])
       .catch(() => {});
 
-    await options.run(["launchctl", "bootstrap", `gui/${options.uid}`, path]);
+    await bootstrap(
+      () => options.run(["launchctl", "bootstrap", `gui/${options.uid}`, path]),
+      options.pause,
+    );
   } else if (definition.kind === "systemd") {
     await options.write(path, definition.content, now);
     await options.run(["systemctl", "--user", "daemon-reload"]);
@@ -51,10 +55,28 @@ export async function installHostService(
   return { log, path };
 }
 
+// bootout returns while launchd is still tearing the old job down, so the first bootstrap can fail
+async function bootstrap(load: () => Promise<void>, pause: (ms: number) => Promise<void>) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await load();
+    } catch (error) {
+      if (attempt >= BOOTSTRAP_ATTEMPTS) throw error;
+      await pause(BOOTSTRAP_PAUSE_MS);
+    }
+  }
+}
+
+const BOOTSTRAP_ATTEMPTS = 10;
+const BOOTSTRAP_PAUSE_MS = 300;
+
 export async function runServiceCommand(args: string[]) {
-  const result = await spawnTrusted(args[0]!, args.slice(1), { stdout: "ignore", stderr: "ignore" })
-    .exited;
+  const child = spawnTrusted(args[0]!, args.slice(1), { stdout: "ignore", stderr: "pipe" });
+  const [stderr, result] = await Promise.all([new Response(child.stderr).text(), child.exited]);
 
   if (result !== 0)
-    throw new EnvdenError("INVALID_INPUT", "Could not install the envden login service");
+    throw new EnvdenError(
+      "INTERNAL",
+      `Could not start the envden server service: ${stderr.trim().slice(0, 300) || `${args[0]} exited ${result}`}`,
+    );
 }

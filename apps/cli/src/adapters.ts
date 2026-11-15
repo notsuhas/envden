@@ -73,6 +73,7 @@ export function createAdapters(
           uid: process.getuid?.() ?? 0,
           write: (path, bytes) => atomicWrite(path, bytes, now),
           run: runServiceCommand,
+          pause: (ms) => Bun.sleep(ms),
         },
         now,
       ),

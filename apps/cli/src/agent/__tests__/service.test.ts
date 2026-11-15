@@ -46,6 +46,7 @@ test("service installer writes and enables through supplied effects", async () =
       run: async (args) => {
         commands.push(args);
       },
+      pause: async () => {},
     },
     fixtureClock,
   );
@@ -75,6 +76,7 @@ for (const platform of ["darwin", "win32"])
           run: async (args) => {
             commands.push(args);
           },
+          pause: async () => {},
         },
         fixtureClock,
       );
@@ -82,3 +84,31 @@ for (const platform of ["darwin", "win32"])
     expect(commands[0]?.[1]).toBe(platform === "darwin" ? "bootout" : "/End");
     expect(commands[1]?.[1]).toBe(platform === "darwin" ? "bootstrap" : "/Create");
   });
+
+test("launchd bootstrap retries while the old job is still unloading", async () => {
+  const commands: string[][] = [];
+  let pauses = 0;
+  let busy = 2;
+
+  await installHostService(
+    {
+      platform: "darwin",
+      executable: "/bin/envden",
+      userHome: "/test",
+      home: "/test/envden",
+      uid: 1,
+      write: async () => {},
+      run: async (args) => {
+        commands.push(args);
+        if (args[1] === "bootstrap" && busy-- > 0) throw new Error("Bootstrap failed: 5");
+      },
+      pause: async () => {
+        pauses++;
+      },
+    },
+    fixtureClock,
+  );
+
+  expect(commands.filter((args) => args[1] === "bootstrap")).toHaveLength(3);
+  expect(pauses).toBe(2);
+});
