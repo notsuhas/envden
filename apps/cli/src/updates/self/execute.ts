@@ -72,8 +72,6 @@ export async function managerUpdate(
       absolute.push("--userconfig", userconfig);
     }
 
-    // Homebrew reads system and prefix brew.env files even with an isolated user config.
-    if (command[0] === "brew") env.HOMEBREW_XDG_CONFIG_HOME = config;
     await run(absolute, env, managerBin);
     await postInstall(pinned.binary, run, managerBin);
   } finally {

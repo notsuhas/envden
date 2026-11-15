@@ -134,22 +134,15 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
           if (!env) throw new Error("Expected sanitized environment");
 
           expect(
-            Object.keys(env ?? {})
-              .filter((key) => key !== "HOMEBREW_XDG_CONFIG_HOME")
-              .some((key) =>
-                /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(
-                  key,
-                ),
-              ),
+            Object.keys(env ?? {}).some((key) =>
+              /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(key),
+            ),
           ).toBe(false);
 
           expect(env?.PATH).not.toContain(checkout);
 
-          if (manager === "brew" && calls === 1) {
-            expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeDefined();
-
-            await expectPrivateMode(env.HOMEBREW_XDG_CONFIG_HOME!, 0o700);
-          }
+          // brew keeps the user's config so taps trusted with `brew trust` still load
+          if (manager === "brew") expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeUndefined();
 
           if (manager === "npm" && calls === 1) {
             expect(args.slice(0, 2).map((path) => path.replaceAll("\\", "/"))).toEqual(
