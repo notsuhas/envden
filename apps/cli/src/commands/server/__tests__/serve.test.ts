@@ -12,11 +12,11 @@ test("the setup token comes from the environment, never argv", () => {
   expect(serveCommand.options.map((option) => option.long)).not.toContain("--setup-token");
 });
 
-test("--port takes a decimal port from 1 to 65535", () => {
+test("--port takes a decimal port from 0 to 65535", () => {
   const parse = (value: string) => parsePort(value);
 
-  expect(["1", "8080", "65535"].map(parse)).toEqual([1, 8080, 65535]);
+  expect(["0", "1", "8080", "65535"].map(parse)).toEqual([0, 1, 8080, 65535]);
 
-  for (const value of ["0", "65536", "0x10", "abc", "1e3", "80.5", "-1", " 80", ""])
+  for (const value of ["65536", "0x10", "abc", "1e3", "80.5", "-1", " 80", ""])
     expect(() => parse(value)).toThrow(InvalidArgumentError);
 });
