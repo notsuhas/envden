@@ -28,7 +28,11 @@ pub fn adopt_group(
     group: IOwnLinkGroup,
     copy: bool,
 ) -> Result<Vec<IOwnLink>> {
-    let target = sanitize_terminal(&home_path(Path::new(&group.target), &adapters.user_home));
+    let home = adapters
+        .user_home
+        .canonicalize()
+        .unwrap_or_else(|_| adapters.user_home.clone());
+    let target = sanitize_terminal(&home_path(Path::new(&group.target), &home));
     let Some(content) = read_target(Path::new(&group.target)) else {
         eprintln!("envden: can't read {target}; left the links to it in place");
         return Ok(group.links);
@@ -41,7 +45,7 @@ pub fn adopt_group(
     for link in group.links {
         let shown = sanitize_terminal(&home_path(
             &Path::new(&link.checkout.root).join(&link.path),
-            &adapters.user_home,
+            &home,
         ));
         match adopt_link(adapters, state, &link, &content, copy) {
             Ok(true) => continue,
