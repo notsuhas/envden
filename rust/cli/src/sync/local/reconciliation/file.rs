@@ -35,12 +35,6 @@ pub fn reconcile_file(
     if targets.is_empty() {
         return Ok((0, 0));
     }
-    if conflict_records(&context.adapters.home)?
-        .iter()
-        .any(|r| r.store == store)
-    {
-        return Ok((0, 1));
-    }
     let base = base_path(&context.adapters.home, store, None);
     let server = entry
         .map(|e| entry_content(context, e))
@@ -94,6 +88,27 @@ pub fn reconcile_file(
         deleting,
         store: stored.as_deref(),
     });
+    let records = conflict_records(&context.adapters.home)?;
+    if records.iter().any(|r| r.store == store) {
+        let writable = matches!(decision.action, TContentAction::Write(_))
+            && !lineage.invalid
+            && !lineage.corrupt
+            && stored == server
+            && snapshots
+                .iter()
+                .all(|s| s.bytes.is_none() || s.bytes == server);
+        if !writable {
+            return Ok((usize::from(lineage.restored), 1));
+        }
+        save_conflicts(
+            &context.adapters.home,
+            &records
+                .into_iter()
+                .filter(|r| r.store != store)
+                .collect::<Vec<_>>(),
+            (context.options.now)(),
+        )?;
+    }
     let mine = decision.sides.mine;
     let chooser = context
         .options

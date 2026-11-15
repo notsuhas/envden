@@ -107,3 +107,6 @@ fn reconciliation(repair: bool, consume: bool) {
 fn detached_chooser() {
     reconciliation(false, false);
 }
+
+#[test]
+fn aligned_conflicts() { reconciliation(true, false); }
