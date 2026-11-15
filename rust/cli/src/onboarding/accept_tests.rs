@@ -143,6 +143,29 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
             .code,
         ErrorCode::Fork
     );
+    let context = crate::admin::shared::context::IAdminContext {
+        adapters: &adapters,
+        local: json!({"server":{"address":"http://server.test"}}),
+        identity: identity.clone(),
+        vault_id: history.state.vault_id,
+        client: crate::client::create_client(client.options.clone()),
+    };
+    let swap = p::ISwap {
+        expected_head: [0; 32],
+        entries: vec![],
+        header: history.headers[0].clone(),
+        files: None,
+        keyring: None,
+        envelope: None,
+        sk_pub: None,
+        opaque_record: None,
+        approver: None,
+    };
+    let error = crate::state::lock::with_state_lock(&adapters.home, 42, || {
+        crate::vault::admin::commit::accept(&context, &swap, &history)
+    })
+    .unwrap_err();
+    assert_eq!(error.code, ErrorCode::Fork);
     assert_eq!(
         crate::state::repository::load_state(&adapters.home)
             .unwrap()

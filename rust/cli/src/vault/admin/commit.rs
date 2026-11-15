@@ -1,6 +1,5 @@
 use crate::{
     admin::shared::context::IAdminContext,
-    session::record_unlock_window,
     state::files::atomic_write,
     vault::history::{IVaultHistory, read_history},
 };
@@ -64,42 +63,29 @@ pub fn commit(context: &IAdminContext<'_>, swap: &p::ISwap) -> Result<()> {
 }
 
 pub fn accept(context: &IAdminContext<'_>, swap: &p::ISwap, history: &IVaultHistory) -> Result<()> {
-    let mut local = context.local.clone();
-    record_unlock_window(&context.client, &mut local)?;
-    let material = crate::vault::join::checkpoint_material(context.adapters, &local)?;
-    let mut sync = crate::sync::remote::context::ISyncContext {
-        adapters: context.adapters,
-        options: crate::sync::remote::context::ISyncOptions {
-            now: || 0,
-            cwd: None,
-            all: false,
-            yes: false,
-            interactive: false,
-            choose: None,
-            confirm: None,
-            report: None,
-        },
-        state: local,
-        skipped_roots: Default::default(),
-        identity: context.identity.clone(),
-        vault_id: context.vault_id,
-        client: crate::client::create_client(context.client.options.clone()),
-        headers: material.headers,
-        entries: material.entries,
-        keys: material.keys,
-        checkpoint: material.checkpoint,
-    };
-    crate::sync::remote::accept::accept_head(
-        &mut sync,
-        Some(IVaultHistory {
-            entries: history.entries.clone(),
-            headers: history.headers.clone(),
-            state: history.state.clone(),
-            states: history.states.clone(),
-        }),
-        false,
+    let server = context
+        .local
+        .get("server")
+        .filter(|v| !v.is_null())
+        .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Missing server configuration"))?;
+    let mut options = context.client.options.clone();
+    options.address = server["address"].as_str().unwrap_or_default().into();
+    options.pin = history.state.server_pin;
+    let client = crate::client::create_client(options);
+    let hash = p::object_hash(
+        history
+            .headers
+            .last()
+            .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Missing manifest history"))?,
+        "manifest",
     )?;
-    crate::sync::remote::persist::persist_checkpoint(&mut sync)?;
+    crate::onboarding::accept::accept(
+        context.adapters,
+        &client,
+        &context.identity,
+        history,
+        &hash,
+    )?;
     if let Some(envelope) = &swap.envelope {
         atomic_write(
             &context.adapters.home.join("state/envelope.bin"),
