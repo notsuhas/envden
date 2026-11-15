@@ -56,6 +56,7 @@ fn main() {
             let adapters = create_adapters(None, home, now);
             if let Err(error) = dispatch(&invocation, &adapters, &DefaultActions, &DefaultHooks) {
                 print_error(&error.message);
+                envden_cli::report::launch::offer_report(&error, &adapters);
                 std::process::exit(error_exit_code(error.code));
             }
         }

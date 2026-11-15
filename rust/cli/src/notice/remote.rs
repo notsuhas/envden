@@ -12,14 +12,14 @@ pub struct IRemoteNotice {
 
 pub fn read_remote_notice(home: &Path) -> Result<Option<IRemoteNotice>> {
     Ok(optional_read(&home.join("state/remote-notice.json"))?
-        .and_then(|s| serde_json::from_str(&s).ok()))
+        .and_then(|s| serde_json::from_str::<IRemoteNotice>(&s).ok()))
 }
 
 pub fn write_remote_notice(home: &Path, notice: &IRemoteNotice, now: u64) -> Result<()> {
     atomic_write(
         &home.join("state/remote-notice.json"),
-        serde_json::to_string(notice)
-            .expect("notice JSON")
+        serde_json::json!({"checkedAt":notice.checked_at as u64,"repos":notice.repos})
+            .to_string()
             .as_bytes(),
         now,
     )

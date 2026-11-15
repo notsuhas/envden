@@ -21,11 +21,55 @@ pub fn command_notice(
     cwd: Option<&str>,
     local_only: bool,
 ) -> Value {
+    command_notice_with_transport(
+        adapters,
+        now,
+        fetcher,
+        refresh,
+        cwd,
+        local_only,
+        std::rc::Rc::new(crate::client::UreqTransport),
+    )
+}
+
+pub fn command_notice_with_transport(
+    adapters: &IAdapters,
+    now: u64,
+    fetcher: &dyn IFetcher,
+    refresh: bool,
+    cwd: Option<&str>,
+    local_only: bool,
+    transport: std::rc::Rc<dyn crate::client::ITransport>,
+) -> Value {
     let result = (|| -> Result<Value> {
         if !refresh {
             with_state_lock(&adapters.home, (adapters.now)(), || {
                 report_pending_joins(&adapters.home, (adapters.now)())
             })?;
+        }
+        if !local_only
+            && let Some(state) = load_state(&adapters.home)?
+            && state["checkpoint"].is_string()
+        {
+            let remote = read_remote_notice(&adapters.home)?;
+            if !refresh || remote.is_none_or(|r| now as f64 - r.checked_at >= 60_000.0) {
+                let options = crate::sync::remote::context::ISyncOptions {
+                    now: adapters.now,
+                    cwd: None,
+                    all: true,
+                    yes: false,
+                    interactive: false,
+                    choose: None,
+                    confirm: None,
+                    report: None,
+                };
+                let bounded = super::deadline::bounded_transport(
+                    transport,
+                    adapters.now,
+                    now.saturating_add(2_000),
+                );
+                let _ = super::fetch::remote_notice(adapters, options, bounded);
+            }
         }
         if !refresh && !local_only {
             run_update_check(adapters, now, false, fetcher)?;

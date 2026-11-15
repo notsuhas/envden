@@ -2,12 +2,10 @@ use super::IInvocation;
 use crate::{
     adapters::IAdapters,
     output::{print, skips_notices},
-    settings::{self, TSettingRequest},
-    state,
+    settings, state,
     version::VERSION,
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
-use std::io::{self, IsTerminal};
 
 pub trait ICommandActions {
     fn run(&self, invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()>;
@@ -61,9 +59,21 @@ impl ICommandActions for DefaultActions {
             .collect::<Vec<_>>()
             .as_slice()
         {
+            ["server", "repair"] => {
+                return crate::commands::server::repair::run(invocation, adapters);
+            }
             ["server", "move" | "switch"] => {
                 return crate::commands::server::moving::run(invocation, adapters);
             }
+            ["device", "add"] => return crate::commands::device::add::run(adapters),
+            ["join"] => return crate::commands::onboarding::join::run(invocation, adapters),
+            ["setup"] => return crate::commands::onboarding::setup::run(invocation, adapters),
+            ["vault", ..] => return crate::commands::vault::run::run(invocation, adapters),
+            ["device", "ls"] => return crate::commands::device::ls::run(invocation, adapters),
+            ["device", "rename"] => {
+                return crate::commands::device::rename::run(invocation, adapters);
+            }
+            ["device", "rm"] => return crate::commands::device::rm::run(invocation, adapters),
             ["ui"] => return crate::commands::ui::run::run(invocation, adapters),
             ["track"] => return crate::commands::onboarding::run_track(invocation, adapters),
             ["unlock"] => return crate::commands::onboarding::run_unlock(adapters),
@@ -72,6 +82,11 @@ impl ICommandActions for DefaultActions {
             ["shell", action] => return crate::commands::shell::run(action, invocation, adapters),
             ["agent", "install"] => return crate::commands::agent::install(adapters),
             ["doctor"] => return crate::commands::maintenance::doctor::run(invocation, adapters),
+            ["push" | "pull"] => return crate::commands::sync::transfer::run(invocation, adapters),
+            ["resolve"] => return crate::commands::sync::resolve::run(invocation, adapters),
+            ["status"] => return crate::commands::sync::status::run(invocation, adapters),
+            ["rm"] => return crate::commands::sync::rm::run(invocation, adapters),
+            ["history"] => return crate::commands::sync::history::run(invocation, adapters),
             ["diff"] => return crate::commands::sync::diff::run(invocation, adapters),
             ["alias"] => return crate::commands::sync::alias::run(invocation, adapters),
             ["local-only"] => {
@@ -120,30 +135,7 @@ pub fn dispatch(
 }
 
 fn config(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<String> {
-    match settings::setting_request(&invocation.arguments)? {
-        TSettingRequest::List => Ok(settings::config_text(&settings::read_config(
-            &adapters.home,
-        )?)),
-        TSettingRequest::Read("unlock-period") | TSettingRequest::UnlockPeriod(_) => {
-            state::require_configured(state::repository::load_state(&adapters.home)?)?;
-            Err(not_implemented())
-        }
-        TSettingRequest::Read(key) => Ok(settings::setting_text(
-            key,
-            &settings::read_config(&adapters.home)?,
-        )),
-        TSettingRequest::Set(key, value) => Ok(settings::setting_text(
-            key,
-            &settings::set_config(
-                key,
-                value,
-                &adapters.home,
-                (adapters.now)(),
-                io::stdin().is_terminal(),
-            )?,
-        )),
-        TSettingRequest::Placement(_, _) => Err(not_implemented()),
-    }
+    settings::actions::apply_setting(&invocation.arguments, adapters)
 }
 
 fn not_implemented() -> EnvdenError {

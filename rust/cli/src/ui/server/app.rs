@@ -26,12 +26,42 @@ pub const SECURITY_HEADERS: &[(&str, &str)] = &[
 
 pub type TApi = Arc<dyn Fn(&str) -> envden_core::errors::Result<serde_json::Value> + Send + Sync>;
 
+pub struct IApiRequest {
+    pub method: String,
+    pub path: String,
+    pub query: String,
+    pub body: serde_json::Value,
+}
+
+pub type TRequestApi = Arc<
+    dyn Fn(&IApiRequest) -> envden_core::errors::Result<Option<serde_json::Value>> + Send + Sync,
+>;
+
 pub fn create_dashboard_app(port: u16, token: String, api: TApi) -> Router {
+    create_request_dashboard_app(
+        port,
+        token,
+        Arc::new(move |request| api(&request.path).map(Some)),
+    )
+}
+
+pub fn create_request_dashboard_app(port: u16, token: String, api: TRequestApi) -> Router {
     Router::new().fallback(any(move |request: Request<Body>| {
         let token = token.clone();
         let api = api.clone();
         async move {
-            let mut response = respond(&request, port, &token, api);
+            let (parts, body) = request.into_parts();
+            let bytes = axum::body::to_bytes(body, usize::MAX)
+                .await
+                .unwrap_or_default();
+            let input = IApiRequest {
+                method: parts.method.to_string(),
+                path: parts.uri.path().into(),
+                query: parts.uri.query().unwrap_or_default().into(),
+                body: serde_json::from_slice(&bytes).unwrap_or_default(),
+            };
+            let request = Request::from_parts(parts, Body::empty());
+            let mut response = respond(&request, port, &token, api, &input);
             for (name, value) in SECURITY_HEADERS {
                 response.headers_mut().insert(
                     axum::http::HeaderName::from_bytes(name.as_bytes()).unwrap(),
@@ -55,7 +85,13 @@ fn error(status: u16, code: &str, message: &str) -> Response<Body> {
     json(status, serde_json::json!({"error":code,"message":message}))
 }
 
-fn respond(request: &Request<Body>, port: u16, token: &str, api: TApi) -> Response<Body> {
+fn respond(
+    request: &Request<Body>,
+    port: u16,
+    token: &str,
+    api: TRequestApi,
+    input: &IApiRequest,
+) -> Response<Body> {
     let header = |name| request.headers().get(name).and_then(|v| v.to_str().ok());
     if !allowed_host(header("Host"), port) {
         return error(421, "INVALID_INPUT", "Unexpected host");
@@ -68,8 +104,9 @@ fn respond(request: &Request<Body>, port: u16, token: &str, api: TApi) -> Respon
         if request.method() != "GET" && !same_origin(header("Origin"), header("Host")) {
             return error(403, "UNAUTHORIZED", "Cross-origin request refused");
         }
-        match api(path) {
-            Ok(value) => return json(200, value),
+        match api(input) {
+            Ok(Some(value)) => return json(200, value),
+            Ok(None) => {}
             Err(e) => {
                 return error(
                     super::errors::error_status(e.code),

@@ -1,8 +1,8 @@
 use super::{
     browser::open_browser,
-    server::{app::create_dashboard_app, token::new_token},
+    server::{app::create_request_dashboard_app, token::new_token},
 };
-use crate::{adapters::IAdapters, state::repository::load_state};
+use crate::adapters::{IAdapters, create_adapters};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use std::sync::Arc;
 
@@ -26,26 +26,24 @@ pub fn run_dashboard(
     }
     let runtime = tokio::runtime::Runtime::new().map_err(failed)?;
     let home = adapters.home.clone();
+    let user_home = adapters.user_home.clone();
+    let now = adapters.now;
     runtime.block_on(async {
         let token = new_token();
         let listener = tokio::net::TcpListener::bind(("127.0.0.1", port.unwrap_or(0.0) as u16))
             .await
             .map_err(failed)?;
         let port = listener.local_addr().map_err(failed)?.port();
-        let app = create_dashboard_app(
+        let app = create_request_dashboard_app(
             port,
             token.clone(),
-            Arc::new(move |path| {
-                if path == "/api/status" {
-                    let state = load_state(&home)?;
-                    if !state.is_some_and(|s| s["server"].is_object() && s["vaultId"].is_string()) {
-                        return Ok(serde_json::json!({"kind":"not-configured"}));
-                    }
-                }
-                Err(EnvdenError::new(
-                    ErrorCode::NotImplemented,
-                    "Not implemented",
-                ))
+            Arc::new(move |request| {
+                let adapters = create_adapters(Some(home.clone()), user_home.clone(), now);
+                crate::ui::routes::api::api(
+                    &adapters,
+                    request,
+                    std::rc::Rc::new(crate::client::UreqTransport),
+                )
             }),
         );
         let url = format!("http://127.0.0.1:{port}/#{token}");

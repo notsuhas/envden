@@ -6,7 +6,13 @@ use std::{
 };
 
 pub fn write_through(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
-    atomic_write(&link_target(path)?, bytes, now)
+    let target = link_target(path)?;
+    let parent = target.parent().expect("absolute target");
+    let permissions = fs::metadata(parent).map_err(failure)?.permissions();
+    let result = atomic_write(&target, bytes, now);
+    fs::set_permissions(parent, permissions).map_err(failure)?;
+
+    result
 }
 
 fn link_target(path: &Path) -> Result<PathBuf> {
@@ -49,10 +55,21 @@ mod tests {
         let link = temp.path().join("skill");
         let target = temp.path().join("dotfiles/SKILL.md");
         std::os::unix::fs::symlink(&target, &link).unwrap();
+        fs::create_dir_all(target.parent().unwrap()).unwrap();
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(target.parent().unwrap(), fs::Permissions::from_mode(0o755)).unwrap();
         for bytes in [b"first".as_slice(), b"second"] {
             write_through(&link, bytes, 123).unwrap();
             assert!(fs::symlink_metadata(&link).unwrap().is_symlink());
             assert_eq!(fs::read(&target).unwrap(), bytes);
+            assert_eq!(
+                fs::metadata(target.parent().unwrap())
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                0o755
+            );
         }
     }
 }
