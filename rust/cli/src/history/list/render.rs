@@ -61,8 +61,8 @@ pub fn history_text(result: &Value, now: u64) -> Result<String> {
             };
             let mut columns = vec![
                 format!("  v{}", version["version"]),
-                format!("{time:42}"),
-                format!("{device:16}"),
+                column(&time, 42),
+                column(device, 16),
                 kind,
             ];
             for checkout in checkouts
@@ -103,4 +103,31 @@ pub fn history_text(result: &Value, now: u64) -> Result<String> {
     } else {
         crate::output::sanitize_console(&files.join("\n\n"))
     })
+}
+
+fn column(value: &str, width: usize) -> String {
+    format!(
+        "{value}{}",
+        " ".repeat(width.saturating_sub(unicode_width::UnicodeWidthStr::width(value)))
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn device_columns_are_padded_by_terminal_cells() {
+        let result = json!({"files":[{"repoId":"host/repo","path":".env","checkouts":[],"versions":[{"version":1,"kind":"live","device":"日本","changes":"unknown"}]}]});
+        let rendered = history_text(&result, 1).unwrap();
+        assert_eq!(
+            rendered,
+            format!(
+                "host/repo .env\n  v1  {:42}  日本{}  changes unknown",
+                "unknown time",
+                " ".repeat(12)
+            )
+        );
+    }
 }
