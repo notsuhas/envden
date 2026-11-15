@@ -81,120 +81,76 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
                 .err()
                 .map(|e| e.message.to_string())
         })?;
-        let (mailbox, password) = p::normalize_pairing_code(&code)?;
-        let start = p::opaque_start_login(p::IStartClientLoginParams {
-            password: password.clone(),
-        })?;
-        let expires = put(&client, mailbox, "KE1", &start.start_login_request)?
-            .min((adapters.now)() + 600_000);
-        with_state_lock(&adapters.home, (adapters.now)(), || {
-            atomic_write(
-                &adapters.home.join("state/pair-expiry"),
-                expires.to_string().as_bytes(),
-                (adapters.now)(),
-            )
-        })?;
-        let response = wait(
-            &client,
-            &format!("/v1/pairing/mailboxes/{mailbox}/KE2"),
-            adapters.now,
-            expires,
-        )?;
-        let finish = p::opaque_finish_login(p::IFinishClientLoginParams {
-            password,
-            client_login_state: start.client_login_state,
-            login_response: response,
-            identifiers: Some(p::pairing_identifiers(&server.pin, mailbox)?.identifiers),
-            key_stretching_function_config: None,
-        })?
-        .ok_or_else(|| {
-            EnvdenError::new(
-                ErrorCode::Unauthorized,
-                "Incorrect pairing code; make a new code",
-            )
-        })?;
-        let session = Zeroizing::new(binary(&finish.session_key)?);
-        let (send, receive_key) = p::pairing_channel_keys(&session)?;
-        drop(session);
-        let keys = super::approval::IChannelKeys {
-            receive: receive_key,
-            send,
-        };
-        let message = text(&p::seal_pair_joiner(
-            &p::IPairJoiner {
-                device: identity.record.clone(),
-            },
-            &keys.send,
-            &p::random_bytes(),
-        )?);
-        with_state_lock(&adapters.home, (adapters.now)(), || {
-            adapters.keychain.set(&receive, &keys.receive)?;
-            atomic_write(
-                &adapters.home.join("state/pair-joiner"),
-                json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
-                    .to_string()
-                    .as_bytes(),
-                (adapters.now)(),
-            )
-        })?;
-        put(&client, mailbox, "KE3", &finish.finish_login_request)?;
-        put(&client, mailbox, "PairJoiner", &message)?;
-        println!("Waiting for the approving device");
-    }
-    let expiry = std::fs::read_to_string(adapters.home.join("state/pair-expiry"))
-        .ok()
-        .and_then(|v| v.parse::<u64>().ok());
-    if expiry.is_some_and(|v| (adapters.now)() < v)
-        && let Ok(saved) = std::fs::read_to_string(adapters.home.join("state/pair-joiner"))
-    {
-        let value: Value = serde_json::from_str(&saved).map_err(|e| {
-            EnvdenError::with_source(ErrorCode::InvalidData, "Invalid stored pairing exchange", e)
-        })?;
-        let mailbox = value["mailbox"].as_u64().ok_or_else(|| {
-            EnvdenError::new(ErrorCode::InvalidData, "Invalid stored pairing exchange")
-        })? as u32;
-        for (slot, field) in [("KE3", "ke3"), ("PairJoiner", "message")] {
-            let message = value[field].as_str().ok_or_else(|| {
-                EnvdenError::new(ErrorCode::InvalidData, "Invalid stored pairing exchange")
+        super::cleanup::run(adapters, super::cleanup::TPhase::Exchange, || {
+            let (mailbox, password) = p::normalize_pairing_code(&code)?;
+            let start = p::opaque_start_login(p::IStartClientLoginParams {
+                password: password.clone(),
             })?;
-            if let Err(error) = put(&client, mailbox, slot, message)
-                && error.code != ErrorCode::NotFound
-            {
-                return Err(error);
-            }
-        }
+            let expires = put(&client, mailbox, "KE1", &start.start_login_request)?
+                .min((adapters.now)() + 600_000);
+            with_state_lock(&adapters.home, (adapters.now)(), || {
+                atomic_write(
+                    &adapters.home.join("state/pair-expiry"),
+                    expires.to_string().as_bytes(),
+                    (adapters.now)(),
+                )
+            })?;
+            let response = wait(
+                &client,
+                &format!("/v1/pairing/mailboxes/{mailbox}/KE2"),
+                adapters.now,
+                expires,
+            )?;
+            let finish = p::opaque_finish_login(p::IFinishClientLoginParams {
+                password,
+                client_login_state: start.client_login_state,
+                login_response: response,
+                identifiers: Some(p::pairing_identifiers(&server.pin, mailbox)?.identifiers),
+                key_stretching_function_config: None,
+            })?
+            .ok_or_else(|| {
+                EnvdenError::new(
+                    ErrorCode::Unauthorized,
+                    "Incorrect pairing code; make a new code",
+                )
+            })?;
+            let session = Zeroizing::new(binary(&finish.session_key)?);
+            let (send, receive_key) = p::pairing_channel_keys(&session)?;
+            drop(session);
+            let keys = super::approval::IChannelKeys {
+                receive: receive_key,
+                send,
+            };
+            let message = text(&p::seal_pair_joiner(
+                &p::IPairJoiner {
+                    device: identity.record.clone(),
+                },
+                &keys.send,
+                &p::random_bytes(),
+            )?);
+            with_state_lock(&adapters.home, (adapters.now)(), || {
+                adapters.keychain.set(&receive, &keys.receive)?;
+                atomic_write(
+                    &adapters.home.join("state/pair-joiner"),
+                    json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
+                        .to_string()
+                        .as_bytes(),
+                    (adapters.now)(),
+                )
+            })?;
+            put(&client, mailbox, "KE3", &finish.finish_login_request)?;
+            put(&client, mailbox, "PairJoiner", &message)?;
+            println!("Waiting for the approving device");
+            Ok(Value::Null)
+        })?;
     }
-    wait(
-        &client,
-        "/v1/pairing/approver",
-        adapters.now,
-        expiry
-            .map(|v| v.saturating_add(86_400_000))
-            .unwrap_or_else(|| (adapters.now)() + 86_400_000),
-    )?;
-    super::resume::resume(adapters, &client, &identity, rejoin)
+    super::finish::finish(adapters, &client, &identity, rejoin)
 }
 
 pub fn join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
-    let result = join_inner(adapters, address, options);
-    if let Err(error) = &result {
-        if matches!(
-            error.code,
-            ErrorCode::Unauthorized
-                | ErrorCode::Conflict
-                | ErrorCode::InvalidData
-                | ErrorCode::Fork
-        ) || (error.code == ErrorCode::NotFound && options["resume"] != true)
-        {
-            super::persistence::clear(adapters)?;
-        }
-        if error.code == ErrorCode::Busy && !adapters.home.join("state/pair-joiner").exists() {
-            super::persistence::clear(adapters)?;
-            return Err(EnvdenError::new(
-                ErrorCode::Busy,
-                "Pairing timed out before login; create a new pairing code",
-            ));
-        }
-    }
-    result
+    join_inner(adapters, address, options)
 }
+
+#[cfg(test)]
+#[path = "joiner_tests.rs"]
+mod tests;
