@@ -54,4 +54,5 @@ mod support;
 
 mod join_choice;
 
+mod attempts;
 

@@ -1,10 +1,7 @@
 use super::{application::apply, codec::decode};
 use crate::{
     client::text,
-    state::{
-        files::{atomic_write, failure},
-        records::recover_sync_record,
-    },
+    state::{files::atomic_write, records::recover_sync_record},
     sync::{
         local::{
             files::{base_path, write_bytes},
@@ -19,19 +16,17 @@ use std::fs;
 
 pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
     let directory = context.adapters.home.join("state/attempts");
-    let names = match fs::read_dir(&directory) {
-        Ok(names) => names,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(e) => return Err(failure(e)),
-    };
+    let names = fs::read_dir(&directory)
+        .and_then(|names| {
+            names
+                .map(|name| name.map(|entry| entry.file_name()))
+                .collect::<std::io::Result<Vec<_>>>()
+        })
+        .unwrap_or_default();
     let mut attempts = Vec::new();
     for name in names {
-        let name = name
-            .map_err(failure)?
-            .file_name()
-            .to_string_lossy()
-            .into_owned();
-        let receipt = name.trim_end_matches(".invalid");
+        let name = name.to_string_lossy().into_owned();
+        let receipt = name.strip_suffix(".invalid").unwrap_or(&name);
         if receipt.len() != 43
             || !receipt
                 .bytes()
@@ -76,7 +71,7 @@ pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
             write_bytes(&marker, None, (context.options.now)())?;
         }
     }
-    attempts.sort_by_key(|(_, a)| a.sequence.parse::<u64>().unwrap_or_default());
+    attempts.sort_by_key(|(_, a)| a.sequence.parse::<u128>().unwrap_or_default());
     for (path, attempt) in attempts {
         let accepted = context
             .headers
@@ -86,8 +81,8 @@ pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
             apply(context, &attempt)?;
         }
         if accepted
-            || context.checkpoint.header.body.seq
-                >= attempt.sequence.parse::<u64>().unwrap_or_default()
+            || u128::from(context.checkpoint.header.body.seq)
+                >= attempt.sequence.parse::<u128>().unwrap_or_default()
         {
             write_bytes(&path, None, (context.options.now)())?;
         }
