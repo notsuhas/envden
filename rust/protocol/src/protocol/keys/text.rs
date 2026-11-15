@@ -15,6 +15,7 @@ pub fn encode_secret_key(secret: &[u8; 16]) -> String {
             .join("-")
     )
 }
+
 pub fn decode_secret_key(text: &str) -> Result<[u8; 16]> {
     require_value(
         text.to_ascii_uppercase().starts_with("EK1-"),

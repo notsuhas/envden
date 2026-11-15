@@ -1,6 +1,10 @@
 pub mod r#box;
+pub use r#box::{open_box, seal_box};
 pub mod hash;
+pub use hash::{frame, h, kdf, mac};
 pub mod sign;
-pub use r#box::*;
-pub use hash::*;
-pub use sign::*;
+pub use sign::{sign, verify};
+pub mod signed_object;
+pub use signed_object::{object_hash, sign_object, verify_object, verify_raw_object};
+pub mod random;
+pub use random::random_bytes;

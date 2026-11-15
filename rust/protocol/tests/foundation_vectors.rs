@@ -9,9 +9,11 @@ fn vectors(name: &str) -> Value {
         .join(name);
     serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
 }
+
 fn bytes(value: &Value) -> Vec<u8> {
     hex::decode(value.as_str().unwrap()).unwrap()
 }
+
 fn fixed<const N: usize>(value: &Value) -> [u8; N] {
     bytes(value).try_into().unwrap()
 }
