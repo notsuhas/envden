@@ -37,8 +37,7 @@ export function ConsentBanner() {
       className="fixed right-4 bottom-4 left-4 z-50 max-w-md border border-den-line-strong bg-den-surface p-4 sm:left-auto"
     >
       <p className="text-sm text-den-ink">
-        This site counts page views without cookies. Allow cookies too, and I can see session
-        replays and heatmaps that show where the docs fall short. Form inputs are always masked.
+        We use cookies to improve your experience and understand how the site is used.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
@@ -46,20 +45,20 @@ export function ConsentBanner() {
           onClick={() => choose(true)}
           className={`${BUTTON} bg-den-lantern text-den-on-lantern hover:bg-[rgba(255,210,122,1)] active:bg-[rgba(228,170,66,1)]`}
         >
-          Allow cookies
+          Accept
         </button>
         <button
           type="button"
           onClick={() => choose(false)}
           className={`${BUTTON} border border-den-line-strong text-den-ink hover:bg-den-raised`}
         >
-          No thanks
+          Decline
         </button>
         <Link
           href={`${DOCS_ROUTE}/telemetry#this-website`}
           className="den-link text-sm text-den-muted"
         >
-          Details
+          Learn more
         </Link>
       </div>
     </section>
