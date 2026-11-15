@@ -105,7 +105,7 @@ mod pause_tests {
     use std::sync::atomic::{AtomicU64, Ordering};
     static CLOCK: AtomicU64 = AtomicU64::new(0);
     fn now() -> u64 {
-        CLOCK.load(Ordering::SeqCst)
+        CLOCK.fetch_add(5, Ordering::SeqCst)
     }
     #[test]
     fn pending_exchange_uses_injected_pause() {
