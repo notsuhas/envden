@@ -15,6 +15,8 @@ for(const kit of kits) {
  const document=kitDocument(kit,new Date(kit.date),kit.device);
  const pdf=Buffer.from(await renderKit(document));
  const start=pdf.indexOf('stream\n')+7,end=pdf.indexOf('\nendstream');
- result.push({document,metadataTime:now,pdf:pdf.toString('base64'),content:inflateSync(pdf.subarray(start,end)).toString('base64'),compressed:pdf.subarray(start,end).toString('base64')});
+ result.push({kit,document,metadataTime:now,pdf:pdf.toString('base64'),content:inflateSync(pdf.subarray(start,end)).toString('base64'),compressed:pdf.subarray(start,end).toString('base64')});
 }
-writeFileSync(new URL('./reference.json',import.meta.url),JSON.stringify(result,null,2)+'\n');
+const json=JSON.stringify(result,null,2)+'\n';
+if(process.argv.includes('--stdout')) process.stdout.write(json);
+else writeFileSync(new URL('./reference.json',import.meta.url),json);

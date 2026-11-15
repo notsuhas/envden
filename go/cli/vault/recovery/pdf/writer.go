@@ -2,8 +2,8 @@ package pdf
 
 import (
 	"bytes"
-	"github.com/notsuhas/envden/go/lib/pako"
 	"fmt"
+	"github.com/notsuhas/envden/go/lib/pako"
 	"strings"
 	"time"
 	"unicode/utf16"

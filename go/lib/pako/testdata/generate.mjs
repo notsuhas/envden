@@ -10,7 +10,7 @@ for (const size of [0,1,2,3,4,7,31,255,256,257,258,259,261,262,1024,16382,16383,
    input[i]=kind==='random'?seed>>>24:kind==='repeat'?97:kind==='ramp'?i%256:i%1024<800?i%23:seed>>>24;
   }
   const compressed=pako.deflate(input);
-  vectors.push({kind,size,length:compressed.length,sha256:createHash('sha256').update(compressed).digest('hex')});
+  vectors.push({kind,size,length:compressed.length,sha256:createHash('sha256').update(compressed).digest('hex'),...(size<=1024?{hex:Buffer.from(compressed).toString('hex')}:{})});
  }
 }
 writeFileSync(new URL('./golden.json',import.meta.url),JSON.stringify(vectors,null,2)+'\n');

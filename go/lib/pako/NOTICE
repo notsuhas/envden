@@ -1,4 +1,5 @@
-'use strict';
+This is an altered Go port of the default deflater in pako 1.0.11.
+Original files: lib/zlib/deflate.js, trees.js, adler32.js; lib/deflate.js.
 
 // (C) 1995-2013 Jean-loup Gailly and Mark Adler
 // (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
@@ -19,10 +20,3 @@
 //   misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-var utils   = require('../utils/common');
-var trees   = require('./trees');
-var adler32 = require('./adler32');
-var crc32   = require('./crc32');
-var msg     = require('./messages');
-
-/* Public constants ==========================================================*/
