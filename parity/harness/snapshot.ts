@@ -1,3 +1,4 @@
+import { pdfText } from "./snapshot/pdf.ts";
 import type { Context } from "./context.ts";
 import { Normalizer } from "./normalize.ts";
 import { lstat, readdir, readFile, readlink } from "node:fs/promises";
@@ -14,7 +15,9 @@ async function children(path: string, n: Normalizer) {
 
       return {
         child,
-        order: random ? `${bytes.length}:${bytes.toString("utf8")}` : n.known(child),
+        order: random
+          ? `${bytes.length}:${bytes.toString("utf8")}:${n.known(child)}`
+          : n.known(child),
       };
     }),
   );
@@ -35,6 +38,7 @@ function textContents(text: string, n: Normalizer) {
 
 async function contents(path: string, n: Normalizer) {
   const bytes = await readFile(path);
+  if (path.endsWith(".pdf")) return pdfText(bytes, n);
   if (/(?:^|\/)[^/]*\.env(?:\.|$)/.test(path)) return { exact: bytes.toString("base64") };
   if (path.endsWith(".key")) return { bytes: bytes.length };
 

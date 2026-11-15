@@ -124,7 +124,17 @@ fi
     if (!this.devices.has(role)) await this.device(role);
     const d = this.get(role);
     const data = existingData ?? join(this.root, role, "data");
-    const args = ["serve", "--data-dir", data, "--port", port, ...(restored ? ["--restored"] : [])];
+
+    const args = [
+      "serve",
+      "--min-client",
+      "0.0.0",
+      "--data-dir",
+      data,
+      "--port",
+      port,
+      ...(restored ? ["--restored"] : []),
+    ];
 
     const record = { label: `${role} serve`, stdout: "", stderr: "", code: 0 };
 

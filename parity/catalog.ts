@@ -1,3 +1,13 @@
+import onboardingOptions from "./scenarios/onboarding/options.ts";
+import resolutionOptions from "./scenarios/files/resolution.ts";
+import recoveryPdf from "./scenarios/onboarding/recovery-pdf.ts";
+import fileOptions from "./scenarios/files/options.ts";
+import lost from "./scenarios/server/lost.ts";
+import interrupted from "./scenarios/server/interrupted.ts";
+import userFlow from "./scenarios/onboarding/user-flow.ts";
+import maintenance from "./scenarios/maintenance/run.ts";
+import locked from "./scenarios/onboarding/locked-session.ts";
+import secret from "./scenarios/onboarding/pairing-secret.ts";
 import scenario0 from "./scenarios/checkouts.ts";
 import scenario1 from "./scenarios/command-surface.ts";
 import scenario2 from "./scenarios/credentials.ts";
@@ -11,6 +21,16 @@ import scenario9 from "./scenarios/sync.ts";
 import scenario10 from "./scenarios/unreachable.ts";
 
 export const scenarios = [
+  onboardingOptions,
+  resolutionOptions,
+  recoveryPdf,
+  fileOptions,
+  lost,
+  interrupted,
+  userFlow,
+  maintenance,
+  locked,
+  secret,
   scenario0,
   scenario1,
   scenario2,

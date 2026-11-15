@@ -29,6 +29,15 @@ export class Normalizer {
       .replaceAll(this.root, "<ROOT>");
 
     for (const path of this.executables) text = text.replaceAll(path, "<EXECUTABLE>");
+
+    text = text.replace(/(?<=envden Recovery Kit )[0-9A-Z]{6}(?=\.pdf)/g, (match) =>
+      this.map("kit-suffix", match),
+    );
+
+    text = text
+      .replace(/\b\d+ (?:seconds?|minutes?|hours?|days?) ago\b/g, "<RELATIVE_TIME>")
+      .replace(/\b\d{4}-\d\d-\d\d \d\d:\d\d GMT[+-]\d{1,2}:\d\d\b/g, "<TIME>");
+
     text = text.replace(/(?:127\.0\.0\.1|localhost):\d+/g, (match) => this.map("address", match));
 
     for (const rule of rules)

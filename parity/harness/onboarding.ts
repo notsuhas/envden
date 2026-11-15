@@ -4,8 +4,8 @@ import type { Context } from "./context.ts";
 
 export const password = "correct horse battery staple";
 
-export async function setup(c: Context) {
-  const server = await c.server();
+export async function setup(c: Context, existing?: Awaited<ReturnType<Context["server"]>>) {
+  const server = existing ?? (await c.server());
   await c.device("device-a", "# shared\nTOKEN=one\n");
   const kit = join(c.get("device-a").home, "kit.json");
 
