@@ -2,7 +2,10 @@ use super::super::context::invalid;
 use crate::{
     admin::shared::{context::IAdminContext, transfer::optional_object},
     client::{binary, text},
-    vault::{admin::material::current_material, history::IVaultHistory},
+    vault::{
+        admin::material::{IMaterial, current_material},
+        history::IVaultHistory,
+    },
 };
 use envden_core::errors::{ErrorCode, Result};
 use envden_protocol::{chain as c, protocol as p};
@@ -98,12 +101,11 @@ pub fn files(context: &IAdminContext<'_>, history: &IVaultHistory) -> Result<p::
     p::decode(&bytes)
 }
 
-pub fn names(
-    context: &IAdminContext<'_>,
-    history: &IVaultHistory,
+fn names(
+    vault_id: [u8; 32],
+    material: &IMaterial,
     entries: &[p::IFileEntry],
 ) -> Result<Vec<p::IFileName>> {
-    let material = current_material(context, history)?;
     entries
         .iter()
         .map(|e| {
@@ -115,7 +117,7 @@ pub fn names(
                     .ok_or_else(|| invalid(ErrorCode::InvalidData, "Missing epoch key"))?,
                 &material.ring.id_key,
                 &p::IFileContext {
-                    vault_id: context.vault_id,
+                    vault_id,
                     epoch: e.epoch,
                     file_id: e.file_id,
                     version: e.version,
@@ -123,4 +125,18 @@ pub fn names(
             )
         })
         .collect()
+}
+
+pub(crate) fn missing_blob_names(
+    context: &IAdminContext<'_>,
+    history: &IVaultHistory,
+    missing: &[p::IFileEntry],
+    lost: &[p::IFileEntry],
+) -> Result<(Vec<p::IFileName>, Vec<p::IFileName>)> {
+    let material = current_material(context, history)?;
+
+    Ok((
+        names(context.vault_id, &material, missing)?,
+        names(context.vault_id, &material, lost)?,
+    ))
 }

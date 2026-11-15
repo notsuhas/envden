@@ -13,11 +13,12 @@ use crate::{
 use envden_core::errors::Result;
 use envden_protocol::{chain as c, protocol as p};
 use serde_json::json;
-use std::rc::Rc;
+use std::{cell::Cell, rc::Rc};
 
 struct IFixtureTransport {
     keys: p::IDeviceKeys,
     keyring: Vec<u8>,
+    requests: Rc<Cell<usize>>,
 }
 
 impl ITransport for IFixtureTransport {
@@ -44,6 +45,7 @@ impl ITransport for IFixtureTransport {
             serde_json::to_vec(&json!({"hello":text(&p::encode(&hello)?)})).unwrap()
         } else {
             assert!(request.url.path().starts_with("/v1/keyrings/"));
+            self.requests.set(self.requests.get() + 1);
             self.keyring.clone()
         };
         Ok(IHttpResponse {
@@ -75,6 +77,7 @@ fn epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member() {
         state: *state,
     };
     let server = p::generate_device_keys(p::random_bytes);
+    let requests = Rc::new(Cell::new(0));
     let client = create_client(IClientOptions {
         address: "http://server.test".into(),
         pin: p::server_pin(&server.recovery.obj_pub).unwrap(),
@@ -86,6 +89,7 @@ fn epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member() {
         transport: Rc::new(IFixtureTransport {
             keys: server,
             keyring: genesis.keyring.clone(),
+            requests: requests.clone(),
         }),
         proof: None,
         unlock: None,
@@ -154,4 +158,8 @@ fn epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member() {
     .unwrap();
     assert_eq!(removed.wraps.len(), 1);
     assert_eq!(removed.wraps[0].recipient, history.state.recovery.id);
+    requests.set(0);
+    let names = crate::admin::repair::missing_blob_names(&context, &history, &[], &[]).unwrap();
+    assert!(names.0.is_empty() && names.1.is_empty());
+    assert_eq!(requests.get(), 1);
 }

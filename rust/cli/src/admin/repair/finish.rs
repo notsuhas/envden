@@ -73,10 +73,9 @@ pub fn finish_repair(
             let available = data::available(&context)?;
             let (missing, lost) = c::classify_missing_blobs(&files, &available, &reports);
             if gap_requires_report(missing.len(), lost.len(), accept_lost) {
-                return Ok(TFinish::MissingBlobs {
-                    missing: data::names(&context, &history, &missing)?,
-                    lost: data::names(&context, &history, &lost)?,
-                });
+                let (missing, lost) =
+                    super::missing_blob_names(&context, &history, &missing, &lost)?;
+                return Ok(TFinish::MissingBlobs { missing, lost });
             }
             if !lost.is_empty() {
                 fix_lost(&context, &history, files, &lost, &available, &id)?;
