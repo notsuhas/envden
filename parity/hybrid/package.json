@@ -1,0 +1,8 @@
+{
+  "name": "envden-hybrid-parity",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "transport": "bun transport.ts"
+  }
+}

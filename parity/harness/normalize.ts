@@ -38,6 +38,8 @@ export class Normalizer {
       .replace(/\b\d+ (?:seconds?|minutes?|hours?|days?) ago\b/g, "<RELATIVE_TIME>")
       .replace(/\b\d{4}-\d\d-\d\d \d\d:\d\d GMT[+-]\d{1,2}:\d\d\b/g, "<TIME>");
 
+    text = text.replace(/(<RELATIVE_TIME> \(<TIME>\)) +/g, "$1  ");
+
     text = text.replace(/(?:127\.0\.0\.1|localhost):\d+/g, (match) => this.map("address", match));
 
     for (const rule of rules)

@@ -1,3 +1,4 @@
+import { executablePaths } from "./executables.ts";
 import { pdfText } from "./snapshot/pdf.ts";
 import type { Context } from "./context.ts";
 import { Normalizer } from "./normalize.ts";
@@ -114,10 +115,7 @@ export function database(path: string, n: Normalizer) {
 }
 
 export async function capture(c: Context) {
-  const n = new Normalizer(
-    c.root,
-    Object.values(c.commands).map((command) => command[0]!),
-  );
+  const n = new Normalizer(c.root, executablePaths(c.commands, process.argv));
 
   const steps = c.results.map((step) => ({
     ...step,

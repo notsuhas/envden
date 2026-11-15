@@ -36,3 +36,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: Hono selects the GET handler, but the method policy rejects HEAD. The response is an empty 404, including status-page security headers where applicable. Rust preserves the wire response.
 - Possible improvement: allow HEAD on public GET endpoints and return their normal headers without a body.
 - Why: HEAD-based health checks currently report a healthy server as unavailable. BUG: fix in all implementations.
+
+## Listening is printed before shutdown handlers are ready
+
+- Scenario: send SIGTERM immediately after the server prints its listening URL.
+- TS behaviour: the signal can arrive before shutdown handlers are installed, producing exit 143 instead of a graceful shutdown. Rust preserves the startup ordering.
+- Possible improvement: install shutdown handlers before advertising readiness.
+- Why: process managers and fast tests can otherwise terminate a newly listening server without closing storage. BUG: fix in all implementations.
