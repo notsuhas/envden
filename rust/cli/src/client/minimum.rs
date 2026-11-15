@@ -15,7 +15,9 @@ pub fn latest_release(transport: &dyn ITransport) -> Result<String> {
         allow_redirect_response: true,
     }) && (300..400).contains(&response.status)
         && let Some(location) = response.location
-        && let Ok(url) = public.join(&location)
+        && let Ok(url) = url::Url::parse("https://github.com")
+            .expect("release origin")
+            .join(&location)
         && url.origin() == public.origin()
         && let Some(tag) = url.path().strip_prefix("/notsuhas/envden/releases/tag/")
         && let Ok(version) = tag_version(tag)
@@ -80,5 +82,23 @@ mod tests {
         let transport = Fallback(Cell::new(0));
         assert_eq!(latest_release(&transport).unwrap(), "9.0.0");
         assert_eq!(transport.0.get(), 2);
+    }
+
+    struct Relative;
+
+    impl ITransport for Relative {
+        fn fetch(&self, request: IHttpRequest) -> Result<super::super::IHttpResponse> {
+            assert_eq!(request.url.host_str(), Some("github.com"));
+            Ok(super::super::IHttpResponse {
+                status: 302,
+                location: Some("notsuhas/envden/releases/tag/v1.2.3".into()),
+                body: vec![],
+            })
+        }
+    }
+
+    #[test]
+    fn relative_redirect_uses_github_origin() {
+        assert_eq!(latest_release(&Relative).unwrap(), "1.2.3");
     }
 }
