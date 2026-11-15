@@ -46,9 +46,6 @@ func (c *Command) Help() string {
 		if len(sub.Options) > 0 {
 			term += " [options]"
 		}
-		if len(sub.Commands) > 0 {
-			term += " [command]"
-		}
 		for _, a := range sub.Arguments {
 			term += " " + a.Term
 		}

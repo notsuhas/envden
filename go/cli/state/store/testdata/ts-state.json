@@ -1,0 +1,5 @@
+{
+  "empty": "{\"format\":1,\"deviceName\":\"test\",\"entries\":[],\"approved\":[],\"links\":[],\"aliases\":{},\"telemetry\":false,\"updateCheck\":true,\"headerRefs\":[]}",
+  "rich": "{\"format\":1,\"deviceName\":\"test\",\"entries\":[],\"approved\":[],\"links\":[],\"aliases\":{},\"telemetry\":false,\"updateCheck\":true,\"vaultId\":\"vault\",\"session\":{\"unlockedUntil\":null,\"freshUntil\":123},\"verifiedState\":{\"devices\":{\"$map\":[[\"d\",{\"id\":{\"$bytes\":\"AQ\"}}]]},\"seq\":{\"$bigint\":\"123\"},\"repairIds\":{\"$set\":[\"a\"]}},\"headerRefs\":[\"6c90aa4993ff1f7a600c4519733f3570dcbaefcc9cfd40d37b9fee6540bb764f\"]}",
+  "config": "{\n  \"placement\": {\n    \"z\": \"link\",\n    \"a\": \"copy\"\n  },\n  \"telemetry\": true,\n  \"update-check\": true,\n  \"agent-merge\": false,\n  \"auto-approve-worktrees\": true\n}\n"
+}
