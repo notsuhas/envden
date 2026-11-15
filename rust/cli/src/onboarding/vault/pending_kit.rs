@@ -21,50 +21,6 @@ pub(super) fn resumed_kit(
     )
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        adapters::create_adapters,
-        identity::device_identity,
-        vault::{create_genesis, create_vault_swap},
-    };
-    #[test]
-    fn resumed_kit_must_match_pending_vault() {
-        let dir = tempfile::tempdir().unwrap();
-        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
-        let identity =
-            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
-        let material = create_genesis(&identity, [2; 32], 42).unwrap();
-        let creation = create_vault_swap(
-            &material,
-            &identity,
-            "password",
-            &crate::client::text(&[0; 192]),
-            42,
-        )
-        .unwrap();
-        assert!(
-            resumed_kit(
-                &creation.swap,
-                &creation.vault_id,
-                "server",
-                &creation.secret_key
-            )
-            .is_ok()
-        );
-        assert!(
-            resumed_kit(
-                &creation.swap,
-                &creation.vault_id,
-                "server",
-                &p::encode_secret_key(&[9; 16])
-            )
-            .is_err()
-        );
-    }
-}
-
 pub(super) fn resume_secret(options: &Value) -> Result<Option<String>> {
     use crate::output::prompts::{consent, secret};
     use crate::vault::recovery::{parse_kit, secret_key_problem};
@@ -135,4 +91,48 @@ pub(super) fn replace_lost(
     }
     crate::state::repository::load_state(&adapters.home)?
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Missing local state"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        adapters::create_adapters,
+        identity::device_identity,
+        vault::{create_genesis, create_vault_swap},
+    };
+    #[test]
+    fn resumed_kit_must_match_pending_vault() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let identity =
+            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
+        let material = create_genesis(&identity, [2; 32], 42).unwrap();
+        let creation = create_vault_swap(
+            &material,
+            &identity,
+            "password",
+            &crate::client::text(&[0; 192]),
+            42,
+        )
+        .unwrap();
+        assert!(
+            resumed_kit(
+                &creation.swap,
+                &creation.vault_id,
+                "server",
+                &creation.secret_key
+            )
+            .is_ok()
+        );
+        assert!(
+            resumed_kit(
+                &creation.swap,
+                &creation.vault_id,
+                "server",
+                &p::encode_secret_key(&[9; 16])
+            )
+            .is_err()
+        );
+    }
 }

@@ -173,6 +173,17 @@ fn invalid(message: &'static str) -> EnvdenError {
     EnvdenError::new(ErrorCode::InvalidData, message)
 }
 
+fn latest_membership(
+    state: &envden_protocol::chain::IDeviceListState,
+    id: &[u8; 16],
+    pin: &[u8; 32],
+) -> Result<()> {
+    if !state.devices.contains_key(id) || state.server_pin != *pin {
+        return Err(invalid("Pairing membership verification failed"));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -198,15 +209,4 @@ mod tests {
         state.devices.remove(&identity.record.id);
         assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_err());
     }
-}
-
-fn latest_membership(
-    _state: &envden_protocol::chain::IDeviceListState,
-    _id: &[u8; 16],
-    _pin: &[u8; 32],
-) -> Result<()> {
-    if !_state.devices.contains_key(_id) || _state.server_pin != *_pin {
-        return Err(invalid("Pairing membership verification failed"));
-    }
-    Ok(())
 }
