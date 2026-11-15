@@ -55,23 +55,6 @@ fn command_failure(args: &[String], code: i32, stderr: &str) -> EnvdenError {
     )
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn service_errors_use_javascript_whitespace() {
-        for (stderr, expected) in [
-            ("\u{feff}failed\u{feff}", "failed"),
-            ("\u{85}failed\u{85}", "\u{85}failed\u{85}"),
-        ] {
-            assert_eq!(
-                command_failure(&["service".into()], 1, stderr).message,
-                format!("Could not start the envden server service: {expected}")
-            );
-        }
-    }
-}
-
 pub fn host_server(adapters: &IAdapters, port: u16) -> Result<IInstalledService> {
     let platform = if cfg!(target_os = "macos") {
         "darwin"
@@ -101,4 +84,21 @@ pub fn host_server(adapters: &IAdapters, port: u16) -> Result<IInstalledService>
         &mut Effects,
         (adapters.now)(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn service_errors_use_javascript_whitespace() {
+        for (stderr, expected) in [
+            ("\u{feff}failed\u{feff}", "failed"),
+            ("\u{85}failed\u{85}", "\u{85}failed\u{85}"),
+        ] {
+            assert_eq!(
+                command_failure(&["service".into()], 1, stderr).message,
+                format!("Could not start the envden server service: {expected}")
+            );
+        }
+    }
 }
