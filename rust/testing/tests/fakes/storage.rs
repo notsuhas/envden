@@ -23,67 +23,67 @@ fn sample_swap() -> IStoredSwap {
 }
 #[test]
 fn storage_close_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().close();
-        })
-        .is_err()
+        }),
+        "storage.close",
     );
 }
 
 #[test]
 fn storage_transaction_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().transaction(&mut || Ok(()));
-        })
-        .is_err()
+        }),
+        "storage.transaction",
     );
 }
 
 #[test]
 fn storage_vault_ids_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().vault_ids();
-        })
-        .is_err()
+        }),
+        "storage.vaultIds",
     );
 }
 
 #[test]
 fn storage_cap_unlocks_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().cap_unlocks(&[], 0);
-        })
-        .is_err()
+        }),
+        "storage.capUnlocks",
     );
 }
 
 #[test]
 fn storage_has_vault_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().has_vault(&[]);
-        })
-        .is_err()
+        }),
+        "storage.hasVault",
     );
 }
 
 #[test]
 fn storage_vault_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().vault(&[]);
-        })
-        .is_err()
+        }),
+        "storage.vault",
     );
 }
 
 #[test]
 fn storage_configure_vault_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().configure_vault(
                 &[],
@@ -91,78 +91,78 @@ fn storage_configure_vault_is_strict() {
                 &[],
                 None,
             );
-        })
-        .is_err()
+        }),
+        "storage.configureVault",
     );
 }
 
 #[test]
 fn storage_discard_inactive_vault_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().discard_inactive_vault(&[]);
-        })
-        .is_err()
+        }),
+        "storage.discardInactiveVault",
     );
 }
 
 #[test]
 fn storage_find_committed_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().find_committed(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.findCommitted",
     );
 }
 
 #[test]
 fn storage_has_blob_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().has_blob(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.hasBlob",
     );
 }
 
 #[test]
 fn storage_head_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().head(&[]);
-        })
-        .is_err()
+        }),
+        "storage.head",
     );
 }
 
 #[test]
 fn storage_commit_swap_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ =
                 storage::IFakeStorageAdapter::default().commit_swap(&[], None, &sample_swap(), 0);
-        })
-        .is_err()
+        }),
+        "storage.commitSwap",
     );
 }
 
 #[test]
 fn storage_headers_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().headers(&[], 0, 0, None, None);
-        })
-        .is_err()
+        }),
+        "storage.headers",
     );
 }
 
 #[test]
 fn storage_headers_for_files_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().headers_for_files(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.headersForFiles",
     );
 }

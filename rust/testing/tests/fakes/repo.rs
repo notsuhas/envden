@@ -2,70 +2,70 @@ use envden_core::adapters::*;
 use envden_testing::repo;
 #[test]
 fn repo_case_insensitive_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().case_insensitive("", false);
-        })
-        .is_err()
+        }),
+        "repo.caseInsensitive",
     );
 }
 
 #[test]
 fn repo_checkout_at_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().checkout_at("");
-        })
-        .is_err()
+        }),
+        "repo.checkoutAt",
     );
 }
 
 #[test]
 fn repo_worktrees_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().worktrees(&ICheckout::default());
-        })
-        .is_err()
+        }),
+        "repo.worktrees",
     );
 }
 
 #[test]
 fn repo_submodules_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().submodules(&ICheckout::default());
-        })
-        .is_err()
+        }),
+        "repo.submodules",
     );
 }
 
 #[test]
 fn repo_env_files_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().env_files(&ICheckout::default(), None);
-        })
-        .is_err()
+        }),
+        "repo.envFiles",
     );
 }
 
 #[test]
 fn repo_is_ignored_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().is_ignored(&ICheckout::default(), "");
-        })
-        .is_err()
+        }),
+        "repo.isIgnored",
     );
 }
 
 #[test]
 fn repo_ensure_ignored_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = repo::IFakeRepoAdapter::default().ensure_ignored(&ICheckout::default(), "");
-        })
-        .is_err()
+        }),
+        "repo.ensureIgnored",
     );
 }

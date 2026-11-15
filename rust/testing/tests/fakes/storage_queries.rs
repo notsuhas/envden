@@ -2,27 +2,27 @@ use envden_core::adapters::*;
 use envden_testing::storage;
 #[test]
 fn storage_header_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().header(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.header",
     );
 }
 
 #[test]
 fn storage_entries_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().entries(&[], 0, 0, None, None);
-        })
-        .is_err()
+        }),
+        "storage.entries",
     );
 }
 
 #[test]
 fn storage_put_file_list_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().put_file_list(
                 &[],
@@ -34,78 +34,78 @@ fn storage_put_file_list_is_strict() {
                 },
                 0,
             );
-        })
-        .is_err()
+        }),
+        "storage.putFileList",
     );
 }
 
 #[test]
 fn storage_file_list_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().file_list(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.fileList",
     );
 }
 
 #[test]
 fn storage_state_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().state(&[], TStateKind::Keyring, &[]);
-        })
-        .is_err()
+        }),
+        "storage.state",
     );
 }
 
 #[test]
 fn storage_states_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().states(&[], TStateKind::Keyring);
-        })
-        .is_err()
+        }),
+        "storage.states",
     );
 }
 
 #[test]
 fn storage_write_state_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().write_state(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.writeState",
     );
 }
 
 #[test]
 fn storage_device_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().device(&[], &[]);
-        })
-        .is_err()
+        }),
+        "storage.device",
     );
 }
 
 #[test]
 fn storage_put_device_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().put_device(
                 &[],
                 &[],
                 &IStoredDevice::default(),
             );
-        })
-        .is_err()
+        }),
+        "storage.putDevice",
     );
 }
 
 #[test]
 fn storage_write_mailbox_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().write_mailbox(
                 &[],
@@ -114,37 +114,37 @@ fn storage_write_mailbox_is_strict() {
                 &[],
                 0,
             );
-        })
-        .is_err()
+        }),
+        "storage.writeMailbox",
     );
 }
 
 #[test]
 fn storage_close_mailbox_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().close_mailbox(&[], 0);
-        })
-        .is_err()
+        }),
+        "storage.closeMailbox",
     );
 }
 
 #[test]
 fn storage_approver_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().approver(&[], &[], 0);
-        })
-        .is_err()
+        }),
+        "storage.approver",
     );
 }
 
 #[test]
 fn storage_remember_nonce_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = storage::IFakeStorageAdapter::default().remember_nonce(&[], &[], 0);
-        })
-        .is_err()
+        }),
+        "storage.rememberNonce",
     );
 }

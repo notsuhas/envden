@@ -2,40 +2,40 @@ use envden_core::adapters::*;
 use envden_testing::placement;
 #[test]
 fn placement_supported_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = placement::IFakePlacementAdapter::default().supported("");
-        })
-        .is_err()
+        }),
+        "placement.supported",
     );
 }
 
 #[test]
 fn placement_place_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = placement::IFakePlacementAdapter::default().place("", "", None, None);
-        })
-        .is_err()
+        }),
+        "placement.place",
     );
 }
 
 #[test]
 fn placement_remove_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = placement::IFakePlacementAdapter::default().remove(None, "");
-        })
-        .is_err()
+        }),
+        "placement.remove",
     );
 }
 
 #[test]
 fn placement_inspect_is_strict() {
-    assert!(
+    super::unexpected(
         std::panic::catch_unwind(|| {
             let _ = placement::IFakePlacementAdapter::default().inspect("", "");
-        })
-        .is_err()
+        }),
+        "placement.inspect",
     );
 }
