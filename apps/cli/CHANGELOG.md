@@ -1,5 +1,12 @@
 # @envden/cli
 
+## 0.3.4
+
+### Patch Changes
+
+- 1a96695: `envden update` keeps `XDG_CONFIG_HOME`, so Homebrew finds taps trusted with `brew trust` when that variable is set.
+- @envden/server@0.3.4
+
 ## 0.3.3
 
 ### Patch Changes
