@@ -185,6 +185,13 @@ pub fn reconcile_file(
                 author.as_deref(),
                 (context.options.now)(),
             )?;
+            if let Some(entry) = entry.filter(|e| repairs.contains(&p::base32(&e.file_id))) {
+                crate::sync::remote::repairs::consume_repair(
+                    &context.adapters.home,
+                    &p::base32(&entry.file_id),
+                    (context.options.now)(),
+                )?;
+            }
             if let Some(message) = message
                 && let Some(report) = &context.options.report
             {

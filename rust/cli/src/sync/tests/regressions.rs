@@ -110,3 +110,6 @@ fn detached_chooser() {
 
 #[test]
 fn aligned_conflicts() { reconciliation(true, false); }
+
+#[test]
+fn repair_marker_is_consumed() { reconciliation(true, true); }
