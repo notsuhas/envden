@@ -1,5 +1,15 @@
 # @envden/cli
 
+## 0.3.3
+
+### Patch Changes
+
+- f6f20cd: Conflict files now show both versions between git-style markers, around just the conflicting keys when the rest merges, and `envden resolve` refuses an edit while markers remain. Pull prints one line per conflict with the checkout path, summaries no longer contradict themselves, a pull counts each env file once, and backups are reported only when they saved an edit the server doesn't have.
+- f6f20cd: Interrupting a command with Ctrl-C no longer leaves an `envden-git-config-*` folder in the temp directory.
+- f6f20cd: Setup and join end with a summary: the server, this device's final name and the env files it syncs. The checkout list starts with every checkout selected and shows the env files found. The shell notice and agent skill prompts say what they do, and Enter at "Check for updates daily?" keeps checks on. Setup no longer crashes on a `.env` link into a deleted envden folder; it removes the broken link. `envden --help` groups commands by task.
+- f6f20cd: `envden status` now lists files changed here, files newer on the server, conflicts and held-back files, one line each, or a single in-sync line. `envden device ls` prints a plain list and adds `--json` and `--verbose`.
+- @envden/server@0.3.3
+
 ## 0.3.2
 
 ### Patch Changes
