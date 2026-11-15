@@ -38,3 +38,5 @@ fn push_counts_conflicts_outside_selected_repositories() {
     assert_eq!(result["kind"], "conflict");
 }
 
+mod move_follow;
+
