@@ -4,11 +4,21 @@ use envden_core::errors::Result;
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let address = crate::onboarding::require_server_address(&invocation.arguments[0])?;
     let options = serde_json::to_value(&invocation.options).expect("options");
+    let rejoin = crate::state::repository::load_state(&adapters.home)?
+        .is_some_and(|state| state["checkpoint"].is_string());
     let state = crate::onboarding::run_join(adapters, &address, &options)?;
-    for line in super::summary::summary(&state, &adapters.user_home, false) {
+    for line in join_summary(&state, &adapters.user_home, rejoin) {
         println!("{line}");
     }
     Ok(())
+}
+
+fn join_summary(state: &serde_json::Value, home: &std::path::Path, rejoin: bool) -> Vec<String> {
+    if rejoin {
+        Vec::new()
+    } else {
+        super::summary::summary(state, home, false)
+    }
 }
 
 #[cfg(test)]
@@ -38,5 +48,16 @@ mod tests {
                 .unwrap(),
             state
         );
+    }
+}
+
+#[cfg(test)]
+mod summary_tests {
+    use super::*;
+    #[test]
+    fn rejoin_omits_the_fresh_join_summary() {
+        let state = crate::state::empty_state("test");
+        assert!(!join_summary(&state, std::path::Path::new("/tmp"), false).is_empty());
+        assert!(join_summary(&state, std::path::Path::new("/tmp"), true).is_empty());
     }
 }
