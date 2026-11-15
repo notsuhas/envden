@@ -1,11 +1,12 @@
 import { EnvdenError } from "@envden/core/errors";
-import type { IStorageAdapter, IStoredHeader } from "@envden/core/adapters";
+import { VAULT_QUOTA_BYTES, type IStorageAdapter, type IStoredHeader } from "@envden/core/adapters";
 import { createData, equal, hex } from "./data.ts";
 import type { IMemoryContext } from "./data.ts";
 import { createAccess } from "./access.ts";
 import { createMailboxes } from "./mailboxes.ts";
 import { createHistory } from "./history.ts";
 import { createCommit } from "./commit.ts";
+import { vaultUsage } from "./usage.ts";
 import { createFakeStorageAdapter } from "../fake.ts";
 
 export function createMemoryStorageAdapter(
@@ -109,7 +110,7 @@ export function createMemoryStorageAdapter(
     putDevice(vault, device, state) {
       context.data.devices.set(`${hex(vault)}:${hex(device)}`, structuredClone(state));
     },
-    putBlob(vault, hash, bytes, verify, now = 0, quotaBytes = 1073741824) {
+    putBlob(vault, hash, bytes, verify, now = 0, quotaBytes = VAULT_QUOTA_BYTES) {
       if (verify && !equal(verify(bytes), hash)) throw new Error("Blob hash mismatch");
       const key = `${hex(vault)}:${hex(hash)}`;
       const prior = context.data.blobs.get(key);
@@ -134,6 +135,7 @@ export function createMemoryStorageAdapter(
       [...context.data.blobs.values()]
         .filter((blob) => blob.vault === hex(vault))
         .map((blob) => blob.hash.slice()),
+    vaultUsage: (vault) => vaultUsage(context, hex(vault)),
     setupToken: () => context.data.setup.get("token")?.slice(),
     setSetupToken(hash) {
       context.data.setup.set("token", hash.slice());

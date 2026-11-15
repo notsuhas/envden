@@ -1,5 +1,5 @@
 import { EnvdenError } from "@envden/core/errors";
-import type { IFileVersion } from "@envden/core/adapters";
+import { VAULT_QUOTA_BYTES, type IFileVersion } from "@envden/core/adapters";
 import type { TContext } from "./context.ts";
 import { hex } from "./values.ts";
 
@@ -62,7 +62,7 @@ export function checkGrowthQuota(
   vault: Uint8Array,
   before: number,
   after: number,
-  limit = 1073741824,
+  limit = VAULT_QUOTA_BYTES,
 ): void {
   if (!isImport(context, vault) && after > limit && after > before)
     throw new EnvdenError("STORAGE_QUOTA", "Vault storage quota exceeded");

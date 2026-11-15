@@ -34,6 +34,7 @@ export function createFakeStorageAdapter(
     putBlob: operation(operations, "putBlob", operations.putBlob),
     getBlob: operation(operations, "getBlob", operations.getBlob),
     blobHashes: operation(operations, "blobHashes", operations.blobHashes),
+    vaultUsage: operation(operations, "vaultUsage", operations.vaultUsage),
     prune: operation(operations, "prune", operations.prune),
     setupToken: operation(operations, "setupToken", operations.setupToken),
     setSetupToken: operation(operations, "setSetupToken", operations.setSetupToken),

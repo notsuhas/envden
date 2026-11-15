@@ -6,6 +6,8 @@ export function blobStagingContract(db: IStorageAdapter) {
   db.configureVault(b(1), { active: true, frozen: false, skRefused: false, unlockPeriod: null });
   db.putBlob(b(1), b(80), b(81), undefined, 10, 1);
   expect(db.hasBlob(b(1), b(80))).toBe(true);
+  expect(db.vaultUsage(b(1))).toBe(1);
+  expect(db.vaultUsage(b(2))).toBe(0);
 
   expect(() => db.putBlob(b(1), b(82), b(83), undefined, 10, 1)).toThrow(
     expect.objectContaining({ code: "STORAGE_QUOTA" }),
@@ -16,4 +18,5 @@ export function blobStagingContract(db: IStorageAdapter) {
   expect(db.prune(b(1), { maxAge: 0, minVersions: 1 }, 86400011).blobs).toBe(0);
   expect(db.prune(b(1), { maxAge: 0, minVersions: 1 }, 172800011).blobs).toBe(1);
   expect(db.hasBlob(b(1), b(80))).toBe(false);
+  expect(db.vaultUsage(b(1))).toBe(0);
 }

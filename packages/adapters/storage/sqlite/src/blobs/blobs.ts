@@ -1,3 +1,4 @@
+import { VAULT_QUOTA_BYTES } from "@envden/core/adapters";
 import { vaultUsage, checkGrowthQuota } from "../db/quota.ts";
 import { syncDirectory } from "../db/directory.ts";
 import type { TContext } from "../db/context.ts";
@@ -29,7 +30,7 @@ export function createBlobs(context: TContext) {
     bytes: Uint8Array,
     verify?: (bytes: Uint8Array) => Uint8Array,
     now = 0,
-    quotaBytes = 1073741824,
+    quotaBytes = VAULT_QUOTA_BYTES,
   ): void {
     if (verify && !equal(verify(bytes), hash)) throw new Error("Blob hash mismatch");
 
@@ -114,5 +115,11 @@ export function createBlobs(context: TContext) {
     );
   }
 
-  return { putBlob, getBlob, blobHashes, hasBlob };
+  return {
+    putBlob,
+    getBlob,
+    blobHashes,
+    hasBlob,
+    vaultUsage: (vault: Uint8Array) => vaultUsage(context, vault),
+  };
 }

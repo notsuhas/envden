@@ -27,6 +27,7 @@ storageContract("Memory storage", () => {
     "putBlob",
     "getBlob",
     "blobHashes",
+    "vaultUsage",
     "prune",
     "setupToken",
     "setSetupToken",
