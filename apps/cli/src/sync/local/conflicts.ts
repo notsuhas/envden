@@ -1,3 +1,4 @@
+import type { deriveFileSides } from "./reconciliation/content/sides.ts";
 import { conflictDocumentSchema } from "./conflicts/schema.ts";
 import { readSyncRecord } from "../../state/store/records.ts";
 import { sanitizeTerminal } from "../../output/sanitize.ts";
@@ -53,10 +54,11 @@ export async function recordConflict(
     IConflictRecord,
     "remote" | "file" | "server" | "mine" | "deleted" | "mineDeleted" | "alternatives"
   >,
-  mine: Uint8Array | undefined,
-  server: Uint8Array | undefined,
+  sides: Pick<ReturnType<typeof deriveFileSides>, "mine" | "theirs">,
   variants: (Uint8Array | undefined)[] = [],
 ): Promise<void> {
+  const { mine, theirs } = sides;
+  const server = theirs.kind === "live" ? theirs.bytes : undefined;
   const records = await conflictRecords(context.adapters.home);
 
   const file = join(
@@ -81,7 +83,18 @@ export async function recordConflict(
     ["Mine", mine],
     ["Theirs", server],
   ] as const) {
-    const source = sources[variants.findIndex((value) => same(value, bytes))] ?? target.store;
+    if (side === "Theirs" && theirs.kind === "absent") {
+      context.options.report?.(
+        "Theirs: no server entry; keep mine or edit the local conflict file",
+      );
+
+      continue;
+    }
+
+    const source =
+      side === "Theirs"
+        ? "server"
+        : (sources[variants.findIndex((value) => same(value, bytes))] ?? target.store);
 
     context.options.report?.(
       sanitizeTerminal(`${side}: ${source}; saved ${file}.${side === "Mine" ? "mine" : "server"}`),
@@ -109,7 +122,7 @@ export async function recordConflict(
     server: file + ".server",
     mine: file + ".mine",
     mineDeleted: mine === undefined,
-    deleted: server === undefined,
+    deleted: theirs.kind === "tombstone",
   });
 
   await saveConflicts(context.adapters.home, records, context.options.now);

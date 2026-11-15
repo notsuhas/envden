@@ -101,7 +101,15 @@ async function resolutionBytes(
   record: Awaited<ReturnType<typeof conflictRecords>>[number],
   server: Uint8Array | undefined,
 ) {
-  if (choice === "take-server") return record.deleted ? undefined : requireContent(server);
+  if (choice === "take-server") {
+    if (record.entry === null)
+      throw new EnvdenError(
+        "INVALID_INPUT",
+        "No server entry; keep mine or edit the local conflict file",
+      );
+
+    return record.deleted ? undefined : requireContent(server);
+  }
 
   if (choice === "edit") {
     const edited = await readBytes(record.file);

@@ -172,6 +172,18 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
 
       await atomicWrite(join(checkout, ".env"), "unrelated checkout bytes", fixtureClock);
 
+      if (choice === "take-server") {
+        await Promise.resolve(
+          expect(resolveConflict(adapters, { choice, now: fixtureClock })).rejects.toThrow(
+            "No server entry",
+          ),
+        );
+
+        expect(await readBytes(store)).toEqual(bytes("KEY=mine\n"));
+
+        return;
+      }
+
       const result = await resolveConflict(adapters, { choice, now: () => 10 });
       expect(result.backups).toBe(join(home, "conflicts", "backups"));
       const backups = await readdir(join(home, "conflicts", "backups"));
@@ -185,11 +197,7 @@ for (const choice of ["keep-mine", "take-server", "edit"] as const) {
       ).toContain("unrelated checkout bytes");
 
       expect(new TextDecoder().decode(await readBytes(store))).toBe(
-        choice === "take-server"
-          ? "KEY=remote\n"
-          : choice === "keep-mine"
-            ? "KEY=mine\n"
-            : "KEY=edited\n",
+        choice === "keep-mine" ? "KEY=mine\n" : "KEY=edited\n",
       );
 
       expect(await readBytes(base)).toBeUndefined();

@@ -47,7 +47,7 @@ export async function readFileState(
 
   const reappeared = corrupt ? undefined : await cancelRestoredDeletion(context, targets, store);
 
-  const { stored, restored, deleting } = await restoreStore(
+  const { stored, restored, deleting, before } = await restoreStore(
     context,
     store,
     entry,
@@ -73,6 +73,7 @@ export async function readFileState(
     recorded: await readBytes(base),
     server,
     stored,
+    storeBeforeRestore: before,
     snapshots,
     restored,
     deleting,
@@ -90,7 +91,7 @@ async function restoreStore(
   const before = await readBytes(store);
 
   if (before === undefined && reappeared !== undefined)
-    return { stored: reappeared, restored: false, deleting: false };
+    return { stored: reappeared, restored: false, deleting: false, before: reappeared };
 
   const deleting = await liveDeletion(context, store, entry);
 
@@ -99,7 +100,7 @@ async function restoreStore(
   if (restored) await writeBytes(store, server, context.options.now);
   const stored = restored ? server : before;
 
-  return { stored, restored, deleting };
+  return { stored, restored, deleting, before };
 }
 
 async function cancelRestoredDeletion(context: TSyncContext, targets: TTarget[], store: string) {

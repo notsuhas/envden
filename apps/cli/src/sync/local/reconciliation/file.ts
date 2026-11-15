@@ -39,7 +39,7 @@ export async function reconcileFile(
   )
     return { changed: Number(snapshot.restored), conflicts: 1 };
 
-  const { resolution, mine, repair } = await resolveFileState(
+  const { resolution, mine, theirs, repair } = await resolveFileState(
     context,
     snapshot,
     entry,
@@ -56,8 +56,7 @@ export async function reconcileFile(
         entry: entry ? text(p.FileEntryCodec.write(entry)) : null,
         targets,
       },
-      mine,
-      snapshot.server,
+      { mine, theirs },
       [stored, server, ...snapshots.map((item) => item.bytes)],
     );
 
@@ -79,20 +78,19 @@ async function resolveFileState(
 ) {
   const { previous, server, snapshots } = snapshot;
 
-  const { local, mine, action, repair, detached } = decideFile(snapshot, entry, repairs, !!choose);
+  const { local, mine, theirs, action, repair, detached } = decideFile(
+    snapshot,
+    entry,
+    repairs,
+    !!choose,
+  );
 
   const chooser =
     choose ?? (detached && context.options.interactive ? context.options.choose : undefined);
 
   let resolution =
     local.kind === "conflict"
-      ? await resolveLocalConflict(
-          context,
-          local,
-          snapshots[0]!.target.path,
-          chooser,
-          snapshot.server,
-        )
+      ? await resolveLocalConflict(context, mine, snapshots[0]!.target.path, chooser, theirs)
       : action.kind === "write"
         ? action
         : await resolveContent(
@@ -108,7 +106,7 @@ async function resolveFileState(
   if (repair || (local.kind !== "conflict" && action.kind === "conflict"))
     resolution = { kind: "conflict" };
 
-  return { resolution, mine, repair };
+  return { resolution, mine, theirs, repair };
 }
 
 async function applyFile(
@@ -147,8 +145,9 @@ function decideFile(
   const repair = !!entry && repairs.has(p.base32(entry.fileId));
   const detached = snapshots.some((item) => item.detached);
 
-  const { local, mine, action } = deriveFileDecision({
+  const { local, mine, theirs, action } = deriveFileDecision({
     store: stored,
+    storeBeforeRestore: snapshot.storeBeforeRestore,
     copies: snapshots.filter((item) => !item.useStore),
     tracked: snapshots.some((item) => item.tracked),
     published: entry !== undefined,
@@ -167,6 +166,7 @@ function decideFile(
   return {
     local,
     mine,
+    theirs,
     action: snapshot.deletionInvalid || snapshot.corrupt ? { kind: "conflict" as const } : action,
     repair,
     detached,
@@ -175,14 +175,18 @@ function decideFile(
 
 async function resolveLocalConflict(
   context: TSyncContext,
-  local: Extract<ReturnType<typeof deriveFileDecision>["local"], { kind: "conflict" }>,
+  mine: Uint8Array | undefined,
   path: string,
   choose: Parameters<typeof resolveContent>[5],
-  theirs: Uint8Array | undefined,
+  theirs: ReturnType<typeof deriveFileDecision>["theirs"],
 ) {
   if (!choose || context.options.interactive === false) return { kind: "conflict" } as const;
   const choice = await choose(path);
+  if (choice === "take-server" && theirs.kind === "absent") return { kind: "conflict" } as const;
   if (choice === "merge") return { kind: "conflict" } as const;
 
-  return { kind: "write", next: choice === "keep-mine" ? local.mine : theirs } as const;
+  return {
+    kind: "write",
+    next: choice === "keep-mine" ? mine : theirs.kind === "live" ? theirs.bytes : undefined,
+  } as const;
 }

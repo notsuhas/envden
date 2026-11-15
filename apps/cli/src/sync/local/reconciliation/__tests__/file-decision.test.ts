@@ -20,7 +20,10 @@ for (const [name, store, previous, server, next] of [
   ["identical concurrent edit", B, A, B, B],
 ] as const)
   test(name, () => {
-    expect(deriveFileDecision({ ...common, store, previous, server })).toEqual({
+    expect(
+      deriveFileDecision({ storeBeforeRestore: store, ...common, store, previous, server }),
+    ).toEqual({
+      theirs: { kind: "live", bytes: server },
       local: { kind: "content", bytes: store },
       mine: store,
       action: { kind: "write", next },
@@ -33,7 +36,9 @@ for (const [name, store, previous, server] of [
   ["rejected attempt with concurrent edit", B, A, C],
 ] as const)
   test(name, () => {
-    expect(deriveFileDecision({ ...common, store, previous, server }).action).toEqual({
+    expect(
+      deriveFileDecision({ storeBeforeRestore: store, ...common, store, previous, server }).action,
+    ).toEqual({
       kind: "choose",
     });
   });
@@ -46,11 +51,11 @@ for (const [name, bytes, base, tracked, mode, expected] of [
     A,
     true,
     "copy",
-    { kind: "conflict", mine: C, theirs: B },
+    { kind: "conflict", variants: [C, B] },
   ],
-  ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", mine: C, theirs: B }],
-  ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", mine: C, theirs: B }],
-  ["detached bytes conflict", C, A, true, "link", { kind: "conflict", mine: B, theirs: C }],
+  ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", variants: [C, B] }],
+  ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", variants: [C, B] }],
+  ["detached bytes conflict", C, A, true, "link", { kind: "conflict", variants: [B, C] }],
   ["tracked detached revert is an edit", A, B, true, "link", { kind: "content", bytes: A }],
   ["tracked detached new bytes are an edit", C, B, true, "link", { kind: "content", bytes: C }],
   ["matching detached bytes relink", B, A, true, "link", { kind: "content", bytes: B }],
@@ -60,13 +65,14 @@ for (const [name, bytes, base, tracked, mode, expected] of [
     B,
     false,
     "link",
-    { kind: "conflict", mine: A, theirs: B },
+    { kind: "conflict", variants: [A, B] },
   ],
   ["missing copy restores", undefined, A, true, "copy", { kind: "content", bytes: B }],
 ] as const)
   test(name, () => {
     expect(
       deriveFileDecision({
+        storeBeforeRestore: B,
         ...common,
         store: B,
         previous: A,
@@ -97,6 +103,7 @@ for (const [name, store, recorded, previous, server, deleting, mine, theirs] of 
   test(name, () => {
     expect(
       deriveFileDecision({
+        storeBeforeRestore: store,
         ...common,
         store,
         recorded,
@@ -105,12 +112,13 @@ for (const [name, store, recorded, previous, server, deleting, mine, theirs] of 
         deleting,
         copies: [{ bytes: C, base: A, tracked: true, mode: "copy", detached: false }],
       }).local,
-    ).toEqual({ kind: "conflict", mine, theirs });
+    ).toEqual({ kind: "conflict", variants: [mine, theirs] });
   });
 
 test("copy already at server does not conflict with unchanged stale store", () => {
   expect(
     deriveFileDecision({
+      storeBeforeRestore: A,
       ...common,
       store: A,
       recorded: A,
@@ -119,4 +127,18 @@ test("copy already at server does not conflict with unchanged stale store", () =
       copies: [{ bytes: B, base: C, tracked: true, mode: "copy", detached: false }],
     }).action,
   ).toEqual({ kind: "write", next: B });
+});
+
+test("restoring a missing store leaves the copy edit as mine", () => {
+  const result = deriveFileDecision({
+    ...common,
+    store: B,
+    storeBeforeRestore: undefined,
+    recorded: A,
+    previous: A,
+    server: B,
+    copies: [{ bytes: C, base: A, tracked: true, mode: "copy", detached: false }],
+  });
+
+  expect(result.mine).toEqual(C);
 });
