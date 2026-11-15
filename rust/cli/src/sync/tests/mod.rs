@@ -40,3 +40,4 @@ fn push_counts_conflicts_outside_selected_repositories() {
 
 mod move_follow;
 
+mod repairs;
