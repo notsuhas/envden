@@ -133,7 +133,8 @@ function _envden_inside
     if test "$directory" = /
       break
     end
-    set directory (path dirname -- "$directory")
+    set directory (string replace -r '/[^/]*$' '' -- "$directory")
+    test -n "$directory"; or set directory /
   end
   return 1
 end
@@ -181,7 +182,7 @@ function _envden_notice --on-variable PWD
   end
   set -l modified (stat -c %Y "$cache" 2>/dev/null; or stat -f %m "$cache" 2>/dev/null; or echo 0)
   if test (math (date +%s) - "$modified") -gt 60
-    env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden'\\''s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &
+    env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden\\'s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &
     disown
   end
   return $saved_status
@@ -239,7 +240,7 @@ function global:prompt {
     if ($approved -and (Test-Path -LiteralPath $cache)) { Get-Content -LiteralPath $cache | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host }
     if (!(Test-Path -LiteralPath $cache) -or ((Get-Date) - (Get-Item -LiteralPath $cache).LastWriteTime).TotalSeconds -gt 60) {
       $info = [Diagnostics.ProcessStartInfo]::new('/opt/envden''s bin/envden')
-      $info.ArgumentList.Add('status'); $info.ArgumentList.Add('--refresh-cache')
+      $info.Arguments = 'status --refresh-cache'
       $info.UseShellExecute = $false; $info.CreateNoWindow = $true
       $info.Environment.Remove('BUN_OPTIONS'); $info.Environment.Remove('BUN_BE_BUN')
       $info.RedirectStandardOutput = $true; $info.RedirectStandardError = $true

@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { validatePulledPath } from "../index.ts";
+import { validatePulledPath } from "../paths/validate-pulled-path.ts";
 
 for (const path of [
   ".g\u200cit/config",

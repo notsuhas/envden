@@ -16,22 +16,17 @@ import {
 
 import { join } from "node:path";
 import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
-import {
-  createFsPlacementAdapter,
-  pruneBackups,
-  storePathFor,
-  validatePulledPath,
-} from "../index.ts";
+import { createFsPlacementAdapter, pruneBackups } from "../index.ts";
 
 import { setup } from "./fixture.ts";
 
-for (const path of [".git/config", ".GIT/x"])
-  test(`reject ${JSON.stringify(path)}`, () => expect(() => validatePulledPath(path)).toThrow());
+test("placement rejects Unicode format characters without creating the path", async () => {
+  const { checkout, store } = await setup();
+  const adapter = createFsPlacementAdapter("copy", checkout, undefined, () => 1800000000000);
 
-test("store layout", () =>
-  expect(storePathFor("github.com/team/repo", "apps/web/.env", "/test/store")).toBe(
-    join("/test/store", "github.com", "team", "repo", "apps", "web", ".env"),
-  ));
+  await rejects(adapter.place(store, join(checkout, ".g\u200cit", "config"), async () => {}));
+  expect(await readdir(checkout)).toEqual([]);
+});
 
 test.skipIf(process.platform === "win32")(
   "reject escaping parent and destination symlinks without touching targets",

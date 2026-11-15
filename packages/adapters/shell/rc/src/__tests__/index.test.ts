@@ -190,3 +190,17 @@ test("bash hook preserves the exit status for following prompt commands", async 
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("fish escapes backslashes and quotes in paths and avoids fish 3.5 builtins", () => {
+  const adapter = createRcShellAdapter("fish", "/home/test", "/tmp/h\\'o");
+  const snippet = adapter.hookSnippet("/tmp/a\\';echo INJECTED;#");
+  expect(snippet).toContain("'/tmp/a\\\\\\';echo INJECTED;#' status --refresh-cache");
+  expect(snippet).toContain("'/tmp/h\\\\\\'o/state/notice'");
+  expect(snippet).not.toContain("path dirname");
+});
+
+test("PowerShell refresh arguments work on Windows PowerShell 5.1", () => {
+  const snippet = createRcShellAdapter("powershell").hookSnippet(join(tmpdir(), "envden"));
+  expect(snippet).toContain("$info.Arguments = 'status --refresh-cache'");
+  expect(snippet).not.toContain("ArgumentList");
+});

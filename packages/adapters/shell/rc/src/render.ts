@@ -5,6 +5,7 @@ import { start, end } from "./markers.ts";
 import type { TShell } from "./shell.ts";
 
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
+const fishQuote = (value: string) => `'${value.replace(/[\\']/g, "\\$&")}'`;
 const psQuote = (value: string) => `'${value.replace(/['’‘‚‛]/g, (quote) => quote + quote)}'`;
 
 export function renderHook(shell: TShell, binaryPath: string, envdenHome: string) {
@@ -12,17 +13,18 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     throw new EnvdenError("INVALID_INPUT", "Hook paths must be absolute and single-line");
 
   const state = join(envdenHome, "state");
+  const shellQuote = shell === "fish" ? fishQuote : quote;
 
   const paths = {
-    notice: quote(join(state, "notice")),
-    approved: quote(join(state, "approved-checkouts")),
-    offered: quote(join(state, "track-offered")),
-    offers: quote(join(state, "track-offers")),
-    update: quote(join(state, "notice-update")),
-    day: quote(join(state, "update-offered-day")),
+    notice: shellQuote(join(state, "notice")),
+    approved: shellQuote(join(state, "approved-checkouts")),
+    offered: shellQuote(join(state, "track-offered")),
+    offers: shellQuote(join(state, "track-offers")),
+    update: shellQuote(join(state, "notice-update")),
+    day: shellQuote(join(state, "update-offered-day")),
   };
 
-  const command = `env -u BUN_OPTIONS -u BUN_BE_BUN ${quote(binaryPath)} status --refresh-cache`;
+  const command = `env -u BUN_OPTIONS -u BUN_BE_BUN ${shellQuote(binaryPath)} status --refresh-cache`;
   let body: string;
 
   switch (shell) {
@@ -166,7 +168,7 @@ function global:prompt {
     if ($approved -and (Test-Path -LiteralPath $cache)) { Get-Content -LiteralPath $cache | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host }
     if (!(Test-Path -LiteralPath $cache) -or ((Get-Date) - (Get-Item -LiteralPath $cache).LastWriteTime).TotalSeconds -gt 60) {
       $info = [Diagnostics.ProcessStartInfo]::new(${psQuote(binaryPath)})
-      $info.ArgumentList.Add('status'); $info.ArgumentList.Add('--refresh-cache')
+      $info.Arguments = 'status --refresh-cache'
       $info.UseShellExecute = $false; $info.CreateNoWindow = $true
       $info.Environment.Remove('BUN_OPTIONS'); $info.Environment.Remove('BUN_BE_BUN')
       $info.RedirectStandardOutput = $true; $info.RedirectStandardError = $true

@@ -219,3 +219,21 @@ test("a successful OS write persists home history across adapters", async () => 
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("the OS source marker exists before the keychain write", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-marker-first-"));
+  const marker = join(home, "state", "keys", "os.file");
+  let marked = false;
+
+  const set = spyOn(Bun.secrets, "set").mockImplementation(async () => {
+    marked = await Bun.file(marker).exists();
+  });
+
+  try {
+    await createOsKeychainAdapter({ home }).set("key", new Uint8Array([1]));
+    expect(marked).toBe(true);
+  } finally {
+    set.mockRestore();
+    await rm(home, { recursive: true, force: true });
+  }
+});

@@ -3,7 +3,7 @@ import { rejects } from "node:assert/strict";
 import { EnvdenError } from "@envden/core/errors";
 import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { expect, spyOn, test } from "bun:test";
-import { mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createOsKeychainAdapter } from "../index.ts";
@@ -31,6 +31,37 @@ test("file fallback preserves bytes, isolates names and deletes", async () => {
 
     await adapter.delete("../name");
     expect(await adapter.get("../name")).toBeUndefined();
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("file keys with long names fit in one path component", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-long-key-"));
+
+  try {
+    const adapter = createOsKeychainAdapter({ home, fileOnly: true });
+    const name = "k".repeat(200);
+    await adapter.set(name, new Uint8Array([7]));
+    expect(await adapter.get(name)).toEqual(new Uint8Array([7]));
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test.skipIf(process.platform === "win32")("file keys readable by others are refused", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-open-key-"));
+
+  try {
+    const adapter = createOsKeychainAdapter({ home, fileOnly: true });
+    await adapter.set("key", new Uint8Array([1]));
+    const directory = join(home, "state", "keys");
+
+    for (const file of await readdir(directory)) await chmod(join(directory, file), 0o644);
+
+    await Promise.resolve(
+      expect(adapter.get("key")).rejects.toMatchObject({ code: "INVALID_DATA" }),
+    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }

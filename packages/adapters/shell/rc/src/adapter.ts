@@ -8,7 +8,6 @@ import type { IShellAdapter } from "@envden/core/adapters";
 
 import type { TShell } from "./shell.ts";
 import { editRc } from "./files/edit.ts";
-import { start } from "./markers.ts";
 import { renderHook } from "./render.ts";
 
 async function read(path: string) {
@@ -65,7 +64,9 @@ class RcShellAdapter implements IShellAdapter {
   }
 
   async installed() {
-    return (await read(this.rcPath())).includes(start);
+    const value = await read(this.rcPath());
+
+    return strip(value) !== value;
   }
 
   async install(binaryPath: string) {
@@ -91,8 +92,12 @@ class RcShellAdapter implements IShellAdapter {
   }
 }
 
+// An orphan start marker never pairs with a later block's end, so user lines between them survive.
 function strip(value: string) {
-  return value.replace(/# >>> envden >>>\r?\n[\s\S]*?# <<< envden <<<(?:\r?\n)?/g, "");
+  return value.replace(
+    /# >>> envden >>>\r?\n(?:(?!# >>> envden >>>)[\s\S])*?# <<< envden <<<(?:\r?\n)?/g,
+    "",
+  );
 }
 
 export function createRcShellAdapter(

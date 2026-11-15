@@ -1,8 +1,15 @@
 import { keychainUnavailable } from "./failures/unavailable.ts";
 import { keychainFailure } from "./failures/operation.ts";
 import { EnvdenError } from "@envden/core/errors";
-import { readFile } from "node:fs/promises";
-import { hasFileSource, writeKeyFile, removeKeyFile, durableWrite } from "./files/source.ts";
+import { createHash } from "node:crypto";
+import { rm } from "node:fs/promises";
+import {
+  hasFileSource,
+  writeKeyFile,
+  removeKeyFile,
+  durableWrite,
+  readKeyFile,
+} from "./files/source.ts";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { IKeychainAdapter } from "@envden/core/adapters";
@@ -34,7 +41,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
   }
 
   private path(name: string) {
-    return join(this.directory, `${Buffer.from(name).toString("hex")}.key`);
+    return join(this.directory, `${createHash("sha256").update(name).digest("hex")}.key`);
   }
 
   takeFallbackNotice() {
@@ -65,7 +72,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
   private async fileValue(name: string) {
     try {
-      return new Uint8Array(await readFile(this.path(name)));
+      return await readKeyFile(this.path(name));
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined;
       throw error;
@@ -113,19 +120,21 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
   async set(name: string, value: Uint8Array) {
     if (!(await this.fileBacked(name))) {
+      const usedOs = await hasFileSource(join(this.directory, "os"));
+
       try {
+        if (!usedOs) await durableWrite(this.marker(), new Uint8Array());
+
         await Bun.secrets.set({
           ...this.options(name),
           value: Buffer.from(value).toString("base64"),
           ...(process.platform === "win32" ? { persist: "local" as const } : {}),
         });
 
-        await durableWrite(this.marker(), new Uint8Array());
-
         return;
       } catch (cause) {
-        if (!keychainUnavailable(cause) || (await hasFileSource(join(this.directory, "os"))))
-          throw cause;
+        if (!usedOs) await rm(this.marker(), { force: true });
+        if (!keychainUnavailable(cause) || usedOs) throw cause;
 
         this.fallbackNotice = true;
       }

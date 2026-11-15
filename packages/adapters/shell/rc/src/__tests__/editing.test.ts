@@ -249,3 +249,20 @@ for (const [file, content, expected] of [
       await rm(home, { recursive: true, force: true });
     }
   });
+
+test("rc install and uninstall keep user lines after an orphan start marker", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-rc-orphan-"));
+
+  try {
+    const adapter = createRcShellAdapter("zsh", home);
+    const original = "# >>> envden >>>\n# user line\n";
+    await writeFile(adapter.rcPath(), original);
+    expect(await adapter.installed()).toBe(false);
+    await adapter.install("/opt/envden");
+    expect(await adapter.installed()).toBe(true);
+    await adapter.uninstall();
+    expect(await readFile(adapter.rcPath(), "utf8")).toBe(original);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

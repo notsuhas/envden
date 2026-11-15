@@ -17,6 +17,19 @@ export async function hasFileSource(path: string): Promise<boolean> {
   }
 }
 
+export async function readKeyFile(path: string): Promise<Uint8Array> {
+  const file = await open(path, "r");
+
+  try {
+    if (process.platform !== "win32" && (await file.stat()).mode & 0o077)
+      throw new EnvdenError("INVALID_DATA", "Key file is accessible to other users");
+
+    return new Uint8Array(await file.readFile());
+  } finally {
+    await file.close();
+  }
+}
+
 export async function writeKeyFile(path: string, value: Uint8Array) {
   await markFileSource(path);
   await durableWrite(path, value);

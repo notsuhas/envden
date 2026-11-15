@@ -26,7 +26,8 @@ export function renderPhysical(shell: TShell) {
     if test "$directory" = /
       break
     end
-    set directory (path dirname -- "$directory")
+    set directory (string replace -r '/[^/]*$' '' -- "$directory")
+    test -n "$directory"; or set directory /
   end
   return 1
 end`;
