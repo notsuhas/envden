@@ -65,6 +65,55 @@ for (const op of [4, 5, 6, 7, 8, 9])
     }
   });
 
+test("op 13 needs only an unlocked session and the renamed device's own signature", async () => {
+  const f = await vaultFixture();
+
+  try {
+    await f.initialize();
+    const { state, previous } = await prepareOperation(f, 4);
+
+    const rename = (target: typeof f.a, signer: typeof f.a) =>
+      p.signObject(
+        p.EntryCodec,
+        {
+          vaultId: f.vaultId,
+          seq: state.seq + 1n,
+          parent: state.head,
+          kind: 7,
+          payload: { device: target.record.id, name: "laptop" },
+          signer: signer.record.id,
+        },
+        signer.keys.objSk,
+        "entry",
+      );
+
+    const swap = (entry: p.ISigned<p.TEntry>, who: typeof f.a) =>
+      f.next(
+        previous,
+        { op: 13, listSeq: entry.body.seq, listHead: p.objectHash(p.EntryCodec, entry, "entry") },
+        [entry],
+        who,
+      );
+
+    expect((await f.send(swap(rename(f.a, f.b), f.b), f.b)).status).toBe(400);
+    expect((await f.send(swap(rename(f.a, f.a), f.b), f.b)).status).toBe(400);
+
+    const own = swap(rename(f.a, f.a), f.a);
+    const device = { unlockedUntil: 0, freshUntil: 0, clientVersion: "1.0.0" };
+    f.storage.putDevice(f.vaultId, f.a.record.id, device);
+    expect((await f.send(own)).status).toBe(403);
+
+    f.storage.putDevice(f.vaultId, f.a.record.id, {
+      ...device,
+      unlockedUntil: f.options.now() + 10000,
+    });
+
+    expect((await f.send(own)).status).toBe(200);
+  } finally {
+    f.close();
+  }
+});
+
 async function prepareOperation(f: Awaited<ReturnType<typeof vaultFixture>>, op: number) {
   let state = f.state;
   let previous = f.create.header;

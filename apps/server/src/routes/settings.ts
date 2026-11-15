@@ -4,6 +4,7 @@ import type { IAppOptions, TServerEnv } from "../http/types.ts";
 import { input } from "../http/encoding.ts";
 import { gateMiddleware } from "../middleware/gates.ts";
 import { setUnlockPeriod } from "../auth/settings.ts";
+import { unlockWindow } from "../auth/login/window.ts";
 
 export function registerSettings(app: Hono<TServerEnv>, options: IAppOptions) {
   return app
@@ -14,6 +15,11 @@ export function registerSettings(app: Hono<TServerEnv>, options: IAppOptions) {
         }),
       ),
     )
+    .get("/v1/unlock-window", gateMiddleware(options, "unlocked"), (c) => {
+      const { vaultId, device } = c.get("auth").request;
+
+      return c.json(unlockWindow(options, vaultId, device));
+    })
     .put("/v1/settings/unlock-period", gateMiddleware(options, "fresh"), async (c) => {
       const raw: unknown = await c.req.json();
       const body = input(() => UnlockPeriodSchema.parse(raw));

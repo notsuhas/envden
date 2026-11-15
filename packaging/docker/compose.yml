@@ -21,6 +21,7 @@ services:
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:-}
       TS_HOSTNAME: envden
+      ENVDEN_STATUS_PAGE: ${ENVDEN_STATUS_PAGE:-on}
     volumes:
       - envden-data:/data
       - tailscale-state:/var/lib/tailscale

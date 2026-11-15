@@ -6,6 +6,8 @@ import { restoreNotice, startRestored } from "./repair/start.ts";
 import { pruneHistorySafely } from "./vault/prune.ts";
 import { createApp } from "./app.ts";
 import { createAdapters } from "./adapters.ts";
+import { createStatusState } from "./status/state.ts";
+import { systemScheduler, type IScheduler } from "./lifecycle/scheduler.ts";
 import { loadServerKeys } from "./identity/keys.ts";
 import { initializeSetup } from "./identity/setup.ts";
 import metadata from "../package.json";
@@ -18,6 +20,7 @@ export async function serve(
     setupToken?: string;
     restored?: boolean;
     now?: () => number;
+    scheduler?: IScheduler;
     listen?: (app: ReturnType<typeof createApp>) => {
       url: URL;
       stop: (close?: boolean) => void | Promise<void>;
@@ -44,12 +47,12 @@ export async function serve(
       for (const repair of startRestored(appOptions))
         console.log(base32(repair.vaultId), repair.token ?? restoreNotice[repair.kind]);
 
-    const app = createApp(appOptions);
+    const status = createStatusState(now(), process.env);
+    const app = createApp(appOptions, undefined, status);
 
-    const firstPrune = setTimeout(pruneHistorySafely, 60000, appOptions);
-    firstPrune.unref();
-    const pruning = setInterval(pruneHistorySafely, 3600000, appOptions);
-    pruning.unref();
+    const prune = () => {
+      status.lastPrune = { at: now(), ok: pruneHistorySafely(appOptions) };
+    };
 
     const server =
       options.listen?.(app) ??
@@ -62,13 +65,15 @@ export async function serve(
 
     console.log(`envden listening on ${server.url.toString()}`);
 
+    const scheduler = options.scheduler ?? systemScheduler;
+    const jobs = [scheduler.after(60000, prune), scheduler.every(3600000, prune)];
+
     let stopping = false;
 
     const shutdown = async () => {
       if (stopping) return;
       stopping = true;
-      clearTimeout(firstPrune);
-      clearInterval(pruning);
+      for (const cancel of jobs) cancel();
       process.off("SIGTERM", shutdown);
       process.off("SIGINT", shutdown);
       await server.stop();
@@ -78,7 +83,7 @@ export async function serve(
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
 
-    return { server, storage, shutdown, stopPruning: () => clearInterval(pruning) };
+    return { server, storage, shutdown };
   } catch (error) {
     storage.close();
     throw error;

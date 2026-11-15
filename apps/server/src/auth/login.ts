@@ -1,5 +1,6 @@
 import { completeLogin } from "./login/complete.ts";
 import { MessageResponseSchema, LoginFinishResponseSchema } from "@envden/core/protocol";
+import { unlockWindow } from "./login/window.ts";
 import { EnvdenError } from "@envden/core/errors";
 import {
   opaqueServerStartLogin,
@@ -68,12 +69,10 @@ export async function finishLogin(
 
   if (purpose === "kit") return LoginFinishResponseSchema.parse({ kind: "ticket" });
   if (storage.vault(vaultId)?.restored) return LoginFinishResponseSchema.parse({ kind: "staged" });
-  const deviceState = storage.device(vaultId, device)!;
 
   return LoginFinishResponseSchema.parse({
     kind: "unlocked",
-    unlockedUntil: storage.vault(vaultId)?.unlockPeriod === null ? null : deviceState.unlockedUntil,
-    freshUntil: deviceState.freshUntil,
+    ...unlockWindow(options, vaultId, device),
   });
 }
 

@@ -12,6 +12,7 @@ interface IRoute {
 
 const routes: IRoute[] = [
   { method: "GET", path: /^\/v1\/hello$/, limit: 0 },
+  { method: "GET", path: /^\/(v1\/status)?$/, limit: 0 },
   { method: "POST", path: /^\/v1\/vault$/, limit: 65536, policy: "data" },
   { method: "POST", path: /^\/v1\/swap$/, limit: 33554432, policy: "data" },
   { method: "GET", path: /^\/v1\/(head|headers|entries|envelope)$/, limit: 0, policy: "data" },
@@ -55,6 +56,7 @@ const routes: IRoute[] = [
   { method: "DELETE", path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}$/, limit: 0 },
   { method: "GET", path: /^\/v1\/pairing\/approver$/, limit: 0, policy: "approver" },
   { method: "GET", path: /^\/v1\/settings\/unlock-period$/, limit: 0 },
+  { method: "GET", path: /^\/v1\/unlock-window$/, limit: 0 },
   { method: "PUT", path: /^\/v1\/settings\/unlock-period$/, limit: 65536 },
   {
     method: "POST",

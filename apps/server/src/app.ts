@@ -9,19 +9,27 @@ import { registerHello } from "./routes/hello.ts";
 import { registerOpaque } from "./routes/opaque.ts";
 import { registerPairing } from "./routes/pairing.ts";
 import { registerSettings } from "./routes/settings.ts";
+import { registerStatus } from "./routes/status.ts";
+import { createStatusState } from "./status/state.ts";
+import type { IStatusState } from "./status/types.ts";
 
 import { registerImport } from "./routes/data/import.ts";
 import { registerRecovery } from "./routes/data/recovery.ts";
 import { registerVault } from "./routes/data/vault.ts";
 import { registerReads } from "./routes/data/reads.ts";
 
-export function createApp(options: IAppOptions, reserveBody = createBodyBudget()) {
+export function createApp(
+  options: IAppOptions,
+  reserveBody = createBodyBudget(),
+  status: IStatusState = createStatusState(options.now(), {}),
+) {
   parseSemver(options.config.appVersion);
   parseSemver(options.config.minClient);
 
   const app = new Hono<TServerEnv>()
     .onError(onError)
     .route("/", registerHello(new Hono<TServerEnv>(), options))
+    .route("/", registerStatus(new Hono<TServerEnv>(), options, status))
     .use("/v1/*", verification(options, reserveBody));
 
   return app

@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { serve } from "../main.ts";
+import { manualScheduler } from "./scheduler.ts";
 
 test("serve injects time and shutdown removes handlers and closes storage", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-lifecycle-"));
@@ -34,6 +35,27 @@ test("serve injects time and shutdown removes handlers and closes storage", asyn
   }
 });
 
+test("serve schedules pruning on the injected scheduler and shutdown cancels every job", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "envden-lifecycle-"));
+  const scheduler = manualScheduler();
+  const log = spyOn(console, "log").mockImplementation(() => {});
+  const running = await serve({ dataDir: dir, port: 0, now: () => 1000, scheduler });
+
+  try {
+    expect(scheduler.pending().map((job) => [job.kind, job.ms])).toEqual([
+      ["after", 60000],
+      ["every", 3600000],
+    ]);
+
+    await running.shutdown();
+    expect(scheduler.pending()).toEqual([]);
+  } finally {
+    log.mockRestore();
+    await running.shutdown();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("pruning catches failures without logging the exception", async () => {
   const f = fixture(await identity());
 
@@ -44,7 +66,7 @@ test("pruning catches failures without logging the exception", async () => {
   const log = spyOn(console, "error").mockImplementation(() => {});
 
   try {
-    expect(() => pruneHistorySafely(f.options)).not.toThrow();
+    expect(pruneHistorySafely(f.options)).toBe(false);
     expect(log).toHaveBeenCalledWith("envden history pruning failed");
   } finally {
     failure.mockRestore();
@@ -72,7 +94,7 @@ test("pruning continues past a failing vault", async () => {
   const log = spyOn(console, "error").mockImplementation(() => {});
 
   try {
-    pruneHistorySafely(f.options);
+    expect(pruneHistorySafely(f.options)).toBe(false);
     expect(pruned).toEqual([0, 2]);
     expect(log).toHaveBeenCalledTimes(1);
   } finally {

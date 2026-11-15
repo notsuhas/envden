@@ -1,5 +1,6 @@
 import { serve } from "../main.ts";
 import type { createApp } from "../app.ts";
+import { manualScheduler } from "./scheduler.ts";
 
 export function testNetwork() {
   const apps = new Map<string, ReturnType<typeof createApp>>();
@@ -15,6 +16,7 @@ export function testNetwork() {
     },
     serve: (options: Parameters<typeof serve>[0]) =>
       serve({
+        scheduler: manualScheduler(),
         ...options,
         listen: (app) => {
           const url = new URL(`http://server-${next++}.invalid`);
