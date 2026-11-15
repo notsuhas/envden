@@ -51,7 +51,7 @@ pub fn require_server_address(text: &str) -> Result<String> {
 }
 
 fn server_address(text: &str) -> Option<String> {
-    let trimmed = text.trim();
+    let trimmed = envden_core::text::js_trim(text);
     let has_scheme = trimmed.split_once("://").is_some_and(|(scheme, _)| {
         scheme.starts_with(|c: char| c.is_ascii_alphabetic())
             && scheme
@@ -98,13 +98,24 @@ mod tests {
     fn bare_hosts_and_invalid_addresses() {
         for (input, expected) in [
             ("envden.x.ts.net", "https://envden.x.ts.net"),
+            ("\u{feff}envden.x.ts.net\u{feff}", "https://envden.x.ts.net"),
+            (
+                "\u{feff}https://envden.x.ts.net\u{feff}",
+                "https://envden.x.ts.net",
+            ),
             (" envden.x.ts.net/ ", "https://envden.x.ts.net"),
             ("https://envden.x.ts.net/v1", "https://envden.x.ts.net"),
             ("http://127.0.0.1:4783", "http://127.0.0.1:4783"),
         ] {
             assert_eq!(require_server_address(input).unwrap(), expected);
         }
-        for input in ["", "https://", "ftp://envden.x.ts.net", "envden x"] {
+        for input in [
+            "",
+            "https://",
+            "ftp://envden.x.ts.net",
+            "envden x",
+            "\u{0085}envden.x.ts.net\u{0085}",
+        ] {
             assert_eq!(address_problem(input), Some(ADDRESS_HINT));
             assert_eq!(
                 require_server_address(input).unwrap_err().code,

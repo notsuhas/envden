@@ -18,7 +18,7 @@ fn piped(source: &mut dyn Read) -> Result<String> {
     source.read_to_string(&mut token).map_err(|cause| {
         EnvdenError::with_source(ErrorCode::InvalidInput, "Cannot read setup token", cause)
     })?;
-    let token = token.trim();
+    let token = envden_core::text::js_trim(&token);
     if token.is_empty() {
         return Err(EnvdenError::new(
             ErrorCode::InvalidInput,
@@ -39,6 +39,11 @@ mod tests {
             piped(&mut format!("  {token}\n").as_bytes()).unwrap(),
             token
         );
+        assert_eq!(
+            piped(&mut format!("\u{feff}{token}\u{feff}").as_bytes()).unwrap(),
+            token
+        );
+        assert!(piped(&mut format!("\u{0085}{token}\u{0085}").as_bytes()).is_err());
         for value in ["", " \n", "bad"] {
             assert_eq!(
                 piped(&mut value.as_bytes()).unwrap_err().code,

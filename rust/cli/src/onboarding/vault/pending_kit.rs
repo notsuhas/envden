@@ -35,13 +35,15 @@ pub(super) fn resume_secret(options: &Value) -> Result<Option<String>> {
     )? {
         return Ok(None);
     }
-    Ok(Some(
-        secret("Secret key from that kit (EK1-…)", |v| {
-            secret_key_problem(v).map(str::to_owned)
-        })?
-        .trim()
-        .into(),
-    ))
+    let value = secret("Secret key from that kit (EK1-…)", |v| {
+        secret_key_problem(v).map(str::to_owned)
+    })?;
+
+    Ok(Some(trim_secret(&value)))
+}
+
+fn trim_secret(value: &str) -> String {
+    envden_core::text::js_trim(value).into()
 }
 
 pub(super) fn report(
@@ -105,6 +107,15 @@ mod tests {
         identity::device_identity,
         vault::{create_genesis, create_vault_swap},
     };
+    #[test]
+    fn resumed_secret_uses_javascript_whitespace() {
+        assert_eq!(trim_secret("\u{feff}EK1-secret\u{feff}"), "EK1-secret");
+        assert_eq!(
+            trim_secret("\u{0085}EK1-secret\u{0085}"),
+            "\u{0085}EK1-secret\u{0085}"
+        );
+    }
+
     #[test]
     fn kit_saved_strips_terminal_controls() {
         assert_eq!(

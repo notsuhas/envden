@@ -27,8 +27,8 @@ pub fn normalize_pairing_code(input: &str) -> Result<(u32, String)> {
             return None;
         }
         let n = text.len() - 8;
-        let group = input.trim().split(['-', ' ']).next()?;
-        if group.len() < input.trim().len() && group.len() != n {
+        let group = envden_core::text::js_trim(input).split(['-', ' ']).next()?;
+        if group.len() < envden_core::text::js_trim(input).len() && group.len() != n {
             return None;
         }
         let mb = &text[..n];

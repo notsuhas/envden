@@ -15,6 +15,8 @@ fn pairing_codes_and_directional_keys() {
         "1-000G-40RU",
         "1\t000G40R4",
         "100-0G-40R4",
+        "\u{feff}1-000G-40R4\u{feff}",
+        "\u{0085}1-000G-40R4\u{0085}",
     ] {
         assert!(normalize_pairing_code(input).is_err(), "{input}");
     }
