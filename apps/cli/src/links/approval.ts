@@ -1,4 +1,4 @@
-import type { ICheckout } from "@envden/core/adapters";
+import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 import type { ILocalState } from "../state/model.ts";
 
 export function checkoutApproval(
@@ -24,6 +24,16 @@ export function checkoutApproval(
   )
     ? "approved"
     : "ask";
+}
+
+export async function approvedCheckout(
+  repo: Pick<IRepoAdapter, "checkoutAt">,
+  state: ILocalState,
+  root: string,
+) {
+  const checkout = await repo.checkoutAt(root);
+
+  return checkout && checkoutApproval(state, checkout) === "approved" ? checkout : undefined;
 }
 
 export function approvalPrompt(state: ILocalState, checkout: ICheckout): string {

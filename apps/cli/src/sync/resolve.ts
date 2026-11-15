@@ -1,7 +1,7 @@
 import { requestDeletion } from "./local/reconciliation/operation/deletion.ts";
 import * as p from "@envden/core/protocol";
 import { binary } from "../client/encoding.ts";
-import { placeFileTarget } from "./local/reconciliation/placement.ts";
+import { placeFileTarget } from "./local/reconciliation/placement/target.ts";
 import { basePath } from "./local/files.ts";
 import { markAppliedEntry } from "./local/applied.ts";
 import { rm } from "node:fs/promises";

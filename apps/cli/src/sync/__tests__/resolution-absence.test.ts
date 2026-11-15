@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test";
-import { rm } from "node:fs/promises";
+import { lstat, rm } from "node:fs/promises";
+import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
+import { approveLayout } from "./round-fixture.ts";
+import { markLocalOnly } from "../../links/local-only.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
 import { pull, push } from "../engine.ts";
@@ -36,3 +39,20 @@ for (const side of ["mine", "server"] as const)
     expect(await Bun.file(store).text()).toBe("TOKEN=mine\n");
     expect(await conflictRecords(f.second.home)).toHaveLength(1);
   });
+
+test("resolve leaves a target marked local only after the conflict", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["link", "link"]);
+  const store = targets[0]!.store;
+  const kept = join(targets[1]!.root, ".env");
+  await atomicWrite(store, "TOKEN=mine\n", fixtureClock);
+  await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
+  await push(f.first, f.opts);
+  expect((await pull(f.second, f.opts)).conflicts).toBe(1);
+  await markLocalOnly(f.second, (await loadState(f.second.home))!, targets[1]!.root, ".env");
+  await resolveConflict(f.second, { file: ".env", choice: "take-server", now: f.now });
+
+  expect((await lstat(kept)).isSymbolicLink()).toBe(false);
+  expect(await Bun.file(kept).text()).toBe("TOKEN=mine\n");
+  expect(await Bun.file(join(targets[0]!.root, ".env")).text()).toBe("TOKEN=remote\n");
+});

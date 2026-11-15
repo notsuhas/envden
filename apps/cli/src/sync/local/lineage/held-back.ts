@@ -9,7 +9,7 @@ import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../../../adapters.ts";
 import { loadState } from "../../../state/store/repository.ts";
 import { binary, text } from "../../../client/encoding.ts";
-import { checkoutApproval } from "../../../links/approval.ts";
+import { approvedCheckout } from "../../../links/approval.ts";
 import { readConfig } from "../../../settings/config.ts";
 import { conflictRecords } from "../conflicts.ts";
 import { appliedFiles } from "../applied.ts";
@@ -59,8 +59,6 @@ async function linkReason(
   },
   link: NonNullable<Awaited<ReturnType<typeof loadState>>>["links"][number],
 ) {
-  const checkout = await adapters.repo.checkoutAt(link.root);
-
   const entry = knownEntry(
     { adapters, state, rules, conflicts, applied, key, entries, invalidAttempt },
     link,
@@ -90,7 +88,7 @@ async function linkReason(
     ? "invalid sync state; run envden pull, then envden resolve --list"
     : reasonFor({
         oversized: fileSizeNotice(link.path, stored) !== undefined,
-        approval: !!checkout && checkoutApproval(state, checkout) === "approved",
+        approval: !!(await approvedCheckout(adapters.repo, state, link.root)),
         included: acceptsEnvPath(link.path, rules),
         conflict: conflicts.some((record) => record.store === link.store),
         pending: (await readBytes(basePath(adapters.home, link.store) + ".pending")) !== undefined,

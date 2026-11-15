@@ -10,7 +10,7 @@ import { atomicWrite } from "../../../../state/store/files.ts";
 import { journalPlacement } from "../../../../state/journal/placement.ts";
 import { basePath, readBytes, same, writeBytes } from "../../files.ts";
 import { backup } from "../../conflicts.ts";
-import { placeFileTarget } from "../placement.ts";
+import { placeFileTarget } from "../placement/target.ts";
 import { saveBase } from "../history.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];

@@ -2,7 +2,7 @@ import { join } from "node:path";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../../adapters.ts";
 import type { ILocalState } from "../../state/model.ts";
-import { checkoutApproval } from "../../links/approval.ts";
+import { approvedCheckout } from "../../links/approval.ts";
 import { appliedFiles } from "../local/applied.ts";
 
 export async function removalTargets(adapters: TAdapters, state: ILocalState, store: string) {
@@ -10,9 +10,7 @@ export async function removalTargets(adapters: TAdapters, state: ILocalState, st
   const skipped: string[] = [];
 
   for (const target of state.links.filter((link) => link.store === store && !link.localOnly)) {
-    const checkout = await adapters.repo.checkoutAt(target.root);
-
-    if (!checkout || checkoutApproval(state, checkout) !== "approved")
+    if (!(await approvedCheckout(adapters.repo, state, target.root)))
       skipped.push(join(target.root, target.path));
     else targets.push(target);
   }

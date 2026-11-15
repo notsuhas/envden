@@ -1,9 +1,11 @@
-import { sanitizeTerminal } from "../../../output/sanitize.ts";
-import { readBytes, same } from "../files.ts";
+import { sanitizeTerminal } from "../../../../output/sanitize.ts";
+import { readBytes, same } from "../../files.ts";
 import { lstat } from "node:fs/promises";
 import { join } from "node:path";
-import type { TSyncContext } from "../../remote/context.ts";
-import { backup } from "../conflicts.ts";
+import type { TSyncContext } from "../../../remote/context.ts";
+import { backup } from "../../conflicts.ts";
+import { approvedCheckout } from "../../../../links/approval.ts";
+import { targetSkip } from "./skip.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -13,10 +15,17 @@ export async function placeFileTarget(
   bytes: Uint8Array | undefined,
   preserveDeleted = false,
 ) {
-  const checkout = context.state.approved.find((item) => item.root === target.root);
-  if (!checkout || !(await lstat(target.root).catch(() => undefined))?.isDirectory()) return false;
-
+  if (!(await lstat(target.root).catch(() => undefined))?.isDirectory()) return false;
   const destination = join(target.root, target.path);
+  const checkout = await approvedCheckout(context.adapters.repo, context.state, target.root);
+  const skip = targetSkip(context.state.links, target, !!checkout);
+
+  if (skip) {
+    context.options.report?.(sanitizeTerminal(`Skipped ${destination}: ${skipReasons[skip]}`));
+
+    return false;
+  }
+
   const placement = context.adapters.placement(target.mode, target.root);
   const status = await placement.inspect(target.store, destination);
 
@@ -28,7 +37,7 @@ export async function placeFileTarget(
   }
 
   if (bytes !== undefined) {
-    await context.adapters.repo.ensureIgnored(checkout, target.path);
+    await context.adapters.repo.ensureIgnored(checkout!, target.path);
 
     if (target.mode === "copy" ? !identical : status !== "linked")
       await placement.place(target.store, destination);
@@ -40,6 +49,12 @@ export async function placeFileTarget(
 
   return true;
 }
+
+const skipReasons = {
+  unapproved: "checkout needs approval; run envden track",
+  "local-only": "marked local only",
+  changed: "placement changed; run envden pull",
+} as const;
 
 function trackTarget(context: Pick<TSyncContext, "state">, target: TTarget) {
   if (!context.state.links.some((item) => item.root === target.root && item.path === target.path))

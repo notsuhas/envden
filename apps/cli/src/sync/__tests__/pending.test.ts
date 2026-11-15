@@ -1,8 +1,11 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
+import { mkdir, rm } from "node:fs/promises";
+import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createSharedFixture } from "./shared-fixture.ts";
 import { approveLayout } from "./round-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
+import { loadState, saveState } from "../../state/store/repository.ts";
 import { pull, push } from "../engine.ts";
 import { conflictRecords } from "../local/conflicts.ts";
 import { readBytes, basePath } from "../local/files.ts";
@@ -117,3 +120,50 @@ for (const step of [
     for (const target of targets)
       expect(await Bun.file(join(target.root, target.path)).text()).toBe("TOKEN=remote\n");
   });
+
+test("resumed placement skips a checkout recreated after the failed pull", async () => {
+  const f = await fixture();
+  const targets = await approveLayout(f, ["copy"]);
+  const recreated = { ...f.checkoutB, root: join(f.root, "round-recreated"), mode: "copy" };
+  await mkdir(recreated.root, { recursive: true });
+  const state = (await loadState(f.second.home))!;
+  state.approved.push(recreated);
+  await saveState(f.second.home, state, fixtureClock);
+  let current = state.approved;
+  const ignored: string[] = [];
+
+  f.second.repo = createFakeRepoAdapter({
+    checkoutAt: async (root) => current.find((checkout) => checkout.root === root),
+    ensureIgnored: async (checkout) => void ignored.push(checkout.root),
+    caseInsensitive: async () => false,
+  });
+
+  await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
+  await push(f.first, f.opts);
+  const placement = f.second.placement;
+
+  f.second.placement = (mode, root) => {
+    const adapter = placement(mode, root);
+    if (root !== recreated.root) return adapter;
+
+    return {
+      ...adapter,
+      place: async () => {
+        throw new Error("injected placement failure");
+      },
+    };
+  };
+
+  await pull(f.second, f.opts);
+  expect(await readBytes(basePath(f.second.home, targets[0]!.store) + ".pending")).toBeDefined();
+  f.second.placement = placement;
+  await rm(recreated.root, { recursive: true });
+  await mkdir(recreated.root);
+  current = [...state.approved.slice(0, -1), { ...recreated, identity: "recloned" }];
+  ignored.length = 0;
+  await pull(f.second, f.opts);
+
+  expect(await Bun.file(join(recreated.root, ".env")).exists()).toBe(false);
+  expect(ignored).not.toContain(recreated.root);
+  expect(await Bun.file(join(targets[0]!.root, ".env")).text()).toBe("TOKEN=remote\n");
+});
