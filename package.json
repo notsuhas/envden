@@ -15,9 +15,12 @@
     "test": "bun test",
     "fallow": "fallow",
     "new-adapter": "bun scripts/new-adapter.ts",
-    "ci": "vp check && bun test && fallow --fail-on-issues"
+    "ci": "vp check && bun test && fallow --fail-on-issues",
+    "changeset": "changeset",
+    "release:version": "changeset version && bun scripts/release/sync-version.ts && bun install && vp check --fix"
   },
   "devDependencies": {
+    "@changesets/cli": "3.0.3",
     "@types/bun": "1.4.4",
     "fallow": "3.42.0",
     "oxlint": "1.93.0",

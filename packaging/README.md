@@ -8,7 +8,7 @@ After a partial failure, use "Re-run failed jobs" on the original run. Do not de
 
 ## Version bumps
 
-Update `apps/{cli,server,web}/package.json` and `packaging/npm/package.json`, then run `bun install` to refresh `bun.lock`. `apps/web/src/lib/site.ts` derives `ENVDEN_VERSION` from the web manifest. Update the getting-started version output; its test rejects stale examples. Run the root checks, web build and three-OS CI before requesting approval to tag.
+Add a changeset (`bunx changeset`) with each user-facing change. To cut a release, run `bun run release:version`: it applies the pending changesets to `apps/{cli,server,web}` (versioned together), writes `apps/cli/CHANGELOG.md`, syncs `packaging/npm/package.json` and the getting-started version output, refreshes `bun.lock` and formats. Run the root checks, web build and three-OS CI before requesting approval to tag.
 
 ## Manual channels
 
