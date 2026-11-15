@@ -1,7 +1,7 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 
-pub(super) fn checkpoint(
+pub(in crate::onboarding) fn checkpoint(
     headers: &[p::ISigned<p::IManifestHeader>],
     id: &[u8; 16],
 ) -> Result<[u8; 32]> {

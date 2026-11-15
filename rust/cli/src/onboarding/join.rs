@@ -104,7 +104,8 @@ fn recovery(
         ) {
             Ok(_) => {
                 let history = read_history(&client, &vault_id, None)?;
-                let hash = super::vault::kit_resume::checkpoint(&history.headers, &identity.record.id)?;
+                let hash =
+                    super::vault::kit_resume::checkpoint(&history.headers, &identity.record.id)?;
                 require_pin(&history, &server.pin)?;
                 if rejoin {
                     crate::admin::rejoin::classify::check(adapters, &history)?;
