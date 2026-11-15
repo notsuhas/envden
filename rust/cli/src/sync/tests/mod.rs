@@ -44,3 +44,5 @@ mod prune;
 mod repairs;
 
 mod history_lock;
+
+mod removal;

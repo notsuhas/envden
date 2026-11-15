@@ -142,6 +142,7 @@ pub fn remove_file(
             target_paths.push(destination.to_string_lossy().into_owned());
         }
         write_bytes(Path::new(store), None, now)?;
+        crate::links::checkout::bases::remove_checkout_bases(&adapters.home, &targets, &[], now)?;
         let mut entry = records
             .iter()
             .find(|r| r.store == store)
