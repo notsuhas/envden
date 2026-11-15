@@ -20,7 +20,13 @@ for (const scenario of ["revert", "unpublished", "two copies"] as const)
     const f = await syncFixture();
 
     try {
-      await setConfig("placement", JSON.stringify({ [f.checkoutB.root]: "copy" }), f.second.home);
+      await setConfig(
+        "placement",
+        JSON.stringify({ [f.checkoutB.root]: "copy" }),
+        f.second.home,
+        () => 0,
+      );
+
       await pull(f.second, f.opts);
       const path = join(f.checkoutB.root, scenario === "unpublished" ? ".env.new" : ".env");
 

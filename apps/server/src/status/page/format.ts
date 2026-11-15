@@ -1,21 +1,21 @@
+import { millisecondsInSecond } from "date-fns/constants";
 import { format, formatDistanceStrict, formatDuration, intervalToDuration } from "date-fns";
 import { TZDate } from "@date-fns/tz";
-
-const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+import prettyBytes from "pretty-bytes";
 
 export function formatBytes(bytes: number): string {
-  const exponent = Math.min(units.length - 1, Math.floor(Math.log2(Math.max(bytes, 1)) / 10));
-  const value = bytes / 1024 ** exponent;
-
-  return `${exponent === 0 ? value : value.toFixed(1)} ${units[exponent]}`;
+  return prettyBytes(bytes, { binary: true });
 }
 
 export function formatUptime(seconds: number): string {
   const units = ["days", "hours", "minutes"] as const;
 
-  const text = formatDuration(intervalToDuration({ start: 0, end: seconds * 1000 }), {
-    format: [...units],
-  });
+  const text = formatDuration(
+    intervalToDuration({ start: 0, end: seconds * millisecondsInSecond }),
+    {
+      format: [...units],
+    },
+  );
 
   return text || "under a minute";
 }

@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -21,7 +22,7 @@ async function pruneDirectory(directory: string, now: number, recursive: boolean
         entry.name,
       );
 
-    if (match && now - Number(match[1]) >= 2592000000)
+    if (match && now - Number(match[1]) >= milliseconds({ days: 30 }))
       await rm(path, { force: true, recursive: entry.isDirectory() });
     else if (recursive && entry.isDirectory()) await pruneDirectory(path, now, true);
   }

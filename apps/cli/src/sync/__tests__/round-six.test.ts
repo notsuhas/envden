@@ -17,7 +17,14 @@ const fixture = createSharedFixture();
 for (const mode of ["link", "copy"] as const)
   test(`missing ${mode} store restores published bytes without uploading deletion`, async () => {
     const f = await fixture();
-    await setConfig("placement", JSON.stringify({ [f.checkoutB.root]: mode }), f.second.home);
+
+    await setConfig(
+      "placement",
+      JSON.stringify({ [f.checkoutB.root]: mode }),
+      f.second.home,
+      () => 0,
+    );
+
     await pull(f.second, f.opts);
     const store = (await loadState(f.second.home))!.links[0]!.store;
     await rm(store);
@@ -35,6 +42,7 @@ test("skipped remote content cannot be overwritten by push", async () => {
     "env-files",
     JSON.stringify({ include: [".env.*"], exclude: [], extraSkipped: [] }),
     f.second.home,
+    () => 0,
   );
 
   await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
@@ -47,13 +55,21 @@ test("skipped remote content cannot be overwritten by push", async () => {
     "env-files",
     JSON.stringify({ include: [".env", ".env.*"], exclude: [], extraSkipped: [] }),
     f.second.home,
+    () => 0,
   );
 });
 
 for (const mode of ["link", "copy"] as const)
   test(`lost push response acknowledges its own ${mode} entry before further edits`, async () => {
     const f = await fixture();
-    await setConfig("placement", JSON.stringify({ [f.checkoutB.root]: mode }), f.second.home);
+
+    await setConfig(
+      "placement",
+      JSON.stringify({ [f.checkoutB.root]: mode }),
+      f.second.home,
+      () => 0,
+    );
+
     await pull(f.second, f.opts);
     const store = (await loadState(f.second.home))!.links[0]!.store;
     const edited = mode === "copy" ? join(f.checkoutB.root, ".env") : store;
@@ -116,7 +132,14 @@ test("untracking divergent copy lets remaining link advance", async () => {
 
 test("missing store is restored even when the remaining copy conflicts", async () => {
   const f = await fixture();
-  await setConfig("placement", JSON.stringify({ [f.checkoutB.root]: "copy" }), f.second.home);
+
+  await setConfig(
+    "placement",
+    JSON.stringify({ [f.checkoutB.root]: "copy" }),
+    f.second.home,
+    () => 0,
+  );
+
   await pull(f.second, f.opts);
   const store = (await loadState(f.second.home))!.links[0]!.store;
   await atomicWrite(join(f.checkoutB.root, ".env"), "TOKEN=mine\n", fixtureClock);

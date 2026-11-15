@@ -1,6 +1,10 @@
+import { milliseconds } from "date-fns";
 import type { TFetch } from "../client/fetch.ts";
 
-export function boundedFetch(fetcher: TFetch, deadline = AbortSignal.timeout(2000)): TFetch {
+export function boundedFetch(
+  fetcher: TFetch,
+  deadline = AbortSignal.timeout(milliseconds({ seconds: 2 })),
+): TFetch {
   return async (input, init) => {
     const signal = init?.signal ? AbortSignal.any([deadline, init.signal]) : deadline;
     signal.throwIfAborted();

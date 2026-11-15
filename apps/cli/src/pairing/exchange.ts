@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TClient } from "../client/request.ts";
@@ -20,7 +21,7 @@ export async function getSlot(client: TClient, mailbox: number, slot: string): P
 }
 
 export function requireWindow(expiresAt: number, now: number): void {
-  if (expiresAt > now + 600000)
+  if (expiresAt > now + milliseconds({ minutes: 10 }))
     throw new EnvdenError("INVALID_DATA", "Pairing window exceeds ten minutes");
 
   if (now >= expiresAt) throw new EnvdenError("UNAUTHORIZED", "Pairing exchange expired");

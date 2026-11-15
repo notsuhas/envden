@@ -5,6 +5,7 @@ import { busy, errorText, notify } from "./notice.ts";
 import { createRename } from "./rename.ts";
 import { byId } from "./render/dom.ts";
 import { renderConflicts } from "./render/conflicts.ts";
+import { syncSummary } from "../view/summary.ts";
 import { renderDevices } from "./render/devices/list.ts";
 import { renderOverview } from "./render/overview.ts";
 import { renderRepos } from "./render/repos.ts";
@@ -60,10 +61,7 @@ function sync(kind: "pull" | "push") {
       await refresh();
 
       notify(
-        [
-          `${kind === "pull" ? "Pulled" : "Pushed"}: ${result.changed} changed, ${result.conflicts} conflicts.`,
-          ...(result.reports ?? []),
-        ].join(" "),
+        [syncSummary(kind, result.changed, result.conflicts), ...(result.reports ?? [])].join(" "),
         result.conflicts > 0,
       );
     },

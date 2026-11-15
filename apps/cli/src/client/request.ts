@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { authenticatedRequestSucceeded } from "../updates/status.ts";
 import { latestRelease } from "../updates/github.ts";
 import { retryBusy } from "./retry.ts";
@@ -82,7 +83,7 @@ export function createClient(options: IClientOptions): IClient {
       headers,
       ...(serialized ? { body: serialized } : {}),
       redirect: "error",
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(milliseconds({ seconds: 15 })),
     });
 
     await checkServerMinimum(response, options);

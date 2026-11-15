@@ -1,30 +1,18 @@
-import { EnvdenError } from "@envden/core/errors";
-import { deriveConsent, deriveShell, deriveAgent } from "./decisions.ts";
+import { deriveConsent, deriveShell, deriveAgent, type TShell } from "./decisions.ts";
 import { readConfig, setConfig } from "../settings/config.ts";
 import type { TAdapters } from "../adapters.ts";
 import { installAgent } from "../agent/install.ts";
 import { consent, shellChoice } from "../output/questions.ts";
 
 export type TPreferenceOptions = {
-  telemetry?: string;
-  updateCheck?: string;
+  telemetry?: "on" | "off";
+  updateCheck?: "on" | "off";
   yes?: boolean;
-  shell?: string;
-  agent?: string;
+  shell?: TShell | "none";
+  agent?: "on" | "off";
 };
 
 export async function setupPreferences(adapters: TAdapters, options: TPreferenceOptions) {
-  for (const value of [options.telemetry, options.updateCheck, options.agent])
-    if (value !== undefined && value !== "on" && value !== "off")
-      throw new EnvdenError("INVALID_INPUT", "Expected on or off");
-
-  if (
-    options.shell !== undefined &&
-    options.shell !== "none" &&
-    deriveShell(options.shell).kind !== "install"
-  )
-    throw new EnvdenError("INVALID_INPUT", "Unknown shell");
-
   const telemetry = await consentPreference(
     options.telemetry,
     options.yes,
@@ -39,8 +27,8 @@ export async function setupPreferences(adapters: TAdapters, options: TPreference
     "Check for updates daily?",
   );
 
-  await setConfig("telemetry", telemetry ? "on" : "off", adapters.home);
-  await setConfig("update-check", updateCheck ? "on" : "off", adapters.home);
+  await setConfig("telemetry", telemetry ? "on" : "off", adapters.home, adapters.now);
+  await setConfig("update-check", updateCheck ? "on" : "off", adapters.home, adapters.now);
   await installShell(adapters, options);
 
   await installAgentPreference(adapters, options);

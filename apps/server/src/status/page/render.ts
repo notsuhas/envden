@@ -1,3 +1,4 @@
+import { html, raw } from "hono/html";
 import { formatBytes, formatUptime, formatWhen } from "./format.ts";
 import { style } from "./style.ts";
 import type { TQuotaBand, TServerMode, TStatusResponse } from "@envden/core/protocol";
@@ -15,18 +16,8 @@ const bands: Record<TQuotaBand, string> = {
   "95-plus": "95% of quota or more",
 };
 
-const entities: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-const escape = (value: string) => value.replace(/[&<>"']/g, (char) => entities[char]!);
-
 function row(label: string, value: string, alarm = false) {
-  return `<dt>${escape(label)}</dt><dd${alarm ? ' class="alarm"' : ""}>${escape(value)}</dd>`;
+  return html`<dt>${label}</dt><dd${alarm ? raw(' class="alarm"') : ""}>${value}</dd>`;
 }
 
 function pruneText(prune: TStatusResponse["lastPrune"], now: number) {
@@ -35,7 +26,7 @@ function pruneText(prune: TStatusResponse["lastPrune"], now: number) {
   return `${formatWhen(prune.at, now)}, ${prune.ok ? "succeeded" : "failed"}`;
 }
 
-export function renderStatusPage(status: TStatusResponse, now: number): string {
+export function renderStatusPage(status: TStatusResponse, now: number) {
   const rows = [
     row("Version", status.version),
     row("Uptime", formatUptime(status.uptimeSeconds)),
@@ -48,22 +39,21 @@ export function renderStatusPage(status: TStatusResponse, now: number): string {
     row("Last prune", pruneText(status.lastPrune, now), status.lastPrune?.ok === false),
   ];
 
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex">
-<title>envden server</title>
-<style>${style}</style>
-</head>
-<body>
-<main>
-<h1><span>envden</span> server</h1>
-<dl>${rows.join("")}</dl>
-<p>Per-vault details are only in <code>envden ui</code> on a member device.</p>
-</main>
-</body>
-</html>
-`;
+  return html`<!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="robots" content="noindex" />
+        <title>envden server</title>
+        ${raw(`<style>${style}</style>`)}
+      </head>
+      <body>
+        <main>
+          <h1><span>envden</span> server</h1>
+          <dl>${rows}</dl>
+          <p>Per-vault details are only in <code>envden ui</code> on a member device.</p>
+        </main>
+      </body>
+    </html> `;
 }

@@ -1,3 +1,5 @@
+import { milliseconds } from "date-fns";
+import { millisecondsInDay } from "date-fns/constants";
 import { setTimeout } from "node:timers/promises";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -12,7 +14,7 @@ export async function waitMessage(
 ) {
   const deadline = Math.min(
     expiresAt,
-    now() + (path === "/v1/pairing/approver" ? 86400000 : 600000),
+    now() + (path === "/v1/pairing/approver" ? millisecondsInDay : milliseconds({ minutes: 10 })),
   );
 
   expiresAt = deadline;

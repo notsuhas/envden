@@ -5,7 +5,7 @@ import { placeNative } from "../native/place.ts";
 import { constants } from "node:fs";
 import { EnvdenError } from "@envden/core/errors";
 import { parentIdentity, verifyParents } from "../paths/parent-identity.ts";
-import { privateFile } from "../permissions/private.ts";
+import { restrictAccess } from "@envden/core/process";
 import type { TPlacementMode } from "@envden/core/adapters";
 import { statOrMissing } from "./stat.ts";
 import { isStoreLink } from "./link.ts";
@@ -51,7 +51,7 @@ export async function place(
   if (!storeStat.isFile() || storeStat.isSymbolicLink())
     throw new EnvdenError("INVALID_INPUT", "Store source is not a regular file");
 
-  await privateFile(storePath);
+  await restrictAccess(storePath);
   const temporary = join(dirname(destination), temporaryName(path));
 
   await rm(temporary, { force: true });
@@ -71,7 +71,7 @@ export async function place(
 
       try {
         staged = await file.stat();
-        await privateFile(temporary);
+        await restrictAccess(temporary);
         await verifyParents(parents, destination);
         const source = await open(storePath, constants.O_RDONLY | constants.O_NOFOLLOW);
 

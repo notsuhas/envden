@@ -59,7 +59,7 @@ test("real git worktree asks only with auto-approval off and records its root on
     const worktree = (await adapters.repo.checkoutAt(branch))!;
     expect(worktree.registeredWorktree).toBe(true);
     await linkCheckout(adapters, state, checkout, async () => true);
-    await setConfig("auto-approve-worktrees", "off", adapters.home, false);
+    await setConfig("auto-approve-worktrees", "off", adapters.home, () => 0, false);
 
     let approvals = 0;
 
@@ -99,7 +99,7 @@ test("real git worktree asks only with auto-approval off and records its root on
     expect(state.links.every((item) => item.root !== worktree.root)).toBe(true);
     expect(notices).toHaveLength(1);
 
-    await setConfig("auto-approve-worktrees", "on", adapters.home, true);
+    await setConfig("auto-approve-worktrees", "on", adapters.home, () => 0, true);
     await git(main, ["worktree", "prune"]);
     await git(main, ["worktree", "add", branch, "test"]);
     const reports: string[] = [];

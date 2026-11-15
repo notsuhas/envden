@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { serverFetch } from "./fetch.ts";
 import type { TFetch } from "./fetch.ts";
 import * as p from "@envden/core/protocol";
@@ -17,7 +18,7 @@ export async function hello(
   url.searchParams.set("challenge", text(challenge));
 
   const response = await serverFetch(fetcher, url, {
-    signal: AbortSignal.timeout(2000),
+    signal: AbortSignal.timeout(milliseconds({ seconds: 2 })),
     redirect: "error",
   });
 

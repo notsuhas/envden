@@ -119,6 +119,7 @@ test("an excluded local edit is held back even when the server is unchanged", as
     "env-files",
     JSON.stringify({ include: [".env.*"], exclude: [], extraSkipped: [] }),
     f.second.home,
+    () => 0,
   );
 
   const result = await push(f.second, f.opts);
@@ -141,6 +142,7 @@ test("an excluded local edit is held back even when the server is unchanged", as
     "env-files",
     JSON.stringify({ include: [".env", ".env.*"], exclude: [], extraSkipped: [] }),
     f.second.home,
+    () => 0,
   );
 });
 

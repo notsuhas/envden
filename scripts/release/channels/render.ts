@@ -1,7 +1,12 @@
+import { z } from "zod";
+import { isSemver } from "@envden/core/protocol";
+import { parseSha256Sums } from "@envden/core/release";
 import { targets, assetName } from "../../../apps/cli/scripts/targets.ts";
 
+const npmTemplateSchema = z.looseObject({ version: z.string(), private: z.literal(true) });
+
 export function validateVersion(version: string): string {
-  if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
+  if (!isSemver(version)) {
     throw new Error("Expected a stable version such as 0.1.0, without the v prefix");
   }
 
@@ -10,17 +15,10 @@ export function validateVersion(version: string): string {
 
 export function parseChecksums(contents: string): ReadonlyMap<string, string> {
   const expected = new Set(targets.map(assetName));
-  const hashes = new Map<string, string>();
+  const hashes = parseSha256Sums(contents);
+  const unexpected = [...hashes.keys()].find((name) => !expected.has(name));
 
-  for (const line of contents.trim().split(/\r?\n/)) {
-    const match = /^([a-f0-9]{64}) [ *](\S+)$/i.exec(line);
-    const hash = match?.[1];
-    const name = match?.[2];
-    if (!hash || !name) throw new Error("Invalid SHA256SUMS entry");
-    if (!expected.has(name)) throw new Error(`Unexpected release asset: ${name}`);
-    if (hashes.has(name)) throw new Error(`Duplicate release asset: ${name}`);
-    hashes.set(name, hash.toLowerCase());
-  }
+  if (unexpected) throw new Error(`Unexpected release asset: ${unexpected}`);
 
   const missing = [...expected].filter((name) => !hashes.has(name));
 
@@ -57,18 +55,8 @@ export function renderTemplate(
 }
 
 export function renderNpmPackage(template: string, version: string): string {
-  const manifest: unknown = JSON.parse(template);
+  const manifest = npmTemplateSchema.safeParse(JSON.parse(template));
+  if (!manifest.success) throw new Error("Expected a private npm package template with a version");
 
-  if (
-    typeof manifest !== "object" ||
-    manifest === null ||
-    !("version" in manifest) ||
-    typeof manifest.version !== "string" ||
-    !("private" in manifest) ||
-    manifest.private !== true
-  ) {
-    throw new Error("Expected a private npm package template with a version");
-  }
-
-  return `${JSON.stringify({ ...manifest, version: validateVersion(version) }, null, 2)}\n`;
+  return `${JSON.stringify({ ...manifest.data, version: validateVersion(version) }, null, 2)}\n`;
 }

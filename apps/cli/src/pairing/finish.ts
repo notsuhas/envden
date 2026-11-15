@@ -1,3 +1,4 @@
+import { millisecondsInDay } from "date-fns/constants";
 import { withStateLock } from "../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { clearJoiner } from "./persistence/cleanup.ts";
@@ -19,7 +20,9 @@ export async function finishPairing(
   rejoin = false,
 ) {
   const stored = await optionalRead(join(adapters.home, "state", "pair-expiry"));
-  const expiresAt = stored === undefined ? now() + 86400000 : approvalDeadline(Number(stored));
+
+  const expiresAt =
+    stored === undefined ? now() + millisecondsInDay : approvalDeadline(Number(stored));
 
   try {
     if (stored !== undefined && now() < Number(stored))
@@ -39,5 +42,5 @@ export async function finishPairing(
 }
 
 export function approvalDeadline(exchangeExpiry: number) {
-  return exchangeExpiry + 86400000;
+  return exchangeExpiry + millisecondsInDay;
 }

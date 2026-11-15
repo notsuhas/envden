@@ -1,8 +1,9 @@
+import { milliseconds } from "date-fns";
 import { EnvdenError } from "@envden/core/errors";
 
 import type { IAppOptions } from "../http/types.ts";
 
-const policy = { maxAge: 90 * 86400000, minVersions: 20 };
+const policy = { maxAge: milliseconds({ days: 90 }), minVersions: 20 };
 
 function pruneSafely(run: () => unknown): boolean {
   try {

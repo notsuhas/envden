@@ -52,7 +52,7 @@ export const configCommand = new Command("config")
 
       console.log(
         JSON.stringify(
-          await setConfig(key, value, createAdapters(undefined, Date.now).home),
+          await setConfig(key, value, createAdapters(undefined, Date.now).home, Date.now),
           null,
           2,
         ),

@@ -3,7 +3,8 @@ import { gitSession } from "../exec/git.ts";
 import type { ICheckout, IEnvFileRules } from "@envden/core/adapters";
 import { acceptsEnvPath } from "@envden/core/adapters";
 import { readdir, lstat, readlink } from "node:fs/promises";
-import { resolve, dirname, relative } from "node:path";
+import { resolve, dirname } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
 import { caseInsensitive } from "../checkout/case.ts";
 import { validatePath } from "./validate-path.ts";
 import { EnvdenError } from "@envden/core/errors";
@@ -81,8 +82,7 @@ async function walk(
 async function discoverable(path: string, storeRoot?: string) {
   if (!(await lstat(path)).isSymbolicLink()) return true;
   const target = resolve(dirname(path), await readlink(path));
-  const rel = storeRoot ? relative(storeRoot, target) : undefined;
-  if (rel && !rel.startsWith("..") && rel !== target) return true;
+  if (storeRoot && placeInRoot(storeRoot, target) === "inside") return true;
   console.error(`envden: skipped symlink ${JSON.stringify(path)}`);
 
   return false;

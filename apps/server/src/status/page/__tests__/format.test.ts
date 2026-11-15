@@ -2,11 +2,12 @@ import { expect, test } from "bun:test";
 import { formatBytes, formatUptime, formatWhen } from "../format.ts";
 
 test("formats", () => {
-  expect([0, 1023, 1536, 1073741824].map(formatBytes)).toEqual([
+  expect([0, 1023, 1536, 5_243_180, 1073741824].map(formatBytes)).toEqual([
     "0 B",
     "1023 B",
     "1.5 KiB",
-    "1.0 GiB",
+    "5 MiB",
+    "1 GiB",
   ]);
 
   expect([59, 3660, 90000].map(formatUptime)).toEqual([

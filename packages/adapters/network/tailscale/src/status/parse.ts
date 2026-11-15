@@ -1,30 +1,22 @@
+import { z } from "zod";
 import { EnvdenError } from "@envden/core/errors";
 import type { INetworkStatus } from "@envden/core/adapters";
 
+const statusSchema = z.object({
+  BackendState: z.string(),
+  Self: z.object({ DNSName: z.string() }).optional().catch(undefined),
+  CertDomains: z.array(z.string()).catch([]),
+});
+
 export function parseStatus(stdout: string): INetworkStatus {
-  const data: unknown = JSON.parse(stdout);
+  const result = statusSchema.safeParse(JSON.parse(stdout));
+  if (!result.success) throw new EnvdenError("INVALID_DATA", "Invalid Tailscale status");
 
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("BackendState" in data) ||
-    typeof data.BackendState !== "string"
-  )
-    throw new EnvdenError("INVALID_DATA", "Invalid Tailscale status");
-
-  const running = data.BackendState === "Running";
-  const loggedIn = !["NeedsLogin", "NoState"].includes(data.BackendState);
-  const self = "Self" in data ? data.Self : undefined;
-
-  const dns =
-    self && typeof self === "object" && "DNSName" in self && typeof self.DNSName === "string"
-      ? self.DNSName.replace(/\.$/, "")
-      : undefined;
-
-  const httpsEnabled =
-    "CertDomains" in data &&
-    Array.isArray(data.CertDomains) &&
-    data.CertDomains.some((name: unknown) => typeof name === "string" && name === dns);
+  const { BackendState: state, Self: self, CertDomains: domains } = result.data;
+  const running = state === "Running";
+  const loggedIn = !["NeedsLogin", "NoState"].includes(state);
+  const dns = self?.DNSName.replace(/\.$/, "");
+  const httpsEnabled = domains.some((name) => name === dns);
 
   return {
     ready: running && loggedIn && httpsEnabled,

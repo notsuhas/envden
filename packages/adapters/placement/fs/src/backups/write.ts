@@ -8,7 +8,8 @@ import {
   lstatSync,
 } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { isAbsolute, relative, resolve, sep, join } from "node:path";
+import { resolve, join } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
 import { EnvdenError } from "@envden/core/errors";
 import { openParent, writeAt } from "../native/directory.ts";
 import { libc } from "../native/libc.ts";
@@ -62,8 +63,6 @@ export function backupContents(
 }
 
 function assertOutside(root: string, path: string) {
-  const inside = relative(root, path);
-
-  if (!inside || (inside.split(sep)[0] !== ".." && !isAbsolute(inside)))
+  if (placeInRoot(root, path) !== "outside")
     throw new EnvdenError("INVALID_INPUT", "Backup directory must be outside checkout");
 }

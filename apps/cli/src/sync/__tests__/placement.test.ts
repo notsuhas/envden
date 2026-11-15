@@ -21,7 +21,13 @@ test("sync honors copy preference and prunes adapter backups after placement", a
   );
 
   try {
-    await setConfig("placement", JSON.stringify({ [checkoutB.root]: "copy" }), second.home);
+    await setConfig(
+      "placement",
+      JSON.stringify({ [checkoutB.root]: "copy" }),
+      second.home,
+      () => 0,
+    );
+
     await atomicWrite(expired, "old backup", fixtureClock);
     const prune = second.prunePlacementBackups;
     const calls: number[] = [];
@@ -63,11 +69,11 @@ test("pull places env files in a worktree of an approved clone unless the settin
       ensureIgnored: async () => {},
     });
 
-    await setConfig("auto-approve-worktrees", "off", second.home, false);
+    await setConfig("auto-approve-worktrees", "off", second.home, () => 0, false);
     await Promise.resolve(expect(pull(second, options)).rejects.toThrow("approved checkout"));
     expect(await Bun.file(join(worktree.root, ".env")).exists()).toBe(false);
 
-    await setConfig("auto-approve-worktrees", "on", second.home, true);
+    await setConfig("auto-approve-worktrees", "on", second.home, () => 0, true);
     await pull(second, options);
     expect(reports).toContain(`Approved worktree ${worktree.root} (auto-approve-worktrees)`);
     expect(await Bun.file(join(worktree.root, ".env")).text()).toBe("TOKEN=local-test-value\n");

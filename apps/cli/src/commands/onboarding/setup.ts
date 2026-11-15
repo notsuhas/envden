@@ -3,6 +3,7 @@ import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { runSetup } from "../../onboarding/setup.ts";
 import { missingSetupFlags } from "./missing-setup-flags.ts";
+import { SHELLS, TOGGLES } from "../../onboarding/decisions.ts";
 
 export const setupCommand = new Command("setup")
   .description("Create a vault and configure this device")
@@ -15,18 +16,10 @@ export const setupCommand = new Command("setup")
     "--setup-token <token>",
     "Setup token, visible to other processes; use the prompt in a terminal",
   )
-  .addOption(new Option("--telemetry <choice>", "Anonymous telemetry").choices(["on", "off"]))
-  .addOption(new Option("--update-check <choice>", "Daily release check").choices(["on", "off"]))
-  .addOption(
-    new Option("--shell <shell>", "Shell hook").choices([
-      "zsh",
-      "bash",
-      "fish",
-      "powershell",
-      "none",
-    ]),
-  )
-  .addOption(new Option("--agent <choice>", "Install agent skill").choices(["on", "off"]))
+  .addOption(new Option("--telemetry <choice>", "Anonymous telemetry").choices(TOGGLES))
+  .addOption(new Option("--update-check <choice>", "Daily release check").choices(TOGGLES))
+  .addOption(new Option("--shell <shell>", "Shell hook").choices([...SHELLS, "none"] as const))
+  .addOption(new Option("--agent <choice>", "Install agent skill").choices(TOGGLES))
   .option("--scan-root <path...>", "Roots to scan for repos")
   .option("--exclude-root <path...>", "Roots to skip")
   .action(async (options) => {

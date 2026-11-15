@@ -140,5 +140,5 @@ function portContent(value: string | undefined) {
 async function configureUntrackedCopy(home: string, root: string, copy: boolean, choice: string) {
   if (!copy || choice !== "untracked-repair") return;
   const { setConfig } = await import("../../settings/config.ts");
-  await setConfig("placement", JSON.stringify({ [root]: "copy" }), home);
+  await setConfig("placement", JSON.stringify({ [root]: "copy" }), home, () => 0);
 }

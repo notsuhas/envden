@@ -1,3 +1,9 @@
+export const TOGGLES = ["on", "off"] as const;
+
+export const SHELLS = ["zsh", "bash", "fish", "powershell"] as const;
+
+export type TShell = (typeof SHELLS)[number];
+
 export function deriveConsent(
   value: string | undefined,
   yes: boolean | undefined,
@@ -10,8 +16,8 @@ export function deriveConsent(
 }
 
 export function deriveShell(shell: string) {
-  if (shell === "zsh" || shell === "bash" || shell === "fish" || shell === "powershell")
-    return { kind: "install", shell } as const;
+  const match = SHELLS.find((item) => item === shell);
+  if (match) return { kind: "install", shell: match } as const;
 
   return { kind: "skip" } as const;
 }

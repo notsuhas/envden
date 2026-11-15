@@ -1,4 +1,4 @@
-import { privateFile } from "@envden/adapter-placement-fs";
+import { restrictAccess } from "@envden/core/process";
 import { EnvdenError } from "@envden/core/errors";
 import { open } from "node:fs/promises";
 
@@ -12,7 +12,7 @@ export async function writeKit(path: string, kit: unknown) {
   });
 
   try {
-    await privateFile(path);
+    await restrictAccess(path);
     await file.writeFile(JSON.stringify(kit, null, 2));
   } finally {
     await file.close();

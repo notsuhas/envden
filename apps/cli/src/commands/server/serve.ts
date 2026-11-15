@@ -1,5 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { serve } from "@envden/server";
+import { parsePort } from "./port.ts";
 
 export function setupTokenFrom(env: Record<string, string | undefined>) {
   const setupToken = env.ENVDEN_SETUP_TOKEN;
@@ -13,7 +14,7 @@ export const serveCommand = new Command("serve")
   .option("--restored", "Start a restored backup in repair-only mode")
   .option("--min-client <version>", "Oldest client version to accept")
   .option("--data-dir <path>", "Server data directory")
-  .option("--port <port>", "Localhost port", Number)
+  .option("--port <port>", "Localhost port", parsePort)
   .action(async (options) => {
     await serve({ ...options, ...setupTokenFrom(process.env) });
   });

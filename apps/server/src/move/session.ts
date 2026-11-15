@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { equal } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../http/types.ts";
@@ -23,7 +24,7 @@ export function openMove(options: IAppOptions, auth: IAuth) {
   storage.transaction(() => {
     storage.configureVault(
       vaultId,
-      { active: false, frozen: false, skRefused: false, unlockPeriod: 2592000000 },
+      { active: false, frozen: false, skRefused: false, unlockPeriod: milliseconds({ days: 30 }) },
       [{ kind: "move-session", key: new Uint8Array(), bytes: device }],
       storage.setupToken()!,
     );

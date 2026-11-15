@@ -1,5 +1,6 @@
 import { realpathSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { resolve } from "node:path";
+import { placeInRoot } from "../paths/inside.ts";
 
 let untrustedRoots: string[] = [];
 
@@ -20,9 +21,5 @@ export function setUntrustedRoots(roots: readonly string[]): void {
 }
 
 export function insideUntrustedRoot(path: string): boolean {
-  return untrustedRoots.some((root) => {
-    const rel = relative(root, path);
-
-    return rel === "" || (!isAbsolute(rel) && rel !== ".." && !rel.startsWith(`..${sep}`));
-  });
+  return untrustedRoots.some((root) => placeInRoot(root, path) !== "outside");
 }

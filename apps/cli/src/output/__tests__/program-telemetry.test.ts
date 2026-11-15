@@ -37,7 +37,7 @@ test("runtime environment cannot enable telemetry in an unconfigured build", asy
     const program = createProgram(fixtureClock);
     await program.parseAsync(["node", "envden", "version"]);
     expect(requests).toHaveLength(0);
-    await setConfig("telemetry", "on", root);
+    await setConfig("telemetry", "on", root, () => 0);
     await program.parseAsync(["node", "envden", "version"]);
 
     await Promise.resolve(

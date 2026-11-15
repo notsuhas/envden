@@ -1,7 +1,5 @@
+import { stripVTControlCharacters } from "node:util";
 import { E2E_TIMEOUT, failure } from "./failure.ts";
-
-// oxlint-disable-next-line no-control-regex -- Terminal output carries ANSI escapes that must be stripped before matching prompts.
-const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07]*\x07|\x1b[()][0-9A-B]|\x1b[=>]/g;
 
 function toPattern(text: string | RegExp): RegExp {
   return typeof text === "string" ? new RegExp(RegExp.escape(text)) : text;
@@ -54,7 +52,7 @@ export class PtySession {
   }
 
   output(): string {
-    return this.raw.replace(ANSI, "");
+    return stripVTControlCharacters(this.raw);
   }
 
   async expect(

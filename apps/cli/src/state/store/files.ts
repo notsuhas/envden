@@ -1,6 +1,7 @@
-import { restrictAccess } from "./permissions.ts";
+import { restrictAccess } from "@envden/core/process";
 import { mkdir, open, rename, rm, readFile, lstat } from "node:fs/promises";
-import { dirname, join, resolve, relative, isAbsolute, sep } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
 import { EnvdenError } from "@envden/core/errors";
 
 const owned = new Set<string>();
@@ -18,7 +19,8 @@ export async function atomicWrite(
 ): Promise<void> {
   const parent = dirname(path);
 
-  if ([...owned].some((root) => inside(root, parent))) await privateDirectory(parent);
+  if ([...owned].some((root) => placeInRoot(root, parent) !== "outside"))
+    await privateDirectory(parent);
   else await prepareDirectory(parent);
 
   const temporary = join(
@@ -65,12 +67,6 @@ export async function optionalRead(path: string): Promise<string | undefined> {
     if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return undefined;
     throw cause;
   }
-}
-
-function inside(root: string, path: string) {
-  const rel = relative(root, resolve(path));
-
-  return rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 }
 
 async function prepareDirectory(path: string) {

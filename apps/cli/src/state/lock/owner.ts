@@ -1,18 +1,23 @@
+import { milliseconds } from "date-fns";
+import { millisecondsInDay } from "date-fns/constants";
+import { z } from "zod";
 import { machineIdentity } from "./identity.ts";
 import { lstat, open } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
 import { processIdentity, processStart } from "./process.ts";
 
-export interface IOwner {
-  pid: number;
-  token: string;
-  startedAt: string;
-  identity?: string | undefined;
-  createdAt: number;
-}
+const ownerSchema = z.object({
+  pid: z.int().positive(),
+  token: z.string(),
+  startedAt: z.string(),
+  identity: z.string().optional(),
+  createdAt: z.number(),
+});
 
-export async function owner(path: string): Promise<IOwner | undefined> {
+export type TOwner = z.infer<typeof ownerSchema>;
+
+export async function owner(path: string): Promise<TOwner | undefined> {
   try {
     const directory = await lstat(path);
     if (!directory.isDirectory() || directory.isSymbolicLink()) return undefined;
@@ -28,24 +33,14 @@ export async function owner(path: string): Promise<IOwner | undefined> {
       await file.close();
     }
 
-    if (
-      Number.isSafeInteger(value.pid) &&
-      value.pid > 0 &&
-      typeof value.token === "string" &&
-      typeof value.startedAt === "string" &&
-      typeof value.createdAt === "number" &&
-      Number.isFinite(value.createdAt)
-    )
-      return value;
+    return ownerSchema.safeParse(value).data;
   } catch {
     return undefined;
   }
-
-  return undefined;
 }
 
 export function reclaimable(
-  previous: IOwner,
+  previous: TOwner,
   observed: Awaited<ReturnType<typeof processStart>>,
   identity?: string,
   now = 0,
@@ -59,7 +54,7 @@ export function reclaimable(
         return true;
     }
 
-    return now - previous.createdAt >= 86400000;
+    return now - previous.createdAt >= millisecondsInDay;
   }
 
   return (
@@ -80,10 +75,10 @@ async function orphaned(path: string, now: number): Promise<boolean> {
     if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) return false;
   }
 
-  return now - directory.mtimeMs >= 30000;
+  return now - directory.mtimeMs >= milliseconds({ seconds: 30 });
 }
 
-export async function expiredOwner(path: string, previous: IOwner | undefined, now: number) {
+export async function expiredOwner(path: string, previous: TOwner | undefined, now: number) {
   if (!previous) return orphaned(path, now);
   const identity = await processIdentity();
 

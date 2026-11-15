@@ -1,4 +1,4 @@
-import { execTrusted as exec } from "@envden/core/process";
+import { execTrusted as exec } from "./spawn.ts";
 import { chmod } from "node:fs/promises";
 import { userInfo } from "node:os";
 

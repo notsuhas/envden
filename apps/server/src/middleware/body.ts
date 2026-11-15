@@ -1,3 +1,5 @@
+import { milliseconds } from "date-fns";
+import { millisecondsInSecond } from "date-fns/constants";
 import { requestRoute } from "../routes/policy.ts";
 import { equal, sha256 } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -56,7 +58,11 @@ export async function readBody(
         expire,
         Math.max(
           0,
-          Math.min(600000, 10000 + Math.floor(received / 32768) * 1000) - (now() - started),
+          Math.min(
+            milliseconds({ minutes: 10 }),
+            milliseconds({ seconds: 10 }) + Math.floor(received / 32768) * millisecondsInSecond,
+          ) -
+            (now() - started),
         ),
       );
     };

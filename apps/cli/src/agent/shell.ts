@@ -1,15 +1,12 @@
-import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
+import type { TShell } from "../onboarding/decisions.ts";
 
 export async function manageShell(
   adapters: TAdapters,
   action: "install" | "uninstall",
-  shell: string,
+  shell: TShell | "none",
 ) {
   if (shell === "none") return;
-
-  if (shell !== "zsh" && shell !== "bash" && shell !== "fish" && shell !== "powershell")
-    throw new EnvdenError("INVALID_INPUT", "Unknown shell");
 
   const adapter = adapters.shell(shell);
 

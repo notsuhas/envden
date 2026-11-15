@@ -47,6 +47,7 @@ for (const scenario of [
         "placement",
         JSON.stringify({ [f.checkoutB.root]: link ? "link" : "copy" }),
         f.second.home,
+        () => 0,
       );
 
       await pull(f.second, f.opts);

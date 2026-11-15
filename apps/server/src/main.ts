@@ -1,3 +1,4 @@
+import { millisecondsInHour, millisecondsInMinute } from "date-fns/constants";
 import { maxRequestBodySize } from "./middleware/body.ts";
 import { base32 } from "@envden/core/protocol";
 import { homedir } from "node:os";
@@ -66,7 +67,11 @@ export async function serve(
     console.log(`envden listening on ${server.url.toString()}`);
 
     const scheduler = options.scheduler ?? systemScheduler;
-    const jobs = [scheduler.after(60000, prune), scheduler.every(3600000, prune)];
+
+    const jobs = [
+      scheduler.after(millisecondsInMinute, prune),
+      scheduler.every(millisecondsInHour, prune),
+    ];
 
     let stopping = false;
 

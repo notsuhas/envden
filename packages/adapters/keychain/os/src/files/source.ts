@@ -1,7 +1,7 @@
 import { lstat, mkdir, open, rename, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import { restrictAccess } from "../permissions/private.ts";
+import { restrictAccess } from "@envden/core/process";
 
 export async function hasFileSource(path: string): Promise<boolean> {
   try {

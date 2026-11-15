@@ -1,8 +1,9 @@
 import { loadState } from "../../state/store/repository.ts";
 import { runRejoin } from "../../admin/rejoin/run.ts";
-import { Command } from "@commander-js/extra-typings";
+import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { runJoin } from "../../onboarding/join.ts";
+import { SHELLS, TOGGLES } from "../../onboarding/decisions.ts";
 
 export const joinCommand = new Command("join")
   .argument("<server>", "Server address, e.g. https://envden.your-tailnet.ts.net")
@@ -11,10 +12,10 @@ export const joinCommand = new Command("join")
   .option("--recovery-kit <path>", "Recovery kit path")
   .option("--name <name>", "Device name")
   .option("--yes", "Use default preferences")
-  .option("--telemetry <choice>", "Anonymous telemetry: on or off")
-  .option("--update-check <choice>", "Daily update check: on or off")
-  .option("--shell <shell>", "Shell notice: zsh, bash, fish, powershell or none")
-  .option("--agent <choice>", "Agent skill: on or off")
+  .addOption(new Option("--telemetry <choice>", "Anonymous telemetry").choices(TOGGLES))
+  .addOption(new Option("--update-check <choice>", "Daily update check").choices(TOGGLES))
+  .addOption(new Option("--shell <shell>", "Shell notice").choices([...SHELLS, "none"] as const))
+  .addOption(new Option("--agent <choice>", "Agent skill").choices(TOGGLES))
   .option("--resume", "Fetch the committed approver message")
   .action(async (server, options) => {
     const adapters = createAdapters(undefined, Date.now);

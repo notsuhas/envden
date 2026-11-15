@@ -96,7 +96,7 @@ async function createFresh(layout: readonly ("copy" | "link")[], key: string, di
     ])
       await rm(join(adapters.home, "state", name), { recursive: true, force: true });
 
-    await setConfig("placement", "{}", adapters.home);
+    await setConfig("placement", "{}", adapters.home, () => 0);
   }
 
   for (const root of [f.checkout.root, f.checkoutB.root]) {

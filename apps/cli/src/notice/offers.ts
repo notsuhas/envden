@@ -1,9 +1,13 @@
+import { millisecondsInMinute } from "date-fns/constants";
+import { z } from "zod";
 import { readConfig } from "../settings/config.ts";
 import { join } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
+
+const scansSchema = z.record(z.string(), z.number());
 
 export async function cacheOffers(
   adapters: TAdapters,
@@ -47,7 +51,7 @@ async function scanOffer(
   const path = join(adapters.home, "state", "track-scanned.json");
   const scans = await recentScans(path, now);
   const previous = scans[checkout.root];
-  if (previous !== undefined && now - previous < 60000) return;
+  if (previous !== undefined && now - previous < millisecondsInMinute) return;
 
   const files = await adapters.repo.envFiles(
     checkout,
@@ -60,14 +64,11 @@ async function scanOffer(
 }
 
 async function recentScans(path: string, now: number): Promise<Record<string, number>> {
-  const raw: unknown = JSON.parse((await optionalRead(path)) ?? "{}");
+  const saved = scansSchema.safeParse(JSON.parse((await optionalRead(path)) ?? "{}")).data ?? {};
 
   const scans: Record<string, number> = Object.fromEntries(
-    Object.entries(raw && typeof raw === "object" ? raw : {})
-      .filter(
-        (entry): entry is [string, number] =>
-          typeof entry[1] === "number" && now - entry[1] < 60000,
-      )
+    Object.entries(saved)
+      .filter((entry) => now - entry[1] < millisecondsInMinute)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 255),
   );

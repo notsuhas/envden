@@ -19,6 +19,7 @@ export async function checkoutPlacement(
       "placement",
       JSON.stringify({ ...config.placement, [root]: "copy" }),
       adapters.home,
+      adapters.now,
     );
 
     return "copy" as const;
@@ -35,6 +36,7 @@ export async function checkoutPlacement(
       "placement",
       JSON.stringify({ ...config.placement, [root]: mode }),
       adapters.home,
+      adapters.now,
     );
 
     return mode;

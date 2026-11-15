@@ -1,7 +1,6 @@
 "use client";
 
-import { useInView } from "motion/react";
-import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
+import { useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { DesktopPane } from "@/components/landing/trip/panes/desktop.tsx";
 import { LaptopPane } from "@/components/landing/trip/panes/laptop.tsx";

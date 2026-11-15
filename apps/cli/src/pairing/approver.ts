@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { saveApproval, submitApproval } from "./persistence/submission.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { currentMaterial } from "../admin/shared/material.ts";
@@ -36,7 +37,7 @@ async function lockedapprovePairing(
   confirm: (name: string) => Promise<boolean>,
 ) {
   const { number } = attempt;
-  const expiresAt = Math.min(attempt.expiresAt, now() + 600000);
+  const expiresAt = Math.min(attempt.expiresAt, now() + milliseconds({ minutes: 10 }));
   requireWindow(expiresAt, now());
   await wait("KE1");
   const response = await attempt.answer(await getSlot(client, number, "KE1"));

@@ -1,6 +1,7 @@
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { dirname, relative, resolve, sep } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
 import type { ILocalState } from "../../state/model.ts";
 
 type TLink = ILocalState["links"][number];
@@ -63,12 +64,6 @@ function fileTarget(
 
 function deepest<T extends { root: string }>(checkouts: T[], path: string) {
   return checkouts
-    .filter((checkout) => contains(checkout.root, path))
+    .filter((checkout) => placeInRoot(checkout.root, path) !== "outside")
     .sort((a, b) => b.root.length - a.root.length)[0];
-}
-
-function contains(root: string, path: string) {
-  const rel = relative(root, path);
-
-  return rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 }

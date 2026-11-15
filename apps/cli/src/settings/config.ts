@@ -1,37 +1,37 @@
+import { z } from "zod";
 import { EnvdenError } from "@envden/core/errors";
 import { withStateLock } from "../state/lock/lock.ts";
-import { readFile, rename, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { ensurePaths, paths } from "./paths.ts";
+import { atomicWrite } from "../state/store/files.ts";
 
-import type { IEnvFileRules } from "@envden/core/adapters";
+const patternsSchema = z.array(z.string().min(1)).exactOptional();
 
-interface IConfig {
-  placement?: Record<string, "link" | "copy">;
-  "env-files"?: IEnvFileRules;
-  telemetry: boolean;
-  "update-check": boolean;
-  "agent-merge": boolean;
-  "auto-approve-worktrees": boolean;
-}
-
-const toggles = ["telemetry", "update-check", "agent-merge", "auto-approve-worktrees"];
+const configSchema = z.strictObject({
+  placement: z.record(z.string(), z.enum(["link", "copy"])).exactOptional(),
+  "env-files": z
+    .strictObject({
+      include: patternsSchema,
+      exclude: patternsSchema,
+      extraSkipped: patternsSchema,
+    })
+    .exactOptional(),
+  telemetry: z.boolean().default(false),
+  "update-check": z.boolean().default(true),
+  "agent-merge": z.boolean().default(false),
+  "auto-approve-worktrees": z.boolean().default(true),
+});
 
 // Agents must not be able to widen what they can do without the user.
 const terminalOnly = ["agent-merge", "auto-approve-worktrees"];
 
-export function parseConfig(value: unknown): IConfig {
-  if (typeof value !== "object" || value === null || Array.isArray(value))
-    throw new EnvdenError("INVALID_INPUT", "Invalid config object");
+export function parseConfig(value: unknown) {
+  const result = configSchema.safeParse(value);
 
-  for (const [key, item] of Object.entries(value)) validateSetting(key, item);
+  if (!result.success)
+    throw new EnvdenError("INVALID_INPUT", "Invalid config", { cause: result.error });
 
-  return {
-    telemetry: false,
-    "update-check": true,
-    "agent-merge": false,
-    "auto-approve-worktrees": true,
-    ...value,
-  };
+  return result.data;
 }
 
 export async function readConfig(home: string) {
@@ -52,6 +52,7 @@ export async function setConfig(
   key: string,
   value: string,
   home: string,
+  now: () => number,
   interactive = Boolean(process.stdin.isTTY),
 ) {
   if (terminalOnly.includes(key) && value === "on" && !interactive)
@@ -67,9 +68,7 @@ export async function setConfig(
     });
 
     const location = await ensurePaths(home);
-    const temporary = `${location.config}.${crypto.randomUUID()}.tmp`;
-    await writeFile(temporary, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
-    await rename(temporary, location.config);
+    await atomicWrite(location.config, `${JSON.stringify(next, null, 2)}\n`, now);
 
     return next;
   });
@@ -82,48 +81,10 @@ function parseToggle(value: string) {
   return value === "on";
 }
 
-function parseEnvFileRules(value: unknown) {
-  if (
-    !value ||
-    typeof value !== "object" ||
-    Array.isArray(value) ||
-    Object.entries(value).some(
-      ([key, patterns]) =>
-        !["include", "exclude", "extraSkipped"].includes(key) ||
-        !Array.isArray(patterns) ||
-        patterns.some((pattern) => typeof pattern !== "string" || !pattern.length),
-    )
-  )
-    throw new EnvdenError("INVALID_INPUT", "Invalid env-file rules");
-}
-
 function parseStructured(value: string): unknown {
   try {
     return JSON.parse(value);
   } catch (cause) {
     throw new EnvdenError("INVALID_INPUT", "Expected a JSON settings object", { cause });
   }
-}
-
-function validateSetting(key: string, item: unknown) {
-  switch (key) {
-    case "placement":
-      return validatePlacement(item);
-    case "env-files":
-      return parseEnvFileRules(item);
-    default:
-      if (toggles.includes(key) && typeof item === "boolean") return;
-
-      throw new EnvdenError("INVALID_INPUT", "Invalid config key or value");
-  }
-}
-
-function validatePlacement(item: unknown) {
-  if (
-    !item ||
-    typeof item !== "object" ||
-    Array.isArray(item) ||
-    Object.values(item).some((mode) => mode !== "link" && mode !== "copy")
-  )
-    throw new EnvdenError("INVALID_INPUT", "Invalid placement settings");
 }

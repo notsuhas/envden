@@ -1,7 +1,6 @@
 "use client";
 
-import { useInView } from "motion/react";
-import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
+import { useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { useTicks } from "@/components/landing/ui/typed/use-ticks.ts";
 import { Window } from "@/components/landing/ui/window/window.tsx";

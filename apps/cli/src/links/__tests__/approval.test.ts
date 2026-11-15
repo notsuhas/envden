@@ -1,4 +1,5 @@
 import { test, expect } from "bun:test";
+import { sep } from "node:path";
 import { approvalPrompt, checkoutApproval } from "../approval.ts";
 import { emptyState } from "../../state/model.ts";
 import { storePath } from "../../store/path.ts";
@@ -10,6 +11,8 @@ test("approval binds git directory and remote, including worktrees", () => {
 
   for (const path of ["../.env", "/.env", "a/../../.env", "a\\.env"])
     expect(() => storePath("/tmp/envden", "a", path)).toThrow();
+
+  expect(storePath("/tmp/envden", "a", "..env")).toEndWith(`${sep}..env`);
 
   const state = emptyState("laptop");
   const checkout = { root: "/code/main", gitDir: "/code/main/.git", repoId: "example/repo" };

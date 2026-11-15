@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { requireRepair } from "./repair.ts";
 import type { TAuthorization } from "@envden/core/chain";
 import { equal, type ISwap } from "@envden/core/protocol";
@@ -119,7 +120,7 @@ function authorizeTicket(options: IAppOptions, auth: IAuth, swap: ISwap, stored:
     {
       id: device,
       state: {
-        unlockedUntil: now() + (vault.unlockPeriod ?? 2592000000),
+        unlockedUntil: now() + (vault.unlockPeriod ?? milliseconds({ days: 30 })),
         freshUntil: 0,
         clientVersion: auth.request.clientVersion,
       },

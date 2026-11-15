@@ -1,3 +1,5 @@
+import { milliseconds } from "date-fns";
+import { millisecondsInDay, millisecondsInWeek } from "date-fns/constants";
 import { UnlockPeriodSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../adapters.ts";
@@ -9,11 +11,11 @@ import { login } from "../session/login.ts";
 export function unlockPeriod(value: string) {
   switch (value) {
     case "1d":
-      return 86400000;
+      return millisecondsInDay;
     case "7d":
-      return 604800000;
+      return millisecondsInWeek;
     case "30d":
-      return 2592000000;
+      return milliseconds({ days: 30 });
     case "never":
       return null;
     default:

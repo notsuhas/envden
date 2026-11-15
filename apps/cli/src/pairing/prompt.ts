@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { join } from "node:path";
 import { atomicWrite } from "../state/store/files.ts";
 import { withStateLock } from "../state/lock/lock.ts";
@@ -21,7 +22,7 @@ export async function promptPairing(
   const mailbox = p.normalizePairingCode(code).mailbox;
 
   await exchangeJoiner(adapters, client, identity, pin, code, async (serverExpiry) => {
-    const expiresAt = Math.min(serverExpiry, now() + 600000);
+    const expiresAt = Math.min(serverExpiry, now() + milliseconds({ minutes: 10 }));
 
     await withStateLock(adapters.home, () =>
       atomicWrite(join(adapters.home, "state", "pair-expiry"), String(expiresAt), adapters.now),

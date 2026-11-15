@@ -1,5 +1,8 @@
 import { assetName, targets } from "../../../apps/cli/scripts/targets.ts";
+import { z } from "zod";
 import { parseChecksums } from "../channels/render.ts";
+
+const pinnedSchema = z.record(z.enum(targets), z.string());
 
 export function verifyReleaseChecksums(published: string, rebuilt: string): void {
   const expected = parseChecksums(published);
@@ -14,14 +17,11 @@ export function verifyReleaseChecksums(published: string, rebuilt: string): void
 export function verifyNpmChecksums(pinned: unknown, published: string): void {
   const hashes = parseChecksums(published);
 
+  const parsed = pinnedSchema.safeParse(pinned);
+
   if (
-    typeof pinned !== "object" ||
-    pinned === null ||
-    Object.keys(pinned).length !== targets.length ||
-    targets.some(
-      (target) =>
-        !(target in pinned) || Reflect.get(pinned, target) !== hashes.get(assetName(target)),
-    )
+    !parsed.success ||
+    targets.some((target) => parsed.data[target] !== hashes.get(assetName(target)))
   )
     throw new Error(
       "Published npm package checksums differ from the published release; release a new version.",

@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { latestRelease, RELEASE_REPOSITORY } from "../github.ts";
-import { checkRelease, type IUpdateCache } from "../check.ts";
+import { checkRelease } from "../check.ts";
+import type { TUpdateCache } from "../cache.ts";
 import { runUpdateCheck } from "../run.ts";
 import { readUpdateCache } from "../cache.ts";
 import { atomicWrite } from "../../state/store/files.ts";
@@ -64,7 +65,7 @@ for (const tag of ["v1.2.3-beta", "1.2.3", "v01.2.3", "v1.2", "v1.2.3+build"])
   });
 
 test("daily cache limits both successful and failed lookups", async () => {
-  const cache: IUpdateCache = {};
+  const cache: TUpdateCache = {};
   let calls = 0;
 
   const fetcher: TFetch = async () => {
@@ -130,7 +131,7 @@ for (const optOut of ["config", "env", "none"])
   });
 
 test("an already cancelled check does not cache a day without sending a request", async () => {
-  const cache: IUpdateCache = {};
+  const cache: TUpdateCache = {};
   let calls = 0;
 
   await checkRelease(
@@ -154,7 +155,7 @@ test("explicit checks bypass disabled automatic checks and fetch outside the loc
   const home = await mkdtemp(join(tmpdir(), "envden-explicit-"));
 
   try {
-    await setConfig("update-check", "off", home);
+    await setConfig("update-check", "off", home, () => 0);
 
     const adapters = createAdapters(
       {

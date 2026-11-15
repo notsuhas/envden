@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { repairLoginDecision, refuseSecretKeyProof } from "@envden/core/chain";
 import {
   decode,
@@ -78,8 +79,8 @@ export function closeRepair(options: IAppOptions, auth: IAuth, swap: ISwap, stor
     {
       id: device,
       state: {
-        unlockedUntil: now() + (vault.unlockPeriod ?? 2592000000),
-        freshUntil: now() + 600000,
+        unlockedUntil: now() + (vault.unlockPeriod ?? milliseconds({ days: 30 })),
+        freshUntil: now() + milliseconds({ minutes: 10 }),
         clientVersion: auth.request.clientVersion,
       },
     },

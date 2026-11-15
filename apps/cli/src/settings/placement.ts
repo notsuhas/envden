@@ -21,6 +21,7 @@ export async function setCheckoutPlacement(
       "placement",
       JSON.stringify({ ...config.placement, [checkout.root]: mode }),
       adapters.home,
+      adapters.now,
     );
   });
 }

@@ -1,7 +1,8 @@
 import { EnvdenError } from "@envden/core/errors";
 import type { Dirent } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { resolve, join, relative, isAbsolute } from "node:path";
+import { resolve, join } from "node:path";
+import { placeInRoot } from "@envden/core/paths";
 import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 
 const skipped = new Set([
@@ -27,7 +28,7 @@ export async function discoverRepos(
   const excludes = excluded.map((path) => resolve(path));
 
   async function walk(path: string): Promise<void> {
-    if (visited.has(path) || excludes.some((root) => isWithinRoot(root, path))) return;
+    if (visited.has(path) || excludes.some((root) => placeInRoot(root, path) !== "outside")) return;
 
     visited.add(path);
     let entries;
@@ -66,12 +67,6 @@ async function collectCheckout(
       if (next) found.set(next.root, next);
     }
   }
-}
-
-export function isWithinRoot(root: string, path: string) {
-  const rel = relative(root, path);
-
-  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
 function canDescend(entry: Dirent) {

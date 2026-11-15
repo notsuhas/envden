@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
-import { restrictAccess } from "../private.ts";
+import { restrictAccess } from "../permissions.ts";
 
 test("private keychain files and directories get POSIX modes or explicit non-inherited Windows ACLs", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-permissions-"));

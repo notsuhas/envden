@@ -159,17 +159,17 @@ envden join [options] <server>
 | ---------- | ------------------------------------------------------- |
 | `<server>` | Server address, e.g. https://envden.your-tailnet.ts.net |
 
-| Option                    | Description                                       |
-| ------------------------- | ------------------------------------------------- |
-| `--recovery`              | Paste a recovery secret key and vault ID          |
-| `--recovery-kit <path>`   | Recovery kit path                                 |
-| `--name <name>`           | Device name                                       |
-| `--yes`                   | Use default preferences                           |
-| `--telemetry <choice>`    | Anonymous telemetry: on or off                    |
-| `--update-check <choice>` | Daily update check: on or off                     |
-| `--shell <shell>`         | Shell notice: zsh, bash, fish, powershell or none |
-| `--agent <choice>`        | Agent skill: on or off                            |
-| `--resume`                | Fetch the committed approver message              |
+| Option                    | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| `--recovery`              | Paste a recovery secret key and vault ID         |
+| `--recovery-kit <path>`   | Recovery kit path                                |
+| `--name <name>`           | Device name                                      |
+| `--yes`                   | Use default preferences                          |
+| `--telemetry <choice>`    | Anonymous telemetry (on, off)                    |
+| `--update-check <choice>` | Daily update check (on, off)                     |
+| `--shell <shell>`         | Shell notice (zsh, bash, fish, powershell, none) |
+| `--agent <choice>`        | Agent skill (on, off)                            |
+| `--resume`                | Fetch the committed approver message             |
 
 ## envden local-only
 
@@ -359,9 +359,9 @@ Add the out-of-sync notice to your shell config.
 envden shell install [options] [shell]
 ```
 
-| Argument  | Description                                    |
-| --------- | ---------------------------------------------- |
-| `[shell]` | zsh, bash, fish or powershell; asks if omitted |
+| Argument  | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `[shell]` | Shell; asks if omitted (zsh, bash, fish, powershell) |
 
 ## envden shell uninstall
 
@@ -371,9 +371,9 @@ Remove the out-of-sync notice from your shell config.
 envden shell uninstall [options] [shell]
 ```
 
-| Argument  | Description                                    |
-| --------- | ---------------------------------------------- |
-| `[shell]` | zsh, bash, fish or powershell; asks if omitted |
+| Argument  | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `[shell]` | Shell; asks if omitted (zsh, bash, fish, powershell) |
 
 ## envden status
 

@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { membership } from "../../vault/chain.ts";
 import { hasProof } from "../token.ts";
 import { repairHistory } from "../../repair/close.ts";
@@ -39,13 +40,13 @@ export function completeLogin(
     );
   } else {
     const state = storage.device(vaultId, device)!;
-    const period = storage.vault(vaultId)?.unlockPeriod ?? 2592000000;
+    const period = storage.vault(vaultId)?.unlockPeriod ?? milliseconds({ days: 30 });
 
     storage.putDevice(vaultId, device, {
       ...state,
       unlockedUntil:
         storage.vault(vaultId)?.unlockPeriod === null ? Number.MAX_SAFE_INTEGER : now() + period,
-      freshUntil: now() + 600000,
+      freshUntil: now() + milliseconds({ minutes: 10 }),
     });
   }
 

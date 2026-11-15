@@ -11,7 +11,7 @@ test("config validates, persists and uses private paths", async () => {
 
   try {
     expect((await readConfig(home)).telemetry).toBe(false);
-    await setConfig("telemetry", "on", home);
+    await setConfig("telemetry", "on", home, () => 0);
     expect((await readConfig(home)).telemetry).toBe(true);
 
     if (process.platform !== "win32")
@@ -20,20 +20,24 @@ test("config validates, persists and uses private paths", async () => {
     if (process.platform !== "win32")
       expect((await stat(paths(home).state)).mode & 0o777).toBe(0o700);
 
-    expect(setConfig("bad", "on", home)).rejects.toThrow();
-    expect(setConfig("agent-merge", "on", home, false)).rejects.toThrow("requires a terminal");
-    await setConfig("agent-merge", "off", home, false);
-    await setConfig("agent-merge", "on", home, true);
-    expect((await readConfig(home))["agent-merge"]).toBe(true);
-    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(true);
-    await setConfig("auto-approve-worktrees", "off", home, false);
-    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(false);
+    expect(setConfig("bad", "on", home, () => 0)).rejects.toThrow();
 
-    expect(setConfig("auto-approve-worktrees", "on", home, false)).rejects.toThrow(
+    expect(setConfig("agent-merge", "on", home, () => 0, false)).rejects.toThrow(
       "requires a terminal",
     );
 
-    await setConfig("auto-approve-worktrees", "on", home, true);
+    await setConfig("agent-merge", "off", home, () => 0, false);
+    await setConfig("agent-merge", "on", home, () => 0, true);
+    expect((await readConfig(home))["agent-merge"]).toBe(true);
+    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(true);
+    await setConfig("auto-approve-worktrees", "off", home, () => 0, false);
+    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(false);
+
+    expect(setConfig("auto-approve-worktrees", "on", home, () => 0, false)).rejects.toThrow(
+      "requires a terminal",
+    );
+
+    await setConfig("auto-approve-worktrees", "on", home, () => 0, true);
     expect((await readConfig(home))["auto-approve-worktrees"]).toBe(true);
     expect(() => parseConfig({ telemetry: "yes" })).toThrow();
     expect(() => parseConfig({ unknown: true })).toThrow();
@@ -56,8 +60,8 @@ test("structured placement and env-file rules persist and reject invalid values"
 
   try {
     const rules = { include: [".env*"], exclude: ["*.example"], extraSkipped: ["generated"] };
-    await setConfig("env-files", JSON.stringify(rules), home);
-    await setConfig("placement", JSON.stringify({ "/checkout": "copy" }), home);
+    await setConfig("env-files", JSON.stringify(rules), home, () => 0);
+    await setConfig("placement", JSON.stringify({ "/checkout": "copy" }), home, () => 0);
 
     expect(await readConfig(home)).toMatchObject({
       "env-files": rules,

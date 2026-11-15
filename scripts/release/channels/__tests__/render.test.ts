@@ -20,7 +20,7 @@ describe("SHA256SUMS", () => {
   test.each([
     ["empty", "", "Invalid SHA256SUMS"],
     ["missing", fixture.split("\n").slice(1).join("\n"), "Expected 8 release hashes"],
-    ["duplicate", fixture + fixture.split("\n")[0], "Duplicate release asset"],
+    ["duplicate", fixture + fixture.split("\n")[0], "Duplicate SHA256SUMS entry"],
     ["unknown", fixture.replace("envden-darwin-x64", "envden-other"), "Unexpected release asset"],
     ["extension", fixture.replace("windows-x64.exe", "windows-x64"), "Unexpected release asset"],
     ["invalid hash", fixture.replace(/^./, "g"), "Invalid SHA256SUMS"],

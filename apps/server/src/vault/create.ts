@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { requireStagedRecord, refundRegistration } from "../auth/staged.ts";
 import { validateCreation } from "./creation/validate.ts";
 import { equal, type ISwap } from "@envden/core/protocol";
@@ -31,14 +32,20 @@ function create(options: IAppOptions, auth: IAuth, swap: ISwap, digest: Uint8Arr
 
   stored.consumeSessions = [key, authorityKey];
   stored.setupTokenHash = storage.setupToken()!;
-  stored.vault = { active: true, frozen: false, skRefused: false, unlockPeriod: 2592000000 };
+
+  stored.vault = {
+    active: true,
+    frozen: false,
+    skRefused: false,
+    unlockPeriod: milliseconds({ days: 30 }),
+  };
 
   stored.devices = [
     {
       id: device,
       state: {
-        unlockedUntil: now() + 2592000000,
-        freshUntil: now() + 600000,
+        unlockedUntil: now() + milliseconds({ days: 30 }),
+        freshUntil: now() + milliseconds({ minutes: 10 }),
         clientVersion: auth.request.clientVersion,
       },
     },

@@ -38,6 +38,7 @@ export async function approveLayout(
     "placement",
     JSON.stringify(Object.fromEntries(targets.map((target) => [target.root, target.mode]))),
     f.second.home,
+    () => 0,
   );
 
   await pull(f.second, f.opts);

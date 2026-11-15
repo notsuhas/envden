@@ -1,3 +1,4 @@
+import { milliseconds } from "date-fns";
 import { lstat, mkdir, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { owner } from "./owner.ts";
@@ -14,7 +15,7 @@ export async function reclaimLock(
     await mkdir(guard);
   } catch {
     const stat = await lstat(guard).catch(() => undefined);
-    if (!stat || now - stat.mtimeMs < 30000) return false;
+    if (!stat || now - stat.mtimeMs < milliseconds({ seconds: 30 })) return false;
     await rm(guard, { recursive: true, force: true });
 
     return reclaimLock(path, token, now);

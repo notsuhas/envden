@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { acceptsEnvPath } from "@envden/core/adapters";
 import { readConfig } from "../settings/config.ts";
 import { receivesFile } from "../sync/local/receiving.ts";
@@ -13,6 +14,10 @@ import { syncContext, type TSyncContext } from "../sync/remote/context.ts";
 import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName, readableEntries } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
+
+const remoteNoticeSchema = z.object({ checkedAt: z.number(), repos: z.array(z.string()) });
+
+type TRemoteNotice = z.infer<typeof remoteNoticeSchema>;
 
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
@@ -66,35 +71,16 @@ async function pendingRepos(context: TSyncContext) {
   return { checkedAt: context.options.now(), repos: [...repos] };
 }
 
-function writeRemoteNotice(
-  home: string,
-  notice: { checkedAt: number; repos: string[] },
-  now: () => number,
-) {
+function writeRemoteNotice(home: string, notice: TRemoteNotice, now: () => number) {
   return atomicWrite(join(home, "state", "remote-notice.json"), JSON.stringify(notice), now);
 }
 
-export async function readRemoteNotice(
-  home: string,
-): Promise<{ checkedAt: number; repos: string[] } | undefined> {
+export async function readRemoteNotice(home: string): Promise<TRemoteNotice | undefined> {
   const value = await optionalRead(join(home, "state", "remote-notice.json"));
 
   try {
-    const parsed: unknown = value ? JSON.parse(value) : undefined;
-
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      "checkedAt" in parsed &&
-      typeof parsed.checkedAt === "number" &&
-      "repos" in parsed &&
-      Array.isArray(parsed.repos) &&
-      parsed.repos.every((repo): repo is string => typeof repo === "string")
-    )
-      return { checkedAt: parsed.checkedAt, repos: parsed.repos };
+    return remoteNoticeSchema.safeParse(value ? JSON.parse(value) : undefined).data;
   } catch {
     return undefined;
   }
-
-  return undefined;
 }

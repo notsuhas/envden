@@ -1,3 +1,4 @@
+import { millisecondsInSecond } from "date-fns/constants";
 import type { IAppOptions } from "../http/types.ts";
 import { deriveQuotaBand } from "./band.ts";
 import { deriveServerMode } from "./mode.ts";
@@ -12,7 +13,7 @@ export function readStatus(options: IAppOptions, state: IStatusState): TStatusRe
 
   return StatusResponseSchema.parse({
     version: config.appVersion,
-    uptimeSeconds: Math.max(0, Math.floor((now() - state.startedAt) / 1000)),
+    uptimeSeconds: Math.max(0, Math.floor((now() - state.startedAt) / millisecondsInSecond)),
     mode: deriveServerMode(vaults),
     vaults: ids.length,
     storageBytes: usages.reduce((total, size) => total + size, 0),

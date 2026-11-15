@@ -17,6 +17,11 @@ test("login service definitions quote paths and start at login", () => {
   expect(linux.content).toContain('"/data%%name"');
   expect(linux.content).toContain("WantedBy=default.target");
 
+  const logged = serviceDefinition("linux", "/bin/envden", "/data", "/logs%h/envden.log").content;
+  expect(logged).toContain("StandardOutput=append:/logs%%h/envden.log\n");
+  expect(logged).toContain("StandardError=append:/logs%%h/envden.log\n");
+  expect(() => serviceDefinition("linux", "/bin/envden", "/data", "/log\nUser=root")).toThrow();
+
   expect(serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log").content).toContain(
     "LogonTrigger",
   );

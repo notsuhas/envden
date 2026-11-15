@@ -1,3 +1,4 @@
+import { millisecondsInMinute } from "date-fns/constants";
 import { reportPendingJoins } from "./pending.ts";
 import { boundedFetch } from "./fetch.ts";
 import { cacheOffers } from "./offers.ts";
@@ -86,7 +87,7 @@ async function refreshedRemote(
 ) {
   let remote = await readRemoteNotice(adapters.home);
 
-  if (state.checkpoint && (force || !remote || now - remote.checkedAt >= 60000)) {
+  if (state.checkpoint && (force || !remote || now - remote.checkedAt >= millisecondsInMinute)) {
     try {
       remote = await remoteNotice(adapters, { now: () => now, fetcher, all: true });
     } catch {

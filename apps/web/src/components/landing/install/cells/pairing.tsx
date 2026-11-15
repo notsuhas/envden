@@ -1,7 +1,6 @@
 "use client";
 
-import { useInView } from "motion/react";
-import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
+import { useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { APPROVER_SESSION, JOINER_SESSION } from "@/components/landing/install/sessions.ts";
 import { sessionTicks } from "@/components/landing/ui/typed/frame.ts";

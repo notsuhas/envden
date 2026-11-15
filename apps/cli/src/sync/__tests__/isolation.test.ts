@@ -93,7 +93,7 @@ for (const initial of [undefined, "TOKEN=local-test-value\n"])
         ensureIgnored: async () => {},
       });
 
-      await setConfig("placement", JSON.stringify({ [copy.root]: "copy" }), f.first.home);
+      await setConfig("placement", JSON.stringify({ [copy.root]: "copy" }), f.first.home, () => 0);
       await atomicWrite(f.aStore, "TOKEN=store-edit\n", fixtureClock);
       expect((await pull(f.first, f.opts)).conflicts).toBe(0);
       expect(await Bun.file(f.aStore).text()).toBe("TOKEN=store-edit\n");

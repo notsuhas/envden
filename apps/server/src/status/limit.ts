@@ -1,9 +1,11 @@
+import { millisecondsInMinute } from "date-fns/constants";
+
 interface IWindow {
   start: number;
   count: number;
 }
 
-const span = 60000;
+const span = millisecondsInMinute;
 const limit = 60;
 
 // Returns the next window, or undefined when the request is over the limit.

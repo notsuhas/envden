@@ -8,10 +8,14 @@ function xml(value: string) {
     .replaceAll(">", "&gt;");
 }
 
-function unit(value: string) {
+function unitPath(value: string) {
   if (/[\r\n\0]/.test(value)) throw new EnvdenError("INVALID_INPUT", "Invalid service path");
 
-  return '"' + value.replaceAll("%", "%%").replaceAll("\\", "\\\\").replaceAll('"', '\\"') + '"';
+  return value.replaceAll("%", "%%");
+}
+
+function unit(value: string) {
+  return '"' + unitPath(value).replaceAll("\\", "\\\\").replaceAll('"', '\\"') + '"';
 }
 
 export function serviceDefinition(platform: string, executable: string, home: string, log: string) {
@@ -26,7 +30,7 @@ export function serviceDefinition(platform: string, executable: string, home: st
   if (platform === "linux")
     return {
       kind: "systemd" as const,
-      content: `[Unit]\nDescription=envden server\n[Service]\nExecStart=${args.map(unit).join(" ")}\nRestart=on-failure\nStandardOutput=append:${log}\nStandardError=append:${log}\n[Install]\nWantedBy=default.target\n`,
+      content: `[Unit]\nDescription=envden server\n[Service]\nExecStart=${args.map(unit).join(" ")}\nRestart=on-failure\nStandardOutput=append:${unitPath(log)}\nStandardError=append:${unitPath(log)}\n[Install]\nWantedBy=default.target\n`,
     };
 
   if (platform === "win32") {

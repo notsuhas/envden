@@ -1,7 +1,6 @@
 "use client";
 
-import { useInView, useMotionTemplate } from "motion/react";
-import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
+import { useInView, useMotionTemplate, useReducedMotion } from "motion/react";
 import * as m from "motion/react-m";
 import { useRef } from "react";
 import type { IScene } from "@/components/landing/art/dither/scene.ts";

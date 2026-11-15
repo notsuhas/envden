@@ -1,6 +1,5 @@
 import { test, expect } from "bun:test";
 import { deriveAlias } from "../alias.ts";
-import { isWithinRoot } from "../discovery.ts";
 
 const fixtureClock = () => 1800000000000;
 
@@ -14,16 +13,6 @@ for (const [source, target, aliases, kind] of [
 ] satisfies [string, string, Record<string, string>, string][])
   test(`alias ${source} ${target} ${JSON.stringify(aliases)}`, () => {
     expect(String(deriveAlias(aliases, source, target).kind)).toBe(kind);
-  });
-
-for (const [path, expected] of [
-  ["/repos", true],
-  ["/repos/a", true],
-  ["/repos-other", false],
-  ["/elsewhere", false],
-] as const)
-  test(`excluded root ${path}`, () => {
-    expect(isWithinRoot("/repos", path)).toBe(expected);
   });
 
 import { mkdtemp, rm } from "node:fs/promises";

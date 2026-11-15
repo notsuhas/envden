@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "@/components/landing/ui/motion/use-reduced.ts";
+import { useReducedMotion } from "motion/react";
 import * as m from "motion/react-m";
 import type { ReactNode } from "react";
 

@@ -33,7 +33,12 @@ test("restore preserves the copy edit on mine and real server on theirs", async 
 test("unpublished local conflicts cannot take a nonexistent server side", async () => {
   const f = await fixture();
 
-  await setConfig("placement", JSON.stringify({ [f.checkoutB.root]: "copy" }), f.second.home);
+  await setConfig(
+    "placement",
+    JSON.stringify({ [f.checkoutB.root]: "copy" }),
+    f.second.home,
+    () => 0,
+  );
 
   await pull(f.second, f.opts);
   const path = join(f.checkoutB.root, ".env.new");

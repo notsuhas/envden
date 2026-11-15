@@ -1,3 +1,4 @@
+import type { TShell } from "./decisions.ts";
 import { readToken } from "../output/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit } from "../vault/recovery/input.ts";
@@ -22,10 +23,10 @@ interface ISetupOptions {
   yes?: boolean;
   hostServer?: boolean;
   kitOut?: string;
-  telemetry?: string;
-  updateCheck?: string;
-  agent?: string;
-  shell?: string;
+  telemetry?: "on" | "off";
+  updateCheck?: "on" | "off";
+  agent?: "on" | "off";
+  shell?: TShell | "none";
   scanRoot?: string[];
   excludeRoot?: string[];
 }

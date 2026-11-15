@@ -1,8 +1,8 @@
 import { link, open, rm } from "node:fs/promises";
 import { join } from "node:path";
-import type { IOwner } from "./owner.ts";
+import type { TOwner } from "./owner.ts";
 
-export async function publishOwner(path: string, value: IOwner) {
+export async function publishOwner(path: string, value: TOwner) {
   const temporary = join(path, `.${value.token}.tmp`);
   const file = await open(temporary, "wx", 0o600);
 

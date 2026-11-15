@@ -34,8 +34,8 @@ function fileText(file: TFile, now: number, timeZone?: string) {
 
     return [
       `  v${version.version}`,
-      (version.time ? whenText(version.time, now, timeZone) : "unknown time").padEnd(42),
-      (version.device ?? (version.removedDevice ? "removed device" : "unknown device")).padEnd(16),
+      column(version.time ? whenText(version.time, now, timeZone) : "unknown time", 42),
+      column(version.device ?? (version.removedDevice ? "removed device" : "unknown device"), 16),
       kindText(version.kind, version.changes),
       ...marks,
     ].join("  ");
@@ -59,4 +59,9 @@ function kindText(kind: TVersionKind, changes: TKeyChanges) {
   if (kind === "restored") return `restored by a server repair; ${changesText(changes)}`;
 
   return changesText(changes);
+}
+
+// Pads by terminal cells so wide or emoji device names keep the columns aligned.
+function column(text: string, width: number) {
+  return text + " ".repeat(Math.max(0, width - Bun.stringWidth(text)));
 }

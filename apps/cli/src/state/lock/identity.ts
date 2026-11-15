@@ -1,19 +1,11 @@
-export function machineIdentity(encoded: string): { host: string; boot: string } | undefined {
-  try {
-    const value: unknown = JSON.parse(encoded);
+import { z } from "zod";
 
-    if (
-      value &&
-      typeof value === "object" &&
-      "host" in value &&
-      "boot" in value &&
-      typeof value.host === "string" &&
-      typeof value.boot === "string"
-    )
-      return { host: value.host, boot: value.boot };
+const machineSchema = z.object({ host: z.string(), boot: z.string() });
+
+export function machineIdentity(encoded: string) {
+  try {
+    return machineSchema.safeParse(JSON.parse(encoded)).data;
   } catch {
     return undefined;
   }
-
-  return undefined;
 }

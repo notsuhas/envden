@@ -1,13 +1,7 @@
 {
   "$schema": "./node_modules/fallow/schema.json",
   "includeEntryExports": true,
-  "entry": [
-    "apps/cli/scripts/{build-all,cli-reference,e2e,smoke,targets}.ts",
-    "tools/*/index.ts",
-    "scripts/ci/changes.ts",
-    "scripts/release/{checksums,homebrew-formula,scoop-manifest,npm-package,publish-channels}.ts",
-    "scripts/release/publication/{run,npm}.ts"
-  ],
+  "entry": ["tools/*/index.ts"],
   "rules": {
     "circular-dependencies": "error",
     "stale-suppressions": "error"
@@ -58,5 +52,12 @@
       }
     ]
   },
-  "ignoreBinaries": ["tailscale"]
+  "ignoreBinaries": ["tailscale"],
+  "supportEntry": [
+    "apps/cli/scripts/{build-all,cli-reference,e2e,smoke,targets}.ts",
+    "scripts/ci/changes.ts",
+    "scripts/release/{checksums,homebrew-formula,scoop-manifest,npm-package,publish-channels}.ts",
+    "scripts/release/publication/{run,npm}.ts",
+    "tools/test-temp/preload.ts"
+  ]
 }

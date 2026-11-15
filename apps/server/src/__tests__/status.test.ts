@@ -109,6 +109,11 @@ test("page and JSON load unsigned with strict headers", async () => {
     expect(html).toContain("Per-vault details are only in");
     expect(html).not.toContain("<script");
 
+    const inline = html.match(/<style>([\s\S]*?)<\/style>/)![1]!;
+    const hash = Buffer.from(p.sha256(new TextEncoder().encode(inline))).toString("base64");
+
+    expect(page.headers.get("Content-Security-Policy")).toContain(`style-src 'sha256-${hash}'`);
+
     for (const response of [page, json]) {
       const csp = response.headers.get("Content-Security-Policy")!;
 

@@ -1,5 +1,7 @@
+import { milliseconds } from "date-fns";
 import { compareSemver, sha256 } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
+import { parseSha256Sums } from "@envden/core/release";
 import type { TFetch } from "../../client/fetch.ts";
 import { latestRelease, releaseAssetUrl } from "../github.ts";
 
@@ -7,7 +9,7 @@ export async function downloadUpdate(
   fetcher: TFetch,
   running: string,
   platform: string,
-  timeoutMs = 1800000,
+  timeoutMs = milliseconds({ minutes: 30 }),
 ) {
   const latest = await latestRelease(fetcher);
 
@@ -21,18 +23,8 @@ export async function downloadUpdate(
   });
 
   if (!sums.ok) throw new EnvdenError("INVALID_DATA", "Release checksums download failed");
-  const hashes = new Map<string, string>();
 
-  for (const line of (await sums.text()).trim().split(/\r?\n/)) {
-    const match = /^([a-f0-9]{64}) [ *](\S+)$/i.exec(line);
-
-    if (!match?.[1] || !match[2] || hashes.has(match[2]))
-      throw new EnvdenError("INVALID_DATA", "Invalid release checksums");
-
-    hashes.set(match[2], match[1].toLowerCase());
-  }
-
-  const hash = hashes.get(name);
+  const hash = parseSha256Sums(await sums.text()).get(name);
   if (!hash) throw new EnvdenError("INVALID_DATA", "No release build for this platform");
 
   const response = await fetcher(releaseAssetUrl(latest, name), {

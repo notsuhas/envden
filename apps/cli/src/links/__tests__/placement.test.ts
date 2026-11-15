@@ -133,7 +133,7 @@ test("copy flags and mode switches preserve checkout bases", async () => {
     await atomicWrite(join(checkout.root, ".env"), "A=1", fixtureClock);
     await atomicWrite(join(checkout.root, "Dockerfile"), "FROM scratch", fixtureClock);
     const rules = { include: [".env"], exclude: [], extraSkipped: ["generated"] };
-    await setConfig("env-files", JSON.stringify(rules), adapters.home);
+    await setConfig("env-files", JSON.stringify(rules), adapters.home, () => 0);
 
     adapters.repo = createFakeRepoAdapter({
       checkoutAt: async () => checkout,
