@@ -50,7 +50,7 @@ test("new keys can fall back once and required file keys explain file-only mode"
 
     await rejects(
       createOsKeychainAdapter({ home, fileOnly: true }).get("missing", true),
-      /Device keys are in the OS keychain/,
+      /keys are in the OS keychain. Unset ENVDEN_KEYCHAIN/,
     );
   } finally {
     get.mockRestore();

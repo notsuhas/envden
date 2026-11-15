@@ -1,5 +1,6 @@
 import { keychainUnavailable } from "./failures/unavailable.ts";
 import { keychainFailure } from "./failures/operation.ts";
+import { keychainAdvice } from "./failures/advice.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { createHash } from "node:crypto";
 import { rm } from "node:fs/promises";
@@ -85,7 +86,11 @@ class OsKeychainAdapter implements IKeychainAdapter {
 
   private async readOs(name: string, required: boolean) {
     if (!(await hasFileSource(join(this.directory, "os")))) {
-      if (required) throw new EnvdenError("LOCKED", "Vault keys unavailable");
+      if (required)
+        throw new EnvdenError(
+          "LOCKED",
+          "No vault keys are stored on this device. If it was in the vault before, run envden join",
+        );
 
       return null;
     }
@@ -93,7 +98,12 @@ class OsKeychainAdapter implements IKeychainAdapter {
     try {
       return await Bun.secrets.get(this.options(name));
     } catch (cause) {
-      throw new EnvdenError("LOCKED", "Vault keys unavailable", { cause });
+      throw new EnvdenError(
+        "LOCKED",
+        keychainAdvice(cause, process.platform) ??
+          "This device's keys are in the OS keychain, which couldn't be read",
+        { cause },
+      );
     }
   }
 
@@ -105,7 +115,7 @@ class OsKeychainAdapter implements IKeychainAdapter {
       if (required)
         throw new EnvdenError(
           "LOCKED",
-          "Device keys are in the OS keychain; disable file-only mode",
+          "This device's keys are in the OS keychain. Unset ENVDEN_KEYCHAIN to read them",
         );
 
       return undefined;

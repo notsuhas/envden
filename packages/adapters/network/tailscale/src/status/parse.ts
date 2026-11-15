@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EnvdenError } from "@envden/core/errors";
+import { statusProblem } from "./problem.ts";
 import type { INetworkStatus } from "@envden/core/adapters";
 
 const statusSchema = z.object({
@@ -17,17 +18,14 @@ export function parseStatus(stdout: string): INetworkStatus {
   const loggedIn = !["NeedsLogin", "NoState"].includes(state);
   const dns = self?.DNSName.replace(/\.$/, "");
   const httpsEnabled = domains.some((name) => name === dns);
+  const problem = statusProblem({ running, loggedIn, httpsEnabled });
 
   return {
-    ready: running && loggedIn && httpsEnabled,
+    ready: !problem,
     running,
     loggedIn,
     httpsEnabled,
     hostname: dns,
-    ...(!running
-      ? { problem: "Tailscale is not running" }
-      : !httpsEnabled
-        ? { problem: "Enable HTTPS certificates on the tailnet" }
-        : {}),
+    ...(problem ? { problem } : {}),
   };
 }

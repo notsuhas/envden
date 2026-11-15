@@ -1,13 +1,16 @@
 import { rejects } from "node:assert/strict";
 import { describe, expect, test } from "bun:test";
-import type { INetworkAdapter } from "@envden/core/adapters";
+import type { INetworkAdapter, INetworkProblem } from "@envden/core/adapters";
 
-type TNetworkScenario =
-  | "ready"
-  | "unavailable"
-  | "logged-out"
-  | "https-disabled"
-  | "publish-failed";
+type TNetworkScenario = "ready" | INetworkProblem["kind"] | "address-taken" | "publish-failed";
+
+const problems = [
+  "not-installed",
+  "not-running",
+  "logged-out",
+  "https-disabled",
+  "unreadable",
+] as const satisfies INetworkProblem["kind"][];
 
 export function networkContract(
   name: string,
@@ -21,20 +24,27 @@ export function networkContract(
       expect(status.running).toBe(true);
       expect(status.loggedIn).toBe(true);
       expect(status.httpsEnabled).toBe(true);
-      expect(await adapter.checkHttpsCertificate()).toBe(true);
+      expect(status.problem).toBeUndefined();
+      expect(await adapter.checkHttpsCertificate()).toEqual({ kind: "ready" });
       expect(status.hostname).toBeTruthy();
       expect(await adapter.expose(8080)).toBe(`https://${status.hostname}`);
     });
 
-    for (const scenario of ["unavailable", "logged-out", "https-disabled"] as const) {
-      test(`${scenario} fails closed`, async () => {
+    for (const scenario of problems) {
+      test(`${scenario} fails closed and names the cause`, async () => {
         const adapter = factory(scenario);
         const status = await adapter.status();
         expect(status.ready).toBe(false);
-        expect(status.problem).toBeTruthy();
-        await rejects(adapter.expose(8080));
+        expect(status.problem?.kind).toBe(scenario);
+        expect(status.problem?.message).toBeTruthy();
+        expect(await adapter.checkHttpsCertificate()).toEqual(status.problem!);
+        await rejects(adapter.expose(8080), { message: status.problem!.message });
       });
     }
+
+    test("an address already serving something else is not replaced", async () => {
+      await rejects(factory("address-taken").expose(8080), { code: "CONFLICT" });
+    });
 
     test("publication failures propagate", async () => {
       await rejects(factory("publish-failed").expose(8080));

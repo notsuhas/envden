@@ -8,7 +8,11 @@ test("status and serve use the recorded JSON and current CLI syntax", async () =
   const adapter = createTailscaleNetworkAdapter(async (args) => {
     calls.push(args);
 
-    return { exitCode: 0, stdout: JSON.stringify(fixture), stderr: "" };
+    return {
+      exitCode: 0,
+      stdout: args[0] === "serve" ? "{}" : JSON.stringify(fixture),
+      stderr: "",
+    };
   });
 
   expect(await adapter.status()).toEqual({
@@ -19,34 +23,79 @@ test("status and serve use the recorded JSON and current CLI syntax", async () =
     hostname: "laptop.tail.example",
   });
 
-  expect(await adapter.checkHttpsCertificate()).toBe(true);
+  expect(await adapter.checkHttpsCertificate()).toEqual({ kind: "ready" });
   expect(await adapter.expose(3000)).toBe("https://laptop.tail.example");
-  expect(calls.at(-1)).toEqual(["serve", "--bg", "--https=443", "http://127.0.0.1:3000"]);
+
+  expect(calls.slice(-2)).toEqual([
+    ["serve", "status", "--json"],
+    ["serve", "--bg", "--https=443", "http://127.0.0.1:3000"],
+  ]);
+
   expect(adapter.expose(0)).rejects.toThrow("Invalid port");
 });
 
-test("missing certificates, logged-out, malformed and unavailable status fail closed", async () => {
-  for (const stdout of [
-    JSON.stringify({ ...fixture, CertDomains: [] }),
-    '{"BackendState":"NeedsLogin"}',
-    "[]",
-    "bad json",
-  ]) {
-    const adapter = createTailscaleNetworkAdapter(async () => ({
+for (const [name, result, kind] of [
+  [
+    "daemon down",
+    { exitCode: 1, stdout: "", stderr: "failed to connect to local tailscaled" },
+    "not-running",
+  ],
+  [
+    "logged out while stopped",
+    { exitCode: 0, stdout: '{"BackendState":"NeedsLogin"}', stderr: "" },
+    "logged-out",
+  ],
+  [
+    "no certificates",
+    { exitCode: 0, stdout: JSON.stringify({ ...fixture, CertDomains: [] }), stderr: "" },
+    "https-disabled",
+  ],
+  ["malformed", { exitCode: 0, stdout: "[]", stderr: "" }, "unreadable"],
+] as const)
+  test(`status names the cause: ${name}`, async () => {
+    const adapter = createTailscaleNetworkAdapter(async () => result);
+
+    expect((await adapter.checkHttpsCertificate()).kind).toBe(kind);
+  });
+
+test("serve failures carry Tailscale's own output, capped", async () => {
+  const hint =
+    "Serve is not enabled on your tailnet. To enable, visit: https://login.tailscale.com/f/serve";
+
+  const adapter = createTailscaleNetworkAdapter(async (args) =>
+    args[0] !== "serve"
+      ? { exitCode: 0, stdout: JSON.stringify(fixture), stderr: "" }
+      : args[1] === "status"
+        ? { exitCode: 0, stdout: "{}", stderr: "" }
+        : { exitCode: 1, stdout: "", stderr: `${hint}\n${"x".repeat(2000)}` },
+  );
+
+  const message = await adapter.expose(4280).then(
+    () => "",
+    (cause: Error) => cause.message,
+  );
+
+  expect(message).toStartWith(`Tailscale serve failed: ${hint}`);
+  expect(message.length).toBeLessThan(600);
+});
+
+test("serve refuses to replace another service on port 443", async () => {
+  const calls: string[][] = [];
+
+  const taken = {
+    Web: { "laptop.tail.example:443": { Handlers: { "/": { Proxy: "http://127.0.0.1:9000" } } } },
+  };
+
+  const adapter = createTailscaleNetworkAdapter(async (args) => {
+    calls.push(args);
+
+    return {
       exitCode: 0,
-      stdout,
+      stdout: JSON.stringify(args[0] === "serve" ? taken : fixture),
       stderr: "",
-    }));
+    };
+  });
 
-    expect((await adapter.status()).ready).toBe(false);
-  }
-
-  const adapter = createTailscaleNetworkAdapter(async () => ({
-    exitCode: 0,
-    stdout: JSON.stringify({ ...fixture, CertDomains: [] }),
-    stderr: "",
-  }));
-
-  expect(await adapter.checkHttpsCertificate()).toBe(false);
-  await Promise.resolve(expect(adapter.expose(8080)).rejects.toBeInstanceOf(Error));
+  await Promise.resolve(expect(adapter.expose(4280)).rejects.toMatchObject({ code: "CONFLICT" }));
+  expect(calls.some((args) => args.includes("--bg"))).toBe(false);
 });
