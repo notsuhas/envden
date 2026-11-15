@@ -1,0 +1,17 @@
+[package]
+name = "envden-adapter-keychain-file"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+envden-core = { path = "../../../core" }
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+[dev-dependencies]
+envden-testing = { path = "../../../testing" }
+tempfile = "3"
+
+[lints]
+workspace = true
