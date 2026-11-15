@@ -29,16 +29,17 @@ pub fn latest_release(fetcher: &dyn IFetcher) -> Result<String> {
     ) && (300..400).contains(&response.status)
         && let Some(location) = response.headers.get("location")
     {
-        let prefix = format!("https://github.com/{RELEASE_REPOSITORY}/releases/tag/");
-        let relative = format!("/{RELEASE_REPOSITORY}/releases/tag/");
-        if let Some(tag) = location
-            .strip_prefix(&prefix)
-            .or_else(|| location.strip_prefix(&relative))
-            && let Ok(version) = tag_version(tag.split(['?', '#']).next().unwrap_or(tag))
+        let base = url::Url::parse("https://github.com").expect("release origin");
+        let prefix = format!("/{RELEASE_REPOSITORY}/releases/tag/");
+        if let Ok(url) = base.join(location)
+            && url.origin() == base.origin()
+            && let Some(tag) = url.path().strip_prefix(&prefix)
+            && let Ok(version) = tag_version(tag)
         {
             return Ok(version);
         }
     }
+
     let response = fetcher.fetch(
         &format!("https://api.github.com/repos/{RELEASE_REPOSITORY}/releases/latest"),
         TRedirect::Error,
