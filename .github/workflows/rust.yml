@@ -39,9 +39,12 @@ jobs:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: cargo fmt --all --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: bun run check
-      - run: bun run fallow --fail-on-issues
+      - if: success() || failure()
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - if: success() || failure()
+        run: bun run check
+      - if: success() || failure()
+        run: bun run fallow --fail-on-issues
   test:
     strategy:
       fail-fast: false
