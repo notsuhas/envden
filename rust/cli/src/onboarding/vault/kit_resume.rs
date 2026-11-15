@@ -5,9 +5,9 @@ pub(super) fn checkpoint(
     headers: &[p::ISigned<p::IManifestHeader>],
     id: &[u8; 16],
 ) -> Result<[u8; 32]> {
-    let _ = id;
     let own = headers
-        .last()
+        .iter()
+        .find(|h| h.body.op == 3 && h.body.signer == *id)
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Missing kit join checkpoint"))?;
     p::object_hash(own, "manifest")
 }
