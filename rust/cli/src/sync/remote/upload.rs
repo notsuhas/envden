@@ -149,12 +149,11 @@ pub fn upload_changes(
     context.state["links"]
         .as_array_mut()
         .unwrap()
-        .retain(|link| {
-            link["localOnly"] == true
-                || !removed.iter().any(|p| link["store"].as_str() == p.to_str())
-        });
+        .retain(|link| retention::keep_link(link, &removed, &places, &context.adapters.home));
     Ok(changed)
 }
 
 mod places;
 mod seal;
+
+mod retention;

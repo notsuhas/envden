@@ -29,6 +29,12 @@ impl IPlaces {
         }
         receipts
     }
+    pub fn contains(&self, base: &Path) -> bool {
+        self.changed
+            .iter()
+            .any(|changed| Path::new(changed) == base)
+    }
+
     pub fn count(&self) -> usize {
         self.changed.len()
     }
