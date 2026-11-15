@@ -42,7 +42,7 @@ export function createProgram(now: () => number) {
   let active: CommandUnknownOpts | undefined;
 
   program.hook("preAction", async (_program, command) => {
-    const commandTime = Date.now();
+    const commandTime = now();
 
     const state = await loadState(createAdapters(undefined, now).home).catch(() => undefined);
     setUntrustedRoots(state?.approved.map((checkout) => checkout.root) ?? []);

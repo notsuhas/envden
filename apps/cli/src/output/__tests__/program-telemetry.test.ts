@@ -204,3 +204,29 @@ test("shell cache refresh never reports command telemetry", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("preAction uses the supplied command clock exactly once", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-command-clock-"));
+  const previous = process.env.ENVDEN_HOME;
+  const log = spyOn(console, "log").mockImplementation(() => {});
+  let reads = 0;
+
+  try {
+    process.env.ENVDEN_HOME = root;
+
+    await createProgram(() => {
+      reads++;
+
+      return 1800000000000;
+    }).parseAsync(["node", "envden", "version"]);
+
+    expect(reads).toBe(1);
+  } finally {
+    log.mockRestore();
+
+    if (previous === undefined) delete process.env.ENVDEN_HOME;
+    else process.env.ENVDEN_HOME = previous;
+
+    await rm(root, { recursive: true, force: true });
+  }
+});
