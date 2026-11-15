@@ -1,0 +1,5 @@
+{
+  "BackendState": "Running",
+  "Self": { "HostName": "laptop", "DNSName": "laptop.tail.example." },
+  "CertDomains": ["laptop.tail.example"]
+}

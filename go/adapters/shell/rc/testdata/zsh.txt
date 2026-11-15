@@ -1,0 +1,58 @@
+# >>> envden >>>
+_envden_inside() {
+  local directory="$2"
+  while [ -n "$directory" ]; do
+    [ "$directory" -ef "$1" ] && return 0
+    [ "$directory" != / ] || break
+    directory="${directory%/*}"
+    [ -n "$directory" ] || directory=/
+  done
+  return 1
+}
+_envden_notice() {
+  local saved_status=$?
+  [ "${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
+  _envden_last_pwd="$PWD"
+  local physical="${PWD:A}"
+  local root approved=0 cache='/home/test/.envden/state/notice' now modified
+  [ -r '/home/test/.envden/state/approved-checkouts' ] && while IFS= read -r root; do
+    [ -n "$root" ] || continue
+    if _envden_inside "$root" "$physical"; then approved=1; break; fi
+  done 2>/dev/null < '/home/test/.envden/state/approved-checkouts'
+  local offered='/home/test/.envden/state/track-offered' root_seen=0 day line
+  [ -r '/home/test/.envden/state/track-offers' ] && while IFS= read -r root; do
+    [ -n "$root" ] || continue
+    if _envden_inside "$root" "$physical"; then
+      root_seen=0
+      [ -r "$offered" ] && while IFS= read -r line; do [ "$line" != "$root" ] || root_seen=1; done 2>/dev/null < "$offered"
+      if [ "$root_seen" = 0 ]; then
+        printf '%s\n' 'envden: env files found; run envden track'
+        printf '%s\n' "$root" >> "$offered"
+      fi
+      break
+    fi
+  done 2>/dev/null < '/home/test/.envden/state/track-offers'
+  day=$(date +%Y-%m-%d)
+  [ -r '/home/test/.envden/state/notice-update' ] && while IFS= read -r line; do
+    case "$line" in
+      'envden: update required; run envden update') printf '%s\n' "$line" ;;
+      'envden: update available; run envden update')
+        if [ "$(cat -- '/home/test/.envden/state/update-offered-day' 2>/dev/null)" != "$day" ]; then
+          printf '%s\n' "$line"
+          printf '%s\n' "$day" > '/home/test/.envden/state/update-offered-day'
+        fi ;;
+    esac
+  done 2>/dev/null < '/home/test/.envden/state/notice-update'
+  if [ "$approved" = 1 ] && [ -f "$cache" ]; then LC_ALL=C tr -cd '\11\12\40-\176' < "$cache"; fi
+  now=$(date +%s)
+  modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=$(stat -f %m "$cache" 2>/dev/null) || modified=0
+  if [ "$((now - modified))" -gt 60 ]; then
+    (env -u BUN_OPTIONS -u BUN_BE_BUN '/opt/envden'\''s bin/envden' status --refresh-cache </dev/null >/dev/null 2>&1 &)
+  fi
+  return "$saved_status"
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook -d chpwd _envden_notice
+add-zsh-hook chpwd _envden_notice
+_envden_notice
+# <<< envden <<<
