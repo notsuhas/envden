@@ -29,8 +29,12 @@ func TestCloseKeepsWALFilesLikeBun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, statErr := os.Stat(filepath.Join(dir, "envden.sqlite-wal"))
+	info, statErr := os.Stat(filepath.Join(dir, "envden.sqlite-wal"))
 	if kept := statErr == nil; kept != persistsWAL(runtime.GOOS) {
 		t.Fatalf("wal kept = %v on %s", kept, runtime.GOOS)
+	}
+
+	if statErr == nil && info.Size() != 0 {
+		t.Fatalf("kept wal holds %d bytes, want an empty file", info.Size())
 	}
 }
