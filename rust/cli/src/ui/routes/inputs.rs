@@ -43,6 +43,18 @@ mod tests {
     use super::*;
     use serde_json::json;
     #[test]
+    fn restore_accepts_integer_json_numbers() {
+        assert!(
+            parse(
+                &json!({"root":"/a", "path":".env", "version":1.0}),
+                &["root", "path", "version"],
+                "version",
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
     fn strict_route_inputs_reject_missing_extra_and_invalid_fields() {
         for input in [
             json!(null),

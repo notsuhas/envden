@@ -20,6 +20,7 @@ use std::rc::Rc;
 
 pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Result<Value> {
     let hosted = crate::onboarding::host::host_locally(adapters, options)?;
+    let is_hosted = hosted.is_some();
     let address = require_server_address(&match options["server"].as_str() {
         Some(v) => v.to_owned(),
         None if hosted.is_some() => hosted.as_ref().expect("host").0.clone(),
@@ -34,29 +35,35 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
             None => super::token::read_token()?,
         },
     };
-    let token = p::decode_token(p::TTokenKind::Setup, &token)?;
-    let server = hello(&address, None, &UreqTransport, MIN_SERVER).map_err(|error| {
-        if matches!(
-            error.code,
-            ErrorCode::ServerTooOld | ErrorCode::UpdateRequired
-        ) {
-            error
-        } else {
-            EnvdenError::with_source(
-                ErrorCode::ServerUnreachable,
-                format!("Can't reach {address}. Check the address and that the server is running"),
-                error,
-            )
+    super::preflight::preflight(is_hosted, || {
+        let token = p::decode_token(p::TTokenKind::Setup, &token)?;
+        let server = hello(&address, None, &UreqTransport, MIN_SERVER).map_err(|error| {
+            if matches!(
+                error.code,
+                ErrorCode::ServerTooOld | ErrorCode::UpdateRequired
+            ) {
+                error
+            } else {
+                EnvdenError::with_source(
+                    ErrorCode::ServerUnreachable,
+                    format!(
+                        "Can't reach {address}. Check the address and that the server is running"
+                    ),
+                    error,
+                )
+            }
+        })?;
+        if server.pin != token.1 {
+            return Err(EnvdenError::new(
+                ErrorCode::InvalidInput,
+                "This setup token is for a different server",
+            ));
         }
+        Ok(())
     })?;
-    if server.pin != token.1 {
-        return Err(EnvdenError::new(
-            ErrorCode::InvalidInput,
-            "This setup token is for a different server",
-        ));
-    }
     let name = crate::onboarding::setup::device_name(options)?;
     let password = confirmed_password(|label| secret(label, |_| None), 3, |v| eprintln!("{v}"))?;
+    let token = p::decode_token(p::TTokenKind::Setup, &token)?;
     let identity = device_identity(
         &*adapters.keychain,
         &adapters.home,
