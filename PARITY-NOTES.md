@@ -43,3 +43,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: the signal can arrive before shutdown handlers are installed, producing exit 143 instead of a graceful shutdown. Rust preserves the startup ordering.
 - Possible improvement: install shutdown handlers before advertising readiness.
 - Why: process managers and fast tests can otherwise terminate a newly listening server without closing storage. BUG: fix in all implementations.
+
+## Pairing success prints the proposed name after a race
+
+- Scenario: confirm `Add mainbook-2?`, then another device takes that name before the approval commits.
+- TS behaviour: the head retry commits the joiner as `mainbook-3`, but the success message still says `Device mainbook-2 added`. Rust preserves the confirmed name in that message.
+- Possible improvement: return the committed name from approval and use it in the success message.
+- Why: the current message can identify a different device after a concurrent add. BUG: fix in all implementations.
