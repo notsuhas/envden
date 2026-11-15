@@ -72,6 +72,13 @@ pub fn sync(
                 &accepted.no_fast_forward.into_iter().collect(),
             )?;
             persist_checkpoint(&mut context)?;
+            let conflicts = if pushing {
+                result
+                    .conflicts
+                    .max(super::local::conflicts::conflict_records(&adapters.home)?.len())
+            } else {
+                result.conflicts
+            };
             let changed = if pushing {
                 match upload_changes(&mut context, &repos, &result.failed_stores) {
                     Err(e) if e.code == ErrorCode::HeadMoved => continue,
@@ -98,10 +105,10 @@ pub fn sync(
             }
             crate::output::counts::set_command_counts(crate::output::counts::ICounts {
                 changed: Some(changed as u64),
-                conflicts: Some(result.conflicts as u64),
+                conflicts: Some(conflicts as u64),
             });
             return Ok(
-                json!({"kind":if !pushing {"pulled"} else if result.conflicts>0 {"conflict"} else {"pushed"},"changed":changed,"conflicts":result.conflicts,"reports":*reports.borrow()}),
+                json!({"kind":if !pushing {"pulled"} else if conflicts>0 {"conflict"} else {"pushed"},"changed":changed,"conflicts":conflicts,"reports":*reports.borrow()}),
             );
         }
         Err(EnvdenError::new(

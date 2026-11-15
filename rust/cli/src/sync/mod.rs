@@ -10,3 +10,6 @@ pub mod engine;
 pub mod resolve;
 
 pub mod remove;
+
+#[cfg(test)]
+mod tests;
