@@ -38,7 +38,8 @@ fn escape(shell: TShell, value: &str) -> String {
 }
 
 pub(crate) fn render(shell: TShell, binary: &str, home: &str) -> Result<String> {
-    if !std::path::Path::new(binary).is_absolute()
+    if !(std::path::Path::new(binary).is_absolute()
+        || (cfg!(windows) && std::path::Path::new(binary).has_root()))
         || binary.contains(['\r', '\n'])
         || home.contains(['\r', '\n'])
     {
@@ -53,16 +54,19 @@ pub(crate) fn render(shell: TShell, binary: &str, home: &str) -> Result<String> 
         TShell::Fish => include_str!("templates/fish.txt"),
         TShell::Powershell => include_str!("templates/powershell.txt"),
     };
-    Ok(template
-        .replace("/__ENVDEN_BINARY__", &escape(shell, binary))
-        .replace(
-            "/__ENVDEN_HOME__/state",
-            &escape(
-                shell,
-                &std::path::Path::new(home)
-                    .join("state")
-                    .clean()
-                    .to_string_lossy(),
-            ),
-        ))
+    let pattern =
+        regex::Regex::new(r"/__ENVDEN_BINARY__|/__ENVDEN_HOME__/state(?:/([a-z-]+))?").unwrap();
+    Ok(pattern
+        .replace_all(template, |captures: &regex::Captures<'_>| {
+            if captures[0] == *"/__ENVDEN_BINARY__" {
+                escape(shell, binary)
+            } else {
+                let mut path = std::path::Path::new(home).join("state");
+                if let Some(suffix) = captures.get(1) {
+                    path.push(suffix.as_str());
+                }
+                escape(shell, &path.clean().to_string_lossy())
+            }
+        })
+        .into_owned())
 }

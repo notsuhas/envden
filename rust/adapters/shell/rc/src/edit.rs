@@ -1,8 +1,11 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
+use envden_core::filesystem::{IFileIdentity, file_identity, path_identity};
 use path_clean::PathClean;
-use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+#[cfg(unix)]
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::{
-    fs::{self, Metadata, OpenOptions},
+    fs::{self, File, Metadata, OpenOptions},
     io::{Read, Write},
     path::Path,
 };
@@ -15,8 +18,13 @@ pub(crate) fn failure(e: std::io::Error) -> EnvdenError {
     )
 }
 
-fn validate(info: &Metadata) -> Result<()> {
-    if !info.is_file() || info.nlink() != 1 || info.uid() != rustix::process::getuid().as_raw() {
+fn validate(file: &File, info: &Metadata) -> Result<()> {
+    let identity = file_identity(file).map_err(failure)?;
+    #[cfg(unix)]
+    let owned = info.uid() == rustix::process::getuid().as_raw();
+    #[cfg(windows)]
+    let owned = true;
+    if !info.is_file() || identity.links != 1 || !owned {
         return Err(EnvdenError::new(
             ErrorCode::InvalidInput,
             "Unsafe shell configuration file",
@@ -25,14 +33,12 @@ fn validate(info: &Metadata) -> Result<()> {
     Ok(())
 }
 
-fn same(a: &Metadata, b: &Metadata) -> bool {
-    a.dev() == b.dev()
-        && a.ino() == b.ino()
-        && a.len() == b.len()
-        && a.mtime() == b.mtime()
-        && a.mtime_nsec() == b.mtime_nsec()
-        && a.ctime() == b.ctime()
-        && a.ctime_nsec() == b.ctime_nsec()
+pub(crate) fn same(a: &IFileIdentity, b: &IFileIdentity) -> bool {
+    a.device == b.device
+        && a.inode == b.inode
+        && a.size == b.size
+        && milliseconds(a.modified_ns) == milliseconds(b.modified_ns)
+        && milliseconds(a.changed_ns) == milliseconds(b.changed_ns)
 }
 
 pub(crate) fn edit(
@@ -43,7 +49,7 @@ pub(crate) fn edit(
     let mut resolved = path.to_owned();
     let mut exists = false;
     for _ in 0..40 {
-        match resolved.canonicalize() {
+        match resolved.canonical_path() {
             Ok(p) => {
                 resolved = p;
                 exists = true;
@@ -72,23 +78,39 @@ pub(crate) fn edit(
         fs::create_dir_all(resolved.parent().unwrap()).map_err(failure)?;
     }
     let mut options = OpenOptions::new();
-    options
-        .read(true)
-        .custom_flags(rustix::fs::OFlags::NOFOLLOW.bits() as i32);
+    options.read(true);
+    #[cfg(unix)]
+    options.custom_flags(rustix::fs::OFlags::NOFOLLOW.bits() as i32);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        options.custom_flags(0x00200000 | 0x02000000);
+    }
     if !exists {
-        options.create_new(true).write(true).mode(0o600);
+        options.create_new(true).write(true);
+        #[cfg(unix)]
+        options.mode(0o600);
     }
     let mut file = options.open(&resolved).map_err(failure)?;
     let opened = file.metadata().map_err(failure)?;
     let stat = fs::symlink_metadata(&resolved).map_err(failure)?;
-    validate(&opened)?;
-    validate(&stat)?;
-    if opened.dev() != stat.dev() || opened.ino() != stat.ino() {
+    validate(&file, &opened)?;
+    if !stat.is_file() {
+        return Err(EnvdenError::new(
+            ErrorCode::InvalidInput,
+            "Unsafe shell configuration file",
+        ));
+    }
+    let expected = path_identity(&resolved).map_err(failure)?;
+    let opened_identity = file_identity(&file).map_err(failure)?;
+    if opened_identity.device != expected.device || opened_identity.inode != expected.inode {
         return Err(EnvdenError::new(
             ErrorCode::Conflict,
             "Shell configuration changed during editing",
         ));
     }
+    #[cfg(windows)]
+    crate::windows::verify_owner(&resolved)?;
     let mut original = Vec::new();
     file.read_to_end(&mut original).map_err(failure)?;
     let current: String = original.iter().copied().map(char::from).collect();
@@ -97,19 +119,19 @@ pub(crate) fn edit(
         return Ok(());
     }
     if let Some(directory) = backup {
-        backup_rc(directory, &original)?;
+        crate::edit_files::backup_rc(directory, &original)?;
     }
     let temporary = resolved
         .parent()
         .unwrap()
         .join(format!(".envden-rc-{}", uuid::Uuid::new_v4()));
     let result = (|| {
-        let mut replacement = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(stat.mode() & 0o777)
-            .open(&temporary)
-            .map_err(failure)?;
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        options.mode(stat.mode() & 0o777);
+        let mut replacement = options.open(&temporary).map_err(failure)?;
+        #[cfg(unix)]
         replacement
             .set_permissions(fs::Permissions::from_mode(stat.mode() & 0o777))
             .map_err(failure)?;
@@ -117,13 +139,15 @@ pub(crate) fn edit(
         replacement.write_all(&bytes).map_err(failure)?;
         replacement.sync_all().map_err(failure)?;
         drop(replacement);
-        if !same(&fs::symlink_metadata(&resolved).map_err(failure)?, &stat) {
+        if !same(&path_identity(&resolved).map_err(failure)?, &expected) {
             return Err(EnvdenError::new(
                 ErrorCode::Conflict,
                 "Shell configuration changed during editing",
             ));
         }
-        fs::rename(&temporary, &resolved).map_err(failure)
+        #[cfg(windows)]
+        fs::set_permissions(&temporary, stat.permissions()).map_err(failure)?;
+        crate::edit_files::replace(&temporary, &resolved, &expected)
     })();
     match fs::remove_file(&temporary) {
         Ok(()) => (),
@@ -133,33 +157,6 @@ pub(crate) fn edit(
     result
 }
 
-fn backup_rc(directory: &Path, bytes: &[u8]) -> Result<()> {
-    fs::DirBuilder::new()
-        .recursive(true)
-        .mode(0o700)
-        .create(directory)
-        .map_err(failure)?;
-    let folder = OpenOptions::new()
-        .read(true)
-        .custom_flags(rustix::fs::OFlags::NOFOLLOW.bits() as i32)
-        .open(directory)
-        .map_err(failure)?;
-    let info = folder.metadata().map_err(failure)?;
-    if !info.is_dir()
-        || info.uid() != rustix::process::getuid().as_raw()
-        || info.mode() & 0o077 != 0
-    {
-        return Err(EnvdenError::new(
-            ErrorCode::InvalidInput,
-            "Unsafe shell backup directory",
-        ));
-    }
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .mode(0o600)
-        .open(directory.join(format!(".envden-backup-{}", uuid::Uuid::new_v4())))
-        .map_err(failure)?;
-    file.write_all(bytes).map_err(failure)?;
-    file.sync_all().map_err(failure)
+fn milliseconds(ns: i128) -> f64 {
+    ns.div_euclid(1_000_000_000) as f64 * 1000.0 + ns.rem_euclid(1_000_000_000) as f64 / 1_000_000.0
 }

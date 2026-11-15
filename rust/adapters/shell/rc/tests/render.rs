@@ -1,7 +1,9 @@
 use envden_adapter_shell_rc::{TShell, create_rc_shell_adapter};
 use envden_core::adapters::IShellAdapter;
+#[cfg(unix)]
 use std::path::Path;
 
+#[cfg(unix)]
 #[test]
 fn typescript_vectors() {
     let cases: serde_json::Value =

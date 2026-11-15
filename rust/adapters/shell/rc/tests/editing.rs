@@ -1,3 +1,4 @@
+#![cfg(unix)]
 use envden_adapter_shell_rc::{TShell, create_rc_shell_adapter};
 use envden_core::{adapters::IShellAdapter, errors::ErrorCode};
 use std::{fs, os::unix::fs::PermissionsExt};

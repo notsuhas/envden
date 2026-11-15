@@ -1,4 +1,5 @@
 use envden_adapter_shell_rc::{TShell, create_rc_shell_adapter};
+#[cfg(unix)]
 use envden_core::adapters::IShellAdapter;
 #[test]
 fn contracts() {
@@ -8,6 +9,7 @@ fn contracts() {
         });
     }
 }
+#[cfg(unix)]
 #[test]
 fn preserves_bytes_and_symlink() {
     let home = tempfile::tempdir().unwrap();
