@@ -81,3 +81,30 @@ pub fn resolve_content(
     }
     Ok(TResolution::Write(Some(merged.bytes)))
 }
+
+pub(super) fn resolve_local_conflict(
+    interactive: bool,
+    path: &str,
+    mine: Option<&[u8]>,
+    theirs: super::sides::TServer<'_>,
+    choose: Option<TChoose<'_>>,
+) -> Result<TResolution> {
+    let Some(choose) = choose.filter(|_| interactive) else {
+        return Ok(TResolution::Conflict);
+    };
+    let choice = choose(path)?;
+    if choice == "merge"
+        || (choice == "take-server" && matches!(theirs, super::sides::TServer::Absent))
+    {
+        return Ok(TResolution::Conflict);
+    }
+    let next = if choice == "keep-mine" {
+        mine
+    } else {
+        match theirs {
+            super::sides::TServer::Live(bytes) => Some(bytes),
+            _ => None,
+        }
+    };
+    Ok(TResolution::Write(next.map(<[u8]>::to_vec)))
+}

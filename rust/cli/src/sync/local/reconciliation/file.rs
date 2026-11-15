@@ -13,6 +13,7 @@ use crate::{
             conflicts::{
                 IConflictTarget, conflict_records,
                 record::{IConflictSeed, IConflictSides, record_conflict},
+                save_conflicts,
             },
             files::{base_path, read_bytes},
         },
@@ -94,7 +95,24 @@ pub fn reconcile_file(
         store: stored.as_deref(),
     });
     let mine = decision.sides.mine;
-    let resolution = if lineage.invalid || lineage.corrupt {
+    let chooser = context
+        .options
+        .choose
+        .clone()
+        .filter(|_| context.options.interactive && snapshots.iter().any(|s| s.detached));
+    let local_conflict = matches!(
+        decision.sides.local,
+        super::sides::TLocalContent::Conflict(_)
+    );
+    let resolution = if local_conflict {
+        super::resolution::resolve_local_conflict(
+            context.options.interactive,
+            &targets[0].path,
+            mine,
+            decision.sides.theirs,
+            chooser.as_deref(),
+        )?
+    } else if lineage.invalid || lineage.corrupt {
         TResolution::Conflict
     } else {
         match decision.action {
@@ -112,7 +130,7 @@ pub fn reconcile_file(
                     mine,
                     server: server.as_deref(),
                     previous: previous.as_deref(),
-                    choose: None,
+                    choose: chooser.as_deref(),
                     default_content: server.as_deref(),
                 },
             )?,
@@ -157,7 +175,7 @@ pub fn reconcile_file(
             {
                 report(&message);
             }
-            Ok((0, 1))
+            Ok((usize::from(lineage.restored), 1))
         }
         TResolution::Write(next) => {
             let changed = usize::from(
