@@ -74,3 +74,8 @@ These masks intentionally cannot prove cryptographic or ciphertext byte parity. 
 Add one `.ts` file under `scenarios/` (domain subfolders are supported), register it in `catalog.ts`, exporting an `IScenario` with `name`, `roles` and `run(context)`. Use `device`, `server`, `run` and `pty`; file/Git edits are fixture operations, never implementation imports. `run` defaults to exit 0; give each intentional failure its expected code. PTY scripts wait for prompts, send answers, then call `finish`. Always declare every role, including destination servers.
 
 `--mix` runs each candidate in all roles, then substitutes it into each single role against the reference everywhere else. This covers reference server/candidate devices, candidate server/reference devices, and mixed devices in one vault. Every assignment compares with the same all-reference scenario, including snapshots. It does not enumerate the exponential Cartesian product for three or more implementations.
+
+## Rust server hybrid
+
+`parity/hybrid/envden` delegates `serve` to `target/server/debug/envden-serve` and every other command to the built TypeScript CLI.
+Build with `CARGO_TARGET_DIR=target/server cargo build -p envden-server --bin envden-serve`, then run `bun parity/run.ts --impl ts=apps/cli/dist/envden --impl hybrid=parity/hybrid/envden`.

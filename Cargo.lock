@@ -669,8 +669,7 @@ dependencies = [
 name = "envden-cli"
 version = "0.3.8"
 dependencies = [
- "unicode-general-category",
- "url",
+ "axum",
  "base64 0.22.1",
  "chrono",
  "chrono-tz",
@@ -682,11 +681,16 @@ dependencies = [
  "envden-adapter-shell-rc",
  "envden-core",
  "envden-protocol",
+ "envden-server",
+ "regex",
  "serde",
  "serde_json",
  "sha2",
  "tempfile",
+ "tokio",
+ "unicode-general-category",
  "ureq",
+ "url",
  "uuid",
 ]
 
@@ -743,6 +747,7 @@ dependencies = [
  "envden-adapter-storage-sqlite",
  "envden-core",
  "envden-protocol",
+ "http-body-util",
  "serde",
  "serde_json",
  "sha2",

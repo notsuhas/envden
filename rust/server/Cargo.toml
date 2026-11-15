@@ -1,0 +1,32 @@
+[package]
+name = "envden-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+envden-core = { path = "../core" }
+envden-protocol = { path = "../protocol" }
+envden-adapter-storage-sqlite = { path = "../adapters/storage/sqlite" }
+axum = "0.8"
+http-body-util = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "time", "sync"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+base64 = "0.22"
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+chrono = "0.4"
+url = "2"
+
+[dev-dependencies]
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
+
+[[bin]]
+name = "envden-serve"
+path = "src/bin/serve.rs"
+
+[lints]
+workspace = true

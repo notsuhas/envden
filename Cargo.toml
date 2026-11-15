@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = [
+  "rust/server",
   "rust/cli",
   "rust/adapters/storage/sqlite",
   "rust/core",

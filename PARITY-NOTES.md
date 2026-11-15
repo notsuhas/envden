@@ -15,3 +15,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: the root command sanitizes the error and removes the newline before its suggestion; subcommands preserve the newline. Rust keeps this difference.
 - Possible improvement: preserve line breaks in trusted parser diagnostics while sanitizing user-controlled text.
 - Why: root suggestions currently run into the preceding sentence. BUG: fix in all implementations.
+
+## Status uptime drops calendar months and years
+
+- Scenario: the server has been running for 32 days.
+- TS behaviour: the status page displays `1 day`; date-fns splits the interval into calendar months and days, then the formatter omits months and years. Rust preserves that result.
+- Possible improvement: format elapsed days, or include months and years.
+- Why: long uptimes currently look much shorter than they are. BUG: fix in all implementations.
