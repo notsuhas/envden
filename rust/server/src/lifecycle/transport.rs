@@ -78,14 +78,17 @@ where
     Ok(())
 }
 
-async fn serve_connection(stream: TcpStream, app: Router, mut stopping: watch::Receiver<bool>) {
+async fn serve_connection<T>(stream: T, app: Router, mut stopping: watch::Receiver<bool>)
+where
+    T: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
+{
     let service = service_fn(move |request: Request<hyper::body::Incoming>| {
         app.clone().oneshot(request.map(Body::new))
     });
     let (activity, idle) = watch::channel(tokio::time::Instant::now());
     let connection = http1::Builder::new()
         .timer(TokioTimer::new())
-        .header_read_timeout(None)
+        .header_read_timeout(std::time::Duration::from_secs(10))
         .title_case_headers(true)
         .serve_connection(
             TokioIo::new(super::writer::WireIo::new(stream, activity)),

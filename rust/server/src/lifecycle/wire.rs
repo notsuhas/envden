@@ -24,6 +24,13 @@ impl WireFormat {
             }
             let end = end + 4;
             let head = String::from_utf8_lossy(&bytes[..end]);
+            if head
+                .lines()
+                .next()
+                .is_some_and(|line| line.split_whitespace().nth(1) == Some("408"))
+            {
+                return output;
+            }
             let length = head.lines().find_map(|line| {
                 line.split_once(':')
                     .filter(|(name, _)| name.eq_ignore_ascii_case("content-length"))
@@ -54,6 +61,15 @@ impl WireFormat {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn header_timeout_closes_without_an_http_response() {
+        assert!(
+            WireFormat::default()
+                .encode(b"HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\n\r\n")
+                .is_empty()
+        );
+    }
 
     #[test]
     fn persistent_responses_preserve_body_bytes_and_format_empty_headers() {

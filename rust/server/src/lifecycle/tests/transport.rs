@@ -87,3 +87,19 @@ async fn descriptor_exhaustion_waits_for_injected_scheduler_before_retry() {
     assert!(task.await.unwrap().is_ok());
     assert_eq!(calls.load(Ordering::SeqCst), 2);
 }
+
+#[tokio::test(start_paused = true)]
+async fn incomplete_headers_have_an_absolute_deadline_despite_activity() {
+    use std::time::Duration;
+    use tokio::io::AsyncWriteExt;
+
+    let (mut client, server) = tokio::io::duplex(1);
+    let (_stop, stopping) = watch::channel(false);
+    let task = tokio::spawn(serve_connection(server, Router::new(), stopping));
+    client.write_all(b"GET / HTTP/1.1\r\nHost:").await.unwrap();
+    tokio::time::advance(Duration::from_secs(7)).await;
+    client.write_all(b" local").await.unwrap();
+    tokio::time::advance(Duration::from_secs(4)).await;
+    tokio::task::yield_now().await;
+    assert!(task.is_finished());
+}

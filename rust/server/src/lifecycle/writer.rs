@@ -6,20 +6,19 @@ use std::{
 };
 use tokio::{
     io::{AsyncRead, AsyncWrite, ReadBuf},
-    net::TcpStream,
     sync::watch,
     time::Instant,
 };
 
-pub(super) struct WireIo {
-    stream: TcpStream,
+pub(super) struct WireIo<T> {
+    stream: T,
     activity: watch::Sender<Instant>,
     format: WireFormat,
     pending: Vec<u8>,
     offset: usize,
 }
-impl WireIo {
-    pub fn new(stream: TcpStream, activity: watch::Sender<Instant>) -> Self {
+impl<T> WireIo<T> {
+    pub fn new(stream: T, activity: watch::Sender<Instant>) -> Self {
         Self {
             stream,
             activity,
@@ -29,7 +28,7 @@ impl WireIo {
         }
     }
 }
-impl AsyncRead for WireIo {
+impl<T: AsyncRead + Unpin> AsyncRead for WireIo<T> {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -43,7 +42,7 @@ impl AsyncRead for WireIo {
         result
     }
 }
-impl AsyncWrite for WireIo {
+impl<T: AsyncWrite + Unpin> AsyncWrite for WireIo<T> {
     fn poll_write(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
