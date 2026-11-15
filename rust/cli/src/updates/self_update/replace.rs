@@ -29,7 +29,7 @@ pub fn replace_binary(
         fs::set_permissions(&temporary, fs::Permissions::from_mode(0o755)).map_err(failure)?;
     }
     if let Err(cause) = verify(&temporary) {
-        let _ = fs::remove_file(&temporary);
+        remove_file(&temporary)?;
         return Err(EnvdenError::with_source(
             ErrorCode::InvalidData,
             "Release binary verification failed",
@@ -58,13 +58,21 @@ pub fn replace_binary(
     if result.is_err() {
         if backed_up {
             if windows {
-                let _ = fs::remove_file(path);
+                remove_file(path)?;
             }
             fs::rename(&old, path).map_err(failure)?;
         }
-        let _ = fs::remove_file(temporary);
+        remove_file(&temporary)?;
     }
     result
+}
+
+fn remove_file(path: &Path) -> Result<()> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(failure(error)),
+    }
 }
 
 #[cfg(test)]
@@ -82,5 +90,30 @@ mod tests {
             replace_binary(&path, b"new", windows, |_| Ok(()), || Ok(()), 1).unwrap();
             assert_eq!(fs::read(&path).unwrap(), b"new");
         }
+    }
+    #[test]
+    fn cleanup_failure_takes_precedence_over_verification_failure() {
+        let root = tempfile::tempdir().unwrap();
+        let binary = root.path().join("envden");
+        fs::write(&binary, b"old").unwrap();
+        let error = replace_binary(
+            &binary,
+            b"new",
+            false,
+            |staged| {
+                fs::remove_file(staged).unwrap();
+                fs::create_dir(staged).unwrap();
+                Err(EnvdenError::new(
+                    ErrorCode::InvalidData,
+                    "Verification failed",
+                ))
+            },
+            || Ok(()),
+            100,
+        )
+        .unwrap_err();
+        assert_eq!(error.code, ErrorCode::Internal);
+        assert!(error.source.is_some());
+        assert_eq!(fs::read(binary).unwrap(), b"old");
     }
 }
