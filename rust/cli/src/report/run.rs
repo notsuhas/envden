@@ -31,7 +31,7 @@ pub trait IReportEffects {
 
 pub fn report_problem(error: &EnvdenError, adapters: &IAdapters, effects: &mut dyn IReportEffects) {
     if let Err(failure) = prepare(error, adapters, effects)
-        && failure.message != "Prompt cancelled"
+        && failure.message != "Cancelled"
     {
         effects.print("Couldn't prepare the report.");
     }
@@ -51,7 +51,7 @@ fn prepare(
         Some(error.code),
         command,
         effects.interactive(),
-        error.message == "Prompt cancelled",
+        error.message == "Cancelled",
         &effects.env(),
     ) {
         return Ok(());
