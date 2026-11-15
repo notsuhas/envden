@@ -65,7 +65,11 @@ pub fn place_file_target(
     let placement = context.adapters.placement(mode, Path::new(&target.root));
     let dest = destination.to_string_lossy();
     let status = placement.inspect(&target.store, &dest)?;
-    let previous = read_bytes(&destination)?;
+    let previous = if status == TPlacementState::Linked {
+        None
+    } else {
+        read_bytes(&destination)?
+    };
     let identical = status == TPlacementState::Linked || previous.as_deref() == bytes;
     if !identical
         && previous.is_some()
@@ -88,7 +92,14 @@ pub fn place_file_target(
         } else {
             status != TPlacementState::Linked
         } {
-            placement.place(&target.store, &dest, None, None)?;
+            crate::links::checkout::placement::place_file(
+                context.adapters,
+                placement.as_ref(),
+                &target.root,
+                &target.store,
+                &dest,
+                None,
+            )?;
         }
         if current.is_none() {
             context.state["links"]

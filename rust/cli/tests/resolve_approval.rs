@@ -11,7 +11,7 @@ use std::{fs, process::Command};
 
 #[test]
 fn resolution_skips_changed_checkout_local_only_and_changed_placement() {
-    for scenario in ["remote", "local-only", "changed"] {
+    for scenario in ["remote", "local-only", "changed", "linked", "copy"] {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path().join("checkout");
         fs::create_dir(&root).unwrap();
@@ -53,7 +53,7 @@ fn resolution_skips_changed_checkout_local_only_and_changed_placement() {
             root: root.to_string_lossy().into(),
             path: ".env".into(),
             store: store.to_string_lossy().into(),
-            mode: "copy".into(),
+            mode: if scenario == "linked" { "link" } else { "copy" }.into(),
             local_only: None,
         };
         state["links"] = serde_json::json!([target]);
@@ -65,7 +65,12 @@ fn resolution_skips_changed_checkout_local_only_and_changed_placement() {
                 "https://github.com/other/project.git",
             ]),
             "local-only" => state["links"][0]["localOnly"] = true.into(),
-            _ => state["links"][0]["mode"] = "link".into(),
+            "changed" => state["links"][0]["mode"] = "link".into(),
+            _ => {}
+        }
+        if scenario == "linked" {
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(&store, root.join(".env")).unwrap();
         }
         save_state(&home, &state, 100).unwrap();
         let record = IConflictRecord {
@@ -86,8 +91,12 @@ fn resolution_skips_changed_checkout_local_only_and_changed_placement() {
         };
         save_conflicts(&home, &[record], 100).unwrap();
         let result = resolve_conflict(&adapters, Some(".env"), None, "keep-mine", &root).unwrap();
-        assert!(!root.join(".env").exists(), "{scenario}");
-        assert_eq!(result["placementReports"].as_array().unwrap().len(), 1);
+        if matches!(scenario, "linked" | "copy") {
+            assert_eq!(fs::read(root.join(".env")).unwrap(), b"new", "{scenario}");
+        } else {
+            assert!(!root.join(".env").exists(), "{scenario}");
+            assert_eq!(result["placementReports"].as_array().unwrap().len(), 1);
+        }
         assert_eq!(fs::read(&store).unwrap(), b"new");
     }
 }
