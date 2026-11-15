@@ -16,6 +16,7 @@ use std::path::Path;
 pub struct IPlacementContext<'a> {
     pub adapters: &'a IAdapters,
     pub state: &'a mut Value,
+    pub cwd: Option<&'a Path>,
     pub now: u64,
     pub report: &'a dyn Fn(&str),
 }
@@ -76,9 +77,14 @@ pub fn place_file_target(
         && previous.as_deref() != synced
         && let Some(saved) = backup(&context.adapters.home, &destination, context.now)?
     {
+        let shown = context
+            .cwd
+            .and_then(|cwd| destination.strip_prefix(cwd).ok())
+            .filter(|path| !path.as_os_str().is_empty())
+            .unwrap_or(&destination);
         (context.report)(&crate::output::sanitize_terminal(&format!(
             "Kept your previous {} at {}",
-            destination.display(),
+            shown.display(),
             saved.display()
         )));
     }

@@ -57,6 +57,7 @@ pub(super) fn finish_file(
             &mut super::super::placement::IPlacementContext {
                 adapters: context.adapters,
                 state: &mut context.state,
+                cwd: context.options.cwd.as_deref(),
                 now,
                 report: &report,
             },

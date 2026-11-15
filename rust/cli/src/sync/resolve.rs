@@ -98,6 +98,7 @@ pub fn resolve_conflict(
                 &mut super::local::reconciliation::placement::IPlacementContext {
                     adapters,
                     state: &mut state,
+                    cwd: None,
                     now,
                     report: &report,
                 },
