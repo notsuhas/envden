@@ -12,5 +12,5 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "format": false,
-  "ignore": []
+  "ignore": ["@envden/web"]
 }
