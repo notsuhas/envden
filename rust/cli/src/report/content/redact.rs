@@ -22,10 +22,10 @@ pub fn redact_secrets(text: &str) -> String {
                 "[redacted]"
             }
         });
-    let text = Regex::new(r"(?m)^(\s*(?:export\s+)?[A-Za-z_][\w.-]*\s*=).*$")
+    let text = Regex::new(r"(?m)^(\s*(?:export\s+)?[A-Za-z_][A-Za-z0-9_.-]*\s*=).*$")
         .unwrap()
         .replace_all(&text, "${1}[redacted]");
-    Regex::new(r#"\b([A-Za-z_][\w.-]*)=("[^"]*"|'[^']*'|[^\s&"']+)"#)
+    Regex::new(r#"\b([A-Za-z_][A-Za-z0-9_.-]*)=("[^"]*"|'[^']*'|[^\s&"']+)"#)
         .unwrap()
         .replace_all(&text, "${1}=[redacted]")
         .into_owned()

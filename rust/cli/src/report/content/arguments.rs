@@ -2,7 +2,7 @@ use regex::Regex;
 
 pub fn mask_arguments(args: &[String]) -> Vec<String> {
     let secret_flags = ["--setup-token", "--repair-token", "--recovery-kit"];
-    let password = Regex::new(r"(?i)^--?[\w-]*pass").unwrap();
+    let password = Regex::new(r"(?i)^--?[A-Za-z0-9_-]*pass").unwrap();
     let mut masked = Vec::new();
     for (index, arg) in args.iter().enumerate() {
         let (flag, value) = arg

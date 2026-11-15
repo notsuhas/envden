@@ -6,7 +6,10 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     run_dashboard(
         adapters,
         io::stdin().is_terminal(),
-        invocation.options.get("port").and_then(|v| v.as_f64()),
+        invocation
+            .options
+            .get("port")
+            .map(|v| v.as_f64().unwrap_or(f64::NAN)),
         invocation
             .options
             .get("open")

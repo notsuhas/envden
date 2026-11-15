@@ -55,7 +55,7 @@ pub fn run_dashboard(
         }
         axum::serve(listener, app)
             .with_graceful_shutdown(async {
-                let _ = tokio::signal::ctrl_c().await;
+                interrupted().await;
             })
             .await
             .map_err(failed)
@@ -64,4 +64,44 @@ pub fn run_dashboard(
 
 fn failed(error: std::io::Error) -> EnvdenError {
     EnvdenError::with_source(ErrorCode::Internal, "Dashboard server failed", error)
+}
+
+async fn interrupted() {
+    #[cfg(unix)]
+    if let Ok(mut terminate) =
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+    {
+        tokio::select! {_ = tokio::signal::ctrl_c()=>{}, _ = terminate.recv()=>{}}
+        return;
+    }
+    let _ = tokio::signal::ctrl_c().await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn requires_terminal_and_refuses_invalid_ports_before_listening() {
+        let temp = tempfile::tempdir().unwrap();
+        let adapters = crate::adapters::create_adapters(
+            Some(temp.path().join("envden")),
+            temp.path().to_path_buf(),
+            || 0,
+        );
+        assert_eq!(
+            run_dashboard(&adapters, false, None, false)
+                .unwrap_err()
+                .message,
+            "envden ui needs an interactive terminal"
+        );
+        for port in [0.0, -1.0, 1.5, 65536.0, f64::NAN, f64::INFINITY] {
+            assert_eq!(
+                run_dashboard(&adapters, true, Some(port), false)
+                    .unwrap_err()
+                    .message,
+                "Port must be 1-65535"
+            );
+        }
+    }
 }

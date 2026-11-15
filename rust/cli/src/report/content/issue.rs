@@ -34,14 +34,18 @@ pub fn issue_url(title: &str, report: &str) -> String {
         return prefix + &full;
     }
     let budget = 7000usize.saturating_sub(prefix.len() + encode(TRUNCATED).len());
-    let mut body = String::new();
-    for character in report.chars() {
-        let encoded = encode(&character.to_string());
-        if body.len() + encoded.len() > budget {
-            break;
+    let units = report.encode_utf16().collect::<Vec<_>>();
+    let sliced = |length: usize| String::from_utf16_lossy(&units[..length]);
+    let (mut low, mut high) = (0, units.len());
+    while low < high {
+        let middle = (low + high).div_ceil(2);
+        if encode(&sliced(middle)).len() <= budget {
+            low = middle;
+        } else {
+            high = middle - 1;
         }
-        body.push_str(&encoded);
     }
+    let body = encode(&sliced(low));
     prefix + &body + &encode(TRUNCATED)
 }
 
