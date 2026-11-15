@@ -14,7 +14,7 @@ export async function runVaultAdmin(
   kitOut?: string,
 ) {
   if (action === "replace") {
-    const output = replacementKitOutput(kitOut);
+    const output = replacementKitOutput(adapters, kitOut);
 
     const result = await replaceKit(
       adapters,

@@ -8,13 +8,17 @@ import { secret, consent } from "../../output/prompts/questions.ts";
 export const deviceRmCommand = new Command("rm")
   .description("Remove a device and re-key the vault so it can't read new changes")
   .argument("<device>", "Device name or ID")
-  .option("--kit-out <file>", "Write the new recovery kit to a private file")
+  .option(
+    "--kit-out <file>",
+    "Write the new recovery kit as JSON to a private file instead of a PDF",
+  )
   .option("--new-kit", "Also replace the recovery kit as part of the removal")
   .action(async (device, options) => {
-    const output = replacementKitOutput(options.kitOut);
+    const adapters = createAdapters(undefined, Date.now);
+    const output = replacementKitOutput(adapters, options.kitOut);
 
     const result = await removeDevice(
-      createAdapters(undefined, Date.now),
+      adapters,
       device,
       () => secret("Master password"),
       Date.now,

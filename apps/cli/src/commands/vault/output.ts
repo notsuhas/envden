@@ -1,28 +1,38 @@
 import { writeKit } from "../../vault/recovery/output.ts";
-import { printKit } from "../../output/render/devices/kit.ts";
+import { printKit, printKitSaved } from "../../output/render/devices/kit.ts";
+import { reportKit } from "../../vault/recovery/pdf/report.ts";
+import { loadState } from "../../state/store/repository.ts";
 import type { IReplacementKit } from "../../admin/recovery/credentials.ts";
+import type { TAdapters } from "../../adapters.ts";
 
-export async function reportReplacementKit(kit: IReplacementKit, path?: string) {
-  if (path) {
-    try {
-      await writeKit(path, kit);
-      printKit(kit, path);
+type TKitAdapters = Pick<TAdapters, "home" | "userHome" | "hostname" | "now">;
 
-      return;
-    } catch {
-      console.error("envden: Could not save the recovery kit; save the kit printed below");
-    }
+export async function reportReplacementKit(
+  adapters: TKitAdapters,
+  kit: IReplacementKit,
+  path?: string,
+) {
+  if (!path) {
+    const deviceName = (await loadState(adapters.home))?.deviceName ?? adapters.hostname;
+
+    return reportKit(kit, { userHome: adapters.userHome, deviceName, now: adapters.now() });
   }
 
-  printKit(kit);
+  try {
+    await writeKit(path, kit);
+    printKitSaved(path, "json");
+  } catch {
+    console.error("envden: Could not save the recovery kit; save the kit printed below");
+    printKit(kit);
+  }
 }
 
-export function replacementKitOutput(path?: string) {
+export function replacementKitOutput(adapters: TKitAdapters, path?: string) {
   let shown = false;
 
   return {
     show: async (kit: IReplacementKit) => {
-      await reportReplacementKit(kit, path);
+      await reportReplacementKit(adapters, kit, path);
       shown = true;
     },
     fail: (error: unknown): never => {

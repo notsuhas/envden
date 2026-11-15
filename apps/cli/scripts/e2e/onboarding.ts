@@ -33,7 +33,7 @@ export async function setupLikeAUser(
     { expect: "Device name", send: "\r" },
     { expect: "Master password", send: `${password}\r` },
     { expect: "Confirm master password", send: `${password}\r` },
-    { expect: "Saved the recovery kit", send: "y" },
+    { expect: "Open it now?", send: "n" },
     ...PREFERENCES,
     { expect: "Setup complete" },
   ]);

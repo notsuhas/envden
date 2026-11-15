@@ -1,25 +1,35 @@
 import { expect, spyOn, test } from "bun:test";
-import { printKit } from "../kit.ts";
+import { printKit, printKitSaved } from "../kit.ts";
 
 const kit = { vaultId: "VAULT", secretKey: "SECRET", server: "https://envden.example" };
 
-for (const savedTo of [undefined, "/tmp/kit.json"])
-  test(`kit block labels each field, saved to ${savedTo}`, () => {
-    const log = spyOn(console, "log").mockImplementation(() => {});
+function printed(print: () => void) {
+  const log = spyOn(console, "log").mockImplementation(() => {});
 
-    try {
-      printKit(kit, savedTo);
-      const text = String(log.mock.calls[0]?.[0]);
+  try {
+    print();
 
-      expect(text).toContain("like a passport");
-      expect(text).toContain("  Vault ID:    VAULT");
-      expect(text).toContain("  Server:      https://envden.example");
+    return log.mock.calls.flat().join("\n");
+  } finally {
+    log.mockRestore();
+  }
+}
 
-      if (savedTo) {
-        expect(text).toContain(`  Saved to:    ${savedTo}`);
-        expect(text).not.toContain("SECRET");
-      } else expect(text).toContain("  Secret key:  SECRET");
-    } finally {
-      log.mockRestore();
-    }
-  });
+test("kit block labels each field", () => {
+  const text = printed(() => printKit(kit));
+
+  expect(text).toContain("like a passport");
+  expect(text).toContain("  Vault ID:    VAULT");
+  expect(text).toContain("  Secret key:  SECRET");
+  expect(text).toContain("  Server:      https://envden.example");
+});
+
+test.each([
+  [
+    "pdf",
+    "Recovery kit saved to ~/kit\nPrint it or store it offline, then delete the file from this computer.",
+  ],
+  ["json", "Recovery kit saved to ~/kit"],
+] as const)("saved %s kit shows only where it is", (format, text) => {
+  expect(printed(() => printKitSaved("~/kit", format))).toBe(text);
+});

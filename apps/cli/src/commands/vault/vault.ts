@@ -15,7 +15,10 @@ export const vaultCommand = new Command("vault")
     new Command("kit").description("Manage the recovery kit").addCommand(
       new Command("replace")
         .description("Replace a lost kit; needs the master password")
-        .option("--kit-out <file>", "Write the new recovery kit to a private file")
+        .option(
+          "--kit-out <file>",
+          "Write the new recovery kit as JSON to a private file instead of a PDF",
+        )
         .action(async (options) => {
           await runVaultAdmin(
             createAdapters(undefined, Date.now),
