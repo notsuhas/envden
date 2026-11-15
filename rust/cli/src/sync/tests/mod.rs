@@ -42,3 +42,5 @@ mod move_follow;
 
 mod prune;
 mod repairs;
+
+mod history_lock;
