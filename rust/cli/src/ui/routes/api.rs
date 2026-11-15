@@ -94,7 +94,7 @@ pub fn api(
                 options,
                 transport,
                 input["path"].as_str().unwrap(),
-                input["version"].as_u64().unwrap(),
+                input["version"].as_f64().unwrap() as u64,
             )?
         }
         _ => return Ok(None),

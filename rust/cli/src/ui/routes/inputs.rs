@@ -14,8 +14,8 @@ pub fn parse<'a>(
     for key in keys {
         let valid = if *key == "version" {
             object[*key]
-                .as_u64()
-                .is_some_and(|v| v > 0 && v <= 9_007_199_254_740_991)
+                .as_f64()
+                .is_some_and(|v| v.fract() == 0.0 && v > 0.0 && v <= 9_007_199_254_740_991.0)
         } else {
             object[*key].as_str().is_some_and(|v| {
                 !v.is_empty() && v.encode_utf16().count() <= if *key == "name" { 256 } else { 4096 }
