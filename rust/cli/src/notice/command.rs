@@ -98,16 +98,7 @@ pub fn command_notice_with_transport(
                     }
                 }
             }
-            let current = cwd.and_then(|cwd| {
-                state["approved"].as_array()?.iter().find(|c| {
-                    c["root"]
-                        .as_str()
-                        .is_some_and(|r| cwd == r || std::path::Path::new(cwd).starts_with(r))
-                })
-            });
-            let repo = current
-                .and_then(|c| c["repoId"].as_str())
-                .map(|r| state["aliases"][r].as_str().unwrap_or(r));
+            let repo = super::current::current_repo_id(&state, cwd);
             repos.retain(|r| Some(r.as_str()) != repo);
             Ok(
                 json!({"repos":repos.iter().map(|r|sanitize_terminal(r)).collect::<Vec<_>>(),"update":update}),
