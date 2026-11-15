@@ -70,15 +70,23 @@ const OPS: [&str; 41] = [
 #[test]
 fn memory_adapters_require_explicit_operations_and_roll_back() {
     let keychain = create_memory_keychain_adapter(&["get", "set"]);
-    assert!(
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| keychain.owner_only())).is_err()
+    unexpected(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = keychain.owner_only();
+        })),
+        "keychain.ownerOnly",
     );
     keychain.set("key", &[1]).unwrap();
     let mut value = keychain.get("key", false).unwrap().unwrap();
     value.fill(9);
     assert_eq!(keychain.get("key", false).unwrap(), Some(vec![1]));
     let storage = create_memory_storage_adapter(&["transaction", "set_setup_token", "setup_token"]);
-    assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| storage.head(&[]))).is_err());
+    unexpected(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = storage.head(&[]);
+        })),
+        "storage.head",
+    );
     let result = storage.transaction(&mut || {
         storage.set_setup_token(&[1])?;
         Err(envden_core::errors::EnvdenError::new(
@@ -88,4 +96,14 @@ fn memory_adapters_require_explicit_operations_and_roll_back() {
     });
     assert_eq!(result.unwrap_err().message, "Abort transaction");
     assert!(storage.setup_token().unwrap().is_none());
+}
+
+fn unexpected(result: Result<(), Box<dyn std::any::Any + Send>>, operation: &str) {
+    let error = result.unwrap_err();
+    let message = error
+        .downcast_ref::<String>()
+        .map(String::as_str)
+        .or_else(|| error.downcast_ref::<&str>().copied())
+        .unwrap();
+    assert_eq!(message, format!("Unexpected fake operation: {operation}"));
 }

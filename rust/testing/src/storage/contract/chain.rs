@@ -123,6 +123,13 @@ pub(super) fn persistence(f: &IStorageFixture) {
         next.state(&[1], TStateKind::OpaqueRecord, &[0]).unwrap(),
         Some(vec![60])
     );
+    assert_eq!(
+        next.device(&[1], &[3]).unwrap(),
+        Some(IStoredDevice {
+            unlocked_until: 70,
+            ..first.devices.unwrap()[0].state.clone()
+        })
+    );
     assert!(next.head(&[2]).unwrap().is_none());
 }
 pub(super) fn rollback(f: &IStorageFixture) {
