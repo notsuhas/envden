@@ -9,3 +9,7 @@ pub use joiner::join;
 pub(crate) mod persistence;
 
 mod response;
+mod resume;
+
+#[cfg(test)]
+mod lock_tests;

@@ -11,6 +11,10 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 
 pub(super) fn clear(adapters: &IAdapters) -> Result<()> {
+    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || locked_clear(adapters))
+}
+
+fn locked_clear(adapters: &IAdapters) -> Result<()> {
     adapters
         .keychain
         .delete(&format!("envden/{}/pair-receive", adapters.home.display()))?;

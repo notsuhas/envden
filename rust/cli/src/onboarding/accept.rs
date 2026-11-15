@@ -37,6 +37,18 @@ pub(crate) fn accept(
     history: &IVaultHistory,
     hash: &[u8; 32],
 ) -> Result<Value> {
+    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+        locked_accept(adapters, client, identity, history, hash)
+    })
+}
+
+fn locked_accept(
+    adapters: &IAdapters,
+    client: &IClient,
+    identity: &IDeviceIdentity,
+    history: &IVaultHistory,
+    hash: &[u8; 32],
+) -> Result<Value> {
     latest_membership(&history.state, &identity.record.id, &client.options.pin)?;
     let header = history
         .headers
@@ -185,28 +197,5 @@ fn latest_membership(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{adapters::create_adapters, identity::device_identity, vault::create_genesis};
-    use envden_protocol::chain::{TDeviceListResult, verify_chain};
-
-    #[test]
-    fn latest_membership_rejects_removed_device_and_changed_pin() {
-        let dir = tempfile::tempdir().unwrap();
-        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
-        let identity =
-            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
-        let material = create_genesis(&identity, [2; 32], 42).unwrap();
-        let TDeviceListResult::Valid { mut state } =
-            verify_chain(&[material.genesis, material.epoch]).unwrap()
-        else {
-            panic!("valid")
-        };
-        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_ok());
-        state.server_pin = [3; 32];
-        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_err());
-        state.server_pin = [2; 32];
-        state.devices.remove(&identity.record.id);
-        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_err());
-    }
-}
+#[path = "accept_tests.rs"]
+mod tests;

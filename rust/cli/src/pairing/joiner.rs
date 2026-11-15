@@ -3,10 +3,9 @@ use crate::{
     adapters::IAdapters,
     client::{UreqTransport, binary, hello, text},
     identity::{device_identity, read_identity},
-    onboarding::{accept::accept, setup::device_name, vault::connection::connection},
+    onboarding::{setup::device_name, vault::connection::connection},
     output::prompts::input,
-    state::{files::atomic_write, repository::load_state},
-    vault::history::read_history,
+    state::{files::atomic_write, lock::with_state_lock, repository::load_state},
     version::MIN_SERVER,
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
@@ -70,11 +69,13 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     };
     let client = connection(adapters, address, server.pin, [0; 32], &identity);
     if !resume {
-        atomic_write(
-            &adapters.home.join("state/pair-pin"),
-            text(&server.pin).as_bytes(),
-            (adapters.now)(),
-        )?;
+        with_state_lock(&adapters.home, (adapters.now)(), || {
+            atomic_write(
+                &adapters.home.join("state/pair-pin"),
+                text(&server.pin).as_bytes(),
+                (adapters.now)(),
+            )
+        })?;
         let code = input("Pairing code", true, None, |v| {
             p::normalize_pairing_code(v)
                 .err()
@@ -86,11 +87,13 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
         })?;
         let expires = put(&client, mailbox, "KE1", &start.start_login_request)?
             .min((adapters.now)() + 600_000);
-        atomic_write(
-            &adapters.home.join("state/pair-expiry"),
-            expires.to_string().as_bytes(),
-            (adapters.now)(),
-        )?;
+        with_state_lock(&adapters.home, (adapters.now)(), || {
+            atomic_write(
+                &adapters.home.join("state/pair-expiry"),
+                expires.to_string().as_bytes(),
+                (adapters.now)(),
+            )
+        })?;
         let response = wait(
             &client,
             &format!("/v1/pairing/mailboxes/{mailbox}/KE2"),
@@ -124,14 +127,16 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             &keys.send,
             &p::random_bytes(),
         )?);
-        adapters.keychain.set(&receive, &keys.receive)?;
-        atomic_write(
-            &adapters.home.join("state/pair-joiner"),
-            json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
-                .to_string()
-                .as_bytes(),
-            (adapters.now)(),
-        )?;
+        with_state_lock(&adapters.home, (adapters.now)(), || {
+            adapters.keychain.set(&receive, &keys.receive)?;
+            atomic_write(
+                &adapters.home.join("state/pair-joiner"),
+                json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
+                    .to_string()
+                    .as_bytes(),
+                (adapters.now)(),
+            )
+        })?;
         put(&client, mailbox, "KE3", &finish.finish_login_request)?;
         put(&client, mailbox, "PairJoiner", &message)?;
         println!("Waiting for the approving device");
@@ -159,11 +164,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             }
         }
     }
-    let key =
-        Zeroizing::new(adapters.keychain.get(&receive, false)?.ok_or_else(|| {
-            EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume")
-        })?);
-    let message = wait(
+    wait(
         &client,
         "/v1/pairing/approver",
         adapters.now,
@@ -171,34 +172,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             .map(|v| v.saturating_add(86_400_000))
             .unwrap_or_else(|| (adapters.now)() + 86_400_000),
     )?;
-    let receive_key = Zeroizing::new(p::fixed(&key)?);
-    let approval = p::open_pair_approver(&binary(&message)?, &receive_key)?;
-    drop(receive_key);
-    drop(key);
-    if approval.server_pin != server.pin {
-        return Err(EnvdenError::new(
-            ErrorCode::Unauthorized,
-            "Pairing server pin mismatch",
-        ));
-    }
-    let client = client.for_vault(approval.vault_id);
-    let history = read_history(&client, &approval.vault_id, None)?;
-    if rejoin {
-        crate::admin::rejoin::classify::check(adapters, &history)?;
-    }
-    let local = accept(
-        adapters,
-        &client,
-        &identity,
-        &history,
-        &approval.manifest_hash,
-    )?;
-    if rejoin {
-        crate::admin::rejoin::classify::finish_identity(adapters)?;
-    }
-    adapters.keychain.delete(&receive)?;
-    super::persistence::clear(adapters)?;
-    Ok(local)
+    super::resume::resume(adapters, &client, &identity, rejoin)
 }
 
 pub fn join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
