@@ -6,7 +6,7 @@ use crate::{
         applied::{applied_files, save_applied_files},
         files::{base_path, write_bytes},
     },
-    vault::{checkpoint_material, vault_connection},
+    vault::vault_connection,
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
@@ -32,9 +32,21 @@ fn attempt(
     if previous.body.seq != 1 {
         return super::resume_initial::resume(adapters, transport);
     }
-    let material = checkpoint_material(adapters, state)?;
-    let key = &material.keys[&1];
-    let id = material.checkpoint.id_key;
+    let epoch = adapters.keychain.get(
+        &format!("envden/{}/epoch/1", adapters.home.display()),
+        false,
+    )?;
+    let id = adapters
+        .keychain
+        .get(&format!("envden/{}/id-key", adapters.home.display()), false)?;
+    let (Some(epoch), Some(id)) = (epoch, id) else {
+        return Err(EnvdenError::new(
+            ErrorCode::Locked,
+            "Vault keys unavailable",
+        ));
+    };
+    let key = &p::fixed(&epoch)?;
+    let id = p::fixed(&id)?;
     let mut files = p::IFiles { entries: vec![] };
     let mut bases: Vec<(PathBuf, Vec<u8>)> = vec![];
     for link in state["links"]
