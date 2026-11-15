@@ -1,8 +1,8 @@
-import { lstat, mkdir, symlink } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat, mkdir, readFile, realpath, symlink } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { SITE_URL } from "@envden/core/site";
-import { atomicWrite } from "../state/store/files.ts";
+import { writeThrough } from "./write-through.ts";
 
 const skill = `---
 name: envden
@@ -23,22 +23,26 @@ Use envden update --check freely; ask before running envden update.
 export async function installAgent(userHome: string, now: () => number): Promise<void> {
   const target = join(userHome, ".agents", "skills", "envden");
   const link = join(userHome, ".claude", "skills", "envden");
-  await atomicWrite(join(target, "SKILL.md"), skill, now);
-  await mkdir(join(userHome, ".claude", "skills"), { recursive: true });
+  const file = join(target, "SKILL.md");
 
-  try {
-    const existing = await lstat(link);
+  if (!ownSkill(await readFile(file, "utf8").catch(missing)))
+    throw new EnvdenError("CONFLICT", "~/.agents/skills/envden already holds a different skill");
 
-    if (!existing.isSymbolicLink())
-      throw new EnvdenError("CONFLICT", "Agent skill destination is an existing folder or file");
+  await writeThrough(file, skill, now);
+  await mkdir(dirname(link), { recursive: true });
 
-    const { realpath } = await import("node:fs/promises");
+  // Codex reads ~/.agents/skills itself; ~/.claude/skills often links to that same folder
+  if (!(await lstat(link).catch(missing)))
+    await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
+  else if ((await realpath(link).catch(missing)) !== (await realpath(target)))
+    throw new EnvdenError("CONFLICT", "~/.claude/skills/envden already holds a different skill");
+}
 
-    if ((await realpath(link)) !== (await realpath(target)))
-      throw new EnvdenError("CONFLICT", "Agent skill destination already exists");
-  } catch (cause) {
-    if (cause instanceof Error && "code" in cause && cause.code === "ENOENT")
-      await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
-    else throw cause;
-  }
+function ownSkill(text: string | undefined) {
+  return text === undefined || /^name: envden$/m.test(text.split("\n---")[0] ?? "");
+}
+
+function missing(cause: unknown): undefined {
+  if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return undefined;
+  throw cause;
 }

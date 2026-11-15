@@ -2,10 +2,11 @@ import { EnvdenError } from "@envden/core/errors";
 import { access } from "node:fs/promises";
 import type { TFetch } from "./client/fetch.ts";
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
-import { atomicWrite } from "./state/store/files.ts";
+import { writeThrough } from "./agent/write-through.ts";
+import { realLocation } from "./state/store/real-location.ts";
 import { stableExecutable } from "./updates/self/paths.ts";
 import { homedir, hostname } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { createOsKeychainAdapter } from "@envden/adapter-keychain-os";
 import { createGitRepoAdapter } from "@envden/adapter-repo-git";
 import { createFsPlacementAdapter, pruneBackups } from "@envden/adapter-placement-fs";
@@ -28,7 +29,7 @@ export function createAdapters(
   now: () => number,
 ) {
   const userHome = options?.userHome ?? homedir();
-  const home = resolve(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
+  const home = realLocation(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
   const executable = stableExecutable(options?.executable ?? process.execPath);
 
   const adapters = {
@@ -71,7 +72,7 @@ export function createAdapters(
           userHome,
           home,
           uid: process.getuid?.() ?? 0,
-          write: (path, bytes) => atomicWrite(path, bytes, now),
+          write: (path, bytes) => writeThrough(path, bytes, now),
           run: runServiceCommand,
           pause: (ms) => Bun.sleep(ms),
         },

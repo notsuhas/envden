@@ -52,7 +52,18 @@ async function installShell(adapters: TAdapters, options: TPreferenceOptions) {
   const selection = deriveShell(shell);
 
   if (selection.kind === "install")
-    await adapters.shell(selection.shell).install(adapters.executable);
+    await adapters
+      .shell(selection.shell)
+      .install(adapters.executable)
+      .catch(skipped("the shell notice", "envden shell install"));
+}
+
+// optional extras must not undo a setup that already created the vault
+function skipped(what: string, later: string) {
+  return (error: unknown) => {
+    const reason = error instanceof Error ? error.message : "unknown error";
+    console.error(`Skipped ${what}: ${reason}. Set it up later with: ${later}`);
+  };
 }
 
 async function installAgentPreference(adapters: TAdapters, options: TPreferenceOptions) {
@@ -65,7 +76,9 @@ async function installAgentPreference(adapters: TAdapters, options: TPreferenceO
         "Install the agent skill? It teaches AI coding agents like Claude Code and Codex to use envden safely",
       )))
   )
-    await installAgent(adapters.userHome, adapters.now);
+    await installAgent(adapters.userHome, adapters.now).catch(
+      skipped("the agent skill", "envden agent install"),
+    );
 }
 
 export async function updatePreferences(adapters: TAdapters, options: TPreferenceOptions) {

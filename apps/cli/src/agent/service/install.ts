@@ -1,6 +1,6 @@
 import { spawnTrusted } from "@envden/core/process";
 import { join } from "node:path";
-import type { atomicWrite } from "../../state/store/files.ts";
+import type { writeThrough } from "../write-through.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { serviceDefinition } from "./generate.ts";
 import { serviceFile } from "./location.ts";
@@ -12,7 +12,7 @@ export async function installHostService(
     userHome: string;
     home: string;
     uid: number;
-    write: typeof atomicWrite;
+    write: typeof writeThrough;
     run: (args: string[]) => Promise<void>;
     pause: (ms: number) => Promise<void>;
   },

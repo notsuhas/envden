@@ -3,7 +3,7 @@ import { basePath, readBytes, writeBytes } from "../sync/local/files.ts";
 import { choose } from "../output/prompts/questions.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { homePath, realHome } from "../output/home-path.ts";
-import { readFile, lstat } from "node:fs/promises";
+import { readFile, readlink, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { ICheckout } from "@envden/core/adapters";
@@ -33,7 +33,12 @@ export async function linkFile(
 
   if ((await lstat(destination)).isSymbolicLink()) {
     if ((await placement.inspect(store, destination)) !== "linked") {
-      console.error(`envden: skipped symlink ${sanitizeTerminal(destination)}`);
+      const shown = homePath(destination, await realHome(adapters.userHome));
+      const target = await readlink(destination);
+
+      console.error(
+        `envden: skipped ${sanitizeTerminal(shown)}: it links to ${sanitizeTerminal(target)}, and envden only syncs files it owns`,
+      );
 
       return;
     }

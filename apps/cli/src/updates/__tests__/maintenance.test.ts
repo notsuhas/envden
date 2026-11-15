@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, rename, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
@@ -68,7 +68,7 @@ test("post-swap refresh only updates installed skills and tolerates shell failur
     expect(shells).toBe(4);
     const skill = join(root, ".agents", "skills", "envden", "SKILL.md");
     expect(await Bun.file(skill).exists()).toBe(false);
-    await atomicWrite(skill, "old", fixtureClock);
+    await atomicWrite(skill, "---\nname: envden\n---\nold\n", fixtureClock);
     await refreshInstallation(adapters, "linux");
     expect(await readFile(skill, "utf8")).toContain("Run envden status");
   } finally {
@@ -121,6 +121,12 @@ test("refresh rewrites an installed service and hooks with the stable Homebrew p
 
     await refreshInstallation(adapters, "linux");
     expect(services).toBe(1);
+
+    const unit = join(root, ".config", "systemd", "user", "envden.service");
+    await rename(unit, join(root, "dotfiles-unit"));
+    await symlink(join(root, "dotfiles-unit"), unit);
+    await refreshInstallation(adapters, "linux");
+    expect(services).toBe(2);
     expect(adapters.executable).toBe("/opt/homebrew/bin/envden");
     expect(new Set(hooks)).toEqual(new Set(["/opt/homebrew/bin/envden"]));
   } finally {

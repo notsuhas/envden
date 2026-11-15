@@ -55,6 +55,41 @@ test("setup preferences persist only in config", async () => {
   }
 });
 
+test("a failing shell notice or agent skill warns instead of aborting setup", async () => {
+  const { setupPreferences } = await import("../preferences.ts");
+  const { readConfig } = await import("../../settings/config.ts");
+  const { join } = await import("node:path");
+  const { mkdir } = await import("node:fs/promises");
+  const f = await fixture();
+  const warnings: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => warnings.push(line);
+
+  try {
+    await mkdir(join(f.root, ".zshrc"));
+    await mkdir(join(f.root, ".claude", "skills", "envden"), { recursive: true });
+
+    await setupPreferences(f.first, {
+      telemetry: "on",
+      updateCheck: "off",
+      shell: "zsh",
+      agent: "on",
+      yes: true,
+    });
+
+    expect(await readConfig(f.first.home)).toMatchObject({ telemetry: true });
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toStartWith("Skipped the shell notice: ");
+
+    expect(warnings[1]).toBe(
+      "Skipped the agent skill: ~/.claude/skills/envden already holds a different skill. Set it up later with: envden agent install",
+    );
+  } finally {
+    console.error = original;
+    await f.close();
+  }
+});
+
 test("scan offers an empty checkout when its repo is already in the vault", async () => {
   const { join } = await import("node:path");
   const { mkdir } = await import("node:fs/promises");

@@ -1,6 +1,6 @@
+import { access } from "node:fs/promises";
 import { join } from "node:path";
 import type { TAdapters } from "../../adapters.ts";
-import { optionalRead } from "../../state/store/files.ts";
 import { installAgent } from "../../agent/install.ts";
 import { serviceFile } from "../../agent/service/location.ts";
 
@@ -9,15 +9,12 @@ export async function refreshInstallation(adapters: TAdapters, platform = proces
 
   const tasks: (() => Promise<void>)[] = [
     async () => {
-      if (
-        (await optionalRead(join(adapters.userHome, ".agents", "skills", "envden", "SKILL.md"))) !==
-        undefined
-      )
+      if (await present(join(adapters.userHome, ".agents", "skills", "envden", "SKILL.md")))
         await installAgent(adapters.userHome, adapters.now);
     },
     async () => {
       // Rewriting the definition moves a service off a binary path the upgrade removed.
-      if (service && (await optionalRead(service)) !== undefined) await adapters.hostServer();
+      if (service && (await present(service))) await adapters.hostServer();
     },
     ...(["zsh", "bash", "fish", "powershell"] as const).map((shell) => async () => {
       const adapter = adapters.shell(shell);
@@ -32,4 +29,12 @@ export async function refreshInstallation(adapters: TAdapters, platform = proces
       console.error("envden: binary updated; optional installation refresh failed");
     }
   }
+}
+
+// these files may link into a dotfiles repo, so follow links
+function present(path: string) {
+  return access(path).then(
+    () => true,
+    () => false,
+  );
 }

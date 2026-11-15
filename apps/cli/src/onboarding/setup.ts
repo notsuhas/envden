@@ -7,7 +7,8 @@ import { readToken } from "../output/prompts/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit, secretKeyProblem } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
-import { printKit } from "../output/render/devices/kit.ts";
+import { printKitSaved } from "../output/render/devices/kit.ts";
+import { reportKit } from "../vault/recovery/pdf/report.ts";
 import type { ISetupKit } from "../vault/recovery/pending-kit.ts";
 import { confirmedPassword } from "./password.ts";
 import { askDeviceName } from "../output/prompts/device-name.ts";
@@ -95,7 +96,7 @@ async function createState(
     now,
     fetcher: adapters.fetcher,
     readResumeSecretKey: () => resumeKey(vaultId, options.kitOut),
-    onKit: (kit) => reportKit(options.kitOut, kit),
+    onKit: (kit) => reportSetupKit(adapters, options.kitOut, name, now, kit),
   });
 
   await setupPreferences(adapters, options);
@@ -118,7 +119,9 @@ async function resumeKey(vaultId: string | undefined, kitOut: string | undefined
     return saved === undefined ? undefined : parseKit(saved).secretKey;
   }
 
-  if (!(await consent("Setup stopped after printing a recovery kit. Do you still have it?", true)))
+  if (
+    !(await consent("Setup stopped after giving you a recovery kit. Do you still have it?", true))
+  )
     return undefined;
 
   return (await secret("Secret key from that kit (EK1-…)", secretKeyProblem)).trim();
@@ -160,10 +163,16 @@ async function hostLocally(adapters: TAdapters, options: ISetupOptions) {
   return { address: await adapters.network.expose(4783), token };
 }
 
-async function reportKit(path: string | undefined, kit: ISetupKit) {
-  if (path) await writeKit(path, kit);
-  printKit(kit, path);
+// --kit-out is the scripted path, so it writes only the JSON that join --recovery-kit reads.
+async function reportSetupKit(
+  adapters: TAdapters,
+  path: string | undefined,
+  deviceName: string,
+  now: () => number,
+  kit: ISetupKit,
+) {
+  if (!path) return reportKit(kit, { userHome: adapters.userHome, deviceName, now: now() });
 
-  // keep the kit on screen until it's saved, instead of scrolling it away with the next questions
-  while (!path && process.stdin.isTTY && !(await consent("Saved the recovery kit?", false)));
+  await writeKit(path, kit);
+  printKitSaved(path, "json");
 }

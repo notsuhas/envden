@@ -1,6 +1,6 @@
 import { saveState } from "../../state/store/repository.ts";
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, symlink, readdir } from "node:fs/promises";
+import { mkdtemp, realpath, rm, symlink, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
@@ -114,7 +114,7 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
 
 for (const choice of ["keep-mine", "take-server", "edit"] as const) {
   test(`resolve ${choice} uses recorded snapshots and clears its conflict`, async () => {
-    const home = await mkdtemp(join(tmpdir(), "envden-resolve-"));
+    const home = await realpath(await mkdtemp(join(tmpdir(), "envden-resolve-")));
 
     const adapters = createAdapters(
       {

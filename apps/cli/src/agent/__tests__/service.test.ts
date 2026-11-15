@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
 import { serviceDefinition } from "../service/generate.ts";
 import { installHostService } from "../service/install.ts";
+import { writeThrough } from "../write-through.ts";
 
 const fixtureClock = () => 1800000000000;
 
@@ -112,3 +113,44 @@ test("launchd bootstrap retries while the old job is still unloading", async () 
   expect(commands.filter((args) => args[1] === "bootstrap")).toHaveLength(3);
   expect(pauses).toBe(2);
 });
+
+for (const platform of ["darwin", "linux"])
+  test(`${platform} service install writes through a service folder and file linked into dotfiles`, async () => {
+    const { lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } =
+      await import("node:fs/promises");
+
+    const { tmpdir } = await import("node:os");
+    const { dirname, join } = await import("node:path");
+    const { serviceFile } = await import("../service/location.ts");
+    const userHome = await mkdtemp(join(tmpdir(), "envden-service-"));
+
+    try {
+      const path = serviceFile(platform, userHome, join(userHome, ".envden"))!;
+      const dotfiles = join(userHome, "dotfiles", "services");
+      await mkdir(dotfiles, { recursive: true });
+      await mkdir(dirname(dirname(path)), { recursive: true });
+      await symlink(dotfiles, dirname(path));
+      await writeFile(join(dotfiles, "tracked"), "old");
+      await symlink(join(dotfiles, "tracked"), path);
+
+      await installHostService(
+        {
+          platform,
+          executable: "/bin/envden",
+          userHome,
+          home: join(userHome, ".envden"),
+          uid: 1,
+          write: writeThrough,
+          run: async () => {},
+          pause: async () => {},
+        },
+        fixtureClock,
+      );
+
+      expect((await lstat(dirname(path))).isSymbolicLink()).toBe(true);
+      expect((await lstat(path)).isSymbolicLink()).toBe(true);
+      expect(await readFile(join(dotfiles, "tracked"), "utf8")).toContain("/bin/envden");
+    } finally {
+      await rm(userHome, { recursive: true, force: true });
+    }
+  });

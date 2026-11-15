@@ -1,7 +1,7 @@
 import { EnvdenError } from "@envden/core/errors";
 import type { Dirent } from "node:fs";
-import { readdir } from "node:fs/promises";
-import { resolve, join } from "node:path";
+import { readdir, realpath } from "node:fs/promises";
+import { basename, resolve, join } from "node:path";
 import { placeInRoot } from "@envden/core/paths";
 import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 
@@ -25,30 +25,36 @@ export async function discoverRepos(
 ): Promise<ICheckout[]> {
   const found = new Map<string, ICheckout>();
   const visited = new Set<string>();
-  const excludes = excluded.map((path) => resolve(path));
+  const excludes = await Promise.all(excluded.map(realOrResolved));
 
-  async function walk(path: string): Promise<void> {
-    if (visited.has(path) || excludes.some((root) => placeInRoot(root, path) !== "outside")) return;
+  // folders may link elsewhere (~/Work on another volume); walk real paths so each is seen once
+  async function walk(path: string, root = false): Promise<void> {
+    const real = await realpath(path).catch(() => undefined);
+    if (!real || !unseen(real, root, visited, excludes)) return;
+    visited.add(real);
+    const entries = await readdir(real, { withFileTypes: true }).catch(() => undefined);
+    if (!entries) return;
 
-    visited.add(path);
-    let entries;
+    if (entries.some((entry) => entry.name === ".git"))
+      await collectCheckout(repo, real, found, report);
 
-    try {
-      entries = await readdir(path, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    if (entries.some((entry) => entry.name === ".git")) {
-      await collectCheckout(repo, path, found, report);
-    }
-
-    for (const entry of entries) if (canDescend(entry)) await walk(join(path, entry.name));
+    for (const entry of entries) if (canDescend(entry)) await walk(join(real, entry.name));
   }
 
-  for (const root of roots) await walk(resolve(root));
+  for (const root of roots) await walk(resolve(root), true);
 
   return [...found.values()];
+}
+
+function unseen(real: string, root: boolean, visited: Set<string>, excludes: string[]) {
+  if (visited.has(real) || excludes.some((path) => placeInRoot(path, real) !== "outside"))
+    return false;
+
+  return root || !skipped.has(basename(real));
+}
+
+function realOrResolved(path: string) {
+  return realpath(path).catch(() => resolve(path));
 }
 
 async function collectCheckout(
@@ -70,7 +76,7 @@ async function collectCheckout(
 }
 
 function canDescend(entry: Dirent) {
-  return entry.isDirectory() && !entry.isSymbolicLink() && !skipped.has(entry.name);
+  return (entry.isDirectory() || entry.isSymbolicLink()) && !skipped.has(entry.name);
 }
 
 async function identify(

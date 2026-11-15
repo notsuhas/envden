@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtemp, rm, mkdir, readFile } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, readFile, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
@@ -11,7 +11,7 @@ import { setupCheckouts } from "../scan.ts";
 const fixtureClock = () => 1800000000000;
 
 test("differing worktree env files do not abort unrelated linking", async () => {
-  const root = await mkdtemp(join(tmpdir(), "envden-scan-conflict-"));
+  const root = await realpath(await mkdtemp(join(tmpdir(), "envden-scan-conflict-")));
 
   try {
     const adapters = createAdapters(
