@@ -13,12 +13,19 @@ pub(crate) fn profile(shell: TShell, home: &Path) -> PathBuf {
         } else {
             ".config/powershell/Microsoft.PowerShell_profile.ps1"
         }),
-        TShell::Bash => bash(home),
+        TShell::Bash => bash(
+            home,
+            if cfg!(target_os = "macos") {
+                "darwin"
+            } else {
+                "linux"
+            },
+        ),
     }
 }
 
-fn bash(home: &Path) -> PathBuf {
-    if !cfg!(target_os = "macos") {
+pub(crate) fn bash(home: &Path, platform: &str) -> PathBuf {
+    if platform != "darwin" {
         return home.join(".bashrc");
     }
     let files = [".bashrc", ".bash_profile", ".bash_login", ".profile"]
@@ -49,11 +56,23 @@ fn bash(home: &Path) -> PathBuf {
 }
 
 pub(crate) fn powershell(home: &Path) -> Option<PathBuf> {
-    use envden_core::process::{ISpawnOptions, exec_trusted_sync};
+    use envden_core::process::exec_trusted_sync;
 
+    powershell_with_runner(home, exec_trusted_sync)
+}
+
+pub(crate) fn powershell_with_runner(
+    home: &Path,
+    mut run: impl FnMut(
+        &str,
+        &[String],
+        &envden_core::process::ISpawnOptions,
+    ) -> envden_core::errors::Result<String>,
+) -> Option<PathBuf> {
+    use envden_core::process::ISpawnOptions;
     let mut candidates = Vec::new();
     for shell in ["pwsh", "powershell"] {
-        let output = exec_trusted_sync(
+        let output = run(
             shell,
             &[
                 "-NoProfile",

@@ -7,3 +7,11 @@ pub use render::TShell;
 mod edit_files;
 #[cfg(windows)]
 mod windows;
+
+#[cfg(all(test, unix))]
+mod races;
+
+#[cfg(test)]
+mod profile_tests;
+
+mod identity;

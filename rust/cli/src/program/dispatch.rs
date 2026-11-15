@@ -72,6 +72,7 @@ impl ICommandActions for DefaultActions {
             ["shell", action] => return crate::commands::shell::run(action, invocation, adapters),
             ["agent", "install"] => return crate::commands::agent::install(adapters),
             ["doctor"] => return crate::commands::maintenance::doctor::run(invocation, adapters),
+            ["diff"] => return crate::commands::sync::diff::run(invocation, adapters),
             ["alias"] => return crate::commands::sync::alias::run(invocation, adapters),
             ["local-only"] => {
                 return crate::commands::checkouts::local_only::run(invocation, adapters);

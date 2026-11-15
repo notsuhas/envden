@@ -46,6 +46,15 @@ pub(crate) fn edit(
     backup: Option<&Path>,
     transform: impl Fn(&str) -> String,
 ) -> Result<()> {
+    edit_with_hooks(path, backup, transform, |_| {})
+}
+
+pub(crate) fn edit_with_hooks(
+    path: &Path,
+    backup: Option<&Path>,
+    transform: impl Fn(&str) -> String,
+    hook: impl Fn(&str),
+) -> Result<()> {
     let mut resolved = path.to_owned();
     let mut exists = false;
     for _ in 0..40 {
@@ -77,6 +86,7 @@ pub(crate) fn edit(
     if !exists {
         fs::create_dir_all(resolved.parent().unwrap()).map_err(failure)?;
     }
+    hook("resolved");
     let mut options = OpenOptions::new();
     options.read(true);
     #[cfg(unix)]
@@ -92,6 +102,7 @@ pub(crate) fn edit(
         options.mode(0o600);
     }
     let mut file = options.open(&resolved).map_err(failure)?;
+    hook("opened");
     let opened = file.metadata().map_err(failure)?;
     let stat = fs::symlink_metadata(&resolved).map_err(failure)?;
     validate(&file, &opened)?;
@@ -101,18 +112,12 @@ pub(crate) fn edit(
             "Unsafe shell configuration file",
         ));
     }
-    let expected = path_identity(&resolved).map_err(failure)?;
-    let opened_identity = file_identity(&file).map_err(failure)?;
-    if opened_identity.device != expected.device || opened_identity.inode != expected.inode {
-        return Err(EnvdenError::new(
-            ErrorCode::Conflict,
-            "Shell configuration changed during editing",
-        ));
-    }
+    let expected = crate::identity::baseline(&resolved, &file_identity(&file).map_err(failure)?)?;
     #[cfg(windows)]
     crate::windows::verify_owner(&resolved)?;
     let mut original = Vec::new();
     file.read_to_end(&mut original).map_err(failure)?;
+    hook("read");
     let current: String = original.iter().copied().map(char::from).collect();
     let next = transform(&current);
     if current == next {

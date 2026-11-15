@@ -6,28 +6,49 @@ use std::path::Path;
 #[cfg(unix)]
 #[test]
 fn typescript_vectors() {
-    let cases: serde_json::Value =
-        serde_json::from_str(include_str!("render-vectors.json")).unwrap();
-    for row in cases.as_array().unwrap() {
-        let shell = match row["shell"].as_str().unwrap() {
-            "bash" => TShell::Bash,
-            "zsh" => TShell::Zsh,
-            "fish" => TShell::Fish,
-            _ => TShell::Powershell,
-        };
-        let adapter = create_rc_shell_adapter(
-            shell,
-            "/unused",
-            Some(Path::new(row["home"].as_str().unwrap())),
-            None,
-            None,
-        );
-        assert_eq!(
-            adapter
+    for fixture in [
+        include_str!("render-vectors.json"),
+        include_str!("snapshots.json"),
+    ] {
+        let cases: serde_json::Value = serde_json::from_str(fixture).unwrap();
+        for row in cases.as_array().unwrap() {
+            let shell = match row["shell"].as_str().unwrap() {
+                "bash" => TShell::Bash,
+                "zsh" => TShell::Zsh,
+                "fish" => TShell::Fish,
+                _ => TShell::Powershell,
+            };
+            let adapter = create_rc_shell_adapter(
+                shell,
+                "/unused",
+                Some(Path::new(row["home"].as_str().unwrap())),
+                None,
+                None,
+            );
+            let snippet = adapter
                 .hook_snippet(row["binary"].as_str().unwrap())
-                .unwrap(),
-            row["expected"].as_str().unwrap()
-        );
+                .unwrap();
+            assert!(!snippet.contains("git "));
+            let physical = match shell {
+                TShell::Powershell => "(Get-Location).ProviderPath",
+                TShell::Zsh => "${PWD:A}",
+                _ => "pwd -P",
+            };
+            assert!(snippet.contains(physical));
+            let age = match shell {
+                TShell::Powershell => ".TotalSeconds -gt 60",
+                TShell::Fish => ") -gt 60",
+                _ => "\" -gt 60 ]; then",
+            };
+            assert!(snippet.contains(age));
+            assert!(adapter.hook_snippet("relative").is_err());
+            assert_eq!(
+                adapter
+                    .hook_snippet(row["binary"].as_str().unwrap())
+                    .unwrap(),
+                row["expected"].as_str().unwrap()
+            );
+        }
     }
 }
 
