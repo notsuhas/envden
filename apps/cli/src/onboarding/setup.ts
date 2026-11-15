@@ -49,7 +49,7 @@ async function lockedrunSetup(
   let state;
 
   if (existing?.vaultId && !existing.creationPending) {
-    if (options.hostServer) await adapters.hostServer();
+    if (options.hostServer) await adapters.hostServer(await adapters.serverPort());
     state = existing;
 
     await updatePreferences(adapters, options);
@@ -157,10 +157,11 @@ async function hostLocally(adapters: TAdapters, options: ISetupOptions) {
   if (!host) return undefined;
 
   const token = options.setupToken === undefined ? await adapters.localSetupToken() : undefined;
-  await adapters.hostServer();
+  const port = await adapters.serverPort();
+  await adapters.hostServer(port);
   console.log("Server installed on this machine");
 
-  return { address: await adapters.network.expose(4783), token };
+  return { address: await adapters.network.expose(port), token };
 }
 
 // --kit-out is the scripted path, so it writes only the JSON that join --recovery-kit reads.

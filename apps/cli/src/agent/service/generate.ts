@@ -18,8 +18,14 @@ function unit(value: string) {
   return '"' + unitPath(value).replaceAll("\\", "\\\\").replaceAll('"', '\\"') + '"';
 }
 
-export function serviceDefinition(platform: string, executable: string, home: string, log: string) {
-  const args = [executable, "serve", "--data-dir", home, "--port", "4783"];
+export function serviceDefinition(
+  platform: string,
+  executable: string,
+  home: string,
+  log: string,
+  port: number,
+) {
+  const args = [executable, "serve", "--data-dir", home, "--port", String(port)];
 
   if (platform === "darwin")
     return {
@@ -35,7 +41,7 @@ export function serviceDefinition(platform: string, executable: string, home: st
 
   if (platform === "win32") {
     const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
-    const script = `& ${quote(executable)} serve --data-dir ${quote(home)} --port 4783 *> ${quote(log)}`;
+    const script = `& ${quote(executable)} serve --data-dir ${quote(home)} --port ${port} *> ${quote(log)}`;
 
     return {
       kind: "task" as const,

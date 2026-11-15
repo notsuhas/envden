@@ -7,7 +7,6 @@ test("post-install retains envden paths and privacy choices only", async () => {
   try {
     Object.assign(process.env, {
       ENVDEN_HOME: "/custom",
-      ENVDEN_KEYCHAIN: "file",
       ENVDEN_NO_UPDATE_CHECK: "1",
       ENVDEN_TELEMETRY: "0",
       DO_NOT_TRACK: "1",
@@ -17,7 +16,6 @@ test("post-install retains envden paths and privacy choices only", async () => {
     await postInstall("/envden", async (_command, env) => {
       for (const key of [
         "ENVDEN_HOME",
-        "ENVDEN_KEYCHAIN",
         "ENVDEN_NO_UPDATE_CHECK",
         "ENVDEN_TELEMETRY",
         "DO_NOT_TRACK",

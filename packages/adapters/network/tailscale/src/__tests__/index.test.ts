@@ -24,11 +24,11 @@ test("status and serve use the recorded JSON and current CLI syntax", async () =
   });
 
   expect(await adapter.checkHttpsCertificate()).toEqual({ kind: "ready" });
-  expect(await adapter.expose(3000)).toBe("https://laptop.tail.example");
+  expect(await adapter.expose(3000)).toBe("https://laptop.tail.example:3000");
 
   expect(calls.slice(-2)).toEqual([
     ["serve", "status", "--json"],
-    ["serve", "--bg", "--https=443", "http://127.0.0.1:3000"],
+    ["serve", "--bg", "--https=3000", "http://127.0.0.1:3000"],
   ]);
 
   expect(adapter.expose(0)).rejects.toThrow("Invalid port");
@@ -79,11 +79,14 @@ test("serve failures carry Tailscale's own output, capped", async () => {
   expect(message.length).toBeLessThan(600);
 });
 
-test("serve refuses to replace another service on port 443", async () => {
+test("serve refuses to replace another service on its port, and leaves 443 alone", async () => {
   const calls: string[][] = [];
 
   const taken = {
-    Web: { "laptop.tail.example:443": { Handlers: { "/": { Proxy: "http://127.0.0.1:9000" } } } },
+    Web: {
+      "laptop.tail.example:443": { Handlers: { "/": { Proxy: "http://127.0.0.1:3773" } } },
+      "laptop.tail.example:4280": { Handlers: { "/": { Proxy: "http://127.0.0.1:9000" } } },
+    },
   };
 
   const adapter = createTailscaleNetworkAdapter(async (args) => {

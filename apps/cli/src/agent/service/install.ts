@@ -11,6 +11,7 @@ export async function installHostService(
     executable: string;
     userHome: string;
     home: string;
+    port: number;
     uid: number;
     write: typeof writeThrough;
     run: (args: string[]) => Promise<void>;
@@ -25,6 +26,7 @@ export async function installHostService(
     options.executable,
     join(options.home, "server"),
     log,
+    options.port,
   );
 
   const path = serviceFile(options.platform, options.userHome, options.home)!;

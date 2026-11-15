@@ -104,13 +104,7 @@ async function installerCommand(manager: string, path: string) {
 function postInstallEnvironment(managerBin?: string) {
   const extra: Record<string, string> = {};
 
-  for (const key of [
-    "ENVDEN_HOME",
-    "ENVDEN_KEYCHAIN",
-    "ENVDEN_NO_UPDATE_CHECK",
-    "ENVDEN_TELEMETRY",
-    "DO_NOT_TRACK",
-  ]) {
+  for (const key of ["ENVDEN_HOME", "ENVDEN_NO_UPDATE_CHECK", "ENVDEN_TELEMETRY", "DO_NOT_TRACK"]) {
     const value = process.env[key];
     if (value !== undefined) extra[key] = value;
   }

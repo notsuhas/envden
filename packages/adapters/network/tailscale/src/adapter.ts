@@ -101,15 +101,15 @@ class TailscaleAdapter implements INetworkAdapter {
       "Tailscale serve status failed",
     );
 
-    if (serveConflict(current, status.hostname, target))
+    if (serveConflict(current, status.hostname, port, target))
       throw new EnvdenError(
         "CONFLICT",
-        "Tailscale already serves something else on port 443. See it with tailscale serve status, and remove it with tailscale serve --https=443 off",
+        `Tailscale already serves something else on port ${port}. See it with tailscale serve status, and remove it with tailscale serve --https=${port} off`,
       );
 
-    await this.command(["serve", "--bg", "--https=443", target], "Tailscale serve failed");
+    await this.command(["serve", "--bg", `--https=${port}`, target], "Tailscale serve failed");
 
-    return `https://${status.hostname}`;
+    return `https://${status.hostname}:${port}`;
   }
 }
 

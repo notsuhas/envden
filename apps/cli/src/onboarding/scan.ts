@@ -96,8 +96,13 @@ async function chosenCheckouts(adapters: TAdapters, state: ILocalState, eligible
   const automatic: ICheckout[] = [];
   const asked: IEligible[] = [];
 
+  // checkouts approved on an earlier run relink without asking again
   for (const item of eligible)
-    if (await autoApprovedWorktree(adapters, state, item.checkout)) automatic.push(item.checkout);
+    if (
+      state.approved.some((approved) => approved.root === item.checkout.root) ||
+      (await autoApprovedWorktree(adapters, state, item.checkout))
+    )
+      automatic.push(item.checkout);
     else asked.push(item);
 
   return [...automatic, ...(await chooseCheckouts(adapters, state, asked))];

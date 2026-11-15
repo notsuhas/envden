@@ -1,8 +1,9 @@
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { TAdapters } from "../../adapters.ts";
 import { installAgent } from "../../agent/install.ts";
 import { serviceFile } from "../../agent/service/location.ts";
+import { DEFAULT_SERVER_PORT, installedPort } from "../../agent/service/port.ts";
 
 export async function refreshInstallation(adapters: TAdapters, platform = process.platform) {
   const service = serviceFile(platform, adapters.userHome, adapters.home);
@@ -14,7 +15,10 @@ export async function refreshInstallation(adapters: TAdapters, platform = proces
     },
     async () => {
       // Rewriting the definition moves a service off a binary path the upgrade removed.
-      if (service && (await present(service))) await adapters.hostServer();
+      if (service && (await present(service)))
+        await adapters.hostServer(
+          installedPort(await readFile(service, "utf8")) ?? DEFAULT_SERVER_PORT,
+        );
     },
     ...(["zsh", "bash", "fish", "powershell"] as const).map((shell) => async () => {
       const adapter = adapters.shell(shell);

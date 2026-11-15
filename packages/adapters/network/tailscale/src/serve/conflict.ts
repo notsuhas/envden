@@ -19,11 +19,16 @@ function parseServe(stdout: string) {
   }
 }
 
-// True when this machine's port 443 already serves anything other than `target` at `/`.
-export function serveConflict(stdout: string, hostname: string, target: string): boolean {
+// True when this machine's `port` already serves anything other than `target` at `/`.
+export function serveConflict(
+  stdout: string,
+  hostname: string,
+  port: number,
+  target: string,
+): boolean {
   const { TCP: tcp = {}, Web: web = {} } = parseServe(stdout);
-  const listener = tcp["443"];
-  const site = web[`${hostname}:443`];
+  const listener = tcp[String(port)];
+  const site = web[`${hostname}:${port}`];
   if (!listener && !site) return false;
 
   if (listener?.TCPForward || !site) return true;

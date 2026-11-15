@@ -134,6 +134,9 @@ test("scan offers an empty checkout when its repo is already in the vault", asyn
 
     expect(state.approved.some((repo) => repo.root === checkout.root)).toBe(true);
 
+    // running setup again relinks approved checkouts without asking, even without a terminal
+    await setupCheckouts(f.first, state, { scanRoot: [checkout.root], now: f.now });
+
     const absent = {
       root: join(f.root, "absent"),
       gitDir: join(f.root, "absent", ".git"),

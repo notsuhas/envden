@@ -6,28 +6,38 @@ import { writeThrough } from "../write-through.ts";
 const fixtureClock = () => 1800000000000;
 
 test("login service definitions quote paths and start at login", () => {
-  expect(serviceDefinition("darwin", "/bin/env den&", "/data", "/log").content).toContain(
+  expect(serviceDefinition("darwin", "/bin/env den&", "/data", "/log", 4783).content).toContain(
     "env den&amp;",
   );
 
-  expect(serviceDefinition("darwin", "/bin/envden", "/data", "/log").content).toContain(
+  expect(serviceDefinition("darwin", "/bin/envden", "/data", "/log", 4783).content).toContain(
     "<key>RunAtLoad</key><true/>",
   );
 
-  const linux = serviceDefinition("linux", '/bin/env den"', "/data%name", "/log");
+  const linux = serviceDefinition("linux", '/bin/env den"', "/data%name", "/log", 4783);
   expect(linux.content).toContain('"/data%%name"');
   expect(linux.content).toContain("WantedBy=default.target");
 
-  const logged = serviceDefinition("linux", "/bin/envden", "/data", "/logs%h/envden.log").content;
+  const logged = serviceDefinition(
+    "linux",
+    "/bin/envden",
+    "/data",
+    "/logs%h/envden.log",
+    4783,
+  ).content;
+
   expect(logged).toContain("StandardOutput=append:/logs%%h/envden.log\n");
   expect(logged).toContain("StandardError=append:/logs%%h/envden.log\n");
-  expect(() => serviceDefinition("linux", "/bin/envden", "/data", "/log\nUser=root")).toThrow();
 
-  expect(serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log").content).toContain(
-    "LogonTrigger",
-  );
+  expect(() =>
+    serviceDefinition("linux", "/bin/envden", "/data", "/log\nUser=root", 4783),
+  ).toThrow();
 
-  expect(() => serviceDefinition("other", "", "", "")).toThrow();
+  expect(
+    serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 4783).content,
+  ).toContain("LogonTrigger");
+
+  expect(() => serviceDefinition("other", "", "", "", 4783)).toThrow();
 });
 
 test("service installer writes and enables through supplied effects", async () => {
@@ -40,6 +50,7 @@ test("service installer writes and enables through supplied effects", async () =
       executable: "/bin/envden",
       userHome: "/test",
       home: "/test/envden",
+      port: 4783,
       uid: 1,
       write: async (path) => {
         writes.push(path);
@@ -72,6 +83,7 @@ for (const platform of ["darwin", "win32"])
           executable: "/bin/envden",
           userHome: "/test",
           home: "/test/envden",
+          port: 4783,
           uid: 1,
           write: async () => {},
           run: async (args) => {
@@ -97,6 +109,7 @@ test("launchd bootstrap retries while the old job is still unloading", async () 
       executable: "/bin/envden",
       userHome: "/test",
       home: "/test/envden",
+      port: 4783,
       uid: 1,
       write: async () => {},
       run: async (args) => {
@@ -139,6 +152,7 @@ for (const platform of ["darwin", "linux"])
           executable: "/bin/envden",
           userHome,
           home: join(userHome, ".envden"),
+          port: 4783,
           uid: 1,
           write: writeThrough,
           run: async () => {},
@@ -154,3 +168,24 @@ for (const platform of ["darwin", "linux"])
       await rm(userHome, { recursive: true, force: true });
     }
   });
+
+test("the hosted server keeps its port, or takes a free one instead of another app's", async () => {
+  const { chooseServerPort, installedPort } = await import("../service/port.ts");
+
+  const probe = (free: boolean, envden: boolean) => ({
+    free: async () => free,
+    envden: async () => envden,
+    anyFree: async () => 51234,
+  });
+
+  expect(await chooseServerPort(probe(true, false))).toBe(4783);
+  expect(await chooseServerPort(probe(false, true))).toBe(4783);
+  expect(await chooseServerPort(probe(false, false))).toBe(51234);
+
+  for (const platform of ["darwin", "linux", "win32"])
+    expect(
+      installedPort(serviceDefinition(platform, "/bin/envden", "/data", "/log", 51234).content),
+    ).toBe(51234);
+
+  expect(installedPort("no port here")).toBeUndefined();
+});

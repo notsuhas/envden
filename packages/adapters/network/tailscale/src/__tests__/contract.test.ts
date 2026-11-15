@@ -13,7 +13,7 @@ networkContract("Tailscale", (scenario) =>
     if (scenario === "not-installed") throw new Error("Command unavailable");
 
     if (args[0] === "serve" && args[1] === "status") {
-      const taken = { TCP: { "443": { TCPForward: "127.0.0.1:22" } } };
+      const taken = { TCP: { "8080": { TCPForward: "127.0.0.1:22" } } };
 
       return {
         exitCode: 0,
