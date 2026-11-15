@@ -4,7 +4,9 @@ use envden_core::errors::Result;
 use std::{fs, path::Path};
 
 pub(super) fn try_reclaim(path: &Path, now: u64) -> Result<()> {
-    let info = fs::symlink_metadata(path).map_err(failure)?;
+    let Ok(info) = fs::symlink_metadata(path) else {
+        return Ok(());
+    };
     if !info.is_dir() || info.is_symlink() {
         return Ok(());
     }
@@ -65,4 +67,15 @@ fn claim_guard(path: &Path, now: u64) -> Result<bool> {
         return claim_guard(path, now);
     }
     Ok(true)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn disappeared_lock_is_left_for_acquisition_retry() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(try_reclaim(&dir.path().join("write.lock"), 100).is_ok());
+    }
 }
