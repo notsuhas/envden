@@ -1,5 +1,5 @@
 use super::{material::stored_swap, vault_chain};
-use crate::{auth::session_key, http::types::IAppOptions, middleware::IAuth};
+use crate::{http::types::IAppOptions, middleware::IAuth};
 use envden_core::{
     adapters::storage::*,
     errors::{EnvdenError, ErrorCode, Result},
@@ -150,5 +150,5 @@ pub(crate) fn commit_swap(
         Ok(())
     })?;
 
-    Ok(result.expect("transaction result"))
+    result.ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Transaction incomplete"))
 }

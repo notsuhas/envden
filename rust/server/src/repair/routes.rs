@@ -78,11 +78,14 @@ pub(crate) fn recovery_route(
     let result=match parts.get(3) {
         Some(&"history")=>{let swap:ISwap=input(||decode(body))?;commit_response(super::upload_history(options,auth,&swap,&h("swap",body),true)?,false)},
         Some(&"chain")=>{
+            let swaps = input(|| {
             let mut reader=Reader::new(body);
             let count=reader.u32()?;
             if count>100000 {return Err(EnvdenError::new(ErrorCode::InvalidInput,"Invalid history"));}
             let swaps=(0..count).map(|_|ISwap::read(&mut reader)).collect::<Result<Vec<_>>>()?;
             reader.end()?;
+            Ok(swaps)
+            })?;
             commit_response(super::upload_chain(options,auth,&swaps)?,false)
         },
         Some(&"status") if repair=>{let restored=storage.vault(id)?.and_then(|v|v.restored).expect("authorized repair");response(200,"application/json",json!({"restoredHead":text(&restored.restored_head),"repairId":text(&restored.finish_progress.unwrap_or_default())}).to_string())},
