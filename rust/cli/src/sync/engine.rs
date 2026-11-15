@@ -14,9 +14,19 @@ use std::{cell::RefCell, rc::Rc};
 
 pub fn sync(
     adapters: &IAdapters,
+    options: ISyncOptions,
+    transport: Rc<dyn ITransport>,
+    pushing: bool,
+) -> Result<Value> {
+    sync_with_unlock(adapters, options, transport, pushing, None)
+}
+
+pub fn sync_with_unlock(
+    adapters: &IAdapters,
     mut options: ISyncOptions,
     transport: Rc<dyn ITransport>,
     pushing: bool,
+    unlock: Option<&crate::admin::r#move::follow::TMoveUnlock<'_>>,
 ) -> Result<Value> {
     if pushing && !options.interactive && !options.yes {
         return Err(EnvdenError::new(
@@ -35,6 +45,24 @@ pub fn sync(
     }));
     with_state_lock(&adapters.home, (options.now)(), || {
         let mut context = sync_context(adapters, options, transport)?;
+        let local = super::remote::accept::local_history(&context)?;
+        let mut history =
+            crate::vault::history::read_history(&context.client, &context.vault_id, Some(&local))?;
+        if let Some(client) = crate::admin::r#move::follow::follow_server_move(
+            adapters,
+            &mut context.state,
+            &context.client,
+            &history,
+            unlock,
+        )? {
+            context.client = client;
+            history = crate::vault::history::read_history(
+                &context.client,
+                &context.vault_id,
+                Some(&super::remote::accept::local_history(&context)?),
+            )?;
+        }
+        let mut initial_history = Some(history);
         let cwd = context
             .options
             .cwd
@@ -63,7 +91,16 @@ pub fn sync(
             },
         )?;
         for _ in 0..3 {
-            let accepted = accept_head(&mut context, None, false)?;
+            let history = match initial_history.take() {
+                Some(history) => history,
+                None => crate::vault::history::read_history(
+                    &context.client,
+                    &context.vault_id,
+                    Some(&super::remote::accept::local_history(&context)?),
+                )?,
+            };
+            let accepted = accept_head(&mut context, Some(history), false)?;
+            super::repairs::report_repairs(&context, &accepted.repairs)?;
             persist_checkpoint(&mut context)?;
             super::remote::attempt::record::acknowledge(&context)?;
             let result = reconcile(
@@ -89,6 +126,7 @@ pub fn sync(
             };
             persist_checkpoint(&mut context)?;
             super::local::retention::prune_backups(&adapters.home, (context.options.now)())?;
+            adapters.prune_placement_backups((context.options.now)())?;
             if crate::notice::fetch::settle_remote_notice(&context)
                 .and_then(|()| {
                     crate::notice::cache::refresh_notice(

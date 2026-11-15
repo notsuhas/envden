@@ -44,3 +44,41 @@ pub async fn finish_login(f: &Fixture, repair: &[u8; 32], swap: &ISwap) -> (u16,
     ))
     .await
 }
+
+#[tokio::test]
+async fn finish_schema_errors_precede_swap_format_errors() {
+    use envden_core::adapters::storage::IRestoredVault;
+    let f = Fixture::new();
+    let repair = [7; 32];
+    let mut vault = f.options.storage.vault(&f.vault).unwrap().unwrap();
+    vault.restored = Some(IRestoredVault {
+        repair_token_hash: repair.to_vec(),
+        restored_head: f.options.storage.head(&f.vault).unwrap().unwrap(),
+        finish_progress: None,
+    });
+    f.options
+        .storage
+        .configure_vault(&f.vault, &vault, &[], None)
+        .unwrap();
+    let mut unknown = vec![0; 36];
+    unknown.extend([2, 255]);
+    for raw in [
+        json!({"kind":"invalid","message":"message","swap":text(&unknown)}),
+        json!({"kind":"login","swap":text(&unknown)}),
+    ] {
+        let body = serde_json::to_vec(&raw).unwrap();
+        assert_eq!(
+            f.run(token_request(
+                &f,
+                "/v1/repair/finish",
+                "POST",
+                &body,
+                &f.member,
+                TTokenKind::Repair,
+                &repair
+            ))
+            .await,
+            (400, json!({"error":"INVALID_INPUT"}))
+        );
+    }
+}

@@ -1,5 +1,4 @@
-use crate::state::files::failure;
-use envden_core::errors::Result;
+pub(super) use super::reclaim::try_reclaim;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{fs, path::Path, process::Command};
@@ -97,51 +96,26 @@ pub(super) fn process_identity() -> Option<String> {
     Some(serde_json::json!({"host":host,"boot":boot,"namespace":namespace}).to_string())
 }
 
-pub(super) fn try_reclaim(path: &Path, now: u64) -> Result<()> {
-    let info = fs::symlink_metadata(path).map_err(failure)?;
-    if !info.is_dir() || info.is_symlink() {
-        return Ok(());
-    }
-    let previous = read_owner(path);
-    let expired = match &previous {
-        Some(owner) => {
-            let identity = process_identity();
-            let observed = if identity.is_some() && owner.identity == identity {
-                super::process::process_start(owner.pid)
-            } else {
-                TProcess::Unknown
-            };
-            reclaimable(owner, &observed, identity.as_deref(), now)
-        }
-        None => {
-            if path.join("owner.json").exists() {
-                return Ok(());
-            }
-            info.modified()
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .is_some_and(|t| now.saturating_sub(t.as_millis() as u64) >= 30_000)
-        }
-    };
-    if !expired || fs::create_dir(path.join("reclaim")).is_err() {
-        return Ok(());
-    }
-    let current = read_owner(path);
-    if current.as_ref().map(|o| &o.token) != previous.as_ref().map(|o| &o.token) {
-        let _ = fs::remove_dir(path.join("reclaim"));
-        return Ok(());
-    }
-    let abandoned = path.with_extension(format!("lock.{}.abandoned", uuid::Uuid::new_v4()));
-    fs::rename(path, &abandoned).map_err(failure)?;
-    fs::remove_dir_all(abandoned).map_err(failure)
-}
-
-fn read_owner(path: &Path) -> Option<IOwner> {
+pub(super) fn read_owner(path: &Path) -> Option<IOwner> {
     let owner = path.join("owner.json");
     if fs::symlink_metadata(&owner).ok()?.is_symlink() {
         return None;
     }
-    serde_json::from_str(&fs::read_to_string(owner).ok()?).ok()
+    let mut options = fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.custom_flags(nix::libc::O_NOFOLLOW | nix::libc::O_NONBLOCK);
+    }
+    let mut file = options.open(owner).ok()?;
+    if !file.metadata().ok()?.is_file() {
+        return None;
+    }
+    let mut text = String::new();
+    std::io::Read::read_to_string(&mut file, &mut text).ok()?;
+    let owner: IOwner = serde_json::from_str(&text).ok()?;
+    (owner.pid > 0).then_some(owner)
 }
 
 #[cfg(test)]
