@@ -1,4 +1,4 @@
-use super::paths::pinned_install;
+use super::paths::{normalize_cli, pinned_install};
 use crate::{output::prompts::consent, state::files::failure};
 use envden_core::{
     errors::{EnvdenError, ErrorCode, Result},
@@ -173,17 +173,4 @@ fn accessible(path: &str, executable: bool) -> bool {
         let _ = executable;
         fs::metadata(path).is_ok()
     }
-}
-
-fn normalize_cli(path: &str) -> String {
-    let mut parts = Vec::new();
-    for part in path.split('/') {
-        if part == ".." {
-            parts.pop();
-        } else if part != "." {
-            parts.push(part);
-        }
-    }
-
-    parts.join("/")
 }

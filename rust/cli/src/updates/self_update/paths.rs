@@ -90,6 +90,23 @@ pub fn release_platform(platform: &str, arch: &str, glibc: Option<&str>) -> Stri
     )
 }
 
+pub(super) fn normalize_cli(path: &str) -> String {
+    let mut parts = Vec::new();
+    for part in path.split('/') {
+        if part == ".." {
+            parts.pop();
+        } else if !part.is_empty() && part != "." {
+            parts.push(part);
+        }
+    }
+
+    format!(
+        "{}{}",
+        if path.starts_with('/') { "/" } else { "" },
+        parts.join("/")
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -144,5 +161,12 @@ mod tests {
         ] {
             assert_eq!(pinned_install(manager, binary).unwrap().0, expected);
         }
+    }
+    #[test]
+    fn npm_cli_normalizes_repeated_separators() {
+        assert_eq!(
+            normalize_cli("//prefix/bin/../lib//npm-cli.js"),
+            "/prefix/lib/npm-cli.js"
+        );
     }
 }
