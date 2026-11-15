@@ -1,6 +1,10 @@
-use envden_adapter_placement_fs::{create_fs_placement_adapter, prune_backups};
+use envden_adapter_placement_fs::create_fs_placement_adapter;
+#[cfg(unix)]
+use envden_adapter_placement_fs::prune_backups;
 use envden_core::adapters::*;
-use std::{fs, path::Path};
+use std::fs;
+#[cfg(unix)]
+use std::path::Path;
 
 #[test]
 fn pulled_and_local_unicode_paths() {
@@ -45,6 +49,7 @@ fn pulled_and_local_unicode_paths() {
         .unwrap();
 }
 
+#[cfg(unix)]
 #[test]
 fn backups_keep_bytes_names_modes_and_prune_only_expired_files() {
     let dir = tempfile::tempdir().unwrap();

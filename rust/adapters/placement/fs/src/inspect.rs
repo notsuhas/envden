@@ -1,4 +1,8 @@
-use crate::{native, paths};
+#[cfg(unix)]
+use crate::native;
+use crate::paths;
+#[cfg(windows)]
+use crate::windows::state as native;
 use envden_core::{
     adapters::*,
     errors::{EnvdenError, ErrorCode, Result},

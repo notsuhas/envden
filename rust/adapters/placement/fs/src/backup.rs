@@ -1,5 +1,6 @@
 use crate::{native, paths};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
 use rustix::fs::{Mode, fchmod};
 use std::{fs, path::Path};
 
@@ -32,8 +33,8 @@ pub(crate) fn backup(
     }
     builder.create(&path).map_err(native::failure)?;
     outside(
-        &root.canonicalize().map_err(native::failure)?,
-        &path.canonicalize().map_err(native::failure)?,
+        &root.canonical_path().map_err(native::failure)?,
+        &path.canonical_path().map_err(native::failure)?,
     )?;
     let name = format!(".envden-backup-{now}-{}", uuid::Uuid::new_v4());
     let fd = native::parent(&path, Path::new(&name), false)?;

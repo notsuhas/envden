@@ -1,4 +1,5 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
 use path_clean::PathClean;
 use std::path::{Path, PathBuf};
 
@@ -16,10 +17,14 @@ pub(crate) fn relative(root: &Path, path: &str, pulled: bool) -> Result<PathBuf>
         return Err(unsafe_path());
     }
     let dest = absolute(Path::new(path));
+    #[cfg(unix)]
     let rel = dest
         .strip_prefix(root)
-        .map_err(|_| EnvdenError::new(ErrorCode::InvalidData, "Invalid relative path"))?;
-    let text = rel.to_string_lossy();
+        .map_err(|_| EnvdenError::new(ErrorCode::InvalidData, "Invalid relative path"))?
+        .to_owned();
+    #[cfg(windows)]
+    let rel = relative_windows(root, &dest)?;
+    let text = rel.to_string_lossy().replace('\\', "/");
     envden_protocol::protocol::files::validate_path(&text)?;
     if text
         .split('/')
@@ -42,7 +47,25 @@ fn regex_short(part: &str) -> bool {
 pub(crate) fn same_target(target: &Path, store: &Path) -> bool {
     absolute(target) == absolute(store)
         || target
-            .canonicalize()
+            .canonical_path()
             .ok()
-            .is_some_and(|p| Some(p) == store.canonicalize().ok())
+            .is_some_and(|p| Some(p) == store.canonical_path().ok())
+}
+
+#[cfg(windows)]
+fn relative_windows(root: &Path, target: &Path) -> Result<PathBuf> {
+    let root: Vec<_> = root.components().collect();
+    let target: Vec<_> = target.components().collect();
+    if root.len() > target.len()
+        || !root.iter().zip(&target).all(|(a, b)| {
+            a.as_os_str().to_string_lossy().to_lowercase()
+                == b.as_os_str().to_string_lossy().to_lowercase()
+        })
+    {
+        return Err(EnvdenError::new(
+            ErrorCode::InvalidData,
+            "Invalid relative path",
+        ));
+    }
+    Ok(target[root.len()..].iter().map(|p| p.as_os_str()).collect())
 }
