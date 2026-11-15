@@ -1,6 +1,8 @@
 use super::hash::frame;
 use crate::protocol::keys::validate_ed_public;
-use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
+use curve25519_dalek::edwards::CompressedEdwardsY;
+use ed25519_dalek::{Signer, SigningKey};
+use ed25519_zebra::{Signature, VerificationKey};
 
 pub fn sign(sk: &[u8; 32], label: &str, message: &[u8]) -> [u8; 64] {
     SigningKey::from_bytes(sk)
@@ -12,12 +14,19 @@ pub fn verify(public: &[u8; 32], label: &str, message: &[u8], signature: &[u8]) 
     if validate_ed_public(public).is_err() {
         return false;
     }
-    let Ok(key) = VerifyingKey::from_bytes(public) else {
+    let Ok(key) = VerificationKey::try_from(*public) else {
         return false;
     };
-    let Ok(signature) = Signature::from_slice(signature) else {
+    let Ok(signature) = Signature::try_from(signature) else {
         return false;
     };
-    key.verify_strict(&frame(label, message), &signature)
-        .is_ok()
+    let r = *signature.r_bytes();
+    if !CompressedEdwardsY(r)
+        .decompress()
+        .is_some_and(|point| point.compress().to_bytes() == r)
+    {
+        return false;
+    }
+
+    key.verify(&signature, &frame(label, message)).is_ok()
 }

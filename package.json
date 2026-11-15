@@ -24,6 +24,8 @@
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",
+    "@envden/core": "workspace:*",
+    "@noble/curves": "2.4.0",
     "@pdf-lib/standard-fonts": "1.0.0",
     "@types/bun": "1.4.4",
     "fallow": "3.42.0",

@@ -44,7 +44,7 @@ CLAUDE.md applies, in idiomatic Rust:
 | OPAQUE | `opaque-ke` 4.0.1, `argon2` 0.5.3, `sha2` 0.10 | `@serenity-kit/opaque` 1.1.0 is a wasm build of exactly these, with suite Ristretto255 / TripleDH(SHA-512) / Argon2id KSF |
 | Hash, MAC, KDF | `sha2`, `hmac`, `hkdf` | RustCrypto |
 | XChaCha20-Poly1305 | `chacha20poly1305` | RustCrypto |
-| Ed25519 | `ed25519-dalek` | strict verification |
+| Ed25519 | `ed25519-dalek` for signing, `ed25519-zebra` with canonical point checks for verification | matches noble `zip215: false` |
 | X25519 | `x25519-dalek` | |
 | HPKE | `hpke` 0.13.0, vendored in `rust/vendor/hpke` with a small patch | RFC 9180. TS uses raw random bytes as the ephemeral key; the patch exposes the crate's own fixed-ephemeral encapsulation so wraps match (`ENVDEN-PATCH.md`) |
 | Argon2id | `argon2` | RustCrypto |
