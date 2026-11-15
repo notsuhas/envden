@@ -9,6 +9,8 @@ use envden_protocol::protocol as p;
 use serde_json::Value;
 use std::rc::Rc;
 
+type TVaultUnlock = Rc<dyn Fn(&IClient, &[u8; 32]) -> Result<()>>;
+
 pub struct IVaultConnection {
     pub identity: IDeviceIdentity,
     pub vault_id: [u8; 32],
@@ -54,7 +56,7 @@ pub fn vault_connection(
 }
 
 impl IVaultConnection {
-    pub fn with_unlock(mut self, unlock: Rc<dyn Fn(&IClient, &[u8; 32]) -> Result<()>>) -> Self {
+    pub fn with_unlock(mut self, unlock: TVaultUnlock) -> Self {
         let options = self.client.options.clone();
         let vault = self.vault_id;
         self.client.options.unlock = Some(Rc::new(move || {
