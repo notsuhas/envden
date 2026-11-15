@@ -56,13 +56,9 @@ pub(crate) fn pairing(
         .get(4)
         .and_then(|s| s.parse().ok())
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Invalid mailbox number"))?;
-    let vault = lookup(storage, id, &format!("mailbox/{number}"))?;
-    let mailbox = storage
-        .mailbox(&vault, number, (options.now)())?
-        .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Mailbox closed"))?;
-    let owner = mailbox.device == request.device;
     if method == "DELETE" {
-        if !owner {
+        let mailbox = storage.mailbox(id, number, (options.now)())?;
+        if mailbox.is_none_or(|mailbox| mailbox.device != request.device) {
             return Err(EnvdenError::new(
                 ErrorCode::Unauthorized,
                 "Wrong mailbox owner",
@@ -71,6 +67,10 @@ pub(crate) fn pairing(
         storage.close_mailbox(id, number)?;
         return Ok(Some(json!({"kind":"closed"})));
     }
+    let vault = lookup(storage, id, &format!("mailbox/{number}"))?;
+    storage
+        .mailbox(&vault, number, (options.now)())?
+        .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Mailbox closed"))?;
     let slot = super::access::slot(parts.get(5).copied().unwrap_or(""))?;
     let write = method == "PUT";
     let super::access::IAccess {

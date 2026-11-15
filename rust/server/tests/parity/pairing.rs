@@ -150,3 +150,27 @@ async fn missing_approver_rejects_before_nonce_is_recorded() {
         assert_eq!(f.run(request).await, (404, json!({"error":"NOT_FOUND"})));
     }
 }
+
+#[tokio::test]
+async fn deleting_missing_or_unowned_mailbox_is_unauthorized() {
+    let f = Fixture::new();
+    f.fresh();
+    let unowned = f
+        .options
+        .storage
+        .open_mailbox(&f.vault, &f.joiner.record.id, f.now())
+        .unwrap()
+        .unwrap();
+    for number in [999, unowned.number] {
+        assert_eq!(
+            f.send(
+                &format!("{PATH}/{number}"),
+                "DELETE",
+                Value::Null,
+                &f.member
+            )
+            .await,
+            (401, json!({"error":"UNAUTHORIZED"}))
+        );
+    }
+}
