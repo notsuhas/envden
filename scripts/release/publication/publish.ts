@@ -1,4 +1,4 @@
-import { readFile, mkdir, readdir } from "node:fs/promises";
+import { readFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { verifyReleaseChecksums } from "./verify.ts";
 
@@ -8,9 +8,10 @@ export async function publishRelease(options: {
   highest: boolean;
   macosSigned: boolean;
   directory: string;
+  notes: string;
   gh: (args: string[]) => Promise<string>;
 }) {
-  const { tag, repository, highest, macosSigned, directory, gh } = options;
+  const { tag, repository, highest, macosSigned, directory, notes, gh } = options;
 
   const release = findRelease(
     JSON.parse(await gh(["api", "--paginate", "--slurp", `repos/${repository}/releases`])),
@@ -33,7 +34,22 @@ export async function publishRelease(options: {
     return;
   }
 
-  if (!release) await gh(["release", "create", tag, "--draft", "--verify-tag", "--generate-notes"]);
+  const notesFile = join(directory, "release-notes.md");
+  await writeFile(notesFile, notes);
+
+  if (!release)
+    await gh([
+      "release",
+      "create",
+      tag,
+      "--draft",
+      "--verify-tag",
+      "--title",
+      tag,
+      "--notes-file",
+      notesFile,
+    ]);
+
   const files = await readdir(builds);
   await gh(["release", "upload", tag, ...files.map((file) => join(builds, file)), "--clobber"]);
   await gh(["release", "edit", tag, "--draft=false", `--latest=${highest}`]);

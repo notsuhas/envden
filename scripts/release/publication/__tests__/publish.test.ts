@@ -26,6 +26,7 @@ for (const state of ["new", "draft", "published", "rebuilt"] as const)
           highest,
           macosSigned: false,
           directory,
+          notes: "### Patch Changes\n\n- A fix.\n",
           gh: async (args) => {
             calls.push(args);
 
