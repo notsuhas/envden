@@ -19,8 +19,8 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
             crate::session::login(
                 client,
                 vault_id,
-                crate::session::TPassword::Prompt(&mut |_| {
-                    crate::output::prompts::secret("Master password", |_| None)
+                crate::session::TPassword::Prompt(&mut |retry| {
+                    crate::output::prompts::secret(unlock_prompt(retry), |_| None)
                 }),
                 envden_protocol::protocol::TLoginPurpose::Unlock,
             )
@@ -39,6 +39,14 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
         return Err(EnvdenError::new(ErrorCode::Conflict, message));
     }
     Ok(())
+}
+
+fn unlock_prompt(retry: bool) -> &'static str {
+    if retry {
+        "Wrong master password. Try again"
+    } else {
+        "Master password"
+    }
 }
 
 fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
@@ -71,6 +79,12 @@ fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn unlock_retry_label() {
+        assert_eq!(unlock_prompt(false), "Master password");
+        assert_eq!(unlock_prompt(true), "Wrong master password. Try again");
+    }
+
     #[test]
     fn reference_summaries() {
         assert_eq!(sync_text(true, 0, 0), "Nothing to push");
