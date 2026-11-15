@@ -14,7 +14,13 @@ import { createFsPlacementAdapter, pruneBackups } from "@envden/adapter-placemen
 import { createRcShellAdapter } from "@envden/adapter-shell-rc";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
 import { localSetupToken } from "@envden/server";
-import type { IKeychainAdapter, IPlacementAdapter, TPlacementMode } from "@envden/core/adapters";
+import type {
+  IKeychainAdapter,
+  INetworkAdapter,
+  IPlacementAdapter,
+  TPlacementMode,
+} from "@envden/core/adapters";
+import { unsuppliedNetwork } from "./network/unsupplied.ts";
 
 export function createAdapters(
   options:
@@ -25,6 +31,7 @@ export function createAdapters(
         fetcher?: TFetch;
         executable?: string;
         hostname?: string;
+        network?: INetworkAdapter;
       }
     | undefined,
   now: () => number,
@@ -64,7 +71,8 @@ export function createAdapters(
     },
     shell: (shell: "zsh" | "bash" | "fish" | "powershell") =>
       createRcShellAdapter(shell, userHome, home, join(home, "conflicts")),
-    network: createTailscaleNetworkAdapter(),
+    // injected adapters mean a test: the real tailnet is used only when nothing was injected
+    network: options ? (options.network ?? unsuppliedNetwork()) : createTailscaleNetworkAdapter(),
     serverPort: () => chooseServerPort(systemPortProbe),
     localSetupToken: () => localSetupToken(join(home, "server"), now()),
     hostServer: (port: number) =>

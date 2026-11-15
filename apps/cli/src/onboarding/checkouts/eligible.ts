@@ -1,6 +1,7 @@
 import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../../adapters.ts";
 import type { ILocalState } from "../../state/model.ts";
+import pLimit from "p-limit";
 import { readConfig } from "../../settings/config.ts";
 
 export interface IEligible {
@@ -14,15 +15,20 @@ export async function eligibleCheckouts(
   repos: ICheckout[],
   storedRepos: ReadonlySet<string>,
 ) {
-  const eligible: IEligible[] = [];
   const rules = (await readConfig(adapters.home))["env-files"];
+  const git = pLimit(8);
 
-  for (const checkout of repos) {
-    const files = await adapters.repo.envFiles(checkout, rules);
+  // listed together, kept in the scan's order
+  const listed = await Promise.all(
+    repos.map(async (checkout) => ({
+      checkout,
+      files: await git(() => adapters.repo.envFiles(checkout, rules)),
+    })),
+  );
 
-    if (files.length || storedRepos.has(state.aliases[checkout.repoId] ?? checkout.repoId))
-      eligible.push({ checkout, files });
-  }
-
-  return eligible;
+  return listed.filter(
+    (item) =>
+      item.files.length ||
+      storedRepos.has(state.aliases[item.checkout.repoId] ?? item.checkout.repoId),
+  );
 }

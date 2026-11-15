@@ -12,6 +12,8 @@ test("completed setup skips credentials, kit and certificate prompts", async () 
       throw new Error("Repeated setup");
     };
 
+    f.first.network.expose = async (port) => `https://server.invalid:${port}`;
+
     let hosted = 0;
 
     f.first.hostServer = async () => {

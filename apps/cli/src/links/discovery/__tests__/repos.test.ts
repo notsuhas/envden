@@ -217,3 +217,43 @@ test("home-level tool folders and build output are skipped only where they are t
     ]),
   ).toEqual(["Work/AppData", "Work/go/app", "dist/site", "target/svc"]);
 });
+
+// a home with dozens of repos is identified several at a time, never more than the cap
+test("discovery runs git for many repos in parallel, at most eight at once", async () => {
+  const home = await realpath(await mkdtemp(join(tmpdir(), "envden-discovery-parallel-")));
+
+  try {
+    for (let index = 0; index < 30; index++)
+      await mkdir(join(home, `repo-${index}`, ".git"), { recursive: true });
+
+    let running = 0;
+    let peak = 0;
+
+    const repo = {
+      checkoutAt: async (path: string): Promise<ICheckout> => {
+        running++;
+        peak = Math.max(peak, running);
+        await Promise.resolve();
+        await new Promise((resolve) => setImmediate(resolve));
+        running--;
+
+        return { root: path, gitDir: join(path, ".git"), repoId: path };
+      },
+      worktrees: async () => [],
+      submodules: async () => [],
+    } as unknown as IRepoAdapter;
+
+    const found = await discoverRepos(repo, { roots: [home], home });
+
+    expect(found).toHaveLength(30);
+
+    expect(found.map((checkout) => checkout.root)).toEqual(
+      found.map((checkout) => checkout.root).sort(),
+    );
+
+    expect(peak).toBeGreaterThan(1);
+    expect(peak).toBeLessThanOrEqual(8);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

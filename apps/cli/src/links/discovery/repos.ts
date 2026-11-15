@@ -4,7 +4,12 @@ import { join, resolve } from "node:path";
 import { placeInRoot } from "@envden/core/paths";
 import type { ICheckout, IRepoAdapter } from "@envden/core/adapters";
 import { projectFolder, skippedFolder, type IFolderPlace } from "./folders.ts";
+import pLimit, { type LimitFunction } from "p-limit";
 import { identify, type IRepoSkip } from "./identify.ts";
+
+// git calls dominate a scan; a few at a time is fast without flooding the machine with processes
+const GIT_CONCURRENCY = 8;
+const FS_CONCURRENCY = 32;
 
 interface IDiscoveryScope {
   roots: string[];
@@ -24,6 +29,8 @@ interface IWalk {
   excludes: string[];
   home: string | undefined;
   events: IDiscoveryEvents;
+  git: LimitFunction;
+  fs: LimitFunction;
 }
 
 export async function discoverRepos(
@@ -33,19 +40,34 @@ export async function discoverRepos(
 ): Promise<ICheckout[]> {
   const excludes = await Promise.all((scope.excluded ?? []).map(realOrResolved));
   const home = scope.home === undefined ? undefined : await realOrResolved(scope.home);
-  const walk: IWalk = { repo, found: new Map(), visited: new Set(), excludes, home, events };
 
-  for (const root of scope.roots) await walkFolder(walk, resolve(root), true);
+  const walk: IWalk = {
+    repo,
+    found: new Map(),
+    visited: new Set(),
+    excludes,
+    home,
+    events,
+    git: pLimit(GIT_CONCURRENCY),
+    fs: pLimit(FS_CONCURRENCY),
+  };
 
-  return [...walk.found.values()];
+  await Promise.all(scope.roots.map((root) => walkFolder(walk, resolve(root), true)));
+
+  // folders finish in any order, so sort for a stable list
+  return [...walk.found.values()].sort((a, b) => a.root.localeCompare(b.root));
 }
 
 // folders may link elsewhere (~/Work on another volume); walk real paths so each is seen once
 async function walkFolder(walk: IWalk, path: string, root = false): Promise<void> {
-  const real = await realpath(path).catch(() => undefined);
+  const real = await walk.fs(() => realpath(path).catch(() => undefined));
   if (!real || !unseen(walk, real)) return;
   walk.visited.add(real);
-  const entries = await readdir(real, { withFileTypes: true }).catch(() => undefined);
+
+  const entries = await walk.fs(() =>
+    readdir(real, { withFileTypes: true }).catch(() => undefined),
+  );
+
   if (!entries) return;
 
   // clones inside a checkout are vendored code; a scan root and an unidentified git init are walked
@@ -57,40 +79,49 @@ async function walkFolder(walk: IWalk, path: string, root = false): Promise<void
     project: projectFolder(entries.map((entry) => entry.name)),
   };
 
-  for (const entry of entries)
-    if (canDescend(entry, place)) await walkFolder(walk, join(real, entry.name));
+  await Promise.all(
+    entries
+      .filter((entry) => canDescend(entry, place))
+      .map((entry) => walkFolder(walk, join(real, entry.name))),
+  );
 }
 
 async function collect(walk: IWalk, path: string) {
-  const checkout = await identify(walk.repo, path, report(walk));
+  const checkout = await walk.git(() => identify(walk.repo, path, report(walk)));
   if (!checkout) return false;
   add(walk, checkout);
-  await collectWorktrees(walk, checkout);
-  await collectSubmodules(walk, checkout);
+  await Promise.all([collectWorktrees(walk, checkout), collectSubmodules(walk, checkout)]);
 
   return true;
 }
 
 // registered worktrees count even under hidden folders (~/.t3/worktrees), which the walk never enters
 async function collectWorktrees(walk: IWalk, checkout: ICheckout) {
-  for (const worktree of await listed(() => walk.repo.worktrees(checkout))) {
-    if (walk.found.has(worktree) || excludedPath(worktree, walk.excludes)) continue;
-    const next = await identify(walk.repo, worktree, report(walk));
-    if (next) add(walk, next);
-  }
+  const worktrees = await walk.git(() => listed(() => walk.repo.worktrees(checkout)));
+
+  await Promise.all(
+    worktrees
+      .filter((worktree) => !walk.found.has(worktree) && !excludedPath(worktree, walk.excludes))
+      .map(async (worktree) => {
+        const next = await walk.git(() => identify(walk.repo, worktree, report(walk)));
+        if (next) add(walk, next);
+      }),
+  );
 }
 
 async function collectSubmodules(walk: IWalk, checkout: ICheckout) {
-  const paths = (await listed(() => walk.repo.submodules(checkout)))
+  const paths = (await walk.git(() => listed(() => walk.repo.submodules(checkout))))
     .map((path) => resolve(checkout.root, path))
     .filter((path) => placeInRoot(checkout.root, path) === "inside");
 
-  for (const submodule of paths) {
-    const real = await realpath(submodule).catch(() => undefined);
-    if (!real || !unseen(walk, real)) continue;
-    walk.visited.add(real);
-    if (await isCheckout(real)) await collect(walk, real);
-  }
+  await Promise.all(
+    paths.map(async (submodule) => {
+      const real = await walk.fs(() => realpath(submodule).catch(() => undefined));
+      if (!real || !unseen(walk, real)) return;
+      walk.visited.add(real);
+      if (await walk.fs(() => isCheckout(real))) await collect(walk, real);
+    }),
+  );
 }
 
 // one repo git can't list (an old git, a broken .gitmodules) never stops the scan
