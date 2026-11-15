@@ -1,0 +1,26 @@
+[package]
+name = "envden-adapter-repo-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+envden-core = { path = "../../../core" }
+envden-protocol = { path = "../../../protocol" }
+rustix = { version = "1", features = ["fs", "process"] }
+regex = "1"
+url = "2"
+percent-encoding = "2"
+unicode-normalization = "0.1"
+uuid = { version = "1", features = ["v4"] }
+path-clean = "1"
+[dev-dependencies]
+envden-testing = { path = "../../../testing" }
+tempfile = "3"
+
+[lints]
+workspace = true
+
+[dev-dependencies.serde_json]
+version = "1"
