@@ -6,6 +6,7 @@ import { commandNotice } from "../../notice/command.ts";
 import { localStatus } from "../../status/local.ts";
 
 export const statusCommand = new Command("status")
+  .description("Show what is out of sync, held back or in conflict")
   .option("--json", "Machine-readable status")
   .addOption(new Option("--refresh-cache").hideHelp())
   .action(async (options) => {

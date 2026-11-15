@@ -37,9 +37,7 @@ for (const [mode, crash, drop] of [
       fetcher: f.fetcher,
     });
 
-    await f.running.server.stop(true);
-    f.running.stopPruning();
-    f.running.storage.close();
+    await f.running.shutdown();
     await cp(join(f.root, "server"), join(f.root, "backup"), { recursive: true });
     let current = await f.serve({ dataDir: join(f.root, "server"), port: 0, now: f.now });
 
@@ -56,9 +54,7 @@ for (const [mode, crash, drop] of [
       await changePassword(f.first, "old password", "new password", f.result.kit.secretKey, f.now);
     else await rotateVault(f.first, "old password", f.now);
 
-    await current.server.stop(true);
-    current.stopPruning();
-    current.storage.close();
+    await current.shutdown();
     const log = spyOn(console, "log").mockImplementation(() => {});
 
     current = await f.serve({
@@ -123,9 +119,7 @@ for (const [mode, crash, drop] of [
         }),
       );
     } finally {
-      await current.server.stop(true);
-      current.stopPruning();
-      current.storage.close();
+      await current.shutdown();
       await f.close();
     }
   });

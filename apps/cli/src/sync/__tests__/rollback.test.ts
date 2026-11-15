@@ -46,9 +46,7 @@ test("sync rollback", async () => {
     } finally {
       stored.server!.address = original;
       await saveState(first.home, stored, fixtureClock);
-      await oldServer.server.stop(true);
-      oldServer.storage.close();
-      oldServer.stopPruning();
+      await oldServer.shutdown();
     }
   } finally {
     await fixture.cleanup();
@@ -114,9 +112,7 @@ test("interrupted placement preserves the accepted rollback floor and resumes", 
     } finally {
       stored.server!.address = original;
       await saveState(second.home, stored, fixtureClock);
-      await oldServer.server.stop(true);
-      oldServer.storage.close();
-      oldServer.stopPruning();
+      await oldServer.shutdown();
     }
 
     await pull(second, opts);

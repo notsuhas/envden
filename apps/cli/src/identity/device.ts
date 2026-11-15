@@ -1,14 +1,8 @@
-import { readIdentity } from "./stored.ts";
+import { identityBytes, readIdentity } from "./stored.ts";
 import { loadState } from "../state/store/repository.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import type { IKeychainAdapter } from "@envden/core/adapters";
-import {
-  generateDeviceKeys,
-  deviceId,
-  concat,
-  DeviceRecordCodec,
-  encode,
-} from "@envden/core/protocol";
+import { generateDeviceKeys, deviceId } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 
 async function lockeddeviceIdentity(
@@ -39,10 +33,7 @@ async function lockeddeviceIdentity(
     reqPub: keys.reqPub,
   };
 
-  await keychain.set(
-    slot,
-    concat(keys.encSk, keys.objSk, keys.reqSk, encode(DeviceRecordCodec, record)),
-  );
+  await keychain.set(slot, identityBytes(keys, record));
 
   return { keys: { encSk: keys.encSk, objSk: keys.objSk, reqSk: keys.reqSk }, record };
 }

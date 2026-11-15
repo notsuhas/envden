@@ -8,11 +8,12 @@ import { Command } from "@commander-js/extra-typings";
 import { readConfig, setConfig } from "../../settings/config.ts";
 
 export const configCommand = new Command("config")
-  .argument("[key]")
-  .argument("[values...]")
-  .description(
-    "Get/set telemetry, update-check, agent-merge, unlock-period, placement <path> link|copy or env-files <JSON>",
+  .argument(
+    "[key]",
+    "telemetry, update-check, agent-merge, auto-approve-worktrees, unlock-period, placement or env-files",
   )
+  .argument("[values...]", "New value; placement takes a checkout path and link or copy")
+  .description("Read or change settings")
   .action(async (key, values) => {
     const value = values?.[0];
 
@@ -67,7 +68,16 @@ export const configCommand = new Command("config")
 
 function reportConfig(config: Awaited<ReturnType<typeof readConfig>>, key: string | undefined) {
   if (key) {
-    if (!["telemetry", "update-check", "agent-merge", "placement", "env-files"].includes(key))
+    if (
+      ![
+        "telemetry",
+        "update-check",
+        "agent-merge",
+        "auto-approve-worktrees",
+        "placement",
+        "env-files",
+      ].includes(key)
+    )
       throw new EnvdenError("INVALID_INPUT", "Unknown config key");
 
     console.log(JSON.stringify(Reflect.get(config, key) ?? null));

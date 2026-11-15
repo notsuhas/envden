@@ -5,7 +5,7 @@ import { terminalJson, sanitizeTerminal } from "../../output/sanitize.ts";
 import { removeFile } from "../../sync/remove.ts";
 
 export const rmCommand = new Command("rm")
-  .argument("<path>")
+  .argument("<path>", "Env file path")
   .description("Remove an env file everywhere on the next push")
   .option("--yes", "Confirm deletion, including local edits and conflicts")
   .option("--json", "Print the result as JSON")

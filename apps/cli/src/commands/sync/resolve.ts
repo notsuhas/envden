@@ -7,12 +7,13 @@ import { conflictRecords } from "../../sync/local/conflicts.ts";
 import { resolveConflict } from "../../sync/resolve.ts";
 
 export const resolveCommand = new Command("resolve")
+  .description("Keep yours, take the server's, or finish an edited conflict")
   .option("--json", "Print the result as JSON")
-  .argument("[file]")
+  .argument("[file]", "Conflicted env file")
   .option("--list", "List unresolved conflicts")
   .option("--repo <path>", "Select a checkout")
-  .addOption(new Option("--keep-mine").conflicts("takeServer"))
-  .option("--take-server")
+  .addOption(new Option("--keep-mine", "Keep your version").conflicts("takeServer"))
+  .option("--take-server", "Take the server's version")
   .action(async (file, options) => {
     if (options.list) {
       console.log(terminalJson(await conflictRecords(createAdapters(undefined, Date.now).home)));

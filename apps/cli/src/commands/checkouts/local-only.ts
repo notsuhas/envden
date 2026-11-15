@@ -8,7 +8,7 @@ import { withStateLock } from "../../state/lock/lock.ts";
 import { EnvdenError } from "@envden/core/errors";
 
 export const localOnlyCommand = new Command("local-only")
-  .argument("<file>")
+  .argument("<file>", "Managed env file in this checkout")
   .description("Keep a managed file local to this checkout")
   .action(async (file) => {
     const adapters = createAdapters(undefined, Date.now);

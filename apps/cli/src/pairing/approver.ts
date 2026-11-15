@@ -14,6 +14,7 @@ import { getSlot, putSlot, requireWindow } from "./exchange.ts";
 import { binary } from "../client/encoding.ts";
 import { readHistory } from "../vault/history.ts";
 import { addDeviceSwap } from "../vault/add.ts";
+import { namedForList } from "../vault/named.ts";
 
 export async function openPairing(client: TClient, pin: Uint8Array) {
   const response = await client.request("/v1/pairing/mailboxes", "POST");
@@ -64,7 +65,9 @@ async function lockedapprovePairing(
       keys.joinerToApprover,
     ).device;
 
-    if (!(await confirm(candidate.name))) {
+    const proposed = namedForList(candidate, await readHistory(client, vaultId));
+
+    if (!(await confirm(proposed.name))) {
       await client.request(`/v1/pairing/mailboxes/${number}`, "DELETE");
 
       return { kind: "declined" as const };
@@ -87,7 +90,7 @@ async function lockedapprovePairing(
 
         const swap = await addDeviceSwap(
           history,
-          candidate,
+          namedForList(candidate, history),
           identity.record.id,
           identity.keys.objSk,
           epochKey,

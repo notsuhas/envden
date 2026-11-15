@@ -33,6 +33,7 @@ function signal() {
 export async function pairedFlow(
   beforeResume?: (flow: Awaited<ReturnType<typeof setupFlow>>) => Promise<void>,
   interrupt = false,
+  joinerName = "second",
 ) {
   const flow = await setupFlow();
   const { root, now, first, second, address, result, fetcher } = flow;
@@ -98,7 +99,9 @@ export async function pairedFlow(
 
     await login(client, vaultId, "master password");
     const attempt = await openPairing(client, pin);
-    const joiner = await deviceIdentity(second.keychain, second.home, "second");
+    const joiner = await deviceIdentity(second.keychain, second.home, joinerName);
+    const joinerId = p.base32(joiner.record.id);
+    const confirmed: string[] = [];
 
     const joinerClient = createClient({
       address,
@@ -151,7 +154,11 @@ export async function pairedFlow(
           await ke3.promise;
         }
       },
-      async () => true,
+      async (name) => {
+        confirmed.push(name);
+
+        return true;
+      },
     );
 
     const exchange = exchangeJoiner(second, joinerClient, joiner, pin, attempt.code, async () => {
@@ -178,7 +185,7 @@ export async function pairedFlow(
 
     const devices = await listDevices(first, now);
 
-    expect(devices.find((device) => device.name === "second")).toMatchObject({
+    expect(devices.find((device) => device.id === joinerId)).toMatchObject({
       clientVersion: null,
       unconfirmed: true,
     });
@@ -189,11 +196,12 @@ export async function pairedFlow(
       result.kit.vaultId,
     );
 
-    expect(
-      (await listDevices(first, now)).find((device) => device.name === "second"),
-    ).toMatchObject({ clientVersion: "0.0.0", unconfirmed: false });
+    expect((await listDevices(first, now)).find((device) => device.id === joinerId)).toMatchObject({
+      clientVersion: "0.0.0",
+      unconfirmed: false,
+    });
 
-    return { ...flow, client, identity, pin, vaultId };
+    return { ...flow, client, identity, pin, vaultId, confirmed };
   } catch (error) {
     await flow.cleanup();
     throw error;

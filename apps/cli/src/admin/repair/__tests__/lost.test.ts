@@ -68,9 +68,7 @@ for (const recovered of [true, false])
       await pull(second, opts);
       const aStore = (await loadState(f.first.home))!.links[0]!.store;
       const bStore = (await loadState(second.home))!.links[0]!.store;
-      await current.server.stop(true);
-      current.stopPruning();
-      current.storage.close();
+      await current.shutdown();
       await cp(join(f.root, "server"), join(f.root, "backup"), { recursive: true });
       current = await f.serve({ dataDir: join(f.root, "server"), port: 0 });
 
@@ -88,9 +86,7 @@ for (const recovered of [true, false])
       if (!recovered)
         await rm(join(second.home, "state", "blobs"), { recursive: true, force: true });
 
-      await current.server.stop(true);
-      current.stopPruning();
-      current.storage.close();
+      await current.shutdown();
       if (!recovered) await rm(join(f.root, "backup", "blobs"), { recursive: true, force: true });
       const log = spyOn(console, "log").mockImplementation(() => {});
       current = await f.serve({ dataDir: join(f.root, "backup"), port: 0, restored: true });
@@ -127,9 +123,7 @@ for (const recovered of [true, false])
       expect(await readFile(bStore, "utf8")).toBe("VALUE=older\n");
       expect(reports.some((line) => line.includes("Repair changed file"))).toBe(true);
     } finally {
-      await current.server.stop(true);
-      current.stopPruning();
-      current.storage.close();
+      await current.shutdown();
       await f.close();
     }
   });

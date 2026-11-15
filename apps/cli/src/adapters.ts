@@ -4,7 +4,7 @@ import type { TFetch } from "./client/fetch.ts";
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
 import { atomicWrite } from "./state/store/files.ts";
 import { stableExecutable } from "./updates/self/paths.ts";
-import { homedir } from "node:os";
+import { homedir, hostname } from "node:os";
 import { join, resolve } from "node:path";
 import { createOsKeychainAdapter } from "@envden/adapter-keychain-os";
 import { createGitRepoAdapter } from "@envden/adapter-repo-git";
@@ -21,6 +21,7 @@ export function createAdapters(
         keychain: IKeychainAdapter;
         fetcher?: TFetch;
         executable?: string;
+        hostname?: string;
       }
     | undefined,
   now: () => number,
@@ -35,6 +36,7 @@ export function createAdapters(
     home,
     userHome,
     executable,
+    hostname: options?.hostname ?? hostname(),
     fetcher: options?.fetcher ?? fetch,
     keychain: options?.keychain ?? visibleKeychain(home),
     repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),

@@ -4,11 +4,21 @@ import { checkCompletion } from "./completion.ts";
 import { setupFlow } from "./setup-flow.ts";
 import { joinedFlow, pairedFlow } from "./pair-flow.ts";
 
+const period = 2592000000;
+
 test("setup resumes after losing the creation response", async () => {
   const flow = await setupFlow();
 
   try {
-    expect((await loadState(flow.first.home))?.creationPending).toBeUndefined();
+    const state = await loadState(flow.first.home);
+
+    expect(state?.creationPending).toBeUndefined();
+
+    expect(state?.session).toEqual({
+      unlockedUntil: flow.now() + period,
+      freshUntil: flow.now() + 600000,
+    });
+
     expect(flow.result.state.vaultId).toBe(flow.result.kit.vaultId);
   } finally {
     await flow.cleanup();
@@ -19,7 +29,32 @@ test("pairing persists a confirmed second device", async () => {
   const flow = await pairedFlow();
 
   try {
-    expect((await loadState(flow.second.home))?.vaultId).toBe(flow.result.kit.vaultId);
+    const state = await loadState(flow.second.home);
+
+    expect(state?.vaultId).toBe(flow.result.kit.vaultId);
+    expect(state?.session).toEqual({ unlockedUntil: flow.now() + period, freshUntil: 0 });
+  } finally {
+    await flow.cleanup();
+  }
+});
+
+test("pairing numbers a taken name and the joiner adopts it", async () => {
+  const { listDevices } = await import("../../admin/devices/list.ts");
+  const { readIdentity } = await import("../../identity/stored.ts");
+  const flow = await pairedFlow(undefined, false, "first");
+
+  try {
+    const stored = await flow.second.keychain.get(`envden/${flow.second.home}/device`);
+
+    expect(flow.confirmed).toEqual(["first-2"]);
+
+    expect((await listDevices(flow.first, flow.now)).map((device) => device.name)).toEqual([
+      "first",
+      "first-2",
+    ]);
+
+    expect((await loadState(flow.second.home))?.deviceName).toBe("first-2");
+    expect(readIdentity(stored!).record.name).toBe("first-2");
   } finally {
     await flow.cleanup();
   }
@@ -31,6 +66,7 @@ test("kit join adopts the history after pairing", async () => {
   try {
     expect(flow.recovered.vaultId).toBe(flow.result.kit.vaultId);
     expect(flow.recovered.entries).toHaveLength(4);
+    expect(flow.recovered.session).toEqual({ unlockedUntil: flow.now() + period, freshUntil: 0 });
   } finally {
     await flow.cleanup();
   }

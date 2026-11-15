@@ -5,13 +5,14 @@ import { moveServer } from "../../admin/move/run.ts";
 import { secret } from "../../output/questions.ts";
 
 export const serverMoveCommand = new Command("move")
-  .argument("[server]")
+  .description("Move the vault to a new server")
+  .argument("[server]", "Destination server address")
   .option(
     "--setup-token <token>",
     "Setup token, visible to other processes; use the prompt in a terminal",
   )
-  .addOption(new Option("--resume").conflicts("abort"))
-  .option("--abort")
+  .addOption(new Option("--resume", "Resume an interrupted move").conflicts("abort"))
+  .option("--abort", "Abort an unfinished move")
   .action(async (address, options) => {
     await moveServer(createAdapters(undefined, Date.now), {
       address,

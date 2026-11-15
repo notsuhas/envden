@@ -16,6 +16,7 @@ import { setupCommand } from "./commands/onboarding/setup.ts";
 import { joinCommand } from "./commands/onboarding/join.ts";
 import { statusCommand } from "./commands/sync/status.ts";
 import { diffCommand } from "./commands/sync/diff.ts";
+import { historyCommand } from "./commands/sync/history.ts";
 import { resolveCommand } from "./commands/sync/resolve.ts";
 import { aliasCommand } from "./commands/sync/alias.ts";
 import { serveCommand } from "./commands/server/serve.ts";
@@ -28,6 +29,7 @@ import { pullCommand } from "./commands/sync/pull.ts";
 import { deviceCommand } from "./commands/device/device.ts";
 import { serverCommand } from "./commands/server/server.ts";
 import { agentCommand } from "./commands/agent/agent.ts";
+import { uiCommand } from "./commands/ui/ui.ts";
 
 import { createAdapters } from "./adapters.ts";
 import { commandNotice } from "./notice/command.ts";
@@ -78,6 +80,7 @@ export function createProgram(now: () => number) {
   program.addCommand(joinCommand);
   program.addCommand(statusCommand);
   program.addCommand(diffCommand);
+  program.addCommand(historyCommand);
   program.addCommand(resolveCommand);
   program.addCommand(rmCommand);
   program.addCommand(aliasCommand);
@@ -91,6 +94,7 @@ export function createProgram(now: () => number) {
   program.addCommand(deviceCommand);
   program.addCommand(serverCommand);
   program.addCommand(agentCommand);
+  program.addCommand(uiCommand);
 
   program.addCommand(vaultCommand);
 

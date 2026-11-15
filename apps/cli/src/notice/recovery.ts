@@ -8,6 +8,7 @@ import { sanitizeTerminal } from "../output/sanitize.ts";
 export function recoveryJoins(values: string[], ownId?: Uint8Array) {
   const signed = values.map((value) => p.decode(p.signedCodec(p.EntryCodec), binary(value)));
   const entries = signed.map((entry) => entry.body);
+  const names = currentNames(entries);
   const notices: Record<string, string> = {};
 
   const ownJoin =
@@ -23,18 +24,34 @@ export function recoveryJoins(values: string[], ownId?: Uint8Array) {
   for (const event of signed) {
     const entry = event.body;
 
-    if (entry.kind === 1 && recovery && p.equal(entry.signer, recovery)) {
-      if (entry.seq > ownJoin) {
-        notices[text(p.objectHash(p.EntryCodec, event, "entry"))] = entry.payload.device.name;
-      }
-    }
+    if (entry.kind === 1 && recovery && p.equal(entry.signer, recovery) && entry.seq > ownJoin)
+      notices[text(p.objectHash(p.EntryCodec, event, "entry"))] = names.get(
+        p.base32(entry.payload.device.id),
+      )!;
 
-    if (entry.kind === 0) recovery = entry.payload.recovery.id;
-    else if (entry.kind === 4) recovery = entry.payload.recovery.id;
-    else if (entry.kind === 2 && entry.payload.newRecovery) recovery = entry.payload.newRecovery.id;
+    recovery = nextRecovery(recovery, entry);
   }
 
   return notices;
+}
+
+function currentNames(entries: p.TEntry[]) {
+  const names = new Map<string, string>();
+
+  for (const entry of entries) {
+    if (entry.kind === 0 || entry.kind === 1)
+      names.set(p.base32(entry.payload.device.id), entry.payload.device.name);
+    else if (entry.kind === 7) names.set(p.base32(entry.payload.device), entry.payload.name);
+  }
+
+  return names;
+}
+
+function nextRecovery(current: Uint8Array | undefined, entry: p.TEntry) {
+  if (entry.kind === 0 || entry.kind === 4) return entry.payload.recovery.id;
+  if (entry.kind === 2 && entry.payload.newRecovery) return entry.payload.newRecovery.id;
+
+  return current;
 }
 
 export async function printRecoveryJoins(

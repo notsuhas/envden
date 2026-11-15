@@ -6,7 +6,8 @@ import { selfUpdate } from "../../updates/self.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 
 export const updateCommand = new Command("update")
-  .option("--check")
+  .description("Update envden through the method it was installed with")
+  .option("--check", "Check for a release without installing")
   .option("--post-install", "Refresh installed integrations")
   .action(async (options) => {
     const commandTime = Date.now();

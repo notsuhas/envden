@@ -78,9 +78,7 @@ for (const missing of [
       expect(await adapters.keychain.get(`envden/${adapters.home}/id-key`)).toBeDefined();
       if (pending) expect(result.state.vaultId).not.toBe(pending.vaultId);
     } finally {
-      await running.server.stop(true);
-      running.stopPruning();
-      running.storage.close();
+      await running.shutdown();
       await f.cleanup();
     }
   });
@@ -137,9 +135,7 @@ test("setup resumed without the first kit finishes the vault with a new kit", as
 
     expect(joined.vaultId).toBe(result.kit.vaultId);
   } finally {
-    await running.server.stop(true);
-    running.stopPruning();
-    running.storage.close();
+    await running.shutdown();
     await f.cleanup();
   }
 });

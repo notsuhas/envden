@@ -2,7 +2,7 @@ import type { TPreferenceOptions } from "../../onboarding/preferences.ts";
 import { readKit } from "../../vault/recovery/read.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { secret } from "../../output/questions.ts";
-import { defaultInput } from "../../output/default-input.ts";
+import { askDeviceName } from "../../output/device-name.ts";
 import { completeJoin } from "../../onboarding/complete-join.ts";
 import { pairingJoin } from "../../onboarding/join/pairing.ts";
 import { kitRejoin } from "./kit.ts";
@@ -19,7 +19,7 @@ export async function runRejoin(
   now: () => number,
 ) {
   if (options.recoveryKit || options.recovery) {
-    const name = await defaultInput(options.name, "Device name");
+    const name = await askDeviceName(options.name, adapters.hostname);
     const kit = await readKit(options.recoveryKit);
 
     await kitRejoin(adapters, {

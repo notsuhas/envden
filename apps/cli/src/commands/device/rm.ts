@@ -6,7 +6,8 @@ import { removeDevice } from "../../admin/devices/remove.ts";
 import { secret, consent } from "../../output/questions.ts";
 
 export const deviceRmCommand = new Command("rm")
-  .argument("<device>")
+  .description("Remove a device and start a new encryption epoch")
+  .argument("<device>", "Device name or ID")
   .option("--kit-out <file>", "Write the new recovery kit to a private file")
   .option("--new-kit", "Replace the recovery kit in the same swap")
   .action(async (device, options) => {

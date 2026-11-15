@@ -13,6 +13,7 @@ import { persistCheckpoint } from "./remote/persist.ts";
 import { uploadChanges } from "./remote/push.ts";
 import { reconcile } from "./local/reconcile.ts";
 import { selectedRepos } from "./local/selection.ts";
+import { adoptWorktreeAt } from "../links/checkout/worktree.ts";
 import { withSyncLock } from "./local/files.ts";
 import { conflictRecords } from "./local/conflicts.ts";
 import { settleRemoteNotice } from "../notice/remote.ts";
@@ -50,6 +51,13 @@ async function sync(
       context.client = followed.client;
       history = await readHistory(context.client, context.vaultId, context.state);
     }
+
+    await adoptWorktreeAt(
+      adapters,
+      context.state,
+      options.cwd ?? process.cwd(),
+      options.report ?? (() => {}),
+    );
 
     const repos = await selectedRepos(adapters, context.state, options, context.skippedRoots);
     let changed = 0;

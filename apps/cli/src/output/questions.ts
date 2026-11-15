@@ -28,12 +28,17 @@ export async function secret(message: string): Promise<string> {
   );
 }
 
-export async function input(message: string, required = true): Promise<string> {
+export async function input(
+  message: string,
+  required = true,
+  initialValue?: string,
+): Promise<string> {
   terminal();
 
   return answer<string>(
     await text({
       message: sanitizeTerminal(message),
+      ...(initialValue === undefined ? {} : { initialValue }),
       validate: (value) => (!required || value ? undefined : "Required"),
     }),
   );

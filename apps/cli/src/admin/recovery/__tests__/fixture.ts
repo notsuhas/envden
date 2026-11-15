@@ -70,9 +70,7 @@ export async function fixture() {
     home,
     joinHome,
     async close() {
-      await running.server.stop(true);
-      running.stopPruning();
-      running.storage.close();
+      await running.shutdown();
       await rm(root, { recursive: true, force: true });
     },
   };

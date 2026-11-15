@@ -9,10 +9,11 @@ import { emptyState } from "../../state/model.ts";
 import { linkCheckout } from "../place.ts";
 import { pruneMissingCheckouts } from "../prune.ts";
 import { discoverRepos } from "../discovery.ts";
+import { setConfig } from "../../settings/config.ts";
 
 const fixtureClock = () => 1800000000000;
 
-test("real git worktree requires approval and records its root once", async () => {
+test("real git worktree asks only with auto-approval off and records its root once", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-worktree-"));
   const main = join(root, "main");
   const branch = join(root, "branch");
@@ -58,6 +59,7 @@ test("real git worktree requires approval and records its root once", async () =
     const worktree = (await adapters.repo.checkoutAt(branch))!;
     expect(worktree.registeredWorktree).toBe(true);
     await linkCheckout(adapters, state, checkout, async () => true);
+    await setConfig("auto-approve-worktrees", "off", adapters.home, false);
 
     let approvals = 0;
 
@@ -96,6 +98,25 @@ test("real git worktree requires approval and records its root once", async () =
     expect(state.approved.map((item) => item.root)).toEqual([checkout.root]);
     expect(state.links.every((item) => item.root !== worktree.root)).toBe(true);
     expect(notices).toHaveLength(1);
+
+    await setConfig("auto-approve-worktrees", "on", adapters.home, true);
+    await git(main, ["worktree", "prune"]);
+    await git(main, ["worktree", "add", branch, "test"]);
+    const reports: string[] = [];
+
+    await linkCheckout(
+      adapters,
+      state,
+      (await adapters.repo.checkoutAt(branch))!,
+      async () => {
+        throw new Error("Prompted for an auto-approved worktree");
+      },
+      false,
+      (message) => reports.push(message),
+    );
+
+    expect(reports).toEqual([`Approved worktree ${worktree.root} (auto-approve-worktrees)`]);
+    expect(state.approved.map((item) => item.root)).toEqual([checkout.root, worktree.root]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

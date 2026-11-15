@@ -51,3 +51,45 @@ test("join --resume without an exchange fails before asking for a name", async (
     await f.close();
   }
 });
+
+test("a kit join without a terminal names itself after the host and numbers a taken name", async () => {
+  const { listDevices } = await import("../../admin/devices/list.ts");
+  const { readIdentity } = await import("../../identity/stored.ts");
+  const { loadState } = await import("../../state/store/repository.ts");
+  const f = await fixture();
+  const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  const input = spyOn(questions, "input").mockResolvedValue(f.result.kit.vaultId);
+  const log = spyOn(console, "log").mockImplementation(() => {});
+
+  const secret = spyOn(questions, "secret").mockImplementation(async (label) =>
+    label === "Recovery secret key" ? f.result.kit.secretKey : "old password",
+  );
+
+  try {
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: false });
+    const home = f.home("second");
+    home.hostname = "first.local";
+
+    await runJoin(home, f.result.kit.server, { recovery: true }, f.now);
+
+    const stored = await home.keychain.get(`envden/${home.home}/device`);
+
+    expect(input.mock.calls.map(([label]) => label)).toEqual(["Vault ID"]);
+    expect((await loadState(home.home))?.deviceName).toBe("first-2");
+    expect(readIdentity(stored!).record.name).toBe("first-2");
+
+    expect((await listDevices(f.first, f.now)).map((device) => device.name)).toEqual([
+      "first",
+      "first-2",
+    ]);
+  } finally {
+    input.mockRestore();
+    log.mockRestore();
+    secret.mockRestore();
+
+    if (descriptor) Object.defineProperty(process.stdin, "isTTY", descriptor);
+    else Reflect.deleteProperty(process.stdin, "isTTY");
+
+    await f.close();
+  }
+});

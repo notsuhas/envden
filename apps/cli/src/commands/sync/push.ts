@@ -6,6 +6,7 @@ import { push } from "../../sync/engine.ts";
 import { syncOptions } from "../../sync/command.ts";
 
 export const pushCommand = new Command("push")
+  .description("Send your changes to the server")
   .option("--json", "Print the result as JSON")
   .option("--all", "Sync all repos")
   .option("--yes", "Confirm clean changes")

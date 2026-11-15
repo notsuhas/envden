@@ -14,6 +14,7 @@ import type { TAdapters } from "../../adapters.ts";
 
 import { readHistory } from "../history.ts";
 import { addDeviceSwap } from "../add.ts";
+import { namedForList } from "../named.ts";
 import { acceptJoin } from "../join/accept.ts";
 
 async function attemptKitJoin(adapters: TAdapters, options: IKitJoin) {
@@ -46,7 +47,7 @@ async function attemptKitJoin(adapters: TAdapters, options: IKitJoin) {
 
     const swap = await addDeviceSwap(
       history,
-      identity.record,
+      namedForList(identity.record, history),
       recovery.id,
       recoveryKeys.objSk,
       epochKey,

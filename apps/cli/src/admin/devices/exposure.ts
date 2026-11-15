@@ -1,11 +1,9 @@
 import { inspectExposedFile } from "./exposed-file.ts";
-import * as p from "@envden/core/protocol";
-import { EnvdenError } from "@envden/core/errors";
 import type { TAdminContext } from "../shared/context.ts";
 import type { THistory } from "../../vault/history.ts";
 import { text } from "../../client/encoding.ts";
 import { currentMaterial } from "../shared/material.ts";
-import { optionalObject } from "../shared/transfer.ts";
+import { retainedList } from "../../vault/files/retained.ts";
 
 export async function exposedNames(context: TAdminContext, history: THistory) {
   const { ring, keys } = await currentMaterial(context, history);
@@ -20,17 +18,14 @@ export async function exposedNames(context: TAdminContext, history: THistory) {
     const hash = text(header.body.filesHash);
     if (lists.has(hash)) continue;
     lists.add(hash);
-    const bytes = await optionalObject(context.client, `/v1/files/${text(header.body.filesHash)}`);
+    const files = await retainedList(context.client, header.body.filesHash);
 
-    if (!bytes) {
+    if (!files) {
       incomplete = true;
       continue;
     }
 
-    if (!p.equal(p.H("files", bytes), header.body.filesHash))
-      throw new EnvdenError("INVALID_DATA", "File list hash mismatch");
-
-    for (const entry of p.decode(p.FilesCodec, bytes).entries) {
+    for (const entry of files.entries) {
       const blob = text(entry.blobHash);
       if (blobs.has(blob)) continue;
       blobs.add(blob);

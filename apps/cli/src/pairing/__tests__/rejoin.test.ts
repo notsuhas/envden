@@ -38,6 +38,7 @@ test("removed device rejoins through pairing with a new identity and retained fl
     });
 
     const before = await loadState(second.home);
+    f.advance(1000);
     await removeDevice(f.first, "second", "old password", f.now);
     let raced = false;
 
@@ -100,6 +101,7 @@ test("removed device rejoins through pairing with a new identity and retained fl
     const state = await resumeJoiner(second, client, identity, f.result.kit.server, pin, true);
     expect(state.vaultId).toBe(before?.vaultId);
     expect(state.headers.length).toBeGreaterThan(before!.headers.length);
+    expect(state.session).toEqual({ unlockedUntil: f.now() + 2592000000, freshUntil: 0 });
     expect(await second.keychain.get(`envden/${second.home}/rejoin/device`)).toBeUndefined();
   } finally {
     await f.close();

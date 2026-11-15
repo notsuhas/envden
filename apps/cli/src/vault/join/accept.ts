@@ -3,6 +3,7 @@ import { droppedRejoin } from "./floor.ts";
 import { advanceCheckpoint } from "./advance.ts";
 import { withStateLock } from "../../state/lock/lock.ts";
 import { deviceWrap } from "../keys/wrap.ts";
+import { adoptCommittedName } from "../../identity/rename.ts";
 import { joinMembership, verifiedBlob } from "./validation.ts";
 import * as p from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -14,6 +15,7 @@ import { text } from "../../client/encoding.ts";
 import { emptyState } from "../../state/model.ts";
 import type { loadState } from "../../state/store/repository.ts";
 import { saveState } from "../../state/store/repository.ts";
+import { recordUnlockWindow } from "../../session/window.ts";
 
 async function lockedacceptJoin(
   adapters: TAdapters,
@@ -30,8 +32,11 @@ async function lockedacceptJoin(
 
   const dropped = await droppedRejoin(adapters, history, existing?.checkpoint);
 
-  if (existing?.checkpoint && !dropped)
+  if (existing?.checkpoint && !dropped) {
+    await recordUnlockWindow(client, existing);
+
     return advanceCheckpoint(adapters, client, identity, existing, history);
+  }
 
   const wrap = deviceWrap(history.entries, identity.record.id, header.body.listSeq);
 
@@ -61,8 +66,11 @@ async function lockedacceptJoin(
   const files = await verifiedBlob(client, "files", "files", header.body.filesHash);
 
   p.decode(p.FilesCodec, files);
-  const state = existing ?? emptyState(identity.record.name);
-  state.deviceName = identity.record.name;
+  const committed = at.state.devices.get(p.base32(identity.record.id))!;
+  await adoptCommittedName(adapters.keychain, adapters.home, committed);
+
+  const state = existing ?? emptyState(committed.name);
+  state.deviceName = committed.name;
   state.verifiedState = at.state;
   state.vaultId = p.base32(history.state.vaultId);
   state.server = { address, pin: text(pin), protocol: 1 };
@@ -78,6 +86,7 @@ async function lockedacceptJoin(
 
   state.keyring = text(box);
   state.files = text(files);
+  await recordUnlockWindow(client, state);
   await adapters.keychain.set(`envden/${adapters.home}/epoch/${header.body.epoch}`, key);
   await adapters.keychain.set(`envden/${adapters.home}/id-key`, ring.idKey);
   await saveState(adapters.home, state, adapters.now);

@@ -14,10 +14,11 @@ import { readConfig } from "../../../settings/config.ts";
 import { conflictRecords } from "../conflicts.ts";
 import { appliedFiles } from "../applied.ts";
 import { basePath, readBytes } from "../files.ts";
+import { heldBackReasons, type THeldBack } from "./reasons.ts";
 
 export async function heldBackFiles(adapters: TAdapters) {
   const state = await loadState(adapters.home);
-  const notices: { path: string; reason: string }[] = [];
+  const notices: { path: string; kind: THeldBack; reason: string }[] = [];
   if (!state) return notices;
   const invalidAttempt = await invalidAttemptState(adapters.home);
   const rules = (await readConfig(adapters.home))["env-files"];
@@ -30,8 +31,10 @@ export async function heldBackFiles(adapters: TAdapters) {
 
   for (const link of state.links) {
     if (link.localOnly) continue;
-    const reason = await linkReason(context, link);
-    if (reason) notices.push({ path: join(link.root, link.path), reason });
+    const kind = await linkReason(context, link);
+
+    if (kind)
+      notices.push({ path: join(link.root, link.path), kind, reason: heldBackReasons[kind] });
   }
 
   return notices;
@@ -84,8 +87,8 @@ async function linkReason(
     (await readBytes(base + ".corrupt")) !== undefined,
   ].some(Boolean);
 
-  const reason = corrupt
-    ? "invalid sync state; run envden pull, then envden resolve --list"
+  const reason: THeldBack | undefined = corrupt
+    ? "invalid-state"
     : reasonFor({
         oversized: fileSizeNotice(link.path, stored) !== undefined,
         approval: !!(await approvedCheckout(adapters.repo, state, link.root)),
@@ -125,13 +128,13 @@ function reasonFor(input: {
   pending: boolean;
   unapplied: boolean;
   lost: boolean;
-}) {
-  if (input.oversized) return "file exceeds 1 MiB; reduce its size before pushing";
-  if (!input.approval) return "checkout needs approval; run envden track";
-  if (!input.included) return "excluded by env-files; update envden config env-files";
-  if (input.conflict) return "conflict; run envden resolve --list";
-  if (input.lost) return "content was lost outside envden; restore from backup or untrack";
-  if (input.pending || input.unapplied) return "placement incomplete; run envden pull";
+}): THeldBack | undefined {
+  if (input.oversized) return "oversized";
+  if (!input.approval) return "needs-approval";
+  if (!input.included) return "excluded";
+  if (input.conflict) return "conflict";
+  if (input.lost) return "lost";
+  if (input.pending || input.unapplied) return "incomplete";
 
   return undefined;
 }

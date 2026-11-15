@@ -3,7 +3,7 @@ import { parseEnv } from "@envden/core/merge";
 import type { TAdminContext } from "../shared/context.ts";
 import { text } from "../../client/encoding.ts";
 import type { currentMaterial } from "../shared/material.ts";
-import { optionalObject } from "../shared/transfer.ts";
+import { openedName, retainedBlob } from "../../vault/files/retained.ts";
 
 export async function inspectExposedFile(
   context: TAdminContext,
@@ -19,14 +19,14 @@ export async function inspectExposedFile(
     version: entry.version,
   };
 
-  const name = openedName(entry, keys, ring.idKey, c);
+  const name = openedName(entry, keys, ring.idKey, context.vaultId);
   if (!name) return true;
 
   const id = text(entry.fileId);
   const found = names.get(id) ?? { ...name, keys: new Set<string>() };
   names.set(id, found);
   if (![1, 3].includes(entry.state)) return false;
-  const box = await optionalObject(context.client, `/v1/blobs/${text(entry.blobHash)}`);
+  const box = await retainedBlob(context.client, entry.blobHash);
 
   if (!box) {
     return true;
@@ -40,20 +40,4 @@ export async function inspectExposedFile(
   else return true;
 
   return false;
-}
-
-function openedName(
-  entry: p.IFileEntry,
-  keys: Map<number, Uint8Array>,
-  idKey: Uint8Array,
-  c: Parameters<typeof p.openFileName>[3],
-) {
-  const key = keys.get(entry.epoch);
-  if (!key) return undefined;
-
-  try {
-    return p.openFileName(entry.name, key, idKey, c);
-  } catch {
-    return undefined;
-  }
 }

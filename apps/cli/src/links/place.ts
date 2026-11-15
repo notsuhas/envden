@@ -7,6 +7,7 @@ import type { ICheckout } from "@envden/core/adapters";
 import type { TAdapters } from "../adapters.ts";
 import type { ILocalState } from "../state/model.ts";
 import { checkoutApproval } from "./approval.ts";
+import { autoApprovedWorktree, worktreeApprovedNotice } from "./checkout/worktree.ts";
 
 async function lockedlinkCheckout(
   adapters: TAdapters,
@@ -14,6 +15,7 @@ async function lockedlinkCheckout(
   checkout: ICheckout,
   approve: (checkout: ICheckout) => Promise<boolean>,
   copy = false,
+  report: (message: string) => void = console.error,
 ): Promise<void> {
   const approval = checkoutApproval(state, checkout);
 
@@ -21,7 +23,9 @@ async function lockedlinkCheckout(
     throw new EnvdenError("CONFLICT", "Checkout remote changed; use envden alias");
 
   if (approval === "ask") {
-    if (!(await approve(checkout))) return;
+    if (await autoApprovedWorktree(adapters, state, checkout))
+      report(worktreeApprovedNotice(checkout));
+    else if (!(await approve(checkout))) return;
   }
 
   state.approved = state.approved.filter((item) => item.root !== checkout.root);

@@ -29,9 +29,7 @@ export async function syncFixture(directory?: string) {
   log.mockRestore();
 
   const cleanup = async () => {
-    await running.server.stop(true);
-    running.storage.close();
-    running.stopPruning();
+    await running.shutdown();
     await rm(root, { recursive: true, force: true });
   };
 

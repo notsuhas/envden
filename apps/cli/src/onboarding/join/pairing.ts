@@ -6,7 +6,7 @@ import { hello } from "../../client/hello.ts";
 import { createClient } from "../../client/request.ts";
 import { deviceIdentity, type TDeviceIdentity } from "../../identity/device.ts";
 import { readIdentity } from "../../identity/stored.ts";
-import { defaultInput } from "../../output/default-input.ts";
+import { askDeviceName } from "../../output/device-name.ts";
 import { finishPairing } from "../../pairing/finish.ts";
 import { clearJoiner } from "../../pairing/persistence/cleanup.ts";
 import { promptPairing } from "../../pairing/prompt.ts";
@@ -40,7 +40,7 @@ export async function pairingJoin(adapters: TAdapters, options: IPairingJoin) {
     return;
   }
 
-  const name = await defaultInput(options.name, "Device name");
+  const name = await askDeviceName(options.name, adapters.hostname);
   await withStateLock(adapters.home, () => clearJoiner(adapters));
   const server = await hello(address, undefined, adapters.fetcher, MIN_SERVER);
   const fresh = !(await loadState(adapters.home))?.checkpoint;

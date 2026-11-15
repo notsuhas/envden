@@ -5,7 +5,7 @@ import type { TAdapters } from "../adapters.ts";
 import type { ISyncOptions } from "./model.ts";
 import { syncContext } from "./remote/context.ts";
 import { selectedRepos } from "./local/selection.ts";
-import { readBytes, basePath } from "./local/files.ts";
+import { readBytes, basePath, same } from "./local/files.ts";
 
 async function lockedDiff(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
@@ -22,7 +22,9 @@ async function lockedDiff(adapters: TAdapters, options: ISyncOptions) {
     const after = await readBytes(link.mode === "link" ? link.store : join(link.root, link.path));
 
     result.push({
+      root: link.root,
       path: link.path,
+      differs: !same(before, after),
       ...diffEnvKeys(before ?? new Uint8Array(), after ?? new Uint8Array()),
     });
   }

@@ -11,7 +11,13 @@ interface IConfig {
   telemetry: boolean;
   "update-check": boolean;
   "agent-merge": boolean;
+  "auto-approve-worktrees": boolean;
 }
+
+const toggles = ["telemetry", "update-check", "agent-merge", "auto-approve-worktrees"];
+
+// Agents must not be able to widen what they can do without the user.
+const terminalOnly = ["agent-merge", "auto-approve-worktrees"];
 
 export function parseConfig(value: unknown): IConfig {
   if (typeof value !== "object" || value === null || Array.isArray(value))
@@ -19,7 +25,13 @@ export function parseConfig(value: unknown): IConfig {
 
   for (const [key, item] of Object.entries(value)) validateSetting(key, item);
 
-  return { telemetry: false, "update-check": true, "agent-merge": false, ...value };
+  return {
+    telemetry: false,
+    "update-check": true,
+    "agent-merge": false,
+    "auto-approve-worktrees": true,
+    ...value,
+  };
 }
 
 export async function readConfig(home: string) {
@@ -42,8 +54,8 @@ export async function setConfig(
   home: string,
   interactive = Boolean(process.stdin.isTTY),
 ) {
-  if (key === "agent-merge" && value === "on" && !interactive)
-    throw new EnvdenError("INVALID_INPUT", "Turning on agent-merge requires a terminal");
+  if (terminalOnly.includes(key) && value === "on" && !interactive)
+    throw new EnvdenError("INVALID_INPUT", `Turning on ${key} requires a terminal`);
 
   return withStateLock(paths(home).home, async () => {
     const current = await readConfig(home);
@@ -100,8 +112,7 @@ function validateSetting(key: string, item: unknown) {
     case "env-files":
       return parseEnvFileRules(item);
     default:
-      if (["telemetry", "update-check", "agent-merge"].includes(key) && typeof item === "boolean")
-        return;
+      if (toggles.includes(key) && typeof item === "boolean") return;
 
       throw new EnvdenError("INVALID_INPUT", "Invalid config key or value");
   }

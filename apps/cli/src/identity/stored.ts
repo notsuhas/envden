@@ -1,11 +1,24 @@
 import { EnvdenError } from "@envden/core/errors";
 import {
+  concat,
   decode,
   DeviceRecordCodec,
+  encode,
   generateDeviceKeys,
   equal,
   deviceId,
+  type IDeviceRecord,
 } from "@envden/core/protocol";
+
+interface ISecretKeys {
+  encSk: Uint8Array;
+  objSk: Uint8Array;
+  reqSk: Uint8Array;
+}
+
+export function identityBytes(keys: ISecretKeys, record: IDeviceRecord) {
+  return concat(keys.encSk, keys.objSk, keys.reqSk, encode(DeviceRecordCodec, record));
+}
 
 export function readIdentity(stored: Uint8Array) {
   if (stored.length < 96) throw new EnvdenError("INVALID_DATA", "Invalid device identity");

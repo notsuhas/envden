@@ -26,7 +26,17 @@ test("rejoin --recovery accepts a pasted kit", async () => {
     );
 
     const { loadState } = await import("../../../state/store/repository.ts");
-    expect((await loadState(adapters.home))?.deviceName).toBe("pasted");
+    const state = await loadState(adapters.home);
+    const unlockedUntil = f.now() + 2592000000;
+
+    expect(state?.deviceName).toBe("pasted");
+    expect(state?.session).toEqual({ unlockedUntil, freshUntil: 0 });
+
+    expect((await loadState(f.first.home))?.session).toEqual({
+      unlockedUntil,
+      freshUntil: f.now() + 600000,
+    });
+
     expect(promptSecret.mock.calls.some(([label]) => label === "Recovery secret key")).toBe(true);
   } finally {
     promptInput.mockRestore();

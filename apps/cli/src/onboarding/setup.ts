@@ -3,7 +3,7 @@ import { withStateLock } from "../state/lock/lock.ts";
 import { parseKit } from "../vault/recovery/input.ts";
 import { writeKit } from "../vault/recovery/output.ts";
 import { confirmedPassword } from "./password.ts";
-import { defaultInput } from "../output/default-input.ts";
+import { askDeviceName } from "../output/device-name.ts";
 import { setupCheckouts } from "./scan.ts";
 import { setupPreferences, updatePreferences } from "./preferences.ts";
 import type { TAdapters } from "../adapters.ts";
@@ -67,7 +67,7 @@ async function createState(
 
   const address = options.server ?? hostedAddress ?? (await input("Server URL"));
   const token = await readToken(options.setupToken, "Server setup token");
-  const name = await defaultInput(options.name, "Device name");
+  const name = await askDeviceName(options.name, adapters.hostname);
   const password = await confirmedPassword(secret);
 
   const result = await setupVault(adapters, {

@@ -7,13 +7,14 @@ import { runVaultAdmin } from "../vault/run.ts";
 import { secret, consent } from "../../output/questions.ts";
 
 export const serverRepairCommand = new Command("repair")
+  .description("Upload repair material to a restored server, or finish the repair")
   .option(
     "--repair-token <token>",
     "Repair token; prefer stdin for upload, use a terminal for --finish",
   )
-  .option("--finish")
-  .option("--without <device...>")
-  .option("--accept-lost")
+  .option("--finish", "Verify every report and finish the repair")
+  .option("--without <device...>", "Drop unavailable devices; they rejoin as new devices")
+  .option("--accept-lost", "Accept the newest verified older version of a missing file")
   .action(async (options) => {
     const token = await readToken(options.repairToken, "Repair token");
 

@@ -14,6 +14,7 @@ import { hello } from "../client/hello.ts";
 import { createClient } from "../client/request.ts";
 import { text } from "../client/encoding.ts";
 import { registerPassword } from "../session/registration.ts";
+import { recordUnlockWindow } from "../session/window.ts";
 import { emptyState } from "../state/model.ts";
 import { saveState, loadState } from "../state/store/repository.ts";
 import { createGenesis } from "./genesis.ts";
@@ -98,6 +99,7 @@ async function lockedsetupVault(
     await saveState(adapters.home, state, adapters.now);
     await client.request("/v1/vault", "POST", bytes);
     delete state.creationPending;
+    await recordUnlockWindow(client, state);
     await saveState(adapters.home, state, adapters.now);
 
     return {
@@ -173,6 +175,7 @@ async function resumeCreation(
   }
 
   delete pending.state.creationPending;
+  await recordUnlockWindow(client, pending.state);
   await saveState(adapters.home, pending.state, adapters.now);
   if (kit) return { state: pending.state, kit };
 

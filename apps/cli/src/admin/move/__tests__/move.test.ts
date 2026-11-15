@@ -124,9 +124,7 @@ for (const crash of [false, true])
         fetcher: f.fetcher,
       });
     } finally {
-      await destination.server.stop(true);
-      destination.stopPruning();
-      destination.storage.close();
+      await destination.shutdown();
       await f.close();
     }
   });
@@ -199,9 +197,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
     expect(await Bun.file(join(f.first.home, "state", "move-pin")).exists()).toBe(false);
   } finally {
     log.mockRestore();
-    await destination.server.stop(true);
-    destination.stopPruning();
-    destination.storage.close();
+    await destination.shutdown();
     await f.close();
   }
 });
@@ -249,9 +245,7 @@ test("stale recovery kit refuses move before consuming destination token", async
     expect(destination.storage.vaultIds()).toEqual([]);
     expect(f.running.storage.vault(vault)!.frozen).toBe(false);
   } finally {
-    await destination.server.stop(true);
-    destination.stopPruning();
-    destination.storage.close();
+    await destination.shutdown();
     await f.close();
   }
 });

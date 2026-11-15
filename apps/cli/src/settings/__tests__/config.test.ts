@@ -25,6 +25,16 @@ test("config validates, persists and uses private paths", async () => {
     await setConfig("agent-merge", "off", home, false);
     await setConfig("agent-merge", "on", home, true);
     expect((await readConfig(home))["agent-merge"]).toBe(true);
+    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(true);
+    await setConfig("auto-approve-worktrees", "off", home, false);
+    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(false);
+
+    expect(setConfig("auto-approve-worktrees", "on", home, false)).rejects.toThrow(
+      "requires a terminal",
+    );
+
+    await setConfig("auto-approve-worktrees", "on", home, true);
+    expect((await readConfig(home))["auto-approve-worktrees"]).toBe(true);
     expect(() => parseConfig({ telemetry: "yes" })).toThrow();
     expect(() => parseConfig({ unknown: true })).toThrow();
   } finally {

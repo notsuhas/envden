@@ -10,6 +10,7 @@ import { loadState, saveState } from "../state/store/repository.ts";
 import { discoverRepos } from "../links/discovery.ts";
 import { linkCheckout } from "../links/place.ts";
 import { approvalPrompt } from "../links/approval.ts";
+import { autoApprovedWorktree } from "../links/checkout/worktree.ts";
 import { consent } from "../output/questions.ts";
 
 import type { ILocalState } from "../state/model.ts";
@@ -31,7 +32,7 @@ async function lockedsetupCheckouts(
   const storedRepos = await vaultRepos(adapters, state, options.now);
 
   const eligible = await eligibleCheckouts(adapters, state, repos, storedRepos);
-  const selected = options.approve ? eligible : await chooseCheckouts(state, eligible);
+  const selected = options.approve ? eligible : await chosenCheckouts(adapters, state, eligible);
 
   for (const checkout of selected) {
     await offerForkAlias(
@@ -79,6 +80,16 @@ export function setupCheckouts(...args: Parameters<typeof lockedsetupCheckouts>)
     await lockedsetupCheckouts(args[0], state, args[2]);
     Object.assign(args[1], state);
   });
+}
+
+async function chosenCheckouts(adapters: TAdapters, state: ILocalState, eligible: ICheckout[]) {
+  const automatic: ICheckout[] = [];
+  const asked: ICheckout[] = [];
+
+  for (const checkout of eligible)
+    ((await autoApprovedWorktree(adapters, state, checkout)) ? automatic : asked).push(checkout);
+
+  return [...automatic, ...(await chooseCheckouts(state, asked))];
 }
 
 async function chooseCheckouts(state: ILocalState, repos: ICheckout[]) {

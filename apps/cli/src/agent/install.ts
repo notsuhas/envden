@@ -1,16 +1,23 @@
 import { lstat, mkdir, symlink } from "node:fs/promises";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
+import { SITE_URL } from "@envden/core/site";
 import { atomicWrite } from "../state/store/files.ts";
 
 const skill = `---
 name: envden
 description: Sync this checkout's env files with envden.
 ---
-Run envden status --json before syncing. Use envden push --yes or envden pull --yes only when asked.
-Never read or print env values. Ask the user to run password entry, pairing codes and checkout approval in their own terminal.
-Use envden rm <path> --yes only when the user explicitly asks to delete that env file everywhere; it backs up local content and publishes deletion on the next push. Missing files are restored.
-Never resolve conflicts or update the binary without the user's approval. Use envden update --check to check releases.
+Commands and flags: ${SITE_URL}/docs/cli
+Syncing and conflicts: ${SITE_URL}/docs/push-pull-merge
+Agent rules: ${SITE_URL}/docs/agents
+
+Run envden status --json before syncing. Run envden push --yes or envden pull --yes only when the user asks.
+Never read or print env values.
+Ask the user to enter the master password, pairing codes and recovery secrets, and to approve checkouts, in their own terminal.
+Run envden rm only when the user asks to delete that env file everywhere.
+Never resolve conflicts without the user's approval. If envden config agent-merge is on, you may help edit a conflict file.
+Use envden update --check freely; ask before running envden update.
 `;
 
 export async function installAgent(userHome: string, now: () => number): Promise<void> {

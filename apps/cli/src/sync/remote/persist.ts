@@ -2,6 +2,7 @@ import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "./context.ts";
 import { text } from "../../client/encoding.ts";
 import { saveState } from "../../state/store/repository.ts";
+import { adoptCommittedName } from "../../identity/rename.ts";
 
 export async function persistCheckpoint(context: TSyncContext): Promise<void> {
   context.state.checkpoint = text(
@@ -9,6 +10,14 @@ export async function persistCheckpoint(context: TSyncContext): Promise<void> {
   );
 
   context.state.verifiedState = context.checkpoint.state;
+
+  const own = context.checkpoint.state.devices.get(p.base32(context.identity.record.id));
+
+  if (own && own.name !== context.state.deviceName) {
+    await adoptCommittedName(context.adapters.keychain, context.adapters.home, own);
+    context.state.deviceName = own.name;
+  }
+
   context.state.files = text(p.FilesCodec.write(context.checkpoint.files));
 
   context.state.headers = context.headers.map((item) =>
