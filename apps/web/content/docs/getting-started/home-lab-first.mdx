@@ -40,7 +40,7 @@ envden setup --server https://envden.your-tailnet.ts.net
 
 Replace the example hostname with yours. In your terminal, enter the setup token (piping it cannot complete the secret prompts), accept or edit the device name (your hostname without its domain) and choose a master password.
 
-Setup prints a recovery kit before it creates the vault. Store it somewhere you can recover without this laptop. You can write it directly to a private file with `--kit-out /path/to/kit.json`. A kit with the master password written on it gives full access to the vault.
+Before it creates the vault, setup saves your recovery kit as a PDF in `~/Downloads` (or your home folder if there's no Downloads folder) and offers to open it. Print it or store it somewhere you can recover without this laptop, then delete the file. For scripts, `--kit-out /path/to/kit.json` writes the kit as JSON to a private file instead. Never write your master password on the kit; with the password, it gives full access to the vault.
 
 Setup also asks about telemetry, update checks, the shell notice (a line in your terminal when you `cd` into a checkout that needs a push or pull) and the agent skill (instructions that let AI coding agents run envden safely).
 

@@ -104,10 +104,10 @@ envden device rm [options] <device>
 | ---------- | ----------------- |
 | `<device>` | Device name or ID |
 
-| Option             | Description                                          |
-| ------------------ | ---------------------------------------------------- |
-| `--kit-out <file>` | Write the new recovery kit to a private file         |
-| `--new-kit`        | Also replace the recovery kit as part of the removal |
+| Option             | Description                                                           |
+| ------------------ | --------------------------------------------------------------------- |
+| `--kit-out <file>` | Write the new recovery kit as JSON to a private file instead of a PDF |
+| `--new-kit`        | Also replace the recovery kit as part of the removal                  |
 
 ## envden diff
 
@@ -336,7 +336,7 @@ envden setup [options]
 | -------------------------- | ------------------------------------------------------------------------ |
 | `--yes`                    | Take defaults; secrets and checkout approval still require your terminal |
 | `--server <url>`           | Use this server                                                          |
-| `--kit-out <file>`         | Write recovery kit to a private file                                     |
+| `--kit-out <file>`         | Write the recovery kit as JSON to a private file instead of a PDF        |
 | `--name <name>`            | Device name                                                              |
 | `--host-server`            | Run the envden server on this machine; no setup token needed             |
 | `--setup-token <token>`    | Setup token, visible to other processes; use the prompt in a terminal    |
@@ -483,9 +483,9 @@ Replace a lost kit; needs the master password.
 envden vault kit replace [options]
 ```
 
-| Option             | Description                                  |
-| ------------------ | -------------------------------------------- |
-| `--kit-out <file>` | Write the new recovery kit to a private file |
+| Option             | Description                                                           |
+| ------------------ | --------------------------------------------------------------------- |
+| `--kit-out <file>` | Write the new recovery kit as JSON to a private file instead of a PDF |
 
 ## envden vault password
 

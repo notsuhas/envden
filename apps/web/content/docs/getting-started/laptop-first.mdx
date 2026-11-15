@@ -13,7 +13,7 @@ envden setup --host-server
 
 This installs a login service using launchd on macOS, systemd on Linux or a Windows login service, and publishes it on your tailnet with Tailscale Serve. Setup reads the server's setup token itself, so there's nothing to paste.
 
-Choose a master password and save the recovery kit. Setup then lists the checkouts it found, all selected; press Enter to sync them or Space to leave one out. It places their files, pushes them and prints a summary.
+Choose a master password. Setup saves your recovery kit as a PDF in `~/Downloads`; print it or store it offline, then delete the file. Setup then lists the checkouts it found, all selected; press Enter to sync them or Space to leave one out. It places their files, pushes them and prints a summary.
 
 Running `envden setup` without `--server` also offers to host the server on this machine.
 

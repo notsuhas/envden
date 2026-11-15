@@ -21,9 +21,9 @@ Pulled paths are checked for traversal and symlinks escaping the checkout. Place
 
 ## Protect your password and recovery kit
 
-The master password and a random secret key protect the recovery envelope. Argon2id derives password material; the random secret key is printed in your kit and isn't saved on devices. Recovery requires both. Password login uses OPAQUE.
+The master password and a random secret key protect the recovery envelope. Argon2id derives password material; the random secret key is in your kit and isn't saved on devices. Recovery requires both. Password login uses OPAQUE.
 
-Keep the kit somewhere safe and separate from your devices. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
+Print the kit PDF or keep it somewhere safe and separate from your devices, then delete the file. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
 
 Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
 

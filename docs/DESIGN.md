@@ -77,7 +77,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - Envelope key = HKDF(Argon2id(master password, fresh salt per seal, fixed v1 parameters) ‖ secret key), labelled `envelope-key`.
 - The envelope contains the recovery key pair, the vault ID and the manifest it builds on; the manifest that installs it names its hash. It's sealed only in the same swap as vault creation, a password change or reset, or a recovery-key replacement, since devices never hold the secret key. The kit prints the vault ID and the server address (a hint; the real server pin comes from the verified device list, so a kit survives a server move).
 - **Changing the master password** needs the old password and the recovery kit (to reseal the envelope). **Forgot the password** but have a device and the kit: reset it with the kit (new recovery keys, new epoch, same kit). **Lost the kit** but know the password: replace the recovery key, which prints a new kit.
-- **Recovery kit**: the secret key, plus a space to write the master password. A kit with the password written on it opens the vault on its own, so the docs say to store it like a passport.
+- **Recovery kit**: a one-page PDF with the vault ID, secret key and server, saved to `~/Downloads` (or home) with owner-only permissions, never overwriting an earlier kit. The terminal shows only its path. It has no space for the master password, since a kit with the password opens the vault on its own; the docs say to store it like a passport. If the PDF can't be written, the kit is printed instead.
 - **Join with the kit**: the server releases the envelope only after an OPAQUE login with the master password, rate-limited separately from members' logins so strangers can't lock members out. The device decrypts it, verifies the device list from genesis to head, and checks its recovery key is the current recovery member. The recovery key signs "add device" for it. Every other device shows "*laptop* joined with the recovery kit" on its next command.
 - **Replacing the recovery key** (lost kit): needs a fresh password login. It starts a new epoch, and the new envelope replaces the old one in the same swap. The new kit is shown before the swap is sent, and the swap is kept locally; a rerun finishes it if it committed and discards it if not. With both password and kit lost, the user creates a new vault from a device's local store.
 
@@ -203,7 +203,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 - **Repo discovery**: walk the chosen scan roots (default: home folder; add or remove roots) for `.git` directories, skipping junk folders; list worktrees with `git worktree list`. Warns that macOS may ask for folder access. Shows repos with env files as a checklist to approve. Later, the shell line offers once to track a repo it missed.
 - Windows: setup tries to create a symlink; if that fails (no Developer Mode, admin-locked), it explains and offers copy mode with explicit consent.
 
-Setup, server move and repair completion require a terminal for secret prompts; piping a token cannot complete them. Repair uploads accept a token on stdin. Replacement kits written with `--kit-out` are not printed unless the file write fails, in which case the kit is printed so it can be saved.
+Setup, server move and repair completion require a terminal for secret prompts; piping a token cannot complete them. Repair uploads accept a token on stdin. `--kit-out` writes the kit as JSON instead of a PDF, for scripts and `join --recovery-kit`. Replacement kits written with it are not printed unless the file write fails, in which case the kit is printed so it can be saved.
 
 ## Updates
 
@@ -266,6 +266,14 @@ Replaces a backup, and a printed line, before every overwrite. Each clean pull p
 ### Bug reports go through the user's own coding agent
 
 When envden fails on its own bug in a terminal, it offers to start the user's installed coding agent (Claude Code, Codex or Gemini CLI) on a redacted report, or to open a pre-filled GitHub issue. An agent can read the logs and envden's source and find a cause before anything is filed, which a stack trace alone can't. It runs from the user's PATH with their environment, outside the trusted-process rule, because the user picked it. Rejected: uploading crash reports, since there is no envden backend and telemetry carries no raw errors; filing issues from envden through the GitHub API, which needs a token and skips the user's review. The offer only covers error codes the user can't fix, and never appears without a terminal, inside an agent, or with `ENVDEN_NO_REPORT=1`.
+
+### The recovery kit is a PDF file
+
+Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses pdf-lib's standard fonts, so nothing is embedded and the compiled binary stays pure JavaScript. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
+
+### User files are written through their symlinks
+
+Dotfiles managers make `~/.zshrc`, `~/.claude/skills` or `~/Library/LaunchAgents` symlinks into a repo. envden edits the file a link points to and keeps the link, and resolves `ENVDEN_HOME` to its real path at startup so owned-path checks agree. Checkout scans follow symlinked folders once per real path, so `~/Work` on another disk is found and a link back to a parent can't loop. Replaces skipping every symlinked folder and refusing a symlinked `ENVDEN_HOME`. A `.env` that is the user's own symlink is skipped with its target named, since syncing it would overwrite a file another tool owns. Rejected: replacing links with regular files, which silently detaches the dotfiles repo.
 
 ### Device keys, signed device list, key epochs, OPAQUE pairing
 

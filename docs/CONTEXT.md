@@ -73,7 +73,7 @@ A random key generated at vault creation, printed in the recovery kit and never 
 _Avoid_: recovery key, account key
 
 **Recovery kit**:
-The printout holding the secret key and a space to write the master password. With the password written on it, it opens the vault on its own.
+The PDF holding the vault ID, secret key and server, meant to be printed or stored offline. With the master password it opens the vault, so the password is never written on it.
 _Avoid_: backup codes, emergency sheet
 
 **Unlock**:

@@ -69,9 +69,9 @@ If you still know the password:
 envden vault kit replace
 ```
 
-Enter your master password. envden makes new recovery keys and a new secret key, switches to a new encryption key and prints the new kit. Store it somewhere safe and separate from your devices. Success prints `Recovery kit replaced; the old kit no longer works`.
+Enter your master password. envden makes new recovery keys and a new secret key, switches to a new encryption key and saves the new kit as a PDF in `~/Downloads`. Print it or store it somewhere safe and separate from your devices, then delete the file. Success prints `Recovery kit replaced; the old kit no longer works`.
 
-To write the kit to a file instead of printing it, pass `--kit-out /path/to/kit.json`. The path must be new and in an existing folder; the file gets owner-only permissions. If saving fails, envden prints the kit so you can save it yourself.
+The PDF gets owner-only permissions and never replaces an earlier kit; a second one is named with ` (2)`. For scripts, pass `--kit-out /path/to/kit.json` to write the kit as JSON instead, which `envden join --recovery-kit` reads. That path must be new and in an existing folder. If either file can't be written, envden prints the kit so you can save it yourself.
 
 `envden device rm --new-kit` replaces the kit in the same step as a removal. envden offers this when the removed device ever held the recovery keys.
 
