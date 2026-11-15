@@ -12,10 +12,10 @@ fn permissions_and_required() {
     use envden_core::{adapters::IKeychainAdapter, errors::ErrorCode};
     let home = tempfile::tempdir().unwrap();
     let adapter = envden_adapter_keychain_file::create_file_keychain_adapter(home.path());
-    assert_eq!(
-        adapter.get("missing", true).unwrap_err().code,
-        ErrorCode::Locked
-    );
+    let missing = adapter.get("missing", true).unwrap_err();
+    assert_eq!(missing.code, ErrorCode::Locked);
+    assert!(missing.message.contains("run envden join"));
+    assert!(adapter.owner_only().unwrap());
     adapter.set("key", &[0, 255]).unwrap();
     let directory = home.path().join("state/keys");
     let paths: Vec<_> = std::fs::read_dir(&directory)
@@ -34,6 +34,13 @@ fn permissions_and_required() {
             std::fs::metadata(&directory).unwrap().permissions().mode() & 0o777,
             0o700
         );
+        assert_eq!(
+            std::fs::metadata(&paths[0]).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(!adapter.owner_only().unwrap());
+        std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o700)).unwrap();
         std::fs::set_permissions(&paths[0], std::fs::Permissions::from_mode(0o644)).unwrap();
         assert!(!adapter.owner_only().unwrap());
         assert_eq!(
