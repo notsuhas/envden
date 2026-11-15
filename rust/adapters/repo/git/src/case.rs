@@ -1,6 +1,8 @@
 use crate::exec::failure;
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
+use envden_core::filesystem::path_identity;
+#[cfg(unix)]
+use std::os::unix::fs::OpenOptionsExt;
 use std::{
     fs::{self, OpenOptions},
     path::Path,
@@ -44,12 +46,11 @@ pub(crate) fn insensitive(root: &str, read_only: bool) -> Result<bool> {
     }
     let name = format!(".envden-case-{}", uuid::Uuid::new_v4());
     let path = Path::new(root).join(&name);
-    let file = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .mode(0o600)
-        .open(&path)
-        .map_err(failure)?;
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    options.mode(0o600);
+    let file = options.open(&path).map_err(failure)?;
     let result = compare(&path, &Path::new(root).join(name.to_uppercase()));
     drop(file);
     fs::remove_file(path).map_err(failure)?;
@@ -57,9 +58,9 @@ pub(crate) fn insensitive(root: &str, read_only: bool) -> Result<bool> {
 }
 
 fn compare(original: &Path, alternate: &Path) -> Result<bool> {
-    let original = fs::symlink_metadata(original).map_err(failure)?;
-    match fs::symlink_metadata(alternate) {
-        Ok(info) => Ok(info.dev() == original.dev() && info.ino() == original.ino()),
+    let original = path_identity(original).map_err(failure)?;
+    match path_identity(alternate) {
+        Ok(info) => Ok(info.device == original.device && info.inode == original.inode),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
         Err(e) => Err(failure(e)),
     }

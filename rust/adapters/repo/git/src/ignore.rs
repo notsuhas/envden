@@ -1,10 +1,13 @@
 use crate::{adapter::GitRepoAdapter, discovery, exec};
+use envden_core::filesystem::ICanonicalPath;
+use envden_core::filesystem::{file_identity, path_identity};
 use envden_core::{
     adapters::ICheckout,
     errors::{EnvdenError, ErrorCode, Result},
 };
 use envden_protocol::protocol::files::validate_path;
 use path_clean::PathClean;
+#[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
 use std::{
     fs::{self, OpenOptions},
@@ -53,7 +56,7 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
         )
         .clean();
     let common = Path::new(&checkout.git_dir)
-        .canonicalize()
+        .canonical_path()
         .map_err(exec::failure)?;
     let parent = exclude.parent().unwrap();
     let rel = parent.strip_prefix(&common).map_err(|_| {
@@ -68,7 +71,13 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
         std::iter::once(std::ffi::OsStr::new("")).chain(rel.components().map(|c| c.as_os_str()))
     {
         current.push(part);
-        match fs::DirBuilder::new().mode(0o700).create(&current) {
+        #[cfg(unix)]
+        let mut builder = fs::DirBuilder::new();
+        #[cfg(windows)]
+        let builder = fs::DirBuilder::new();
+        #[cfg(unix)]
+        builder.mode(0o700);
+        match builder.create(&current) {
             Ok(()) => (),
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
             Err(e) => return Err(exec::failure(e)),
@@ -80,7 +89,8 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
                 "Unsafe exclude parent",
             ));
         }
-        parents.push((current.clone(), info.dev(), info.ino()));
+        let identity = path_identity(&current).map_err(exec::failure)?;
+        parents.push((current.clone(), identity.device, identity.inode));
     }
     let escaped: String = path
         .chars()
@@ -92,22 +102,31 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
             }
         })
         .collect();
-    let mut file = OpenOptions::new()
-        .read(true)
-        .append(true)
-        .create(true)
+    let mut options = OpenOptions::new();
+    options.read(true).append(true).create(true);
+    #[cfg(unix)]
+    options
         .mode(0o600)
-        .custom_flags((rustix::fs::OFlags::NOFOLLOW | rustix::fs::OFlags::NONBLOCK).bits() as i32)
-        .open(&exclude)
-        .map_err(exec::failure)?;
+        .custom_flags((rustix::fs::OFlags::NOFOLLOW | rustix::fs::OFlags::NONBLOCK).bits() as i32);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        options.custom_flags(0x00200000);
+    }
+    let mut file = options.open(&exclude).map_err(exec::failure)?;
     let stat = file.metadata().map_err(exec::failure)?;
-    if !stat.is_file() || stat.nlink() != 1 || stat.uid() != rustix::process::getuid().as_raw() {
+    let identity = file_identity(&file).map_err(exec::failure)?;
+    #[cfg(windows)]
+    let owned = true;
+    #[cfg(unix)]
+    let owned = stat.uid() == rustix::process::getuid().as_raw();
+    if !stat.is_file() || identity.links != 1 || !owned {
         return Err(EnvdenError::new(
             ErrorCode::InvalidInput,
             "Exclude is not a private regular file",
         ));
     }
-    if parent.canonicalize().map_err(exec::failure)? != parent {
+    if parent.canonical_path().map_err(exec::failure)? != parent {
         return Err(EnvdenError::new(
             ErrorCode::InvalidInput,
             "Unsafe exclude parent",
@@ -115,10 +134,11 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
     }
     for (path, dev, ino) in parents {
         let info = path.symlink_metadata().map_err(exec::failure)?;
-        if path.canonicalize().map_err(exec::failure)? != path
+        let identity = path_identity(&path).map_err(exec::failure)?;
+        if path.canonical_path().map_err(exec::failure)? != path
             || !info.is_dir()
-            || info.dev() != dev
-            || info.ino() != ino
+            || identity.device != dev
+            || identity.inode != ino
         {
             return Err(EnvdenError::new(
                 ErrorCode::Conflict,

@@ -1,10 +1,11 @@
 use crate::{adapter::GitRepoAdapter, exec, remote};
+use envden_core::filesystem::ICanonicalPath;
+use envden_core::filesystem::path_identity;
 use envden_core::{
     adapters::ICheckout,
     errors::{EnvdenError, ErrorCode, Result},
 };
 use path_clean::PathClean;
-use std::os::unix::fs::MetadataExt;
 use std::{fs, path::Path};
 
 fn id(adapter: &GitRepoAdapter, root: &str, name: &str) -> Result<String> {
@@ -57,30 +58,23 @@ pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<IC
     let common = adapter.git(&root, &["rev-parse", "--git-common-dir"], None)?;
     let git_dir = Path::new(&root)
         .join(common.trim_end())
-        .canonicalize()
+        .canonical_path()
         .map_err(exec::failure)?;
-    let root = Path::new(&root).canonicalize().map_err(exec::failure)?;
-    let directory = fs::symlink_metadata(&git_dir).map_err(exec::failure)?;
-    let root_stat = fs::symlink_metadata(&root).map_err(exec::failure)?;
-    let birth = |m: &fs::Metadata| {
-        m.created()
-            .ok()
-            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-            .map(|d| d.as_secs_f64() * 1000.0)
-            .unwrap_or(0.0)
-    };
+    let root = Path::new(&root).canonical_path().map_err(exec::failure)?;
+    let directory = path_identity(&git_dir).map_err(exec::failure)?;
+    let root_stat = path_identity(&root).map_err(exec::failure)?;
     let root = root.to_string_lossy().into_owned();
     let git_dir = git_dir.to_string_lossy().into_owned();
     Ok(Some(ICheckout {
         identity: Some(format!(
             "{}:{}:{}:{}:{}",
-            directory.dev(),
-            directory.ino(),
-            birth(&directory),
-            root_stat.ino(),
-            birth(&root_stat)
+            directory.device as f64,
+            directory.inode as f64,
+            directory.birth_ms,
+            root_stat.inode as f64,
+            root_stat.birth_ms
         )),
-        root_device: Some(root_stat.dev()),
+        root_device: Some(root_stat.device),
         upstream_repo_id: if remotes.contains(&"upstream") {
             Some(id(adapter, &root, "upstream")?)
         } else {
@@ -107,14 +101,14 @@ fn registered(adapter: &GitRepoAdapter, root: &str, common: &str) -> bool {
                     .ok()?
                     .trim_end(),
             )
-            .canonicalize()
+            .canonical_path()
             .ok()?;
         let registrations = Path::new(common).join("worktrees");
         let info = registrations.symlink_metadata().ok()?;
         if !info.is_dir() || info.is_symlink() {
             return Some(false);
         }
-        let registrations = registrations.canonicalize().ok()?;
+        let registrations = registrations.canonical_path().ok()?;
         let name = private.strip_prefix(registrations).ok()?;
         if name.components().count() != 1 {
             return Some(false);
@@ -127,9 +121,9 @@ fn registered(adapter: &GitRepoAdapter, root: &str, common: &str) -> bool {
         Some(
             private
                 .join(fs::read_to_string(backlink).ok()?.trim_end())
-                .canonicalize()
+                .canonical_path()
                 .ok()?
-                == dot.canonicalize().ok()?,
+                == dot.canonical_path().ok()?,
         )
     };
     check().unwrap_or(false)
