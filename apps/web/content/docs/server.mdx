@@ -58,7 +58,7 @@ Stop the normal server before starting the restored data. Run restored mode once
 envden serve --data-dir /path/to/restored-data --restored
 ```
 
-It prints a repair token for each vault and accepts repair operations only. With the Docker image, arguments after the image name are passed to `envden serve`.
+It prints a repair token for each vault and accepts repair operations only. A vault backed up mid-move is unfrozen, which cancels that move. An unfinished move destination or a vault that moved away gets no token; resume or abort the move instead. With the Docker image, arguments after the image name are passed to `envden serve`.
 
 Don't add `--restored` to a service definition. Running it again creates new tokens and invalidates reports uploaded with the old ones.
 
