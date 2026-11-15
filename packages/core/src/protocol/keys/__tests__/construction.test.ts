@@ -32,6 +32,14 @@ test("deterministic IDs, keys, secret and token text", () => {
   );
 
   expect(p.decodeToken("setup", vector.setupToken).secret.length).toBe(20);
+
+  expect(
+    p.isToken(
+      "setup",
+      ` ${vector.setupToken.slice(0, 40)}\n${vector.setupToken.slice(40).toLowerCase()} `,
+    ),
+  ).toBe(true);
+
   expect(() => p.decodeToken("repair", vector.setupToken)).toThrow();
 });
 

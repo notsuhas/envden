@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import * as p from "@envden/core/protocol";
 import { loadServerKeys } from "../identity/keys.ts";
-import { initializeSetup } from "../identity/setup.ts";
+import { initializeSetup, reissueSetup } from "../identity/setup.ts";
+import { localSetupToken } from "../identity/local.ts";
 import { fixture, identity } from "./fixture.ts";
 
 test("server signing key and OPAQUE setup persist privately", async () => {
@@ -25,6 +26,20 @@ test("server signing key and OPAQUE setup persist privately", async () => {
   }
 });
 
+test("a local host gets a fresh setup token until a vault exists", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "envden-local-"));
+
+  try {
+    const first = (await localSetupToken(dir, 1))!;
+    const second = (await localSetupToken(dir, 2))!;
+
+    expect(p.isToken("setup", first)).toBe(true);
+    expect(second).not.toBe(first);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("setup initialization preserves active hash, replaces explicitly, and stays consumed", async () => {
   const f = fixture(await identity());
 
@@ -38,6 +53,7 @@ test("setup initialization preserves active hash, replaces explicitly, and stays
     const replacement = p.encodeToken("setup", p.randomBytes(20), p.serverPin(pub));
     expect(initializeSetup(f.storage, pub, replacement)).toBe(replacement);
     expect(p.equal(f.storage.setupToken()!, key)).toBe(false);
+    expect(reissueSetup(f.storage, pub)).toBeUndefined();
 
     expect(() =>
       initializeSetup(f.storage, pub, p.encodeToken("setup", p.randomBytes(20), p.randomBytes(32))),

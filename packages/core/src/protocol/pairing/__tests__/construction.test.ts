@@ -20,7 +20,9 @@ test("pairing normalization and channel authentication", () => {
     "12 ABCD EFG",
     "1-0000-00000",
   ])
-    expect(() => p.normalizePairingCode(code)).toThrow();
+    expect(() => p.normalizePairingCode(code)).toThrow(
+      expect.objectContaining({ code: "INVALID_INPUT", message: "Codes look like 3-K7QF-2MXP" }),
+    );
 
   for (const code of ["12-ABCD-EFGH", "12 ABCD EFGH", "12ABCDEFGH"])
     expect(p.normalizePairingCode(code)).toEqual({ mailbox: 12, password: "ABCDEFGH" });

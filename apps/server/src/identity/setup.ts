@@ -38,3 +38,13 @@ export function initializeSetup(
 
   return encodeToken("setup", secret, pin);
 }
+
+export function reissueSetup(storage: IStorageAdapter, publicKey: Uint8Array): string | undefined {
+  if (storage.vaultIds().length > 0) return undefined;
+
+  return initializeSetup(
+    storage,
+    publicKey,
+    encodeToken("setup", randomBytes(20), serverPin(publicKey)),
+  );
+}

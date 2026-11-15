@@ -35,7 +35,9 @@ export async function serve(
 
   try {
     const token = initializeSetup(storage, serverKeys.publicKey, options.setupToken);
-    if (token) console.log(token);
+
+    if (token)
+      printToken("Setup token. Paste it when `envden setup` or `envden server move` asks:", token);
 
     const appOptions = {
       storage,
@@ -46,7 +48,12 @@ export async function serve(
 
     if (options.restored)
       for (const repair of startRestored(appOptions))
-        console.log(base32(repair.vaultId), repair.token ?? restoreNotice[repair.kind]);
+        if (repair.token)
+          printToken(
+            `Repair token for vault ${base32(repair.vaultId)}. Paste it when \`envden server repair\` asks:`,
+            repair.token,
+          );
+        else console.log(`Vault ${base32(repair.vaultId)} ${restoreNotice[repair.kind]}`);
 
     const status = createStatusState(now(), process.env);
     const app = createApp(appOptions, undefined, status);
@@ -96,3 +103,8 @@ export async function serve(
 }
 
 if (import.meta.main) await serve();
+
+function printToken(label: string, token: string) {
+  console.log(label);
+  console.log(`  ${token}`);
+}
