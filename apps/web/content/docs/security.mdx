@@ -25,7 +25,15 @@ The master password and a random secret key protect the recovery envelope. Argon
 
 Keep the kit somewhere safe and separate from your devices. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
 
-Device keys use the OS keychain adapter, with a `0600` file fallback where needed. Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
+Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
+
+## Where device keys are kept
+
+Device keys go in the OS keychain: Keychain on macOS, the Secret Service (such as gnome-keyring) on Linux and Credential Manager on Windows. If there's no keychain when a key is first saved, envden keeps it in a `0600` file instead and tells you.
+
+On a Mac you reach over SSH, the keychain is usually locked. Unlock it first with `security unlock-keychain`. On a headless Linux machine with no Secret Service, install gnome-keyring, or keep keys in files.
+
+To keep keys in files from the start, set `ENVDEN_KEYCHAIN=file` before `envden setup` or `envden join`, and keep it set. Keys already in the keychain stay there, so setting it later makes envden refuse to read them.
 
 ## What envden can't protect against
 

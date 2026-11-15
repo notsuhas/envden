@@ -11,9 +11,9 @@ description: Host the server on your laptop and move it later.
 envden setup --host-server
 ```
 
-This installs a login service using launchd on macOS, systemd on Linux or a Windows login service. Setup prints the log path where you can read its setup token.
+This installs a login service using launchd on macOS, systemd on Linux or a Windows login service, and publishes it on your tailnet with Tailscale Serve. Setup reads the server's setup token itself, so there's nothing to paste.
 
-Enter the token in your terminal (piping it cannot complete the secret prompts), choose a master password and save the recovery kit. Then approve the checkouts you want to sync. Setup places their files and pushes them.
+Choose a master password and save the recovery kit. Then approve the checkouts you want to sync. Setup places their files and pushes them.
 
 Running `envden setup` without `--server` also offers to host the server on this machine.
 
@@ -21,7 +21,7 @@ Running `envden setup` without `--server` also offers to host the server on this
 
 Your env files stay on disk when the server is unreachable. Other devices can sync only while this laptop is awake and reachable over Tailscale.
 
-Use `envden status` to check the connection. An unreachable server is reported as `envden: server unknown`.
+Use `envden status` to check the connection. An unreachable server is reported as `envden: server unreachable` with the reason, such as `connection refused`.
 
 ## Move the server later
 

@@ -20,7 +20,7 @@ envden push
 { "kind": "pushed", "changed": 1, "conflicts": 0 }
 ```
 
-Add `--all` to sync every tracked repo. A push commits its changes in one manifest swap. If another device pushes first, envden retries against the new state. If the head keeps moving, it asks you to retry.
+Add `--all` to sync every tracked repo. A push lands all its files at once or none of them. If another device pushes first, envden retries on top of that push. If other devices keep pushing, it stops and asks you to try again.
 
 ```sh
 envden pull --all

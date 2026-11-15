@@ -89,7 +89,7 @@ envden device rename [options] <name>
 
 ## envden device rm
 
-Remove a device and start a new encryption epoch.
+Remove a device and re-key the vault so it can't read new changes.
 
 ```sh
 envden device rm [options] <device>
@@ -99,10 +99,10 @@ envden device rm [options] <device>
 | ---------- | ----------------- |
 | `<device>` | Device name or ID |
 
-| Option             | Description                                  |
-| ------------------ | -------------------------------------------- |
-| `--kit-out <file>` | Write the new recovery kit to a private file |
-| `--new-kit`        | Replace the recovery kit in the same swap    |
+| Option             | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `--kit-out <file>` | Write the new recovery kit to a private file         |
+| `--new-kit`        | Also replace the recovery kit as part of the removal |
 
 ## envden diff
 
@@ -112,9 +112,10 @@ Show changed key names without values.
 envden diff [options]
 ```
 
-| Option  | Description       |
-| ------- | ----------------- |
-| `--all` | Include all repos |
+| Option   | Description              |
+| -------- | ------------------------ |
+| `--json` | Print the result as JSON |
+| `--all`  | Include all repos        |
 
 ## envden doctor
 
@@ -124,9 +125,9 @@ Check the keychain, symlinks, updates, Tailscale, HTTPS and shell notices.
 envden doctor [options]
 ```
 
-| Option   | Description                      |
-| -------- | -------------------------------- |
-| `--json` | Print the report as compact JSON |
+| Option   | Description              |
+| -------- | ------------------------ |
+| `--json` | Print the report as JSON |
 
 ## envden history
 
@@ -155,21 +156,21 @@ Join using a pairing code or recovery kit in your own terminal.
 envden join [options] <server>
 ```
 
-| Argument   | Description                                             |
-| ---------- | ------------------------------------------------------- |
-| `<server>` | Server address, e.g. https://envden.your-tailnet.ts.net |
+| Argument   | Description                                     |
+| ---------- | ----------------------------------------------- |
+| `<server>` | Server address, e.g. envden.your-tailnet.ts.net |
 
-| Option                    | Description                                      |
-| ------------------------- | ------------------------------------------------ |
-| `--recovery`              | Paste a recovery secret key and vault ID         |
-| `--recovery-kit <path>`   | Recovery kit path                                |
-| `--name <name>`           | Device name                                      |
-| `--yes`                   | Use default preferences                          |
-| `--telemetry <choice>`    | Anonymous telemetry (on, off)                    |
-| `--update-check <choice>` | Daily update check (on, off)                     |
-| `--shell <shell>`         | Shell notice (zsh, bash, fish, powershell, none) |
-| `--agent <choice>`        | Agent skill (on, off)                            |
-| `--resume`                | Fetch the committed approver message             |
+| Option                    | Description                                                       |
+| ------------------------- | ----------------------------------------------------------------- |
+| `--recovery`              | Paste a recovery secret key and vault ID                          |
+| `--recovery-kit <path>`   | Recovery kit path                                                 |
+| `--name <name>`           | Device name                                                       |
+| `--yes`                   | Use default preferences                                           |
+| `--telemetry <choice>`    | Anonymous telemetry (on, off)                                     |
+| `--update-check <choice>` | Daily update check (on, off)                                      |
+| `--shell <shell>`         | Shell notice (zsh, bash, fish, powershell, none)                  |
+| `--agent <choice>`        | Install the agent skill (on, off)                                 |
+| `--resume`                | Finish a join that was approved while this command wasn't running |
 
 ## envden local-only
 
@@ -293,7 +294,7 @@ envden server move [options] [server]
 
 ## envden server repair
 
-Upload repair material to a restored server, or finish the repair.
+After a server restore, re-upload this device's data, or finish the restore with --finish.
 
 ```sh
 envden server repair [options]
@@ -302,7 +303,7 @@ envden server repair [options]
 | Option                   | Description                                                        |
 | ------------------------ | ------------------------------------------------------------------ |
 | `--repair-token <token>` | Repair token; prefer stdin for upload, use a terminal for --finish |
-| `--finish`               | Verify every report and finish the repair                          |
+| `--finish`               | Check every device's upload and finish the restore                 |
 | `--without <device...>`  | Drop unavailable devices; they rejoin as new devices               |
 | `--accept-lost`          | Accept the newest verified older version of a missing file         |
 
@@ -332,12 +333,12 @@ envden setup [options]
 | `--server <url>`           | Use this server                                                          |
 | `--kit-out <file>`         | Write recovery kit to a private file                                     |
 | `--name <name>`            | Device name                                                              |
-| `--host-server`            | Host a login service on this device                                      |
+| `--host-server`            | Run the envden server on this machine; no setup token needed             |
 | `--setup-token <token>`    | Setup token, visible to other processes; use the prompt in a terminal    |
 | `--telemetry <choice>`     | Anonymous telemetry (on, off)                                            |
-| `--update-check <choice>`  | Daily release check (on, off)                                            |
-| `--shell <shell>`          | Shell hook (zsh, bash, fish, powershell, none)                           |
-| `--agent <choice>`         | Install agent skill (on, off)                                            |
+| `--update-check <choice>`  | Daily update check (on, off)                                             |
+| `--shell <shell>`          | Shell notice (zsh, bash, fish, powershell, none)                         |
+| `--agent <choice>`         | Install the agent skill (on, off)                                        |
 | `--scan-root <path...>`    | Roots to scan for repos                                                  |
 | `--exclude-root <path...>` | Roots to skip                                                            |
 
@@ -451,7 +452,7 @@ envden update [options]
 
 ## envden vault
 
-Rotate keys, replace the recovery kit, or change or reset the password.
+Re-key the vault, replace the recovery kit, or change or reset the password.
 
 ```sh
 envden vault [options] [command]
@@ -509,7 +510,7 @@ envden vault password reset [options]
 
 ## envden vault rotate
 
-Start a new encryption epoch.
+Re-key the vault so removed devices can't read new changes.
 
 ```sh
 envden vault rotate [options]

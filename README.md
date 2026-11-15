@@ -47,18 +47,26 @@ The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/e
 **On a home server (Docker):**
 
 ```sh
-export TS_AUTHKEY=tskey-...                            # a Tailscale auth key for the server
-docker compose -f packaging/docker/compose.yml up -d
-docker compose -f packaging/docker/compose.yml logs envden   # prints a one-time setup token
+docker run -d --name envden --restart unless-stopped \
+  --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+  --tmpfs /tmp:uid=10001,gid=10001,mode=1777 \
+  --tmpfs /var/run/tailscale:uid=10001,gid=10001,mode=0700 \
+  -e TS_AUTHKEY="tskey-auth-..." \
+  -v envden-data:/data \
+  -v tailscale-state:/var/lib/tailscale \
+  ghcr.io/notsuhas/envden:0
+docker logs envden   # prints a one-time setup token
 ```
+
+Replace `tskey-auth-...` with a Tailscale auth key. The server joins your tailnet as `envden`, at `https://envden.<tailnet>.ts.net`.
 
 **On your first laptop:**
 
 ```sh
-envden setup          # paste the setup token, choose a master password, print the recovery kit
+envden setup --server https://envden.<tailnet>.ts.net   # paste the setup token, choose a master password, print the recovery kit
 ```
 
-No home server? `envden setup --host-server` runs the server on this laptop instead.
+No home server? `envden setup --host-server` runs the server on this laptop instead, with no token to paste.
 
 **On every other device:**
 

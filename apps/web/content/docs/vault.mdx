@@ -28,7 +28,7 @@ A device logs in with the master password at least once per unlock period. After
 envden unlock
 ```
 
-A successful unlock prints `Unlocked`. Env files already on the device keep working while it's locked. A paired device inherits the approver's remaining time rather than a fresh period.
+A successful unlock prints `Unlocked`. Env files already on the device keep working while it's locked. A newly paired device gets the remaining time of the device that approved it, not a fresh period.
 
 ### Change the unlock period
 
@@ -57,7 +57,7 @@ On a device that's still in the vault:
 envden vault password reset
 ```
 
-Enter a new password twice, then the recovery secret key. The reset replaces the recovery keys inside the envelope and starts a new encryption epoch. Your kit stays valid. Success prints `Password reset; the kit stays valid`.
+Enter a new password twice, then the recovery secret key. The reset replaces the recovery keys inside the envelope and switches to a new encryption key for future writes. Your kit stays valid. Success prints `Password reset; the kit stays valid`.
 
 Joining with the kit also needs the password, so a reset needs a device that's already a member. If you've lost both the password and the kit, create a new vault from a device's local store.
 
@@ -69,7 +69,7 @@ If you still know the password:
 envden vault kit replace
 ```
 
-Enter your master password. envden makes new recovery keys and a new secret key, starts a new epoch and prints the new kit. Store it somewhere safe and separate from your devices. Success prints `Recovery kit replaced; the old kit no longer works`.
+Enter your master password. envden makes new recovery keys and a new secret key, switches to a new encryption key and prints the new kit. Store it somewhere safe and separate from your devices. Success prints `Recovery kit replaced; the old kit no longer works`.
 
 To write the kit to a file instead of printing it, pass `--kit-out /path/to/kit.json`. The path must be new and in an existing folder; the file gets owner-only permissions. If saving fails, envden prints the kit so you can save it yourself.
 
@@ -90,6 +90,6 @@ An interrupted `device rm --new-kit` works the same way. Its rerun prints `Finis
 envden vault rotate
 ```
 
-Enter your master password. envden starts a new encryption epoch, so new writes use a new key. Existing files aren't re-encrypted. Success prints `Epoch rotated`. Offline devices pick up the new epoch on their next pull.
+Enter your master password. envden switches to a new encryption key for new writes. Existing files aren't re-encrypted. Success prints `Vault re-keyed; removed devices can't read new changes`. Offline devices get the new key on their next pull.
 
 Removing a device already rotates. See [remove a device](/docs/joining-devices#remove-a-device).
