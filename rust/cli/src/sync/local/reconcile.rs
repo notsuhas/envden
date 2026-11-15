@@ -71,6 +71,7 @@ pub fn reconcile(
             .collect::<Result<Vec<_>>>()?;
         work.push((store, targets, None));
     }
+    let collisions = super::validation::entries::collision_entries(context, repos)?;
     for entry in readable_entries(context)? {
         let name = entry_name(context, &entry)?;
         if !repos.contains(&name.repo_id) {
@@ -85,6 +86,17 @@ pub fn reconcile(
         let store = store_path(&context.adapters.home, &name.repo_id, &name.path)?
             .to_string_lossy()
             .into_owned();
+        if collisions.contains(&entry.file_id) {
+            result.failed_stores.insert(store);
+            result.conflicts += 1;
+            if let Some(report) = &context.options.report {
+                report(&crate::output::sanitize_terminal(&format!(
+                    "Could not place env file: {}",
+                    name.path
+                )));
+            }
+            continue;
+        }
         work.push((store, targets(context, repos, &name)?, Some(entry)));
     }
     for (store, targets, entry) in work {
