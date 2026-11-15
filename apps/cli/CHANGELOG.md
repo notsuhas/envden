@@ -1,5 +1,12 @@
 # @envden/cli
 
+## 0.3.2
+
+### Patch Changes
+
+- eb8d4cc: `envden update` runs Homebrew with your own Homebrew config, so a tap you trusted with `brew trust` loads.
+- @envden/server@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
