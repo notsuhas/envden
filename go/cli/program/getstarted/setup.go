@@ -1,6 +1,5 @@
 package getstarted
 
-import "github.com/notsuhas/envden/go/cli/program/stub"
 import "github.com/notsuhas/envden/go/lib/commander"
 
 func SetupCommand() *commander.Command {
@@ -18,6 +17,6 @@ func SetupCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--scan-root <path...>", "Roots to scan for repos"))
 	c.AddOption(commander.NewOption("--exclude-root <path...>", "Roots to skip"))
 	c.AddOption(commander.NewOption("--verbose", "List each repo and env file the scan skipped"))
-	c.Action(stub.Action)
+	c.Action(setupAction)
 	return c
 }

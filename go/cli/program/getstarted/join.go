@@ -1,6 +1,5 @@
 package getstarted
 
-import "github.com/notsuhas/envden/go/cli/program/stub"
 import "github.com/notsuhas/envden/go/lib/commander"
 
 func JoinCommand() *commander.Command {
@@ -15,6 +14,6 @@ func JoinCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--agent <choice>", "Install the agent skill").Choices("on", "off"))
 	c.AddOption(commander.NewOption("--resume", "Finish a join that was approved while this command wasn't running"))
 	c.AddArgument(commander.NewArgument("<server>", "Server address, e.g. envden.your-tailnet.ts.net"))
-	c.Action(stub.Action)
+	c.Action(joinAction)
 	return c
 }
