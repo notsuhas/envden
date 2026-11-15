@@ -1,4 +1,5 @@
 import { setup, password, recoveryJoin } from "../../harness/onboarding.ts";
+import type { Context } from "../../harness/context.ts";
 import type { IScenario } from "../../harness/types.ts";
 
 export default {
@@ -19,21 +20,7 @@ export default {
       );
 
       await c.finish("device-a", `remove before ${mode} rejoin`, remove);
-      const args = ["join", server.url, "--name", "beta", "--yes"];
-      if (mode === "kit") args.push("--recovery-kit", kit);
-      const join = c.pty("device-b", args);
-
-      if (mode === "kit") await join.expect("Master password", `${password}\r`);
-      else {
-        const add = c.pty("device-a", ["device", "add"]);
-        await add.expect("Master password", `${password}\r`);
-        const code = await add.expect(/\b(\d{1,3}-[0-9A-Z]{4}-[0-9A-Z]{4})\b/);
-        await join.expect("Pairing code", `${code}\r`);
-        await add.expect("Add ", "y");
-        await c.finish("device-a", "approve pairing rejoin", add);
-      }
-
-      await c.finish("device-b", `${mode} rejoin`, join);
+      await joinAgain(c, { address: server.url, kit, mode });
       await c.run("device-b", ["device", "ls", "--json"]);
     }
 
@@ -41,3 +28,27 @@ export default {
       result.stdout = result.stdout.replace(/^envden: beta joined with the recovery kit\n/gm, "");
   },
 } satisfies IScenario;
+
+interface IRejoin {
+  address: string;
+  kit: string;
+  mode: string;
+}
+
+async function joinAgain(c: Context, options: IRejoin) {
+  const args = ["join", options.address, "--name", "beta", "--yes"];
+  if (options.mode === "kit") args.push("--recovery-kit", options.kit);
+  const join = c.pty("device-b", args);
+
+  if (options.mode === "kit") await join.expect("Master password", `${password}\r`);
+  else {
+    const add = c.pty("device-a", ["device", "add"]);
+    await add.expect("Master password", `${password}\r`);
+    const code = await add.expect(/\b(\d{1,3}-[0-9A-Z]{4}-[0-9A-Z]{4})\b/);
+    await join.expect("Pairing code", `${code}\r`);
+    await add.expect("Add ", "y");
+    await c.finish("device-a", "approve pairing rejoin", add);
+  }
+
+  await c.finish("device-b", `${options.mode} rejoin`, join);
+}
