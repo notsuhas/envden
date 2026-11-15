@@ -101,7 +101,7 @@ pub(crate) fn recovery_route(
         },
         Some(&"finish") if repair=>{
             let raw:Value=serde_json::from_slice(body).map_err(|_|EnvdenError::new(ErrorCode::InvalidInput,"Invalid JSON"))?;
-            
+            let _: TRepairFinish = crate::http::encoding::json_input(&raw)?;
             let bytes=binary(raw["swap"].as_str().unwrap_or(""),None)?;
             let swap:ISwap=input(||decode(&bytes))?;
             if swap.header.body.op!=12 {return Err(EnvdenError::new(ErrorCode::InvalidInput,"Repair close required"));}
