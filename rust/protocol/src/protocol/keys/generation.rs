@@ -1,10 +1,13 @@
 use ed25519_dalek::SigningKey;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct IRecoveryKeys {
     pub enc_sk: [u8; 32],
     pub obj_sk: [u8; 32],
+    #[zeroize(skip)]
     pub enc_pub: [u8; 32],
+    #[zeroize(skip)]
     pub obj_pub: [u8; 32],
 }
 

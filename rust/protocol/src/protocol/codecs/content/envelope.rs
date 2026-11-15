@@ -1,13 +1,19 @@
 use crate::protocol::encoding::*;
 use envden_core::errors::Result;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Zeroize, ZeroizeOnDrop,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct IEnvelope {
+    #[zeroize(skip)]
     pub vault_id: [u8; 32],
     pub recovery_enc_sk: [u8; 32],
     pub recovery_obj_sk: [u8; 32],
+    #[zeroize(skip)]
     pub checkpoint: [u8; 32],
+    #[zeroize(skip)]
     pub sealed_at: u64,
 }
 

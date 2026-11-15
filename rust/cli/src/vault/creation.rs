@@ -2,6 +2,7 @@ use super::IGenesis;
 use crate::{client::binary, identity::IDeviceIdentity};
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
+use zeroize::Zeroizing;
 
 pub struct IVaultCreation {
     pub swap: p::ISwap,
@@ -16,7 +17,7 @@ pub fn create_vault_swap(
     registration_record: &str,
     now: u64,
 ) -> Result<IVaultCreation> {
-    let secret = p::random_bytes();
+    let secret = Zeroizing::new(p::random_bytes());
     let envelope = p::seal_envelope(
         &p::IEnvelope {
             vault_id: material.vault_id,

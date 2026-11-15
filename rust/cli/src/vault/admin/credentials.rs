@@ -19,6 +19,7 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
 use std::rc::Rc;
+use zeroize::Zeroizing;
 
 fn recovery(keys: &p::IRecoveryKeys) -> p::IRecoveryRecord {
     p::IRecoveryRecord {
@@ -58,10 +59,10 @@ pub fn replace(
     show: &mut dyn FnMut(&Value) -> Result<()>,
 ) -> Result<bool> {
     with_state_lock(&adapters.home, (adapters.now)(), || {
-        let mut keys = p::generate_recovery_keys(p::random_bytes);
-        let mut secret = p::random_bytes();
+        let keys = p::generate_recovery_keys(p::random_bytes);
+        let secret = Zeroizing::new(p::random_bytes());
         let mut shown = false;
-        let result = retry_head(|| {
+        retry_head(|| {
             let context = admin_context(adapters, transport.clone())?;
             if pending::settle(&context)? {
                 return Ok(true);
@@ -107,11 +108,7 @@ pub fn replace(
             commit(&context, &swap)?;
             pending::clear(&context)?;
             Ok(false)
-        });
-        keys.enc_sk.fill(0);
-        keys.obj_sk.fill(0);
-        secret.fill(0);
-        result
+        })
     })
 }
 
@@ -141,33 +138,27 @@ pub fn change(
                     "Envelope hash mismatch",
                 ));
             }
-            let mut secret = p::decode_secret_key(kit)?;
+            let secret = Zeroizing::new(p::decode_secret_key(kit)?);
             let mut opened = p::open_envelope(&bytes, old, &secret, &context.vault_id)?;
-            let result = (|| {
-                let record = register_password(&context.client, &context.vault_id, new)?;
-                opened.checkpoint =
-                    p::object_hash(history.headers.last().expect("history"), "manifest")?;
-                opened.sealed_at = (adapters.now)();
-                let sealed = p::seal_envelope(
-                    &opened,
-                    new,
-                    &secret,
-                    &p::random_bytes(),
-                    &p::random_bytes(),
-                )?;
-                let mut swap = finish_swap(
-                    admin_swap(&history, &context.identity, 8, (adapters.now)(), vec![])?,
-                    &context,
-                    None,
-                    Some(sealed),
-                )?;
-                swap.opaque_record = Some(binary(&record)?);
-                commit(&context, &swap)
-            })();
-            secret.fill(0);
-            opened.recovery_enc_sk.fill(0);
-            opened.recovery_obj_sk.fill(0);
-            result
+            let record = register_password(&context.client, &context.vault_id, new)?;
+            opened.checkpoint =
+                p::object_hash(history.headers.last().expect("history"), "manifest")?;
+            opened.sealed_at = (adapters.now)();
+            let sealed = p::seal_envelope(
+                &opened,
+                new,
+                &secret,
+                &p::random_bytes(),
+                &p::random_bytes(),
+            )?;
+            let mut swap = finish_swap(
+                admin_swap(&history, &context.identity, 8, (adapters.now)(), vec![])?,
+                &context,
+                None,
+                Some(sealed),
+            )?;
+            swap.opaque_record = Some(binary(&record)?);
+            commit(&context, &swap)
         })
     })
 }
@@ -180,42 +171,37 @@ pub fn reset(
 ) -> Result<()> {
     with_state_lock(&adapters.home, (adapters.now)(), || {
         retry_head(|| {
-            let mut secret = p::decode_secret_key(kit)?;
-            let mut keys = p::generate_recovery_keys(p::random_bytes);
-            let result = (|| {
-                let mut context = admin_context(adapters, transport.clone())?;
-                context.client.options.proof = Some(Rc::new(move |request| {
-                    p::sign_sk_proof(&secret, &request.vault_id, request).map(|b| b.to_vec())
-                }));
-                let history = current_history(&context)?;
-                let recovery = recovery(&keys);
-                let (change, keyring) = next_epoch(&context, &history, &recovery, None)?;
-                let entry = entry(
-                    &context,
+            let secret = Zeroizing::new(p::decode_secret_key(kit)?);
+            let keys = p::generate_recovery_keys(p::random_bytes);
+            let mut context = admin_context(adapters, transport.clone())?;
+            let proof_secret = secret.clone();
+            context.client.options.proof = Some(Rc::new(move |request| {
+                p::sign_sk_proof(&proof_secret, &request.vault_id, request).map(|b| b.to_vec())
+            }));
+            let history = current_history(&context)?;
+            let recovery = recovery(&keys);
+            let (change, keyring) = next_epoch(&context, &history, &recovery, None)?;
+            let entry = entry(
+                &context,
+                &history,
+                p::TEntryPayload::ReplaceRecovery(p::IReplaceRecovery { recovery, change }),
+            )?;
+            let record = register_password(&context.client, &context.vault_id, password)?;
+            let sealed = envelope(&context, &history, &keys, password, &secret)?;
+            let mut swap = finish_swap(
+                admin_swap(
                     &history,
-                    p::TEntryPayload::ReplaceRecovery(p::IReplaceRecovery { recovery, change }),
-                )?;
-                let record = register_password(&context.client, &context.vault_id, password)?;
-                let sealed = envelope(&context, &history, &keys, password, &secret)?;
-                let mut swap = finish_swap(
-                    admin_swap(
-                        &history,
-                        &context.identity,
-                        9,
-                        (adapters.now)(),
-                        vec![entry],
-                    )?,
-                    &context,
-                    Some(keyring),
-                    Some(sealed),
-                )?;
-                swap.opaque_record = Some(binary(&record)?);
-                commit(&context, &swap)
-            })();
-            secret.fill(0);
-            keys.enc_sk.fill(0);
-            keys.obj_sk.fill(0);
-            result
+                    &context.identity,
+                    9,
+                    (adapters.now)(),
+                    vec![entry],
+                )?,
+                &context,
+                Some(keyring),
+                Some(sealed),
+            )?;
+            swap.opaque_record = Some(binary(&record)?);
+            commit(&context, &swap)
         })
     })
 }

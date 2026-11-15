@@ -11,17 +11,12 @@ use crate::{
 };
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub(super) struct IChannelKeys {
     pub receive: [u8; 32],
     pub send: [u8; 32],
-}
-
-impl Drop for IChannelKeys {
-    fn drop(&mut self) {
-        self.receive.fill(0);
-        self.send.fill(0);
-    }
 }
 
 pub(crate) fn named_for_list(
@@ -73,4 +68,23 @@ pub(super) fn approve<'a>(
             Ok(())
         })
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn directional_keys_zeroize_on_drop() {
+        fn requires_zeroize_on_drop<T: ZeroizeOnDrop>() {}
+
+        requires_zeroize_on_drop::<IChannelKeys>();
+        let mut keys = IChannelKeys {
+            receive: [7; 32],
+            send: [8; 32],
+        };
+        keys.zeroize();
+        assert_eq!(keys.receive, [0; 32]);
+        assert_eq!(keys.send, [0; 32]);
+    }
 }
