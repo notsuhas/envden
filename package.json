@@ -19,10 +19,12 @@
     "ci": "vp check && bun test && fallow --fail-on-issues",
     "changeset": "changeset",
     "release:version": "changeset version && bun scripts/release/sync-version.ts && bun install && vp check --fix",
-    "parity": "bun parity/run.ts"
+    "parity": "bun parity/run.ts",
+    "parity:recovery-pdf": "bun parity/render-recovery-pdf.ts"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",
+    "@pdf-lib/standard-fonts": "1.0.0",
     "@types/bun": "1.4.4",
     "fallow": "3.42.0",
     "oxlint": "1.93.0",

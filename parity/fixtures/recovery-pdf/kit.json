@@ -1,0 +1,43 @@
+{
+  "kit": {
+    "vaultId": "0C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G",
+    "secretKey": "EK1-0M2GA-1850M-2GA18-50M2G-A1850-NME4",
+    "server": "http://localhost:4310"
+  },
+  "now": 1800000000000,
+  "deviceName": "laptop",
+  "document": {
+    "title": "envden Recovery Kit",
+    "details": [
+      {
+        "label": "Created",
+        "value": "2027-01-15 08:00 GMT+0"
+      },
+      {
+        "label": "Device",
+        "value": "laptop"
+      }
+    ],
+    "fields": [
+      {
+        "label": "Vault ID",
+        "value": "0C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G"
+      },
+      {
+        "label": "Secret key",
+        "value": "EK1-0M2GA-1850M-2GA18-50M2G-A1850-NME4",
+        "large": true
+      },
+      {
+        "label": "Server",
+        "value": "http://localhost:4310"
+      }
+    ],
+    "instructions": [
+      "To get back in on a new device: run envden join http://localhost:4310 --recovery, enter the vault ID and secret key above, then your master password.",
+      "Keep this offline, like a passport. Never write your master password on it.",
+      "Anyone with this kit and your master password can open the vault."
+    ],
+    "footer": "https://envden.theclau.de"
+  }
+}

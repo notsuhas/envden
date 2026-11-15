@@ -682,7 +682,9 @@ dependencies = [
  "envden-core",
  "envden-protocol",
  "envden-server",
+ "flate2",
  "http-body-util",
+ "libz-sys",
  "regex",
  "serde",
  "serde_json",
@@ -750,6 +752,7 @@ dependencies = [
  "envden-adapter-storage-sqlite",
  "envden-core",
  "envden-protocol",
+ "envden-testing",
  "http-body-util",
  "hyper",
  "hyper-util",
@@ -836,6 +839,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "626d4928326b646e70f65ed36fc7cf9f206bdb68a0019ee7c6b4709da4e084c4"
 dependencies = [
  "crc32fast",
+ "libz-sys",
  "miniz_oxide",
  "zlib-rs",
 ]
@@ -1270,6 +1274,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95b4103cffefa72eb8428cb6b47d6627161e51c2739fc5e3b734584157bc642a"
 dependencies = [
  "cc",
+ "pkg-config",
+ "vcpkg",
+]
+
+[[package]]
+name = "libz-sys"
+version = "1.1.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f710a23e6dbf193214fd46ca56a9d6864e550abe86202184532ae7275e46de19"
+dependencies = [
+ "cc",
+ "libc",
  "pkg-config",
  "vcpkg",
 ]

@@ -22,3 +22,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: the status page displays `1 day`; date-fns splits the interval into calendar months and days, then the formatter omits months and years. Rust preserves that result.
 - Possible improvement: format elapsed days, or include months and years.
 - Why: long uptimes currently look much shorter than they are. BUG: fix in all implementations.
+
+## Device names allow control characters
+
+- Scenario: rename a device to a name containing a newline or tab.
+- TS behaviour: name validation rejects Unicode format characters but allows control characters; Rust preserves it.
+- Possible improvement: reject control characters alongside format characters.
+- Why: a name advertised as having no invisible characters can still contain them. BUG: fix in all implementations.
