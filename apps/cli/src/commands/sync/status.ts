@@ -11,7 +11,7 @@ export const statusCommand = new Command("status")
   .action(async (options) => {
     const commandTime = Date.now();
 
-    const adapters = createAdapters(undefined, () => commandTime);
+    const adapters = createAdapters(undefined, Date.now);
 
     const notice = await commandNotice(
       adapters,

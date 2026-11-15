@@ -5,13 +5,7 @@ import { switchServer } from "../../admin/move/switch.ts";
 export const serverSwitchCommand = new Command("switch")
   .argument("<server>")
   .action(async (server) => {
-    const commandTime = Date.now();
-
-    await switchServer(
-      createAdapters(undefined, () => commandTime),
-      server,
-      () => commandTime,
-    );
+    await switchServer(createAdapters(undefined, Date.now), server, Date.now);
 
     console.log("Server switched");
   });

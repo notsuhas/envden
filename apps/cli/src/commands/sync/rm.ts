@@ -10,20 +10,13 @@ export const rmCommand = new Command("rm")
   .option("--yes", "Confirm deletion, including local edits and conflicts")
   .option("--json", "Print the result as JSON")
   .action(async (path, options) => {
-    const commandTime = Date.now();
-
-    const result = await removeFile(
-      createAdapters(undefined, () => commandTime),
-      path,
-      {
-        yes: !!options.yes,
-        interactive: !!process.stdin.isTTY,
-        confirm: consent,
-        now: () => commandTime,
-        report: (message) =>
-          (options.json ? console.error : console.log)(sanitizeTerminal(message)),
-      },
-    );
+    const result = await removeFile(createAdapters(undefined, Date.now), path, {
+      yes: !!options.yes,
+      interactive: !!process.stdin.isTTY,
+      confirm: consent,
+      now: Date.now,
+      report: (message) => (options.json ? console.error : console.log)(sanitizeTerminal(message)),
+    });
 
     if (options.json) console.log(terminalJson(result));
     else {

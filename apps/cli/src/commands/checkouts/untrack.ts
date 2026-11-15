@@ -6,12 +6,7 @@ export const untrackCommand = new Command("untrack")
   .argument("<path>")
   .description("Stop tracking a checkout and restore regular env files")
   .action(async (path) => {
-    const commandTime = Date.now();
-
-    const cancelled = await untrack(
-      createAdapters(undefined, () => commandTime),
-      path,
-    );
+    const cancelled = await untrack(createAdapters(undefined, Date.now), path);
 
     for (const file of cancelled) console.log(`Cancelled removal: ${file}`);
   });

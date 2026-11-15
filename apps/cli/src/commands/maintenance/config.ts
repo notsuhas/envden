@@ -14,8 +14,6 @@ export const configCommand = new Command("config")
     "Get/set telemetry, update-check, agent-merge, unlock-period, placement <path> link|copy or env-files <JSON>",
   )
   .action(async (key, values) => {
-    const commandTime = Date.now();
-
     const value = values?.[0];
 
     if (key === "placement" && value !== undefined) {
@@ -24,11 +22,7 @@ export const configCommand = new Command("config")
 
       console.log(
         JSON.stringify(
-          await setCheckoutPlacement(
-            createAdapters(undefined, () => commandTime),
-            value,
-            values[1],
-          ),
+          await setCheckoutPlacement(createAdapters(undefined, Date.now), value, values[1]),
         ),
       );
 
@@ -37,12 +31,7 @@ export const configCommand = new Command("config")
 
     if (key === "unlock-period" && value === undefined) {
       console.log(
-        JSON.stringify(
-          await getUnlockPeriod(
-            createAdapters(undefined, () => commandTime),
-            () => commandTime,
-          ),
-        ),
+        JSON.stringify(await getUnlockPeriod(createAdapters(undefined, Date.now), Date.now)),
       );
 
       return;
@@ -51,10 +40,10 @@ export const configCommand = new Command("config")
     if (value !== undefined && key !== undefined) {
       if (key === "unlock-period") {
         await setUnlockPeriod(
-          createAdapters(undefined, () => commandTime),
+          createAdapters(undefined, Date.now),
           value,
           await secret("Master password"),
-          () => commandTime,
+          Date.now,
         );
 
         return;
@@ -62,7 +51,7 @@ export const configCommand = new Command("config")
 
       console.log(
         JSON.stringify(
-          await setConfig(key, value, createAdapters(undefined, () => commandTime).home),
+          await setConfig(key, value, createAdapters(undefined, Date.now).home),
           null,
           2,
         ),
@@ -71,7 +60,7 @@ export const configCommand = new Command("config")
       return;
     }
 
-    const config = await readConfig(createAdapters(undefined, () => commandTime).home);
+    const config = await readConfig(createAdapters(undefined, Date.now).home);
 
     reportConfig(config, key);
   });

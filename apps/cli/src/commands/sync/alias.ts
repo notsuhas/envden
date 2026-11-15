@@ -6,13 +6,7 @@ export const aliasCommand = new Command("alias")
   .argument("<repo>")
   .argument("<target>")
   .action(async (repo, target) => {
-    const commandTime = Date.now();
-
-    await aliasUnlinkedRepo(
-      createAdapters(undefined, () => commandTime),
-      repo,
-      target,
-    );
+    await aliasUnlinkedRepo(createAdapters(undefined, Date.now), repo, target);
 
     console.log("Alias saved");
   });

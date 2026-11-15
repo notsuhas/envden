@@ -15,48 +15,33 @@ export const serverRepairCommand = new Command("repair")
   .option("--without <device...>")
   .option("--accept-lost")
   .action(async (options) => {
-    const commandTime = Date.now();
-
     const token = await readToken(options.repairToken, "Repair token");
 
     if (options.finish) {
-      const result = await finishRepair(
-        createAdapters(undefined, () => commandTime),
-        {
-          token,
-          password: await secret("Master password"),
-          without: options.without,
-          acceptLost: options.acceptLost,
-          now: () => commandTime,
-          fetcher: fetch,
-        },
-      );
+      const result = await finishRepair(createAdapters(undefined, Date.now), {
+        token,
+        password: await secret("Master password"),
+        without: options.without,
+        acceptLost: options.acceptLost,
+        now: Date.now,
+        fetcher: fetch,
+      });
 
       console.log(result);
 
       await offerReplacementKit(result);
     } else {
-      await uploadRepair(
-        createAdapters(undefined, () => commandTime),
-        token,
-        () => commandTime,
-      );
+      await uploadRepair(createAdapters(undefined, Date.now), token, Date.now);
 
       console.log("Repair material uploaded");
     }
   });
 
 async function offerReplacementKit(result: Awaited<ReturnType<typeof finishRepair>>) {
-  const commandTime = Date.now();
-
   if (
     result.kind === "finished" &&
     result.replaceKit &&
     (await consent("Replace the recovery kit now?"))
   )
-    await runVaultAdmin(
-      createAdapters(undefined, () => commandTime),
-      "replace",
-      () => commandTime,
-    );
+    await runVaultAdmin(createAdapters(undefined, Date.now), "replace", Date.now);
 }

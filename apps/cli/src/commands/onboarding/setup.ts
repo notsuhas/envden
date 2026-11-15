@@ -30,8 +30,6 @@ export const setupCommand = new Command("setup")
   .option("--scan-root <path...>", "Roots to scan for repos")
   .option("--exclude-root <path...>", "Roots to skip")
   .action(async (options) => {
-    const commandTime = Date.now();
-
     const missing = missingSetupFlags(!!process.stdin.isTTY, options);
 
     if (missing.length) {
@@ -42,9 +40,5 @@ export const setupCommand = new Command("setup")
       throw new EnvdenError("INVALID_INPUT", "Setup choices require your own terminal");
     }
 
-    await runSetup(
-      createAdapters(undefined, () => commandTime),
-      options,
-      () => commandTime,
-    );
+    await runSetup(createAdapters(undefined, Date.now), options, Date.now);
   });

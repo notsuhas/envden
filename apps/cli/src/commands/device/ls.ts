@@ -3,12 +3,5 @@ import { createAdapters } from "../../adapters.ts";
 import { listDevices } from "../../admin/devices/list.ts";
 
 export const deviceLsCommand = new Command("ls").action(async () => {
-  const commandTime = Date.now();
-
-  console.table(
-    await listDevices(
-      createAdapters(undefined, () => commandTime),
-      () => commandTime,
-    ),
-  );
+  console.table(await listDevices(createAdapters(undefined, Date.now), Date.now));
 });

@@ -20,7 +20,4 @@ async function runCli(now: () => number) {
   }
 }
 
-if (import.meta.main) {
-  const commandTime = Date.now();
-  await withTerminalErrors(() => runCli(() => commandTime));
-}
+if (import.meta.main) await withTerminalErrors(() => runCli(Date.now));

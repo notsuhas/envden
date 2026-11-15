@@ -14,12 +14,8 @@ export const resolveCommand = new Command("resolve")
   .addOption(new Option("--keep-mine").conflicts("takeServer"))
   .option("--take-server")
   .action(async (file, options) => {
-    const commandTime = Date.now();
-
     if (options.list) {
-      console.log(
-        terminalJson(await conflictRecords(createAdapters(undefined, () => commandTime).home)),
-      );
+      console.log(terminalJson(await conflictRecords(createAdapters(undefined, Date.now).home)));
 
       return;
     }
@@ -27,7 +23,7 @@ export const resolveCommand = new Command("resolve")
     if (
       (options.keepMine || options.takeServer) &&
       !process.stdin.isTTY &&
-      !(await readConfig(createAdapters(undefined, () => commandTime).home))["agent-merge"]
+      !(await readConfig(createAdapters(undefined, Date.now).home))["agent-merge"]
     )
       throw new EnvdenError(
         "INVALID_INPUT",
@@ -36,15 +32,12 @@ export const resolveCommand = new Command("resolve")
 
     console.log(
       terminalJson(
-        await resolveConflict(
-          createAdapters(undefined, () => commandTime),
-          {
-            ...(file ? { file } : {}),
-            ...(options.repo ? { repo: options.repo } : {}),
-            now: () => commandTime,
-            choice: resolutionChoice(options.keepMine, options.takeServer),
-          },
-        ),
+        await resolveConflict(createAdapters(undefined, Date.now), {
+          ...(file ? { file } : {}),
+          ...(options.repo ? { repo: options.repo } : {}),
+          now: Date.now,
+          choice: resolutionChoice(options.keepMine, options.takeServer),
+        }),
       ),
     );
   });

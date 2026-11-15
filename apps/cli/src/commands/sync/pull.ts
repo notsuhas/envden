@@ -10,12 +10,7 @@ export const pullCommand = new Command("pull")
   .option("--all", "Sync all repos")
   .option("--yes", "Confirm clean changes")
   .action(async (options) => {
-    const commandTime = Date.now();
-
-    const result = await pull(
-      createAdapters(undefined, () => commandTime),
-      syncOptions(options, () => commandTime),
-    );
+    const result = await pull(createAdapters(undefined, Date.now), syncOptions(options, Date.now));
 
     console.log(terminalJson(result));
 

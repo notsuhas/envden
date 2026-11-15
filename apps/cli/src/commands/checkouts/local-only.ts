@@ -11,8 +11,7 @@ export const localOnlyCommand = new Command("local-only")
   .argument("<file>")
   .description("Keep a managed file local to this checkout")
   .action(async (file) => {
-    const commandTime = Date.now();
-    const adapters = createAdapters(undefined, () => commandTime);
+    const adapters = createAdapters(undefined, Date.now);
     const absolute = resolve(file);
 
     await withStateLock(adapters.home, async () => {

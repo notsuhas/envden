@@ -11,7 +11,7 @@ export const updateCommand = new Command("update")
   .action(async (options) => {
     const commandTime = Date.now();
 
-    const adapters = createAdapters(undefined, () => commandTime);
+    const adapters = createAdapters(undefined, Date.now);
 
     if (options.postInstall) {
       await refreshInstallation(adapters, process.execPath);

@@ -5,14 +5,7 @@ import { diff } from "../../sync/diff.ts";
 import { syncOptions } from "../../sync/command.ts";
 
 export const diffCommand = new Command("diff").option("--all").action(async (options) => {
-  const commandTime = Date.now();
-
   console.log(
-    terminalJson(
-      await diff(
-        createAdapters(undefined, () => commandTime),
-        syncOptions(options, () => commandTime),
-      ),
-    ),
+    terminalJson(await diff(createAdapters(undefined, Date.now), syncOptions(options, Date.now))),
   );
 });
