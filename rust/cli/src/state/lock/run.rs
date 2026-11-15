@@ -77,7 +77,7 @@ fn with_observer<T>(
             token: token.clone(),
             started_at,
             identity: super::owner::process_identity(),
-            created_at: now,
+            created_at: now as f64,
         };
         super::publication::publish_owner(&path, &owner)?;
         let after = super::publication::directory_identity(&path)?;

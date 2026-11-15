@@ -9,8 +9,9 @@ pub struct IOwner {
     pub pid: u32,
     pub token: String,
     pub started_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub identity: Option<String>,
-    pub created_at: u64,
+    pub created_at: f64,
 }
 
 pub enum TProcess {
@@ -39,12 +40,14 @@ pub fn reclaimable(
             if let (Some(before), Some(current)) = (before, current)
                 && before["host"].is_string()
                 && before["host"] == current["host"]
+                && before["boot"].is_string()
+                && current["boot"].is_string()
                 && before["boot"] != current["boot"]
             {
                 return true;
             }
         }
-        return now.saturating_sub(previous.created_at) >= 86_400_000;
+        return now as f64 - previous.created_at >= 86_400_000.0;
     }
     matches!(observed, TProcess::Dead)
         || matches!(observed, TProcess::Live(start) if *start != previous.started_at)
@@ -97,6 +100,10 @@ pub(super) fn process_identity() -> Option<String> {
 }
 
 pub(super) fn read_owner(path: &Path) -> Option<IOwner> {
+    let directory = fs::symlink_metadata(path).ok()?;
+    if !directory.is_dir() || directory.is_symlink() {
+        return None;
+    }
     let owner = path.join("owner.json");
     if fs::symlink_metadata(&owner).ok()?.is_symlink() {
         return None;
@@ -119,74 +126,5 @@ pub(super) fn read_owner(path: &Path) -> Option<IOwner> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn expired_reclaim_guard_does_not_block_recovery() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("write.lock");
-        fs::create_dir(&path).unwrap();
-        fs::create_dir(path.join("reclaim")).unwrap();
-        let old = std::time::UNIX_EPOCH + std::time::Duration::from_millis(1);
-        fs::File::open(path.join("reclaim"))
-            .unwrap()
-            .set_times(fs::FileTimes::new().set_modified(old))
-            .unwrap();
-        fs::File::open(&path)
-            .unwrap()
-            .set_times(fs::FileTimes::new().set_modified(old))
-            .unwrap();
-        try_reclaim(&path, 100_000).unwrap();
-        assert!(!path.exists());
-    }
-
-    #[test]
-    fn exited_same_machine_owner_is_reclaimed() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("write.lock");
-        fs::create_dir(&path).unwrap();
-        let mut child = Command::new("true").spawn().unwrap();
-        let pid = child.id();
-        child.wait().unwrap();
-        let owner = IOwner {
-            pid,
-            token: "old".into(),
-            started_at: "old".into(),
-            identity: process_identity(),
-            created_at: 100,
-        };
-        fs::write(path.join("owner.json"), serde_json::to_vec(&owner).unwrap()).unwrap();
-        try_reclaim(&path, 100).unwrap();
-        assert!(!path.exists());
-    }
-
-    #[test]
-    fn owner_reclaim_matrix() {
-        let owner = IOwner {
-            pid: 1,
-            token: "t".into(),
-            started_at: "old".into(),
-            identity: Some("same".into()),
-            created_at: 100,
-        };
-        assert!(!reclaimable(
-            &owner,
-            &TProcess::Live("old".into()),
-            Some("same"),
-            200
-        ));
-        assert!(reclaimable(
-            &owner,
-            &TProcess::Live("new".into()),
-            Some("same"),
-            200
-        ));
-        assert!(reclaimable(&owner, &TProcess::Dead, Some("same"), 200));
-        assert!(!reclaimable(&owner, &TProcess::Unknown, None, 200));
-        assert!(reclaimable(&owner, &TProcess::Unknown, None, 86_400_100));
-        assert_eq!(
-            linux_start("1 (a b)) S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 999 20"),
-            Some("999".into())
-        );
-    }
-}
+#[path = "tests.rs"]
+mod tests;
