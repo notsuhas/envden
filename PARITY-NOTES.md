@@ -85,3 +85,15 @@ TS behaviour: The parser accepts sixteen digits and converts them with Number, p
 Possible improvement: Reject versions above Number.MAX_SAFE_INTEGER in both implementations.
 Why: A requested version can otherwise select a different number.
 Bug-in-TS: yes
+
+## server storage: WAL files after shutdown depend on the platform
+
+Scenario: `envden serve` stops on SIGTERM.
+
+TS behaviour: Bun links Apple's SQLite on macOS, which keeps `envden.sqlite-wal` and `-shm` after the database closes (persistent WAL). On Linux Bun bundles its own SQLite, which removes them. So the data folder differs by platform.
+
+Possible improvement: checkpoint and remove WAL files on shutdown everywhere, so a stopped server leaves one file.
+
+Why: a backup taken right after shutdown on macOS needs all three files. Go matches the platform split with `SQLITE_FCNTL_PERSIST_WAL` on darwin only.
+
+Bug-in-TS: no
