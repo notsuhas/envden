@@ -57,3 +57,23 @@ TS behaviour: The memory fake resets the lock deadline but retains strikes, so t
 Possible improvement: Reset memory strikes on refund to match persistent storage.
 Why: Tests using memory can predict a different lockout duration from production.
 Bug-in-TS: yes
+
+## CLI filesystem: operating-system error wording
+
+Scenario: A filesystem operation fails outside an EnvdenError boundary.
+TS behaviour: Node/Bun exposes its errno wording and syscall/path format.
+Possible improvement: Define portable fixed messages for these failures in both implementations.
+Why: Go returns its native OS error wording; normal operation and coded errors retain exact bytes, but raw errno messages can differ.
+Bug-in-TS: no
+
+## server: native error diagnostics
+
+Scenario: an unexpected server error is logged, or a filesystem operation fails.
+
+TS behaviour: diagnostics use Bun stack frames and Node filesystem error text.
+
+Possible improvement: define shared structured diagnostics and filesystem error messages for both implementations.
+
+Why: the Go server preserves protocol error bodies and fixed EnvdenError messages, but its sanitized internal log and native filesystem errors do not reproduce Bun stack frames or Node errno formatting byte for byte.
+
+Bug-in-TS: no
