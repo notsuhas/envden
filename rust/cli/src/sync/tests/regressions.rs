@@ -6,6 +6,7 @@ use crate::{links::approval::checkout_value, *};
 use serde_json::json;
 use std::fs;
 
+#[cfg(unix)]
 fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool) {
     use std::{cell::Cell, collections::HashSet, rc::Rc};
     use sync::local::{
@@ -132,26 +133,31 @@ fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool)
     }
 }
 
+#[cfg(unix)]
 #[test]
 fn detached_chooser() {
     reconciliation(false, false, false, false);
 }
 
+#[cfg(unix)]
 #[test]
 fn aligned_conflicts() {
     reconciliation(true, false, false, false);
 }
 
+#[cfg(unix)]
 #[test]
 fn repair_marker_is_consumed() {
     reconciliation(true, true, false, false);
 }
 
+#[cfg(unix)]
 #[test]
 fn placement_writes_a_journal() {
     reconciliation(false, false, true, false);
 }
 
+#[cfg(unix)]
 #[test]
 fn interrupted_placement_marks_completed_store_write() {
     reconciliation(false, false, false, true);
