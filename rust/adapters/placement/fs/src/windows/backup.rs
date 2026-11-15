@@ -17,6 +17,18 @@ pub(super) fn backup(
     contents: &[u8],
     now: f64,
 ) -> Result<()> {
+    backup_with_restrict(root, directory, contents, now, |path, directory| {
+        restrict_access(path, directory)
+    })
+}
+
+pub(super) fn backup_with_restrict(
+    root: &Path,
+    directory: Option<&Path>,
+    contents: &[u8],
+    now: f64,
+    restrict: impl FnOnce(&Path, bool) -> Result<()>,
+) -> Result<()> {
     let directory = directory.ok_or_else(|| state::invalid("Backup directory is required"))?;
     let path = crate::paths::absolute(directory);
     let outside = |r: &Path, p: &Path| {
@@ -38,7 +50,7 @@ pub(super) fn backup(
     if !info.is_dir() || info.is_symlink() {
         return Err(state::invalid("Unsafe backup directory"));
     }
-    restrict_access(&path, true).map_err(|_| state::invalid("Could not restrict backup access"))?;
+    restrict(&path, true).map_err(|_| state::invalid("Could not restrict backup access"))?;
     let mut file = OpenOptions::new()
         .write(true)
         .create_new(true)

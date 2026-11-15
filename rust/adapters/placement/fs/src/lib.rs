@@ -16,3 +16,10 @@ mod inspect;
 mod windows;
 #[cfg(windows)]
 pub use windows::{create_fs_placement_adapter, prune_backups};
+
+#[cfg(unix)]
+mod place;
+#[cfg(all(test, unix))]
+mod races;
+#[cfg(unix)]
+mod remove;

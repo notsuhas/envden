@@ -69,3 +69,23 @@ fn relative_windows(root: &Path, target: &Path) -> Result<PathBuf> {
     }
     Ok(target[root.len()..].iter().map(|p| p.as_os_str()).collect())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn local_paths_preserve_unicode_format_characters() {
+        let root = tempfile::tempdir().unwrap();
+        for name in ["with\u{200d}joiner", "soft\u{ad}hyphen"] {
+            assert_eq!(
+                relative(
+                    root.path(),
+                    root.path().join(name).join(".env").to_str().unwrap(),
+                    false
+                )
+                .unwrap(),
+                Path::new(name).join(".env")
+            );
+        }
+    }
+}

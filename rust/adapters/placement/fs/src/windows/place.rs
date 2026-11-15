@@ -21,6 +21,27 @@ pub(super) fn place(
     prepare: Option<TPrepareTemporary<'_>>,
     replacing: Option<&str>,
 ) -> Result<()> {
+    place_with_verify(
+        adapter,
+        store,
+        destination,
+        prepare,
+        replacing,
+        state::verify,
+    )
+}
+
+pub(super) fn place_with_verify(
+    adapter: &FsPlacementAdapter,
+    store: &str,
+    destination: &str,
+    prepare: Option<TPrepareTemporary<'_>>,
+    replacing: Option<&str>,
+    mut verify: impl FnMut(
+        &[(std::path::PathBuf, envden_core::filesystem::IFileIdentity)],
+        &Path,
+    ) -> Result<()>,
+) -> Result<()> {
     let relative = paths::relative(&adapter.root, destination, true)?;
     let text = relative.to_string_lossy().replace('\\', "/");
     let name = format!(".envden-{:x}", Sha256::digest(text.as_bytes()));
@@ -81,14 +102,14 @@ pub(super) fn place(
                 .map_err(state::failure)?;
             staged = Some(file_identity(&file).map_err(state::failure)?);
             restrict_access(&temporary, false)?;
-            state::verify(&parents, &destination)?;
+            verify(&parents, &destination)?;
             let mut contents = Vec::new();
             state::read(store)?
                 .read_to_end(&mut contents)
                 .map_err(state::failure)?;
             file.write_all(&contents).map_err(state::failure)?;
         }
-        state::verify(&parents, &destination)?;
+        verify(&parents, &destination)?;
         if let Some(existing) = &existing {
             let mut source = state::read(if existing.is_symlink() {
                 store
@@ -112,7 +133,7 @@ pub(super) fn place(
             state::read(store)?
                 .read_to_end(&mut bytes)
                 .map_err(state::failure)?;
-            state::verify(&parents, &destination)?;
+            verify(&parents, &destination)?;
             if contents != bytes {
                 backup::backup(
                     &adapter.root,
@@ -122,7 +143,7 @@ pub(super) fn place(
                 )?;
             }
         }
-        state::verify(&parents, &destination)?;
+        verify(&parents, &destination)?;
         if !state::same(&before, &state::identity(&destination)?) {
             return Err(EnvdenError::new(
                 ErrorCode::Conflict,

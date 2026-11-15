@@ -40,3 +40,30 @@ fn copy_takes_over_backs_up_and_handles_case_variants() {
     prune_backups(&backups, 124.0, Some(0.0)).unwrap();
     assert!(!entries[0].exists());
 }
+
+#[test]
+fn copy_drops_inherited_acl_entries() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("checkout");
+    fs::create_dir(&root).unwrap();
+    let store = temp.path().join("store");
+    let destination = root.join(".env");
+    fs::write(&store, "A=secret\n").unwrap();
+    create_fs_placement_adapter(TPlacementMode::Copy, &root, None, || 1800000000000.0)
+        .place(
+            store.to_str().unwrap(),
+            destination.to_str().unwrap(),
+            Some(&|_| Ok(())),
+            None,
+        )
+        .unwrap();
+    for file in [&store, &destination] {
+        let acl = envden_core::process::exec_trusted_sync(
+            "icacls",
+            &[file.to_string_lossy().into_owned()],
+            &Default::default(),
+        )
+        .unwrap();
+        assert!(!acl.contains("(I)"));
+    }
+}

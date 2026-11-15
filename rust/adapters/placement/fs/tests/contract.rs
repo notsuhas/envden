@@ -29,7 +29,7 @@ fn temporary_exclude_and_permissions() {
     let root = dir.path().join("checkout");
     std::fs::create_dir(&root).unwrap();
     let store = dir.path().join("store");
-    std::fs::write(&store, "SECRET=1").unwrap();
+    std::fs::write(&store, "A=secret\n").unwrap();
     let dest = root.join("nested/.env");
     let adapter = create_fs_placement_adapter(TPlacementMode::Copy, &root, None, || 123.0);
     let prepared = std::sync::Mutex::new(String::new());
@@ -48,6 +48,14 @@ fn temporary_exclude_and_permissions() {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
+        assert_eq!(
+            std::fs::metadata(root.join("nested"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o700
+        );
         for p in [&store, &dest] {
             assert_eq!(
                 std::fs::metadata(p).unwrap().permissions().mode() & 0o777,

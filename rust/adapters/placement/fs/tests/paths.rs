@@ -35,18 +35,27 @@ fn pulled_and_local_unicode_paths() {
                 .is_err()
         );
     }
-    let local = root.join("with\u{200d}joiner/.env");
-    fs::create_dir_all(local.parent().unwrap()).unwrap();
-    fs::write(&local, "same").unwrap();
-    assert_eq!(
+    assert_eq!(fs::read_dir(&root).unwrap().count(), 0);
+    for name in ["with\u{200d}joiner", "soft\u{ad}hyphen"] {
+        let local = root.join(name).join(".env");
+        fs::create_dir_all(local.parent().unwrap()).unwrap();
+        fs::write(&local, "same").unwrap();
+        assert_eq!(
+            adapter
+                .inspect(store.to_str().unwrap(), local.to_str().unwrap())
+                .unwrap(),
+            TPlacementState::Linked
+        );
         adapter
-            .inspect(store.to_str().unwrap(), local.to_str().unwrap())
-            .unwrap(),
-        TPlacementState::Linked
-    );
-    adapter
-        .remove(Some(store.to_str().unwrap()), local.to_str().unwrap())
-        .unwrap();
+            .remove(Some(store.to_str().unwrap()), local.to_str().unwrap())
+            .unwrap();
+        assert_eq!(
+            adapter
+                .inspect(store.to_str().unwrap(), local.to_str().unwrap())
+                .unwrap(),
+            TPlacementState::Missing
+        );
+    }
 }
 
 #[cfg(unix)]
