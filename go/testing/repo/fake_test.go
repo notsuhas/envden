@@ -13,7 +13,7 @@ func TestStrictFake(t *testing.T) {
 	if a.ID() != "fake-repo" {
 		t.Fatal(a.ID())
 	}
-	calls := []func(){func() { a.CaseInsensitive("", false) }, func() { a.CheckoutAt("") }, func() { a.Worktrees(adapters.Checkout{}) }, func() { a.Submodules(adapters.Checkout{}) }, func() { a.EnvFiles(adapters.Checkout{}, nil) }, func() { a.IsIgnored(adapters.Checkout{}, "") }, func() { a.EnsureIgnored(adapters.Checkout{}, "") }}
+	calls := []func(){func() { _, _ = a.CaseInsensitive("", false) }, func() { _, _ = a.CheckoutAt("") }, func() { _, _ = a.Worktrees(adapters.Checkout{}) }, func() { _, _ = a.Submodules(adapters.Checkout{}) }, func() { _, _ = a.EnvFiles(adapters.Checkout{}, nil) }, func() { _, _ = a.IsIgnored(adapters.Checkout{}, "") }, func() { _ = a.EnsureIgnored(adapters.Checkout{}, "") }}
 	for _, call := range calls {
 		func() {
 			defer func() {

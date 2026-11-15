@@ -6,11 +6,12 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"golang.org/x/sys/unix"
 )
 
 func (p *placement) Place(store, dest string, prepare func(string) error, replacing *string) (err error) {
@@ -22,7 +23,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 	temp := fmt.Sprintf(".envden-%x", sha256.Sum256([]byte(path)))
 	if p.mode == adapters.PlacementCopy {
 		if prepare == nil {
-			return e.New("INVALID_INPUT", "Copy placement requires a temporary file exclude")
+			return enverrors.New("INVALID_INPUT", "Copy placement requires a temporary file exclude")
 		}
 		if err = prepare(filepath.ToSlash(filepath.Join(filepath.Dir(path), temp))); err != nil {
 			return err
@@ -32,7 +33,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 	if err != nil {
 		return err
 	}
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	name := filepath.Base(path)
 	before, err := identity(fd, name)
 	if err != nil {
@@ -43,7 +44,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 		target, linked := linkTarget(fd, name)
 		if linked {
 			if (replacing == nil || target != *replacing) && !sameTarget(resolveLink(filepath.Join(p.root, filepath.Dir(path)), target), store) {
-				return e.New("INVALID_INPUT", "Refusing an unrelated symlink")
+				return enverrors.New("INVALID_INPUT", "Refusing an unrelated symlink")
 			}
 		} else {
 			previous, err = readAt(fd, name)
@@ -98,6 +99,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 	if err = assertIdentity(fd, temp, staged); err != nil {
 		return err
 	}
+
 	return descriptor(unix.Renameat(fd, temp, fd, name))
 }
 
@@ -111,13 +113,13 @@ func (p *placement) Remove(store *string, dest string) (err error) {
 		return nil
 	}
 	fd, err := openParent(p.root, path, false)
-	if e.Is(err, "NOT_FOUND") {
+	if enverrors.Is(err, "NOT_FOUND") {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	name := filepath.Base(path)
 	before, err := identity(fd, name)
 	if err != nil || before == nil {
@@ -126,7 +128,7 @@ func (p *placement) Remove(store *string, dest string) (err error) {
 	target, linked := linkTarget(fd, name)
 	if linked {
 		if store == nil || !sameTarget(resolveLink(filepath.Join(p.root, filepath.Dir(path)), target), *store) {
-			return e.New("INVALID_INPUT", "Refusing an unrelated symlink")
+			return enverrors.New("INVALID_INPUT", "Refusing an unrelated symlink")
 		}
 	} else {
 		if _, err = readAt(fd, name); err != nil {
@@ -136,5 +138,6 @@ func (p *placement) Remove(store *string, dest string) (err error) {
 	if err = assertIdentity(fd, name, before); err != nil {
 		return err
 	}
+
 	return descriptor(unix.Unlinkat(fd, name, 0))
 }

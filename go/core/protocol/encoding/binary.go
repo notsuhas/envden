@@ -5,7 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/binary"
 
-	e "github.com/notsuhas/envden/go/core/errors"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 var Empty = []byte{}
@@ -22,14 +22,15 @@ func RequireValue(ok bool, message ...string) {
 		if len(message) > 0 {
 			m = message[0]
 		}
-		panic(e.New(e.InvalidData, m))
+		panic(enverrors.New(enverrors.InvalidData, m))
 	}
 }
 
+// Codec callbacks unwind here so nested validation failures stay error returns.
 func Try[T any](fn func() T) (v T, err error) {
 	defer func() {
 		if p := recover(); p != nil {
-			if x, ok := p.(*e.Error); ok {
+			if x, ok := p.(*enverrors.Error); ok {
 				err = x
 			} else {
 				panic(p)
@@ -44,6 +45,7 @@ func Must[T any](v T, err error) T {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -76,18 +78,23 @@ func Fixed(n int) Codec[[]byte] {
 }
 
 var B16 = Fixed(16)
+
 var B32 = Fixed(32)
+
 var B64 = Fixed(64)
+
 var U8 = Codec[int]{func(r *Reader) int { return int(r.Take(1)[0]) }, func(v int) []byte {
 	RequireValue(v >= 0 && v <= 255)
 
 	return []byte{byte(v)}
 }}
+
 var U32 = Codec[int]{func(r *Reader) int { return int(binary.BigEndian.Uint32(r.Take(4))) }, func(v int) []byte {
 	RequireValue(v >= 0 && uint64(v) <= 0xffffffff)
 
 	return binary.BigEndian.AppendUint32(nil, uint32(v))
 }}
+
 var U64 = Codec[uint64]{func(r *Reader) uint64 { return binary.BigEndian.Uint64(r.Take(8)) }, func(v uint64) []byte { return binary.BigEndian.AppendUint64(nil, v) }}
 
 func Sized(limit int) Codec[[]byte] {
@@ -104,6 +111,7 @@ func Sized(limit int) Codec[[]byte] {
 }
 
 var Bytes = Sized(65536)
+
 var Blob = Sized(2 * 1024 * 1024)
 
 func Encode[T any](c Codec[T], v T) ([]byte, error) { return Try(func() []byte { return c.Write(v) }) }
@@ -121,11 +129,11 @@ func Decode[T any](c Codec[T], data []byte) (T, error) {
 func Tagged(tag int, r *Reader) {
 	t, v := U8.Read(r), U8.Read(r)
 	if t != tag || v != 1 {
-		panic(e.New(e.UpdateRequired, "Unknown object format"))
+		panic(enverrors.New(enverrors.UpdateRequired, "Unknown object format"))
 	}
 }
 
-func Header(tag int) []byte { return []byte{byte(tag), 1} }
+func Header(tag int) []byte { return []byte{byte(tag & 255), 1} }
 
 func NewCodec[T any](read func(*Reader) T, write func(T) []byte, validate func(T)) Codec[T] {
 	return Codec[T]{func(r *Reader) T {
@@ -133,11 +141,13 @@ func NewCodec[T any](read func(*Reader) T, write func(T) []byte, validate func(T
 		if validate != nil {
 			validate(v)
 		}
+
 		return v
 	}, func(v T) []byte {
 		if validate != nil {
 			validate(v)
 		}
+
 		return write(v)
 	}}
 

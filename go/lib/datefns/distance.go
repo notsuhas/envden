@@ -76,5 +76,6 @@ func FormatDistanceStrict(date, base time.Time, options DistanceOptions) string 
 			text += " ago"
 		}
 	}
+
 	return text
 }

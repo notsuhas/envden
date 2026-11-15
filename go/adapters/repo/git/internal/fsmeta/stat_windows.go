@@ -7,6 +7,7 @@ import (
 )
 
 const NoFollow = 0
+
 const NonBlock = 0
 
 func PrivateRegular(path string, s os.FileInfo) bool {
@@ -23,5 +24,6 @@ func PrivateRegular(path string, s os.FileInfo) bool {
 	}
 	defer windows.CloseHandle(h)
 	var i windows.ByHandleFileInformation
+
 	return windows.GetFileInformationByHandle(h, &i) == nil && i.NumberOfLinks == 1
 }

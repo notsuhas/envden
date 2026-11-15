@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	mw "github.com/notsuhas/envden/go/server/middleware"
+	"github.com/notsuhas/envden/go/server/middleware"
 )
 
 func TestAwaitReleasesTheRequestLock(t *testing.T) {
@@ -20,7 +20,6 @@ func TestAwaitReleasesTheRequestLock(t *testing.T) {
 		}
 	})
 	app.mu.Unlock()
-
 	if !released {
 		t.Fatal("lock held while awaiting body I/O")
 	}
@@ -34,9 +33,8 @@ func TestBodyReadRunsInsideAwait(t *testing.T) {
 		fn()
 	}
 
-	body := mw.ReadBodyTimed(request, 1024, nil, mw.BodyTiming{Now: func() int64 { return 0 }, Await: await})
-
-	if !inside || string(body) != "body" {
+	body, err := middleware.ReadBodyTimed(request, 1024, nil, middleware.BodyTiming{Now: func() int64 { return 0 }, Await: await})
+	if err != nil || !inside || string(body) != "body" {
 		t.Fatalf("inside=%v body=%q", inside, body)
 	}
 }

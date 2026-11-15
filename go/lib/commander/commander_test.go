@@ -16,8 +16,10 @@ func testProgram(w int) *Command {
 	p.CommandsGroup("Maintenance:")
 	p.AddCommand(New("other").Description("Other commands").AddArgument(NewArgument("[shell]", "Shell").Choices("bash", "zsh").Default("bash")).Action(func(*Invocation) error { return nil }))
 	p.AddCommand(New("batch").Description("Batch tasks").Argument("[files...]", "Files").Option("--tag <tags...>", "Tags").Option("--no-open", "Do not open").RequiredOption("--required <value>", "Required value").AddOption(NewOption("--hidden", "").HideHelp()).Action(func(*Invocation) error { return nil }))
+
 	return p
 }
+
 func TestReference(t *testing.T) {
 	var fixtures []struct {
 		Width          int
@@ -70,6 +72,7 @@ func TestInvocation(t *testing.T) {
 		if len(i.Args) != 2 || i.Args[0] != "a" || i.Args[1] != "b" {
 			t.Errorf("args %v", i.Args)
 		}
+
 		return nil
 	}))
 	if _, err := program.Parse([]string{"run", "a", "b", "--tag", "x", "y", "--no-open"}); err != nil {

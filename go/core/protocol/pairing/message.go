@@ -1,38 +1,40 @@
 package pairing
 
 import (
-	d "github.com/notsuhas/envden/go/core/protocol/codecs/pairing"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/pairing"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func seal[T any](codec b.Codec[T], v T, key []byte, rng []c.Random) ([]byte, error) {
-	return b.Try(func() []byte {
-		box := b.Must(c.SealBox(key, codec.Write(v), nil, rng...))
-		b.RequireValue(len(box) <= 4096, "Pair message limit")
+func seal[T any](codec encoding.Codec[T], v T, key []byte, rng []crypto.Random) ([]byte, error) {
+	return encoding.Try(func() []byte {
+		box := encoding.Must(crypto.SealBox(key, codec.Write(v), nil, rng...))
+		encoding.RequireValue(len(box) <= 4096, "Pair message limit")
 
 		return box
 	})
 }
 
-func open[T any](codec b.Codec[T], box, key []byte) (T, error) {
-	return b.Try(func() T {
-		b.RequireValue(len(box) <= 4096, "Pair message limit")
+func open[T any](codec encoding.Codec[T], box, key []byte) (T, error) {
+	return encoding.Try(func() T {
+		encoding.RequireValue(len(box) <= 4096, "Pair message limit")
 
-		return b.Must(b.Decode(codec, b.Must(c.OpenBox(key, box, nil))))
+		return encoding.Must(encoding.Decode(codec, encoding.Must(crypto.OpenBox(key, box, nil))))
 	})
 }
 
-func SealPairJoiner(v d.PairJoiner, key []byte, rng ...c.Random) ([]byte, error) {
-	return seal(d.PairJoinerCodec, v, key, rng)
+func SealPairJoiner(v pairing.PairJoiner, key []byte, rng ...crypto.Random) ([]byte, error) {
+	return seal(pairing.PairJoinerCodec, v, key, rng)
 }
 
-func SealPairApprover(v d.PairApprover, key []byte, rng ...c.Random) ([]byte, error) {
-	return seal(d.PairApproverCodec, v, key, rng)
+func SealPairApprover(v pairing.PairApprover, key []byte, rng ...crypto.Random) ([]byte, error) {
+	return seal(pairing.PairApproverCodec, v, key, rng)
 }
 
-func OpenPairJoiner(box, key []byte) (d.PairJoiner, error) { return open(d.PairJoinerCodec, box, key) }
+func OpenPairJoiner(box, key []byte) (pairing.PairJoiner, error) {
+	return open(pairing.PairJoinerCodec, box, key)
+}
 
-func OpenPairApprover(box, key []byte) (d.PairApprover, error) {
-	return open(d.PairApproverCodec, box, key)
+func OpenPairApprover(box, key []byte) (pairing.PairApprover, error) {
+	return open(pairing.PairApproverCodec, box, key)
 }

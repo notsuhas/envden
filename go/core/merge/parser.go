@@ -10,6 +10,7 @@ import (
 const ws = "[\\t\\v\\f\\r \\x{00a0}]"
 
 var assignment = regexp.MustCompile("^" + ws + "*(#" + ws + "*)?(export" + ws + "+)?([A-Za-z_][A-Za-z0-9_]*)" + ws + "*=([^\\r]*)$")
+
 var comment = regexp.MustCompile("^" + ws + "*#")
 
 func latin(raw []byte) string {
@@ -17,9 +18,12 @@ func latin(raw []byte) string {
 	for _, c := range raw {
 		b.WriteRune(rune(c))
 	}
+
 	return b.String()
 }
+
 func trim(s string) string { return strings.Trim(s, "\t\v\f\r\n \u00a0") }
+
 func ParseEnv(input []byte) Result {
 	skip := 0
 	if bytes.HasPrefix(input, []byte{239, 187, 191}) {
@@ -68,8 +72,10 @@ func ParseEnv(input []byte) Result {
 		start = offset
 	}
 	result.Tail = bytes.Clone(content[start:])
+
 	return result
 }
+
 func ValidateValue(value, quote, key, remaining string) Result {
 	if quote != "" {
 		end := 1
@@ -87,6 +93,7 @@ func ValidateValue(value, quote, key, remaining string) Result {
 			if strings.Contains(remaining, quote) {
 				return conflict("multiline-value", key)
 			}
+
 			return conflict("unterminated-quote", key)
 		}
 		rest := strings.TrimLeft(value[end+1:], "\t\v\f\r\n \u00a0")
@@ -96,5 +103,6 @@ func ValidateValue(value, quote, key, remaining string) Result {
 	} else if strings.HasSuffix(value, "\\") {
 		return conflict("multiline-value", key)
 	}
+
 	return Result{Kind: "valid"}
 }

@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"github.com/notsuhas/envden/go/core/adapters"
 	"sort"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func rowsRange(rows []adapters.StoredHeader, from, to uint64, limit, maxBytes int) []adapters.StoredHeader {
@@ -24,6 +25,7 @@ func rowsRange(rows []adapters.StoredHeader, from, to uint64, limit, maxBytes in
 			out = append(out, row)
 		}
 	}
+
 	return out
 }
 
@@ -39,9 +41,11 @@ func (m *memory) header(v, h []byte) *adapters.StoredHeader {
 	for _, row := range m.data.Headers[hexKey(v)] {
 		if same(row.Hash, h) {
 			out := clone(row)
+
 			return &out
 		}
 	}
+
 	return nil
 }
 
@@ -54,11 +58,13 @@ func (m *memory) commitSwap(v, expected []byte, swap adapters.StoredSwap, now in
 		digest := pair(v, swap.BodyDigest)
 		if m.data.Digests[digest] {
 			result.Kind = adapters.RetryOfCommitted
+
 			return
 		}
 		head := m.head(v)
 		if !same(head, expected) {
 			result = adapters.CommitResult{Kind: adapters.HeadMovedResult, Head: head}
+
 			return
 		}
 		must(adapters.PrepareCommit(m, v, swap, now))
@@ -124,5 +130,6 @@ func (m *memory) commitSwap(v, expected []byte, swap adapters.StoredSwap, now in
 		m.data.Heads[key] = clone(swap.Header.Hash)
 		result.Kind = adapters.Committed
 	})
+
 	return result
 }

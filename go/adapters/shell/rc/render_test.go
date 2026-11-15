@@ -2,12 +2,12 @@ package rc
 
 import (
 	stderrors "errors"
-	errors "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
 )
 
@@ -48,6 +48,7 @@ func TestPowerShellProfiles(t *testing.T) {
 		if name == "pwsh" {
 			return "", os.ErrNotExist
 		}
+
 		return redirected + "\r\n", nil
 	}
 	if got := powerShellProfile(run, home, "darwin"); got != redirected {
@@ -58,7 +59,7 @@ func TestPowerShellProfiles(t *testing.T) {
 	}
 	count := 0
 	a := CreateRCShellAdapter("powershell", Options{Home: home, ResolveProfile: func() string { count++; return redirected }})
-	if a.RCPath() != redirected || a.RCPath() != redirected || count != 1 {
+	if a.RCPath() != redirected || count != 1 {
 		t.Fatal(count)
 	}
 	for _, p := range []string{"relative/Microsoft.PowerShell_profile.ps1", redirected + "/extra", strings.ReplaceAll(redirected, "redirected", "bad\x00path"), strings.ReplaceAll(redirected, "redirected", "bad\tpath")} {
@@ -91,6 +92,7 @@ func TestHookRuntime(t *testing.T) {
 			run := func() string {
 				out, e := process.ExecTrusted(shell, []string{"-c", snippet}, process.Options{Cwd: home})
 				must(t, e)
+
 				return out.Stdout
 			}
 			first := run()
@@ -106,13 +108,13 @@ func TestHookRuntime(t *testing.T) {
 
 func TestShellFailure(t *testing.T) {
 	domain := errors.New(errors.Conflict, "Shell changed")
-	if shellFailure(domain) != domain {
+	if !stderrors.Is(shellFailure(domain), domain) {
 		t.Fatal("domain error replaced")
 	}
 	cause := stderrors.New("private shell contents")
 	e := shellFailure(cause)
 	wrapped, ok := errors.As(e)
-	if !ok || wrapped.Code != errors.Internal || wrapped.Cause != cause || strings.Contains(e.Error(), cause.Error()) {
+	if !ok || wrapped.Code != errors.Internal || !stderrors.Is(wrapped.Cause, cause) || strings.Contains(e.Error(), cause.Error()) {
 		t.Fatal(e)
 	}
 }

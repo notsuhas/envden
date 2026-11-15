@@ -1,7 +1,7 @@
 package epochs
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type OlderKey struct {
@@ -9,4 +9,8 @@ type OlderKey struct {
 	Key   []byte
 }
 
-var OlderKeyCodec = b.NewCodec(func(r *b.Reader) OlderKey { return OlderKey{Epoch: b.U32.Read(r), Key: b.B32.Read(r)} }, func(v OlderKey) []byte { return b.Concat(b.U32.Write(v.Epoch), b.B32.Write(v.Key)) }, nil)
+var OlderKeyCodec = encoding.NewCodec(func(r *encoding.Reader) OlderKey {
+	return OlderKey{Epoch: encoding.U32.Read(r), Key: encoding.B32.Read(r)}
+}, func(v OlderKey) []byte {
+	return encoding.Concat(encoding.U32.Write(v.Epoch), encoding.B32.Write(v.Key))
+}, nil)

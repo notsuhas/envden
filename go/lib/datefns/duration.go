@@ -12,6 +12,7 @@ type Duration struct{ Years, Months, Weeks, Days, Hours, Minutes, Seconds float6
 func Milliseconds(d Duration) int64 {
 	days := d.Years*365.2425 + d.Months*(365.2425/12) + d.Weeks*7 + d.Days
 	seconds := days*24*60*60 + d.Hours*3600 + d.Minutes*60 + d.Seconds
+
 	return int64(math.Trunc(seconds * 1000))
 }
 
@@ -53,6 +54,7 @@ func IntervalToDuration(start, end time.Time) Duration {
 	seconds %= 3600
 	d.Minutes = float64(seconds / 60)
 	d.Seconds = float64(seconds % 60)
+
 	return d
 }
 
@@ -60,6 +62,7 @@ func addMonths(t time.Time, months int) time.Time {
 	first := time.Date(t.Year(), t.Month()+time.Month(months), 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
 	last := first.AddDate(0, 1, -1).Day()
 	day := min(t.Day(), last)
+
 	return first.AddDate(0, 0, day-1)
 }
 
@@ -79,5 +82,6 @@ func FormatDuration(d Duration, units ...string) string {
 		}
 		parts = append(parts, fmt.Sprintf("%g %s", value, unit))
 	}
+
 	return strings.Join(parts, " ")
 }

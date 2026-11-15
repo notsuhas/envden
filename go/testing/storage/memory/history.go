@@ -2,8 +2,9 @@ package memory
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/core/adapters"
 	"sort"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func (m *memory) prune(v []byte, p adapters.HistoryPolicy, now int64) adapters.PruneResult {
@@ -42,6 +43,7 @@ func (m *memory) prune(v []byte, p adapters.HistoryPolicy, now int64) adapters.P
 				return true
 			}
 		}
+
 		return false
 	}
 	retained := map[string]string{}
@@ -105,5 +107,6 @@ func (m *memory) prune(v []byte, p adapters.HistoryPolicy, now int64) adapters.P
 			}
 		}
 	}
+
 	return out
 }

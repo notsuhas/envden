@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func serveConflict(stdout, hostname string, port int, target string) (bool, error) {
@@ -77,5 +77,6 @@ func serveConflict(stdout, hostname string, port int, target string) (bool, erro
 		return true, nil
 	}
 	proxy, _ := text(site["/"]["Proxy"])
+
 	return len(site) != 1 || site["/"] == nil || proxy != target, nil
 }

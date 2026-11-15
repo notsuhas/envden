@@ -2,94 +2,186 @@ package vault
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	authn "github.com/notsuhas/envden/go/server/auth"
-	x "github.com/notsuhas/envden/go/server/shared"
-	v "github.com/notsuhas/envden/go/server/vaultchain"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/vaultchain"
 )
 
-func OpenMove(o x.Options, auth *x.Auth) s.KindResponse {
+func OpenMove(o shared.Options, auth *shared.Auth) (wire.KindResponse, error) {
 	r := auth.Request
 	if zero(r.VaultId) {
-		x.Fail(e.InvalidInput, "Invalid vault ID")
+		return wire.KindResponse{}, enverrors.New(enverrors.InvalidInput, "Invalid vault ID")
 	}
-	existing := x.Must(o.Storage.Vault(r.VaultId))
-	owner := x.Must(o.Storage.State(r.VaultId, a.StateMoveSession, []byte{}))
+	existing, err := o.Storage.Vault(r.VaultId)
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	owner, err := o.Storage.State(r.VaultId, adapters.StateMoveSession, []byte{})
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
 	if existing != nil && !existing.Active && owner != nil && bytes.Equal(owner, r.Device) {
-		return s.KindResponse{Kind: "moving"}
+		return wire.KindResponse{Kind: "moving"}, nil
 	}
-	if !authn.HasProof(o, auth, "setup") {
-		x.Fail(e.Unauthorized, "Setup proof required")
+	hasProof, err := authn.HasProof(o, auth, "setup")
+	if err != nil {
+		return wire.KindResponse{}, err
 	}
-	x.Transaction(o.Storage, func() bool {
+	if !hasProof {
+		return wire.KindResponse{}, enverrors.New(enverrors.Unauthorized, "Setup proof required")
+	}
+	_, err = shared.Transaction(o.Storage, func() (bool, error) {
 		period := int64(2592000000)
-		x.Check(o.Storage.ConfigureVault(r.VaultId, a.StoredVault{UnlockPeriod: &period}, []a.StateWrite{{Kind: a.StateMoveSession, Key: []byte{}, Bytes: r.Device}}, x.Must(o.Storage.SetupToken())))
-		return true
+		setupToken, err := o.Storage.SetupToken()
+		if err != nil {
+			return false, err
+		}
+		if err := o.Storage.ConfigureVault(r.VaultId, adapters.StoredVault{UnlockPeriod: &period}, []adapters.StateWrite{{Kind: adapters.StateMoveSession, Key: []byte{}, Bytes: r.Device}}, setupToken); err != nil {
+			return false, err
+		}
+
+		return true, nil
 	})
-	return s.KindResponse{Kind: "moving"}
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	return wire.KindResponse{Kind: "moving"}, nil
 }
-func Freeze(o x.Options, auth *x.Auth, frozen bool) s.KindResponse {
-	authn.RequireGate(o, auth, "fresh")
+
+func Freeze(o shared.Options, auth *shared.Auth, frozen bool) (wire.KindResponse, error) {
+	if err := authn.RequireGate(o, auth, "fresh"); err != nil {
+		return wire.KindResponse{}, err
+	}
+
 	r := auth.Request
-	vault := x.Must(o.Storage.Vault(r.VaultId))
+	vault, err := o.Storage.Vault(r.VaultId)
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
 	if frozen && vault.SKRefused {
-		x.Fail(e.RecoveryKitRequired, "Replace recovery kit before moving")
+		return wire.KindResponse{}, enverrors.New(enverrors.RecoveryKitRequired, "Replace recovery kit before moving")
 	}
 	if vault.ServerMoved != nil {
-		x.Fail(e.Moving, "Move committed")
+		return wire.KindResponse{}, enverrors.New(enverrors.Moving, "Move committed")
 	}
 	vault.Frozen = frozen
 	var owner []byte
 	if frozen {
 		owner = r.Device
 	}
-	x.Check(o.Storage.ConfigureVault(r.VaultId, *vault, []a.StateWrite{{Kind: a.StateMoveSession, Key: []byte{}, Bytes: owner}}, nil))
+	if err := o.Storage.ConfigureVault(r.VaultId, *vault, []adapters.StateWrite{{Kind: adapters.StateMoveSession, Key: []byte{}, Bytes: owner}}, nil); err != nil {
+		return wire.KindResponse{}, err
+	}
+
 	kind := "unfrozen"
 	if frozen {
 		kind = "frozen"
 	}
-	return s.KindResponse{Kind: kind}
+
+	return wire.KindResponse{Kind: kind}, nil
 }
-func DiscardMove(o x.Options, auth *x.Auth) s.KindResponse {
-	authn.RequireMove(o, auth)
-	x.Transaction(o.Storage, func() bool { x.Check(o.Storage.DiscardInactiveVault(auth.Request.VaultId)); return true })
-	return s.KindResponse{Kind: "unfrozen"}
+
+func DiscardMove(o shared.Options, auth *shared.Auth) (wire.KindResponse, error) {
+	if err := authn.RequireMove(o, auth); err != nil {
+		return wire.KindResponse{}, err
+	}
+	_, err := shared.Transaction(o.Storage, func() (bool, error) {
+		if err := o.Storage.DiscardInactiveVault(auth.Request.VaultId); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	})
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	return wire.KindResponse{Kind: "unfrozen"}, nil
 }
-func RequireMoveMaterial(o x.Options, id []byte) {
-	header, _ := v.Chain(o, id)
+
+func RequireMoveMaterial(o shared.Options, id []byte) error {
+	chain1, chain2, err := vaultchain.Chain(o, id)
+	if err != nil {
+		return err
+	}
+
+	header, _ := chain1, chain2
 	h := header.Body
-	keyring := x.Must(o.Storage.State(id, a.StateKeyring, h.KeyringHash))
-	envelope := x.Must(o.Storage.State(id, a.StateEnvelope, []byte{}))
-	sk := x.Must(o.Storage.State(id, a.StateSKPub, []byte{}))
-	files := x.Must(o.Storage.FileList(id, h.FilesHash))
+	keyring, err := o.Storage.State(id, adapters.StateKeyring, h.KeyringHash)
+	if err != nil {
+		return err
+	}
+
+	envelope, err := o.Storage.State(id, adapters.StateEnvelope, []byte{})
+	if err != nil {
+		return err
+	}
+
+	sk, err := o.Storage.State(id, adapters.StateSKPub, []byte{})
+	if err != nil {
+		return err
+	}
+
+	files, err := o.Storage.FileList(id, h.FilesHash)
+	if err != nil {
+		return err
+	}
+
 	for _, pair := range []struct {
 		hash, data []byte
 		domain     string
 	}{{h.KeyringHash, keyring, "keyring-blob"}, {h.EnvelopeHash, envelope, "envelope-blob"}, {h.FilesHash, files, "files"}} {
-		if pair.data == nil || !bytes.Equal(cr.H(pair.domain, pair.data), pair.hash) {
-			x.Fail(e.InvalidData, "Incomplete move material")
+		if pair.data == nil || !bytes.Equal(crypto.H(pair.domain, pair.data), pair.hash) {
+			return enverrors.New(enverrors.InvalidData, "Incomplete move material")
 		}
 	}
 	if len(sk) != 32 {
-		x.Fail(e.InvalidData, "Incomplete move material")
+		return enverrors.New(enverrors.InvalidData, "Incomplete move material")
 	}
 	if files == nil {
-		x.Fail(e.InvalidData, "Missing head file list")
+		return enverrors.New(enverrors.InvalidData, "Missing head file list")
 	}
-	for _, hash := range x.Must(o.Storage.BlobHashes(id)) {
-		data := x.Must(o.Storage.GetBlob(id, hash))
-		if data == nil || !bytes.Equal(cr.H("blob", data), hash) {
-			x.Fail(e.InvalidData, "Invalid imported blob")
+	blobHashes, err := o.Storage.BlobHashes(id)
+	if err != nil {
+		return err
+	}
+
+	for _, hash := range blobHashes {
+		data, err := o.Storage.GetBlob(id, hash)
+		if err != nil {
+			return err
+		}
+		if data == nil || !bytes.Equal(crypto.H("blob", data), hash) {
+			return enverrors.New(enverrors.InvalidData, "Invalid imported blob")
 		}
 	}
-	for _, file := range x.Must(b.Decode(m.FilesCodec, files)).Entries {
-		if (file.State == 1 || file.State == 3) && !x.Must(o.Storage.HasBlob(id, file.BlobHash)) {
-			x.Fail(e.InvalidData, "Missing imported blob")
+	filesResult, err := encoding.Decode(manifests.FilesCodec, files)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range filesResult.Entries {
+		requiresBlob := (file.State == 1 || file.State == 3)
+		if requiresBlob {
+			hasBlob, err := o.Storage.HasBlob(id, file.BlobHash)
+			if err != nil {
+				return err
+			}
+			requiresBlob = !hasBlob
+		}
+		if requiresBlob {
+			return enverrors.New(enverrors.InvalidData, "Missing imported blob")
 		}
 	}
+
+	return nil
 }

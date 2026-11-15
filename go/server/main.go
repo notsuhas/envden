@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"os"
@@ -14,49 +13,21 @@ import (
 	"syscall"
 	"time"
 
-	sqlite "github.com/notsuhas/envden/go/adapters/storage/sqlite"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	identity "github.com/notsuhas/envden/go/server/identity"
-	repair "github.com/notsuhas/envden/go/server/repair"
-	x "github.com/notsuhas/envden/go/server/shared"
-	status "github.com/notsuhas/envden/go/server/status"
+	"github.com/notsuhas/envden/go/adapters/storage/sqlite"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/server/identity"
+	"github.com/notsuhas/envden/go/server/repair"
+	"github.com/notsuhas/envden/go/server/status"
 )
 
-type Scheduler interface {
-	After(time.Duration, func()) func()
-	Every(time.Duration, func()) func()
-}
-type ServeOptions struct {
-	DataDir        string
-	Port           *int
-	MinClient      string
-	SetupToken     string
-	Restored       bool
-	Now            func() int64
-	Scheduler      Scheduler
-	Stdout, Stderr io.Writer
-	Listen         func(http.Handler) (net.Listener, error)
-	Env            map[string]string
-}
-type Running struct {
-	Server   *http.Server
-	Storage  a.Storage
-	URL      string
-	App      *App
-	shutdown func() error
-}
-
-func (r *Running) Shutdown() error { return r.shutdown() }
 func Serve(options ServeOptions) (running *Running, err error) {
-	defer func() {
-		if cause := recover(); cause != nil {
-			err = cause.(error)
-		}
-	}()
 	dir := options.DataDir
 	if dir == "" {
-		home := x.Must(os.UserHomeDir())
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+
 		dir = filepath.Join(home, ".envden", "server")
 	}
 	now := options.Now
@@ -70,17 +41,28 @@ func Serve(options ServeOptions) (running *Running, err error) {
 	if stderr == nil {
 		stderr = os.Stderr
 	}
-	keys := x.Must(identity.LoadServerKeys(dir))
-	storage := x.Must(sqlite.CreateSqliteStorageAdapter(dir, now()))
+	keys, err := identity.LoadServerKeys(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	storage, err := sqlite.CreateSqliteStorageAdapter(dir, now())
+	if err != nil {
+		return nil, err
+	}
+
 	defer func() {
 		if running == nil {
-			storage.Close()
+			_ = storage.Close()
 		}
 	}()
-	token := x.Must(identity.InitializeSetup(storage, keys.PublicKey, options.SetupToken))
+	token, err := identity.InitializeSetup(storage, keys.PublicKey, options.SetupToken)
+	if err != nil {
+		return nil, err
+	}
 	if token != "" {
-		fmt.Fprintln(stdout, "Setup token. Paste it when `envden setup` or `envden server move` asks:")
-		fmt.Fprintln(stdout, "  "+token)
+		_, _ = fmt.Fprintln(stdout, "Setup token. Paste it when `envden setup` or `envden server move` asks:")
+		_, _ = fmt.Fprintln(stdout, "  "+token)
 	}
 	minClient := options.MinClient
 	if minClient == "" {
@@ -88,11 +70,16 @@ func Serve(options ServeOptions) (running *Running, err error) {
 	}
 	o := Options{Storage: storage, Now: now, ServerKeys: keys, Config: Config{AppVersion: "0.3.8", MinClient: minClient}, Stderr: stderr}
 	if options.Restored {
-		for _, v := range repair.StartRestored(o) {
+		startRestored, err := repair.StartRestored(o)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range startRestored {
 			if v.Token != "" {
-				fmt.Fprintf(stdout, "Repair token for vault %s. Paste it when `envden server repair` asks:\n  %s\n", b.Base32(v.VaultID), v.Token)
+				_, _ = fmt.Fprintf(stdout, "Repair token for vault %s. Paste it when `envden server repair` asks:\n  %s\n", encoding.Base32(v.VaultID), v.Token)
 			} else {
-				fmt.Fprintf(stdout, "Vault %s %s\n", b.Base32(v.VaultID), repair.RestoreNotice(v.Kind))
+				_, _ = fmt.Fprintf(stdout, "Vault %s %s\n", encoding.Base32(v.VaultID), repair.RestoreNotice(v.Kind))
 			}
 		}
 	}
@@ -101,20 +88,34 @@ func Serve(options ServeOptions) (running *Running, err error) {
 		env = map[string]string{"ENVDEN_STATUS_PAGE": os.Getenv("ENVDEN_STATUS_PAGE")}
 	}
 	state := status.New(now(), env)
-	app := x.Must(CreateApp(o, state))
+	app, err := CreateApp(o, state)
+	if err != nil {
+		return nil, err
+	}
+
 	port := 4280
 	if options.Port != nil {
 		port = *options.Port
 	}
 	var listener net.Listener
 	if options.Listen != nil {
-		listener = x.Must(options.Listen(app))
+		listen, err := options.Listen(app)
+		if err != nil {
+			return nil, err
+		}
+
+		listener = listen
 	} else {
-		listener = x.Must(net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port)))
+		listenResult, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port))
+		if err != nil {
+			return nil, err
+		}
+
+		listener = listenResult
 	}
-	httpServer := &http.Server{Handler: app}
+	httpServer := &http.Server{Handler: app, ReadHeaderTimeout: -1}
 	url := "http://" + listener.Addr().String() + "/"
-	fmt.Fprintln(stdout, "envden listening on "+url)
+	_, _ = fmt.Fprintln(stdout, "envden listening on "+url)
 	scheduler := options.Scheduler
 	if scheduler == nil {
 		scheduler = systemScheduler{}
@@ -128,10 +129,12 @@ func Serve(options ServeOptions) (running *Running, err error) {
 		select {
 		case <-stopped:
 			return
+
 		default:
 		}
 		state.LastPrune = &status.Prune{At: now(), OK: pruneHistory(o)}
 	}
+
 	jobs := []func(){scheduler.After(time.Minute, prune), scheduler.Every(time.Hour, prune)}
 	once := sync.Once{}
 	var shutdownErr error
@@ -150,6 +153,7 @@ func Serve(options ServeOptions) (running *Running, err error) {
 				shutdownErr = closeErr
 			}
 		})
+
 		return shutdownErr
 	}
 	running = &Running{Server: httpServer, Storage: storage, URL: url, App: app, shutdown: shutdown}
@@ -161,17 +165,6 @@ func Serve(options ServeOptions) (running *Running, err error) {
 		case <-stopped:
 		}
 	}()
+
 	return running, nil
-}
-func LocalSetupToken(dataDir string, now int64) (string, error) {
-	keys, err := identity.LoadServerKeys(dataDir)
-	if err != nil {
-		return "", err
-	}
-	storage, err := sqlite.CreateSqliteStorageAdapter(dataDir, now)
-	if err != nil {
-		return "", err
-	}
-	defer storage.Close()
-	return identity.ReissueSetup(storage, keys.PublicKey)
 }

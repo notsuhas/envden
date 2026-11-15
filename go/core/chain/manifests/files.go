@@ -1,55 +1,71 @@
 package manifests
 
 import (
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func CheckedFiles(files *m.Files, hash []byte) (m.Files, error) {
+func CheckedFiles(files *manifests.Files, hash []byte) (manifests.Files, error) {
+	return chainshared.TryResult(func() (manifests.Files, error) {
+		if err := chainshared.Check(files != nil && encoding.Equal(crypto.H("files", manifests.FilesCodec.Write(*files)), hash)); err != nil {
+			return manifests.Files{}, err
+		}
 
-	return s.Try(func() m.Files {
-		s.Check(files != nil && b.Equal(cr.H("files", m.FilesCodec.Write(*files)), hash))
-		return *files
+		return *files, nil
 	})
 }
 
-func ChangedFiles(before, after m.Files, minimumEpoch, epoch int, op ...int) ([]m.FileEntry, error) {
-
-	return s.Try(func() []m.FileEntry {
-		m.FilesCodec.Write(before)
-		m.FilesCodec.Write(after)
-		old := map[string]m.FileEntry{}
+func ChangedFiles(before, after manifests.Files, minimumEpoch, epoch int, op ...int) ([]manifests.FileEntry, error) {
+	return chainshared.TryResult(func() ([]manifests.FileEntry, error) {
+		manifests.FilesCodec.Write(before)
+		manifests.FilesCodec.Write(after)
+		old := map[string]manifests.FileEntry{}
 		next := map[string]bool{}
 		for _, e := range before.Entries {
-			old[s.ID(e.FileId)] = e
+			old[chainshared.ID(e.FileId)] = e
 		}
 		for _, e := range after.Entries {
-			next[s.ID(e.FileId)] = true
+			next[chainshared.ID(e.FileId)] = true
 		}
 		for _, e := range before.Entries {
-			s.Check(next[s.ID(e.FileId)])
+			if err := chainshared.Check(next[chainshared.ID(e.FileId)]); err != nil {
+				return nil, err
+			}
 		}
-		changed := []m.FileEntry{}
+		changed := []manifests.FileEntry{}
 		for _, entry := range after.Entries {
-			previous, ok := old[s.ID(entry.FileId)]
-			if ok && b.Equal(m.FileEntryCodec.Write(previous), m.FileEntryCodec.Write(entry)) {
+			previous, ok := old[chainshared.ID(entry.FileId)]
+			if ok && encoding.Equal(manifests.FileEntryCodec.Write(previous), manifests.FileEntryCodec.Write(entry)) {
 				continue
 			}
-			s.Check(!ok || entry.Version > previous.Version)
-			s.Check(!ok || !b.Equal(entry.Name, previous.Name))
-			s.Check(entry.Epoch >= minimumEpoch && entry.Epoch <= epoch)
+			if err := chainshared.Check(!ok || entry.Version > previous.Version); err != nil {
+				return nil, err
+			}
+			if err := chainshared.Check(!ok || !encoding.Equal(entry.Name, previous.Name)); err != nil {
+				return nil, err
+			}
+			if err := chainshared.Check(entry.Epoch >= minimumEpoch && entry.Epoch <= epoch); err != nil {
+				return nil, err
+			}
 			if len(op) > 0 {
-				s.Check(entry.Epoch == epoch)
+				if err := chainshared.Check(entry.Epoch == epoch); err != nil {
+					return nil, err
+				}
 				if op[0] == 11 {
-					s.Check(ok && (previous.State == 1 || previous.State == 3) && (entry.State == 3 || entry.State == 4))
+					if err := chainshared.Check(ok && (previous.State == 1 || previous.State == 3) && (entry.State == 3 || entry.State == 4)); err != nil {
+						return nil, err
+					}
 				} else {
-					s.Check(entry.State == 1 || entry.State == 2)
+					if err := chainshared.Check(entry.State == 1 || entry.State == 2); err != nil {
+						return nil, err
+					}
 				}
 			}
 			changed = append(changed, entry)
 		}
-		return changed
+
+		return changed, nil
 	})
 }

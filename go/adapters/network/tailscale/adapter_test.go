@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestStatusAndCLI(t *testing.T) {
@@ -17,6 +17,7 @@ func TestStatusAndCLI(t *testing.T) {
 		if args[0] == "serve" {
 			out = "{}"
 		}
+
 		return CommandResult{Stdout: out}, nil
 	})
 	s, e := a.Status()
@@ -52,6 +53,7 @@ func TestServeConflict(t *testing.T) {
 	target := "http://127.0.0.1:4280"
 	site := func(handlers map[string]any) string {
 		b, _ := json.Marshal(map[string]any{"TCP": map[string]any{"4280": map[string]any{"HTTPS": true}}, "Web": map[string]any{host + ":4280": map[string]any{"Handlers": handlers}}})
+
 		return string(b)
 	}
 	for _, row := range []struct {
@@ -79,6 +81,7 @@ func TestServeErrorCapAndOccupied(t *testing.T) {
 		if args[1] == "status" {
 			return CommandResult{Stdout: "{}"}, nil
 		}
+
 		return CommandResult{ExitCode: 1, Stderr: hint + "\n" + strings.Repeat("x", 2000)}, nil
 	})
 	_, e := a.Expose(4280)
@@ -93,6 +96,7 @@ func TestServeErrorCapAndOccupied(t *testing.T) {
 		if args[1] == "--bg" {
 			published = true
 		}
+
 		return CommandResult{Stdout: `{"Web":{"laptop.tail.example:4280":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:9000"}}}}}`}, nil
 	})
 	_, e = a.Expose(4280)

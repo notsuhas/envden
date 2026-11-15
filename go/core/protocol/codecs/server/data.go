@@ -1,7 +1,7 @@
 package server
 
 import "encoding/json"
-import e "github.com/notsuhas/envden/go/core/errors"
+import enverrors "github.com/notsuhas/envden/go/core/errors"
 
 type KindResponse struct {
 	Kind string `json:"kind"`
@@ -18,6 +18,7 @@ type DeviceStatus struct {
 	ClientVersion *string `json:"clientVersion"`
 	Confirmed     bool    `json:"confirmed"`
 }
+
 type DevicesResponse struct {
 	Devices []DeviceStatus `json:"devices"`
 }
@@ -43,6 +44,7 @@ type RepairStatus struct {
 }
 
 var RepairStatusSchema = Schema[RepairStatus]{object(map[string]field{"restoredHead": req(binaryString(32)), "repairId": req(binaryString(32))})}
+
 var TransferResponseSchema = kindSchema("moving", "frozen", "unfrozen", "uploaded", "stored", "updated")
 
 type RepairFinish struct {
@@ -64,7 +66,7 @@ var ErrorResponseSchema = Schema[ErrorResponse]{object(map[string]field{"error":
 	if !ok {
 		return false
 	}
-	_, ok = e.ParseCode(s)
+	_, ok = enverrors.ParseCode(s)
 
 	return ok
 }), "hint": optional(stringValue)})}
@@ -83,7 +85,9 @@ type LoginFinishResponse struct {
 }
 
 var LoginFinishResponseSchema = Schema[LoginFinishResponse]{union(object(map[string]field{"kind": req(enum("ticket", "staged"))}), object(map[string]field{"kind": req(enum("unlocked")), "unlockedUntil": req(nullable(count)), "freshUntil": req(count)}))}
+
 var RegistrationResponseSchema = kindSchema("registered")
+
 var MailboxClosedSchema = kindSchema("closed")
 
 func (r LoginFinishResponse) MarshalJSON() ([]byte, error) {
@@ -94,5 +98,6 @@ func (r LoginFinishResponse) MarshalJSON() ([]byte, error) {
 			FreshUntil    *int64 `json:"freshUntil"`
 		}{r.Kind, r.UnlockedUntil, r.FreshUntil})
 	}
+
 	return json.Marshal(KindResponse{Kind: r.Kind})
 }

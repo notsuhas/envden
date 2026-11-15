@@ -13,7 +13,7 @@ func TestStrictFake(t *testing.T) {
 	if a.ID() != "fake-shell" {
 		t.Fatal(a.ID())
 	}
-	calls := []func(){func() { a.RCPath() }, func() { a.HookSnippet("") }, func() { a.Installed() }, func() { a.Install("") }, func() { a.Uninstall() }}
+	calls := []func(){func() { a.RCPath() }, func() { a.HookSnippet("") }, func() { _, _ = a.Installed() }, func() { _ = a.Install("") }, func() { _ = a.Uninstall() }}
 	for _, call := range calls {
 		func() {
 			defer func() {

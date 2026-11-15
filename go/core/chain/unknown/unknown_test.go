@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	u "github.com/notsuhas/envden/go/core/chain/unknown"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
+	corechainunknown "github.com/notsuhas/envden/go/core/chain/unknown"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	"github.com/notsuhas/envden/go/core/protocol/crypto/objects"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/keys"
 )
 
@@ -31,11 +31,12 @@ func TestClassificationOrder(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			calls := 0
-			got, err := u.ClassifyUnknownData(u.Input{Received: []byte{1}, Stored: tc.stored, Mismatch: tc.mismatch, UnknownFormat: tc.unknown, CurrentVersion: tc.current, LatestVersion: "2.0.0", Verify: func() (bool, error) {
+			got, err := corechainunknown.ClassifyUnknownData(corechainunknown.Input{Received: []byte{1}, Stored: tc.stored, Mismatch: tc.mismatch, UnknownFormat: tc.unknown, CurrentVersion: tc.current, LatestVersion: "2.0.0", Verify: func() (bool, error) {
 				calls++
 				if tc.panicVerify {
 					panic(errors.New("must not run before comparison"))
 				}
+
 				return tc.verify, nil
 			}})
 			if err != nil || got.Kind != tc.want {
@@ -50,10 +51,10 @@ func TestClassificationOrder(t *testing.T) {
 
 func TestUnknownEntryAuthenticatesExactRawBytes(t *testing.T) {
 	key := bytes.Repeat([]byte{3}, 32)
-	pair := b.Must(keys.GenerateDeviceKeys(func(n int) []byte { return bytes.Repeat([]byte{3}, n) }))
-	id := b.Must(keys.DeviceID(pair.EncPub, pair.ObjPub, pair.ReqPub))
-	body := b.Concat(b.Header(1), make([]byte, 32), b.U64.Write(2), make([]byte, 32), []byte{99}, id)
-	raw := b.Concat(body, b.Must(cr.Sign(key, "entry", body)))
+	pair := encoding.Must(keys.GenerateDeviceKeys(func(n int) []byte { return bytes.Repeat([]byte{3}, n) }))
+	id := encoding.Must(keys.DeviceID(pair.EncPub, pair.ObjPub, pair.ReqPub))
+	body := encoding.Concat(encoding.Header(1), make([]byte, 32), encoding.U64.Write(2), make([]byte, 32), []byte{99}, id)
+	raw := encoding.Concat(body, encoding.Must(crypto.Sign(key, "entry", body)))
 	members := []objects.Member{{Id: id, ObjPub: pair.ObjPub}}
 	if !objects.VerifyRawObject(raw, members, "entry").OK {
 		t.Fatal("fixture signature")
@@ -71,7 +72,7 @@ func TestUnknownEntryAuthenticatesExactRawBytes(t *testing.T) {
 		{"stored mismatch", "fork", "2.0.0", raw, bad},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := u.DecodeServerObject(u.DecodeInput[c.Entry]{Received: tc.received, Stored: tc.stored, Mismatch: "fork", Members: members, Codec: c.EntryCodec, Label: "entry", CurrentVersion: "1.0.0", LatestVersion: tc.latest})
+			result, err := corechainunknown.DecodeServerObject(corechainunknown.DecodeInput[codecs.Entry]{Received: tc.received, Stored: tc.stored, Mismatch: "fork", Members: members, Codec: codecs.EntryCodec, Label: "entry", CurrentVersion: "1.0.0", LatestVersion: tc.latest})
 			if err != nil || result.Kind != tc.want {
 				t.Fatalf("got %v, %v", result, err)
 			}

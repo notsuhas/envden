@@ -9,6 +9,7 @@ type LastPrune struct {
 	At string `json:"at"`
 	OK bool   `json:"ok"`
 }
+
 type StatusResponse struct {
 	Version       string     `json:"version"`
 	UptimeSeconds int64      `json:"uptimeSeconds"`

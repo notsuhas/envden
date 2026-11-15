@@ -1,8 +1,8 @@
 package entrypayloads
 
 import (
-	members "github.com/notsuhas/envden/go/core/protocol/codecs/members"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/members"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type RenameDevice struct {
@@ -10,4 +10,8 @@ type RenameDevice struct {
 	Name   string
 }
 
-var RenameDeviceCodec = b.NewCodec(func(r *b.Reader) RenameDevice { return RenameDevice{Device: b.B16.Read(r), Name: b.Str.Read(r)} }, func(v RenameDevice) []byte { return b.Concat(b.B16.Write(v.Device), b.Str.Write(v.Name)) }, func(v RenameDevice) { b.RequireValue(members.IsDeviceName(v.Name), "Invalid device name") })
+var RenameDeviceCodec = encoding.NewCodec(func(r *encoding.Reader) RenameDevice {
+	return RenameDevice{Device: encoding.B16.Read(r), Name: encoding.Str.Read(r)}
+}, func(v RenameDevice) []byte {
+	return encoding.Concat(encoding.B16.Write(v.Device), encoding.Str.Write(v.Name))
+}, func(v RenameDevice) { encoding.RequireValue(members.IsDeviceName(v.Name), "Invalid device name") })

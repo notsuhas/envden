@@ -6,7 +6,9 @@ import (
 )
 
 var skippedDirectories = map[string]bool{".git": true, "node_modules": true, ".next": true, "dist": true, "build": true, "out": true, "coverage": true, ".turbo": true, ".cache": true, "vendor": true}
+
 var defaultEnvName = regexp.MustCompile(`^\.env(?:\.[^\r\n\x{2028}\x{2029}]+)?$`)
+
 var exampleEnvName = regexp.MustCompile(`\.(example|sample|template|defaults)$`)
 
 func AcceptsEnvPath(path string, rules EnvFileRules) bool {
@@ -34,6 +36,7 @@ func AcceptsEnvPath(path string, rules EnvFileRules) bool {
 	if rules.Exclude != nil {
 		excluded = matchesPatterns(rules.Exclude, path, name)
 	}
+
 	return included && !excluded
 }
 
@@ -47,5 +50,6 @@ func matchesPatterns(patterns []string, path, name string) bool {
 			return true
 		}
 	}
+
 	return false
 }

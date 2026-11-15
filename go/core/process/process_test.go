@@ -1,7 +1,6 @@
 package process
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -9,26 +8,31 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func writeTool(t *testing.T, path, text string) {
 	t.Helper()
-	if err := os.WriteFile(path, []byte(text), 0755); err != nil {
+	if err := os.WriteFile(path, []byte(text), 0755); err != nil { //nolint:gosec // G306: fixture must be executable to test trusted subprocess spawning.
 		t.Fatal(err)
 	}
 }
+
 func mkdir(t *testing.T, path string) {
 	t.Helper()
 	if err := os.MkdirAll(path, 0700); err != nil {
 		t.Fatal(err)
 	}
 }
+
 func canonicalTemp(t *testing.T) string {
 	t.Helper()
 	p, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	return p
 }
 
@@ -71,7 +75,7 @@ func TestRegistryAndSymlinks(t *testing.T) {
 	}
 	SetUntrustedRoots([]string{checkout})
 	defer SetUntrustedRoots(nil)
-	if _, err := ResolveTrustedExecutable(filepath.Join(bin, "tool")); !e.Is(err, e.InvalidInput) {
+	if _, err := ResolveTrustedExecutable(filepath.Join(bin, "tool")); !enverrors.Is(err, enverrors.InvalidInput) {
 		t.Fatal(err)
 	}
 	if got := TrustedDirectories([]string{checkout, alias, bin}, ""); !reflect.DeepEqual(got, []string{bin}) {
@@ -103,7 +107,7 @@ func TestPathIgnoredAndExecutableModes(t *testing.T) {
 	mkdir(t, bin)
 	tool := filepath.Join(bin, "tool")
 	writeTool(t, tool, "#!/bin/sh\nexit 0")
-	if err := os.Chmod(bin, 0777); err != nil {
+	if err := os.Chmod(bin, 0777); err != nil { //nolint:gosec // G302: fixture deliberately creates an unsafe executable to test rejection.
 		t.Fatal(err)
 	}
 	if runtime.GOOS != "windows" {
@@ -111,12 +115,12 @@ func TestPathIgnoredAndExecutableModes(t *testing.T) {
 			t.Fatal("writable bin")
 		}
 	}
-	_ = os.Chmod(bin, 0700)
-	_ = os.Chmod(tool, 0666)
+	_ = os.Chmod(bin, 0700)  //nolint:gosec // G302: fixture restores executable access before testing the tool mode.
+	_ = os.Chmod(tool, 0666) //nolint:gosec // G302: fixture deliberately creates an unsafe tool to test rejection.
 	if _, err := ResolveTrustedExecutable(tool); err == nil {
 		t.Fatal("writable executable")
 	}
-	_ = os.Chmod(tool, 0755)
+	_ = os.Chmod(tool, 0755) //nolint:gosec // G302: fixture restores executable access after testing unsafe mode rejection.
 	writeTool(t, filepath.Join(root, ".git"), "gitdir: elsewhere")
 	link := canonicalTemp(t)
 	if err := os.Symlink(tool, filepath.Join(link, "tool")); err != nil {

@@ -3,59 +3,111 @@ package manifests
 import (
 	"slices"
 
-	d "github.com/notsuhas/envden/go/core/chain/devices"
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	devicechain "github.com/notsuhas/envden/go/core/chain/devices"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func headerHash(h b.Signed[m.ManifestHeader]) []byte {
-
-	return b.Must(cr.ObjectHash(m.ManifestHeaderCodec, h, "manifest"))
+func headerHash(h encoding.Signed[manifests.ManifestHeader]) ([]byte, error) {
+	return crypto.ObjectHash(manifests.ManifestHeaderCodec, h, "manifest")
 }
 
-func HeaderDescent(source Source, ancestor, head b.Signed[m.ManifestHeader], verifyDivergent func(b.Signed[m.ManifestHeader]) error) ([]b.Signed[m.ManifestHeader], error) {
-
-	return s.Try(func() []b.Signed[m.ManifestHeader] {
-		path := []b.Signed[m.ManifestHeader]{}
+func HeaderDescent(source Source, ancestor, head encoding.Signed[manifests.ManifestHeader], verifyDivergent func(encoding.Signed[manifests.ManifestHeader]) error) ([]encoding.Signed[manifests.ManifestHeader], error) {
+	return chainshared.TryResult(func() ([]encoding.Signed[manifests.ManifestHeader], error) {
+		path := []encoding.Signed[manifests.ManifestHeader]{}
 		current := head
 		for current.Body.Seq > ancestor.Body.Seq {
 			path = append(path, current)
-			previous := b.Must(source.Header(current.Body.Prev))
-			s.Check(previous != nil && b.Equal(headerHash(*previous), current.Body.Prev))
-			s.Check(previous.Body.Seq+1 == current.Body.Seq && previous.Body.Seq != ^uint64(0))
+			previous, err := source.Header(current.Body.Prev)
+			if err != nil {
+				return nil, err
+			}
+
+			validParent := previous != nil
+			if validParent {
+				headerHashResult, err := headerHash(*previous)
+				if err != nil {
+					return nil, err
+				}
+				validParent = encoding.Equal(headerHashResult, current.Body.Prev)
+			}
+			if err := chainshared.Check(validParent); err != nil {
+				return nil, err
+			}
+			if err := chainshared.Check(previous.Body.Seq+1 == current.Body.Seq && previous.Body.Seq != ^uint64(0)); err != nil {
+				return nil, err
+			}
+
 			current = *previous
 		}
-		if !b.Equal(headerHash(current), headerHash(ancestor)) {
-			b.Must(true, verifyDivergent(current))
-			for _, h := range path {
-				b.Must(true, verifyDivergent(h))
+		headerHashResult2, err := headerHash(current)
+		if err != nil {
+			return nil, err
+		}
+		headerHashResult3, err := headerHash(ancestor)
+		if err != nil {
+			return nil, err
+		}
+		if !encoding.Equal(headerHashResult2, headerHashResult3) {
+			if err := verifyDivergent(current); err != nil {
+				return nil, err
 			}
-			return nil
+
+			for _, h := range path {
+				if err := verifyDivergent(h); err != nil {
+					return nil, err
+				}
+				_ = true
+			}
+
+			return nil, nil
 		}
 		slices.Reverse(path)
-		return path
+
+		return path, nil
 	})
 }
 
-func EntryDescent(source Source, ancestor *d.State, target m.ManifestHeader) ([]b.Signed[c.Entry], error) {
-
-	return s.Try(func() []b.Signed[c.Entry] {
-		path := []b.Signed[c.Entry]{}
+func EntryDescent(source Source, ancestor *devicechain.State, target manifests.ManifestHeader) ([]encoding.Signed[codecs.Entry], error) {
+	return chainshared.TryResult(func() ([]encoding.Signed[codecs.Entry], error) {
+		path := []encoding.Signed[codecs.Entry]{}
 		hash := target.ListHead
 		seq := target.ListSeq
-		s.Check(seq >= ancestor.Seq)
+		if err := chainshared.Check(seq >= ancestor.Seq); err != nil {
+			return nil, err
+		}
+
 		for seq > ancestor.Seq {
-			entry := b.Must(source.Entry(hash))
-			s.Check(entry != nil && entry.Body.Seq == seq && b.Equal(b.Must(cr.ObjectHash(c.EntryCodec, *entry, "entry")), hash))
+			entry, err := source.Entry(hash)
+			if err != nil {
+				return nil, err
+			}
+
+			validEntry := entry != nil && entry.Body.Seq == seq
+			if validEntry {
+				objectHash, err := crypto.ObjectHash(codecs.EntryCodec, *entry, "entry")
+				if err != nil {
+					return nil, err
+				}
+				validEntry = encoding.Equal(objectHash, hash)
+			}
+			if err := chainshared.Check(validEntry); err != nil {
+				return nil, err
+			}
+
 			path = append(path, *entry)
 			hash = entry.Body.Parent
 			seq--
 		}
-		s.Check(b.Equal(hash, ancestor.Head))
+		if err := chainshared.Check(encoding.Equal(hash, ancestor.Head)); err != nil {
+			return nil, err
+		}
+
 		slices.Reverse(path)
-		return path
+
+		return path, nil
 	})
 }

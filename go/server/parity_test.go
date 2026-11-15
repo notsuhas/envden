@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	sqlite "github.com/notsuhas/envden/go/adapters/storage/sqlite"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	mw "github.com/notsuhas/envden/go/server/middleware"
-	status "github.com/notsuhas/envden/go/server/status"
 	"io"
 	"net/http/httptest"
 	"os"
@@ -15,6 +11,10 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/adapters/storage/sqlite"
+	"github.com/notsuhas/envden/go/server/middleware"
+	"github.com/notsuhas/envden/go/server/status"
 )
 
 type parityFixture struct {
@@ -65,12 +65,12 @@ func loadReferences(t *testing.T) []capturedReference {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	reader, err := gzip.NewReader(file)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 	var references []capturedReference
 	if err = json.NewDecoder(reader).Decode(&references); err != nil {
 		t.Fatal(err)
@@ -78,13 +78,16 @@ func loadReferences(t *testing.T) []capturedReference {
 	if len(references) == 0 {
 		t.Fatal("missing reference requests")
 	}
+
 	return references
 }
+
 func TestTypeScriptParity(t *testing.T) {
 	for _, reference := range loadReferences(t) {
 		t.Run(reference.Name, func(t *testing.T) { replayFixture(t, reference) })
 	}
 }
+
 func replayFixture(t *testing.T, reference capturedReference) {
 	raw := reference.Fixture
 	var err error
@@ -101,7 +104,7 @@ func replayFixture(t *testing.T, reference capturedReference) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	reader.Close()
+	_ = reader.Close()
 	if err = os.WriteFile(filepath.Join(dir, "envden.sqlite"), dbBytes, 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -118,15 +121,18 @@ func replayFixture(t *testing.T, reference capturedReference) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer storage.Close()
-	var adapter a.Storage = storage
+	defer func() { _ = storage.Close() }()
+	var adapter = storage
 	if len(f.Faults) > 0 {
 		adapter = parityFaultStorage{Storage: storage, faults: f.Faults}
 	}
 	o := Options{Storage: adapter, Now: func() int64 { return f.Now }, ServerKeys: ServerKeys{SecretKey: f.Keys.SecretKey, PublicKey: f.Keys.PublicKey, OpaqueSetup: f.Keys.OpaqueSetup}, Config: f.Config, Stderr: io.Discard}
-	budget := mw.NewBodyBudget()
+	budget := middleware.NewBodyBudget()
 	for _, reservation := range f.Budgets {
-		release := budget.Reserve(reservation.Bytes, reservation.Kind, reservation.Vault, reservation.Device)
+		release, err := budget.Reserve(reservation.Bytes, reservation.Kind, reservation.Vault, reservation.Device)
+		if err != nil {
+			t.Fatal(err)
+		}
 		defer release()
 	}
 	o.ReserveBody = budget.Reserve
@@ -158,7 +164,7 @@ func replayFixture(t *testing.T, reference capturedReference) {
 	recorder := httptest.NewRecorder()
 	app.ServeHTTP(recorder, req)
 	response := recorder.Result()
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	actual, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatal(err)

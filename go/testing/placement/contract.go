@@ -1,10 +1,11 @@
 package placement
 
 import (
-	a "github.com/notsuhas/envden/go/core/adapters"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func require(t *testing.T, err error) {
@@ -23,7 +24,7 @@ func contents(t *testing.T, path, want string) {
 	}
 }
 
-func state(t *testing.T, adapter a.Placement, store, dest string, want a.PlacementState) {
+func state(t *testing.T, adapter adapters.Placement, store, dest string, want adapters.PlacementState) {
 	t.Helper()
 	got, err := adapter.Inspect(store, dest)
 	require(t, err)
@@ -32,7 +33,7 @@ func state(t *testing.T, adapter a.Placement, store, dest string, want a.Placeme
 	}
 }
 
-func PlacementContract(t *testing.T, factory func(root, backups string) a.Placement) {
+func PlacementContract(t *testing.T, factory func(root, backups string) adapters.Placement) {
 	t.Run("placement can be inspected, repeated and removed", func(t *testing.T) {
 		root := t.TempDir()
 		adapter := factory(root, "")
@@ -45,17 +46,18 @@ func PlacementContract(t *testing.T, factory func(root, backups string) a.Placem
 			if adapter.Place(store, dest, func(string) error { return nil }, nil) == nil {
 				t.Fatal("unsupported placement succeeded")
 			}
+
 			return
 		}
-		state(t, adapter, store, dest, a.PlacementMissing)
+		state(t, adapter, store, dest, adapters.PlacementMissing)
 		for i := 0; i < 2; i++ {
 			require(t, adapter.Place(store, dest, func(string) error { return nil }, nil))
 			contents(t, dest, "A=1\n")
-			state(t, adapter, store, dest, a.PlacementLinked)
+			state(t, adapter, store, dest, adapters.PlacementLinked)
 		}
 		require(t, adapter.Remove(&store, dest))
 		require(t, adapter.Remove(&store, dest))
-		state(t, adapter, store, dest, a.PlacementMissing)
+		state(t, adapter, store, dest, adapters.PlacementMissing)
 	})
 	t.Run("refuses unrelated links and linked parents and backs up overwrites", func(t *testing.T) {
 		root := t.TempDir()
@@ -79,7 +81,7 @@ func PlacementContract(t *testing.T, factory func(root, backups string) a.Placem
 		}
 		contents(t, unrelated, "KEEP=1")
 		require(t, adapter.Place(store, dest, prepare, &unrelated))
-		state(t, adapter, store, dest, a.PlacementLinked)
+		state(t, adapter, store, dest, adapters.PlacementLinked)
 		contents(t, dest, "NEW=1")
 		contents(t, unrelated, "KEEP=1")
 		require(t, os.Remove(dest))
@@ -103,13 +105,13 @@ func PlacementContract(t *testing.T, factory func(root, backups string) a.Placem
 		dest := filepath.Join(root, ".env")
 		require(t, os.WriteFile(store, []byte("A=1\n"), 0600))
 		require(t, os.WriteFile(dest, []byte("A=1\n"), 0600))
-		want := a.PlacementLinked
-		if adapter.Mode() == a.PlacementLink {
-			want = a.PlacementRelinkable
+		want := adapters.PlacementLinked
+		if adapter.Mode() == adapters.PlacementLink {
+			want = adapters.PlacementRelinkable
 		}
 		state(t, adapter, store, dest, want)
 		require(t, os.WriteFile(dest, []byte("A=2\n"), 0600))
-		state(t, adapter, store, dest, a.PlacementDetached)
+		state(t, adapter, store, dest, adapters.PlacementDetached)
 	})
 	t.Run("rejects paths outside checkout and directory destinations", func(t *testing.T) {
 		root := t.TempDir()

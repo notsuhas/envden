@@ -2,13 +2,15 @@ package memory
 
 import (
 	"encoding/json"
-	"github.com/notsuhas/envden/go/core/adapters"
 	"strconv"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func sessionKey(v []byte, k adapters.SessionKey) string {
 	b, e := json.Marshal([]string{hexKey(v), string(k.Kind), hexKey(k.Device), k.Purpose})
 	must(e)
+
 	return string(b)
 }
 
@@ -25,12 +27,14 @@ func (m *memory) session(v []byte, k adapters.SessionKey, now int64) []byte {
 	if value.Expires > now {
 		return clone(value.Bytes)
 	}
+
 	return nil
 }
 
 func (m *memory) consumeSession(v []byte, k adapters.SessionKey, now int64) []byte {
 	b := m.session(v, k, now)
 	delete(m.data.Sessions, sessionKey(v, k))
+
 	return b
 }
 
@@ -41,6 +45,7 @@ func (m *memory) rememberNonce(id, n []byte, now int64) bool {
 		return false
 	}
 	m.data.Nonces[key] = now + 600000
+
 	return true
 }
 
@@ -49,6 +54,7 @@ func (m *memory) approver(v, id []byte, now int64) []byte {
 	if value.Expires > now {
 		return clone(value.Bytes)
 	}
+
 	return nil
 }
 
@@ -62,6 +68,7 @@ func rateKey(v []byte, b adapters.RateBucket) string {
 	if b.Device != nil {
 		return "mailbox-writer:" + hexKey(b.Device)
 	}
+
 	return "mailbox:" + hexKey(v)
 }
 
@@ -94,6 +101,7 @@ func (m *memory) charge(v []byte, b adapters.RateBucket, now int64) adapters.Rat
 		duration := min(int64(86400000), int64(900000)<<min(strikes-1, 7))
 		m.data.Buckets[key] = bucket{now + duration, strikes}
 	}
+
 	return adapters.RateCharge{Kind: "charged", Receipt: receipt}
 }
 
@@ -108,5 +116,6 @@ func (m *memory) refund(receipt string, now int64) bool {
 		b.Until = 0
 		m.data.Buckets[c.Key] = b
 	}
+
 	return true
 }

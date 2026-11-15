@@ -1,15 +1,14 @@
 package swaps
 
 import (
-	d "github.com/notsuhas/envden/go/core/chain/devices"
-	o "github.com/notsuhas/envden/go/core/chain/swaps/operation"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	devicechain "github.com/notsuhas/envden/go/core/chain/devices"
+	"github.com/notsuhas/envden/go/core/chain/swaps/operation"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
 )
 
-type Authorization = o.Authorization
+type Authorization = operation.Authorization
 
-func OperationRequirement(previous, header m.ManifestHeader, entries []c.Signed[c.Entry], before *d.State, onNewServer ...bool) (Authorization, error) {
-
-	return o.OperationRequirement(previous, header, entries, before, onNewServer...)
+func OperationRequirement(previous, header manifests.ManifestHeader, entries []codecs.Signed[codecs.Entry], before *devicechain.State, onNewServer ...bool) (Authorization, error) {
+	return operation.OperationRequirement(previous, header, entries, before, onNewServer...)
 }

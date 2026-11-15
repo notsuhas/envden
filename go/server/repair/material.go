@@ -2,100 +2,170 @@ package repair
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	x "github.com/notsuhas/envden/go/server/shared"
-	vault "github.com/notsuhas/envden/go/server/vault"
-	v "github.com/notsuhas/envden/go/server/vaultchain"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/vault"
+	"github.com/notsuhas/envden/go/server/vaultchain"
 )
 
-func StoreMaterial(o x.Options, auth *x.Auth, kind string, hash, data []byte) s.KindResponse {
-	return x.Transaction(o.Storage, func() s.KindResponse {
+func StoreMaterial(o shared.Options, auth *shared.Auth, kind string, hash, data []byte) (wire.KindResponse, error) {
+	return shared.Transaction(o.Storage, func() (wire.KindResponse, error) {
 		id := auth.Request.VaultId
-		metadata := x.Must(o.Storage.Vault(id))
+		metadata, err := o.Storage.Vault(id)
+		if err != nil {
+			return wire.KindResponse{}, err
+		}
 		if metadata.Restored != nil {
-			if v.Membership(o, id, auth.Request.Device) == nil {
-				x.Fail(e.NotMember, "Membership required")
+			membership, err := vaultchain.Membership(o, id, auth.Request.Device)
+			if err != nil {
+				return wire.KindResponse{}, err
+			}
+			if membership == nil {
+				return wire.KindResponse{}, enverrors.New(enverrors.NotMember, "Membership required")
 			}
 			if kind == "skPub" {
-				x.Fail(e.InvalidInput, "Invalid repair material")
+				return wire.KindResponse{}, enverrors.New(enverrors.InvalidInput, "Invalid repair material")
 			}
 		}
 		if kind == "files" {
 			return restoreFiles(o, id, hash, data)
 		}
 		if len(data) > 16777216 || kind != "keyring" && kind != "envelope" && kind != "skPub" {
-			x.Fail(e.InvalidInput, "Invalid material")
+			return wire.KindResponse{}, enverrors.New(enverrors.InvalidInput, "Invalid material")
 		}
 		domain := "keyring-blob"
 		if kind == "envelope" {
 			domain = "envelope-blob"
 		}
-		if kind == "skPub" && len(data) != 32 || kind != "skPub" && !bytes.Equal(cr.H(domain, data), hash) {
-			x.Fail(e.InvalidData, "Material hash mismatch")
+		if kind == "skPub" && len(data) != 32 || kind != "skPub" && !bytes.Equal(crypto.H(domain, data), hash) {
+			return wire.KindResponse{}, enverrors.New(enverrors.InvalidData, "Material hash mismatch")
 		}
-		if kind != "skPub" && !referenced(o, id, kind, hash) {
-			x.Fail(e.InvalidData, "Unreferenced material")
+		requiresStagedRecord := kind != "skPub"
+		if requiresStagedRecord {
+			referencedResult, err := referenced(o, id, kind, hash)
+			if err != nil {
+				return wire.KindResponse{}, err
+			}
+			requiresStagedRecord = !referencedResult
+		}
+		if requiresStagedRecord {
+			return wire.KindResponse{}, enverrors.New(enverrors.InvalidData, "Unreferenced material")
 		}
 		key := []byte{}
-		stateKind := a.StateSKPub
-		if kind == "keyring" {
+		stateKind := adapters.StateSKPub
+		switch kind {
+		case "keyring":
 			key = hash
-			stateKind = a.StateKeyring
-		} else if kind == "envelope" {
-			stateKind = a.StateEnvelope
+			stateKind = adapters.StateKeyring
+		case "envelope":
+			stateKind = adapters.StateEnvelope
 		}
-		x.Check(o.Storage.WriteState(id, []a.StateWrite{{Kind: stateKind, Key: key, Bytes: data}}))
-		return s.KindResponse{Kind: "uploaded"}
+		if err := o.Storage.WriteState(id, []adapters.StateWrite{{Kind: stateKind, Key: key, Bytes: data}}); err != nil {
+			return wire.KindResponse{}, err
+		}
+
+		return wire.KindResponse{Kind: "uploaded"}, nil
 	})
 }
-func referenced(o x.Options, id []byte, kind string, hash []byte) bool {
+
+func referenced(o shared.Options, id []byte, kind string, hash []byte) (bool, error) {
 	if kind == "envelope" {
-		head := x.Must(o.Storage.Head(id))
+		head, err := o.Storage.Head(id)
+		if err != nil {
+			return false, err
+		}
 		if head == nil {
-			return false
+			return false, nil
 		}
-		row := x.Must(o.Storage.Header(id, head))
-		return row != nil && bytes.Equal(header(row.Bytes).EnvelopeHash, hash)
+		row, err := o.Storage.Header(id, head)
+		if err != nil {
+			return false, err
+		}
+
+		alreadyPresent := row != nil
+		if alreadyPresent {
+			headerResult, err := header(row.Bytes)
+			if err != nil {
+				return false, err
+			}
+			alreadyPresent = bytes.Equal(headerResult.EnvelopeHash, hash)
+		}
+
+		return alreadyPresent, nil
 	}
-	for _, row := range x.Must(o.Storage.Headers(id, 1, ^uint64(0), 0, 0)) {
-		if bytes.Equal(header(row.Bytes).KeyringHash, hash) {
-			return true
+	headers, err := o.Storage.Headers(id, 1, ^uint64(0), 0, 0)
+	if err != nil {
+		return false, err
+	}
+
+	for _, row := range headers {
+		headerResult2, err := header(row.Bytes)
+		if err != nil {
+			return false, err
+		}
+		if bytes.Equal(headerResult2.KeyringHash, hash) {
+			return true, nil
 		}
 	}
-	return false
+
+	return false, nil
 }
-func header(data []byte) m.ManifestHeader {
-	return x.Must(b.Decode(b.SignedCodec(m.ManifestHeaderCodec), data)).Body
-}
-func restoreFiles(o x.Options, id, hash, data []byte) s.KindResponse {
-	files := x.Input(func() m.Files { return x.Must(b.Decode(m.FilesCodec, data)) })
-	if !bytes.Equal(cr.H("files", data), hash) {
-		x.Fail(e.InvalidData, "Files hash mismatch")
+
+func header(data []byte) (manifests.ManifestHeader, error) {
+	decoded, err := encoding.Decode(encoding.SignedCodec(manifests.ManifestHeaderCodec), data)
+	if err != nil {
+		return manifests.ManifestHeader{}, err
 	}
-	rows := x.Must(o.Storage.HeadersForFiles(id, hash))
-	headers := []m.ManifestHeader{}
+
+	return decoded.Body, nil
+}
+
+func restoreFiles(o shared.Options, id, hash, data []byte) (wire.KindResponse, error) {
+	files, err := shared.Input(func() (manifests.Files, error) {
+		return encoding.Decode(manifests.FilesCodec, data)
+	})
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
+	if !bytes.Equal(crypto.H("files", data), hash) {
+		return wire.KindResponse{}, enverrors.New(enverrors.InvalidData, "Files hash mismatch")
+	}
+	rows, err := o.Storage.HeadersForFiles(id, hash)
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	headers := []manifests.ManifestHeader{}
 	found := false
 	permanent := false
 	for _, row := range rows {
-		h := header(row.Bytes)
+		h, err := header(row.Bytes)
+		if err != nil {
+			return wire.KindResponse{}, err
+		}
+
 		headers = append(headers, h)
 		if bytes.Equal(h.FilesHash, hash) {
 			found = true
 		}
 	}
 	if !found {
-		x.Fail(e.InvalidData, "Unreferenced files")
+		return wire.KindResponse{}, enverrors.New(enverrors.InvalidData, "Unreferenced files")
 	}
 	for i, h := range headers {
 		if h.Op == 11 && (bytes.Equal(h.FilesHash, hash) || i > 0 && bytes.Equal(headers[i-1].FilesHash, hash)) {
 			permanent = true
 		}
 	}
-	x.Check(o.Storage.PutFileList(id, a.StoredFiles{StoredObject: a.StoredObject{Hash: hash, Bytes: data}, RetainForever: permanent, Versions: vault.Versions(files.Entries)}, o.Now()))
-	return s.KindResponse{Kind: "uploaded"}
+	if err := o.Storage.PutFileList(id, adapters.StoredFiles{StoredObject: adapters.StoredObject{Hash: hash, Bytes: data}, RetainForever: permanent, Versions: vault.Versions(files.Entries)}, o.Now()); err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	return wire.KindResponse{Kind: "uploaded"}, nil
 }

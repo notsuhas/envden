@@ -2,16 +2,18 @@ package clack
 
 import (
 	"fmt"
-	"golang.org/x/text/unicode/norm"
-	"golang.org/x/text/width"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"golang.org/x/text/unicode/norm"
+	"golang.org/x/text/width"
 )
 
 var sgr = regexp.MustCompile(`^\x1b\[([0-9]+)m`)
+
 var escape = regexp.MustCompile(`\x1b\[[0-9;]*[A-Za-z]`)
 
 func visible(s string) int {
@@ -27,8 +29,10 @@ func visible(s string) int {
 			n++
 		}
 	}
+
 	return n
 }
+
 func wrap(text string, columns int) string {
 	if columns < 1 {
 		columns = 1
@@ -37,8 +41,10 @@ func wrap(text string, columns int) string {
 	for _, line := range strings.Split(strings.ReplaceAll(norm.NFC.String(text), "\r\n", "\n"), "\n") {
 		output = append(output, wrapLine(line, columns))
 	}
+
 	return strings.Join(output, "\n")
 }
+
 func wrapLine(text string, columns int) string {
 	rows := []string{""}
 	length := 0
@@ -106,19 +112,21 @@ func wrapLine(text string, columns int) string {
 		r, size := utf8.DecodeRuneInString(raw)
 		if r == '\n' {
 			if close := closing(code); close != 0 {
-				out.WriteString(fmt.Sprintf("\x1b[%dm", close))
+				fmt.Fprintf(&out, "\x1b[%dm", close)
 			}
 			out.WriteRune(r)
 			if closing(code) != 0 {
-				out.WriteString(fmt.Sprintf("\x1b[%dm", code))
+				fmt.Fprintf(&out, "\x1b[%dm", code)
 			}
 		} else {
 			out.WriteRune(r)
 		}
 		raw = raw[size:]
 	}
+
 	return out.String()
 }
+
 func closing(code int) int {
 	switch {
 	case code >= 30 && code <= 37 || code >= 90 && code <= 97:
@@ -140,5 +148,6 @@ func closing(code int) int {
 	case 9:
 		return 29
 	}
+
 	return 0
 }

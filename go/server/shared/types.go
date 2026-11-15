@@ -7,89 +7,90 @@ import (
 	"io"
 	"regexp"
 
-	a "github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/errors"
+	protocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 )
 
 type Keys struct {
 	SecretKey, PublicKey []byte
 	OpaqueSetup          string
 }
+
 type Config struct{ AppVersion, MinClient string }
+
 type Options struct {
 	ChainCache  map[string]any
-	ReserveBody func(int64, string, []byte, []byte) func()
-	Storage     a.Storage
+	ReserveBody func(int64, string, []byte, []byte) (func(), error)
+	Storage     adapters.Storage
 	Now         func() int64
 	ServerKeys  Keys
 	Config      Config
 	Stderr      io.Writer
-	// Await runs fn with the request lock released, like a Bun await on body I/O.
+
+	// Await releases the request lock during body I/O, as Bun does at an await.
 	Await func(fn func())
 }
+
 type Auth struct {
-	Request     s.Request
+	Request     protocol.Request
 	Member      bool
 	Proof       []byte
 	RateReceipt string
 }
 
-func Must[T any](v T, err error) T { Check(err); return v }
-func Check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-func Fail(code e.Code, message string) { panic(e.New(code, message)) }
-func Text(v []byte) string             { return base64.RawURLEncoding.EncodeToString(v) }
+func Text(value []byte) string { return base64.RawURLEncoding.EncodeToString(value) }
 
 var encoded = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-func Binary(value string, length ...int) []byte {
+func Binary(value string, length ...int) ([]byte, error) {
 	if !encoded.MatchString(value) {
-		Fail(e.InvalidInput, "Invalid encoding")
+		return nil, errors.New(errors.InvalidInput, "Invalid encoding")
 	}
 	data, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil || Text(data) != value || len(length) > 0 && len(data) != length[0] {
-		Fail(e.InvalidInput, "Invalid encoding")
+		return nil, errors.New(errors.InvalidInput, "Invalid encoding")
 	}
-	return data
+
+	return data, nil
 }
-func JSON(value any) []byte {
+
+func JSON(value any) ([]byte, error) {
 	var out bytes.Buffer
-	enc := json.NewEncoder(&out)
-	enc.SetEscapeHTML(false)
-	Check(enc.Encode(value))
-	return bytes.TrimSuffix(out.Bytes(), []byte("\n"))
+	encoder := json.NewEncoder(&out)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(value); err != nil {
+		return nil, err
+	}
+
+	return bytes.TrimSuffix(out.Bytes(), []byte("\n")), nil
 }
-func Input[T any](fn func() T) (out T) {
-	defer func() {
-		if cause := recover(); cause != nil {
-			if err, ok := cause.(*e.Error); ok && err.Code == e.UpdateRequired {
-				Fail(e.ServerTooOld, "Update the server")
-			}
-			Fail(e.InvalidInput, "Invalid input")
+
+func Input[T any](fn func() (T, error)) (T, error) {
+	value, err := fn()
+	if err != nil {
+		if errors.Is(err, errors.UpdateRequired) {
+			return *new(T), errors.New(errors.ServerTooOld, "Update the server")
 		}
-	}()
-	return fn()
+
+		return *new(T), errors.New(errors.InvalidInput, "Invalid input")
+	}
+
+	return value, nil
 }
-func Parse[T any](schema s.Schema[T], body []byte) T {
-	return Input(func() T { return Must(schema.Decode(body)) })
+
+func Parse[T any](schema protocol.Schema[T], body []byte) (T, error) {
+	return Input(func() (T, error) { return schema.Decode(body) })
 }
-func Transaction[T any](storage a.Storage, fn func() T) (out T) {
-	Check(storage.Transaction(func() (err error) {
-		defer func() {
-			if x := recover(); x != nil {
-				if v, ok := x.(error); ok {
-					err = v
-				} else {
-					panic(x)
-				}
-			}
-		}()
-		out = fn()
-		return nil
-	}))
-	return
+
+func Transaction[T any](storage adapters.Storage, fn func() (T, error)) (T, error) {
+	var out T
+	err := storage.Transaction(func() error {
+		var err error
+		out, err = fn()
+
+		return err
+	})
+
+	return out, err
 }

@@ -2,90 +2,163 @@ package sqlite
 
 import (
 	"bytes"
+
 	"github.com/notsuhas/envden/go/core/adapters"
 )
 
-func (s *storage) openMailbox(v, id []byte, now int64) *adapters.StoredMailbox {
+func (s *storage) openMailbox(v, id []byte, now int64) (*adapters.StoredMailbox, error) {
 	var out *adapters.StoredMailbox
-	s.tx(func() {
-		s.run("DELETE FROM mailboxes WHERE expires<=?", now)
-		s.run("DELETE FROM openings WHERE at<=?", now-3600000)
-		if s.count("SELECT COUNT(*) FROM openings WHERE vault=?", v) >= 10 {
-			return
+	if err := s.tx(func() error {
+		_, err := s.run("DELETE FROM mailboxes WHERE expires<=?", now)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.run("DELETE FROM openings WHERE at<=?", now-3600000)
+		if err != nil {
+			return err
+		}
+
+		countResult, err := s.count("SELECT COUNT(*) FROM openings WHERE vault=?", v)
+		if err != nil {
+			return err
+		}
+		if countResult >=
+			10 {
+			return nil
 		}
 		used := map[int]bool{}
-		r := s.rows("SELECT number FROM mailboxes")
-		defer r.Close()
+		r, err := s.rows("SELECT number FROM mailboxes")
+		if err != nil {
+			return err
+		}
+
+		defer func() { _ = r.Close() }()
 		for r.Next() {
 			var n int
-			must(r.Scan(&n))
+			if err := r.Scan(&n); err != nil {
+				return err
+			}
+
 			used[n] = true
 		}
-		must(r.Close())
+		if err := r.Close(); err != nil {
+			return err
+		}
+
 		n := 1
 		for used[n] && n <= 999 {
 			n++
 		}
 		if n > 999 {
-			return
+			return nil
 		}
-		s.run("INSERT INTO mailboxes VALUES(?,?,?,?)", n, v, id, now+600000)
-		s.run("INSERT INTO openings VALUES(?,?)", v, now)
+		_, err = s.run("INSERT INTO mailboxes VALUES(?,?,?,?)", n, v, id, now+600000)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.run("INSERT INTO openings VALUES(?,?)", v, now)
+		if err != nil {
+			return err
+		}
+
 		out = &adapters.StoredMailbox{Number: n, Device: id, ExpiresAt: now + 600000, Slots: map[adapters.MailboxSlot][]byte{}}
-	})
-	return out
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-func (s *storage) mailbox(v []byte, n int, now int64) *adapters.StoredMailbox {
-	r := s.rows("SELECT device,CAST(expires AS INTEGER) FROM mailboxes WHERE vault=? AND number=? AND expires>?", v, n, now)
-	defer r.Close()
+func (s *storage) mailbox(v []byte, n int, now int64) (*adapters.StoredMailbox, error) {
+	r, err := s.rows("SELECT device,CAST(expires AS INTEGER) FROM mailboxes WHERE vault=? AND number=? AND expires>?", v, n, now)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = r.Close() }()
 	out := &adapters.StoredMailbox{Number: n, Slots: map[adapters.MailboxSlot][]byte{}}
 	found := r.Next()
 	if found {
-		must(r.Scan(&out.Device, &out.ExpiresAt))
+		if err := r.Scan(&out.Device, &out.ExpiresAt); err != nil {
+			return nil, err
+		}
 	}
-	must(r.Close())
+	if err := r.Close(); err != nil {
+		return nil, err
+	}
 	if !found {
-		return nil
+		return nil, nil
 	}
 	for _, slot := range []adapters.MailboxSlot{"KE1", "KE2", "KE3", "PairJoiner"} {
-		b := s.bytes("SELECT bytes FROM slots WHERE number=? AND slot=?", n, slot)
+		b, err := s.bytes("SELECT bytes FROM slots WHERE number=? AND slot=?", n, slot)
+		if err != nil {
+			return nil, err
+		}
 		if b != nil {
 			out.Slots[slot] = b
 		}
 	}
-	return out
+
+	return out, nil
 }
 
-func (s *storage) writeMailbox(v []byte, n int, slot adapters.MailboxSlot, b []byte, now int64) adapters.MailboxWrite {
+func (s *storage) writeMailbox(v []byte, n int, slot adapters.MailboxSlot, b []byte, now int64) (adapters.MailboxWrite, error) {
 	var result adapters.MailboxWrite
-	s.tx(func() {
-		box := s.mailbox(v, n, now)
+	if err := s.tx(func() error {
+		box, err := s.mailbox(v, n, now)
+		if err != nil {
+			return err
+		}
 		if box == nil {
 			result = "closed"
-			return
+
+			return nil
 		}
 		prior := box.Slots[slot]
 		if prior != nil && bytes.Equal(prior, b) {
 			result = "identical"
-			return
+
+			return nil
 		}
 		if prior != nil || len(b) > 4096 {
-			s.closeMailbox(v, n)
+			if err := s.closeMailbox(v, n); err != nil {
+				return err
+			}
+
 			result = "closed"
-			return
+
+			return nil
 		}
 		required := map[adapters.MailboxSlot]adapters.MailboxSlot{"KE2": "KE1", "KE3": "KE2", "PairJoiner": "KE3"}[slot]
 		if required != "" && box.Slots[required] == nil {
 			result = "out-of-order"
-			return
+
+			return nil
 		}
-		s.run("INSERT INTO slots VALUES(?,?,?)", n, slot, b)
+		_, err = s.run("INSERT INTO slots VALUES(?,?,?)", n, slot, b)
+		if err != nil {
+			return err
+		}
+
 		result = "written"
-	})
-	return result
+
+		return nil
+	}); err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
-func (s *storage) closeMailbox(v []byte, n int) {
-	s.run("DELETE FROM mailboxes WHERE vault=? AND number=?", v, n)
+func (s *storage) closeMailbox(v []byte, n int) error {
+	_, err := s.run("DELETE FROM mailboxes WHERE vault=? AND number=?", v, n)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

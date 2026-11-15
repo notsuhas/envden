@@ -1,11 +1,12 @@
 package commander
 
 import (
-	"golang.org/x/term"
 	"os"
 	"regexp"
 	"strings"
 	"unicode/utf16"
+
+	"golang.org/x/term"
 )
 
 type helpItem struct{ term, description, group string }
@@ -97,6 +98,7 @@ func (c *Command) Help() string {
 			result += "\n"
 		}
 	}
+
 	return strings.TrimSuffix(result, "\n")
 }
 
@@ -124,13 +126,16 @@ func boxWrap(text string, w int) string {
 		}
 		lines = append(lines, current)
 	}
+
 	return strings.Join(lines, "\n")
 }
+
 func contains(values []string, value string) bool {
 	for _, v := range values {
 		if v == value {
 			return true
 		}
 	}
+
 	return false
 }

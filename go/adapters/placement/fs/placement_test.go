@@ -5,12 +5,13 @@ package fs
 import (
 	"crypto/sha256"
 	"fmt"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	"golang.org/x/sys/unix"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	"golang.org/x/sys/unix"
 )
 
 func check(t *testing.T, err error) {
@@ -26,7 +27,8 @@ func setup(t *testing.T) (string, string, string) {
 	checkout := filepath.Join(root, "checkout")
 	check(t, os.Mkdir(checkout, 0700))
 	store := filepath.Join(root, "store")
-	check(t, os.WriteFile(store, []byte("A=secret\n"), 0644))
+	check(t, os.WriteFile(store, []byte("A=secret\n"), 0644)) //nolint:gosec // G306: fixture tests that placement restricts a public store file.
+
 	return root, checkout, store
 }
 
@@ -50,7 +52,7 @@ func TestPaths(t *testing.T) {
 
 func TestTemporaryAndPermissions(t *testing.T) {
 	_, root, store := setup(t)
-	adapter := CreateFsPlacementAdapter(a.PlacementCopy, root, "", func() int64 { return 1 })
+	adapter := CreateFsPlacementAdapter(adapters.PlacementCopy, root, "", func() int64 { return 1 })
 	dest := filepath.Join(root, "nested", ".env")
 	if adapter.Place(store, dest, nil, nil) == nil {
 		t.Fatal("missing exclude accepted")
@@ -62,6 +64,7 @@ func TestTemporaryAndPermissions(t *testing.T) {
 			t.Fatalf("wrong exclusion %q", path)
 		}
 		calls++
+
 		return nil
 	}
 	check(t, adapter.Place(store, dest, prepare, nil))
@@ -93,13 +96,13 @@ func TestBackupSafetyAndRetention(t *testing.T) {
 	dest := filepath.Join(checkout, ".env")
 	check(t, os.WriteFile(dest, []byte("keep"), 0600))
 	for _, backups := range []string{"", filepath.Join(checkout, "conflicts"), filepath.Join(checkout, "..conflicts")} {
-		adapter := CreateFsPlacementAdapter(a.PlacementCopy, checkout, backups, func() int64 { return 1 })
+		adapter := CreateFsPlacementAdapter(adapters.PlacementCopy, checkout, backups, func() int64 { return 1 })
 		if adapter.Place(store, dest, func(string) error { return nil }, nil) == nil {
 			t.Fatal("unsafe backup accepted")
 		}
 	}
 	backups := filepath.Join(root, "conflicts")
-	adapter := CreateFsPlacementAdapter(a.PlacementCopy, checkout, backups, func() int64 { return 1800000000000 })
+	adapter := CreateFsPlacementAdapter(adapters.PlacementCopy, checkout, backups, func() int64 { return 1800000000000 })
 	for i := 0; i < 3; i++ {
 		check(t, adapter.Place(store, dest, func(string) error { return nil }, nil))
 	}
@@ -140,7 +143,7 @@ func TestDescriptorAnchoringAndIdentity(t *testing.T) {
 	check(t, os.Mkdir(outside, 0700))
 	fd, err := openParent(checkout, "nested/.env", true)
 	check(t, err)
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	check(t, writeAt(fd, ".env", []byte("keep")))
 	before, err := identity(fd, ".env")
 	check(t, err)
@@ -165,13 +168,13 @@ func TestDescriptorAnchoringAndIdentity(t *testing.T) {
 
 func TestMissingStoreAndLocalUnicode(t *testing.T) {
 	_, root, store := setup(t)
-	adapter := CreateFsPlacementAdapter(a.PlacementCopy, root, "", func() int64 { return 1 })
+	adapter := CreateFsPlacementAdapter(adapters.PlacementCopy, root, "", func() int64 { return 1 })
 	dest := filepath.Join(root, "with\u200djoiner", ".env")
 	check(t, os.MkdirAll(filepath.Dir(dest), 0700))
 	check(t, os.WriteFile(dest, []byte("A=secret\n"), 0600))
 	state, err := adapter.Inspect(store, dest)
 	check(t, err)
-	if state != a.PlacementLinked {
+	if state != adapters.PlacementLinked {
 		t.Fatal(state)
 	}
 	check(t, adapter.Remove(&store, dest))
@@ -179,7 +182,7 @@ func TestMissingStoreAndLocalUnicode(t *testing.T) {
 	check(t, os.Remove(store))
 	state, err = adapter.Inspect(store, dest)
 	check(t, err)
-	if state != a.PlacementDetached {
+	if state != adapters.PlacementDetached {
 		t.Fatal(state)
 	}
 }

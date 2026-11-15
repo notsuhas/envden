@@ -6,15 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	a "github.com/notsuhas/envden/go/core/adapters"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	x "github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/core/adapters"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/server/shared"
 )
 
 type Prune struct {
 	At int64
 	OK bool
 }
+
 type State struct {
 	Enabled   bool
 	StartedAt int64
@@ -26,18 +27,22 @@ type State struct {
 func New(start int64, env map[string]string) *State {
 	return &State{Enabled: env["ENVDEN_STATUS_PAGE"] != "off", StartedAt: start}
 }
+
 func (v *State) Admit(now int64) bool {
 	if v.count == 0 || now-v.start >= 60000 {
 		v.start = now
 		v.count = 1
+
 		return true
 	}
 	if v.count >= 60 {
 		return false
 	}
 	v.count++
+
 	return true
 }
+
 func QuotaBand(usages []int64) *string {
 	if len(usages) == 0 {
 		return nil
@@ -46,7 +51,7 @@ func QuotaBand(usages []int64) *string {
 	for _, n := range usages {
 		largest = max(largest, n)
 	}
-	share := float64(largest) / float64(a.VaultQuotaBytes)
+	share := float64(largest) / float64(adapters.VaultQuotaBytes)
 	band := "below-50"
 	if share >= 0.95 {
 		band = "95-plus"
@@ -55,9 +60,11 @@ func QuotaBand(usages []int64) *string {
 	} else if share >= 0.5 {
 		band = "50-80"
 	}
+
 	return &band
 }
-func ServerMode(vaults []a.StoredVault) string {
+
+func ServerMode(vaults []adapters.StoredVault) string {
 	moved := len(vaults) > 0
 	for _, v := range vaults {
 		if v.Restored != nil {
@@ -70,30 +77,45 @@ func ServerMode(vaults []a.StoredVault) string {
 	if moved {
 		return "moved"
 	}
+
 	return "normal"
 }
-func Read(o x.Options, state *State) s.StatusResponse {
-	ids := x.Must(o.Storage.VaultIDs())
+
+func Read(o shared.Options, state *State) (wire.StatusResponse, error) {
+	ids, err := o.Storage.VaultIDs()
+	if err != nil {
+		return wire.StatusResponse{}, err
+	}
+
 	usages := make([]int64, 0, len(ids))
-	vaults := []a.StoredVault{}
+	vaults := []adapters.StoredVault{}
 	var total int64
 	for _, id := range ids {
-		n := x.Must(o.Storage.VaultUsage(id))
+		n, err := o.Storage.VaultUsage(id)
+		if err != nil {
+			return wire.StatusResponse{}, err
+		}
+
 		usages = append(usages, n)
 		total += n
 	}
 	for _, id := range ids {
-		v := x.Must(o.Storage.Vault(id))
+		v, err := o.Storage.Vault(id)
+		if err != nil {
+			return wire.StatusResponse{}, err
+		}
 		if v != nil {
 			vaults = append(vaults, *v)
 		}
 	}
-	result := s.StatusResponse{Version: o.Config.AppVersion, UptimeSeconds: max(0, (o.Now()-state.StartedAt)/1000), Mode: ServerMode(vaults), Vaults: int64(len(ids)), StorageBytes: total, FullestVault: QuotaBand(usages)}
+	result := wire.StatusResponse{Version: o.Config.AppVersion, UptimeSeconds: max(0, (o.Now()-state.StartedAt)/1000), Mode: ServerMode(vaults), Vaults: int64(len(ids)), StorageBytes: total, FullestVault: QuotaBand(usages)}
 	if state.LastPrune != nil {
-		result.LastPrune = &s.LastPrune{At: time.UnixMilli(state.LastPrune.At).UTC().Format("2006-01-02T15:04:05.000Z"), OK: state.LastPrune.OK}
+		result.LastPrune = &wire.LastPrune{At: time.UnixMilli(state.LastPrune.At).UTC().Format("2006-01-02T15:04:05.000Z"), OK: state.LastPrune.OK}
 	}
-	return result
+
+	return result, nil
 }
+
 func Headers(h http.Header) {
 	digest := sha256.Sum256([]byte(style))
 	h.Set("Content-Security-Policy", "default-src 'none'; style-src 'sha256-"+base64.StdEncoding.EncodeToString(digest[:])+"'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")

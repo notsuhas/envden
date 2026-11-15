@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
 )
 
@@ -16,6 +16,7 @@ import (
 var snippets embed.FS
 
 const start = "# >>> envden >>>"
+
 const end = "# <<< envden <<<"
 
 type Options struct {
@@ -49,6 +50,7 @@ func CreateRCShellAdapter(shell string, options ...Options) adapters.Shell {
 			o.ResolveProfile = func() string { return powerShellProfile(process.ExecTrustedSync, o.Home, runtime.GOOS) }
 		}
 	}
+
 	return &adapter{shell: shell, options: o}
 }
 
@@ -77,21 +79,24 @@ func (a *adapter) RCPath() string {
 				a.profile = filepath.Join(a.options.Home, folder, shellFolder, "Microsoft.PowerShell_profile.ps1")
 			}
 		}
+
 		return a.profile
 	}
 }
 
 func quote(s, shell string) string {
-	if shell == "fish" {
+	switch shell {
+	case "fish":
 		s = strings.ReplaceAll(s, `\`, `\\`)
 		s = strings.ReplaceAll(s, "'", `\'`)
-	} else if shell == "powershell" {
+	case "powershell":
 		for _, q := range []string{"'", "’", "‘", "‚", "‛"} {
 			s = strings.ReplaceAll(s, q, q+q)
 		}
-	} else {
+	default:
 		s = strings.ReplaceAll(s, "'", `'\''`)
 	}
+
 	return "'" + s + "'"
 }
 
@@ -105,6 +110,7 @@ func (a *adapter) HookSnippet(binary string) string {
 	for _, name := range []string{"notice", "approved-checkouts", "track-offered", "track-offers", "notice-update", "update-offered-day", "approved-checkouts-insensitive"} {
 		s = strings.ReplaceAll(s, "'/__ENVDEN_HOME__/state/"+name+"'", quote(filepath.Join(a.options.EnvdenHome, "state", name), a.shell))
 	}
+
 	return s
 }
 
@@ -153,6 +159,7 @@ func shellFailure(err error) error {
 	if _, ok := errors.As(err); ok {
 		return err
 	}
+
 	return errors.Wrap(errors.Internal, "Shell configuration operation failed", err)
 }
 
@@ -162,6 +169,7 @@ func (a *adapter) Installed() (installed bool, err error) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
+
 	return strip(string(b)) != string(b), shellFailure(err)
 }
 
@@ -170,6 +178,7 @@ func (a *adapter) Install(binary string) (err error) {
 	if !filepath.IsAbs(binary) || strings.ContainsAny(binary+a.options.EnvdenHome, "\r\n") {
 		return errors.New(errors.InvalidInput, "Hook paths must be absolute and single-line")
 	}
+
 	return shellFailure(editRC(a.RCPath(), func(s string) string {
 		nl := "\n"
 		if strings.Contains(s, "\r\n") {
@@ -179,12 +188,14 @@ func (a *adapter) Install(binary string) (err error) {
 		if current != "" && !strings.HasSuffix(current, "\n") {
 			current += nl
 		}
+
 		return current + strings.ReplaceAll(a.HookSnippet(binary), "\n", nl)
 	}, a.options.BackupDirectory))
 }
 
 func (a *adapter) Uninstall() (err error) {
 	defer recoverShellError(&err)
+
 	return shellFailure(editRC(a.RCPath(), strip, a.options.BackupDirectory))
 }
 

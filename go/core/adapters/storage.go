@@ -1,7 +1,6 @@
 package adapters
 
 // Storage is where the server keeps ciphertext. Encoded objects are opaque; callers supply verified indexes.
-// Methods return errors where the TS adapter throws.
 type Storage interface {
 	ID() string
 	Close() error

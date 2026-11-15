@@ -2,17 +2,17 @@ package identity
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	k "github.com/notsuhas/envden/go/core/protocol/keys"
-	p "github.com/notsuhas/envden/go/core/protocol/proofs"
-	x "github.com/notsuhas/envden/go/server/shared"
-	memory "github.com/notsuhas/envden/go/testing/storage/memory"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/keys"
+	"github.com/notsuhas/envden/go/core/protocol/proofs"
+	"github.com/notsuhas/envden/go/testing/storage/memory"
 )
 
 func TestPrivateIdentityPersists(t *testing.T) {
@@ -21,11 +21,11 @@ func TestPrivateIdentityPersists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = os.Chmod(dir, 0755); err != nil {
+	if err = os.Chmod(dir, 0755); err != nil { //nolint:gosec // G302: fixture tests restriction of existing public storage permissions.
 		t.Fatal(err)
 	}
 	path := filepath.Join(dir, "identity.json")
-	if err = os.Chmod(path, 0644); err != nil {
+	if err = os.Chmod(path, 0644); err != nil { //nolint:gosec // G302: fixture tests restriction of existing public storage permissions.
 		t.Fatal(err)
 	}
 	second, err := LoadServerKeys(dir)
@@ -55,37 +55,52 @@ func TestPrivateIdentityPersists(t *testing.T) {
 		t.Fatal("publication damaged identity")
 	}
 }
+
 func TestSetupLifecycle(t *testing.T) {
 	storage := memory.CreateMemoryStorageAdapter()
-	defer storage.Close()
-	pub := x.Must(k.GenerateRecoveryKeys()).ObjPub
-	pin := x.Must(k.ServerPin(pub))
-	initial := x.Must(InitializeSetup(storage, pub, ""))
+	defer func() { _ = storage.Close() }()
+	pub := must(keys.GenerateRecoveryKeys()).ObjPub
+	pin := must(keys.ServerPin(pub))
+	initial := must(InitializeSetup(storage, pub, ""))
 	if initial == "" {
 		t.Fatal("no setup")
 	}
-	first := x.Must(storage.SetupToken())
-	if token := x.Must(InitializeSetup(storage, pub, "")); token != "" {
+	first := must(storage.SetupToken())
+	if token := must(InitializeSetup(storage, pub, "")); token != "" {
 		t.Fatal("reissued")
 	}
-	replacement := x.Must(p.EncodeToken("setup", c.RandomBytes(20), pin))
-	if got := x.Must(InitializeSetup(storage, pub, replacement)); got != replacement {
+	replacement := must(proofs.EncodeToken("setup", crypto.RandomBytes(20), pin))
+	if got := must(InitializeSetup(storage, pub, replacement)); got != replacement {
 		t.Fatal(got)
 	}
-	if bytes.Equal(first, x.Must(storage.SetupToken())) {
+	if bytes.Equal(first, must(storage.SetupToken())) {
 		t.Fatal("unchanged token")
 	}
-	wrong := x.Must(p.EncodeToken("setup", c.RandomBytes(20), make([]byte, 32)))
+	wrong := must(proofs.EncodeToken("setup", crypto.RandomBytes(20), make([]byte, 32)))
 	if _, err := InitializeSetup(storage, pub, wrong); err == nil {
 		t.Fatal("wrong pin accepted")
 	}
-	id := c.RandomBytes(32)
-	x.Check(storage.ConfigureVault(id, a.StoredVault{}, nil, x.Must(storage.SetupToken())))
-	if token := x.Must(ReissueSetup(storage, pub)); token != "" {
+	id := crypto.RandomBytes(32)
+	check(storage.ConfigureVault(id, adapters.StoredVault{}, nil, must(storage.SetupToken())))
+	if token := must(ReissueSetup(storage, pub)); token != "" {
 		t.Fatal("reissue with vault")
 	}
-	x.Check(storage.DiscardInactiveVault(id))
-	if token := x.Must(InitializeSetup(storage, pub, "")); token != "" {
+	check(storage.DiscardInactiveVault(id))
+	if token := must(InitializeSetup(storage, pub, "")); token != "" {
 		t.Fatal("consumed token resurrected")
+	}
+}
+
+func must[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+
+	return value
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
 	}
 }

@@ -3,18 +3,18 @@ package sqlite
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
-	"github.com/google/uuid"
-	envErrors "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
-	"syscall"
+
+	"github.com/google/uuid"
+	envErrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func blobName(b []byte) string {
 	if len(b) == 0 {
 		return "empty"
 	}
+
 	return hex.EncodeToString(b)
 }
 
@@ -22,110 +22,154 @@ func (s *storage) blobPath(v, h []byte) string {
 	return filepath.Join(s.dir, "blobs", blobName(v), blobName(h))
 }
 
-func (s *storage) putBlob(v, h, b []byte, verify func([]byte) ([]byte, error), now, quota int64) {
+func (s *storage) putBlob(v, h, b []byte, verify func([]byte) ([]byte, error), now, quota int64) error {
 	if verify != nil {
 		hash, e := verify(b)
-		must(e)
+		if err := e; err != nil {
+			return err
+		}
 		if !bytes.Equal(hash, h) {
-			panic(errors.New("Blob hash mismatch"))
+			return storageFailure("Blob hash mismatch")
 		}
 	}
 	if quota == 0 {
 		quota = 1 << 30
 	}
-	s.tx(func() {
-		used := s.vaultUsage(v)
-		prior := s.count("SELECT COALESCE((SELECT size FROM blob_usage WHERE vault=? AND hash=?),0)", v, h)
-		s.checkQuota(v, used, used-prior+int64(len(b)), quota)
+
+	return s.tx(func() error {
+		used, err := s.vaultUsage(v)
+		if err != nil {
+			return err
+		}
+
+		prior, err := s.count("SELECT COALESCE((SELECT size FROM blob_usage WHERE vault=? AND hash=?),0)", v, h)
+		if err != nil {
+			return err
+		}
+		if err := s.checkQuota(v, used, used-prior+int64(len(b)), quota); err != nil {
+			return err
+		}
+
 		path := s.blobPath(v, h)
 		dir := filepath.Dir(path)
-		must(os.MkdirAll(dir, 0700))
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return err
+		}
+
 		temp := filepath.Join(dir, ".tmp-"+uuid.NewString())
-		defer os.Remove(temp)
+		defer func() { _ = os.Remove(temp) }()
 		f, e := os.OpenFile(temp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
-		must(e)
-		func() { defer f.Close(); _, e = f.Write(b); must(e); must(f.Sync()) }()
-		if e = os.Link(temp, path); e != nil {
+		if err := e; err != nil {
+			return err
+		}
+		if err := func() error {
+			defer func() { _ = f.Close() }()
+			_, e = f.Write(b)
+			if err := e; err != nil {
+				return err
+			}
+
+			return f.Sync()
+		}(); err != nil {
+			return err
+		}
+
+		e = os.Link(temp, path)
+		if e != nil {
 			prior, e := os.ReadFile(path)
-			must(e)
+			if err := e; err != nil {
+				return err
+			}
 			if !bytes.Equal(prior, b) {
-				panic(errors.New("Conflicting content for blob hash"))
+				return storageFailure("Conflicting content for blob hash")
 			}
 		}
-		syncDir(dir)
-		s.run("INSERT OR IGNORE INTO blobs VALUES(?,?)", v, h)
-		s.run("INSERT INTO blob_usage VALUES(?,?,?,?) ON CONFLICT(vault,hash) DO UPDATE SET at=excluded.at", v, h, len(b), now)
+		if err := syncDir(dir); err != nil {
+			return err
+		}
+		_, err = s.run("INSERT OR IGNORE INTO blobs VALUES(?,?)", v, h)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.run("INSERT INTO blob_usage VALUES(?,?,?,?) ON CONFLICT(vault,hash) DO UPDATE SET at=excluded.at", v, h, len(b), now)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 }
 
-func (s *storage) getBlob(v, h []byte) []byte {
-	if s.bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", v, h) == nil {
-		return nil
+func (s *storage) getBlob(v, h []byte) ([]byte, error) {
+	bytesResult, err := s.bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", v, h)
+	if err != nil {
+		return nil, err
+	}
+	if bytesResult == nil {
+		return nil, nil
 	}
 	b, e := os.ReadFile(s.blobPath(v, h))
 	if os.IsNotExist(e) {
-		return nil
+		return nil, nil
 	}
-	must(e)
-	return b
+	if err := e; err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
-func (s *storage) hasBlob(v, h []byte) bool {
-	if s.bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", v, h) == nil {
-		return false
+func (s *storage) hasBlob(v, h []byte) (bool, error) {
+	bytesResult, err := s.bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", v, h)
+	if err != nil {
+		return false, err
+	}
+	if bytesResult == nil {
+		return false, nil
 	}
 	_, e := os.Stat(s.blobPath(v, h))
-	return e == nil
+
+	return e == nil, nil
 }
 
-func (s *storage) blobHashes(v []byte) [][]byte {
-	r := s.rows("SELECT hash FROM blobs WHERE vault=? ORDER BY hash", v)
-	defer r.Close()
+func (s *storage) blobHashes(v []byte) ([][]byte, error) {
+	r, err := s.rows("SELECT hash FROM blobs WHERE vault=? ORDER BY hash", v)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = r.Close() }()
 	out := [][]byte{}
 	for r.Next() {
 		var b []byte
-		must(r.Scan(&b))
+		if err := r.Scan(&b); err != nil {
+			return nil, err
+		}
+
 		out = append(out, b)
 	}
-	must(r.Err())
-	return out
+	if err := r.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-func (s *storage) vaultUsage(v []byte) int64 {
+func (s *storage) vaultUsage(v []byte) (int64, error) {
 	return s.count(`SELECT (SELECT COALESCE(SUM(size),0) FROM blob_usage WHERE vault=?)+(SELECT COALESCE(SUM(length(bytes)),0) FROM lists WHERE vault=?)+(SELECT COALESCE(SUM(length(bytes)),0) FROM state WHERE vault=? AND kind='keyring')+(SELECT COALESCE(SUM(length(list)+length(file)+length(version)+COALESCE(length(blob),0)+1),0) FROM versions WHERE vault=?)`, v, v, v, v)
 }
 
-func (s *storage) checkQuota(v []byte, before, after, limit int64) {
-	state := s.vault(v)
+func (s *storage) checkQuota(v []byte, before, after, limit int64) error {
+	state, err := s.vault(v)
+	if err != nil {
+		return err
+	}
+
 	importing := state != nil && (!state.Active || state.Restored != nil)
 	if !importing && after > limit && after > before {
-		panic(envErrors.New("STORAGE_QUOTA", "Vault storage quota exceeded"))
+		return envErrors.New("STORAGE_QUOTA", "Vault storage quota exceeded")
 	}
-}
 
-func (s *storage) collectGarbage() {
-	if s.depth != 0 {
-		return
-	}
-	s.tx(func() {
-		r := s.rows("SELECT vault,hash FROM blob_garbage")
-		defer r.Close()
-		type pair struct{ v, h []byte }
-		rows := []pair{}
-		for r.Next() {
-			var p pair
-			must(r.Scan(&p.v, &p.h))
-			rows = append(rows, p)
-		}
-		must(r.Close())
-		for _, p := range rows {
-			if s.bytes("SELECT hash AS bytes FROM blobs WHERE vault=? AND hash=?", p.v, p.h) == nil {
-				e := syscall.Unlink(s.blobPath(p.v, p.h))
-				if e != nil && !os.IsNotExist(e) {
-					continue
-				}
-			}
-			s.run("DELETE FROM blob_garbage WHERE vault=? AND hash=?", p.v, p.h)
-		}
-	})
+	return nil
 }

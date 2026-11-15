@@ -1,15 +1,16 @@
 package codecs
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type EntryPayload struct {
 	Kind    int
 	Payload any
 }
+
 type Entry struct {
 	VaultId []byte
 	Seq     uint64
@@ -18,27 +19,27 @@ type Entry struct {
 	Signer []byte
 }
 
-func readPayload(r *b.Reader) EntryPayload {
-	kind := b.U8.Read(r)
+func readPayload(r *encoding.Reader) EntryPayload {
+	kind := encoding.U8.Read(r)
 	switch kind {
 	case 0:
-		return EntryPayload{kind, p.GenesisCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.GenesisCodec.Read(r)}
 	case 1:
-		return EntryPayload{kind, p.AddDeviceCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.AddDeviceCodec.Read(r)}
 	case 2:
-		return EntryPayload{kind, p.RemoveDeviceCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.RemoveDeviceCodec.Read(r)}
 	case 3:
-		return EntryPayload{kind, p.NewEpochCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.NewEpochCodec.Read(r)}
 	case 4:
-		return EntryPayload{kind, p.ReplaceRecoveryCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.ReplaceRecoveryCodec.Read(r)}
 	case 5:
-		return EntryPayload{kind, p.ServerMovedCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.ServerMovedCodec.Read(r)}
 	case 6:
-		return EntryPayload{kind, p.RepairDoneCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.RepairDoneCodec.Read(r)}
 	case 7:
-		return EntryPayload{kind, p.RenameDeviceCodec.Read(r)}
+		return EntryPayload{kind, entrypayloads.RenameDeviceCodec.Read(r)}
 	default:
-		panic(e.New(e.UpdateRequired, "Unknown entry kind"))
+		panic(enverrors.New(enverrors.UpdateRequired, "Unknown entry kind"))
 	}
 }
 
@@ -46,55 +47,57 @@ func writePayload(v EntryPayload) []byte {
 	var data []byte
 	switch v.Kind {
 	case 0:
-		x, ok := v.Payload.(p.Genesis)
-		b.RequireValue(ok)
-		data = p.GenesisCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.Genesis)
+		encoding.RequireValue(ok)
+		data = entrypayloads.GenesisCodec.Write(x)
 	case 1:
-		x, ok := v.Payload.(p.AddDevice)
-		b.RequireValue(ok)
-		data = p.AddDeviceCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.AddDevice)
+		encoding.RequireValue(ok)
+		data = entrypayloads.AddDeviceCodec.Write(x)
 	case 2:
-		x, ok := v.Payload.(p.RemoveDevice)
-		b.RequireValue(ok)
-		data = p.RemoveDeviceCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.RemoveDevice)
+		encoding.RequireValue(ok)
+		data = entrypayloads.RemoveDeviceCodec.Write(x)
 	case 3:
-		x, ok := v.Payload.(p.NewEpoch)
-		b.RequireValue(ok)
-		data = p.NewEpochCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.NewEpoch)
+		encoding.RequireValue(ok)
+		data = entrypayloads.NewEpochCodec.Write(x)
 	case 4:
-		x, ok := v.Payload.(p.ReplaceRecovery)
-		b.RequireValue(ok)
-		data = p.ReplaceRecoveryCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.ReplaceRecovery)
+		encoding.RequireValue(ok)
+		data = entrypayloads.ReplaceRecoveryCodec.Write(x)
 	case 5:
-		x, ok := v.Payload.(p.ServerMoved)
-		b.RequireValue(ok)
-		data = p.ServerMovedCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.ServerMoved)
+		encoding.RequireValue(ok)
+		data = entrypayloads.ServerMovedCodec.Write(x)
 	case 6:
-		x, ok := v.Payload.(p.RepairDone)
-		b.RequireValue(ok)
-		data = p.RepairDoneCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.RepairDone)
+		encoding.RequireValue(ok)
+		data = entrypayloads.RepairDoneCodec.Write(x)
 	case 7:
-		x, ok := v.Payload.(p.RenameDevice)
-		b.RequireValue(ok)
-		data = p.RenameDeviceCodec.Write(x)
+		x, ok := v.Payload.(entrypayloads.RenameDevice)
+		encoding.RequireValue(ok)
+		data = entrypayloads.RenameDeviceCodec.Write(x)
 	default:
-		panic(e.New(e.UpdateRequired, "Unknown entry kind"))
+		panic(enverrors.New(enverrors.UpdateRequired, "Unknown entry kind"))
 	}
-	return b.Concat(b.U8.Write(v.Kind), data)
+
+	return encoding.Concat(encoding.U8.Write(v.Kind), data)
 }
 
-var PayloadCodec = b.Codec[EntryPayload]{Read: readPayload, Write: writePayload}
-var EntryCodec = b.Codec[Entry]{Read: func(r *b.Reader) Entry {
-	b.Tagged(1, r)
+var PayloadCodec = encoding.Codec[EntryPayload]{Read: readPayload, Write: writePayload}
 
-	return Entry{b.B32.Read(r), b.U64.Read(r), b.B32.Read(r), readPayload(r), b.B16.Read(r)}
+var EntryCodec = encoding.Codec[Entry]{Read: func(r *encoding.Reader) Entry {
+	encoding.Tagged(1, r)
+
+	return Entry{encoding.B32.Read(r), encoding.U64.Read(r), encoding.B32.Read(r), readPayload(r), encoding.B16.Read(r)}
 }, Write: func(v Entry) []byte {
-	return b.Concat(
-		b.Header(1),
-		b.B32.Write(v.VaultId),
-		b.U64.Write(v.Seq),
-		b.B32.Write(v.Parent),
+	return encoding.Concat(
+		encoding.Header(1),
+		encoding.B32.Write(v.VaultId),
+		encoding.U64.Write(v.Seq),
+		encoding.B32.Write(v.Parent),
 		writePayload(v.EntryPayload),
-		b.B16.Write(v.Signer),
+		encoding.B16.Write(v.Signer),
 	)
 }}

@@ -64,6 +64,7 @@ func TestWorktreesAndIdentity(t *testing.T) {
 			if fallback && args[len(args)-1] == "-z" {
 				return "", stderrors.New("unknown switch z")
 			}
+
 			return git(f.Root, args, "")
 		})
 		must(t, e)

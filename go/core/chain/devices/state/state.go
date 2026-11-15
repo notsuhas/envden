@@ -1,16 +1,16 @@
 package state
 
 import (
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/members"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/members"
 )
 
 type State struct {
-	DeviceOrder []string // Preserve TS Map insertion order in member reports.
+	DeviceOrder []string
 	VaultId     []byte
 	Seq         uint64
 	Head        []byte
-	Devices     map[string]m.DeviceRecord
-	Recovery    m.RecoveryRecord
+	Devices     map[string]members.DeviceRecord
+	Recovery    members.RecoveryRecord
 	Epoch       int
 	ServerPin   []byte
 	EverUsedIds map[string]bool

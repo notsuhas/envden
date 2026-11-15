@@ -11,5 +11,6 @@ func IsDeviceName(name string) bool {
 			return false
 		}
 	}
+
 	return true
 }

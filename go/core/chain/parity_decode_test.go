@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
 )
 
 func decode[T any](raw json.RawMessage) T {
@@ -28,29 +28,31 @@ func hydrate(v reflect.Value) {
 		if !v.IsNil() {
 			hydrate(v.Elem())
 		}
+
 		return
 	}
-	if v.Type() == reflect.TypeFor[c.Entry]() {
-		entry := v.Addr().Interface().(*c.Entry)
+	if v.Type() == reflect.TypeFor[codecs.Entry]() {
+		entry := v.Addr().Interface().(*codecs.Entry)
 		raw, _ := json.Marshal(entry.Payload)
 		switch entry.Kind {
 		case 0:
-			entry.Payload = decode[p.Genesis](raw)
+			entry.Payload = decode[entrypayloads.Genesis](raw)
 		case 1:
-			entry.Payload = decode[p.AddDevice](raw)
+			entry.Payload = decode[entrypayloads.AddDevice](raw)
 		case 2:
-			entry.Payload = decode[p.RemoveDevice](raw)
+			entry.Payload = decode[entrypayloads.RemoveDevice](raw)
 		case 3:
-			entry.Payload = decode[p.NewEpoch](raw)
+			entry.Payload = decode[entrypayloads.NewEpoch](raw)
 		case 4:
-			entry.Payload = decode[p.ReplaceRecovery](raw)
+			entry.Payload = decode[entrypayloads.ReplaceRecovery](raw)
 		case 5:
-			entry.Payload = decode[p.ServerMoved](raw)
+			entry.Payload = decode[entrypayloads.ServerMoved](raw)
 		case 6:
-			entry.Payload = decode[p.RepairDone](raw)
+			entry.Payload = decode[entrypayloads.RepairDone](raw)
 		case 7:
-			entry.Payload = decode[p.RenameDevice](raw)
+			entry.Payload = decode[entrypayloads.RenameDevice](raw)
 		}
+
 		return
 	}
 	switch v.Kind() {

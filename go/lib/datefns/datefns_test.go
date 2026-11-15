@@ -49,6 +49,7 @@ func TestReference(t *testing.T) {
 		}
 	}
 }
+
 func TestMilliseconds(t *testing.T) {
 	for _, f := range []struct {
 		d    Duration

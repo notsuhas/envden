@@ -1,7 +1,7 @@
 package epochs
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type EpochChange struct {
@@ -10,16 +10,16 @@ type EpochChange struct {
 	Wraps     []Wrap
 }
 
-var EpochChangeCodec = b.NewCodec(func(r *b.Reader) EpochChange {
+var EpochChangeCodec = encoding.NewCodec(func(r *encoding.Reader) EpochChange {
 	return EpochChange{
-		Epoch:     b.U32.Read(r),
-		KeyCommit: b.B32.Read(r),
-		Wraps:     b.List(WrapCodec, func(a, c Wrap) int { return b.Compare(a.Recipient, c.Recipient) }).Read(r),
+		Epoch:     encoding.U32.Read(r),
+		KeyCommit: encoding.B32.Read(r),
+		Wraps:     encoding.List(WrapCodec, func(a, c Wrap) int { return encoding.Compare(a.Recipient, c.Recipient) }).Read(r),
 	}
 }, func(v EpochChange) []byte {
-	return b.Concat(
-		b.U32.Write(v.Epoch),
-		b.B32.Write(v.KeyCommit),
-		b.List(WrapCodec, func(a, c Wrap) int { return b.Compare(a.Recipient, c.Recipient) }).Write(v.Wraps),
+	return encoding.Concat(
+		encoding.U32.Write(v.Epoch),
+		encoding.B32.Write(v.KeyCommit),
+		encoding.List(WrapCodec, func(a, c Wrap) int { return encoding.Compare(a.Recipient, c.Recipient) }).Write(v.Wraps),
 	)
 }, nil)

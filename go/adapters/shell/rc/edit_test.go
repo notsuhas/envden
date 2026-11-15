@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func must(t *testing.T, e error) {
@@ -32,7 +32,7 @@ func TestSymlinksAndBackups(t *testing.T) {
 				if op == "uninstall" {
 					original += a.HookSnippet("/opt/envden")
 				}
-				must(t, os.WriteFile(target, []byte(original), 0640))
+				must(t, os.WriteFile(target, []byte(original), 0640)) //nolint:gosec // G306: fixture verifies preservation of an existing public profile mode.
 				must(t, os.MkdirAll(filepath.Dir(a.RCPath()), 0700))
 				must(t, os.Symlink(target, a.RCPath()))
 				if op == "install" {
@@ -103,7 +103,7 @@ func TestBytesModeCRLFAndOrphan(t *testing.T) {
 	home := t.TempDir()
 	a := CreateRCShellAdapter("bash", Options{Home: home})
 	original := []byte{35, 32, 255, 13, 10}
-	must(t, os.WriteFile(a.RCPath(), original, 0640))
+	must(t, os.WriteFile(a.RCPath(), original, 0640)) //nolint:gosec // G306: fixture verifies preservation of an existing public profile mode.
 	for range 2 {
 		must(t, a.Install("/opt/envden"))
 	}
@@ -147,7 +147,7 @@ func TestUnsafeFilesAndReadOnly(t *testing.T) {
 		t.Fatal("directory accepted")
 	}
 	must(t, os.Remove(path))
-	must(t, os.WriteFile(path, []byte("user"), 0444))
+	must(t, os.WriteFile(path, []byte("user"), 0444)) //nolint:gosec // G306: fixture tests refusal to replace a read-only shell profile.
 	must(t, editRC(path, func(s string) string { return s + " edited" }, ""))
 	s, e := os.Stat(path)
 	must(t, e)
@@ -170,6 +170,7 @@ func TestConcurrentChanges(t *testing.T) {
 				if e := os.Rename(target, target+".original"); e != nil {
 					return e
 				}
+
 				return os.Symlink(private, target)
 			}
 			h := editHooks{}

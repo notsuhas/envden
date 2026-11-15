@@ -13,7 +13,7 @@ func TestStrictFake(t *testing.T) {
 	if a.ID() != "fake-keychain" {
 		t.Fatal(a.ID())
 	}
-	calls := []func(){func() { a.OwnerOnly() }, func() { a.Get("", false) }, func() { a.Set("", nil) }, func() { a.Delete("") }}
+	calls := []func(){func() { _, _ = a.OwnerOnly() }, func() { _, _ = a.Get("", false) }, func() { _ = a.Set("", nil) }, func() { _ = a.Delete("") }}
 	for _, call := range calls {
 		func() {
 			defer func() {

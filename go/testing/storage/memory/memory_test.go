@@ -1,14 +1,15 @@
 package memory
 
 import (
-	a "github.com/notsuhas/envden/go/core/adapters"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func TestSelectedOperationsAndCopies(t *testing.T) {
 	db := CreateMemoryStorageAdapter([]string{"configureVault", "vault", "putBlob", "getBlob"})
 	v := []byte{1}
-	state := a.StoredVault{ServerMoved: []byte{2}}
+	state := adapters.StoredVault{ServerMoved: []byte{2}}
 	if err := db.ConfigureVault(v, state, nil, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -27,16 +28,16 @@ func TestSelectedOperationsAndCopies(t *testing.T) {
 			t.Fatal(got)
 		}
 	}()
-	db.Head(v)
+	_, _ = db.Head(v)
 }
 
 func TestMemorySpecificSemantics(t *testing.T) {
 	db := CreateMemoryStorageAdapter()
 	v := make([]byte, 32)
-	if err := db.ConfigureVault(v, a.StoredVault{}, nil, nil); err != nil {
+	if err := db.ConfigureVault(v, adapters.StoredVault{}, nil, nil); err != nil {
 		t.Fatal(err)
 	}
-	key := a.SessionKey{Kind: a.SessionLogin, Device: []byte{1}, Purpose: "unlock"}
+	key := adapters.SessionKey{Kind: adapters.SessionLogin, Device: []byte{1}, Purpose: "unlock"}
 	if err := db.PutSession(v, key, []byte{9}, 0); err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +49,7 @@ func TestMemorySpecificSemantics(t *testing.T) {
 	}
 	var receipt string
 	for i := 0; i < 5; i++ {
-		r, err := db.Charge(v, a.RateBucket{Kind: "non-member"}, 0)
+		r, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,11 +62,11 @@ func TestMemorySpecificSemantics(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 0; i < 5; i++ {
-		if _, err := db.Charge(v, a.RateBucket{Kind: "non-member"}, 900001); err != nil {
+		if _, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 900001); err != nil {
 			t.Fatal(err)
 		}
 	}
-	r, err := db.Charge(v, a.RateBucket{Kind: "non-member"}, 900002)
+	r, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 900002)
 	if err != nil || r.Until != 2700001 {
 		t.Fatal("memory preserves strikes on refund", r, err)
 	}

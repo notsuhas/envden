@@ -1,24 +1,26 @@
 package server
 
 import (
-	"fmt"
-	e "github.com/notsuhas/envden/go/core/errors"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	requests "github.com/notsuhas/envden/go/core/protocol/requests"
-	versions "github.com/notsuhas/envden/go/core/protocol/versions"
-	mw "github.com/notsuhas/envden/go/server/middleware"
-	x "github.com/notsuhas/envden/go/server/shared"
-	status "github.com/notsuhas/envden/go/server/status"
-	"io"
 	"net/http"
 	"strings"
 	"sync"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/requests"
+	"github.com/notsuhas/envden/go/core/protocol/versions"
+	"github.com/notsuhas/envden/go/server/middleware"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/status"
 )
 
-type Options = x.Options
-type ServerKeys = x.Keys
-type Config = x.Config
+type Options = shared.Options
+
+type ServerKeys = shared.Keys
+
+type Config = shared.Config
+
 type App struct {
 	options Options
 	status  *status.State
@@ -33,7 +35,7 @@ func CreateApp(options Options, state ...*status.State) (*App, error) {
 		return nil, err
 	}
 	if options.ReserveBody == nil {
-		options.ReserveBody = mw.NewBodyBudget().Reserve
+		options.ReserveBody = middleware.NewBodyBudget().Reserve
 	}
 	if options.ChainCache == nil {
 		options.ChainCache = map[string]any{}
@@ -49,26 +51,33 @@ func CreateApp(options Options, state ...*status.State) (*App, error) {
 
 	return app, nil
 }
+
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if tooLarge(w, r) {
 		return
 	}
 	normalizeRequestURL(r)
-
 	buffered := newBufferedResponse()
-	app.handle(buffered, r)
+	app.handleLocked(buffered, r)
 	buffered.flush(w)
 }
 
-// handle runs under the request lock; the response is sent after release, as Bun streams it.
-func (app *App) handle(w http.ResponseWriter, r *http.Request) {
+// State changes run under the request lock; the response is sent after release.
+func (app *App) handleLocked(w http.ResponseWriter, r *http.Request) {
 	app.mu.Lock()
 	defer app.mu.Unlock()
 	defer func() {
-		if err := recover(); err != nil {
-			app.onError(w, r, err)
+		if recover() != nil {
+			_ = app.onError(w, r, enverrors.New(enverrors.Internal, "Internal error"))
 		}
 	}()
+	if err := app.handle(w, r); err != nil {
+		_ = app.onError(w, r, err)
+	}
+}
+
+func (app *App) handle(w http.ResponseWriter, r *http.Request) error {
+
 	o := app.options
 	path := r.URL.EscapedPath()
 	method := r.Method
@@ -76,81 +85,66 @@ func (app *App) handle(w http.ResponseWriter, r *http.Request) {
 		method = "GET"
 	}
 	if method == "GET" && path == "/v1/hello" {
-		mw.RequestRoute(r)
-		challenge := x.Binary(r.URL.Query().Get("challenge"), 32)
-		hello := x.Must(requests.BuildHello(s.ServerHello{Challenge: challenge, Host: strings.ToLower(requestHost(r)), ServerSignPub: o.ServerKeys.PublicKey, AppVersion: o.Config.AppVersion, MinClient: o.Config.MinClient, Protocols: []int{1}}, o.ServerKeys.SecretKey))
-		app.json(w, r, s.HelloResponse{Hello: x.Text(b.SignedCodec(s.ServerHelloCodec).Write(hello))}, 200)
-		return
+		if _, err := middleware.RequestRoute(r); err != nil {
+			return err
+		}
+
+		challenge, err := shared.Binary(r.URL.Query().Get("challenge"), 32)
+		if err != nil {
+			return err
+		}
+
+		hello, err := requests.BuildHello(wire.ServerHello{Challenge: challenge, Host: strings.ToLower(requestHost(r)), ServerSignPub: o.ServerKeys.PublicKey, AppVersion: o.Config.AppVersion, MinClient: o.Config.MinClient, Protocols: []int{1}}, o.ServerKeys.SecretKey)
+		if err != nil {
+			return err
+		}
+
+		return app.json(w, r, wire.HelloResponse{Hello: shared.Text(encoding.SignedCodec(wire.ServerHelloCodec).Write(hello))}, 200)
 	}
 	if method == "GET" && (path == "/" || path == "/v1/status") {
 		status.Headers(w.Header())
-		mw.RequestRoute(r)
+		if _, err := middleware.RequestRoute(r); err != nil {
+			return err
+		}
 		if !app.status.Enabled {
-			x.Fail(e.NotFound, "Status page disabled")
+			return enverrors.New(enverrors.NotFound, "Status page disabled")
 		}
 		if !app.status.Admit(o.Now()) {
-			x.Fail(e.RateLimited, "Too many status requests")
+			return enverrors.New(enverrors.RateLimited, "Too many status requests")
 		}
-		value := status.Read(o, app.status)
+		value, err := status.Read(o, app.status)
+		if err != nil {
+			return err
+		}
 		if path == "/v1/status" {
-			app.json(w, r, value, 200)
+			if err := app.json(w, r, value, 200); err != nil {
+				return err
+			}
 		} else {
 			app.write(w, r, []byte(status.Render(value, o.Now())), "text/html; charset=UTF-8", 200)
 		}
-		return
+
+		return nil
 	}
 	if path == "/v1" || strings.HasPrefix(path, "/v1/") {
-		auth, body, release := mw.Verify(o, r)
+		verify1, verify2, verify3, err := middleware.Verify(o, r)
+		if err != nil {
+			return err
+		}
+
+		auth, body, release := verify1, verify2, verify3
 		defer release()
-		if app.route(w, r, auth, body) {
-			return
+		routeResult, err := app.route(w, r, auth, body)
+		if err != nil {
+			return err
+		}
+		if routeResult {
+			return nil
 		}
 	}
 	app.write(w, r, []byte("404 Not Found"), "text/plain; charset=UTF-8", 404)
-}
-func (app *App) write(w http.ResponseWriter, r *http.Request, body []byte, contentType string, code int) {
-	if r.Method == "HEAD" {
-		w.Header().Set("Content-Length", "0")
-	}
-	if contentType != "" {
-		w.Header().Set("Content-Type", contentType)
-	}
-	w.WriteHeader(code)
-	if r.Method != "HEAD" {
-		_, _ = w.Write(body)
-	}
-}
-func (app *App) json(w http.ResponseWriter, r *http.Request, value any, code int) {
-	if response, ok := value.(s.LoginFinishResponse); ok && response.Kind == "unlocked" {
-		value = struct {
-			UnlockedUntil *int64 `json:"unlockedUntil"`
-			FreshUntil    *int64 `json:"freshUntil"`
-			Kind          string `json:"kind"`
-		}{response.UnlockedUntil, response.FreshUntil, response.Kind}
-	}
-	app.write(w, r, x.JSON(value), "application/json", code)
-}
 
-var statuses = map[e.Code]int{"BUSY": 503, "INVALID_INPUT": 400, "INVALID_DATA": 400, "UPDATE_REQUIRED": 426, "ROLLBACK": 409, "FORK": 409, "NOT_MEMBER": 403, "UNAUTHORIZED": 401, "LOCKED": 403, "RECOVERY_KIT_REQUIRED": 409, "STORAGE_QUOTA": 507, "RATE_LIMITED": 429, "CONFLICT": 409, "NOT_FOUND": 404, "HEAD_MOVED": 409, "RESTORED_MODE": 409, "MOVING": 409, "SERVER_TOO_OLD": 426, "CLIENT_TOO_OLD": 426, "NOT_IMPLEMENTED": 501, "INTERNAL": 500, "SERVER_UNREACHABLE": 502}
-
-func (app *App) onError(w http.ResponseWriter, r *http.Request, cause any) {
-	code := e.Internal
-	if err, ok := cause.(*e.Error); ok {
-		code = err.Code
-	}
-	if code == e.Internal {
-		out := app.options.Stderr
-		if out == nil {
-			out = io.Discard
-		}
-		fmt.Fprintln(out, "envden request failed", code, r.Method)
-	}
-	result := s.ErrorResponse{Error: string(code)}
-	if code == e.Unauthorized && strings.HasPrefix(r.URL.EscapedPath(), "/v1/opaque/login/") {
-		hint := "The vault may have moved; try the current server address"
-		result.Hint = &hint
-	}
-	app.json(w, r, result, statuses[code])
+	return nil
 }
 
 func requestHost(r *http.Request) string {
@@ -162,6 +156,7 @@ func requestHost(r *http.Request) string {
 	if strings.HasPrefix(u.Host, "[") {
 		return "[" + host + "]"
 	}
+
 	return host
 }
 

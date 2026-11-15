@@ -53,5 +53,6 @@ func limitRows(rows []string, cursor, available int, ellipsis string) []string {
 	if after {
 		result = append(result, ellipsis)
 	}
+
 	return result
 }

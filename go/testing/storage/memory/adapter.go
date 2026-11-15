@@ -1,14 +1,15 @@
 package memory
 
 import (
-	"github.com/notsuhas/envden/go/core/adapters"
-	s "github.com/notsuhas/envden/go/testing/storage"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/testing/storage"
 )
 
 func CreateMemoryStorageAdapter(operations ...[]string) adapters.Storage {
 	m := &memory{data: newData()}
-	o := s.Operations{ID: "memory"}
+	o := storage.Operations{ID: "memory"}
 	selected := map[string]bool{}
 	for _, names := range operations {
 		for _, name := range names {
@@ -132,5 +133,6 @@ func CreateMemoryStorageAdapter(operations ...[]string) adapters.Storage {
 	if len(operations) == 0 || selected[strings.ToLower("RememberNonce")] {
 		o.RememberNonce = m.RememberNonce
 	}
-	return s.CreateFakeStorageAdapter(o)
+
+	return storage.CreateFakeStorageAdapter(o)
 }

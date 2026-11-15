@@ -5,11 +5,11 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 func Frame(label string, message []byte) []byte {
-	return b.Concat(b.Ctx(label), b.U64.Write(uint64(len(message))), message)
+	return encoding.Concat(encoding.Ctx(label), encoding.U64.Write(uint64(len(message))), message)
 }
 
 func SHA256(message []byte) []byte {
@@ -28,5 +28,5 @@ func MAC(key []byte, label string, message []byte) []byte {
 }
 
 func KDF(ikm, salt []byte, label string, extra ...[]byte) []byte {
-	return b.Must(hkdf.Key(sha256.New, ikm, salt, string(b.Concat(append([][]byte{b.Ctx(label)}, extra...)...)), 32))
+	return encoding.Must(hkdf.Key(sha256.New, ikm, salt, string(encoding.Concat(append([][]byte{encoding.Ctx(label)}, extra...)...)), 32))
 }

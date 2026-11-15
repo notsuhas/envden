@@ -1,8 +1,8 @@
 package manifests
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type ManifestHeader struct {
@@ -20,41 +20,41 @@ type ManifestHeader struct {
 	Signer       []byte
 }
 
-var ManifestHeaderCodec = b.NewCodec(func(r *b.Reader) ManifestHeader {
-	b.Tagged(2, r)
+var ManifestHeaderCodec = encoding.NewCodec(func(r *encoding.Reader) ManifestHeader {
+	encoding.Tagged(2, r)
 
 	return ManifestHeader{
-		VaultId:      b.B32.Read(r),
-		Seq:          b.U64.Read(r),
-		Op:           b.U8.Read(r),
-		Prev:         b.B32.Read(r),
-		ListSeq:      b.U64.Read(r),
-		ListHead:     b.B32.Read(r),
-		Epoch:        b.U32.Read(r),
-		KeyringHash:  b.B32.Read(r),
-		FilesHash:    b.B32.Read(r),
-		EnvelopeHash: b.B32.Read(r),
-		CreatedAt:    b.U64.Read(r),
-		Signer:       b.B16.Read(r),
+		VaultId:      encoding.B32.Read(r),
+		Seq:          encoding.U64.Read(r),
+		Op:           encoding.U8.Read(r),
+		Prev:         encoding.B32.Read(r),
+		ListSeq:      encoding.U64.Read(r),
+		ListHead:     encoding.B32.Read(r),
+		Epoch:        encoding.U32.Read(r),
+		KeyringHash:  encoding.B32.Read(r),
+		FilesHash:    encoding.B32.Read(r),
+		EnvelopeHash: encoding.B32.Read(r),
+		CreatedAt:    encoding.U64.Read(r),
+		Signer:       encoding.B16.Read(r),
 	}
 }, func(v ManifestHeader) []byte {
-	return b.Concat(
-		b.Header(2),
-		b.B32.Write(v.VaultId),
-		b.U64.Write(v.Seq),
-		b.U8.Write(v.Op),
-		b.B32.Write(v.Prev),
-		b.U64.Write(v.ListSeq),
-		b.B32.Write(v.ListHead),
-		b.U32.Write(v.Epoch),
-		b.B32.Write(v.KeyringHash),
-		b.B32.Write(v.FilesHash),
-		b.B32.Write(v.EnvelopeHash),
-		b.U64.Write(v.CreatedAt),
-		b.B16.Write(v.Signer),
+	return encoding.Concat(
+		encoding.Header(2),
+		encoding.B32.Write(v.VaultId),
+		encoding.U64.Write(v.Seq),
+		encoding.U8.Write(v.Op),
+		encoding.B32.Write(v.Prev),
+		encoding.U64.Write(v.ListSeq),
+		encoding.B32.Write(v.ListHead),
+		encoding.U32.Write(v.Epoch),
+		encoding.B32.Write(v.KeyringHash),
+		encoding.B32.Write(v.FilesHash),
+		encoding.B32.Write(v.EnvelopeHash),
+		encoding.U64.Write(v.CreatedAt),
+		encoding.B16.Write(v.Signer),
 	)
 }, func(v ManifestHeader) {
 	if v.Op > 13 {
-		panic(e.New(e.UpdateRequired, "Unknown operation"))
+		panic(enverrors.New(enverrors.UpdateRequired, "Unknown operation"))
 	}
 })

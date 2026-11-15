@@ -16,6 +16,7 @@ func fixture(t *testing.T) string {
 	if e != nil {
 		t.Fatal(e)
 	}
+
 	return string(b)
 }
 
@@ -31,12 +32,14 @@ func TestContract(t *testing.T) {
 					if scenario == "address-taken" {
 						out = `{"TCP":{"8080":{"TCPForward":"127.0.0.1:22"}}}`
 					}
+
 					return CommandResult{Stdout: out}, nil
 				}
 				code := 0
 				if scenario == "publish-failed" {
 					code = 1
 				}
+
 				return CommandResult{ExitCode: code}, nil
 			}
 			if scenario == "unreadable" {
@@ -55,6 +58,7 @@ func TestContract(t *testing.T) {
 				m["CertDomains"] = []string{}
 			}
 			b, _ := json.Marshal(m)
+
 			return CommandResult{Stdout: string(b)}, nil
 		})
 	})

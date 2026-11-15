@@ -8,9 +8,8 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"golang.org/x/text/unicode/norm"
-
 	"github.com/notsuhas/envden/go/core/adapters"
+	"golang.org/x/text/unicode/norm"
 )
 
 func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, error) {
@@ -27,6 +26,7 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 		if insensitive {
 			s = strings.ToLower(s)
 		}
+
 		return s
 	}
 	out, err := run([]string{"ls-files", "--stage", "-z"}, "")
@@ -53,6 +53,7 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 			if dir != "" && os.IsPermission(e) {
 				return nil
 			}
+
 			return e
 		}
 		if dir != "" {
@@ -80,6 +81,7 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 				files = append(files, path)
 			}
 		}
+
 		return nil
 	}
 	if err = walk(""); err != nil {
@@ -102,6 +104,7 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 		}
 	}
 	slices.SortFunc(files, comparePaths)
+
 	return files, nil
 }
 
@@ -117,10 +120,12 @@ func tracked(c adapters.Checkout, path string) (bool, error) {
 	key := norm.NFC.String(path)
 	for _, p := range strings.Split(out, "\x00") {
 		p = norm.NFC.String(p)
-		if p == key || insensitive && strings.ToLower(p) == strings.ToLower(key) {
+		lowerPath, lowerKey := strings.ToLower(p), strings.ToLower(key)
+		if p == key || insensitive && lowerPath == lowerKey {
 			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -131,5 +136,6 @@ func comparePaths(a, b string) int {
 			return c
 		}
 	}
+
 	return cmp.Compare(len(left), len(right))
 }

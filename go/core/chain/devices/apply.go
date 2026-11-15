@@ -2,13 +2,14 @@ package devices
 
 import (
 	"github.com/notsuhas/envden/go/core/chain/devices/transitions"
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
 )
 
-func ApplyEntry(state *State, signed c.Signed[c.Entry]) (Result, error) {
-	next, err := transitions.Apply(state, signed)
-	if s.Invalid(err) {
+func ApplyEntry(state *State, signed codecs.Signed[codecs.Entry]) (Result, error) {
+	apply, err := transitions.Apply(state, signed)
+	next := apply
+	if chainshared.Invalid(err) {
 		return Result{Kind: "invalid"}, nil
 	}
 	if err != nil {
@@ -18,10 +19,15 @@ func ApplyEntry(state *State, signed c.Signed[c.Entry]) (Result, error) {
 	return Result{Kind: "valid", State: next}, nil
 }
 
-func VerifyChain(entries []c.Signed[c.Entry]) (Result, error) {
+func VerifyChain(entries []codecs.Signed[codecs.Entry]) (Result, error) {
 	var state *State
 	for _, entry := range entries {
-		r, err := ApplyEntry(state, entry)
+		applyEntry, err := ApplyEntry(state, entry)
+		if err != nil {
+			return *new(Result), err
+		}
+
+		r := applyEntry
 		if err != nil || r.Kind == "invalid" {
 			return r, err
 		}

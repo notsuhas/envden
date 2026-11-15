@@ -2,147 +2,190 @@ package pairing
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	opaque "github.com/notsuhas/envden/go/core/protocol/opaque"
-	authn "github.com/notsuhas/envden/go/server/auth"
-	x "github.com/notsuhas/envden/go/server/shared"
-	v "github.com/notsuhas/envden/go/server/vaultchain"
 	"strconv"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/opaque"
+	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/vaultchain"
 )
 
 var namespace = make([]byte, 32)
 
-func lookup(o x.Options, id []byte, kind, key string) []byte {
+func lookup(o shared.Options, id []byte, kind, key string) ([]byte, error) {
 	if !bytes.Equal(id, namespace) {
-		return id
+		return id, nil
 	}
-	found := x.Must(o.Storage.State(namespace, a.StatePairingIndex, []byte(kind+"/"+key)))
+	found, err := o.Storage.State(namespace, adapters.StatePairingIndex, []byte(kind+"/"+key))
+	if err != nil {
+		return nil, err
+	}
 	if found == nil {
-		return namespace
+		return namespace, nil
 	}
-	return found
+
+	return found, nil
 }
-func MailboxVault(o x.Options, id []byte, number int) []byte {
+
+func MailboxVault(o shared.Options, id []byte, number int) ([]byte, error) {
 	return lookup(o, id, "mailbox", strconv.Itoa(number))
 }
-func index(o x.Options, kind, key string, id []byte) {
-	x.Check(o.Storage.WriteState(namespace, []a.StateWrite{{Kind: a.StatePairingIndex, Key: []byte(kind + "/" + key), Bytes: id}}))
+
+func index(o shared.Options, kind, key string, id []byte) error {
+	return o.Storage.WriteState(namespace, []adapters.StateWrite{{Kind: adapters.StatePairingIndex, Key: []byte(kind + "/" + key), Bytes: id}})
 }
-func Open(o x.Options, auth *x.Auth) s.MailboxOpened {
-	return x.Transaction(o.Storage, func() s.MailboxOpened {
+
+func Open(o shared.Options, auth *shared.Auth) (wire.MailboxOpened, error) {
+	return shared.Transaction(o.Storage, func() (wire.MailboxOpened, error) {
 		fresh := *auth
 		r := auth.Request
-		fresh.Member = v.Membership(o, r.VaultId, r.Device) != nil
-		authn.RequireGate(o, &fresh, "fresh")
-		box := x.Must(o.Storage.OpenMailbox(r.VaultId, r.Device, o.Now()))
-		if box == nil {
-			x.Fail(e.RateLimited, "Mailbox limit reached")
+		membership, err := vaultchain.Membership(o, r.VaultId, r.Device)
+		if err != nil {
+			return wire.MailboxOpened{}, err
 		}
-		x.Check(o.Storage.WriteState(r.VaultId, []a.StateWrite{{Kind: a.StateMailboxJoiner, Key: binding(box.Number)}}))
-		index(o, "mailbox", strconv.Itoa(box.Number), r.VaultId)
-		return s.MailboxOpened{Number: box.Number, ExpiresAt: box.ExpiresAt}
+
+		fresh.Member = membership != nil
+		if err := authn.RequireGate(o, &fresh, "fresh"); err != nil {
+			return wire.MailboxOpened{}, err
+		}
+		box, err := o.Storage.OpenMailbox(r.VaultId, r.Device, o.Now())
+		if err != nil {
+			return wire.MailboxOpened{}, err
+		}
+		if box == nil {
+			return wire.MailboxOpened{}, enverrors.New(enverrors.RateLimited, "Mailbox limit reached")
+		}
+		if err := o.Storage.WriteState(r.VaultId, []adapters.StateWrite{{Kind: adapters.StateMailboxJoiner, Key: binding(box.Number)}}); err != nil {
+			return wire.MailboxOpened{}, err
+		}
+		if err := index(o, "mailbox", strconv.Itoa(box.Number), r.VaultId); err != nil {
+			return wire.MailboxOpened{}, err
+		}
+
+		return wire.MailboxOpened{Number: box.Number, ExpiresAt: box.ExpiresAt}, nil
 	})
 }
-func binding(n int) []byte { return []byte{byte(n >> 8), byte(n)} }
-func MailboxSide(owner, write bool, slot a.MailboxSlot) bool {
-	responder := slot == a.SlotKE2
-	if write {
-		return owner == responder
-	}
-	return responder || owner
-}
 
-type access struct {
-	box            *a.StoredMailbox
-	key, bound, id []byte
-}
+func Write(o shared.Options, auth *shared.Auth, n int, slot adapters.MailboxSlot, message string) (wire.MailboxWriteResponse, error) {
+	access, err := Accessible(o, auth, n, slot, true)
+	if err != nil {
+		return wire.MailboxWriteResponse{}, err
+	}
 
-func Accessible(o x.Options, auth *x.Auth, n int, slot a.MailboxSlot, write bool) access {
-	id := MailboxVault(o, auth.Request.VaultId, n)
-	box := x.Must(o.Storage.Mailbox(id, n, o.Now()))
-	if box == nil {
-		x.Fail(e.NotFound, "Mailbox closed")
+	data, err := shared.Binary(message)
+	if err != nil {
+		return wire.MailboxWriteResponse{}, err
 	}
-	owner := bytes.Equal(box.Device, auth.Request.Device)
-	if !MailboxSide(owner, write, slot) {
-		x.Fail(e.Unauthorized, "Wrong mailbox side")
-	}
-	key := binding(n)
-	bound := x.Must(o.Storage.State(id, a.StateMailboxJoiner, key))
-	if !owner && bound != nil && !bytes.Equal(bound, auth.Request.Device) {
-		x.Fail(e.Unauthorized, "Wrong joiner")
-	}
-	if !owner && bound == nil && (!write || slot != a.SlotKE1) {
-		x.Fail(e.Unauthorized, "Joiner not bound")
-	}
-	return access{box, key, bound, id}
-}
-func Write(o x.Options, auth *x.Auth, n int, slot a.MailboxSlot, message string) s.MailboxWriteResponse {
-	access := Accessible(o, auth, n, slot, true)
-	data := x.Binary(message)
+
 	prior := access.box.Slots[slot]
 	if prior != nil && !bytes.Equal(prior, data) {
-		x.Check(o.Storage.CloseMailbox(access.id, n))
-		x.Fail(e.Conflict, "Mailbox closed")
+		if err := o.Storage.CloseMailbox(access.id, n); err != nil {
+			return wire.MailboxWriteResponse{}, err
+		}
+
+		return wire.MailboxWriteResponse{}, enverrors.New(enverrors.Conflict, "Mailbox closed")
 	}
 	if len(data) > 4096 {
-		x.Fail(e.InvalidInput, "Message too large")
+		return wire.MailboxWriteResponse{}, enverrors.New(enverrors.InvalidInput, "Message too large")
 	}
-	lengths := map[a.MailboxSlot]int{a.SlotKE1: 96, a.SlotKE2: 320, a.SlotKE3: 64}
-	if length, ok := lengths[slot]; ok {
-		x.Input(func() string { return x.Must(opaque.OpaqueMessage(message, length)) })
+	lengths := map[adapters.MailboxSlot]int{adapters.SlotKE1: 96, adapters.SlotKE2: 320, adapters.SlotKE3: 64}
+	length, ok := lengths[slot]
+	if ok {
+		_, err := shared.Input(func() (string, error) {
+			return opaque.OpaqueMessage(message, length)
+		})
+		if err != nil {
+			return wire.MailboxWriteResponse{}, err
+		}
 	}
-	result := x.Must(o.Storage.WriteMailbox(access.id, n, slot, data, o.Now()))
+	result, err := o.Storage.WriteMailbox(access.id, n, slot, data, o.Now())
+	if err != nil {
+		return wire.MailboxWriteResponse{}, err
+	}
 	if result == "closed" {
-		x.Fail(e.Conflict, "Mailbox closed")
+		return wire.MailboxWriteResponse{}, enverrors.New(enverrors.Conflict, "Mailbox closed")
 	}
 	if result == "out-of-order" {
-		x.Fail(e.Conflict, "Mailbox slot out of order")
+		return wire.MailboxWriteResponse{}, enverrors.New(enverrors.Conflict, "Mailbox slot out of order")
 	}
-	if slot == a.SlotKE1 && (access.bound == nil || access.box.Slots[a.SlotKE1] == nil) {
-		x.Check(o.Storage.WriteState(access.id, []a.StateWrite{{Kind: a.StateMailboxJoiner, Key: access.key, Bytes: auth.Request.Device}}))
+	if slot == adapters.SlotKE1 && (access.bound == nil || access.box.Slots[adapters.SlotKE1] == nil) {
+		if err := o.Storage.WriteState(access.id, []adapters.StateWrite{{Kind: adapters.StateMailboxJoiner, Key: access.key, Bytes: auth.Request.Device}}); err != nil {
+			return wire.MailboxWriteResponse{}, err
+		}
 	}
-	if slot == a.SlotPairJoiner {
-		index(o, "approver", x.Text(auth.Request.Device), access.id)
+	if slot == adapters.SlotPairJoiner {
+		if err := index(o, "approver", shared.Text(auth.Request.Device), access.id); err != nil {
+			return wire.MailboxWriteResponse{}, err
+		}
 	}
-	return s.MailboxWriteResponse{Kind: string(result), ExpiresAt: access.box.ExpiresAt}
+
+	return wire.MailboxWriteResponse{Kind: string(result), ExpiresAt: access.box.ExpiresAt}, nil
 }
-func Read(o x.Options, auth *x.Auth, n int, slot a.MailboxSlot) s.MailboxSlotResponse {
-	access := Accessible(o, auth, n, slot, false)
-	result := s.MailboxSlotResponse{ExpiresAt: access.box.ExpiresAt}
+
+func Read(o shared.Options, auth *shared.Auth, n int, slot adapters.MailboxSlot) (wire.MailboxSlotResponse, error) {
+	access, err := Accessible(o, auth, n, slot, false)
+	if err != nil {
+		return wire.MailboxSlotResponse{}, err
+	}
+
+	result := wire.MailboxSlotResponse{ExpiresAt: access.box.ExpiresAt}
 	data := access.box.Slots[slot]
 	if data != nil {
-		text := x.Text(data)
+		text := shared.Text(data)
 		result.Message = &text
 	} else {
 		result.Kind = "pending"
 	}
-	return result
+
+	return result, nil
 }
-func Close(o x.Options, auth *x.Auth, n int) s.KindResponse {
+
+func Close(o shared.Options, auth *shared.Auth, n int) (wire.KindResponse, error) {
 	r := auth.Request
-	box := x.Must(o.Storage.Mailbox(r.VaultId, n, o.Now()))
+	box, err := o.Storage.Mailbox(r.VaultId, n, o.Now())
+	if err != nil {
+		return wire.KindResponse{}, err
+	}
 	if box == nil || !bytes.Equal(box.Device, r.Device) {
-		x.Fail(e.Unauthorized, "Wrong mailbox owner")
+		return wire.KindResponse{}, enverrors.New(enverrors.Unauthorized, "Wrong mailbox owner")
 	}
-	x.Check(o.Storage.CloseMailbox(r.VaultId, n))
-	return s.KindResponse{Kind: "closed"}
+	if err := o.Storage.CloseMailbox(r.VaultId, n); err != nil {
+		return wire.KindResponse{}, err
+	}
+
+	return wire.KindResponse{Kind: "closed"}, nil
 }
-func Approver(o x.Options, auth *x.Auth) s.MailboxWrite {
+
+func Approver(o shared.Options, auth *shared.Auth) (wire.MailboxWrite, error) {
 	r := auth.Request
-	id := lookup(o, r.VaultId, "approver", x.Text(r.Device))
-	data := x.Must(o.Storage.Approver(id, r.Device, o.Now()))
+	id, err := lookup(o, r.VaultId, "approver", shared.Text(r.Device))
+	if err != nil {
+		return wire.MailboxWrite{}, err
+	}
+
+	data, err := o.Storage.Approver(id, r.Device, o.Now())
+	if err != nil {
+		return wire.MailboxWrite{}, err
+	}
 	if data == nil {
-		x.Fail(e.NotFound, "Approver unavailable")
+		return wire.MailboxWrite{}, enverrors.New(enverrors.NotFound, "Approver unavailable")
 	}
-	return s.MailboxWrite{Message: x.Text(data)}
+
+	return wire.MailboxWrite{Message: shared.Text(data)}, nil
 }
-func RequireGrant(o x.Options, auth *x.Auth, n int) {
+
+func RequireGrant(o shared.Options, auth *shared.Auth, n int) error {
 	r := auth.Request
-	box := x.Must(o.Storage.Mailbox(r.VaultId, n, o.Now()))
-	if !auth.Member || box == nil || !bytes.Equal(box.Device, r.Device) || box.Slots[a.SlotPairJoiner] == nil {
-		x.Fail(e.Unauthorized, "Mailbox grant required")
+	box, err := o.Storage.Mailbox(r.VaultId, n, o.Now())
+	if err != nil {
+		return err
 	}
+	if !auth.Member || box == nil || !bytes.Equal(box.Device, r.Device) || box.Slots[adapters.SlotPairJoiner] == nil {
+		return enverrors.New(enverrors.Unauthorized, "Mailbox grant required")
+	}
+
+	return nil
 }

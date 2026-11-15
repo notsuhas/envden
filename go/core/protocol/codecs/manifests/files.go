@@ -1,17 +1,17 @@
 package manifests
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type Files struct {
 	Entries []FileEntry
 }
 
-var FilesCodec = b.NewCodec(func(r *b.Reader) Files {
-	b.Tagged(3, r)
+var FilesCodec = encoding.NewCodec(func(r *encoding.Reader) Files {
+	encoding.Tagged(3, r)
 
-	return Files{Entries: b.List(FileEntryCodec, func(a, c FileEntry) int { return b.Compare(a.FileId, c.FileId) }).Read(r)}
+	return Files{Entries: encoding.List(FileEntryCodec, func(a, c FileEntry) int { return encoding.Compare(a.FileId, c.FileId) }).Read(r)}
 }, func(v Files) []byte {
-	return b.Concat(b.Header(3), b.List(FileEntryCodec, func(a, c FileEntry) int { return b.Compare(a.FileId, c.FileId) }).Write(v.Entries))
+	return encoding.Concat(encoding.Header(3), encoding.List(FileEntryCodec, func(a, c FileEntry) int { return encoding.Compare(a.FileId, c.FileId) }).Write(v.Entries))
 }, nil)

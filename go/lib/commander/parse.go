@@ -31,11 +31,13 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 		}
 		if !positional {
 			if token == "--help" || token == "-h" {
-				io.WriteString(c.output(false), c.Help())
+				_, _ = io.WriteString(c.output(false), c.Help())
+
 				return result, &ExitError{Code: "commander.helpDisplayed"}
 			}
 			if (token == "--version" || token == "-V") && c.VersionText != "" {
-				io.WriteString(c.output(false), c.VersionText+"\n")
+				_, _ = io.WriteString(c.output(false), c.VersionText+"\n")
+
 				return result, &ExitError{Code: "commander.version"}
 			}
 			if token == "help" && len(c.Commands) > 0 {
@@ -53,7 +55,8 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 						return result, c.fail("commander.unknownCommand", "unknown command '"+name+"'"+suggest(name, c.commandNames()))
 					}
 				}
-				io.WriteString(c.output(false), target.Help())
+				_, _ = io.WriteString(c.output(false), target.Help())
+
 				return result, &ExitError{Code: "commander.helpDisplayed"}
 			}
 			for _, sub := range c.Commands {
@@ -89,6 +92,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 						result.Args = append(result.Args, token)
 						continue
 					}
+
 					return result, c.fail("commander.unknownOption", "unknown option '"+flag+"'"+suggest(flag, c.optionNames()))
 				}
 				o := option
@@ -142,9 +146,11 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 	if len(c.Commands) > 0 && c.action == nil {
 		if len(result.Args) > 0 {
 			name := result.Args[0]
+
 			return result, c.fail("commander.unknownCommand", "unknown command '"+name+"'"+suggest(name, c.commandNames()))
 		}
-		io.WriteString(c.output(true), c.Help())
+		_, _ = io.WriteString(c.output(true), c.Help())
+
 		return result, &ExitError{Code: "commander.help", ExitCode: 1}
 	}
 	for _, o := range c.Options {
@@ -191,5 +197,6 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 			return result, err
 		}
 	}
+
 	return result, c.runHooks("postAction", c)
 }

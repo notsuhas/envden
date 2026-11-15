@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/json"
 
-	o "github.com/notsuhas/envden/go/core/protocol/opaque"
+	"github.com/notsuhas/envden/go/core/protocol/opaque"
 )
 
 func message(n int) rule {
@@ -12,7 +12,7 @@ func message(n int) rule {
 		if !ok {
 			return false
 		}
-		_, err := o.OpaqueMessage(s, n)
+		_, err := opaque.OpaqueMessage(s, n)
 
 		return err == nil
 	}
@@ -22,15 +22,21 @@ type LoginStart struct {
 	Purpose string `json:"purpose"`
 	Message string `json:"message"`
 }
+
 type LoginFinish = LoginStart
+
 type RegistrationStart struct {
 	Message string `json:"message"`
 }
+
 type RegistrationFinish = RegistrationStart
 
 var LoginStartSchema = Schema[LoginStart]{object(map[string]field{"purpose": req(enum("unlock", "kit")), "message": req(message(96))})}
+
 var LoginFinishSchema = Schema[LoginFinish]{object(map[string]field{"purpose": req(enum("unlock", "kit")), "message": req(message(64))})}
+
 var RegistrationStartSchema = Schema[RegistrationStart]{object(map[string]field{"message": req(message(32))})}
+
 var RegistrationFinishSchema = Schema[RegistrationFinish]{object(map[string]field{"message": req(message(192))})}
 
 type UnlockPeriod struct {
@@ -52,6 +58,7 @@ type MailboxWrite struct {
 }
 
 var MailboxWriteSchema = Schema[MailboxWrite]{object(map[string]field{"message": req(maxString(5462))})}
+
 var MessageResponseSchema = Schema[MailboxWrite]{object(map[string]field{"message": req(stringValue)})}
 
 type HelloResponse struct {

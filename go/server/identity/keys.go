@@ -3,15 +3,16 @@ package identity
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/google/uuid"
-	e "github.com/notsuhas/envden/go/core/errors"
-	process "github.com/notsuhas/envden/go/core/process"
-	k "github.com/notsuhas/envden/go/core/protocol/keys"
-	o "github.com/notsuhas/envden/go/core/protocol/opaque"
-	x "github.com/notsuhas/envden/go/server/shared"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/google/uuid"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/process"
+	"github.com/notsuhas/envden/go/core/protocol/keys"
+	opaque "github.com/notsuhas/envden/go/core/protocol/opaque"
+	"github.com/notsuhas/envden/go/server/shared"
 )
 
 type persisted struct {
@@ -20,39 +21,78 @@ type persisted struct {
 	OpaqueSetup string `json:"opaqueSetup"`
 }
 
-func LoadServerKeys(dir string) (out x.Keys, err error) {
-	defer func() {
-		if v := recover(); v != nil {
-			err = v.(error)
-		}
-	}()
-	x.Check(os.MkdirAll(dir, 0700))
-	x.Check(process.RestrictAccessSync(dir, true))
+func LoadServerKeys(dir string) (out shared.Keys, err error) {
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return shared.Keys{}, err
+	}
+	if err := process.RestrictAccessSync(dir, true); err != nil {
+		return shared.Keys{}, err
+	}
+
 	path := filepath.Join(dir, "identity.json")
 	raw, err := os.ReadFile(path)
 	if err == nil {
 		var data persisted
-		x.Check(json.Unmarshal(raw, &data))
-		x.Check(process.RestrictAccessSync(path, false))
+		if err := json.Unmarshal(raw, &data); err != nil {
+			return shared.Keys{}, err
+		}
+		if err := process.RestrictAccessSync(path, false); err != nil {
+			return shared.Keys{}, err
+		}
 		if data.SecretKey == "" || data.PublicKey == "" || data.OpaqueSetup == "" {
-			x.Fail(e.InvalidData, "Invalid server identity")
+			return shared.Keys{}, enverrors.New(enverrors.InvalidData, "Invalid server identity")
 		}
-		sk, pub := x.Binary(data.SecretKey, 32), x.Binary(data.PublicKey, 32)
-		derived := x.Must(k.GenerateRecoveryKeys(func(int) []byte { return sk }))
+		binary, err := shared.Binary(data.SecretKey, 32)
+		if err != nil {
+			return shared.Keys{}, err
+		}
+		binaryResult, err := shared.Binary(data.PublicKey, 32)
+		if err != nil {
+			return shared.Keys{}, err
+		}
+
+		sk, pub := binary, binaryResult
+		derived, err := keys.GenerateRecoveryKeys(func(int) []byte { return sk })
+		if err != nil {
+			return shared.Keys{}, err
+		}
 		if !bytes.Equal(pub, derived.ObjPub) {
-			x.Fail(e.InvalidData, "Invalid server identity")
+			return shared.Keys{}, enverrors.New(enverrors.InvalidData, "Invalid server identity")
 		}
-		return x.Keys{SecretKey: sk, PublicKey: pub, OpaqueSetup: x.Must(o.OpaqueMessage(data.OpaqueSetup, 128))}, nil
+		opaqueMessage, err := opaque.OpaqueMessage(data.OpaqueSetup, 128)
+		if err != nil {
+			return shared.Keys{}, err
+		}
+
+		return shared.Keys{SecretKey: sk, PublicKey: pub, OpaqueSetup: opaqueMessage}, nil
 	}
 	if !os.IsNotExist(err) {
 		return out, err
 	}
-	keys := x.Must(k.GenerateRecoveryKeys())
-	setup := x.Must(o.OpaqueCreateSetup())
-	x.Check(PersistIdentity(dir, x.JSON(persisted{x.Text(keys.ObjSk), x.Text(keys.ObjPub), setup})))
-	x.Check(process.RestrictAccessSync(path, false))
-	return x.Keys{SecretKey: keys.ObjSk, PublicKey: keys.ObjPub, OpaqueSetup: setup}, nil
+	keys, err := keys.GenerateRecoveryKeys()
+	if err != nil {
+		return shared.Keys{}, err
+	}
+
+	setup, err := opaque.OpaqueCreateSetup()
+	if err != nil {
+		return shared.Keys{}, err
+	}
+
+	encoded, err := shared.JSON(persisted{shared.Text(keys.ObjSk), shared.Text(keys.ObjPub), setup})
+	if err != nil {
+		return shared.Keys{}, err
+	}
+	if err := PersistIdentity(dir, encoded); err != nil {
+		return shared.Keys{}, err
+	}
+	if err := process.RestrictAccessSync(path, false); err != nil {
+		return shared.Keys{}, err
+	}
+
+	return shared.Keys{SecretKey: keys.ObjSk, PublicKey: keys.ObjPub, OpaqueSetup: setup}, nil
 }
+
 func PersistIdentity(dir string, data []byte) error {
 	path := filepath.Join(dir, ".identity-"+uuid.NewString())
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
@@ -69,7 +109,7 @@ func PersistIdentity(dir string, data []byte) error {
 	if closeErr != nil {
 		return closeErr
 	}
-	defer os.Remove(path)
+	defer func() { _ = os.Remove(path) }()
 	if err = os.Link(path, filepath.Join(dir, "identity.json")); err != nil {
 		return err
 	}
@@ -80,6 +120,7 @@ func PersistIdentity(dir string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	defer d.Close()
+	defer func() { _ = d.Close() }()
+
 	return d.Sync()
 }

@@ -17,12 +17,15 @@ type Spinner struct {
 }
 
 func (t *Terminal) Spinner() *Spinner { return &Spinner{terminal: t} }
+
 func (s *Spinner) Interval() time.Duration {
 	if s.terminal.ASCII {
 		return 120 * time.Millisecond
 	}
+
 	return 80 * time.Millisecond
 }
+
 func (s *Spinner) Start(message string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -40,11 +43,13 @@ func (s *Spinner) Start(message string) {
 		go s.animate(s.stop)
 	}
 }
+
 func (s *Spinner) Message(message string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.message = strings.TrimRight(message, ".")
 }
+
 func (s *Spinner) Tick() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -67,8 +72,11 @@ func (s *Spinner) Tick() {
 	}
 	s.rendered = true
 }
+
 func (s *Spinner) Stop(message string) { s.finish(message, false) }
-func (s *Spinner) Clear()              { s.finish("", true) }
+
+func (s *Spinner) Clear() { s.finish("", true) }
+
 func (s *Spinner) finish(message string, clear bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -1,9 +1,9 @@
 package members
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	validation "github.com/notsuhas/envden/go/core/protocol/internal/validation"
-	keys "github.com/notsuhas/envden/go/core/protocol/keys"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/internal/validation"
+	"github.com/notsuhas/envden/go/core/protocol/keys"
 )
 
 type RecoveryRecord struct {
@@ -12,12 +12,12 @@ type RecoveryRecord struct {
 	ObjPub []byte
 }
 
-var RecoveryRecordCodec = b.NewCodec(func(r *b.Reader) RecoveryRecord {
-	return RecoveryRecord{Id: b.B16.Read(r), EncPub: b.B32.Read(r), ObjPub: b.B32.Read(r)}
+var RecoveryRecordCodec = encoding.NewCodec(func(r *encoding.Reader) RecoveryRecord {
+	return RecoveryRecord{Id: encoding.B16.Read(r), EncPub: encoding.B32.Read(r), ObjPub: encoding.B32.Read(r)}
 }, func(v RecoveryRecord) []byte {
-	return b.Concat(b.B16.Write(v.Id), b.B32.Write(v.EncPub), b.B32.Write(v.ObjPub))
+	return encoding.Concat(encoding.B16.Write(v.Id), encoding.B32.Write(v.EncPub), encoding.B32.Write(v.ObjPub))
 }, func(v RecoveryRecord) {
 	validation.EncPublic(v.EncPub)
 	validation.EdPublic(v.ObjPub)
-	b.RequireValue(b.Compare(v.Id, b.Must(keys.RecoveryID(v.EncPub, v.ObjPub))) == 0, "Recovery ID mismatch")
+	encoding.RequireValue(encoding.Compare(v.Id, encoding.Must(keys.RecoveryID(v.EncPub, v.ObjPub))) == 0, "Recovery ID mismatch")
 })

@@ -9,78 +9,86 @@ import (
 	"runtime"
 )
 
-func must(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func recoverError(err *error) {
-	if v := recover(); v != nil {
-		if e, ok := v.(error); ok {
-			*err = e
-		} else {
-			panic(v)
-		}
-	}
-}
-
-func (s *storage) run(q string, args ...any) int64 {
+func (s *storage) run(q string, args ...any) (int64, error) {
 	r, e := s.conn.ExecContext(context.Background(), q, args...)
-	must(e)
+	if err := e; err != nil {
+		return 0, err
+	}
+
 	n, e := r.RowsAffected()
-	must(e)
-	return n
+	if err := e; err != nil {
+		return 0, err
+	}
+
+	return n, nil
 }
 
-func (s *storage) rows(q string, args ...any) *sql.Rows {
+func (s *storage) rows(q string, args ...any) (*sql.Rows, error) {
 	r, e := s.conn.QueryContext(context.Background(), q, args...)
-	must(e)
-	return r
+	if err := e; err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
-func (s *storage) bytes(q string, args ...any) []byte {
+func (s *storage) bytes(q string, args ...any) ([]byte, error) {
 	var b []byte
 	e := s.conn.QueryRowContext(context.Background(), q, args...).Scan(&b)
 	if errors.Is(e, sql.ErrNoRows) {
-		return nil
+		return nil, nil
 	}
-	must(e)
-	return b
+	if err := e; err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
-func (s *storage) count(q string, args ...any) int64 {
+func (s *storage) count(q string, args ...any) (int64, error) {
 	var n int64
-	must(s.conn.QueryRowContext(context.Background(), q, args...).Scan(&n))
-	return n
+	if err := s.conn.QueryRowContext(context.Background(), q, args...).Scan(&n); err != nil {
+		return 0, err
+	}
+
+	return n, nil
 }
 
-func (s *storage) tx(fn func()) {
+func (s *storage) tx(fn func() error) (err error) {
 	name := fmt.Sprintf("envden_%d", s.depth)
-	if s.depth == 0 {
-		s.run("BEGIN IMMEDIATE")
-	} else {
-		s.run("SAVEPOINT " + name)
+	begin, commit, rollback := "BEGIN IMMEDIATE", "COMMIT", "ROLLBACK"
+	if s.depth > 0 {
+		begin = "SAVEPOINT " + name
+		commit = "RELEASE " + name
+		rollback = "ROLLBACK TO " + name
+	}
+	if _, err = s.conn.ExecContext(context.Background(), begin); err != nil {
+		return err
 	}
 	s.depth++
+	committed := false
 	defer func() {
 		s.depth--
-		if v := recover(); v != nil {
-			if s.depth == 0 {
-				s.run("ROLLBACK")
-			} else {
-				s.run("ROLLBACK TO " + name)
-				s.run("RELEASE " + name)
+		if !committed {
+			if _, rollbackErr := s.conn.ExecContext(context.Background(), rollback); rollbackErr != nil {
+				err = rollbackErr
+
+				return
 			}
-			panic(v)
+			if s.depth > 0 {
+				if _, releaseErr := s.conn.ExecContext(context.Background(), "RELEASE "+name); releaseErr != nil {
+					err = releaseErr
+				}
+			}
 		}
 	}()
-	fn()
-	if s.depth == 1 {
-		s.run("COMMIT")
-	} else {
-		s.run("RELEASE " + name)
+	if err = fn(); err != nil {
+		return err
 	}
+	_, err = s.conn.ExecContext(context.Background(), commit)
+	committed = err == nil
+
+	return err
 }
 
 func (s *storage) ID() string { return "sqlite" }
@@ -91,20 +99,24 @@ func (s *storage) Close() error {
 	if e != nil {
 		return e
 	}
+
 	return e2
 }
 
-func (s *storage) Transaction(fn func() error) (err error) {
-	defer recoverError(&err)
-	s.tx(func() { must(fn()) })
-	s.collectGarbage()
-	return nil
+func (s *storage) Transaction(fn func() error) error {
+	err := s.tx(fn)
+	if err != nil {
+		return err
+	}
+
+	return s.collectGarbage()
 }
 
 func optional(b []byte) any {
 	if b == nil {
 		return nil
 	}
+
 	return b
 }
 
@@ -112,15 +124,20 @@ func bit(b bool) int {
 	if b {
 		return 1
 	}
+
 	return 0
 }
 
-func syncDir(path string) {
+func syncDir(path string) error {
 	if runtime.GOOS == "windows" {
-		return
+		return nil
 	}
 	f, e := os.Open(path)
-	must(e)
-	defer f.Close()
-	must(f.Sync())
+	if err := e; err != nil {
+		return err
+	}
+
+	defer func() { _ = f.Close() }()
+
+	return f.Sync()
 }

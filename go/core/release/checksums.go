@@ -1,9 +1,10 @@
 package release
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
 	"regexp"
 	"strings"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 var sumLine = regexp.MustCompile(`(?i)^([a-f0-9]{64}) [ *]([^\s\x{000b}\x{00a0}\x{1680}\x{2000}-\x{200a}\x{2028}\x{2029}\x{202f}\x{205f}\x{3000}\x{feff}]+)$`)
@@ -14,13 +15,14 @@ func ParseSha256Sums(contents string) (map[string]string, error) {
 		line = strings.TrimSuffix(line, "\r")
 		m := sumLine.FindStringSubmatch(line)
 		if m == nil {
-			return nil, e.New(e.InvalidData, "Invalid SHA256SUMS entry")
+			return nil, enverrors.New(enverrors.InvalidData, "Invalid SHA256SUMS entry")
 		}
 		if _, ok := hashes[m[2]]; ok {
-			return nil, e.New(e.InvalidData, "Duplicate SHA256SUMS entry")
+			return nil, enverrors.New(enverrors.InvalidData, "Duplicate SHA256SUMS entry")
 		}
 		hashes[m[2]] = strings.ToLower(m[1])
 	}
+
 	return hashes, nil
 }
 

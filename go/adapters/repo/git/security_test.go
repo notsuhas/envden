@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestGlobalConfigAndRewrites(t *testing.T) {
@@ -112,7 +112,7 @@ func TestExecutableConfigAndEmbeddedBare(t *testing.T) {
 	marker := filepath.Join(f.Root, "executed")
 	script := filepath.Join(f.Root, "monitor")
 	write(t, f.Root, "monitor", "#!/bin/sh\ntouch '"+marker+"'\n")
-	must(t, os.Chmod(script, 0700))
+	must(t, os.Chmod(script, 0700)) //nolint:gosec // G302: fixture makes the approved test executable runnable.
 	gitTest(t, f.Root, "config", "core.fsmonitor", script)
 	write(t, f.Root, ".env", "secret")
 	write(t, f.Root, ".gitignore", ".env\n")
@@ -140,6 +140,7 @@ func TestSSHResolution(t *testing.T) {
 	for _, host := range []string{"-oProxyCommand=evil", "foo bar", "foo\nbar", "$(id)", ""} {
 		_, e := resolveSSHHostWith(host, func(string, []string, map[string]string, string) (string, error) {
 			t.Fatal("unsafe host executed")
+
 			return "", nil
 		})
 		if !errors.Is(e, errors.InvalidInput) {
@@ -150,6 +151,7 @@ func TestSSHResolution(t *testing.T) {
 		if command != "ssh" || strings.Join(args, " ") != "-G -- work-git" {
 			t.Fatal(command, args)
 		}
+
 		return "user git\nhostname github.com  \nport 22\n", nil
 	})
 	must(t, e)
@@ -161,7 +163,7 @@ func TestSSHResolution(t *testing.T) {
 		t.Fatal(e)
 	}
 	_, e = resolveSSHHostWith("work", func(string, []string, map[string]string, string) (string, error) { return "", failure })
-	if e != failure {
+	if !stderrors.Is(e, failure) {
 		t.Fatal(e)
 	}
 }

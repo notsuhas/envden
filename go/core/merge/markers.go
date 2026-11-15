@@ -18,8 +18,10 @@ func markerBlock(mine, theirs []byte, labels Labels, ending string) []byte {
 			out = append(out, "======="+ending...)
 		}
 	}
+
 	return append(out, ">>>>>>> "+labelBreaks.ReplaceAllString(labels.Theirs, " ")+ending...)
 }
+
 func MarkConflicts(base, local, remote []byte, labels Labels) Result {
 	ending := lineEnding(local, remote)
 	if base != nil {
@@ -50,8 +52,10 @@ func MarkConflicts(base, local, remote []byte, labels Labels) Result {
 			}
 		}
 	}
+
 	return Result{Kind: "file", Bytes: markerBlock(local, remote, labels, ending)}
 }
+
 func HasConflictMarkers(raw []byte) bool {
 	for _, line := range bytes.FieldsFunc(raw, func(r rune) bool { return r == '\n' || r == '\r' }) {
 		if len(line) < 7 {
@@ -69,5 +73,6 @@ func HasConflictMarkers(raw []byte) bool {
 			return true
 		}
 	}
+
 	return false
 }

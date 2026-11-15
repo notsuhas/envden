@@ -21,5 +21,6 @@ func CreateMemoryKeychainAdapter(operations []string) adapters.Keychain {
 			o.Delete = func(name string) error { delete(values, name); return nil }
 		}
 	}
+
 	return CreateFakeKeychainAdapter(o)
 }

@@ -2,11 +2,12 @@ package fs
 
 import (
 	"bytes"
-	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func (p *placement) Inspect(store, dest string) (state adapters.PlacementState, err error) {
@@ -20,7 +21,7 @@ func (p *placement) Inspect(store, dest string) (state adapters.PlacementState, 
 		return "", err
 	}
 	if !root.IsDir() || root.Mode()&os.ModeSymlink != 0 {
-		return "", e.New("INVALID_INPUT", "Unsafe checkout root")
+		return "", enverrors.New("INVALID_INPUT", "Unsafe checkout root")
 	}
 	parent := p.root
 	parts := strings.Split(path, "/")
@@ -34,7 +35,7 @@ func (p *placement) Inspect(store, dest string) (state adapters.PlacementState, 
 			return "", err
 		}
 		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-			return "", e.New("INVALID_INPUT", "Unsafe checkout parent")
+			return "", enverrors.New("INVALID_INPUT", "Unsafe checkout parent")
 		}
 	}
 	info, err := os.Lstat(dest)
@@ -52,6 +53,7 @@ func (p *placement) Inspect(store, dest string) (state adapters.PlacementState, 
 		if sameTarget(resolveLink(filepath.Dir(dest), target), store) {
 			return adapters.PlacementLinked, nil
 		}
+
 		return adapters.PlacementDetached, nil
 	}
 	if !info.Mode().IsRegular() {
@@ -76,5 +78,6 @@ func (p *placement) Inspect(store, dest string) (state adapters.PlacementState, 
 	if p.mode == adapters.PlacementLink {
 		return adapters.PlacementRelinkable, nil
 	}
+
 	return adapters.PlacementLinked, nil
 }

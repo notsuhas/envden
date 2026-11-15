@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"github.com/notsuhas/envden/go/core/adapters"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func (m *memory) ID() string { return "memory" }
@@ -12,6 +13,7 @@ func (m *memory) Close() error { return nil }
 func (m *memory) Transaction(fn func() error) (err error) {
 	defer recoverError(&err)
 	m.tx(func() { must(fn()) })
+
 	return nil
 }
 
@@ -23,6 +25,7 @@ func (m *memory) vaultIDs() [][]byte {
 			out = append(out, b)
 		}
 	}
+
 	return out
 }
 
@@ -45,6 +48,7 @@ func (m *memory) vault(v []byte) *adapters.StoredVault {
 		return nil
 	}
 	out := clone(row)
+
 	return &out
 }
 
@@ -117,6 +121,7 @@ func (m *memory) states(v []byte, k adapters.StateKind) []adapters.StateEntry {
 			out = append(out, adapters.StateEntry{Key: clone(s.Key), Bytes: clone(s.Bytes)})
 		}
 	}
+
 	return out
 }
 
@@ -139,6 +144,7 @@ func (m *memory) device(v, id []byte) *adapters.StoredDevice {
 		return nil
 	}
 	out := clone(s)
+
 	return &out
 }
 

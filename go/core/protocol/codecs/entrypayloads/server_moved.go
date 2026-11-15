@@ -1,7 +1,7 @@
 package entrypayloads
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type ServerMoved struct {
@@ -10,8 +10,8 @@ type ServerMoved struct {
 	NewAddress string
 }
 
-var ServerMovedCodec = b.NewCodec(func(r *b.Reader) ServerMoved {
-	return ServerMoved{OldPin: b.B32.Read(r), NewPin: b.B32.Read(r), NewAddress: b.Str.Read(r)}
+var ServerMovedCodec = encoding.NewCodec(func(r *encoding.Reader) ServerMoved {
+	return ServerMoved{OldPin: encoding.B32.Read(r), NewPin: encoding.B32.Read(r), NewAddress: encoding.Str.Read(r)}
 }, func(v ServerMoved) []byte {
-	return b.Concat(b.B32.Write(v.OldPin), b.B32.Write(v.NewPin), b.Str.Write(v.NewAddress))
+	return encoding.Concat(encoding.B32.Write(v.OldPin), encoding.B32.Write(v.NewPin), encoding.Str.Write(v.NewAddress))
 }, nil)

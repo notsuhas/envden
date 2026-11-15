@@ -5,8 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/notsuhas/envden/go/core/adapters"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 type timed struct {
@@ -83,6 +84,7 @@ func clone[T any](v T) T {
 	must(e)
 	var out T
 	must(json.Unmarshal(b, &out))
+
 	return out
 }
 
@@ -145,6 +147,7 @@ func (m *memory) forget(kind, key string) {
 	for i, k := range keys {
 		if k == key {
 			m.data.Order[kind] = append(keys[:i], keys[i+1:]...)
+
 			return
 		}
 	}

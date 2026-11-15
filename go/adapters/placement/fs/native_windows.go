@@ -1,10 +1,11 @@
 package fs
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func lstat(path string) (os.FileInfo, error) {
@@ -12,6 +13,7 @@ func lstat(path string) (os.FileInfo, error) {
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
+
 	return st, err
 }
 
@@ -44,15 +46,18 @@ func parents(root, path string, create bool) ([]os.FileInfo, []string, error) {
 		if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
 			if create {
 				if part == "" {
-					return nil, nil, e.New("INVALID_INPUT", "Unsafe checkout root")
+					return nil, nil, enverrors.New("INVALID_INPUT", "Unsafe checkout root")
 				}
-				return nil, nil, e.New("INVALID_INPUT", "Unsafe checkout parent")
+
+				return nil, nil, enverrors.New("INVALID_INPUT", "Unsafe checkout parent")
 			}
-			return nil, nil, e.New("CONFLICT", "Unsafe checkout parent")
+
+			return nil, nil, enverrors.New("CONFLICT", "Unsafe checkout parent")
 		}
 		infos = append(infos, st)
 		names = append(names, current)
 	}
+
 	return infos, names, nil
 }
 
@@ -63,9 +68,10 @@ func verifyParents(infos []os.FileInfo, names []string) error {
 			return err
 		}
 		if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 || !os.SameFile(st, infos[i]) {
-			return e.New("CONFLICT", "Checkout parent changed")
+			return enverrors.New("CONFLICT", "Checkout parent changed")
 		}
 	}
+
 	return nil
 }
 
@@ -73,5 +79,6 @@ func sameFile(a, b os.FileInfo) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
 	}
+
 	return os.SameFile(a, b) && a.Size() == b.Size() && a.ModTime() == b.ModTime()
 }

@@ -10,7 +10,7 @@ import (
 	"runtime"
 
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
 )
 
@@ -31,6 +31,7 @@ func failure(err error) error {
 	if _, ok := errors.As(err); ok {
 		return err
 	}
+
 	return errors.Wrap(errors.Locked, "Key storage operation failed", err)
 }
 
@@ -62,6 +63,7 @@ func (a *adapter) OwnerOnly() (bool, error) {
 			return false, nil
 		}
 	}
+
 	return true, nil
 }
 
@@ -71,12 +73,13 @@ func (a *adapter) Get(name string, required bool) ([]byte, error) {
 		if required {
 			return nil, errors.New(errors.Locked, "No vault keys are stored on this device. If it was in the vault before, run envden join")
 		}
+
 		return nil, nil
 	}
 	if err != nil {
 		return nil, failure(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	s, err := f.Stat()
 	if err != nil {
 		return nil, failure(err)
@@ -85,6 +88,7 @@ func (a *adapter) Get(name string, required bool) ([]byte, error) {
 		return nil, errors.New(errors.InvalidData, "Key file is accessible to other users")
 	}
 	b, err := io.ReadAll(f)
+
 	return b, failure(err)
 }
 
@@ -99,7 +103,7 @@ func (a *adapter) Set(name string, value []byte) error {
 	if err != nil {
 		return failure(err)
 	}
-	defer os.Remove(f.Name())
+	defer func() { _ = os.Remove(f.Name()) }()
 	if err = process.RestrictAccess(f.Name(), false); err == nil {
 		_, err = f.Write(value)
 	}
@@ -116,6 +120,7 @@ func (a *adapter) Set(name string, value []byte) error {
 	if err == nil {
 		err = syncDirectory(a.directory)
 	}
+
 	return failure(err)
 }
 
@@ -130,6 +135,7 @@ func (a *adapter) Delete(name string) error {
 			err = nil
 		}
 	}
+
 	return failure(err)
 }
 
@@ -141,7 +147,8 @@ func syncDirectory(path string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
+
 	return f.Sync()
 }
 
@@ -152,5 +159,6 @@ func newUUID() string {
 	}
 	b[6] = (b[6] & 15) | 64
 	b[8] = (b[8] & 63) | 128
+
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[:4], b[4:6], b[6:8], b[8:10], b[10:])
 }

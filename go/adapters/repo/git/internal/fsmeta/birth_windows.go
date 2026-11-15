@@ -21,5 +21,6 @@ func Identity(path string, _ os.FileInfo) (uint64, uint64, string, error) {
 	if e = windows.GetFileInformationByHandle(h, &i); e != nil {
 		return 0, 0, "", e
 	}
+
 	return uint64(i.VolumeSerialNumber), uint64(i.FileIndexHigh)<<32 | uint64(i.FileIndexLow), strconv.FormatFloat(float64(i.CreationTime.Nanoseconds())/1e6, 'f', -1, 64), nil
 }

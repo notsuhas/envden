@@ -6,7 +6,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 type CommandResult struct {
@@ -15,6 +15,7 @@ type CommandResult struct {
 }
 
 type Runner func([]string) (CommandResult, error)
+
 type adapter struct{ run Runner }
 
 func CreateTailscaleNetworkAdapter(runners ...Runner) adapters.Network {
@@ -22,6 +23,7 @@ func CreateTailscaleNetworkAdapter(runners ...Runner) adapters.Network {
 	if len(runners) > 0 && runners[0] != nil {
 		run = runners[0]
 	}
+
 	return &adapter{run}
 }
 
@@ -30,20 +32,22 @@ func (a *adapter) ID() string { return "tailscale" }
 func (a *adapter) Status() (adapters.NetworkStatus, error) {
 	r, err := a.run([]string{"status", "--json"})
 	if err != nil {
-		return unavailable("not-installed"), nil
+		return unavailable("not-installed"), nil //nolint:nilerr // Command failure is a network status, matching TS.
 	}
 	if r.ExitCode != 0 {
 		return unavailable("not-running"), nil
 	}
 	s, err := parseStatus(r.Stdout)
 	if err != nil {
-		return unavailable("unreadable"), nil
+		return unavailable("unreadable"), nil //nolint:nilerr // Invalid status JSON is a network status, matching TS.
 	}
+
 	return s, nil
 }
 
 func (a *adapter) CheckHTTPSCertificate() (adapters.HTTPSCheck, error) {
 	s, e := a.Status()
+
 	return adapters.HTTPSCheck{Ready: s.Problem == nil, Problem: s.Problem}, e
 }
 
@@ -60,8 +64,10 @@ func (a *adapter) command(args []string, summary string) (string, error) {
 		if len(detail) > 0 {
 			summary += ": " + string(utf16.Decode(detail))
 		}
+
 		return "", errors.New(errors.Internal, summary)
 	}
+
 	return r.Stdout, nil
 }
 
@@ -91,5 +97,6 @@ func (a *adapter) Expose(port int) (string, error) {
 	if _, err = a.command([]string{"serve", "--bg", fmt.Sprintf("--https=%d", port), target}, "Tailscale serve failed"); err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("https://%s:%d", s.Hostname, port), nil
 }

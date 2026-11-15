@@ -12,6 +12,7 @@ func init() {
 		allowedNames[strings.ToLower(key)] = true
 	}
 }
+
 func SanitizedEnvironment(extra, inherited map[string]string, managerBin string) map[string]string {
 	if inherited == nil {
 		inherited = inheritedEnvironment()
@@ -29,5 +30,6 @@ func SanitizedEnvironment(extra, inherited map[string]string, managerBin string)
 		}
 	}
 	env["PATH"] = strings.Join(TrustedDirectories(nil, managerBin), string(os.PathListSeparator))
+
 	return env
 }

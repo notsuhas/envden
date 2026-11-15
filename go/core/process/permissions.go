@@ -34,14 +34,17 @@ func RestrictAccess(path string, directory bool, runtimes ...PermissionRuntime) 
 			return r.Exec("icacls", args)
 		}
 		_, err := ExecTrusted("icacls", args, Options{})
+
 		return err
 	}
 	mode := os.FileMode(0600)
 	if directory {
 		mode = 0700
 	}
+
 	return os.Chmod(path, mode)
 }
+
 func RestrictAccessSync(path string, directory bool, runtimes ...PermissionRuntime) error {
 	return RestrictAccess(path, directory, runtimes...)
 }

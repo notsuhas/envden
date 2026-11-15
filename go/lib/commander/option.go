@@ -34,23 +34,32 @@ func NewOption(flags, description string) *Option {
 		pieces[i] = strings.ToUpper(pieces[i][:1]) + pieces[i][1:]
 	}
 	o.Key = strings.Join(pieces, "")
+
 	return o
 }
+
 func (o *Option) Choices(values ...string) *Option { o.ChoiceValues = values; return o }
-func (o *Option) HideHelp() *Option                { o.Hidden = true; return o }
+
+func (o *Option) HideHelp() *Option { o.Hidden = true; return o }
+
 func (o *Option) Default(value any, description ...string) *Option {
 	o.DefaultValue = value
 	if len(description) > 0 {
 		o.DefaultDescription = description[0]
 	}
+
 	return o
 }
+
 func (o *Option) Conflicts(keys ...string) *Option { o.ConflictKeys = keys; return o }
-func (o *Option) Env(name string) *Option          { o.EnvVar = name; return o }
+
+func (o *Option) Env(name string) *Option { o.EnvVar = name; return o }
+
 func (o *Option) flag() string {
 	if o.Long != "" {
 		return o.Long
 	}
+
 	return o.Short
 }
 
@@ -64,15 +73,20 @@ type Argument struct {
 func NewArgument(term, description string) *Argument {
 	return &Argument{Term: term, Description: description}
 }
+
 func (a *Argument) Default(value any, description ...string) *Argument {
 	a.DefaultValue = value
 	if len(description) > 0 {
 		a.DefaultDescription = description[0]
 	}
+
 	return a
 }
+
 func (a *Argument) Choices(values ...string) *Argument { a.ChoiceValues = values; return a }
-func (a *Argument) name() string                       { return strings.TrimSuffix(strings.Trim(a.Term, "<>[]"), "...") }
+
+func (a *Argument) name() string { return strings.TrimSuffix(strings.Trim(a.Term, "<>[]"), "...") }
+
 func extra(description string, choices []string, value any, label, env string) string {
 	var parts []string
 	if len(choices) > 0 {
@@ -97,6 +111,8 @@ func extra(description string, choices []string, value any, label, env string) s
 		}
 		description += "(" + strings.Join(parts, ", ") + ")"
 	}
+
 	return description
 }
+
 func jsonText(value any) string { b, _ := json.Marshal(value); return string(b) }

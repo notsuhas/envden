@@ -3,41 +3,49 @@ package repair
 import (
 	"sort"
 
-	d "github.com/notsuhas/envden/go/core/chain/devices"
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	devicechain "github.com/notsuhas/envden/go/core/chain/devices"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
 	mem "github.com/notsuhas/envden/go/core/protocol/codecs/members"
-	server "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type ReportsInput struct {
-	Reports      []b.Signed[server.RepairReport]
+	Reports      []encoding.Signed[server.RepairReport]
 	RepairId     []byte
-	State        *d.State
+	State        *devicechain.State
 	HeaderHashes map[string]bool
 }
 
-func FilterRepairReports(input ReportsInput) ([]b.Signed[server.RepairReport], error) {
-
-	return s.Try(func() []b.Signed[server.RepairReport] {
-		out := []b.Signed[server.RepairReport]{}
+func FilterRepairReports(input ReportsInput) ([]encoding.Signed[server.RepairReport], error) {
+	return chainshared.TryResult(func() ([]encoding.Signed[server.RepairReport], error) {
+		out := []encoding.Signed[server.RepairReport]{}
 		for _, report := range input.Reports {
 			r := report.Body
-			signer, ok := input.State.Devices[s.ID(r.Signer)]
-			if ok && b.Equal(r.VaultId, input.State.VaultId) && b.Equal(r.RepairId, input.RepairId) && input.HeaderHashes[s.ID(r.Head)] && b.Must(cr.VerifyObject(server.RepairReportCodec, report, signer.ObjPub, "repair-report")).OK {
+			signer, ok := input.State.Devices[chainshared.ID(r.Signer)]
+			validReport := ok && encoding.Equal(r.VaultId, input.State.VaultId) && encoding.Equal(r.RepairId, input.RepairId) && input.HeaderHashes[chainshared.ID(r.Head)]
+			if validReport {
+				verifyObject, err := crypto.VerifyObject(server.RepairReportCodec, report, signer.ObjPub, "repair-report")
+				if err != nil {
+					return nil, err
+				}
+				validReport = verifyObject.OK
+			}
+			if validReport {
 				out = append(out, report)
 			}
 		}
-		return out
+
+		return out, nil
 	})
 }
 
-func MissingReportMembers(state *d.State, reports []b.Signed[server.RepairReport]) []mem.DeviceRecord {
+func MissingReportMembers(state *devicechain.State, reports []encoding.Signed[server.RepairReport]) []mem.DeviceRecord {
 	signers := map[string]bool{}
 	for _, r := range reports {
-		signers[s.ID(r.Body.Signer)] = true
+		signers[chainshared.ID(r.Body.Signer)] = true
 	}
 	out := []mem.DeviceRecord{}
 	for _, id := range state.DeviceOrder {
@@ -51,25 +59,25 @@ func MissingReportMembers(state *d.State, reports []b.Signed[server.RepairReport
 				out = append(out, d)
 			}
 		}
-		sort.SliceStable(out, func(i, j int) bool { return b.Compare(out[i].Id, out[j].Id) < 0 })
+		sort.SliceStable(out, func(i, j int) bool { return encoding.Compare(out[i].Id, out[j].Id) < 0 })
 	}
 
 	return out
 }
 
-type MissingBlobs struct{ Missing, Lost []m.FileEntry }
+type MissingBlobs struct{ Missing, Lost []manifests.FileEntry }
 
-func ClassifyMissingBlobs(files m.Files, available map[string]bool, reports []b.Signed[server.RepairReport]) MissingBlobs {
+func ClassifyMissingBlobs(files manifests.Files, available map[string]bool, reports []encoding.Signed[server.RepairReport]) MissingBlobs {
 	reported := map[string]bool{}
 	for _, r := range reports {
 		for _, blob := range r.Body.Blobs {
-			reported[s.ID(blob)] = true
+			reported[chainshared.ID(blob)] = true
 		}
 	}
-	out := MissingBlobs{Missing: []m.FileEntry{}, Lost: []m.FileEntry{}}
+	out := MissingBlobs{Missing: []manifests.FileEntry{}, Lost: []manifests.FileEntry{}}
 	for _, e := range files.Entries {
-		if (e.State == 1 || e.State == 3) && !available[s.ID(e.BlobHash)] {
-			if reported[s.ID(e.BlobHash)] {
+		if (e.State == 1 || e.State == 3) && !available[chainshared.ID(e.BlobHash)] {
+			if reported[chainshared.ID(e.BlobHash)] {
 				out.Missing = append(out.Missing, e)
 			} else {
 				out.Lost = append(out.Lost, e)

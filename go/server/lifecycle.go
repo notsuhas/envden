@@ -2,18 +2,20 @@ package server
 
 import (
 	"fmt"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	x "github.com/notsuhas/envden/go/server/shared"
 	"time"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 type systemScheduler struct{}
 
 func (systemScheduler) After(delay time.Duration, run func()) func() {
 	timer := time.AfterFunc(delay, run)
+
 	return func() { timer.Stop() }
 }
+
 func (systemScheduler) Every(delay time.Duration, run func()) func() {
 	ticker := time.NewTicker(delay)
 	stop := make(chan struct{})
@@ -27,35 +29,41 @@ func (systemScheduler) Every(delay time.Duration, run func()) func() {
 			}
 		}
 	}()
+
 	return func() { ticker.Stop(); close(stop) }
 }
+
 func pruneHistory(o Options) bool {
-	safe := func(fn func()) (ok bool) {
-		defer func() {
-			if cause := recover(); cause != nil {
-				suffix := ""
-				if err, yes := cause.(*e.Error); yes {
-					suffix = ": " + string(err.Code)
-				}
-				if o.Stderr != nil {
-					fmt.Fprintln(o.Stderr, "envden history pruning failed"+suffix)
-				}
-			}
-		}()
-		fn()
-		return true
+	report := func(err error) bool {
+		if err == nil {
+			return true
+		}
+		suffix := ""
+		if domain, ok := enverrors.As(err); ok {
+			suffix = ": " + string(domain.Code)
+		}
+		if o.Stderr != nil {
+			_, _ = fmt.Fprintln(o.Stderr, "envden history pruning failed"+suffix)
+		}
+
+		return false
 	}
 	prune := func(id []byte) bool {
-		return safe(func() { x.Must(o.Storage.Prune(id, a.HistoryPolicy{MaxAge: 7776000000, MinVersions: 20}, o.Now())) })
+		_, err := o.Storage.Prune(id, adapters.HistoryPolicy{MaxAge: 7776000000, MinVersions: 20}, o.Now())
+
+		return report(err)
 	}
 	server := prune(make([]byte, 32))
+	ids, err := o.Storage.VaultIDs()
+	listed := report(err)
 	vaults := true
-	listed := safe(func() {
-		for _, id := range x.Must(o.Storage.VaultIDs()) {
+	if listed {
+		for _, id := range ids {
 			if !prune(id) {
 				vaults = false
 			}
 		}
-	})
+	}
+
 	return server && listed && vaults
 }

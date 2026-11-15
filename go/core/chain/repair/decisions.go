@@ -3,15 +3,15 @@ package repair
 import (
 	"sort"
 
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type History struct {
-	Header m.ManifestHeader
-	Files  *m.Files
+	Header manifests.ManifestHeader
+	Files  *manifests.Files
 }
 
 type CandidateInput struct {
@@ -23,39 +23,39 @@ type CandidateInput struct {
 
 type CandidateResult struct {
 	Kind   string
-	Entry  *m.FileEntry
-	Header *m.ManifestHeader
+	Entry  *manifests.FileEntry
+	Header *manifests.ManifestHeader
 }
 
 func ChooseRecoveryCandidate(input CandidateInput) (CandidateResult, error) {
-
-	return s.Try(func() CandidateResult {
+	return chainshared.TryResult(func() (CandidateResult, error) {
 		history := append([]History(nil), input.History...)
 		sort.SliceStable(history, func(i, j int) bool { return history[i].Header.Seq > history[j].Header.Seq })
 		for _, h := range history {
-			if h.Files == nil || !b.Equal(cr.H("files", m.FilesCodec.Write(*h.Files)), h.Header.FilesHash) {
-				return CandidateResult{Kind: "lost"}
+			if h.Files == nil || !encoding.Equal(crypto.H("files", manifests.FilesCodec.Write(*h.Files)), h.Header.FilesHash) {
+				return CandidateResult{Kind: "lost"}, nil
 			}
 			for _, entry := range h.Files.Entries {
-				if !b.Equal(entry.FileId, input.FileId) {
+				if !encoding.Equal(entry.FileId, input.FileId) {
 					continue
 				}
 				if entry.Version >= input.BeforeVersion {
 					break
 				}
 				if entry.State == 2 || entry.State == 4 {
-					return CandidateResult{Kind: "lost"}
+					return CandidateResult{Kind: "lost"}, nil
 				}
-				if input.AvailableBlobs[s.ID(entry.BlobHash)] {
-					return CandidateResult{Kind: "recovered", Entry: &entry, Header: &h.Header}
+				if input.AvailableBlobs[chainshared.ID(entry.BlobHash)] {
+					return CandidateResult{Kind: "recovered", Entry: &entry, Header: &h.Header}, nil
 				}
 			}
 		}
-		return CandidateResult{Kind: "lost"}
+
+		return CandidateResult{Kind: "lost"}, nil
 	})
 }
 
-func RepairLoginDecision(headers []m.ManifestHeader) string {
+func RepairLoginDecision(headers []manifests.ManifestHeader) string {
 	for _, h := range headers {
 		if h.Op == 8 || h.Op == 9 {
 			return "register"
@@ -65,7 +65,7 @@ func RepairLoginDecision(headers []m.ManifestHeader) string {
 	return "login"
 }
 
-func RefuseSecretKeyProof(headers []m.ManifestHeader, envelopeMatchesHead bool) bool {
+func RefuseSecretKeyProof(headers []manifests.ManifestHeader, envelopeMatchesHead bool) bool {
 	if !envelopeMatchesHead {
 		return true
 	}
@@ -79,6 +79,5 @@ func RefuseSecretKeyProof(headers []m.ManifestHeader, envelopeMatchesHead bool) 
 }
 
 func IsReusedRepairToken(repairId []byte, repairIds map[string]bool) bool {
-
-	return repairIds[s.ID(repairId)]
+	return repairIds[chainshared.ID(repairId)]
 }

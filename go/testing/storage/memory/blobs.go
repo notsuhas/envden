@@ -3,8 +3,9 @@ package memory
 import (
 	"bytes"
 	"encoding/hex"
+
 	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func hexDecode(s string) ([]byte, error) { return hex.DecodeString(s) }
@@ -34,7 +35,7 @@ func (m *memory) putBlob(v, h, b []byte, verify func([]byte) ([]byte, error), no
 		quota = 1 << 30
 	}
 	if used-int64(len(prior.Bytes))+int64(len(b)) > quota {
-		panic(e.New("STORAGE_QUOTA", "Vault storage quota exceeded"))
+		panic(enverrors.New("STORAGE_QUOTA", "Vault storage quota exceeded"))
 	}
 	m.data.Blobs[key] = blob{hexKey(v), clone(h), clone(b), now}
 	m.ordered("blobs", key)
@@ -50,6 +51,7 @@ func (m *memory) blobHashes(v []byte) [][]byte {
 			out = append(out, clone(b.Hash))
 		}
 	}
+
 	return out
 }
 
@@ -71,5 +73,6 @@ func (m *memory) vaultUsage(v []byte) int64 {
 			size += int64(len(s.Bytes))
 		}
 	}
+
 	return size
 }

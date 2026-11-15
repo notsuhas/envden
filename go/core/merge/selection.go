@@ -19,14 +19,18 @@ func entryBytes(e *Entry) []byte {
 			raw = raw[:len(raw)-1]
 		}
 	}
+
 	return raw
 }
+
 func equalEntry(a, b *Entry) bool {
 	return (a == nil) == (b == nil) && bytes.Equal(entryBytes(a), entryBytes(b))
 }
+
 func styleChanged(a, b *Entry) bool {
 	return a != nil && b != nil && (a.Exported != b.Exported || a.Quote != b.Quote)
 }
+
 func selectEntry(key string, b, l, r *Entry) selection {
 	lc, rc := !equalEntry(b, l), !equalEntry(b, r)
 	if lc && rc && equalEntry(l, r) {
@@ -51,6 +55,7 @@ func selectEntry(key string, b, l, r *Entry) selection {
 	if rc {
 		e = r
 	}
+
 	return selection{Result: Result{Kind: "selected"}, changed: lc || rc, entry: e}
 }
 
@@ -77,5 +82,6 @@ func parseSides(b, l, r []byte) (s sides, failure Result) {
 			}
 		}
 	}
+
 	return s, Result{}
 }

@@ -5,12 +5,15 @@ import "strings"
 func (t *Terminal) Intro(text string) {
 	t.write(t.style("gray", t.sym("┌", "T")) + "  " + text + "\n")
 }
+
 func (t *Terminal) Outro(text string) {
 	t.write(t.style("gray", t.sym("│", "|")) + "\n" + t.style("gray", t.sym("└", "—")) + "  " + text + "\n\n")
 }
+
 func (t *Terminal) Cancel(text string) {
 	t.write(t.style("gray", t.sym("└", "—")) + "  " + t.style("red", text) + "\n\n")
 }
+
 func (t *Terminal) Log(kind, text string) {
 	bar := t.style("gray", t.sym("│", "|"))
 	symbols := map[string]string{"info": t.sym("●", "•"), "success": t.sym("◆", "*"), "step": t.sym("◇", "o"), "warn": t.sym("▲", "!"), "error": t.sym("■", "x")}
@@ -32,6 +35,7 @@ func (t *Terminal) Log(kind, text string) {
 	}
 	t.write(result + "\n")
 }
+
 func (t *Terminal) Note(text, title string) {
 	bar := t.style("gray", t.sym("│", "|"))
 	lines := append([]string{""}, strings.Split(text, "\n")...)

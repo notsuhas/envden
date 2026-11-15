@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func caseProbe(names []string) (string, string, string) {
@@ -29,8 +29,10 @@ func caseProbe(names []string) (string, string, string) {
 				return "sensitive", "", ""
 			}
 		}
+
 		return "compare", name, alternate
 	}
+
 	return "empty", "", ""
 }
 
@@ -55,8 +57,8 @@ func caseInsensitive(root string, readOnly bool) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		f.Close()
-		defer os.Remove(f.Name())
+		_ = f.Close()
+		defer func() { _ = os.Remove(f.Name()) }()
 		name = filepath.Base(f.Name())
 		alternate = strings.ToUpper(name)
 	}
@@ -71,5 +73,6 @@ func caseInsensitive(root string, readOnly bool) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return os.SameFile(original, other), nil
 }

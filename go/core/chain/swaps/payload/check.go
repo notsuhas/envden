@@ -1,61 +1,98 @@
 package payload
 
 import (
-	f "github.com/notsuhas/envden/go/core/chain/manifests"
-	s "github.com/notsuhas/envden/go/core/chain/shared"
+	manifestchain "github.com/notsuhas/envden/go/core/chain/manifests"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
 	"github.com/notsuhas/envden/go/core/chain/swaps/context"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/keys"
 )
 
-func CheckPayload(swap m.Swap, context context.Context) (bool, error) {
-
-	return s.Try(func() bool {
+func CheckPayload(swap manifests.Swap, context context.Context) (bool, error) {
+	return chainshared.TryResult(func() (bool, error) {
 		h := swap.Header.Body
 		previous := context.Previous.Body
 		op := h.Op
 		if len(swap.Entries) > 0 && swap.Entries[0].Body.Kind == 6 {
-			done := swap.Entries[0].Body.Payload.(p.RepairDone)
-			s.Check(b.Equal(done.RestoredHead, swap.ExpectedHead) || context.AncestorHeaderHashes[s.ID(done.RestoredHead)])
+			done := swap.Entries[0].Body.Payload.(entrypayloads.RepairDone)
+			if err := chainshared.Check(encoding.Equal(done.RestoredHead, swap.ExpectedHead) || context.AncestorHeaderHashes[chainshared.ID(done.RestoredHead)]); err != nil {
+				return false, err
+			}
 		}
-		s.Check((swap.Files != nil) == (op == 1 || op == 11))
-		s.Check((swap.Keyring != nil) == (op == 4 || op == 5 || op == 6 || op == 7 || op == 9))
-		s.Check((swap.Envelope != nil) == (op == 5 || op == 7 || op == 8 || op == 9))
-		s.Check((swap.SkPub != nil) == (op == 5 || op == 7))
-		s.Check((swap.OpaqueRecord != nil) == (op == 8 || op == 9 || (op == 12 && context.RepairRegistrationRequired)))
-		s.Check((swap.Approver != nil) == (op == 2))
+		if err := chainshared.Check((swap.Files != nil) == (op == 1 || op == 11)); err != nil {
+			return false, err
+		}
+		if err := chainshared.Check((swap.Keyring != nil) == (op == 4 || op == 5 || op == 6 || op == 7 || op == 9)); err != nil {
+			return false, err
+		}
+		if err := chainshared.Check((swap.Envelope != nil) == (op == 5 || op == 7 || op == 8 || op == 9)); err != nil {
+			return false, err
+		}
+		if err := chainshared.Check((swap.SkPub != nil) == (op == 5 || op == 7)); err != nil {
+			return false, err
+		}
+		if err := chainshared.Check((swap.OpaqueRecord != nil) == (op == 8 || op == 9 || (op == 12 && context.RepairRegistrationRequired))); err != nil {
+			return false, err
+		}
+		if err := chainshared.Check((swap.Approver != nil) == (op == 2)); err != nil {
+			return false, err
+		}
 		if swap.SkPub != nil {
-			b.Must(true, keys.ValidateEdPublic(*swap.SkPub))
+			if err := keys.ValidateEdPublic(*swap.SkPub); err != nil {
+				return false, err
+			}
 		}
 		if swap.OpaqueRecord != nil {
-			s.Check(len(*swap.OpaqueRecord) == 192)
+			if err := chainshared.Check(len(*swap.OpaqueRecord) == 192); err != nil {
+				return false, err
+			}
 		}
 		if swap.Approver != nil {
-			s.Check(len(*swap.Approver) <= 4096)
+			if err := chainshared.Check(len(*swap.Approver) <= 4096); err != nil {
+				return false, err
+			}
 		}
 		if swap.Keyring != nil {
-			s.Check(b.Equal(cr.H("keyring-blob", *swap.Keyring), h.KeyringHash))
+			if err := chainshared.Check(encoding.Equal(crypto.H("keyring-blob", *swap.Keyring), h.KeyringHash)); err != nil {
+				return false, err
+			}
 		}
 		if swap.Envelope != nil {
-			s.Check(b.Equal(cr.H("envelope-blob", *swap.Envelope), h.EnvelopeHash))
+			if err := chainshared.Check(encoding.Equal(crypto.H("envelope-blob", *swap.Envelope), h.EnvelopeHash)); err != nil {
+				return false, err
+			}
 		}
 		if swap.Files != nil {
-			b.Must(f.CheckedFiles(&context.Files, previous.FilesHash))
-			next := b.Must(f.CheckedFiles(swap.Files, h.FilesHash))
-			changed := b.Must(f.ChangedFiles(context.Files, next, previous.Epoch, h.Epoch, op))
+			_, err := manifestchain.CheckedFiles(&context.Files, previous.FilesHash)
+			if err != nil {
+				return false, err
+			}
+
+			next, err := manifestchain.CheckedFiles(swap.Files, h.FilesHash)
+			if err != nil {
+				return false, err
+			}
+
+			changed, err := manifestchain.ChangedFiles(context.Files, next, previous.Epoch, h.Epoch, op)
+			if err != nil {
+				return false, err
+			}
 			if op == 11 {
-				old := map[string]m.FileEntry{}
+				old := map[string]manifests.FileEntry{}
 				for _, e := range context.Files.Entries {
-					old[s.ID(e.FileId)] = e
+					old[chainshared.ID(e.FileId)] = e
 				}
 				for _, e := range changed {
-					s.Check(context.MissingBlobs[s.ID(old[s.ID(e.FileId)].BlobHash)])
+					if err := chainshared.Check(context.MissingBlobs[chainshared.ID(old[chainshared.ID(e.FileId)].BlobHash)]); err != nil {
+						return false, err
+					}
 				}
 			}
 		}
-		return true
+
+		return true, nil
 	})
 }

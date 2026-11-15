@@ -2,14 +2,14 @@ package middleware
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
-	e "github.com/notsuhas/envden/go/core/errors"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	x "github.com/notsuhas/envden/go/server/shared"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
 )
 
 type BodyTiming struct {
@@ -17,13 +17,17 @@ type BodyTiming struct {
 	Schedule func(func(), time.Duration) func()
 	Await    func(fn func())
 }
+
 type bodyChunk struct {
 	data []byte
 	err  error
 }
 
-func ReadBodyTimed(r *http.Request, limit int64, hash []byte, timing BodyTiming) []byte {
-	capacity := DeclaredBodySize(r, limit)
+func ReadBodyTimed(r *http.Request, limit int64, hash []byte, timing BodyTiming) ([]byte, error) {
+	capacity, err := DeclaredBodySize(r, limit)
+	if err != nil {
+		return nil, err
+	}
 	if timing.Now == nil {
 		timing.Now = systemBodyClock()
 	}
@@ -64,53 +68,67 @@ func ReadBodyTimed(r *http.Request, limit int64, hash []byte, timing BodyTiming)
 				}
 			}
 		}()
-		defer func() { go r.Body.Close() }()
-		body = awaitBody(timing.Await, chunks, expired, capacity, extend)
+		defer func() { go func() { _ = r.Body.Close() }() }()
+		awaitBodyResult, err := awaitBody(timing.Await, chunks, expired, capacity, extend)
+		if err != nil {
+			return nil, err
+		}
+
+		body = awaitBodyResult
 	}
-	if hash != nil && !bytes.Equal(c.SHA256(body), hash) {
-		x.Fail(e.Unauthorized, "Request body hash mismatch")
+	if hash != nil && !bytes.Equal(crypto.SHA256(body), hash) {
+		return nil, enverrors.New(enverrors.Unauthorized, "Request body hash mismatch")
 	}
 
-	return body
+	return body, nil
 }
 
-func awaitBody(await func(func()), chunks chan bodyChunk, expired chan struct{}, capacity int64, extend func(int64)) []byte {
+func awaitBody(await func(func()), chunks chan bodyChunk, expired chan struct{}, capacity int64, extend func(int64)) ([]byte, error) {
 	var body []byte
 
-	await(func() { body = collectBody(chunks, expired, capacity, extend) })
+	var err error
+	await(func() { body, err = collectBody(chunks, expired, capacity, extend) })
 
-	return body
+	return body, err
 }
 
-func collectBody(chunks chan bodyChunk, expired chan struct{}, capacity int64, extend func(int64)) []byte {
+func collectBody(chunks chan bodyChunk, expired chan struct{}, capacity int64, extend func(int64)) ([]byte, error) {
 	var body []byte
 
 	for {
 		select {
 		case <-expired:
-			x.Fail(e.InvalidInput, "Body read deadline exceeded")
+			return nil, enverrors.New(enverrors.InvalidInput, "Body read deadline exceeded")
+
 		case chunk := <-chunks:
 			if len(chunk.data) > 0 {
 				if int64(len(body)+len(chunk.data)) > capacity {
-					x.Fail(e.InvalidInput, "Request too large")
+					return nil, enverrors.New(enverrors.InvalidInput, "Request too large")
 				}
 				body = append(body, chunk.data...)
 				extend(int64(len(body)))
 			}
 			if chunk.err != nil {
-				if chunk.err != io.EOF {
-					x.Check(chunk.err)
+				if !errors.Is(chunk.err, io.EOF) {
+					if err := chunk.err; err != nil {
+						return nil, err
+					}
 				}
-				return body
+
+				return body, nil
 			}
 		}
 	}
 }
+
 func scheduleBodyDeadline(expire func(), timeout time.Duration) func() {
 	timer := time.AfterFunc(timeout, expire)
+
 	return func() { timer.Stop() }
 }
+
 func systemBodyClock() func() int64 {
 	start := time.Now()
+
 	return func() int64 { return time.Since(start).Milliseconds() }
 }

@@ -42,8 +42,10 @@ func suggest(word string, candidates []string) string {
 	if len(matches) > 1 {
 		return "\n(Did you mean one of " + strings.Join(matches, ", ") + "?)"
 	}
+
 	return ""
 }
+
 func editDistance(a, b string) int {
 	d := make([][]int, len(a)+1)
 	for i := range d {
@@ -65,5 +67,6 @@ func editDistance(a, b string) int {
 			}
 		}
 	}
+
 	return d[len(a)][len(b)]
 }

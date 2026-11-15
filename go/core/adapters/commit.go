@@ -2,7 +2,8 @@ package adapters
 
 import (
 	"bytes"
-	e "github.com/notsuhas/envden/go/core/errors"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 type CommitPreparer interface {
@@ -20,7 +21,7 @@ func PrepareCommit(storage CommitPreparer, vault []byte, swap StoredSwap, now in
 			return err
 		}
 		if token == nil || !bytes.Equal(token, swap.SetupTokenHash) {
-			return e.New(e.Unauthorized, "Setup token changed or consumed")
+			return enverrors.New(enverrors.Unauthorized, "Setup token changed or consumed")
 		}
 	}
 	for _, session := range swap.ConsumeSessions {
@@ -29,7 +30,7 @@ func PrepareCommit(storage CommitPreparer, vault []byte, swap StoredSwap, now in
 			return err
 		}
 		if found == nil {
-			return e.New(e.Unauthorized, "Session expired or consumed")
+			return enverrors.New(enverrors.Unauthorized, "Session expired or consumed")
 		}
 	}
 	if swap.CloseMailbox != nil {
@@ -38,7 +39,7 @@ func PrepareCommit(storage CommitPreparer, vault []byte, swap StoredSwap, now in
 			return err
 		}
 		if box == nil {
-			return e.New(e.NotFound, "Mailbox expired or closed")
+			return enverrors.New(enverrors.NotFound, "Mailbox expired or closed")
 		}
 	}
 	if swap.Vault != nil {
@@ -51,8 +52,9 @@ func PrepareCommit(storage CommitPreparer, vault []byte, swap StoredSwap, now in
 		return err
 	}
 	if !found {
-		return e.New(e.InvalidData, "Creation requires vault metadata")
+		return enverrors.New(enverrors.InvalidData, "Creation requires vault metadata")
 	}
+
 	return nil
 }
 
@@ -74,5 +76,6 @@ func WriteCommitState(storage CommitWriter, vault []byte, swap StoredSwap) error
 			return err
 		}
 	}
+
 	return nil
 }

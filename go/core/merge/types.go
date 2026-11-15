@@ -7,6 +7,7 @@ type Entry struct {
 	Quote    string
 	Active   bool
 }
+
 type Result struct {
 	Kind        string
 	Reason      string
@@ -21,6 +22,7 @@ type Result struct {
 	Changed     []string
 	Keys        []string
 }
+
 type Labels struct {
 	Mine   string
 	Theirs string

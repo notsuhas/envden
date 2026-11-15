@@ -1,14 +1,16 @@
 package process
 
 import (
-	"github.com/notsuhas/envden/go/core/paths"
 	"os"
 	"path/filepath"
 	"slices"
 	"sync"
+
+	"github.com/notsuhas/envden/go/core/paths"
 )
 
 var rootsMu sync.RWMutex
+
 var untrustedRoots []string
 
 func SetUntrustedRoots(roots []string) {
@@ -26,6 +28,7 @@ func SetUntrustedRoots(roots []string) {
 		}
 	}
 }
+
 func insideUntrustedRoot(p string) bool {
 	rootsMu.RLock()
 	defer rootsMu.RUnlock()
@@ -34,8 +37,10 @@ func insideUntrustedRoot(p string) bool {
 			return true
 		}
 	}
+
 	return false
 }
+
 func InsideWorkingTree(p string, exceptions ...[]string) bool {
 	if insideUntrustedRoot(p) {
 		return true

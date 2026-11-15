@@ -15,18 +15,23 @@ type scheduled struct {
 	run       func()
 	cancelled bool
 }
+
 type manualScheduler struct{ jobs []*scheduled }
 
 func (s *manualScheduler) After(delay time.Duration, run func()) func() {
 	job := &scheduled{delay: delay, run: run}
 	s.jobs = append(s.jobs, job)
+
 	return func() { job.cancelled = true }
 }
+
 func (s *manualScheduler) Every(delay time.Duration, run func()) func() {
 	job := &scheduled{delay: delay, every: true, run: run}
 	s.jobs = append(s.jobs, job)
+
 	return func() { job.cancelled = true }
 }
+
 func TestServeLifecycle(t *testing.T) {
 	var stdout bytes.Buffer
 	scheduler := &manualScheduler{}
@@ -36,7 +41,7 @@ func TestServeLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer running.Shutdown()
+	defer func() { _ = running.Shutdown() }()
 	if calls == 0 || len(scheduler.jobs) != 2 || scheduler.jobs[0].delay != time.Minute || scheduler.jobs[0].every || scheduler.jobs[1].delay != time.Hour || !scheduler.jobs[1].every {
 		t.Fatal("scheduler", scheduler)
 	}
@@ -48,7 +53,7 @@ func TestServeLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response.Body.Close()
+	_ = response.Body.Close()
 	if response.StatusCode != 200 {
 		t.Fatal(response.StatusCode)
 	}
@@ -71,6 +76,7 @@ func TestServeLifecycle(t *testing.T) {
 		t.Fatal("storage still open")
 	}
 }
+
 func TestLocalSetupReissue(t *testing.T) {
 	dir := t.TempDir()
 	first, err := LocalSetupToken(dir, 1)

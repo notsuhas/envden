@@ -1,10 +1,11 @@
 package process
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func trustedDirectory(p string) bool {
@@ -16,8 +17,10 @@ func trustedDirectory(p string) bool {
 		return false
 	}
 	info, err := os.Stat(real)
+
 	return err == nil && info.IsDir() && trustedInfo(info)
 }
+
 func TrustedDirectories(directories []string, managerBin string) []string {
 	if directories == nil {
 		directories = FixedDirectories("")
@@ -31,8 +34,10 @@ func TrustedDirectories(directories []string, managerBin string) []string {
 			seen[p] = true
 		}
 	}
+
 	return result
 }
+
 func ResolveTrustedExecutable(name string) (string, error) {
 	self, _ := os.Executable()
 	if name == "bun" || name == self {
@@ -42,7 +47,7 @@ func ResolveTrustedExecutable(name string) (string, error) {
 	if !filepath.IsAbs(name) {
 		candidates = nil
 		if filepath.Base(name) != name {
-			return "", e.New(e.InvalidInput, "Trusted executable unavailable")
+			return "", enverrors.New(enverrors.InvalidInput, "Trusted executable unavailable")
 		}
 		for _, dir := range TrustedDirectories(nil, "") {
 			candidates = append(candidates, filepath.Join(dir, name))
@@ -64,8 +69,10 @@ func ResolveTrustedExecutable(name string) (string, error) {
 			return real, nil
 		}
 	}
-	return "", e.New(e.InvalidInput, "Trusted executable unavailable")
+
+	return "", enverrors.New(enverrors.InvalidInput, "Trusted executable unavailable")
 }
+
 func inheritedEnvironment() map[string]string {
 	env := map[string]string{}
 	for _, v := range os.Environ() {
@@ -74,6 +81,7 @@ func inheritedEnvironment() map[string]string {
 			env[key] = value
 		}
 	}
+
 	return env
 }
 
@@ -84,8 +92,9 @@ func TrustedOwnerAndMode(mode uint32, uid, gid uint32, platform string) bool {
 	if mode&2 != 0 {
 		return false
 	}
-	if mode&16 != 0 && gid != 0 && !(platform == "darwin" && gid == 80) {
+	if mode&16 != 0 && gid != 0 && (platform != "darwin" || gid != 80) {
 		return false
 	}
+
 	return uid == 0 || int(uid) == currentUID()
 }

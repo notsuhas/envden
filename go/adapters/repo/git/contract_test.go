@@ -15,6 +15,7 @@ func gitTest(t *testing.T, root string, args ...string) string {
 	if e != nil {
 		t.Fatal(args, e, out.Stderr)
 	}
+
 	return out.Stdout
 }
 
@@ -37,6 +38,7 @@ func repoFixture(t *testing.T, directory string) suite.Fixture {
 	gitTest(t, root, "config", "user.email", "test@example.com")
 	gitTest(t, root, "config", "user.name", "Test")
 	gitTest(t, root, "remote", "add", "origin", "git@github.com:Owner/Repo.git")
+
 	return suite.Fixture{Repo: CreateGitRepoAdapter(Options{ResolveSSHHost: func(string) (string, error) { return "GitHub.com", nil }}), Root: root, Outside: outside}
 }
 

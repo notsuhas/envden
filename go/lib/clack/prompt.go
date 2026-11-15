@@ -3,21 +3,23 @@ package clack
 import (
 	"bufio"
 	"errors"
-	"github.com/notsuhas/envden/go/lib/clack/internal/raw"
-	"golang.org/x/term"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/notsuhas/envden/go/lib/clack/internal/raw"
+	"golang.org/x/term"
 )
 
-var Cancelled = errors.New("clack:cancel")
+var ErrCancelled = errors.New("clack:cancel")
 
-func IsCancel(err error) bool { return errors.Is(err, Cancelled) }
+func IsCancel(err error) bool { return errors.Is(err, ErrCancelled) }
 
 type Option struct {
 	Value, Label, Hint string
 	Disabled           bool
 }
+
 type PromptOptions struct {
 	Message, InitialValue, Placeholder string
 	InitialValues                      []string
@@ -26,6 +28,7 @@ type PromptOptions struct {
 	Required                           bool
 	Validate                           func(string) string
 }
+
 type prompt struct {
 	terminal                       *Terminal
 	options                        PromptOptions
@@ -35,40 +38,6 @@ type prompt struct {
 	selected                       map[string]bool
 }
 
-func (t *Terminal) Text(options PromptOptions) (string, error) {
-	p := t.prompt("text", options)
-	err := p.run()
-	return p.value, err
-}
-func (t *Terminal) Password(options PromptOptions) (string, error) {
-	p := t.prompt("password", options)
-	err := p.run()
-	return p.value, err
-}
-func (t *Terminal) Confirm(options PromptOptions) (bool, error) {
-	p := t.prompt("confirm", options)
-	err := p.run()
-	return p.yes, err
-}
-func (t *Terminal) Select(options PromptOptions) (string, error) {
-	p := t.prompt("select", options)
-	err := p.run()
-	if len(options.Options) == 0 {
-		return "", err
-	}
-	return options.Options[p.index].Value, err
-}
-func (t *Terminal) Multiselect(options PromptOptions) ([]string, error) {
-	p := t.prompt("multiselect", options)
-	err := p.run()
-	var result []string
-	for _, o := range options.Options {
-		if p.selected[o.Value] {
-			result = append(result, o.Value)
-		}
-	}
-	return result, err
-}
 func (t *Terminal) prompt(kind string, o PromptOptions) *prompt {
 	p := &prompt{terminal: t, options: o, kind: kind, state: "initial", value: o.InitialValue, cursor: len([]rune(o.InitialValue)), yes: true, selected: map[string]bool{}}
 	if o.InitialBool != nil {
@@ -82,8 +51,10 @@ func (t *Terminal) prompt(kind string, o PromptOptions) *prompt {
 	for _, value := range o.InitialValues {
 		p.selected[value] = true
 	}
+
 	return p
 }
+
 func (p *prompt) run() error {
 	t := p.terminal
 	if f, ok := t.Input.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
@@ -91,7 +62,7 @@ func (p *prompt) run() error {
 		if err != nil {
 			return err
 		}
-		defer term.Restore(int(f.Fd()), state)
+		defer func() { _ = term.Restore(int(f.Fd()), state) }()
 	}
 	r := renderer{terminal: t}
 	r.render(p.frame())
@@ -100,12 +71,14 @@ func (p *prompt) run() error {
 	for {
 		key, _, err := input.ReadRune()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				p.state = "cancel"
 				r.render(p.frame())
 				t.write("\n\x1b[?25h")
-				return Cancelled
+
+				return ErrCancelled
 			}
+
 			return err
 		}
 		p.state = "active"
@@ -184,6 +157,7 @@ func (p *prompt) run() error {
 				p.state = "submit"
 				r.render(p.frame())
 				t.write("\n")
+
 				return nil
 			}
 			if p.kind == "text" || p.kind == "password" {
@@ -203,8 +177,9 @@ func (p *prompt) run() error {
 		if p.state == "submit" || p.state == "cancel" {
 			t.write("\n\x1b[?25h")
 			if p.state == "cancel" {
-				return Cancelled
+				return ErrCancelled
 			}
+
 			return nil
 		}
 	}

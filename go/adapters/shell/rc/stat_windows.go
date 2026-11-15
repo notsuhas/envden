@@ -5,10 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"golang.org/x/sys/windows"
-
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
+	"golang.org/x/sys/windows"
 )
 
 const noFollow = 0
@@ -17,6 +16,7 @@ func validateRC(path string, s os.FileInfo) error {
 	if !s.Mode().IsRegular() || !singleLink(path) {
 		return errors.New(errors.InvalidInput, "Unsafe shell configuration file")
 	}
+
 	return nil
 }
 
@@ -34,6 +34,7 @@ func verifyOwner(path string) error {
 	if strings.TrimSpace(out.Stdout) != "True" {
 		return errors.New(errors.InvalidInput, "Unsafe shell configuration owner")
 	}
+
 	return nil
 }
 
@@ -41,6 +42,7 @@ func prepareBackup(path string) error {
 	if e := verifyOwner(path); e != nil {
 		return e
 	}
+
 	return process.RestrictAccess(path, true)
 }
 
@@ -55,5 +57,6 @@ func singleLink(path string) bool {
 	}
 	defer windows.CloseHandle(h)
 	var i windows.ByHandleFileInformation
+
 	return windows.GetFileInformationByHandle(h, &i) == nil && i.NumberOfLinks == 1
 }

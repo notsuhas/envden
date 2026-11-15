@@ -40,6 +40,7 @@ func TestRestrictAccess(t *testing.T) {
 				if name != "icacls" || !reflect.DeepEqual(args, []string{p, "/inheritance:r", "/grant:r", "test-user:" + rights}) {
 					t.Fatal(name, args)
 				}
+
 				return nil
 			}})
 			if err != nil {
@@ -48,7 +49,7 @@ func TestRestrictAccess(t *testing.T) {
 		}
 	}
 	failure := errors.New("ACL denied")
-	if got := RestrictAccess(root, true, PermissionRuntime{Platform: "win32", Username: "test", Exec: func(string, []string) error { return failure }}); got != failure {
+	if got := RestrictAccess(root, true, PermissionRuntime{Platform: "win32", Username: "test", Exec: func(string, []string) error { return failure }}); !errors.Is(got, failure) {
 		t.Fatal(got)
 	}
 }

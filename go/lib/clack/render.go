@@ -17,6 +17,7 @@ func (r *renderer) render(frame string) {
 		t.write("\x1b[?25l")
 		t.write(frame)
 		r.previous = frame
+
 		return
 	}
 	old, next := strings.Split(r.previous, "\n"), strings.Split(frame, "\n")

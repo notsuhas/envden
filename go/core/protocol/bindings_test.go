@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	ct "github.com/notsuhas/envden/go/core/protocol/codecs/content"
-	cp "github.com/notsuhas/envden/go/core/protocol/codecs/pairing"
-	cs "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/content"
+	coreprotocolcodecspairing "github.com/notsuhas/envden/go/core/protocol/codecs/pairing"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/envelope"
 	"github.com/notsuhas/envden/go/core/protocol/epochs"
 	"github.com/notsuhas/envden/go/core/protocol/files"
@@ -26,8 +26,8 @@ func TestFileAndEnvelopeBindings(t *testing.T) {
 	z := make([]byte, 32)
 	ctx := files.FileContext{VaultId: vault, Epoch: 1, FileId: vb(v, "fileId"), Version: 1}
 	box := vb(v, "fileBox")
-	hash := c.H("blob", box)
-	name := ct.FileName{RepoId: "repo", Path: "folder/.env"}
+	hash := crypto.H("blob", box)
+	name := content.FileName{RepoId: "repo", Path: "folder/.env"}
 	wrong := ctx
 	wrong.Version = 2
 	_, err := files.OpenFile(box, key, key, wrong, hash, name)
@@ -36,7 +36,7 @@ func TestFileAndEnvelopeBindings(t *testing.T) {
 	reject(t, err)
 	_, err = files.OpenFile(box, key, key, ctx, z, name)
 	reject(t, err)
-	_, err = files.OpenFile(box, key, key, ctx, hash, ct.FileName{RepoId: "repo", Path: "other"})
+	_, err = files.OpenFile(box, key, key, ctx, hash, content.FileName{RepoId: "repo", Path: "other"})
 	reject(t, err)
 	_, err = files.OpenFileName(vb(v, "fileNameBox"), key, z, ctx)
 	reject(t, err)
@@ -44,7 +44,7 @@ func TestFileAndEnvelopeBindings(t *testing.T) {
 		_, err = files.FileID(key, "repo", path)
 		reject(t, err)
 	}
-	eq(t, b.Equal(must(files.FileID(key, "repo", "A")), must(files.FileID(key, "repo", "a"))), false)
+	eq(t, encoding.Equal(must(files.FileID(key, "repo", "A")), must(files.FileID(key, "repo", "a"))), false)
 	for _, path := range []string{"folder/.env", "é/.env", "console.env", "COM10.env"} {
 		if err := files.ValidatePath(path); err != nil {
 			t.Fatal(err)
@@ -79,7 +79,7 @@ func TestRequestAndProofBindings(t *testing.T) {
 	eq(t, must(requests.VerifyRequestHash(signed, k.ReqPub, pin, req.BodyHash, 1000000, false)).OK, true)
 	eq(t, must(requests.VerifyRequestHash(signed, k.ReqPub, pin, key, 1000000, false)).OK, false)
 	z := make([]byte, 32)
-	hello := must(requests.BuildHello(cs.ServerHello{Challenge: z, Host: "server", ServerSignPub: k.ObjPub, AppVersion: "1.0.0", MinClient: "1.0.0", Protocols: []int{1}}, k.ObjSk))
+	hello := must(requests.BuildHello(wire.ServerHello{Challenge: z, Host: "server", ServerSignPub: k.ObjPub, AppVersion: "1.0.0", MinClient: "1.0.0", Protocols: []int{1}}, k.ObjSk))
 	eq(t, requests.VerifyHello(hello, z, "SERVER", pin, "1.0.0").OK, true)
 	eq(t, requests.VerifyHello(hello, z, "other", pin, "1.0.0").OK, false)
 	eq(t, requests.VerifyHello(hello, z, "server", pin, "1.0.1").OK, false)
@@ -94,7 +94,7 @@ func TestRequestAndProofBindings(t *testing.T) {
 	sig := must(proofs.SignSKProof(sk, z, req))
 	pub := must(keys.SKPub(sk, z))
 	eq(t, must(proofs.VerifySKProof(pub, req, sig)).OK, true)
-	eq(t, c.Verify(pub, "request", must(b.Encode(cs.RequestCodec, req)), sig).OK, false)
+	eq(t, crypto.Verify(pub, "request", must(encoding.Encode(wire.RequestCodec, req)), sig).OK, false)
 	text := must(proofs.EncodeToken("setup", token, pin))
 	eq(t, proofs.IsToken("setup", " "+text[:40]+"\n"+strings.ToLower(text[40:])+" "), true)
 	eq(t, proofs.IsToken("setup", text+"\u0085"), false)
@@ -111,19 +111,19 @@ func TestPairingBindings(t *testing.T) {
 		eq(t, must(pairing.NormalizePairingCode(text)), pairing.Code{Mailbox: 12, Password: "ABCDEFGH"})
 	}
 	channel := must(pairing.PairingChannelKeys(make([]byte, 64)))
-	eq(t, b.Equal(channel.JoinerToApprover, channel.ApproverToJoiner), false)
-	box := must(c.SealBox(channel.JoinerToApprover, rng(32), nil, rng))
-	eq(t, must(c.OpenBox(channel.JoinerToApprover, box, nil)), rng(32))
-	_, err := c.OpenBox(channel.ApproverToJoiner, box, nil)
+	eq(t, encoding.Equal(channel.JoinerToApprover, channel.ApproverToJoiner), false)
+	box := must(crypto.SealBox(channel.JoinerToApprover, rng(32), nil, rng))
+	eq(t, must(crypto.OpenBox(channel.JoinerToApprover, box, nil)), rng(32))
+	_, err := crypto.OpenBox(channel.ApproverToJoiner, box, nil)
 	reject(t, err)
 	d, _, _, _, _ := fixtures()
 	key := make([]byte, 32)
-	join := cp.PairJoiner{Device: d}
+	join := coreprotocolcodecspairing.PairJoiner{Device: d}
 	jbox := must(pairing.SealPairJoiner(join, key))
 	eq(t, must(pairing.OpenPairJoiner(jbox, key)), join)
 	_, err = pairing.OpenPairApprover(jbox, key)
 	reject(t, err)
-	approver := cp.PairApprover{VaultId: key, ServerPin: key, ManifestHash: key}
+	approver := coreprotocolcodecspairing.PairApprover{VaultId: key, ServerPin: key, ManifestHash: key}
 	abox := must(pairing.SealPairApprover(approver, key))
 	eq(t, must(pairing.OpenPairApprover(abox, key)), approver)
 	_, err = pairing.OpenPairJoiner(abox, key)

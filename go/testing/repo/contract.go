@@ -62,7 +62,7 @@ func RepoContract(t *testing.T, factory func(*testing.T, string) Fixture) {
 		}
 		blocked := filepath.Join(f.Root, "unreadable")
 		must(t, os.Chmod(blocked, 0))
-		defer os.Chmod(blocked, 0700)
+		defer func() { _ = os.Chmod(blocked, 0700) }() //nolint:gosec // G302: fixture restores directory access so temporary files can be removed.
 		files, e := f.Repo.EnvFiles(*c, nil)
 		must(t, e)
 		if !slices.Contains(files, ".env") {
@@ -151,5 +151,6 @@ func requireCheckout(t *testing.T, r adapters.Repo, path string) *adapters.Check
 	if c == nil {
 		t.Fatal("Expected checkout")
 	}
+
 	return c
 }

@@ -1,11 +1,11 @@
 package repair
 
 import (
-	a "github.com/notsuhas/envden/go/core/adapters"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	k "github.com/notsuhas/envden/go/core/protocol/keys"
-	p "github.com/notsuhas/envden/go/core/protocol/proofs"
-	x "github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/keys"
+	"github.com/notsuhas/envden/go/core/protocol/proofs"
+	"github.com/notsuhas/envden/go/server/shared"
 )
 
 type RestoredVault struct {
@@ -13,15 +13,17 @@ type RestoredVault struct {
 	Kind, Token string
 }
 
-func RestoreKind(vault a.StoredVault) string {
+func RestoreKind(vault adapters.StoredVault) string {
 	if vault.ServerMoved != nil {
 		return "moved"
 	}
 	if !vault.Active {
 		return "moving"
 	}
+
 	return "repair"
 }
+
 func RestoreNotice(kind string) string {
 	switch kind {
 	case "moving":
@@ -29,38 +31,79 @@ func RestoreNotice(kind string) string {
 	case "moved":
 		return "not restored: moved to another server and read-only"
 	}
+
 	return ""
 }
-func StartRestored(o x.Options) []RestoredVault {
+
+func StartRestored(o shared.Options) ([]RestoredVault, error) {
 	ids := [][]byte{}
-	for _, id := range x.Must(o.Storage.VaultIDs()) {
-		if x.Must(o.Storage.Head(id)) != nil {
+	vaultIDs, err := o.Storage.VaultIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range vaultIDs {
+		headResult, err := o.Storage.Head(id)
+		if err != nil {
+			return nil, err
+		}
+		if headResult != nil {
 			ids = append(ids, id)
 		}
 	}
-	return x.Transaction(o.Storage, func() []RestoredVault {
+
+	return shared.Transaction(o.Storage, func() ([]RestoredVault, error) {
 		result := []RestoredVault{}
 		for _, id := range ids {
-			vault := x.Must(o.Storage.Vault(id))
+			vault, err := o.Storage.Vault(id)
+			if err != nil {
+				return nil, err
+			}
+
 			kind := RestoreKind(*vault)
 			if kind != "repair" {
 				result = append(result, RestoredVault{VaultID: id, Kind: kind})
 				continue
 			}
-			secret := cr.RandomBytes(20)
-			head := x.Must(o.Storage.Head(id))
+			secret := crypto.RandomBytes(20)
+			head, err := o.Storage.Head(id)
+			if err != nil {
+				return nil, err
+			}
 			if vault.Restored != nil {
 				head = vault.Restored.RestoredHead
 			}
 			vault.Frozen = false
-			vault.Restored = &a.StoredRestored{RepairTokenHash: x.Must(p.TokenKey("repair", secret)), RestoredHead: head, FinishProgress: cr.H("repair-id", secret)}
-			writes := []a.StateWrite{{Kind: a.StateMoveSession, Key: []byte{}}}
-			for _, report := range x.Must(o.Storage.States(id, a.StateRepairReport)) {
-				writes = append(writes, a.StateWrite{Kind: a.StateRepairReport, Key: report.Key})
+			tokenKey, err := proofs.TokenKey("repair", secret)
+			if err != nil {
+				return nil, err
 			}
-			x.Check(o.Storage.ConfigureVault(id, *vault, writes, nil))
-			result = append(result, RestoredVault{VaultID: id, Kind: kind, Token: x.Must(p.EncodeToken("repair", secret, x.Must(k.ServerPin(o.ServerKeys.PublicKey))))})
+
+			vault.Restored = &adapters.StoredRestored{RepairTokenHash: tokenKey, RestoredHead: head, FinishProgress: crypto.H("repair-id", secret)}
+			writes := []adapters.StateWrite{{Kind: adapters.StateMoveSession, Key: []byte{}}}
+			states, err := o.Storage.States(id, adapters.StateRepairReport)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, report := range states {
+				writes = append(writes, adapters.StateWrite{Kind: adapters.StateRepairReport, Key: report.Key})
+			}
+			if err := o.Storage.ConfigureVault(id, *vault, writes, nil); err != nil {
+				return nil, err
+			}
+			serverPin, err := keys.ServerPin(o.ServerKeys.PublicKey)
+			if err != nil {
+				return nil, err
+			}
+			encodeToken, err := proofs.EncodeToken("repair", secret, serverPin)
+			if err != nil {
+				return nil, err
+			}
+
+			result = append(result, RestoredVault{VaultID: id, Kind: kind, Token: encodeToken})
 		}
-		return result
+
+		return result, nil
 	})
 }

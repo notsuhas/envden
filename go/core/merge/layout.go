@@ -12,14 +12,18 @@ func lineEnding(files ...[]byte) string {
 			if i > 0 && f[i-1] == 13 {
 				return "\r\n"
 			}
+
 			return "\n"
 		}
 	}
+
 	return "\n"
 }
+
 func withLineEnding(raw []byte, ending string) []byte {
 	return []byte(strings.ReplaceAll(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n", ending))
 }
+
 func commentOwners(entries []*Entry) map[string]map[string]bool {
 	owners := map[string]map[string]bool{}
 	for _, e := range entries {
@@ -45,8 +49,10 @@ func commentOwners(entries []*Entry) map[string]map[string]bool {
 		}
 		owners[block][e.Key] = true
 	}
+
 	return owners
 }
+
 func layoutChanged(s sides) bool {
 	b, l, r := s.files[0], s.files[1], s.files[2]
 	bo, lo, ro := commentOwners(b.Entries), commentOwners(l.Entries), commentOwners(r.Entries)
@@ -66,8 +72,10 @@ func layoutChanged(s sides) bool {
 			}
 		}
 	}
+
 	return (len(b.Tail) > 0 && !bytes.Equal(b.Tail, l.Tail) && !bytes.Equal(b.Tail, r.Tail)) || (!bytes.Equal(b.Tail, r.Tail) && !bytes.Equal(l.Tail, r.Tail))
 }
+
 func assembleLayout(s sides, selected map[string]*Entry, ending string, blocks map[string][]byte) []byte {
 	b, l, r := s.files[0], s.files[1], s.files[2]
 	known, placed := map[string]bool{}, map[string]bool{}
@@ -114,5 +122,6 @@ func assembleLayout(s sides, selected map[string]*Entry, ending string, blocks m
 	if bytes.Equal(b.Head, l.Head) {
 		head = r.Head
 	}
+
 	return append(bytes.Clone(head), parts...)
 }

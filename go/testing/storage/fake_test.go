@@ -7,6 +7,7 @@ func TestFakeStrictnessAndBinding(t *testing.T) {
 		if len(b) != 1 || b[0] != 9 {
 			t.Fatal(b)
 		}
+
 		return nil
 	}})
 	if fake.ID() != "fake-storage" {
@@ -20,5 +21,5 @@ func TestFakeStrictnessAndBinding(t *testing.T) {
 			t.Fatal(got)
 		}
 	}()
-	fake.Head([]byte{1})
+	_, _ = fake.Head([]byte{1})
 }

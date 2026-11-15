@@ -2,152 +2,159 @@ package repair
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	d "github.com/notsuhas/envden/go/core/chain/devices"
-	cm "github.com/notsuhas/envden/go/core/chain/manifests"
-	swaps "github.com/notsuhas/envden/go/core/chain/swaps"
-	e "github.com/notsuhas/envden/go/core/errors"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	x "github.com/notsuhas/envden/go/server/shared"
-	vault "github.com/notsuhas/envden/go/server/vault"
-	v "github.com/notsuhas/envden/go/server/vaultchain"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	devicechain "github.com/notsuhas/envden/go/core/chain/devices"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/vault"
+	"github.com/notsuhas/envden/go/server/vaultchain"
 )
 
-func UploadHistory(o x.Options, auth *x.Auth, swap m.Swap, digest []byte, checkUploader bool) a.CommitResult {
+func UploadHistory(o shared.Options, auth *shared.Auth, swap manifests.Swap, digest []byte, checkUploader bool) (adapters.CommitResult, error) {
 	id := auth.Request.VaultId
-	stored := vault.StoredSwap(swap, digest)
-	metadata := x.Must(o.Storage.Vault(id))
-	writes := []a.StateWrite{}
+	stored, err := vault.StoredSwap(swap, digest)
+	if err != nil {
+		return adapters.CommitResult{}, err
+	}
+
+	metadata, err := o.Storage.Vault(id)
+	if err != nil {
+		return adapters.CommitResult{}, err
+	}
+
+	writes := []adapters.StateWrite{}
 	for _, write := range stored.State {
-		if write.Kind != a.StateOpaqueRecord && (metadata.Restored == nil || write.Kind != a.StateSKPub) {
+		if write.Kind != adapters.StateOpaqueRecord && (metadata.Restored == nil || write.Kind != adapters.StateSKPub) {
 			writes = append(writes, write)
 		}
 	}
 	stored.State = writes
-	head := x.Must(o.Storage.Head(id))
-	if head != nil && x.Must(o.Storage.FindCommitted(id, digest)) {
-		return a.CommitResult{Kind: a.RetryOfCommitted}
+	head, err := o.Storage.Head(id)
+	if err != nil {
+		return adapters.CommitResult{}, err
+	}
+
+	hasPriorHead := head != nil
+	if hasPriorHead {
+		findCommitted, err := o.Storage.FindCommitted(id, digest)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
+		hasPriorHead = findCommitted
+	}
+	if hasPriorHead {
+		return adapters.CommitResult{Kind: adapters.RetryOfCommitted}, nil
 	}
 	if head == nil {
-		verifyGenesis(o, auth, swap, checkUploader)
-		return x.Must(o.Storage.CommitSwap(id, nil, stored, o.Now()))
-	}
-	verifyHistory(o, auth, swap, checkUploader)
-	return x.Must(o.Storage.CommitSwap(id, swap.ExpectedHead, stored, o.Now()))
-}
-func verifyGenesis(o x.Options, auth *x.Auth, swap m.Swap, check bool) {
-	result := x.Must(d.VerifyChain(swap.Entries))
-	h := swap.Header.Body
-	id := auth.Request.VaultId
-	valid := result.Kind == "valid"
-	if valid {
-		member, ok := result.State.Devices[b.Base32(h.Signer)]
-		_, uploader := result.State.Devices[b.Base32(auth.Request.Device)]
-		valid = ok &&
-			(!check || x.Must(o.Storage.Vault(id)).Restored == nil || uploader) &&
-			bytes.Equal(result.State.VaultId, id) &&
-			bytes.Equal(h.VaultId, id) &&
-			h.Op == 0 &&
-			h.Seq == 1 &&
-			h.ListSeq == 1 &&
-			bytes.Equal(h.ListHead, result.State.Head) &&
-			h.Epoch == 1 &&
-			zero(h.Prev) &&
-			zero(swap.ExpectedHead) &&
-			swap.Files != nil &&
-			len(swap.Files.Entries) == 0 &&
-			bytes.Equal(cr.H("files", m.FilesCodec.Write(*swap.Files)), h.FilesHash) &&
-			(swap.Keyring == nil || bytes.Equal(cr.H("keyring-blob", *swap.Keyring), h.KeyringHash)) &&
-			(swap.Envelope == nil || bytes.Equal(cr.H("envelope-blob", *swap.Envelope), h.EnvelopeHash)) &&
-			x.Must(cr.VerifyObject(m.ManifestHeaderCodec, swap.Header, member.ObjPub, "manifest")).OK
-	}
-	if !valid {
-		x.Fail(e.InvalidData, "Invalid imported genesis")
-	}
-}
-func zero(data []byte) bool {
-	for _, n := range data {
-		if n != 0 {
-			return false
+		if err := verifyGenesis(o, auth, swap, checkUploader); err != nil {
+			return adapters.CommitResult{}, err
 		}
+
+		return o.Storage.CommitSwap(id, nil, stored, o.Now())
 	}
-	return true
+	if err := verifyHistory(o, auth, swap, checkUploader); err != nil {
+		return adapters.CommitResult{}, err
+	}
+
+	return o.Storage.CommitSwap(id, swap.ExpectedHead, stored, o.Now())
 }
-func verifyHistory(o x.Options, auth *x.Auth, swap m.Swap, check bool) {
+
+func verifyHistory(o shared.Options, auth *shared.Auth, swap manifests.Swap, check bool) error {
 	id := auth.Request.VaultId
-	previous, before := v.Chain(o, id)
+	chain1, chain2, err := vaultchain.Chain(o, id)
+	if err != nil {
+		return err
+	}
+
+	previous, before := chain1, chain2
 	state := before
 	h := swap.Header.Body
-	if !bytes.Equal(swap.ExpectedHead, x.Must(cr.ObjectHash(m.ManifestHeaderCodec, previous, "manifest"))) || !bytes.Equal(h.Prev, swap.ExpectedHead) || h.Seq != previous.Body.Seq+1 || !bytes.Equal(h.VaultId, id) {
-		x.Fail(e.InvalidData, "History linkage mismatch")
+	objectHash, err := crypto.ObjectHash(manifests.ManifestHeaderCodec, previous, "manifest")
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(swap.ExpectedHead, objectHash) || !bytes.Equal(h.Prev, swap.ExpectedHead) || h.Seq != previous.Body.Seq+1 || !bytes.Equal(h.VaultId, id) {
+		return enverrors.New(enverrors.InvalidData, "History linkage mismatch")
 	}
 	for _, entry := range swap.Entries {
-		result := x.Must(d.ApplyEntry(state, entry))
+		result, err := devicechain.ApplyEntry(state, entry)
+		if err != nil {
+			return err
+		}
 		if result.Kind != "valid" {
-			x.Fail(e.InvalidData, "Invalid history entry")
+			return enverrors.New(enverrors.InvalidData, "Invalid history entry")
 		}
 		state = result.State
 	}
-	signer, ok := state.Devices[b.Base32(h.Signer)]
-	_, uploader := state.Devices[b.Base32(auth.Request.Device)]
-	if !ok || !x.Must(cr.VerifyObject(m.ManifestHeaderCodec, swap.Header, signer.ObjPub, "manifest")).OK || h.ListSeq != state.Seq || !bytes.Equal(h.ListHead, state.Head) || h.Epoch != state.Epoch || check &&
-		x.Must(o.Storage.Vault(id)).Restored != nil &&
-		!uploader {
-		x.Fail(e.InvalidData, "Invalid history header")
-	}
-	transition(o, swap, previous, before, id)
-}
-func transition(o x.Options, swap m.Swap, previous b.Signed[m.ManifestHeader], before *d.State, id []byte) {
-	defer func() {
-		if recover() != nil {
-			x.Fail(e.InvalidData, "Invalid history transition")
+	signer, ok := state.Devices[encoding.Base32(h.Signer)]
+	_, uploader := state.Devices[encoding.Base32(auth.Request.Device)]
+	invalidSigner := !ok
+	if !invalidSigner {
+		verifyObject, err := crypto.VerifyObject(manifests.ManifestHeaderCodec, swap.Header, signer.ObjPub, "manifest")
+		if err != nil {
+			return err
 		}
-	}()
-	h := swap.Header.Body
-	x.Must(swaps.OperationRequirement(previous.Body, h, swap.Entries, before))
-	if len(swap.Entries) > 0 && swap.Entries[0].Body.Kind == 6 && x.Must(o.Storage.Header(id, swap.Entries[0].Body.Payload.(p.RepairDone).RestoredHead)) == nil {
-		x.Fail(e.InvalidData, "Unknown restored ancestor")
+		invalidSigner = !verifyObject.OK
 	}
-	old := []byte(nil)
-	if swap.Files != nil {
-		x.Must(cm.CheckedFiles(swap.Files, h.FilesHash))
-		old = x.Must(o.Storage.FileList(id, previous.Body.FilesHash))
-		if old != nil {
-			ops := []int{}
-			if h.Op == 1 || h.Op == 11 {
-				ops = append(ops, h.Op)
+	invalidHeader := invalidSigner ||
+		h.ListSeq != state.Seq || !bytes.Equal(h.ListHead, state.Head) || h.Epoch != state.Epoch
+	if !invalidHeader {
+		requiresUploader := check
+		if requiresUploader {
+			vault, err := o.Storage.Vault(id)
+			if err != nil {
+				return err
 			}
-			x.Must(cm.ChangedFiles(x.Must(b.Decode(m.FilesCodec, old)), *swap.Files, previous.Body.Epoch, h.Epoch, ops...))
+			requiresUploader = vault.Restored != nil
 		}
+		invalidHeader = requiresUploader &&
+			!uploader
 	}
-	if h.Op == 11 && (swap.Files == nil || old == nil) {
-		x.Fail(e.InvalidData, "Repair lists required")
+	if invalidHeader {
+		return enverrors.New(enverrors.InvalidData, "Invalid history header")
 	}
-	if swap.Keyring != nil && !bytes.Equal(cr.H("keyring-blob", *swap.Keyring), h.KeyringHash) {
-		x.Fail(e.InvalidData, "Keyring hash mismatch")
-	}
-	if swap.Envelope != nil && !bytes.Equal(cr.H("envelope-blob", *swap.Envelope), h.EnvelopeHash) {
-		x.Fail(e.InvalidData, "Envelope hash mismatch")
-	}
+
+	return transition(o, swap, previous, before, id)
 }
-func UploadChain(o x.Options, auth *x.Auth, swaps []m.Swap) a.CommitResult {
+
+func UploadChain(o shared.Options, auth *shared.Auth, swaps []manifests.Swap) (adapters.CommitResult, error) {
 	if len(swaps) == 0 {
-		x.Fail(e.InvalidInput, "Empty history")
+		return adapters.CommitResult{}, enverrors.New(enverrors.InvalidInput, "Empty history")
 	}
-	return x.Transaction(o.Storage, func() a.CommitResult {
-		var result a.CommitResult
+
+	return shared.Transaction(o.Storage, func() (adapters.CommitResult, error) {
+		var result adapters.CommitResult
 		for _, swap := range swaps {
-			result = UploadHistory(o, auth, swap, cr.H("swap", m.SwapCodec.Write(swap)), false)
-			if result.Kind == a.HeadMovedResult {
-				x.Fail(e.HeadMoved, "History head moved")
+			uploadHistory, err := UploadHistory(o, auth, swap, crypto.H("swap", manifests.SwapCodec.Write(swap)), false)
+			if err != nil {
+				return adapters.CommitResult{}, err
+			}
+
+			result = uploadHistory
+			if result.Kind == adapters.HeadMovedResult {
+				return adapters.CommitResult{}, enverrors.New(enverrors.HeadMoved, "History head moved")
 			}
 		}
-		if x.Must(o.Storage.Vault(auth.Request.VaultId)).Restored != nil && v.Membership(o, auth.Request.VaultId, auth.Request.Device) == nil {
-			x.Fail(e.NotMember, "Uploader not a repaired member")
+		vault, err := o.Storage.Vault(auth.Request.VaultId)
+		if err != nil {
+			return adapters.CommitResult{}, err
 		}
-		return result
+		requiresMembership := vault.Restored != nil
+		if requiresMembership {
+			membership, err := vaultchain.Membership(o, auth.Request.VaultId, auth.Request.Device)
+			if err != nil {
+				return adapters.CommitResult{}, err
+			}
+			requiresMembership = membership == nil
+		}
+		if requiresMembership {
+			return adapters.CommitResult{}, enverrors.New(enverrors.NotMember, "Uploader not a repaired member")
+		}
+
+		return result, nil
 	})
 }

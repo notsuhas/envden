@@ -2,11 +2,12 @@ package clack
 
 import (
 	"fmt"
-	"golang.org/x/term"
 	"io"
 	"os"
 	"runtime"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 type Terminal struct {
@@ -35,8 +36,10 @@ func New(input io.Reader, output io.Writer) *Terminal {
 	if runtime.GOOS == "windows" {
 		t.ASCII = os.Getenv("WT_SESSION") == "" && os.Getenv("TERM_PROGRAM") == "" && os.Getenv("CI") == ""
 	}
+
 	return t
 }
+
 func (t *Terminal) style(style, text string) string {
 	if !t.Color || text == "" {
 		return text
@@ -49,15 +52,20 @@ func (t *Terminal) style(style, text string) string {
 		close := fmt.Sprintf("\x1b[%dm", code[1])
 		text = open + strings.ReplaceAll(text, close, open) + close
 	}
+
 	return text
 }
+
 func (t *Terminal) sym(unicode, ascii string) string {
 	if t.ASCII {
 		return ascii
 	}
+
 	return unicode
 }
-func (t *Terminal) write(text string) { io.WriteString(t.Output, text) }
+
+func (t *Terminal) write(text string) { _, _ = io.WriteString(t.Output, text) }
+
 func move(rows int) string {
 	if rows < 0 {
 		return fmt.Sprintf("\x1b[%dA", -rows)
@@ -65,6 +73,7 @@ func move(rows int) string {
 	if rows > 0 {
 		return fmt.Sprintf("\x1b[%dB", rows)
 	}
+
 	return ""
 }
 
@@ -76,13 +85,16 @@ func (p *prompt) insert(key rune) {
 	p.cursor++
 	p.value = string(r)
 }
+
 func (p *prompt) navigate(direction int) {
 	if p.kind == "text" || p.kind == "password" {
 		p.cursor = max(0, min(len([]rune(p.value)), p.cursor+direction))
+
 		return
 	}
 	if p.kind == "confirm" {
 		p.yes = !p.yes
+
 		return
 	}
 	n := len(p.options.Options)

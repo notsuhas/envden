@@ -9,6 +9,7 @@ func List[T any](item Codec[T], order ...func(T, T) int) Codec[[]T] {
 			}
 		}
 	}
+
 	return Codec[[]T]{func(r *Reader) []T {
 		n := U32.Read(r)
 		RequireValue(n <= 100000, "List limit")
@@ -25,6 +26,7 @@ func List[T any](item Codec[T], order ...func(T, T) int) Codec[[]T] {
 		for _, x := range v {
 			out = append(out, item.Write(x)...)
 		}
+
 		return out
 	}}
 }
@@ -43,6 +45,7 @@ func Opt[T any](item Codec[T]) Codec[*T] {
 		if v == nil {
 			return []byte{0}
 		}
+
 		return Concat([]byte{1}, item.Write(*v))
 	}}
 }

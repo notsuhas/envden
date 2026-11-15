@@ -2,32 +2,34 @@ package fs
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/core/process"
 	"math"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/process"
 )
 
 func outside(root, path string) bool {
 	rel, err := filepath.Rel(root, path)
+
 	return err == nil && (rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
 func (p *placement) backup(b []byte) error {
 	if p.backups == "" {
-		return e.New("INVALID_INPUT", "Backup directory is required")
+		return enverrors.New("INVALID_INPUT", "Backup directory is required")
 	}
 	path, err := filepath.Abs(p.backups)
 	if err != nil {
 		return err
 	}
 	if !outside(p.root, path) {
-		return e.New("INVALID_INPUT", "Backup directory must be outside checkout")
+		return enverrors.New("INVALID_INPUT", "Backup directory must be outside checkout")
 	}
 	if err = os.MkdirAll(path, 0700); err != nil {
 		return err
@@ -41,17 +43,17 @@ func (p *placement) backup(b []byte) error {
 		return err
 	}
 	if !outside(rootReal, pathReal) {
-		return e.New("INVALID_INPUT", "Backup directory must be outside checkout")
+		return enverrors.New("INVALID_INPUT", "Backup directory must be outside checkout")
 	}
 	st, err := os.Lstat(path)
 	if err != nil {
 		return err
 	}
 	if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
-		return e.New("INVALID_INPUT", "Unsafe backup directory")
+		return enverrors.New("INVALID_INPUT", "Unsafe backup directory")
 	}
 	if err = process.RestrictAccess(path, true); err != nil {
-		return e.Wrap("INVALID_INPUT", "Could not restrict backup access", err)
+		return enverrors.Wrap("INVALID_INPUT", "Could not restrict backup access", err)
 	}
 	name := fmt.Sprintf(".envden-backup-%d-%s", p.now(), uuid.NewString())
 	f, err := os.OpenFile(filepath.Join(path, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
@@ -60,6 +62,7 @@ func (p *placement) backup(b []byte) error {
 	}
 	defer f.Close()
 	_, err = f.Write(b)
+
 	return err
 }
 
@@ -71,7 +74,7 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 		days = maxAgeDays[0]
 	}
 	if math.IsNaN(days) || math.IsInf(days, 0) || days < 0 {
-		return e.New("INVALID_INPUT", "Invalid backup retention")
+		return enverrors.New("INVALID_INPUT", "Invalid backup retention")
 	}
 	st, err := os.Lstat(dir)
 	if os.IsNotExist(err) {
@@ -81,7 +84,7 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 		return err
 	}
 	if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
-		return e.New("INVALID_INPUT", "Unsafe backup directory")
+		return enverrors.New("INVALID_INPUT", "Unsafe backup directory")
 	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -107,5 +110,6 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 			}
 		}
 	}
+
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 type remoteInfo struct {
@@ -21,6 +21,7 @@ func unsafeText(s string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -50,12 +51,14 @@ func remoteParts(remote string) (remoteInfo, error) {
 		if strings.Contains(host, ":") {
 			host = "[" + host + "]"
 		}
+
 		return remoteInfo{host, u.Path, u.Scheme == "ssh"}, nil
 	}
 	match := regexp.MustCompile(`^(?:[^@/\s]+@)?(\[[^\]]+\]|[^:/\s]+):(.+)$`).FindStringSubmatch(remote)
 	if match == nil {
 		return remoteInfo{}, errors.New(errors.InvalidInput, "A hosted git remote is required")
 	}
+
 	return remoteInfo{match[1], match[2], true}, nil
 }
 
@@ -70,6 +73,7 @@ func normalizeRepoID(remote, resolved string) (string, error) {
 		if _, ok := errors.As(err); ok {
 			return "", err
 		}
+
 		return "", errors.Wrap(errors.InvalidInput, "Unsafe git remote", err)
 	}
 	host := p.host
@@ -92,6 +96,7 @@ func normalizeRepoID(remote, resolved string) (string, error) {
 			return "", invalid
 		}
 	}
+
 	return host + "/" + path, nil
 }
 
@@ -109,6 +114,7 @@ func resolveSSHHostWith(host string, run func(string, []string, map[string]strin
 	if m == nil {
 		return "", errors.New(errors.Internal, "SSH hostname resolution failed")
 	}
+
 	return strings.TrimSpace(m[1]), nil
 }
 
@@ -140,6 +146,7 @@ func remoteID(root, name string, resolve func(string) (string, error)) (string, 
 			return "", err
 		}
 	}
+
 	return normalizeRepoID(remote, host)
 }
 
@@ -151,5 +158,6 @@ func NormalizeRepoID(remote string, resolvedHostname ...string) (string, error) 
 		}
 		resolved = resolvedHostname[0]
 	}
+
 	return normalizeRepoID(remote, resolved)
 }

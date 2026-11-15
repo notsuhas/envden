@@ -33,6 +33,7 @@ func (m *memory) openMailbox(v, id []byte, now int64) *adapters.StoredMailbox {
 	m.data.Mailboxes[n] = box{key, b}
 	m.data.Openings[key] = append(openings, now)
 	out := clone(b)
+
 	return &out
 }
 
@@ -40,8 +41,10 @@ func (m *memory) mailbox(v []byte, n int, now int64) *adapters.StoredMailbox {
 	b, ok := m.data.Mailboxes[n]
 	if ok && b.Vault == hexKey(v) && b.Box.ExpiresAt > now {
 		out := clone(b.Box)
+
 		return &out
 	}
+
 	return nil
 }
 
@@ -62,6 +65,7 @@ func (m *memory) writeMailbox(v []byte, n int, slot adapters.MailboxSlot, b []by
 	}
 	if prior != nil || len(b) > 4096 {
 		m.closeMailbox(v, n)
+
 		return "closed"
 	}
 	required := map[adapters.MailboxSlot]adapters.MailboxSlot{"KE2": "KE1", "KE3": "KE2", "PairJoiner": "KE3"}[slot]
@@ -71,5 +75,6 @@ func (m *memory) writeMailbox(v []byte, n int, slot adapters.MailboxSlot, b []by
 	entry := m.data.Mailboxes[n]
 	entry.Box.Slots[slot] = clone(b)
 	m.data.Mailboxes[n] = entry
+
 	return "written"
 }

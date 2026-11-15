@@ -1,18 +1,20 @@
 package proofs
 
 import (
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/keys"
 )
 
-func SignSKProof(secret, vaultID []byte, request s.Request) ([]byte, error) {
-	return b.Try(func() []byte {
-		return b.Must(c.Sign(b.Must(keys.SKSeed(secret, vaultID)), "sk-proof", s.RequestCodec.Write(request)))
+func SignSKProof(secret, vaultID []byte, request wire.Request) ([]byte, error) {
+	return encoding.Try(func() []byte {
+		return encoding.Must(crypto.Sign(encoding.Must(keys.SKSeed(secret, vaultID)), "sk-proof", wire.RequestCodec.Write(request)))
 	})
 }
 
-func VerifySKProof(pub []byte, request s.Request, proof []byte) (c.Verification[bool], error) {
-	return b.Try(func() c.Verification[bool] { return c.Verify(pub, "sk-proof", s.RequestCodec.Write(request), proof) })
+func VerifySKProof(pub []byte, request wire.Request, proof []byte) (crypto.Verification[bool], error) {
+	return encoding.Try(func() crypto.Verification[bool] {
+		return crypto.Verify(pub, "sk-proof", wire.RequestCodec.Write(request), proof)
+	})
 }

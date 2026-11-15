@@ -1,7 +1,7 @@
 package unknown
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/versions"
 )
 
@@ -27,7 +27,7 @@ func verified(fn func() (bool, error)) (ok bool) {
 }
 
 func ClassifyUnknownData(input Input) (Result, error) {
-	if input.Stored != nil && !b.Equal(input.Received, input.Stored) {
+	if input.Stored != nil && !encoding.Equal(input.Received, input.Stored) {
 		return Result{Kind: input.Mismatch}, nil
 	}
 	if !verified(input.Verify) {

@@ -1,7 +1,7 @@
 package server
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type RepairReport struct {
@@ -12,23 +12,23 @@ type RepairReport struct {
 	Signer   []byte
 }
 
-var RepairReportCodec = b.NewCodec(func(r *b.Reader) RepairReport {
-	b.Tagged(11, r)
+var RepairReportCodec = encoding.NewCodec(func(r *encoding.Reader) RepairReport {
+	encoding.Tagged(11, r)
 
 	return RepairReport{
-		VaultId:  b.B32.Read(r),
-		RepairId: b.B32.Read(r),
-		Head:     b.B32.Read(r),
-		Blobs:    b.List(b.B32, b.Compare).Read(r),
-		Signer:   b.B16.Read(r),
+		VaultId:  encoding.B32.Read(r),
+		RepairId: encoding.B32.Read(r),
+		Head:     encoding.B32.Read(r),
+		Blobs:    encoding.List(encoding.B32, encoding.Compare).Read(r),
+		Signer:   encoding.B16.Read(r),
 	}
 }, func(v RepairReport) []byte {
-	return b.Concat(
-		b.Header(11),
-		b.B32.Write(v.VaultId),
-		b.B32.Write(v.RepairId),
-		b.B32.Write(v.Head),
-		b.List(b.B32, b.Compare).Write(v.Blobs),
-		b.B16.Write(v.Signer),
+	return encoding.Concat(
+		encoding.Header(11),
+		encoding.B32.Write(v.VaultId),
+		encoding.B32.Write(v.RepairId),
+		encoding.B32.Write(v.Head),
+		encoding.List(encoding.B32, encoding.Compare).Write(v.Blobs),
+		encoding.B16.Write(v.Signer),
 	)
 }, nil)

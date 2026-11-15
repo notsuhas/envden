@@ -12,6 +12,7 @@ func (l compatibleListener) Accept() (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &compatibleConnection{Conn: conn}, nil
 }
 
@@ -21,11 +22,12 @@ var parserFailure = []byte("HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain
 
 func (c *compatibleConnection) Write(data []byte) (int, error) {
 	if bytes.HasPrefix(data, parserFailure) {
-		_, err := c.Conn.Write([]byte("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"))
-		if err != nil {
+		if _, err := c.Conn.Write([]byte("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n")); err != nil {
 			return 0, err
 		}
+
 		return len(data), nil
 	}
+
 	return c.Conn.Write(data)
 }

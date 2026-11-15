@@ -54,5 +54,6 @@ func Format(value float64, options Options) string {
 	if strings.HasPrefix(number, "-0") && value == 0 {
 		number = "0"
 	}
+
 	return prefix + number + " " + units[exponent]
 }

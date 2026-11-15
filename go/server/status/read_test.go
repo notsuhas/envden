@@ -1,24 +1,25 @@
 package status
 
 import (
-	a "github.com/notsuhas/envden/go/core/adapters"
 	"testing"
 	"time"
+
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func TestDecisions(t *testing.T) {
-	normal := a.StoredVault{Active: true}
-	moved := a.StoredVault{Active: true, ServerMoved: make([]byte, 32)}
-	restored := a.StoredVault{Active: true, Restored: &a.StoredRestored{}}
+	normal := adapters.StoredVault{Active: true}
+	moved := adapters.StoredVault{Active: true, ServerMoved: make([]byte, 32)}
+	restored := adapters.StoredVault{Active: true, Restored: &adapters.StoredRestored{}}
 	for _, row := range []struct {
-		vaults []a.StoredVault
+		vaults []adapters.StoredVault
 		want   string
-	}{{nil, "normal"}, {[]a.StoredVault{normal, moved}, "normal"}, {[]a.StoredVault{moved, moved}, "moved"}, {[]a.StoredVault{moved, restored}, "restored"}} {
+	}{{nil, "normal"}, {[]adapters.StoredVault{normal, moved}, "normal"}, {[]adapters.StoredVault{moved, moved}, "moved"}, {[]adapters.StoredVault{moved, restored}, "restored"}} {
 		if got := ServerMode(row.vaults); got != row.want {
 			t.Fatal(got, row.want)
 		}
 	}
-	quota := int64(a.VaultQuotaBytes)
+	quota := int64(adapters.VaultQuotaBytes)
 	for _, row := range []struct {
 		usage []int64
 		want  string
@@ -45,6 +46,7 @@ func TestDecisions(t *testing.T) {
 		t.Fatal("status toggle")
 	}
 }
+
 func TestFormats(t *testing.T) {
 	for _, row := range []struct {
 		seconds int64

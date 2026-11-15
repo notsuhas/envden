@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	x "github.com/notsuhas/envden/go/server/shared"
 	"io"
 	"net"
 	"net/http"
@@ -17,7 +16,8 @@ import (
 	"strings"
 	"testing"
 
-	sqlite "github.com/notsuhas/envden/go/adapters/storage/sqlite"
+	"github.com/notsuhas/envden/go/adapters/storage/sqlite"
+	"github.com/notsuhas/envden/go/server/shared"
 )
 
 func TestBunNetworkParity(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBunNetworkParity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer storage.Close()
+	defer func() { _ = storage.Close() }()
 	app, err := CreateApp(Options{Storage: storage, Now: func() int64 { return fixture.Now }, ServerKeys: ServerKeys{SecretKey: fixture.Keys.SecretKey, PublicKey: fixture.Keys.PublicKey, OpaqueSetup: fixture.Keys.OpaqueSetup}, Config: fixture.Config})
 	if err != nil {
 		t.Fatal(err)
@@ -53,7 +53,11 @@ func TestBunNetworkParity(t *testing.T) {
 		Config any    `json:"config"`
 	}{tsDir, fixture.Now, map[string]any{"secretKey": fixture.Keys.SecretKey, "publicKey": fixture.Keys.PublicKey, "opaqueSetup": fixture.Keys.OpaqueSetup}, map[string]string{"appVersion": fixture.Config.AppVersion, "minClient": fixture.Config.MinClient}}
 	configPath := filepath.Join(t.TempDir(), "config.json")
-	if err = os.WriteFile(configPath, x.JSON(config), 0600); err != nil {
+	configBytes, err := shared.JSON(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(configPath, configBytes, 0600); err != nil {
 		t.Fatal(err)
 	}
 	cmd := exec.Command(bun, "parity/network.js", configPath)
@@ -65,7 +69,7 @@ func TestBunNetworkParity(t *testing.T) {
 	if err = cmd.Start(); err != nil {
 		t.Fatal(err)
 	}
-	defer func() { cmd.Process.Signal(os.Interrupt); cmd.Wait() }()
+	defer func() { _ = cmd.Process.Signal(os.Interrupt); _ = cmd.Wait() }()
 	line, err := bufio.NewReader(out).ReadString('\n')
 	if err != nil {
 		t.Fatal(err)
@@ -110,13 +114,14 @@ func TestBunNetworkParity(t *testing.T) {
 		})
 	}
 }
-func rawResponse(t *testing.T, address, request string) (*http.Response, []byte) {
+
+func rawResponse(t *testing.T, address, request string) (responseMetadata, []byte) {
 	t.Helper()
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 	if _, err = io.WriteString(conn, request); err != nil {
 		t.Fatal(err)
 	}
@@ -129,6 +134,13 @@ func rawResponse(t *testing.T, address, request string) (*http.Response, []byte)
 	if err != nil {
 		t.Fatal(err)
 	}
-	response.Body.Close()
-	return response, data
+	_ = response.Body.Close()
+
+	return responseMetadata{StatusCode: response.StatusCode, Header: response.Header, Status: response.Status}, data
+}
+
+type responseMetadata struct {
+	Status     string
+	StatusCode int
+	Header     http.Header
 }

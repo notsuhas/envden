@@ -74,6 +74,7 @@ func (p *prompt) frame() string {
 		if p.state == "cancel" && value != "" {
 			prefix += "\n" + t.style("gray", bar)
 		}
+
 		return header + prefix
 	}
 	prefix := t.style(color, bar) + "  "
@@ -111,6 +112,7 @@ func (p *prompt) frame() string {
 			}
 			footer = t.style("yellow", end) + "  " + t.style("yellow", p.validation) + "\n"
 		}
+
 		return header + prefix + value + "\n" + footer
 	case "confirm":
 		yes := t.style("green", t.sym("●", ">")) + " Yes"
@@ -119,6 +121,7 @@ func (p *prompt) frame() string {
 			yes = t.style("dim", t.sym("○", " ")) + " " + t.style("dim", "Yes")
 			no = t.style("green", t.sym("●", ">")) + " No"
 		}
+
 		return header + prefix + yes + " " + t.style("dim", "/") + " " + no + "\n" + footer
 	default:
 		var rows []string
@@ -154,12 +157,15 @@ func (p *prompt) frame() string {
 		}
 		instructions += t.style("dim", "Enter:") + " confirm"
 		rows = limitRows(rows, p.index, max(t.Rows-(strings.Count(header, "\n")+1)-(strings.Count(wrap(instructions, t.Columns-3), "\n")+3), 0), t.style("dim", "..."))
+
 		return header + prefix + strings.Join(rows, "\n"+prefix) + "\n" + prefix + strings.ReplaceAll(wrap(instructions, t.Columns-3), "\n", "\n"+prefix) + "\n" + footer
 	}
 }
+
 func label(o Option) string {
 	if o.Label != "" {
 		return o.Label
 	}
+
 	return o.Value
 }

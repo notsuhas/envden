@@ -1,10 +1,11 @@
 package git
 
 import (
+	stderrors "errors"
 	"strconv"
 	"strings"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
 	"github.com/notsuhas/envden/go/core/protocol/files"
 )
@@ -13,15 +14,18 @@ type configEntry struct{ key, value string }
 
 func trustedOutput(name string, args []string, env map[string]string, input string) (string, error) {
 	o, e := process.ExecTrusted(name, args, process.Options{Env: env, Input: []byte(input)})
+
 	return o.Stdout, e
 }
 
 func exitCode(err error) int {
 	if e, ok := errors.As(err); ok {
-		if cause, ok := e.Cause.(*process.ExitError); ok {
+		cause := &process.ExitError{}
+		if stderrors.As(e.Cause, &cause) {
 			return cause.ExitCode
 		}
 	}
+
 	return -1
 }
 
@@ -39,6 +43,7 @@ func globalConfig(pattern string) ([]configEntry, error) {
 			entries = append(entries, configEntry{r[:i], r[i+1:]})
 		}
 	}
+
 	return entries, nil
 }
 
@@ -62,6 +67,7 @@ func gitSession(root string, config []configEntry) (func([]string, string) (stri
 			env["GIT_CONFIG_VALUE_"+strconv.Itoa(i)] = c.value
 		}
 	}
+
 	return func(args []string, input string) (string, error) {
 		all := append([]string{}, prefix...)
 		if len(args) > 0 && args[0] == "ls-files" {
@@ -69,6 +75,7 @@ func gitSession(root string, config []configEntry) (func([]string, string) (stri
 		}
 		all = append(all, "-C", root)
 		all = append(all, args...)
+
 		return trustedOutput("git", all, env, input)
 	}, nil
 }
@@ -78,6 +85,7 @@ func git(root string, args []string, input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return run(args, input)
 }
 

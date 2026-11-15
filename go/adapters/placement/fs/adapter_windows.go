@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/core/process"
 	"os"
 	"path/filepath"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/process"
 )
 
 func (p *placement) Place(store, dest string, prepare func(string) error, replacing *string) (err error) {
@@ -20,7 +21,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 	tempName := fmt.Sprintf(".envden-%x", sha256.Sum256([]byte(path)))
 	if p.mode == adapters.PlacementCopy {
 		if prepare == nil {
-			return e.New("INVALID_INPUT", "Copy placement requires a temporary file exclude")
+			return enverrors.New("INVALID_INPUT", "Copy placement requires a temporary file exclude")
 		}
 		if err = prepare(filepath.ToSlash(filepath.Join(filepath.Dir(path), tempName))); err != nil {
 			return err
@@ -41,17 +42,17 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 			return err
 		}
 		if !sameTarget(resolveLink(filepath.Dir(dest), target), store) && (replacing == nil || *replacing != target) {
-			return e.New("INVALID_INPUT", "Refusing an unrelated symlink")
+			return enverrors.New("INVALID_INPUT", "Refusing an unrelated symlink")
 		}
 	} else if before != nil && !before.Mode().IsRegular() {
-		return e.New("INVALID_INPUT", "Destination is not a file")
+		return enverrors.New("INVALID_INPUT", "Destination is not a file")
 	}
 	st, err := os.Lstat(store)
 	if err != nil {
 		return err
 	}
 	if !st.Mode().IsRegular() {
-		return e.New("INVALID_INPUT", "Store source is not a regular file")
+		return enverrors.New("INVALID_INPUT", "Store source is not a regular file")
 	}
 	if err = process.RestrictAccess(store, false); err != nil {
 		return err
@@ -108,7 +109,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 			return err
 		}
 		if !sameFile(before, opened) {
-			return e.New("CONFLICT", "Destination changed before backup")
+			return enverrors.New("CONFLICT", "Destination changed before backup")
 		}
 		previous, err := os.ReadFile(dest)
 		if err != nil {
@@ -128,15 +129,16 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 		return err
 	}
 	if !sameFile(before, current) {
-		return e.New("CONFLICT", "Destination changed during placement")
+		return enverrors.New("CONFLICT", "Destination changed during placement")
 	}
 	current, err = os.Lstat(temp)
 	if err != nil {
 		return err
 	}
 	if !os.SameFile(staged, current) {
-		return e.New("CONFLICT", "Staged file changed")
+		return enverrors.New("CONFLICT", "Staged file changed")
 	}
+
 	return os.Rename(temp, dest)
 }
 
@@ -163,13 +165,14 @@ func (p *placement) Remove(store *string, dest string) (err error) {
 			return err
 		}
 		if store == nil || !sameTarget(resolveLink(filepath.Dir(dest), target), *store) {
-			return e.New("INVALID_INPUT", "Refusing an unrelated symlink")
+			return enverrors.New("INVALID_INPUT", "Refusing an unrelated symlink")
 		}
 	} else if !st.Mode().IsRegular() {
-		return e.New("INVALID_INPUT", "Destination is not a file")
+		return enverrors.New("INVALID_INPUT", "Destination is not a file")
 	}
 	if err = verifyParents(infos, names); err != nil {
 		return err
 	}
+
 	return os.Remove(dest)
 }

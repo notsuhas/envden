@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestKeys(t *testing.T) {
@@ -40,7 +40,7 @@ func TestKeys(t *testing.T) {
 		}
 	}
 	path := filepath.Join(dir, fmt.Sprintf("%x.key", sha256.Sum256([]byte("../name"))))
-	if e = os.Chmod(path, 0644); e != nil {
+	if e = os.Chmod(path, 0644); e != nil { //nolint:gosec // G302: fixture creates an unsafe key file to test access restriction.
 		t.Fatal(e)
 	}
 	only, e := a.OwnerOnly()
@@ -74,7 +74,7 @@ func TestDirectoryReadable(t *testing.T) {
 		t.Fatal(e)
 	}
 	dir := filepath.Join(home, "state", "keys")
-	if e := os.Chmod(dir, 0755); e != nil {
+	if e := os.Chmod(dir, 0755); e != nil { //nolint:gosec // G302: fixture tests restriction of an existing public keychain directory.
 		t.Fatal(e)
 	}
 	ok, e := a.OwnerOnly()

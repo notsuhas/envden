@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	mw "github.com/notsuhas/envden/go/server/middleware"
+	"github.com/notsuhas/envden/go/server/middleware"
 )
 
 func normalizeRequestURL(r *http.Request) {
@@ -37,19 +37,22 @@ func normalizeRequestURL(r *http.Request) {
 		r.URL.RawPath = normalized
 	}
 }
+
 func tooLarge(w http.ResponseWriter, r *http.Request) bool {
-	if r.ContentLength <= mw.MaxRequestBodySize {
+	if r.ContentLength <= middleware.MaxRequestBodySize {
 		return false
 	}
 	if hijacker, ok := w.(http.Hijacker); ok {
 		conn, buffer, err := hijacker.Hijack()
 		if err == nil {
-			defer conn.Close()
+			defer func() { _ = conn.Close() }()
 			_, _ = buffer.WriteString("HTTP/1.1 413 Request Entity Too Large\r\nConnection: close\r\n\r\n")
 			_ = buffer.Flush()
+
 			return true
 		}
 	}
 	w.WriteHeader(413)
+
 	return true
 }

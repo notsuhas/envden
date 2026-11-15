@@ -4,38 +4,64 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+
 	"github.com/notsuhas/envden/go/core/adapters"
 	envErrors "github.com/notsuhas/envden/go/core/errors"
 )
 
-func (s *storage) vaultIDs() [][]byte {
-	r := s.rows("SELECT id FROM vaults ORDER BY id")
-	defer r.Close()
+func (s *storage) vaultIDs() ([][]byte, error) {
+	r, err := s.rows("SELECT id FROM vaults ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = r.Close() }()
 	out := [][]byte{}
 	for r.Next() {
 		var b []byte
-		must(r.Scan(&b))
+		if err := r.Scan(&b); err != nil {
+			return nil, err
+		}
+
 		out = append(out, b)
 	}
-	must(r.Err())
-	return out
+	if err := r.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
-func (s *storage) capUnlocks(v []byte, until int64) {
-	s.run("UPDATE devices SET unlocked=MIN(unlocked,?) WHERE vault=?", until, v)
+func (s *storage) capUnlocks(v []byte, until int64) error {
+	_, err := s.run("UPDATE devices SET unlocked=MIN(unlocked,?) WHERE vault=?", until, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *storage) hasVault(v []byte) bool { return s.vault(v) != nil }
+func (s *storage) hasVault(v []byte) (bool, error) {
+	vaultResult, err := s.vault(v)
+	if err != nil {
+		return false, err
+	}
 
-func (s *storage) vault(v []byte) *adapters.StoredVault {
+	return vaultResult != nil, nil
+}
+
+func (s *storage) vault(v []byte) (*adapters.StoredVault, error) {
 	var active, frozen, refused int
 	var moved, repair, restored, progress []byte
 	var period sql.NullFloat64
 	e := s.conn.QueryRowContext(bg, "SELECT active,frozen,moved,refused,period,repair,restored,progress FROM vaults WHERE id=?", v).Scan(&active, &frozen, &moved, &refused, &period, &repair, &restored, &progress)
 	if errors.Is(e, sql.ErrNoRows) {
-		return nil
+		return nil, nil
 	}
-	must(e)
+	if err := e; err != nil {
+		return nil, err
+	}
+
 	out := &adapters.StoredVault{Active: active != 0, Frozen: frozen != 0, SKRefused: refused != 0, ServerMoved: moved}
 	if period.Valid {
 		n := int64(period.Float64)
@@ -44,16 +70,32 @@ func (s *storage) vault(v []byte) *adapters.StoredVault {
 	if repair != nil && restored != nil {
 		out.Restored = &adapters.StoredRestored{RepairTokenHash: repair, RestoredHead: restored, FinishProgress: progress}
 	}
-	return out
+
+	return out, nil
 }
 
-func (s *storage) configureVault(v []byte, state adapters.StoredVault, writes []adapters.StateWrite, token []byte) {
-	s.tx(func() {
-		if token != nil && (s.hasVault(v) || !bytes.Equal(s.setupToken(), token)) {
-			panic(errors.New("Setup token changed, consumed, or vault exists"))
+func (s *storage) configureVault(v []byte, state adapters.StoredVault, writes []adapters.StateWrite, token []byte) error {
+	return s.tx(func() error {
+		tokenChanged := token != nil
+		if tokenChanged {
+			requiresSetupToken, err := s.hasVault(v)
+			if err != nil {
+				return err
+			}
+			if !requiresSetupToken {
+				setupTokenResult, err := s.setupToken()
+				if err != nil {
+					return err
+				}
+				requiresSetupToken = !bytes.Equal(setupTokenResult, token)
+			}
+			tokenChanged = (requiresSetupToken)
+		}
+		if tokenChanged {
+			return storageFailure("Setup token changed, consumed, or vault exists")
 		}
 		if len(v) == 32 && bytes.Equal(v, make([]byte, 32)) {
-			panic(envErrors.New("INVALID_INPUT", "Invalid vault ID"))
+			return envErrors.New("INVALID_INPUT", "Invalid vault ID")
 		}
 		var period any
 		if state.UnlockPeriod != nil {
@@ -65,76 +107,57 @@ func (s *storage) configureVault(v []byte, state adapters.StoredVault, writes []
 			restored = state.Restored.RestoredHead
 			progress = state.Restored.FinishProgress
 		}
-		s.run(`INSERT INTO vaults(id,active,frozen,moved,refused,period,repair,restored,progress) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,frozen=excluded.frozen,moved=excluded.moved,refused=excluded.refused,period=excluded.period,repair=excluded.repair,restored=excluded.restored,progress=excluded.progress`, v, bit(state.Active), bit(state.Frozen), optional(state.ServerMoved), bit(state.SKRefused), period, optional(repair), optional(restored), optional(progress))
-		s.writeState(v, writes)
-		if token != nil {
-			s.run("DELETE FROM setup")
+		_, err := s.run(`INSERT INTO vaults(id,active,frozen,moved,refused,period,repair,restored,progress) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,frozen=excluded.frozen,moved=excluded.moved,refused=excluded.refused,period=excluded.period,repair=excluded.repair,restored=excluded.restored,progress=excluded.progress`, v, bit(state.Active), bit(state.Frozen), optional(state.ServerMoved), bit(state.SKRefused), period, optional(repair), optional(restored), optional(progress))
+		if err != nil {
+			return err
 		}
+		if err := s.writeState(v, writes); err != nil {
+			return err
+		}
+		if token != nil {
+			_, err := s.run("DELETE FROM setup")
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 }
 
-func (s *storage) head(v []byte) []byte {
+func (s *storage) head(v []byte) ([]byte, error) {
 	return s.bytes("SELECT head AS bytes FROM vaults WHERE id=? AND head IS NOT NULL", v)
 }
 
-func (s *storage) discardInactiveVault(v []byte) {
-	s.tx(func() {
-		state := s.vault(v)
+func (s *storage) discardInactiveVault(v []byte) error {
+	if err := s.tx(func() error {
+		state, err := s.vault(v)
+		if err != nil {
+			return err
+		}
 		if state != nil && state.Active {
-			panic(errors.New("Cannot discard an active vault"))
+			return storageFailure("Cannot discard an active vault")
 		}
-		s.run("INSERT OR IGNORE INTO blob_garbage SELECT vault,hash FROM blobs WHERE vault=?", v)
+		_, err = s.run("INSERT OR IGNORE INTO blob_garbage SELECT vault,hash FROM blobs WHERE vault=?", v)
+		if err != nil {
+			return err
+		}
+
 		for _, table := range []string{"headers", "entries", "lists", "state", "devices", "digests", "blobs", "blob_usage", "sessions", "approvers", "mailboxes", "openings"} {
-			s.run("DELETE FROM "+table+" WHERE vault=?", v)
-		}
-		s.run("DELETE FROM vaults WHERE id=?", v)
-	})
-	s.collectGarbage()
-}
-
-func (s *storage) state(v []byte, k adapters.StateKind, key []byte) []byte {
-	return s.bytes("SELECT bytes FROM state WHERE vault=? AND kind=? AND key=?", v, k, key)
-}
-
-func (s *storage) states(v []byte, k adapters.StateKind) []adapters.StateEntry {
-	r := s.rows("SELECT key,bytes FROM state WHERE vault=? AND kind=? ORDER BY key", v, k)
-	defer r.Close()
-	out := []adapters.StateEntry{}
-	for r.Next() {
-		var row adapters.StateEntry
-		must(r.Scan(&row.Key, &row.Bytes))
-		out = append(out, row)
-	}
-	must(r.Err())
-	return out
-}
-
-func (s *storage) writeState(v []byte, writes []adapters.StateWrite) {
-	s.tx(func() {
-		for _, w := range writes {
-			if w.Bytes == nil {
-				s.run("DELETE FROM state WHERE vault=? AND kind=? AND key=?", v, w.Kind, w.Key)
-			} else {
-				s.run("INSERT OR REPLACE INTO state VALUES(?,?,?,?)", v, w.Kind, w.Key, w.Bytes)
+			_, err := s.run("DELETE FROM "+table+" WHERE vault=?", v)
+			if err != nil {
+				return err
 			}
 		}
-	})
-}
+		_, err = s.run("DELETE FROM vaults WHERE id=?", v)
+		if err != nil {
+			return err
+		}
 
-func (s *storage) setupToken() []byte { return s.bytes("SELECT bytes FROM setup WHERE singleton=1") }
-
-func (s *storage) setSetupToken(b []byte) { s.run("INSERT OR REPLACE INTO setup VALUES(1,?)", b) }
-
-func (s *storage) device(v, id []byte) *adapters.StoredDevice {
-	var row adapters.StoredDevice
-	e := s.conn.QueryRowContext(bg, "SELECT CAST(unlocked AS INTEGER),CAST(fresh AS INTEGER),version,grant FROM devices WHERE vault=? AND id=?", v, id).Scan(&row.UnlockedUntil, &row.FreshUntil, &row.ClientVersion, &row.MailboxGrant)
-	if errors.Is(e, sql.ErrNoRows) {
 		return nil
+	}); err != nil {
+		return err
 	}
-	must(e)
-	return &row
-}
 
-func (s *storage) putDevice(v, id []byte, state adapters.StoredDevice) {
-	s.run("INSERT OR REPLACE INTO devices VALUES(?,?,?,?,?,?)", v, id, state.UnlockedUntil, state.FreshUntil, state.ClientVersion, optional(state.MailboxGrant))
+	return s.collectGarbage()
 }

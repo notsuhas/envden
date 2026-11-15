@@ -1,10 +1,12 @@
 package process
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestRunningRuntimeTrusted(t *testing.T) {
@@ -16,6 +18,7 @@ func TestRunningRuntimeTrusted(t *testing.T) {
 		}
 	}
 }
+
 func TestSpawnEnvironmentAndResults(t *testing.T) {
 	if platformName() == "win32" {
 		return
@@ -30,12 +33,17 @@ func TestSpawnEnvironmentAndResults(t *testing.T) {
 		t.Fatal(text, err)
 	}
 	out, err = ExecTrusted("sh", []string{"-c", "exit 7"}, Options{})
-	typed, ok := e.As(err)
-	if !ok || typed.Message != "Subprocess failed" || out.ExitCode != 7 || typed.Cause.(*ExitError).ExitCode != 7 {
+	typed, ok := enverrors.As(err)
+	if !ok || typed.Message != "Subprocess failed" || out.ExitCode != 7 || func() *ExitError {
+		target := &ExitError{}
+		_ = errors.As(typed.Cause, &target)
+
+		return target
+	}().ExitCode != 7 {
 		t.Fatal(out, err)
 	}
 	_, err = ExecTrustedSync("sh", []string{"-c", "exit 7"}, Options{})
-	typed, ok = e.As(err)
+	typed, ok = enverrors.As(err)
 	if !ok || typed.Cause != nil {
 		t.Fatal(err)
 	}
@@ -45,6 +53,7 @@ func TestSpawnEnvironmentAndResults(t *testing.T) {
 		t.Fatal(out, err)
 	}
 }
+
 func TestShebangUsesSystemBeforeManager(t *testing.T) {
 	if platformName() == "win32" {
 		return

@@ -8,7 +8,7 @@ import (
 
 	"github.com/notsuhas/envden/go/adapters/repo/git/internal/fsmeta"
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func isIgnored(c adapters.Checkout, path string) (bool, error) {
@@ -23,6 +23,7 @@ func isIgnored(c adapters.Checkout, path string) (bool, error) {
 	if exitCode(err) == 1 {
 		return false, nil
 	}
+
 	return err == nil, err
 }
 
@@ -63,6 +64,7 @@ func excludeParents(gitDir, exclude string) ([]parent, error) {
 		}
 		parents = append(parents, parent{current, s})
 	}
+
 	return parents, nil
 }
 
@@ -80,6 +82,7 @@ func verifyParents(parents []parent) error {
 			return errors.New(errors.Conflict, "Exclude parent changed")
 		}
 	}
+
 	return nil
 }
 
@@ -121,7 +124,7 @@ func ensureIgnored(c adapters.Checkout, path string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	s, err := f.Stat()
 	if err != nil {
 		return err
@@ -165,5 +168,6 @@ func ensureIgnored(c adapters.Checkout, path string) error {
 			_ = f.Truncate(s.Size())
 		}
 	}
+
 	return err
 }

@@ -13,7 +13,7 @@ func TestStrictFake(t *testing.T) {
 	if a.ID() != "fake-network" {
 		t.Fatal(a.ID())
 	}
-	calls := []func(){func() { a.Status() }, func() { a.CheckHTTPSCertificate() }, func() { a.Expose(0) }}
+	calls := []func(){func() { _, _ = a.Status() }, func() { _, _ = a.CheckHTTPSCertificate() }, func() { _, _ = a.Expose(0) }}
 	for _, call := range calls {
 		func() {
 			defer func() {

@@ -1,18 +1,20 @@
 package sqlite
 
 import (
-	a "github.com/notsuhas/envden/go/core/adapters"
 	"os"
 	"testing"
+
+	coreadapters "github.com/notsuhas/envden/go/core/adapters"
 )
 
-func historySwap(i int, versions []a.FileVersion) a.StoredSwap {
+func historySwap(i int, versions []coreadapters.FileVersion) coreadapters.StoredSwap {
 	s := storedSwap(i, versions)
 	s.Header.Hash = b(i)
 	s.Header.Bytes = b(i)
 	s.BodyDigest = b(i)
 	s.Files.Hash = b(i)
 	s.Files.Bytes = b(i)
+
 	return s
 }
 
@@ -24,10 +26,10 @@ func TestUnchangedVersionsDoNotPinEveryList(t *testing.T) {
 		if i > 1 {
 			expected = b(i - 1)
 		}
-		_, err := db.CommitSwap(b(1), expected, historySwap(i, []a.FileVersion{{FileID: b(1), Version: 1, BlobHash: b(1)}, {FileID: b(2), Version: uint64(i), BlobHash: b(i)}}), int64(i))
+		_, err := db.CommitSwap(b(1), expected, historySwap(i, []coreadapters.FileVersion{{FileID: b(1), Version: 1, BlobHash: b(1)}, {FileID: b(2), Version: uint64(i), BlobHash: b(i)}}), int64(i))
 		check(t, err)
 	}
-	r, err := db.Prune(b(1), a.HistoryPolicy{MinVersions: 1}, 4)
+	r, err := db.Prune(b(1), coreadapters.HistoryPolicy{MinVersions: 1}, 4)
 	check(t, err)
 	if r.Lists != 1 || r.Blobs != 1 {
 		t.Fatal(r)
@@ -35,25 +37,25 @@ func TestUnchangedVersionsDoNotPinEveryList(t *testing.T) {
 	if _, err = os.Stat(db.blobPath(b(1), b(2))); !os.IsNotExist(err) {
 		t.Fatal("blob retained")
 	}
-	if err = db.Transaction(func() error { _, err := db.Prune(b(1), a.HistoryPolicy{MinVersions: 1}, 4); return err }); err == nil {
+	if err = db.Transaction(func() error { _, err := db.Prune(b(1), coreadapters.HistoryPolicy{MinVersions: 1}, 4); return err }); err == nil {
 		t.Fatal("pruning ran inside transaction")
 	}
 }
 
 func TestRestoredCurrentListStaysPinned(t *testing.T) {
 	db := open(t, t.TempDir())
-	_, err := db.CommitSwap(b(1), nil, historySwap(1, []a.FileVersion{{FileID: b(1), Version: 1, BlobHash: b(1)}}), 1)
+	_, err := db.CommitSwap(b(1), nil, historySwap(1, []coreadapters.FileVersion{{FileID: b(1), Version: 1, BlobHash: b(1)}}), 1)
 	check(t, err)
 	s := historySwap(2, nil)
 	files := *s.Files
-	files.Versions = []a.FileVersion{{FileID: b(1), Version: 2, BlobHash: b(2)}}
+	files.Versions = []coreadapters.FileVersion{{FileID: b(1), Version: 2, BlobHash: b(2)}}
 	s.Files = nil
 	s.Vault = nil
 	s.FilesHash = b(2)
 	_, err = db.CommitSwap(b(1), b(1), s, 2)
 	check(t, err)
 	check(t, db.PutFileList(b(1), files, 2))
-	r, err := db.Prune(b(1), a.HistoryPolicy{MinVersions: 1}, 4)
+	r, err := db.Prune(b(1), coreadapters.HistoryPolicy{MinVersions: 1}, 4)
 	check(t, err)
 	if r.Lists != 1 {
 		t.Fatal(r)
@@ -79,18 +81,18 @@ func TestKeptListDoesNotKeepPrunedBlobs(t *testing.T) {
 		if i != 2 {
 			check(t, db.PutBlob(b(1), b(100+version), b(100+version), nil, 0, 0))
 		}
-		other := a.FileVersion{FileID: b(2), Version: 2, Tombstone: true}
+		other := coreadapters.FileVersion{FileID: b(2), Version: 2, Tombstone: true}
 		if i == 1 {
-			other = a.FileVersion{FileID: b(2), Version: 1, BlobHash: b(200)}
+			other = coreadapters.FileVersion{FileID: b(2), Version: 1, BlobHash: b(200)}
 		}
 		var expected []byte
 		if i > 1 {
 			expected = b(i - 1)
 		}
-		_, err := db.CommitSwap(b(1), expected, historySwap(i, []a.FileVersion{{FileID: b(1), Version: uint64(version), BlobHash: b(100 + version)}, other}), int64(i))
+		_, err := db.CommitSwap(b(1), expected, historySwap(i, []coreadapters.FileVersion{{FileID: b(1), Version: uint64(version), BlobHash: b(100 + version)}, other}), int64(i))
 		check(t, err)
 	}
-	_, err := db.Prune(b(1), a.HistoryPolicy{MinVersions: 20}, 40)
+	_, err := db.Prune(b(1), coreadapters.HistoryPolicy{MinVersions: 20}, 40)
 	check(t, err)
 	for _, i := range []int{101, 111} {
 		blob, err := db.GetBlob(b(1), b(i))

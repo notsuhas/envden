@@ -3,56 +3,111 @@ package manifests
 import (
 	"slices"
 
-	d "github.com/notsuhas/envden/go/core/chain/devices"
-	s "github.com/notsuhas/envden/go/core/chain/shared"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	devicechain "github.com/notsuhas/envden/go/core/chain/devices"
+	chainshared "github.com/notsuhas/envden/go/core/chain/shared"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func CheckHeaderSignature(source Source, verified *d.State, signed b.Signed[m.ManifestHeader]) error {
-	_, err := s.Try(func() bool {
+func CheckHeaderSignature(source Source, verified *devicechain.State, signed encoding.Signed[manifests.ManifestHeader]) error {
+	tryResult, err := chainshared.TryResult(func() (bool, error) {
 		h := signed.Body
-		s.Check(b.Equal(h.VaultId, verified.VaultId))
+		if err := chainshared.Check(encoding.Equal(h.VaultId, verified.VaultId)); err != nil {
+			return false, err
+		}
+
 		state := verified
 		if h.ListSeq >= state.Seq {
-			next, err := s.Try(func() *d.State { return applyEntries(state, b.Must(EntryDescent(source, state, h))) })
-			if s.Invalid(err) {
-				state = b.Must(stateFromGenesis(source, h))
+			tryResultResult, err := chainshared.TryResult(func() (*devicechain.State, error) {
+				entryDescent, err := EntryDescent(source, state, h)
+				if err != nil {
+					return nil, err
+				}
+
+				return applyEntries(state, entryDescent)
+			})
+			next := tryResultResult
+			if chainshared.Invalid(err) {
+				stateFromGenesisResult, err := stateFromGenesis(source, h)
+				if err != nil {
+					return false, err
+				}
+
+				state = stateFromGenesisResult
 			} else {
-				state = b.Must(next, err)
+				if err := err; err != nil {
+					return false, err
+				}
+
+				state = next
 			}
 		} else {
-			state = b.Must(stateFromGenesis(source, h))
+			stateFromGenesisResult2, err := stateFromGenesis(source, h)
+			if err != nil {
+				return false, err
+			}
+
+			state = stateFromGenesisResult2
 		}
-		s.Check(b.Equal(state.VaultId, h.VaultId) && b.Equal(state.Head, h.ListHead))
-		signer, ok := state.Devices[s.ID(h.Signer)]
-		s.Check(ok && b.Must(cr.VerifyObject(m.ManifestHeaderCodec, signed, signer.ObjPub, "manifest")).OK)
-		return true
+		if err := chainshared.Check(encoding.Equal(state.VaultId, h.VaultId) && encoding.Equal(state.Head, h.ListHead)); err != nil {
+			return false, err
+		}
+
+		signer, ok := state.Devices[chainshared.ID(h.Signer)]
+		validSigner := ok
+		if validSigner {
+			verifyObject, err := crypto.VerifyObject(manifests.ManifestHeaderCodec, signed, signer.ObjPub, "manifest")
+			if err != nil {
+				return false, err
+			}
+			validSigner = verifyObject.OK
+		}
+		if err := chainshared.Check(validSigner); err != nil {
+			return false, err
+		}
+
+		return true, nil
 	})
+	if err != nil {
+		return err
+	}
+
+	_ = tryResult
 
 	return err
 }
 
-func applyEntries(state *d.State, entries []b.Signed[c.Entry]) *d.State {
+func applyEntries(state *devicechain.State, entries []encoding.Signed[codecs.Entry]) (*devicechain.State, error) {
 	for _, entry := range entries {
-		r := b.Must(d.ApplyEntry(state, entry))
-		s.Check(r.Kind == "valid")
+		r, err := devicechain.ApplyEntry(state, entry)
+		if err != nil {
+			return nil, err
+		}
+		if err := chainshared.Check(r.Kind == "valid"); err != nil {
+			return nil, err
+		}
+
 		state = r.State
 	}
 
-	return state
+	return state, nil
 }
 
-func stateFromGenesis(source Source, h m.ManifestHeader) (*d.State, error) {
-
-	return s.Try(func() *d.State {
-		entries := []b.Signed[c.Entry]{}
+func stateFromGenesis(source Source, h manifests.ManifestHeader) (*devicechain.State, error) {
+	return chainshared.TryResult(func() (*devicechain.State, error) {
+		entries := []encoding.Signed[codecs.Entry]{}
 		hash := h.ListHead
 		for seq := h.ListSeq; ; seq-- {
-			entry := b.Must(source.Entry(hash))
-			s.Check(entry != nil && entry.Body.Seq == seq)
+			entry, err := source.Entry(hash)
+			if err != nil {
+				return nil, err
+			}
+			if err := chainshared.Check(entry != nil && entry.Body.Seq == seq); err != nil {
+				return nil, err
+			}
+
 			entries = append(entries, *entry)
 			hash = entry.Body.Parent
 			if seq == 0 {
@@ -60,8 +115,14 @@ func stateFromGenesis(source Source, h m.ManifestHeader) (*d.State, error) {
 			}
 		}
 		slices.Reverse(entries)
-		r := b.Must(d.VerifyChain(entries))
-		s.Check(r.Kind == "valid")
-		return r.State
+		r, err := devicechain.VerifyChain(entries)
+		if err != nil {
+			return nil, err
+		}
+		if err := chainshared.Check(r.Kind == "valid"); err != nil {
+			return nil, err
+		}
+
+		return r.State, nil
 	})
 }

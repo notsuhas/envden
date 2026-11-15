@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 type editHooks struct{ Resolved, Opened, Read func() error }
@@ -46,7 +46,8 @@ func editRC(path string, transform func(string) string, backup string, hooks ...
 		if transform("") == "" {
 			return nil
 		}
-		if err = os.MkdirAll(filepath.Dir(resolved), 0777); err != nil {
+		if err = os.MkdirAll(filepath.Dir(resolved), 0777); err != nil { //nolint:gosec // G301: shell profile parents are public directories created with the user umask.
+
 			return err
 		}
 		flags |= os.O_CREATE | os.O_EXCL
@@ -61,7 +62,7 @@ func editRC(path string, transform func(string) string, backup string, hooks ...
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	opened, err := f.Stat()
 	if err != nil {
 		return err
@@ -109,7 +110,7 @@ func editRC(path string, transform func(string) string, backup string, hooks ...
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tmp.Name())
+	defer func() { _ = os.Remove(tmp.Name()) }()
 	if err = tmp.Chmod(s.Mode().Perm()); err == nil {
 		_, err = tmp.WriteString(next)
 	}
@@ -130,6 +131,7 @@ func editRC(path string, transform func(string) string, backup string, hooks ...
 	if !sameRC(current, s) {
 		return errors.New(errors.Conflict, "Shell configuration changed during editing")
 	}
+
 	return replaceRC(tmp.Name(), resolved, s)
 }
 
@@ -151,5 +153,6 @@ func replaceRC(temporary, destination string, expected os.FileInfo) error {
 	if e = os.Rename(temporary, destination); e != nil {
 		_ = os.Chmod(destination, current.Mode().Perm())
 	}
+
 	return e
 }

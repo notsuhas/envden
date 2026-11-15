@@ -1,11 +1,12 @@
 package fs
 
 import (
-	"github.com/google/uuid"
-	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
+
+	"github.com/google/uuid"
+	"github.com/notsuhas/envden/go/core/adapters"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 type placement struct {
@@ -16,6 +17,7 @@ type placement struct {
 
 func CreateFsPlacementAdapter(mode adapters.PlacementMode, root string, conflictsDir string, now func() int64) adapters.Placement {
 	root, _ = filepath.Abs(root)
+
 	return &placement{mode, root, conflictsDir, now}
 }
 
@@ -27,14 +29,15 @@ func (p *placement) Supported(dir string) (bool, error) {
 	}
 	path := filepath.Join(dir, ".envden-probe-"+uuid.NewString())
 	err := os.Symlink(".envden-probe-target", path)
-	defer os.Remove(path)
+	defer func() { _ = os.Remove(path) }()
+
 	return err == nil, nil
 }
 
 func failure(err *error) {
 	if *err != nil {
-		if _, ok := e.As(*err); !ok {
-			*err = e.Wrap("CONFLICT", "Placement operation failed", *err)
+		if _, ok := enverrors.As(*err); !ok {
+			*err = enverrors.Wrap("CONFLICT", "Placement operation failed", *err)
 		}
 	}
 }
@@ -50,6 +53,7 @@ func sameTarget(target, store string) bool {
 		return false
 	}
 	b, err = filepath.EvalSymlinks(store)
+
 	return err == nil && a == b
 }
 
@@ -57,5 +61,6 @@ func resolveLink(parent, target string) string {
 	if filepath.IsAbs(target) {
 		return target
 	}
+
 	return filepath.Join(parent, target)
 }

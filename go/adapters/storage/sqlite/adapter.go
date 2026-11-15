@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+
 	"github.com/notsuhas/envden/go/core/adapters"
 	envErrors "github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
 	_ "modernc.org/sqlite"
-	"os"
-	"path/filepath"
-	"regexp"
 )
 
 type storage struct {
@@ -23,100 +24,172 @@ type storage struct {
 
 var _ adapters.Storage = (*storage)(nil)
 
-// Calls on one instance must be serialized, matching the synchronous TS adapter.
 func CreateSqliteStorageAdapter(dir string, now int64) (result adapters.Storage, err error) {
-	defer recoverError(&err)
-	must(os.MkdirAll(dir, 0700))
-	must(process.RestrictAccessSync(dir, true))
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return nil, err
+	}
+	if err := process.RestrictAccessSync(dir, true); err != nil {
+		return nil, err
+	}
+
 	path := filepath.Join(dir, "envden.sqlite")
 	_, statErr := os.Stat(path)
 	existed := statErr == nil
-	restrictFiles(dir)
+	if err := restrictFiles(dir); err != nil {
+		return nil, err
+	}
+
 	db, e := sql.Open("sqlite", path)
-	must(e)
+	if err := e; err != nil {
+		return nil, err
+	}
+
 	defer func() {
 		if result == nil {
-			db.Close()
+			_ = db.Close()
 		}
 	}()
 	conn, e := db.Conn(context.Background())
-	must(e)
+	if err := e; err != nil {
+		return nil, err
+	}
+
 	defer func() {
 		if result == nil {
-			conn.Close()
+			_ = conn.Close()
 		}
 	}()
 	s := &storage{db: db, conn: conn, dir: dir, maintainedAt: now - 60000}
-	s.run("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;")
-	restrictFiles(dir)
-	s.tx(func() {
+	_, err = s.run("PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;")
+	if err != nil {
+		return nil, err
+	}
+	if err := restrictFiles(dir); err != nil {
+		return nil, err
+	}
+	if err := s.tx(func() error {
 		var version int
-		must(s.conn.QueryRowContext(context.Background(), "PRAGMA user_version").Scan(&version))
+		if err := s.conn.QueryRowContext(context.Background(), "PRAGMA user_version").Scan(&version); err != nil {
+			return err
+		}
 		if version != 0 && version != 1 {
-			panic(envErrors.New("INVALID_INPUT", "Incompatible server database format"))
+			return envErrors.New("INVALID_INPUT", "Incompatible server database format")
 		}
 		if version == 0 {
 			if existed {
-				s.backup(version)
+				if err := s.backup(version); err != nil {
+					return err
+				}
 			}
-			s.run(schema)
+			_, err := s.run(schema)
+			if err != nil {
+				return err
+			}
 		}
-	})
 
-	s.pruneBackups(now)
-	s.tx(func() { s.recoverBlobs(now) })
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	if err := s.pruneBackups(now); err != nil {
+		return nil, err
+	}
+	if err := s.tx(func() error {
+		return s.recoverBlobs(now)
+	}); err != nil {
+		return nil, err
+	}
+
 	return s, nil
 }
 
-func restrictFiles(dir string) {
+func restrictFiles(dir string) error {
 	for _, n := range []string{"envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm", "identity.json"} {
 		path := filepath.Join(dir, n)
-		if _, err := os.Stat(path); err == nil {
-			must(process.RestrictAccessSync(path, false))
-		}
-	}
-}
-
-func (s *storage) backup(version int) {
-	path := filepath.Join(s.dir, fmt.Sprintf("pre-%d", version+1))
-	var b []byte
-	must(s.conn.Raw(func(driverConn any) error {
-		var err error
-		b, err = driverConn.(interface{ Serialize() ([]byte, error) }).Serialize()
-		return err
-	}))
-	f, e := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
-	must(e)
-	defer f.Close()
-	_, e = f.Write(b)
-	must(e)
-	must(f.Sync())
-	syncDir(s.dir)
-}
-
-func (s *storage) pruneBackups(now int64) {
-	entries, e := os.ReadDir(s.dir)
-	must(e)
-	for _, entry := range entries {
-		if regexp.MustCompile(`^pre-\d+$`).MatchString(entry.Name()) {
-			info, e := entry.Info()
-			must(e)
-			if now-info.ModTime().UnixMilli() >= 30*86400000 {
-				must(os.Remove(filepath.Join(s.dir, entry.Name())))
+		_, err := os.Stat(path)
+		if err == nil {
+			if err := process.RestrictAccessSync(path, false); err != nil {
+				return err
 			}
 		}
 	}
+
+	return nil
 }
 
-func (s *storage) maintain(now int64) {
-	if now-s.maintainedAt < 60000 {
-		return
+func (s *storage) backup(version int) error {
+	path := filepath.Join(s.dir, fmt.Sprintf("pre-%d", version+1))
+	var b []byte
+	if err := s.conn.Raw(func(driverConn any) error {
+		var err error
+		b, err = driverConn.(interface{ Serialize() ([]byte, error) }).Serialize()
+
+		return err
+	}); err != nil {
+		return err
 	}
-	s.pruneBackups(now)
-	s.tx(func() {
-		for _, table := range []string{"nonces", "sessions", "approvers"} {
-			s.run("DELETE FROM "+table+" WHERE expires<=?", now)
+
+	f, e := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	if err := e; err != nil {
+		return err
+	}
+
+	defer func() { _ = f.Close() }()
+	_, e = f.Write(b)
+	if err := e; err != nil {
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		return err
+	}
+
+	return syncDir(s.dir)
+}
+
+func (s *storage) pruneBackups(now int64) error {
+	entries, e := os.ReadDir(s.dir)
+	if err := e; err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if regexp.MustCompile(`^pre-\d+$`).MatchString(entry.Name()) {
+			info, e := entry.Info()
+			if err := e; err != nil {
+				return err
+			}
+			if now-info.ModTime().UnixMilli() >= 30*86400000 {
+				if err := os.Remove(filepath.Join(s.dir, entry.Name())); err != nil {
+					return err
+				}
+			}
 		}
-	})
+	}
+
+	return nil
+}
+
+func (s *storage) maintain(now int64) error {
+	if now-s.maintainedAt < 60000 {
+		return nil
+	}
+	if err := s.pruneBackups(now); err != nil {
+		return err
+	}
+	if err := s.tx(func() error {
+		for _, table := range []string{"nonces", "sessions", "approvers"} {
+			_, err := s.run("DELETE FROM "+table+" WHERE expires<=?", now)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	s.maintainedAt = now
+
+	return nil
 }

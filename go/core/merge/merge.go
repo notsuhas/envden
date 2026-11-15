@@ -30,8 +30,10 @@ func MergeEnv(base, local, remote []byte) Result {
 	if layoutChanged(s) {
 		return conflict("layout-change", "")
 	}
+
 	return Result{Kind: "clean", Bytes: assembleLayout(s, selected, lineEnding(local, base, remote), nil), ChangedKeys: changed}
 }
+
 func shortcut(base, chosen []byte) Result {
 	changed := []string{}
 	b, a := ParseEnv(base), ParseEnv(chosen)
@@ -54,8 +56,10 @@ func shortcut(base, chosen []byte) Result {
 			}
 		}
 	}
+
 	return Result{Kind: "clean", Bytes: bytes.Clone(chosen), ChangedKeys: changed}
 }
+
 func DiffEnvKeys(before, after []byte) Result {
 	a, b := ParseEnv(before), ParseEnv(after)
 	if a.Kind == "conflict" {
@@ -84,5 +88,6 @@ func DiffEnvKeys(before, after []byte) Result {
 			result.Removed = append(result.Removed, e.Key)
 		}
 	}
+
 	return result
 }

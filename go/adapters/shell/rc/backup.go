@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func backupRC(directory string, b []byte) error {
@@ -20,7 +20,7 @@ func backupRC(directory string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	defer folder.Close()
+	defer func() { _ = folder.Close() }()
 	s, err := folder.Stat()
 	if err != nil {
 		return err
@@ -32,10 +32,11 @@ func backupRC(directory string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	if _, err = f.Write(b); err != nil {
 		return err
 	}
+
 	return f.Sync()
 }
 
@@ -46,5 +47,6 @@ func uuid() string {
 	}
 	b[6] = (b[6] & 15) | 64
 	b[8] = (b[8] & 63) | 128
+
 	return fmt.Sprintf("%x-%x-%x-%x-%x", b[:4], b[4:6], b[6:8], b[8:10], b[10:])
 }

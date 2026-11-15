@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	x "github.com/notsuhas/envden/go/server/shared"
-	_ "modernc.org/sqlite"
 	"regexp"
 	"sort"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/server/shared"
+	_ "modernc.org/sqlite"
 )
 
 func readTables(t *testing.T, path string) map[string][]map[string]any {
@@ -18,7 +19,7 @@ func readTables(t *testing.T, path string) map[string][]map[string]any {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	result := map[string][]map[string]any{}
 	names, err := db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
 	if err != nil {
@@ -32,10 +33,10 @@ func readTables(t *testing.T, path string) map[string][]map[string]any {
 		}
 		tables = append(tables, name)
 	}
-	names.Close()
+	_ = names.Close()
 	for _, name := range tables {
 		result[name] = []map[string]any{}
-		rows, err := db.Query("SELECT * FROM " + name)
+		rows, err := db.Query("SELECT * FROM " + name) //nolint:gosec // G202: table names come from sqlite_master in a private parity fixture database.
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,8 +66,9 @@ func readTables(t *testing.T, path string) map[string][]map[string]any {
 			}
 			result[name] = append(result[name], row)
 		}
-		rows.Close()
+		_ = rows.Close()
 	}
+
 	return result
 }
 
@@ -89,7 +91,7 @@ func normalizeTables(input map[string][]map[string]any) map[string][]string {
 							var login map[string]any
 							if json.Unmarshal(data, &login) == nil && login["state"] != nil {
 								login["state"] = "<random opaque state>"
-								data = x.JSON(login)
+								data = encodeJSON(login)
 							}
 							data = uuidPattern.ReplaceAll(data, []byte("<receipt>"))
 							copy[key] = map[string]any{"blob": base64.StdEncoding.EncodeToString(data)}
@@ -108,11 +110,12 @@ func normalizeTables(input map[string][]map[string]any) map[string][]string {
 		sort.Strings(normalized)
 		out[name] = normalized
 	}
+
 	return out
 }
 
 type parityFaultStorage struct {
-	a.Storage
+	adapters.Storage
 	faults map[string]any
 }
 
@@ -120,21 +123,27 @@ func (s parityFaultStorage) HasVault(id []byte) (bool, error) {
 	if s.faults["hasVault"] == "throw" {
 		return false, errors.New("injected failure")
 	}
+
 	return s.Storage.HasVault(id)
 }
-func (s parityFaultStorage) WriteState(id []byte, writes []a.StateWrite) error {
+
+func (s parityFaultStorage) WriteState(id []byte, writes []adapters.StateWrite) error {
 	if s.faults["writeState"] == "throw" {
 		return errors.New("injected failure")
 	}
+
 	return s.Storage.WriteState(id, writes)
 }
+
 func (s parityFaultStorage) FileList(id, hash []byte) ([]byte, error) {
 	if s.faults["fileList"] == "missing" {
 		return nil, nil
 	}
+
 	return s.Storage.FileList(id, hash)
 }
-func (s parityFaultStorage) State(id []byte, kind a.StateKind, key []byte) ([]byte, error) {
+
+func (s parityFaultStorage) State(id []byte, kind adapters.StateKind, key []byte) ([]byte, error) {
 	if kinds, ok := s.faults["state"].([]any); ok {
 		for _, missing := range kinds {
 			if missing == string(kind) {
@@ -142,5 +151,15 @@ func (s parityFaultStorage) State(id []byte, kind a.StateKind, key []byte) ([]by
 			}
 		}
 	}
+
 	return s.Storage.State(id, kind, key)
+}
+
+func encodeJSON(value any) []byte {
+	data, err := shared.JSON(value)
+	if err != nil {
+		panic(err)
+	}
+
+	return data
 }

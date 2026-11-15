@@ -1,8 +1,8 @@
 package content
 
 import (
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
-	validation "github.com/notsuhas/envden/go/core/protocol/internal/validation"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/internal/validation"
 )
 
 type File struct {
@@ -11,10 +11,10 @@ type File struct {
 	Content []byte
 }
 
-var FileCodec = b.NewCodec(func(r *b.Reader) File {
-	b.Tagged(6, r)
+var FileCodec = encoding.NewCodec(func(r *encoding.Reader) File {
+	encoding.Tagged(6, r)
 
-	return File{RepoId: b.Str.Read(r), Path: b.Str.Read(r), Content: b.Sized(1048576).Read(r)}
+	return File{RepoId: encoding.Str.Read(r), Path: encoding.Str.Read(r), Content: encoding.Sized(1048576).Read(r)}
 }, func(v File) []byte {
-	return b.Concat(b.Header(6), b.Str.Write(v.RepoId), b.Str.Write(v.Path), b.Sized(1048576).Write(v.Content))
+	return encoding.Concat(encoding.Header(6), encoding.Str.Write(v.RepoId), encoding.Str.Write(v.Path), encoding.Sized(1048576).Write(v.Content))
 }, func(v File) { validation.Path(v.Path) })

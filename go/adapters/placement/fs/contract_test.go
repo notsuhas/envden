@@ -1,17 +1,18 @@
 package fs_test
 
 import (
-	fs "github.com/notsuhas/envden/go/adapters/placement/fs"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	p "github.com/notsuhas/envden/go/testing/placement"
 	"testing"
+
+	adaptersplacementfs "github.com/notsuhas/envden/go/adapters/placement/fs"
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/testing/placement"
 )
 
 func TestContract(t *testing.T) {
-	for _, mode := range []a.PlacementMode{a.PlacementLink, a.PlacementCopy} {
+	for _, mode := range []adapters.PlacementMode{adapters.PlacementLink, adapters.PlacementCopy} {
 		t.Run(string(mode), func(t *testing.T) {
-			p.PlacementContract(t, func(root, backups string) a.Placement {
-				return fs.CreateFsPlacementAdapter(mode, root, backups, func() int64 { return 1000 })
+			placement.PlacementContract(t, func(root, backups string) adapters.Placement {
+				return adaptersplacementfs.CreateFsPlacementAdapter(mode, root, backups, func() int64 { return 1000 })
 			})
 		})
 	}

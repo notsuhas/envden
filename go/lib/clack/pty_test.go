@@ -24,15 +24,15 @@ func TestPromptHelper(t *testing.T) {
 	options := PromptOptions{Message: "Name?", InitialBool: &initial, Options: []Option{{Value: "a", Label: "Alpha"}, {Value: "b", Label: "Beta"}}}
 	switch kind {
 	case "text":
-		terminal.Text(options)
+		_, _ = terminal.Text(options)
 	case "password":
-		terminal.Password(options)
+		_, _ = terminal.Password(options)
 	case "confirm":
-		terminal.Confirm(options)
+		_, _ = terminal.Confirm(options)
 	case "select":
-		terminal.Select(options)
+		_, _ = terminal.Select(options)
 	case "multiselect":
-		terminal.Multiselect(options)
+		_, _ = terminal.Multiselect(options)
 	}
 	os.Exit(0)
 }
@@ -51,12 +51,12 @@ func TestPTYReference(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, f := range fixtures {
-		cmd := exec.Command(os.Args[0], "-test.run=^TestPromptHelper$")
+		cmd := exec.Command(os.Args[0], "-test.run=^TestPromptHelper$") //nolint:gosec // G702: reexecutes this test binary with a fixed helper test name.
 		cmd.Env = []string{"TERM=xterm-256color", "CLACK_HELPER_KIND=" + f.Kind, "FORCE_COLOR=0"}
 		if f.Color {
 			cmd.Env[len(cmd.Env)-1] = "FORCE_COLOR=1"
 		}
-		terminal, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: uint16(f.Columns), Rows: 24})
+		terminal, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: uint16(f.Columns & 65535), Rows: 24})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -76,7 +76,7 @@ func TestPTYReference(t *testing.T) {
 				break
 			}
 		}
-		terminal.Close()
+		_ = terminal.Close()
 		if err = cmd.Wait(); err != nil {
 			t.Fatal(err)
 		}

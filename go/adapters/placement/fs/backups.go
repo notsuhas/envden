@@ -4,32 +4,34 @@ package fs
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"golang.org/x/sys/unix"
 	"math"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"golang.org/x/sys/unix"
 )
 
 func outside(root, path string) bool {
 	rel, err := filepath.Rel(root, path)
+
 	return err == nil && (rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
 func (p *placement) backup(b []byte) error {
 	if p.backups == "" {
-		return e.New("INVALID_INPUT", "Backup directory is required")
+		return enverrors.New("INVALID_INPUT", "Backup directory is required")
 	}
 	path, err := filepath.Abs(p.backups)
 	if err != nil {
 		return err
 	}
 	if !outside(p.root, path) {
-		return e.New("INVALID_INPUT", "Backup directory must be outside checkout")
+		return enverrors.New("INVALID_INPUT", "Backup directory must be outside checkout")
 	}
 	if err = os.MkdirAll(path, 0700); err != nil {
 		return err
@@ -43,17 +45,18 @@ func (p *placement) backup(b []byte) error {
 		return err
 	}
 	if !outside(rootReal, pathReal) {
-		return e.New("INVALID_INPUT", "Backup directory must be outside checkout")
+		return enverrors.New("INVALID_INPUT", "Backup directory must be outside checkout")
 	}
 	name := fmt.Sprintf(".envden-backup-%d-%s", p.now(), uuid.NewString())
 	fd, err := openParent(path, name, false)
 	if err != nil {
 		return err
 	}
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	if err = unix.Fchmod(fd, 0700); err != nil {
 		return err
 	}
+
 	return writeAt(fd, name, b)
 }
 
@@ -65,7 +68,7 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 		days = maxAgeDays[0]
 	}
 	if math.IsNaN(days) || math.IsInf(days, 0) || days < 0 {
-		return e.New("INVALID_INPUT", "Invalid backup retention")
+		return enverrors.New("INVALID_INPUT", "Invalid backup retention")
 	}
 	st, err := os.Lstat(dir)
 	if os.IsNotExist(err) {
@@ -75,13 +78,13 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 		return err
 	}
 	if !st.IsDir() || st.Mode()&os.ModeSymlink != 0 {
-		return e.New("INVALID_INPUT", "Unsafe backup directory")
+		return enverrors.New("INVALID_INPUT", "Unsafe backup directory")
 	}
 	fd, err := openParent(dir, ".entry", false)
 	if err != nil {
 		return err
 	}
-	defer unix.Close(fd)
+	defer func() { _ = unix.Close(fd) }()
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
@@ -112,7 +115,7 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 		}
 		f := os.NewFile(uintptr(file), entry.Name())
 		info, err := f.Stat()
-		f.Close()
+		_ = f.Close()
 		if err != nil {
 			return err
 		}
@@ -126,5 +129,6 @@ func PruneBackups(dir string, now int64, maxAgeDays ...float64) error {
 			return descriptor(err)
 		}
 	}
+
 	return nil
 }

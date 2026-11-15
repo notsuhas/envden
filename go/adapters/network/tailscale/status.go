@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 var messages = map[string]string{
@@ -27,6 +27,7 @@ func unavailable(kind string) adapters.NetworkStatus {
 func object(raw json.RawMessage) (map[string]json.RawMessage, bool) {
 	var m map[string]json.RawMessage
 	err := json.Unmarshal(raw, &m)
+
 	return m, err == nil && m != nil
 }
 
@@ -36,6 +37,7 @@ func text(raw json.RawMessage) (string, bool) {
 		return "", false
 	}
 	err := json.Unmarshal(raw, &s)
+
 	return s, err == nil
 }
 
@@ -75,5 +77,6 @@ func parseStatus(stdout string) (adapters.NetworkStatus, error) {
 		s.Problem = problem("https-disabled")
 	}
 	s.Ready = s.Problem == nil
+
 	return s, nil
 }

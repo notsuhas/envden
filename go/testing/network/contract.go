@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func NetworkContract(t *testing.T, factory func(string) adapters.Network) {

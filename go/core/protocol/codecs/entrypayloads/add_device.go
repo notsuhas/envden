@@ -1,9 +1,9 @@
 package entrypayloads
 
 import (
-	epochs "github.com/notsuhas/envden/go/core/protocol/codecs/epochs"
-	members "github.com/notsuhas/envden/go/core/protocol/codecs/members"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/epochs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/members"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type AddDevice struct {
@@ -11,8 +11,8 @@ type AddDevice struct {
 	Wrap   epochs.Wrap
 }
 
-var AddDeviceCodec = b.NewCodec(func(r *b.Reader) AddDevice {
+var AddDeviceCodec = encoding.NewCodec(func(r *encoding.Reader) AddDevice {
 	return AddDevice{Device: members.DeviceRecordCodec.Read(r), Wrap: epochs.WrapCodec.Read(r)}
 }, func(v AddDevice) []byte {
-	return b.Concat(members.DeviceRecordCodec.Write(v.Device), epochs.WrapCodec.Write(v.Wrap))
+	return encoding.Concat(members.DeviceRecordCodec.Write(v.Device), epochs.WrapCodec.Write(v.Wrap))
 }, nil)

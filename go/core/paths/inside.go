@@ -21,8 +21,10 @@ func PlaceInRoot(root, target string) string {
 	if filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "outside"
 	}
+
 	return "inside"
 }
+
 func PlaceInRootWindows(root, target string) string {
 	r := path.Clean(strings.ToLower(strings.ReplaceAll(root, `\`, "/")))
 	t := path.Clean(strings.ToLower(strings.ReplaceAll(target, `\`, "/")))
@@ -32,5 +34,6 @@ func PlaceInRootWindows(root, target string) string {
 	if strings.HasPrefix(t, strings.TrimRight(r, "/")+"/") {
 		return "inside"
 	}
+
 	return "outside"
 }

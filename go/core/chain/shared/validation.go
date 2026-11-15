@@ -1,30 +1,40 @@
 package shared
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"errors"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func Check(ok bool) {
+func Check(ok bool) error {
 	if !ok {
-		panic(e.New(e.InvalidData, "Invalid chain data"))
+		return enverrors.New(enverrors.InvalidData, "Invalid chain data")
 	}
+
+	return nil
 }
 
-func ID(v []byte) string { return b.Base32(v) }
+func ID(v []byte) string { return encoding.Base32(v) }
 
-func Invalid(err error) bool { x, ok := err.(*e.Error); return ok && x.Code == e.InvalidData }
+func Invalid(err error) bool {
+	x := &enverrors.Error{}
+	ok := errors.As(err, &x)
 
-func Try[T any](fn func() T) (value T, err error) {
+	return ok && x.Code == enverrors.InvalidData
+}
+
+// Codec callbacks may panic; ordinary chain validation returns errors.
+func TryResult[T any](fn func() (T, error)) (value T, err error) {
 	defer func() {
-		if p := recover(); p != nil {
-			if e, ok := p.(error); ok {
-				err = e
+		if cause := recover(); cause != nil {
+			if failure, ok := cause.(error); ok {
+				err = failure
 			} else {
-				panic(p)
+				panic(cause)
 			}
 		}
 	}()
 
-	return fn(), nil
+	return fn()
 }

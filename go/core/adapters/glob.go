@@ -19,6 +19,7 @@ func globMatch(pattern, target string) bool {
 	if err != nil {
 		return false
 	}
+
 	return re.MatchString(target) != negate
 }
 
@@ -109,6 +110,7 @@ func globExpression(p []rune) (string, bool) {
 					return "", false
 				}
 				out.WriteString("(?:" + strings.Join(parts, "|") + ")")
+
 				return out.String(), true
 			}
 			part, ok := globExpression(p[start:j])
@@ -122,5 +124,6 @@ func globExpression(p []rune) (string, bool) {
 			out.WriteString(regexp.QuoteMeta(string(p[i])))
 		}
 	}
+
 	return out.String(), true
 }

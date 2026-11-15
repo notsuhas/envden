@@ -1,29 +1,33 @@
 package sqlite_test
 
 import (
-	db "github.com/notsuhas/envden/go/adapters/storage/sqlite"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	s "github.com/notsuhas/envden/go/testing/storage"
 	"testing"
+
+	adaptersstoragesqlite "github.com/notsuhas/envden/go/adapters/storage/sqlite"
+	coreadapters "github.com/notsuhas/envden/go/core/adapters"
+	testingstorage "github.com/notsuhas/envden/go/testing/storage"
 )
 
 func TestContract(t *testing.T) {
-	s.StorageContract(t, func(t *testing.T) s.Fixture {
+	testingstorage.StorageContract(t, func(t *testing.T) testingstorage.Fixture {
 		dir := t.TempDir()
-		var current a.Storage
-		open := func() a.Storage {
-			v, err := db.CreateSqliteStorageAdapter(dir, 0)
+		var current coreadapters.Storage
+		open := func() coreadapters.Storage {
+			v, err := adaptersstoragesqlite.CreateSqliteStorageAdapter(dir, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
 			current = v
+
 			return v
 		}
-		return s.Fixture{Storage: open(), Reopen: func() a.Storage {
+
+		return testingstorage.Fixture{Storage: open(), Reopen: func() coreadapters.Storage {
 			if err := current.Close(); err != nil {
 				t.Fatal(err)
 			}
+
 			return open()
-		}, Dispose: func() { current.Close() }}
+		}, Dispose: func() { _ = current.Close() }}
 	})
 }

@@ -2,48 +2,80 @@ package vault
 
 import (
 	"bytes"
-	a "github.com/notsuhas/envden/go/core/adapters"
-	repair "github.com/notsuhas/envden/go/core/chain/repair"
-	e "github.com/notsuhas/envden/go/core/errors"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	cr "github.com/notsuhas/envden/go/core/protocol/crypto"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/chain/repair"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/entrypayloads"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	authn "github.com/notsuhas/envden/go/server/auth"
-	x "github.com/notsuhas/envden/go/server/shared"
-	v "github.com/notsuhas/envden/go/server/vaultchain"
+	"github.com/notsuhas/envden/go/server/shared"
+	"github.com/notsuhas/envden/go/server/vaultchain"
 )
 
-func Commit(o x.Options, auth *x.Auth, swap m.Swap, digest []byte, mailbox *int) a.CommitResult {
-	return x.Transaction(o.Storage, func() a.CommitResult {
+func Commit(o shared.Options, auth *shared.Auth, swap manifests.Swap, digest []byte, mailbox *int) (adapters.CommitResult, error) {
+	return shared.Transaction(o.Storage, func() (adapters.CommitResult, error) {
 		r := auth.Request
 		id := r.VaultId
 		fresh := *auth
-		fresh.Member = v.Membership(o, id, r.Device) != nil
+		membership, err := vaultchain.Membership(o, id, r.Device)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
+
+		fresh.Member = membership != nil
 		auth = &fresh
-		stored := StoredSwap(swap, digest)
-		head := x.Must(o.Storage.Head(id))
+		stored, err := StoredSwap(swap, digest)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
+
+		head, err := o.Storage.Head(id)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
 		if head == nil {
-			x.Fail(e.Moving, "Import required")
+			return adapters.CommitResult{}, enverrors.New(enverrors.Moving, "Import required")
 		}
-		if x.Must(o.Storage.FindCommitted(id, digest)) {
-			return a.CommitResult{Kind: a.RetryOfCommitted}
+		findCommitted, err := o.Storage.FindCommitted(id, digest)
+		if err != nil {
+			return adapters.CommitResult{}, err
 		}
-		vault := x.Must(o.Storage.Vault(id))
+		if findCommitted {
+			return adapters.CommitResult{Kind: adapters.RetryOfCommitted}, nil
+		}
+		vault, err := o.Storage.Vault(id)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
+
 		op := swap.Header.Body.Op
 		if vault.ServerMoved != nil || vault.Frozen && op != 10 || !vault.Active && op != 10 {
-			x.Fail(e.Moving, "Vault moving")
+			return adapters.CommitResult{}, enverrors.New(enverrors.Moving, "Vault moving")
 		}
 		if !bytes.Equal(head, swap.ExpectedHead) {
-			return a.CommitResult{Kind: a.HeadMovedResult, Head: head}
+			return adapters.CommitResult{Kind: adapters.HeadMovedResult, Head: head}, nil
 		}
-		result, files, available := validate(o, auth, swap)
+		validate1, validate2, validate3, err := validate(o, auth, swap)
+		if err != nil {
+			return adapters.CommitResult{}, err
+		}
+
+		result, files, available := validate1, validate2, validate3
 		if vault.Restored != nil && op != 4 && op != 11 && op != 12 {
-			x.Fail(e.RestoredMode, "Repair required")
+			return adapters.CommitResult{}, enverrors.New(enverrors.RestoredMode, "Repair required")
 		}
-		authorize(o, auth, swap, result.Authorization, &stored, mailbox)
-		requireUploaded(files, swap, available)
+		if err := authorize(o, auth, swap, result.Authorization, &stored, mailbox); err != nil {
+			return adapters.CommitResult{}, err
+		}
+		if err := requireUploaded(files, swap, available); err != nil {
+			return adapters.CommitResult{}, err
+		}
 		if op == 12 {
-			closeRepair(o, auth, swap, &stored)
+			if err := closeRepair(o, auth, swap, &stored); err != nil {
+				return adapters.CommitResult{}, err
+			}
 		}
 		if swap.SkPub != nil {
 			next := *vault
@@ -53,12 +85,17 @@ func Commit(o x.Options, auth *x.Auth, swap m.Swap, digest []byte, mailbox *int)
 		if op == 10 {
 			next := *vault
 			if !vault.Active {
-				record := x.Must(o.Storage.State(id, a.StateMoveSession, []byte("registration")))
-				RequireMoveMaterial(o, id)
-				if record == nil {
-					x.Fail(e.Unauthorized, "Move registration required")
+				record, err := o.Storage.State(id, adapters.StateMoveSession, []byte("registration"))
+				if err != nil {
+					return adapters.CommitResult{}, err
 				}
-				stored.State = append(stored.State, a.StateWrite{Kind: a.StateOpaqueRecord, Key: []byte{}, Bytes: record}, a.StateWrite{Kind: a.StateMoveSession, Key: []byte{}}, a.StateWrite{Kind: a.StateMoveSession, Key: []byte("registration")})
+				if err := RequireMoveMaterial(o, id); err != nil {
+					return adapters.CommitResult{}, err
+				}
+				if record == nil {
+					return adapters.CommitResult{}, enverrors.New(enverrors.Unauthorized, "Move registration required")
+				}
+				stored.State = append(stored.State, adapters.StateWrite{Kind: adapters.StateOpaqueRecord, Key: []byte{}, Bytes: record}, adapters.StateWrite{Kind: adapters.StateMoveSession, Key: []byte{}}, adapters.StateWrite{Kind: adapters.StateMoveSession, Key: []byte("registration")})
 				next.Active = true
 				next.Frozen = false
 			} else {
@@ -69,47 +106,75 @@ func Commit(o x.Options, auth *x.Auth, swap m.Swap, digest []byte, mailbox *int)
 		}
 		registrant := r.Device
 		if !vault.Active {
-			registrant = x.Must(o.Storage.State(id, a.StateMoveSession, []byte{}))
+			state, err := o.Storage.State(id, adapters.StateMoveSession, []byte{})
+			if err != nil {
+				return adapters.CommitResult{}, err
+			}
+
+			registrant = state
 		}
-		committed := x.Must(o.Storage.CommitSwap(id, swap.ExpectedHead, stored, o.Now()))
-		if committed.Kind == a.Committed && registrant != nil && (swap.OpaqueRecord != nil || !vault.Active) {
-			authn.RefundRegistration(o, id, registrant)
+		committed, err := o.Storage.CommitSwap(id, swap.ExpectedHead, stored, o.Now())
+		if err != nil {
+			return adapters.CommitResult{}, err
 		}
-		return committed
+		if committed.Kind == adapters.Committed && registrant != nil && (swap.OpaqueRecord != nil || !vault.Active) {
+			if err := authn.RefundRegistration(o, id, registrant); err != nil {
+				return adapters.CommitResult{}, err
+			}
+		}
+
+		return committed, nil
 	})
 }
-func closeRepair(o x.Options, auth *x.Auth, swap m.Swap, stored *a.StoredSwap) {
+
+func closeRepair(o shared.Options, auth *shared.Auth, swap manifests.Swap, stored *adapters.StoredSwap) error {
 	r := auth.Request
-	vault := x.Must(o.Storage.Vault(r.VaultId))
+	vault, err := o.Storage.Vault(r.VaultId)
+	if err != nil {
+		return err
+	}
 	if vault.Restored == nil || len(swap.Entries) == 0 || swap.Entries[0].Body.Kind != 6 {
-		x.Fail(e.InvalidData, "Repair identity mismatch")
+		return enverrors.New(enverrors.InvalidData, "Repair identity mismatch")
 	}
-	done := swap.Entries[0].Body.Payload.(p.RepairDone)
+	done := swap.Entries[0].Body.Payload.(entrypayloads.RepairDone)
 	if !bytes.Equal(done.RestoredHead, vault.Restored.RestoredHead) || !bytes.Equal(done.RepairId, vault.Restored.FinishProgress) {
-		x.Fail(e.InvalidData, "Repair identity mismatch")
+		return enverrors.New(enverrors.InvalidData, "Repair identity mismatch")
 	}
-	history := v.RepairHistory(o, r.VaultId)
+	history, err := vaultchain.RepairHistory(o, r.VaultId)
+	if err != nil {
+		return err
+	}
+
 	purpose := "repair-finish"
 	message := "Finishing login required"
 	if repair.RepairLoginDecision(history) == "register" {
 		purpose = "registration-repair"
 		message = "Finishing registration required"
 	}
-	key := a.SessionKey{Kind: a.SessionLogin, Device: r.Device, Purpose: purpose}
-	login := x.Must(o.Storage.Session(r.VaultId, key, o.Now()))
+	key := adapters.SessionKey{Kind: adapters.SessionLogin, Device: r.Device, Purpose: purpose}
+	login, err := o.Storage.Session(r.VaultId, key, o.Now())
+	if err != nil {
+		return err
+	}
 	if login == nil || !bytes.Equal(login, vault.Restored.RepairTokenHash) {
-		x.Fail(e.Unauthorized, message)
+		return enverrors.New(enverrors.Unauthorized, message)
 	}
 	stored.ConsumeSessions = append(stored.ConsumeSessions, key)
-	envelope := x.Must(o.Storage.State(r.VaultId, a.StateEnvelope, []byte{}))
+	envelope, err := o.Storage.State(r.VaultId, adapters.StateEnvelope, []byte{})
+	if err != nil {
+		return err
+	}
+
 	next := *vault
 	next.Restored = nil
-	next.SKRefused = vault.SKRefused || repair.RefuseSecretKeyProof(history, envelope != nil && bytes.Equal(cr.H("envelope-blob", envelope), swap.Header.Body.EnvelopeHash))
+	next.SKRefused = vault.SKRefused || repair.RefuseSecretKeyProof(history, envelope != nil && bytes.Equal(crypto.H("envelope-blob", envelope), swap.Header.Body.EnvelopeHash))
 	stored.Vault = &next
 	stored.ClearRepairReports = true
 	period := int64(2592000000)
 	if vault.UnlockPeriod != nil {
 		period = *vault.UnlockPeriod
 	}
-	stored.Devices = []a.StoredDeviceState{{ID: r.Device, State: a.StoredDevice{UnlockedUntil: o.Now() + period, FreshUntil: o.Now() + 600000, ClientVersion: r.ClientVersion}}}
+	stored.Devices = []adapters.StoredDeviceState{{ID: r.Device, State: adapters.StoredDevice{UnlockedUntil: o.Now() + period, FreshUntil: o.Now() + 600000, ClientVersion: r.ClientVersion}}}
+
+	return nil
 }

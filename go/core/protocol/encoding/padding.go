@@ -12,6 +12,7 @@ func DecodePadded[T any](c Codec[T], data []byte) (T, error) {
 		for _, b := range rest {
 			RequireValue(b == 0, "Invalid padding")
 		}
+
 		return v
 	})
 }

@@ -18,6 +18,7 @@ func Base32(data []byte) string {
 	if bits > 0 {
 		out = append(out, alphabet[(value<<(5-bits))&31])
 	}
+
 	return string(out)
 }
 
@@ -31,11 +32,11 @@ func Unbase32(text string) ([]byte, error) {
 		for _, c := range strings.ToUpper(text) {
 			n := strings.IndexRune(alphabet, c)
 			RequireValue(n >= 0, "Invalid base32")
-			value = value<<5 | uint32(n)
+			value = value<<5 | uint32(n&31)
 			bits += 5
 			if bits >= 8 {
 				bits -= 8
-				out = append(out, byte(value>>bits))
+				out = append(out, byte((value>>bits)&255))
 			}
 		}
 		RequireValue(bits < 5 && (value&((1<<bits)-1)) == 0, "Noncanonical base32")

@@ -1,22 +1,22 @@
 package requests
 
 import (
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func SignRequest(request s.Request, sk []byte) (b.Signed[s.Request], error) {
-	return c.SignObject(s.RequestCodec, request, sk, "request")
+func SignRequest(request wire.Request, sk []byte) (encoding.Signed[wire.Request], error) {
+	return crypto.SignObject(wire.RequestCodec, request, sk, "request")
 }
 
-func VerifyRequest(v b.Signed[s.Request], pub, pin, body []byte, now uint64, nonceSeen bool) (c.Verification[s.Request], error) {
-	return VerifyRequestHash(v, pub, pin, c.SHA256(body), now, nonceSeen)
+func VerifyRequest(v encoding.Signed[wire.Request], pub, pin, body []byte, now uint64, nonceSeen bool) (crypto.Verification[wire.Request], error) {
+	return VerifyRequestHash(v, pub, pin, crypto.SHA256(body), now, nonceSeen)
 }
 
-func VerifyRequestHash(v b.Signed[s.Request], pub, pin, bodyHash []byte, now uint64, nonceSeen bool) (c.Verification[s.Request], error) {
-	if !b.Equal(v.Body.ServerPin, pin) || !b.Equal(v.Body.BodyHash, bodyHash) {
-		return c.Verification[s.Request]{Reason: "Request binding mismatch"}, nil
+func VerifyRequestHash(v encoding.Signed[wire.Request], pub, pin, bodyHash []byte, now uint64, nonceSeen bool) (crypto.Verification[wire.Request], error) {
+	if !encoding.Equal(v.Body.ServerPin, pin) || !encoding.Equal(v.Body.BodyHash, bodyHash) {
+		return crypto.Verification[wire.Request]{Reason: "Request binding mismatch"}, nil
 	}
 	valid := false
 	if v.Body.Time >= now {
@@ -25,7 +25,8 @@ func VerifyRequestHash(v b.Signed[s.Request], pub, pin, bodyHash []byte, now uin
 		valid = now-v.Body.Time < 300000
 	}
 	if !valid || nonceSeen {
-		return c.Verification[s.Request]{Reason: "Expired or replayed request"}, nil
+		return crypto.Verification[wire.Request]{Reason: "Expired or replayed request"}, nil
 	}
-	return c.VerifyObject(s.RequestCodec, v, pub, "request")
+
+	return crypto.VerifyObject(wire.RequestCodec, v, pub, "request")
 }

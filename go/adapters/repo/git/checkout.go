@@ -8,7 +8,7 @@ import (
 
 	"github.com/notsuhas/envden/go/adapters/repo/git/internal/fsmeta"
 	"github.com/notsuhas/envden/go/core/adapters"
-	errors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func checkoutAt(path string, resolve func(string) (string, error)) (*adapters.Checkout, error) {
@@ -25,6 +25,7 @@ func checkoutAt(path string, resolve func(string) (string, error)) (*adapters.Ch
 		if exitCode(err) >= 0 {
 			return nil, nil
 		}
+
 		return nil, err
 	}
 	root = strings.TrimRight(root, " \t\r\n")
@@ -88,8 +89,9 @@ func checkoutAt(path string, resolve func(string) (string, error)) (*adapters.Ch
 		return nil, err
 	}
 	identity := fmt.Sprintf("%d:%d:%s:%d:%s", ddev, dino, dbirth, rino, rbirth)
-	device := int64(rdev)
+	device := int64(rdev) //nolint:gosec // G115: device identity preserves the OS bit pattern used by TS.
 	registered := registeredWorktree(root, gitDir)
+
 	return &adapters.Checkout{Root: root, RepoID: id, GitDir: gitDir, UpstreamRepoID: upstream, Identity: &identity, RootDevice: &device, RegisteredWorktree: &registered}, nil
 }
 
@@ -97,6 +99,7 @@ func resolvePath(root, path string) string {
 	if filepath.IsAbs(path) {
 		return filepath.Clean(path)
 	}
+
 	return filepath.Join(root, path)
 }
 
@@ -141,6 +144,7 @@ func registeredWorktree(root, common string) bool {
 		return false
 	}
 	real, err := filepath.EvalSymlinks(dotgit)
+
 	return err == nil && back == real
 }
 
@@ -155,6 +159,7 @@ func worktrees(run func([]string) (string, error)) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return worktreePaths(out, sep), nil
 }
 
@@ -177,6 +182,7 @@ func worktreePaths(output, sep string) []string {
 			}
 		}
 	}
+
 	return paths
 }
 
@@ -187,5 +193,6 @@ func submodulePaths(out string) []string {
 			paths = append(paths, r[strings.Index(r, "\n")+1:])
 		}
 	}
+
 	return paths
 }

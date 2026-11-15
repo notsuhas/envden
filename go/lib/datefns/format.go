@@ -57,6 +57,7 @@ func Format(date time.Time, pattern string) string {
 			pattern = pattern[1:]
 		}
 	}
+
 	return result.String()
 }
 
@@ -65,5 +66,6 @@ func InZone(ms int64, zone string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
+
 	return time.UnixMilli(ms).In(location), nil
 }

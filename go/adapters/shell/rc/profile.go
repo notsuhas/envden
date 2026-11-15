@@ -34,8 +34,10 @@ func bashRCPath(home, platform string) string {
 					return filepath.Join(home, ".bashrc")
 				}
 			}
+
 			return filepath.Join(home, name)
 		}
 	}
+
 	return filepath.Join(home, ".bash_profile")
 }

@@ -8,14 +8,16 @@ import (
 	"regexp"
 	"unicode/utf16"
 
-	e "github.com/notsuhas/envden/go/core/errors"
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 type rule func(any) bool
+
 type field struct {
 	validate rule
 	optional bool
 }
+
 type Schema[T any] struct{ validate rule }
 
 func (s Schema[T]) Decode(raw []byte) (out T, err error) {
@@ -23,13 +25,14 @@ func (s Schema[T]) Decode(raw []byte) (out T, err error) {
 	dec.UseNumber()
 	var v any
 	if err = dec.Decode(&v); err != nil {
-		return out, e.Wrap(e.InvalidData, "Invalid protocol data", err)
+		return out, enverrors.Wrap(enverrors.InvalidData, "Invalid protocol data", err)
 	}
 	if dec.Decode(new(any)) != io.EOF || !s.validate(v) {
-		return out, e.New(e.InvalidData, "Invalid protocol data")
+		return out, enverrors.New(enverrors.InvalidData, "Invalid protocol data")
 	}
 	normalized, _ := json.Marshal(normalizeNumbers(v))
 	err = json.Unmarshal(normalized, &out)
+
 	return
 }
 
@@ -50,12 +53,14 @@ func object(fields map[string]field) rule {
 				if f.optional {
 					continue
 				}
+
 				return false
 			}
 			if !f.validate(x) {
 				return false
 			}
 		}
+
 		return true
 	}
 }
@@ -108,6 +113,7 @@ func enum(values ...string) rule {
 				return true
 			}
 		}
+
 		return false
 	}
 }
@@ -119,6 +125,7 @@ func union(rules ...rule) rule {
 				return true
 			}
 		}
+
 		return false
 	}
 }
@@ -134,6 +141,7 @@ func array(item rule) rule {
 				return false
 			}
 		}
+
 		return true
 	}
 }

@@ -8,11 +8,11 @@ import (
 	"reflect"
 	"testing"
 
-	ct "github.com/notsuhas/envden/go/core/protocol/codecs/content"
-	ce "github.com/notsuhas/envden/go/core/protocol/codecs/epochs"
-	cs "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	c "github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/content"
+	coreprotocolcodecsepochs "github.com/notsuhas/envden/go/core/protocol/codecs/epochs"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/protocol/crypto"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/envelope"
 	"github.com/notsuhas/envden/go/core/protocol/epochs"
 	"github.com/notsuhas/envden/go/core/protocol/files"
@@ -26,6 +26,7 @@ func must[T any](v T, err error) T {
 	if err != nil {
 		panic(err)
 	}
+
 	return v
 }
 
@@ -39,6 +40,7 @@ func load[T any](t *testing.T, file string) T {
 	if err = json.Unmarshal(raw, &v); err != nil {
 		t.Fatal(err)
 	}
+
 	return v
 }
 
@@ -49,6 +51,7 @@ func rng(n int) []byte {
 	for i := range v {
 		v[i] = byte(i)
 	}
+
 	return v
 }
 
@@ -79,15 +82,15 @@ func vs(v map[string]json.RawMessage, k string) string {
 
 func vb(v map[string]json.RawMessage, k string) []byte { return from(vs(v, k)) }
 
-func request(t *testing.T) cs.Request {
+func request(t *testing.T) wire.Request {
 	v := vector(t)
 
-	return cs.Request{
+	return wire.Request{
 		ServerPin:     vb(v, "serverPin"),
 		VaultId:       vb(v, "vaultId"),
 		Method:        "POST",
 		PathAndQuery:  "/swap",
-		BodyHash:      c.SHA256(vb(v, "key")),
+		BodyHash:      crypto.SHA256(vb(v, "key")),
 		Time:          1,
 		Nonce:         vb(v, "secret"),
 		Device:        vb(v, "deviceId"),
@@ -122,30 +125,30 @@ func TestProtocolVectors(t *testing.T) {
 	fid := must(files.FileID(key, "repo", "folder/.env"))
 	check("fileId", fid)
 	ctx := files.FileContext{VaultId: vault, Epoch: 1, FileId: fid, Version: 1}
-	file := ct.File{RepoId: "repo", Path: "folder/.env", Content: []byte("SECRET=value\n")}
-	name := ct.FileName{RepoId: file.RepoId, Path: file.Path}
+	file := content.File{RepoId: "repo", Path: "folder/.env", Content: []byte("SECRET=value\n")}
+	name := content.FileName{RepoId: file.RepoId, Path: file.Path}
 	check("fileBox", must(files.SealFile(file, key, ctx, rng)))
 	check("fileNameBox", must(files.SealFileName(name, key, ctx, rng)))
 	eq(t, must(files.OpenFileName(vb(v, "fileNameBox"), key, key, ctx)), name)
-	eq(t, must(files.OpenFile(vb(v, "fileBox"), key, key, ctx, c.H("blob", vb(v, "fileBox")), name)), file)
-	check("fileKey", c.KDF(key, vault, "file-key", fid))
-	check("keyringKey", c.KDF(key, vault, "keyring-key", b.U32.Write(1)))
-	kr := ce.Keyring{VaultId: vault, Epoch: 1, IdKey: key, Older: []ce.OlderKey{}}
+	eq(t, must(files.OpenFile(vb(v, "fileBox"), key, key, ctx, crypto.H("blob", vb(v, "fileBox")), name)), file)
+	check("fileKey", crypto.KDF(key, vault, "file-key", fid))
+	check("keyringKey", crypto.KDF(key, vault, "keyring-key", encoding.U32.Write(1)))
+	kr := coreprotocolcodecsepochs.Keyring{VaultId: vault, Epoch: 1, IdKey: key, Older: []coreprotocolcodecsepochs.OlderKey{}}
 	check("keyringBox", must(keyring.SealKeyring(kr, key, rng)))
 	commits := map[int][]byte{1: must(epochs.KeyCommit(key, vault, 1))}
 	eq(t, must(keyring.OpenKeyring(vb(v, "keyringBox"), key, vault, 1, commits, key)), kr)
 	env := must(envelope.OpenEnvelope(vb(v, "envelopeBox"), "password", secret, vault))
 	check("envelopeBox", must(envelope.SealEnvelope(env, "password", secret, rng)))
-	check("envelopeKey", c.KDF(b.Concat(must(envelope.PasswordKey("password", secret)), secret), vault, "envelope-key"))
-	check("signature", must(c.Sign(key, "entry", key)))
-	check("repairId", c.H("repair-id", token))
+	check("envelopeKey", crypto.KDF(encoding.Concat(must(envelope.PasswordKey("password", secret)), secret), vault, "envelope-key"))
+	check("signature", must(crypto.Sign(key, "entry", key)))
+	check("repairId", crypto.H("repair-id", token))
 	req := request(t)
 	check("setupProof", must(proofs.TokenProof("setup", must(proofs.TokenKey("setup", token)), req)))
 	check("repairProof", must(proofs.TokenProof("repair", must(proofs.TokenKey("repair", token)), req)))
 	check("skProof", must(proofs.SignSKProof(secret, vault, req)))
 	var wrap map[string]string
 	must(0, json.Unmarshal(v["wrap"], &wrap))
-	w := ce.Wrap{Recipient: from(wrap["recipient"]), Enc: from(wrap["enc"]), Ct: from(wrap["ct"])}
+	w := coreprotocolcodecsepochs.Wrap{Recipient: from(wrap["recipient"]), Enc: from(wrap["enc"]), Ct: from(wrap["ct"])}
 	eq(t, w.Enc, keysD.EncPub)
 	eq(t, must(epochs.OpenWrap(w, keysD.EncSk, keysD.EncPub, vault, 1, commits[1])), key)
 	randomWrap := must(epochs.SealWrap(key, vault, 1, w.Recipient, keysD.EncPub))

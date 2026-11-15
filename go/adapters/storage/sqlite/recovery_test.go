@@ -3,10 +3,11 @@ package sqlite
 import (
 	"bytes"
 	"encoding/hex"
-	a "github.com/notsuhas/envden/go/core/adapters"
 	"os"
 	"path/filepath"
 	"testing"
+
+	coreadapters "github.com/notsuhas/envden/go/core/adapters"
 )
 
 func TestRecovery(t *testing.T) {
@@ -31,9 +32,9 @@ func TestRecovery(t *testing.T) {
 				first := open(t, dir)
 				check(t, first.PutBlob(v, h, content, nil, 0, 0))
 				if scenario == "delete" {
-					first.run("DELETE FROM blobs; DELETE FROM blob_usage")
+					runSQL(t, first, "DELETE FROM blobs; DELETE FROM blob_usage")
 				}
-				first.run("INSERT INTO blob_garbage VALUES(?,?)", v, h)
+				runSQL(t, first, "INSERT INTO blob_garbage VALUES(?,?)", v, h)
 				check(t, first.Close())
 			}
 			db := open(t, dir)
@@ -58,20 +59,20 @@ func TestRecovery(t *testing.T) {
 func TestGarbageRetriesFailedUnlink(t *testing.T) {
 	db := open(t, t.TempDir())
 	v, h := b(1), b(2)
-	check(t, db.ConfigureVault(v, a.StoredVault{}, nil, nil))
+	check(t, db.ConfigureVault(v, coreadapters.StoredVault{}, nil, nil))
 	check(t, db.PutBlob(v, h, b(3), nil, 0, 0))
 	path := db.blobPath(v, h)
 	check(t, os.Remove(path))
 	check(t, os.Mkdir(path, 0700))
 	check(t, db.Transaction(func() error { return db.DiscardInactiveVault(v) }))
-	if db.count("SELECT COUNT(*) FROM blob_garbage") != 1 {
+	if countRows(t, db, "SELECT COUNT(*) FROM blob_garbage") != 1 {
 		t.Fatal("failed unlink was not retained")
 	}
 	check(t, os.Remove(path))
 	check(t, os.WriteFile(path, b(3), 0600))
-	_, err := db.Prune(v, a.HistoryPolicy{MinVersions: 1}, 0)
+	_, err := db.Prune(v, coreadapters.HistoryPolicy{MinVersions: 1}, 0)
 	check(t, err)
-	if db.count("SELECT COUNT(*) FROM blob_garbage") != 0 {
+	if countRows(t, db, "SELECT COUNT(*) FROM blob_garbage") != 0 {
 		t.Fatal("garbage was not retried")
 	}
 	if _, err = os.Stat(path); !os.IsNotExist(err) {

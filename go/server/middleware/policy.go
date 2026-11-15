@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	e "github.com/notsuhas/envden/go/core/errors"
-	x "github.com/notsuhas/envden/go/server/shared"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	enverrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 type Route struct {
@@ -53,16 +53,19 @@ func Match(method, path string) *Route {
 			return &route
 		}
 	}
+
 	return nil
 }
-func RequestRoute(r *http.Request) *Route {
+
+func RequestRoute(r *http.Request) (*Route, error) {
 	route := Match(r.Method, r.URL.EscapedPath())
 	if route == nil {
-		x.Fail(e.NotFound, "Unknown route")
+		return nil, enverrors.New(enverrors.NotFound, "Unknown route")
 	}
 	length, _ := strconv.ParseFloat(r.Header.Get("Content-Length"), 64)
 	if route.Limit == 0 && (r.Body != nil && r.Body != http.NoBody || length > 0) {
-		x.Fail(e.InvalidInput, "Request body not allowed")
+		return nil, enverrors.New(enverrors.InvalidInput, "Request body not allowed")
 	}
-	return route
+
+	return route, nil
 }

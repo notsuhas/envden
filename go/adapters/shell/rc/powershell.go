@@ -39,5 +39,6 @@ func powerShellProfile(run func(string, []string, process.Options) (string, erro
 	if len(candidates) > 0 {
 		return candidates[0]
 	}
+
 	return ""
 }

@@ -18,13 +18,16 @@ func Make(fd int) (*term.State, error) {
 	}
 	raw, err := unix.IoctlGetTermios(fd, readTermios)
 	if err != nil {
-		term.Restore(fd, state)
+		_ = term.Restore(fd, state)
+
 		return nil, err
 	}
 	raw.Oflag = original.Oflag
 	if err = unix.IoctlSetTermios(fd, writeTermios, raw); err != nil {
-		term.Restore(fd, state)
+		_ = term.Restore(fd, state)
+
 		return nil, err
 	}
+
 	return state, nil
 }
