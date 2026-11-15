@@ -18,6 +18,8 @@ test("expired state backups and interrupted writes are removed without losing li
     `state/record.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
     `state/attempts/record.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
     `state/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
+    `state/blobs/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
+    `state/file-lists/.${expiredAt}_12345678-abcd-4000-8000-000000000000.tmp`,
     `base/file.pending.corrupt-${expiredAt}_12345678-abcd-4000-8000-000000000000`,
   ];
 

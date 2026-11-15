@@ -2,7 +2,14 @@ import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 
 export async function pruneBackups(home: string, now: number): Promise<void> {
-  for (const directory of ["state", "state/attempts", "base", "conflicts/backups"])
+  for (const directory of [
+    "state",
+    "state/attempts",
+    "state/blobs",
+    "state/file-lists",
+    "base",
+    "conflicts/backups",
+  ])
     await pruneDirectory(join(home, directory), now);
 }
 
