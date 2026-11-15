@@ -10,12 +10,8 @@ describe("nextStep", () => {
 
 describe("stepDuration", () => {
   test("holds longest on the final state", () => {
-    const durations = TRIP_PHASES.map((_, step) => stepDuration(step, false));
+    const durations = TRIP_PHASES.map((_, step) => stepDuration(step));
 
-    expect(Math.max(...durations)).toBe(stepDuration(TRIP_PHASES.length - 1, false));
-  });
-
-  test("a picked step is held longer than the same step in the loop", () => {
-    expect(stepDuration(1, true)).toBeGreaterThan(stepDuration(1, false));
+    expect(Math.max(...durations)).toBe(stepDuration(TRIP_PHASES.length - 1));
   });
 });

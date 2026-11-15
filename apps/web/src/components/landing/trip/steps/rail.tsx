@@ -1,6 +1,5 @@
 "use client";
 
-import { echoAction } from "@/components/landing/chrome/action.ts";
 import { TRIP_STEPS } from "@/components/landing/trip/steps/content.ts";
 import type { TTripPhase } from "@/components/landing/trip/state/phases.ts";
 
@@ -10,11 +9,10 @@ interface IStepRail {
   durationMs: number;
   running: boolean;
   showAll: boolean;
-  onJump: (phase: TTripPhase) => void;
 }
 
 export function StepRail(props: IStepRail) {
-  const { phase, beat, durationMs, running, showAll, onJump } = props;
+  const { phase, beat, durationMs, running, showAll } = props;
   const current = TRIP_STEPS.findIndex((step) => step.phase === phase);
 
   return (
@@ -22,14 +20,9 @@ export function StepRail(props: IStepRail) {
       <ol className="den-tabs grid grid-cols-5 border border-den-ink bg-den-ground">
         {TRIP_STEPS.map((step, index) => (
           <li key={step.phase} className="border-l border-den-line-strong first:border-l-0">
-            <button
-              type="button"
-              onClick={() => {
-                onJump(step.phase);
-                echoAction(`step ${index + 1}/5: ${step.label.toLowerCase()}`);
-              }}
+            <div
               aria-current={index === current ? "step" : undefined}
-              className="den-tab relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden font-mono text-[11px] text-den-muted -outline-offset-2 transition-[color,background-color] duration-150 ease-out hover:bg-den-surface hover:text-den-ink active:bg-den-raised aria-[current=step]:text-den-lantern sm:text-xs"
+              className="den-tab relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden font-mono text-[11px] text-den-muted transition-colors duration-150 ease-out aria-[current=step]:text-den-lantern sm:text-xs"
             >
               {index === current && !showAll ? (
                 <span
@@ -42,7 +35,7 @@ export function StepRail(props: IStepRail) {
               ) : null}
               <span className="relative hidden tabular-nums opacity-60 sm:inline">{index + 1}</span>
               <span className="relative">{step.label}</span>
-            </button>
+            </div>
           </li>
         ))}
       </ol>

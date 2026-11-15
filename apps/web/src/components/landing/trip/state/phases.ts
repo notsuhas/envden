@@ -10,13 +10,8 @@ const STEP_MS: Record<TTripPhase, number> = {
   opened: 3200,
 };
 
-const PICKED_HOLD_MS = 2600;
-
-// a step the reader picked stays up a little longer before the loop moves on
-export function stepDuration(step: number, picked: boolean): number {
-  const phase = TRIP_PHASES[step] ?? "written";
-
-  return STEP_MS[phase] + (picked ? PICKED_HOLD_MS : 0);
+export function stepDuration(step: number): number {
+  return STEP_MS[TRIP_PHASES[step] ?? "written"];
 }
 
 export function nextStep(step: number): number {
