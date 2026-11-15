@@ -10,7 +10,7 @@ import { currentMaterial } from "../shared/material.ts";
 import { optionalObject } from "../shared/transfer.ts";
 import { text } from "../../client/encoding.ts";
 import { adminSwap } from "../shared/swap.ts";
-import { localTime } from "../../output/time.ts";
+import { whenText } from "../../time/format.ts";
 
 export async function fixLost(
   context: TAdminContext,
@@ -90,7 +90,7 @@ export async function fixLost(
     }
 
     report.push(
-      `${name.repoId}/${name.path}: ${state === 3 && candidate.kind === "recovered" ? `recovered from ${localTime(Number(candidate.header.createdAt))}` : "lost; no verified older copy"}`,
+      `${name.repoId}/${name.path}: ${state === 3 && candidate.kind === "recovered" ? `recovered from ${whenText(Number(candidate.header.createdAt), context.now())}` : "lost; no verified older copy"}`,
     );
 
     entries.push({

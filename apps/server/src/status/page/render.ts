@@ -1,4 +1,4 @@
-import { formatBytes, formatUptime } from "./format.ts";
+import { formatBytes, formatUptime, formatWhen } from "./format.ts";
 import { style } from "./style.ts";
 import type { TQuotaBand, TServerMode, TStatusResponse } from "@envden/core/protocol";
 
@@ -29,13 +29,13 @@ function row(label: string, value: string, alarm = false) {
   return `<dt>${escape(label)}</dt><dd${alarm ? ' class="alarm"' : ""}>${escape(value)}</dd>`;
 }
 
-function pruneText(prune: TStatusResponse["lastPrune"]) {
+function pruneText(prune: TStatusResponse["lastPrune"], now: number) {
   if (!prune) return "not yet";
 
-  return `${prune.at.replace("T", " ").replace(/\.\d+Z$/, " UTC")}, ${prune.ok ? "succeeded" : "failed"}`;
+  return `${formatWhen(prune.at, now)}, ${prune.ok ? "succeeded" : "failed"}`;
 }
 
-export function renderStatusPage(status: TStatusResponse): string {
+export function renderStatusPage(status: TStatusResponse, now: number): string {
   const rows = [
     row("Version", status.version),
     row("Uptime", formatUptime(status.uptimeSeconds)),
@@ -45,7 +45,7 @@ export function renderStatusPage(status: TStatusResponse): string {
     ...(status.fullestVault
       ? [row("Fullest vault", bands[status.fullestVault], status.fullestVault === "95-plus")]
       : []),
-    row("Last prune", pruneText(status.lastPrune), status.lastPrune?.ok === false),
+    row("Last prune", pruneText(status.lastPrune, now), status.lastPrune?.ok === false),
   ];
 
   return `<!doctype html>

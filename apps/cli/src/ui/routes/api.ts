@@ -49,10 +49,10 @@ export function apiRoutes(adapters: TAdapters, now: () => number) {
         fetcher: adapters.fetcher,
       });
 
-      const file: IHistoryView | undefined = result.files[0];
+      const file = result.files[0];
       if (!file) throw new EnvdenError("NOT_FOUND", "File is not in an approved checkout");
 
-      return c.json(file);
+      return c.json({ ...file, checkedAt: now() } satisfies IHistoryView);
     })
     .post("/history/restore", async (c) => {
       const input = parseInput(restoreInputSchema, await body(c.req), "Choose a version");

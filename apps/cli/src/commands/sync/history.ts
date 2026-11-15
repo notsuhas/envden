@@ -31,7 +31,7 @@ export const historyCommand = new Command("history")
         all: !!options.all,
       });
 
-      console.log(options.json ? terminalJson(result) : historyText(result));
+      console.log(options.json ? terminalJson(result) : historyText(result, Date.now()));
 
       return;
     }

@@ -15,7 +15,7 @@ test.each([
   [{ kind: "until", until: now + day }, `<${day}> (in 1 day)`],
   [{ kind: "until", until: now + 5 * 60 * minute }, `<${5 * 60 * minute}> (in 5 hours)`],
   [{ kind: "until", until: now + 80 * 1000 }, "<80000> (in 1 minute)"],
-  [{ kind: "until", until: now + 1000 }, "<1000> (in under a minute)"],
+  [{ kind: "until", until: now + 1000 }, "<1000> (in 1 second)"],
   [{ kind: "until", until: now }, "locked — run envden unlock in a terminal"],
   [{ kind: "never" }, "never expires"],
   [{ kind: "locked" }, "locked — run envden unlock in a terminal"],

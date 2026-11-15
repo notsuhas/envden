@@ -90,6 +90,7 @@ export interface IVersionView {
 }
 
 export interface IHistoryView {
+  checkedAt: number;
   repoId: string;
   path: string;
   pruned: boolean;

@@ -24,6 +24,6 @@ export function registerStatus(app: Hono<TServerEnv>, options: IAppOptions, stat
   }
 
   return app
-    .get("/", (c) => c.html(renderStatusPage(admit(c))))
+    .get("/", (c) => c.html(renderStatusPage(admit(c), options.now())))
     .get("/v1/status", (c) => c.json(admit(c)));
 }

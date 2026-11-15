@@ -86,9 +86,9 @@ test("history lists versions newest first with devices and key names only", asyn
       },
     ]);
 
-    const text = historyText(result);
+    const text = historyText(result, f.now());
     expect(text).toContain("v3");
-    expect(historyText(result, "Asia/Kolkata")).toContain("GMT+5:30");
+    expect(historyText(result, f.now(), "Asia/Kolkata")).toContain("GMT+5:30");
     expect(text).toContain("<- current");
     expectNoValues(text);
     expectNoValues(terminalJson(result));
@@ -188,7 +188,7 @@ test("pruned lists and blobs end the history", async () => {
 
     const headOnly = await list(missing(lists.slice(1)), f.second, f.checkoutB.root);
     expect(headOnly.files[0]!.versions).toEqual([{ version: 3, kind: "live", changes: "unknown" }]);
-    expect(historyText(headOnly)).toContain("older versions pruned");
+    expect(historyText(headOnly, f.now())).toContain("older versions pruned");
   } finally {
     await f.cleanup();
   }

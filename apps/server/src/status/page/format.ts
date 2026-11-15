@@ -1,3 +1,6 @@
+import { format, formatDistanceStrict, formatDuration, intervalToDuration } from "date-fns";
+import { TZDate } from "@date-fns/tz";
+
 const units = ["B", "KiB", "MiB", "GiB", "TiB"];
 
 export function formatBytes(bytes: number): string {
@@ -8,12 +11,17 @@ export function formatBytes(bytes: number): string {
 }
 
 export function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+  const units = ["days", "hours", "minutes"] as const;
 
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
+  const text = formatDuration(intervalToDuration({ start: 0, end: seconds * 1000 }), {
+    format: [...units],
+  });
 
-  return `${minutes}m`;
+  return text || "under a minute";
+}
+
+export function formatWhen(utc: string, now: number): string {
+  const relative = formatDistanceStrict(new Date(utc), now, { addSuffix: true });
+
+  return `${relative} (${format(new TZDate(utc, "UTC"), "yyyy-MM-dd HH:mm")} UTC)`;
 }

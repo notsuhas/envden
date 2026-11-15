@@ -1,3 +1,4 @@
+import { format, formatDistanceStrict } from "date-fns";
 import type {
   IFileView,
   IHistoryView,
@@ -29,8 +30,6 @@ export interface IHistoryActions {
   close: () => void;
 }
 
-const stamp: Intl.DateTimeFormatOptions = { dateStyle: "medium", timeStyle: "short" };
-
 export function historyPane(pane: IHistoryPane, actions: IHistoryActions): HTMLElement {
   const { root, file, history } = pane;
   const current = history.checkouts.find((checkout) => checkout.root === root)?.version;
@@ -43,7 +42,7 @@ export function historyPane(pane: IHistoryPane, actions: IHistoryActions): HTMLE
         ? [el("span", { className: "chip", text: "current", data: { tone: "warm" } })]
         : []),
     ]),
-    el("span", { className: "mono muted", text: when(version) }),
+    el("span", { className: "mono muted", text: when(version, history.checkedAt) }),
     el("span", { text: origin(version) }),
     versionChanges(version),
     restorable(version, current, block)
@@ -79,8 +78,10 @@ function restorable(version: IVersionView, current: number | undefined, block?: 
   );
 }
 
-function when(version: IVersionView) {
-  return version.time ? new Date(version.time).toLocaleString(undefined, stamp) : "unknown time";
+function when(version: IVersionView, now: number) {
+  if (!version.time) return "unknown time";
+
+  return `${formatDistanceStrict(new Date(version.time), now, { addSuffix: true })} · ${format(new Date(version.time), "PP p")}`;
 }
 
 function origin(version: IVersionView) {
