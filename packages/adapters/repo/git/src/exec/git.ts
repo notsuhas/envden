@@ -1,5 +1,5 @@
 import { emptyGlobalConfig } from "./config.ts";
-import { EnvdenError } from "@envden/core/errors";
+import { globalConfig, type TConfigEntry } from "./global-config.ts";
 import { execTrusted as exec } from "@envden/core/process";
 
 const safeConfig = [
@@ -18,9 +18,13 @@ export async function git(root: string, args: string[], input?: string): Promise
   return (await gitSession(root))(args, input);
 }
 
-export async function gitSession(root: string) {
-  const config = await emptyGlobalConfig();
-  const directories = await safeDirectories();
+export async function gitSession(root: string, config: TConfigEntry[] = []) {
+  const emptyConfig = await emptyGlobalConfig();
+
+  const directories = (await globalConfig("^safe\\.directory$")).flatMap(([key, value]) => [
+    "-c",
+    `${key}=${value}`,
+  ]);
 
   return async (args: string[], input?: string): Promise<string> => {
     const { stdout } = await exec(
@@ -40,7 +44,8 @@ export async function gitSession(root: string) {
           GIT_OPTIONAL_LOCKS: "0",
           GIT_PAGER: "cat",
           GIT_CONFIG_NOSYSTEM: "1",
-          GIT_CONFIG_GLOBAL: config,
+          GIT_CONFIG_GLOBAL: emptyConfig,
+          ...configEnvironment(config),
         },
       },
     );
@@ -49,30 +54,15 @@ export async function gitSession(root: string) {
   };
 }
 
-async function safeDirectories() {
-  try {
-    const { stdout } = await exec(
-      "git",
-      ["config", "--global", "--null", "--get-all", "safe.directory"],
-      {
-        env: { GIT_CONFIG_NOSYSTEM: "1" },
-      },
-    );
+// Env pairs, unlike -c, keep keys that contain "=" intact.
+function configEnvironment(config: TConfigEntry[]): Record<string, string> {
+  if (config.length === 0) return {};
 
-    return stdout
-      .split("\0")
-      .filter(Boolean)
-      .flatMap((path) => ["-c", `safe.directory=${path}`]);
-  } catch (error) {
-    if (
-      error instanceof EnvdenError &&
-      error.cause &&
-      typeof error.cause === "object" &&
-      "exitCode" in error.cause &&
-      error.cause.exitCode === 1
-    )
-      return [];
-
-    throw error;
-  }
+  return Object.fromEntries([
+    ["GIT_CONFIG_COUNT", String(config.length)],
+    ...config.flatMap(([key, value], index) => [
+      [`GIT_CONFIG_KEY_${index}`, key],
+      [`GIT_CONFIG_VALUE_${index}`, value],
+    ]),
+  ]);
 }

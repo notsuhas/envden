@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 import { normalizeRepoId } from "../repo-id/normalize.ts";
 import { registeredWorktree } from "./registration.ts";
 import { remoteParts } from "../repo-id/remote.ts";
+import { remoteUrl } from "../repo-id/remote-url.ts";
 
 export async function checkoutAt(
   path: string,
@@ -42,7 +43,7 @@ export async function checkoutAt(
       : undefined;
 
   if (!name) throw new EnvdenError("INVALID_INPUT", "Choose a git remote for this checkout");
-  const remote = (await git(root, ["remote", "get-url", name])).trim();
+  const remote = await remoteUrl(root, name);
   const parts = remoteParts(remote);
   const repoId = normalizeRepoId(remote, parts.ssh ? await resolveHost(parts.host) : undefined);
   const common = (await git(root, ["rev-parse", "--git-common-dir"])).trimEnd();
@@ -68,7 +69,7 @@ export async function checkoutAt(
 }
 
 async function upstreamId(root: string, resolveHost: (host: string) => Promise<string>) {
-  const remote = (await git(root, ["remote", "get-url", "upstream"])).trim();
+  const remote = await remoteUrl(root, "upstream");
   const parts = remoteParts(remote);
 
   return normalizeRepoId(remote, parts.ssh ? await resolveHost(parts.host) : undefined);
