@@ -5,8 +5,8 @@ pub fn stable_executable(path: &str) -> String {
         return paths.1;
     }
     for pattern in [
-        r"(?i)^([a-z]:/.*/scoop/apps/envden/)[^\/]+(/)",
-        r"(?i)^([a-z]:\\.*\\scoop\\apps\\envden\\)[^\/]+(\\)",
+        r"(?i)^([a-z]:/.*/scoop/apps/envden/)[^\\/]+(/)",
+        r"(?i)^([a-z]:\\.*\\scoop\\apps\\envden\\)[^\\/]+(\\)",
     ] {
         let pattern = Regex::new(pattern).unwrap();
         if pattern.is_match(path) {
@@ -111,6 +111,8 @@ mod tests {
     fn stable_scoop_paths_require_consistent_separators_and_ts_greediness() {
         for path in [
             r"C:/a/scoop/apps/envden/1\envden.exe",
+            r"C:/a/scoop/apps/envden/1\nested/envden.exe",
+            r"C:\a\scoop\apps\envden\1/nested\envden.exe",
             r"C:\a/scoop/apps/envden/1/envden.exe",
         ] {
             assert_eq!(stable_executable(path), path);
