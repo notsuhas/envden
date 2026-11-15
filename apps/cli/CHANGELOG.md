@@ -1,5 +1,14 @@
 # @envden/cli
 
+## 0.3.6
+
+### Patch Changes
+
+- c9dfe28: Work with dotfiles setups where config paths are symlinks. Setup no longer fails when `~/.claude/skills` and `~/.agents/skills` are the same folder, and a skill or shell notice that can't be installed is now a warning. The agent skill, shell notice and login service write through symlinks to their dotfiles targets, checkout scans follow symlinked folders such as `~/Work` on another disk, and `ENVDEN_HOME` can be a symlink.
+- fdb2bde: Save the recovery kit as a printable PDF in Downloads instead of printing the secret key to the terminal. `--kit-out` still writes JSON for scripts.
+- 8a0e717: envden offers to report a failure unless it's clearly yours to fix (a typo, a wrong password, an expired unlock, an update to install, an unreachable server or a sync conflict). A failed setup step now gets the offer. Optional setup steps (the shell notice and agent skill) print a warning instead of stopping setup.
+- @envden/server@0.3.6
+
 ## 0.3.5
 
 ### Patch Changes
