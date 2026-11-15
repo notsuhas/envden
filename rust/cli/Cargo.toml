@@ -30,6 +30,8 @@ base64 = "0.22.1"
 
 url = "2"
 
+unicode-general-category = "1"
+
 [dev-dependencies]
 tempfile = "3"
 
