@@ -17,7 +17,7 @@ export function createFsPlacementAdapter(
   return {
     mode,
     supported: (dir) => supported(mode, dir).catch(placementFailure),
-    place: (storePath, checkoutPath, prepareTemporary) =>
+    place: (storePath, checkoutPath, prepareTemporary, replacingLink) =>
       place(
         mode,
         root,
@@ -27,6 +27,7 @@ export function createFsPlacementAdapter(
         undefined,
         prepareTemporary,
         now,
+        replacingLink,
       ).catch(placementFailure),
     remove: (storePath, checkoutPath) =>
       remove(root, storePath, checkoutPath).catch(placementFailure),

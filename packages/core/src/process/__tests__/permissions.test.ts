@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
-import { restrictAccess } from "../permissions.ts";
+import { restrictAccess, restrictAccessSync } from "../permissions.ts";
 
 test("private keychain files and directories get POSIX modes or explicit non-inherited Windows ACLs", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-permissions-"));
@@ -49,6 +49,39 @@ test("private keychain files and directories get POSIX modes or explicit non-inh
         }),
       ).rejects.toBe(failure),
     );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("the synchronous variant applies the same mode or Windows ACL", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-permissions-sync-"));
+
+  try {
+    const file = join(root, "file");
+    await writeFile(file, "secret", { mode: 0o644 });
+    restrictAccessSync(file);
+    restrictAccessSync(root, true);
+
+    if (process.platform !== "win32") {
+      expect((await stat(file)).mode & 0o777).toBe(0o600);
+      expect((await stat(root)).mode & 0o777).toBe(0o700);
+    }
+
+    const calls: [string, string[]][] = [];
+
+    restrictAccessSync(root, true, {
+      platform: "win32",
+      exec: (command, args) => {
+        calls.push([command, args]);
+
+        return "";
+      },
+    });
+
+    expect(calls).toEqual([
+      ["icacls", [root, "/inheritance:r", "/grant:r", `${userInfo().username}:(OI)(CI)F`]],
+    ]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

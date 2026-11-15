@@ -11,7 +11,7 @@ import { statOrMissing } from "./stat.ts";
 import { isStoreLink } from "./link.ts";
 import { checkoutRelative } from "../paths/checkout-relative.ts";
 import { validatePulledPath } from "../paths/validate-pulled-path.ts";
-import { lstat, open, rename, rm, symlink } from "node:fs/promises";
+import { lstat, open, readlink, rename, rm, symlink } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { safeParents } from "../paths/safe-parents.ts";
 
@@ -24,13 +24,14 @@ export async function place(
   runtime = { platform: process.platform, libc },
   prepareTemporary: ((path: string) => Promise<void>) | undefined,
   now: () => number,
+  replacingLink?: string,
 ): Promise<void> {
   const path = validatePulledPath(checkoutRelative(root, checkoutPath));
 
   await prepareTemporaryFile(mode, path, prepareTemporary);
 
   if (runtime.libc) {
-    placeNative(mode, root, path, storePath, undefined, backupDirectory, now);
+    placeNative(mode, root, path, storePath, undefined, backupDirectory, now, replacingLink);
 
     return;
   }
@@ -40,7 +41,11 @@ export async function place(
   const parents = await parentIdentity(root, destination);
   const existing = await statOrMissing(destination);
 
-  if (existing?.isSymbolicLink() && !(await isStoreLink(storePath, destination)))
+  if (
+    existing?.isSymbolicLink() &&
+    !(await isStoreLink(storePath, destination)) &&
+    (replacingLink === undefined || (await readlink(destination)) !== replacingLink)
+  )
     throw new EnvdenError("INVALID_INPUT", "Refusing an unrelated symlink");
 
   if (existing && !existing.isFile() && !existing.isSymbolicLink())

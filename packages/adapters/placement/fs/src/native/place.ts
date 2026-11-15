@@ -16,6 +16,7 @@ export function placeNative(
   beforeRename: (() => void) | undefined,
   backupDirectory: string | undefined,
   now: () => number,
+  replacingLink?: string,
 ) {
   const fd = openParent(root, path);
   const name = basename(path);
@@ -29,7 +30,11 @@ export function placeNative(
     if (before) {
       const target = linkTarget(fd, name);
 
-      if (target !== undefined && !sameTarget(resolve(root, dirname(path), target), storePath))
+      if (
+        target !== undefined &&
+        target !== replacingLink &&
+        !sameTarget(resolve(root, dirname(path), target), storePath)
+      )
         throw new EnvdenError("INVALID_INPUT", "Refusing an unrelated symlink");
 
       if (target === undefined) previous = readAt(fd, name);

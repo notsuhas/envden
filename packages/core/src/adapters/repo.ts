@@ -20,6 +20,8 @@ export interface IRepoAdapter {
   caseInsensitive(root: string, readOnly?: boolean): Promise<boolean>;
   checkoutAt(path: string): Promise<ICheckout | undefined>;
   worktrees(checkout: ICheckout): Promise<string[]>;
+  // checkout-relative paths from .gitmodules
+  submodules(checkout: ICheckout): Promise<string[]>;
   envFiles(checkout: ICheckout, options?: IEnvFileRules): Promise<string[]>;
   isIgnored(checkout: ICheckout, relPath: string): Promise<boolean>;
   ensureIgnored(checkout: ICheckout, relPath: string): Promise<void>;

@@ -1,9 +1,9 @@
 import { EnvdenError } from "@envden/core/errors";
+import { restrictAccessSync } from "@envden/core/process";
 import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
 import { Database } from "bun:sqlite";
 import {
-  chmodSync,
   closeSync,
   fsyncSync,
   openSync,
@@ -20,12 +20,14 @@ export function openDatabase(dataDir: string, now: number): Database {
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const path = join(dataDir, "envden.sqlite");
 
-  if (process.platform !== "win32") {
-    chmodSync(dataDir, 0o700);
+  restrictAccessSync(dataDir, true);
 
-    for (const name of ["envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm", "identity.json"])
-      if (existsSync(join(dataDir, name))) chmodSync(join(dataDir, name), 0o600);
-  }
+  restrictFiles(dataDir, [
+    "envden.sqlite",
+    "envden.sqlite-wal",
+    "envden.sqlite-shm",
+    "identity.json",
+  ]);
 
   const existed = existsSync(path);
   const db = new Database(path, { create: true, strict: true });
@@ -35,9 +37,7 @@ export function openDatabase(dataDir: string, now: number): Database {
       "PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;",
     );
 
-    if (process.platform !== "win32")
-      for (const name of ["envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"])
-        if (existsSync(join(dataDir, name))) chmodSync(join(dataDir, name), 0o600);
+    restrictFiles(dataDir, ["envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"]);
 
     migrateDatabase(db, dataDir, existed);
 
@@ -48,6 +48,12 @@ export function openDatabase(dataDir: string, now: number): Database {
     db.close();
     throw error;
   }
+}
+
+// a Windows ACL inherited from the parent may let other users read the vault data
+function restrictFiles(dataDir: string, names: string[]) {
+  for (const name of names)
+    if (existsSync(join(dataDir, name))) restrictAccessSync(join(dataDir, name), false);
 }
 
 function migrateDatabase(db: Database, dataDir: string, existed: boolean) {

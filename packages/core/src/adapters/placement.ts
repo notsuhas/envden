@@ -8,6 +8,8 @@ export interface IPlacementAdapter {
     storePath: string,
     checkoutPath: string,
     prepareTemporary?: (path: string) => Promise<void>,
+    // the exact text of a user's own link that the user agreed envden may replace
+    replacingLink?: string,
   ): Promise<void>;
   remove(storePath: string | undefined, checkoutPath: string): Promise<void>;
   // "linked" means the checkout file is still the placement this adapter made.

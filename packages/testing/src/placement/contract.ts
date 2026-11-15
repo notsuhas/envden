@@ -67,6 +67,11 @@ export function placementContract(
 
         if (linked) {
           await rejects(adapter.place(store, destination, async () => {}));
+          await rejects(adapter.place(store, destination, async () => {}, join(root, "other")));
+          expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
+          await adapter.place(store, destination, async () => {}, unrelated);
+          expect(await adapter.inspect(store, destination)).toBe("linked");
+          expect(await readFile(destination, "utf8")).toBe("NEW=1");
           expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
           await rm(destination);
         }

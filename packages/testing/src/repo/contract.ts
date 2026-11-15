@@ -23,6 +23,20 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
         expect(await repo.worktrees(checkout)).toContain(await realpath(root));
       }));
 
+    test("submodule paths follow .gitmodules quoting, and no file means none", () =>
+      withDirectory(async (directory) => {
+        const { repo, root } = await factory(directory);
+        const checkout = await requireCheckout(repo, root);
+        expect(await repo.submodules(checkout)).toEqual([]);
+
+        await writeFile(
+          join(root, ".gitmodules"),
+          '[submodule "a"]\n\tpath = "mods/with space" ; note\n\turl = x\n[submodule "b"]\n  Path=libs/b\n',
+        );
+
+        expect(await repo.submodules(checkout)).toEqual(["mods/with space", "libs/b"]);
+      }));
+
     test("discovery skips unencodable and unreadable directories", () =>
       withDirectory(async (directory) => {
         const { repo, root } = await factory(directory);
