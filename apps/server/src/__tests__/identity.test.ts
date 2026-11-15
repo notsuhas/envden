@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect, spyOn } from "bun:test";
 import { chmodSync, mkdtempSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -25,6 +25,47 @@ test("server signing key and OPAQUE setup persist privately", async () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("the identity folder and key are restricted with the shared ACL helper", async () => {
+  const processes = await import("@envden/core/process");
+  const restricted: [string, boolean | undefined][] = [];
+
+  const restrict = spyOn(processes, "restrictAccess").mockImplementation(
+    async (path, directory) => {
+      restricted.push([path, directory]);
+    },
+  );
+
+  const dir = mkdtempSync(join(tmpdir(), "envden-identity-acl-"));
+
+  try {
+    await loadServerKeys(dir);
+    await loadServerKeys(dir);
+    expect(restricted).toContainEqual([dir, true]);
+    expect(restricted).toContainEqual([join(dir, "identity.json"), false]);
+  } finally {
+    restrict.mockRestore();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test.skipIf(process.platform !== "win32")(
+  "on Windows the identity folder and key inherit no access from their parent",
+  async () => {
+    const { execTrustedSync } = await import("@envden/core/process");
+    const dir = mkdtempSync(join(tmpdir(), "envden-identity-windows-"));
+
+    try {
+      await loadServerKeys(dir);
+      await loadServerKeys(dir);
+
+      for (const path of [dir, join(dir, "identity.json")])
+        expect(execTrustedSync("icacls", [path])).not.toContain("(I)");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  },
+);
 
 test("a local host gets a fresh setup token until a vault exists", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-local-"));

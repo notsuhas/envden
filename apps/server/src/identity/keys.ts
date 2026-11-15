@@ -1,5 +1,6 @@
 import { persistIdentity } from "./persist.ts";
-import { chmod, mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
+import { restrictAccess } from "@envden/core/process";
 import { join } from "node:path";
 import {
   generateRecoveryKeys as generateServerIdentityKeys,
@@ -16,11 +17,11 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
   await mkdir(dataDir, { recursive: true, mode: 0o700 });
 
   const path = join(dataDir, "identity.json");
-  if (process.platform !== "win32") await chmod(dataDir, 0o700);
+  await restrictAccess(dataDir, true);
 
   try {
-    if (process.platform !== "win32") await chmod(path, 0o600);
     const data: unknown = JSON.parse(await readFile(path, "utf8"));
+    await restrictAccess(path, false);
 
     if (
       !data ||
@@ -55,6 +56,7 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
   const opaqueSetup = await opaqueCreateSetup();
   const data = { secretKey: text(keys.objSk), publicKey: text(keys.objPub), opaqueSetup };
   await persistIdentity(dataDir, JSON.stringify(data));
+  await restrictAccess(path, false);
 
   return { secretKey: keys.objSk, publicKey: keys.objPub, opaqueSetup };
 }
