@@ -2,8 +2,8 @@ use super::{content::entry_content, context::ISyncContext};
 use crate::{
     links::checkout::repo::checkout_repo,
     sync::local::{
-        conflicts::conflict_records, files::read_bytes,
-        reconciliation::operation::deletion::read_deletion, validation::size::file_size_notice,
+        files::read_bytes, reconciliation::operation::deletion::read_deletion,
+        validation::size::file_size_notice,
     },
 };
 use envden_core::errors::Result;
@@ -15,13 +15,12 @@ pub fn upload_changes(
     repos: &HashSet<String>,
     failed: &HashSet<String>,
 ) -> Result<usize> {
-    let rules = crate::sync::local::validation::rules::env_rules(&context.adapters.home)?;
-    let applied = crate::sync::local::applied::applied_files(&context.adapters.home)?;
     let mut files = context.checkpoint.files.clone();
-    let blocked = conflict_records(&context.adapters.home)?;
     let mut seen = HashSet::new();
     let mut places = places::IPlaces::default();
     let mut uploaded = Vec::new();
+    let blocked = super::attempt::blocked::blocked_stores(context, failed)?;
+    super::attempt::notices::report_blocked(context)?;
     for link in context.state["links"].as_array().into_iter().flatten() {
         let root = link["root"].as_str().unwrap_or_default();
         let path = link["path"].as_str().unwrap_or_default();
@@ -32,15 +31,28 @@ pub fn upload_changes(
         if link["localOnly"] == true
             || !repos.contains(repo)
             || context.skipped_roots.contains(root)
-            || failed.contains(store)
-            || blocked.iter().any(|r| r.store == store)
+            || blocked.contains(store)
         {
             continue;
         }
-        if !envden_core::adapters::accepts_env_path(path, Some(&rules)) {
-            continue;
-        }
         let id = p::file_id(&context.checkpoint.id_key, repo, path)?;
+        let mode = if link["mode"] == "copy" {
+            envden_core::adapters::TPlacementMode::Copy
+        } else {
+            envden_core::adapters::TPlacementMode::Link
+        };
+        let status = context
+            .adapters
+            .placement(mode, Path::new(root))
+            .inspect(store, &Path::new(root).join(path).to_string_lossy())?;
+        if mode == envden_core::adapters::TPlacementMode::Link
+            && status == envden_core::adapters::TPlacementState::Detached
+        {
+            return Err(envden_core::errors::EnvdenError::new(
+                envden_core::errors::ErrorCode::Conflict,
+                "Detached checkout; resolve local content before pushing",
+            ));
+        }
         let bytes = read_bytes(Path::new(store))?;
         if let Some(notice) = file_size_notice(path, bytes.as_deref()) {
             if let Some(report) = &context.options.report {
@@ -57,15 +69,6 @@ pub fn upload_changes(
         if bytes.is_none()
             && (previous.is_none()
                 || read_deletion(&context.adapters.home, store, (context.options.now)())?.is_none())
-        {
-            continue;
-        }
-        if let Some(previous) = previous
-            && !crate::sync::local::applied::has_applied_entry(
-                &context.adapters.home,
-                previous,
-                Some(&applied),
-            )?
         {
             continue;
         }

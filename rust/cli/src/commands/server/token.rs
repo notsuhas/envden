@@ -29,7 +29,7 @@ pub fn read_token(kind: p::TTokenKind, value: Option<&str>) -> Result<String> {
             io::stdin()
                 .read_to_end(&mut bytes)
                 .map_err(crate::state::files::failure)?;
-            let token = String::from_utf8_lossy(&bytes).trim().to_string();
+            let token = envden_core::text::js_trim(&String::from_utf8_lossy(&bytes)).to_string();
             if token.is_empty() {
                 return Err(EnvdenError::new(
                     ErrorCode::InvalidInput,

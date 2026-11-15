@@ -62,13 +62,12 @@ fn device_list_text(devices: &[Value], verbose: bool) -> String {
                 details.push(format!("id {}", device["id"].as_str().unwrap_or_default()));
             }
             let name = device["name"].as_str().unwrap_or_default();
-            format!(
+            envden_core::text::js_trim_end(&format!(
                 "{} {name}{}  {}",
                 if current { "*" } else { " " },
                 " ".repeat(width - name.encode_utf16().count()),
                 details.join(" · ")
-            )
-            .trim_end()
+            ))
             .to_owned()
         })
         .collect();

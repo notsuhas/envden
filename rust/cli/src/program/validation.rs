@@ -80,8 +80,7 @@ pub(super) fn option_value(
         return port.map(Value::from).ok_or_else(|| format!("error: option '{}' argument '{}' is invalid. Expected a port from 0 (any free port) to 65535.", option.flags, text));
     }
     if command.name == "ui" {
-        return Ok(text
-            .trim()
+        return Ok(envden_core::text::js_trim(text)
             .parse::<f64>()
             .ok()
             .and_then(serde_json::Number::from_f64)

@@ -6,3 +6,5 @@ pub mod paths;
 pub mod process;
 pub mod release;
 pub mod site;
+
+pub mod text;
