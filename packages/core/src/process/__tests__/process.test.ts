@@ -108,6 +108,7 @@ test("environment drops code loading variables and only keeps explicit git setti
     { GIT_CONFIG_NOSYSTEM: "1" },
     {
       HOME: "/home/test",
+      XDG_CONFIG_HOME: "/home/test/.config",
       LANG: "C",
       LC_ALL: "C",
       PATH: ".",
@@ -120,6 +121,7 @@ test("environment drops code loading variables and only keeps explicit git setti
   );
 
   expect(env.HOME).toBe("/home/test");
+  expect(env.XDG_CONFIG_HOME).toBe("/home/test/.config");
   expect(env.LC_ALL).toBe("C");
   expect(env.GIT_CONFIG_NOSYSTEM).toBe("1");
   expect(env.HOMEBREW_BASH_COMMAND).toBeUndefined();

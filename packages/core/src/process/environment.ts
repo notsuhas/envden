@@ -5,6 +5,8 @@ import { trustedDirectories } from "./trust.ts";
 const ALLOWED = new Set(
   [
     "HOME",
+    // Homebrew keeps `brew trust` approvals under it when set
+    "XDG_CONFIG_HOME",
     "USER",
     "LOGNAME",
     "LANG",
