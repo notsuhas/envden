@@ -1,7 +1,7 @@
 use crate::{
     http::{
         encoding::{binary, text},
-        errors::{error_response, response},
+        errors::{request_error, response},
         policy::request_route,
     },
     status::{admit_request, read_status, render_status_page, status_headers},
@@ -31,6 +31,7 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
             .expect("fixed transport response");
     }
     let path = request.uri().path().to_owned();
+    let method = request.method().as_str().to_owned();
     let public_status = request.method() == "GET" && matches!(path.as_str(), "/" | "/v1/status");
     let public =
         request.method() == "GET" && matches!(path.as_str(), "/" | "/v1/status" | "/v1/hello");
@@ -39,14 +40,16 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
     } else {
         authenticated(&state, request).await
     };
-    let mut response = result.unwrap_or_else(|error| error_response(&error, &path));
+    let mut response = result.unwrap_or_else(|error| request_error(&error, &path, &method));
     if public_status {
+        let headers = std::mem::take(response.headers_mut());
         for (key, value) in status_headers() {
             response.headers_mut().insert(
                 axum::http::HeaderName::from_static(key),
                 value.parse().expect("fixed status header"),
             );
         }
+        response.headers_mut().extend(headers);
     }
 
     response

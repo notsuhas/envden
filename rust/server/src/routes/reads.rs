@@ -52,43 +52,14 @@ pub(super) fn reads(
         }
         "/v1/headers" | "/v1/entries" => {
             require_read(options, auth, "history", None)?;
-            let from = query
-                .get("from")
-                .map_or(Ok(0), |s| crate::vault::parse_range_integer(s))
-                .map_err(|_| EnvdenError::new(ErrorCode::InvalidInput, "Invalid range"))?;
-            let to = query
-                .get("to")
-                .map_or(Ok(u64::MAX), |s| crate::vault::parse_range_integer(s))
-                .map_err(|_| EnvdenError::new(ErrorCode::InvalidInput, "Invalid range"))?;
-            if to < from {
-                return Err(EnvdenError::new(ErrorCode::InvalidInput, "Invalid range"));
-            }
-            let rows = if path == "/v1/headers" {
-                storage.headers(id, from, to, Some(100), Some(786375))?
-            } else {
-                storage.entries(id, from, to, Some(100), Some(786375))?
-            };
-            let mut objects = vec![];
-            let mut size = 0;
-            for row in rows {
-                let encoded = text(&row.bytes);
-                size += encoded.len() + 3;
-                if size > 1048500 {
-                    if objects.is_empty() {
-                        return Err(EnvdenError::new(
-                            ErrorCode::InvalidData,
-                            "History object too large",
-                        ));
-                    }
-                    break;
-                }
-                objects.push(encoded);
-            }
-            response(
-                200,
-                "application/json",
-                json!({"objects":objects}).to_string(),
-            )
+            let value = crate::vault::read_range(
+                storage,
+                id,
+                path == "/v1/headers",
+                query.get("from").map(String::as_str),
+                query.get("to").map(String::as_str),
+            )?;
+            response(200, "application/json", value.to_string())
         }
         "/v1/blobs" => {
             require_read(options, auth, "blob", None)?;
@@ -96,7 +67,7 @@ pub(super) fn reads(
         }
         "/v1/devices" => {
             require_gate(options, auth, false)?;
-            let devices = ordered_devices(storage, id)?
+            let devices = ordered_devices(&options.storage, id)?
                 .iter()
                 .map(|d| {
                     let seen = storage

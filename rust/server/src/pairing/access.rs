@@ -89,6 +89,9 @@ pub(crate) fn preauthorize(
     path: &str,
     method: &str,
 ) -> Result<()> {
+    if !auth.member && method == "GET" && path == "/v1/pairing/approver" {
+        super::approver::fetch(options, auth)?;
+    }
     let parts: Vec<_> = path.split('/').collect();
     let ["", "v1", "pairing", "mailboxes", number, slot_name] = parts.as_slice() else {
         return Ok(());

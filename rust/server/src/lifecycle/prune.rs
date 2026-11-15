@@ -4,8 +4,8 @@ use envden_core::{adapters::storage::IHistoryPolicy, errors::Result};
 fn safely(run: impl FnOnce() -> Result<()>) -> bool {
     match run() {
         Ok(()) => true,
-        Err(error) => {
-            eprintln!("envden history pruning failed: {}", error.code);
+        Err(_) => {
+            eprintln!("envden history pruning failed");
             false
         }
     }

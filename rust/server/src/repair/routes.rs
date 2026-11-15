@@ -91,7 +91,7 @@ pub(crate) fn recovery_route(
             let report:ISigned<IRepairReport>=input(||decode(body))?;
             let restored=storage.vault(id)?.and_then(|v|v.restored).expect("authorized repair");
             let headers=if storage.header(id,&report.body.head)?.is_some() {BTreeSet::from([report.body.head])} else {BTreeSet::new()};
-            let reports=filter_repair_reports(std::slice::from_ref(&report),&fixed(&restored.finish_progress.unwrap_or_default())?,&vault_chain(storage,id)?.1,&headers);
+            let reports=filter_repair_reports(std::slice::from_ref(&report),&fixed(&restored.finish_progress.unwrap_or_default())?,&vault_chain(&options.storage,id)?.1,&headers);
             if reports.is_empty() || report.body.signer!=auth.request.device {return Err(EnvdenError::new(ErrorCode::InvalidData,"Invalid repair report"));}
             storage.write_state(id,&[IStateWrite {kind:TStateKind::RepairReport,key:report.body.signer.to_vec(),bytes:Some(body.to_vec())}])?;
             response(200,"application/json","{\"kind\":\"stored\"}")

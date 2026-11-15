@@ -45,10 +45,7 @@ pub(crate) fn pairing(
         return Ok(result);
     }
     if path == "/v1/pairing/approver" {
-        let vault = lookup(storage, id, &format!("approver/{}", text(&request.device)))?;
-        let bytes = storage
-            .approver(&vault, &request.device, (options.now)())?
-            .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Approver unavailable"))?;
+        let bytes = super::approver::fetch(options, auth)?;
         return Ok(Some(json!({"message":text(&bytes)})));
     }
     let parts: Vec<_> = path.split('/').collect();

@@ -17,4 +17,6 @@ pub(crate) use material::stored_swap;
 mod authorization;
 
 mod reads;
-pub(crate) use reads::parse_range_integer;
+pub(crate) use reads::read_range;
+
+mod cache;

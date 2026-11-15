@@ -19,7 +19,7 @@ pub(crate) fn prepare_move(
     let id = &auth.request.vault_id;
     let mut vault = storage.vault(id)?.expect("authorized vault");
     if !vault.active {
-        let header = vault_chain(storage, id)?.0.body;
+        let header = vault_chain(&options.storage, id)?.0.body;
         for (kind, hash, key, label) in [
             (
                 TStateKind::Keyring,

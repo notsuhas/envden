@@ -5,3 +5,5 @@ pub(crate) use mailbox::pairing;
 
 mod access;
 pub(crate) use access::preauthorize;
+
+mod approver;

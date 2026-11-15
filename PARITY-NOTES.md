@@ -29,3 +29,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: name validation rejects Unicode format characters but allows control characters; Rust preserves it.
 - Possible improvement: reject control characters alongside format characters.
 - Why: a name advertised as having no invisible characters can still contain them. BUG: fix in all implementations.
+
+## HEAD requests to GET endpoints return 404
+
+- Scenario: send HEAD to `/`, `/v1/status` or `/v1/hello`.
+- TS behaviour: Hono selects the GET handler, but the method policy rejects HEAD. The response is an empty 404, including status-page security headers where applicable. Rust preserves the wire response.
+- Possible improvement: allow HEAD on public GET endpoints and return their normal headers without a body.
+- Why: HEAD-based health checks currently report a healthy server as unavailable. BUG: fix in all implementations.

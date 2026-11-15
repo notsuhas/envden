@@ -112,3 +112,31 @@ fn mailbox_number(value: &str) -> bool {
         && !value.is_empty()
         && value.bytes().all(|b| b.is_ascii_digit())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nonmember_policy_is_closed_and_method_specific() {
+        for (method, path, expected) in [
+            ("POST", "/v1/opaque/login/start", Some(TPolicy::Kit)),
+            (
+                "POST",
+                "/v1/opaque/registration/finish",
+                Some(TPolicy::Registration),
+            ),
+            ("PUT", "/v1/pairing/mailboxes/1/KE1", Some(TPolicy::Mailbox)),
+            ("GET", "/v1/pairing/approver", Some(TPolicy::Approver)),
+            ("POST", "/v1/pairing/mailboxes", None),
+            ("DELETE", "/v1/pairing/mailboxes/1/KE1", None),
+        ] {
+            assert_eq!(
+                request_route(method, path, false)
+                    .ok()
+                    .and_then(|r| r.policy),
+                expected
+            );
+        }
+    }
+}

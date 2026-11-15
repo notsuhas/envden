@@ -11,7 +11,10 @@ envden-protocol = { path = "../protocol" }
 envden-adapter-storage-sqlite = { path = "../adapters/storage/sqlite" }
 axum = "0.8"
 http-body-util = "0.1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "time", "sync"] }
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+tower = { version = "0.5", features = ["util"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "signal", "time", "sync"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 base64 = "0.22"
@@ -21,8 +24,8 @@ chrono = "0.4"
 url = "2"
 
 [dev-dependencies]
+envden-testing = { path = "../testing" }
 tempfile = "3"
-tower = { version = "0.5", features = ["util"] }
 
 [[bin]]
 name = "envden-serve"

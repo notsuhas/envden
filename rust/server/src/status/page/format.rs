@@ -2,9 +2,15 @@ pub fn format_bytes(bytes: u64) -> String {
     if bytes < 1024 {
         return format!("{bytes} B");
     }
-    let exponent = ((bytes as f64).log2() / 10.0).floor() as usize;
-    let value = bytes as f64 / 1024_f64.powi(exponent as i32);
+    let mut exponent = ((bytes as f64).log2() / 10.0).floor() as usize;
+    let mut value = bytes as f64 / 1024_f64.powi(exponent as i32);
     let decimals = (2_i32 - value.log10().floor() as i32).max(0) as usize;
+    let factor = 10_f64.powi(decimals as i32);
+    value = (value * factor).round() / factor;
+    if value >= 1024.0 {
+        value /= 1024.0;
+        exponent += 1;
+    }
     let text = format!("{value:.decimals$}");
     let text = if text.contains('.') {
         text.trim_end_matches('0').trim_end_matches('.')
@@ -60,6 +66,11 @@ pub fn format_when(utc: &str, now: u64) -> String {
         (31536000.0, "year")
     };
     let count = (seconds / scale).round() as u64;
+    let (count, unit) = if unit == "month" && count == 12 {
+        (1, "year")
+    } else {
+        (count, unit)
+    };
     let relative = format!("{count} {unit}{}", if count == 1 { "" } else { "s" });
     let relative = if difference < 0 {
         format!("in {relative}")
@@ -76,6 +87,20 @@ pub fn format_when(utc: &str, now: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn byte_rounding_matches_javascript_ties() {
+        assert_eq!(format_bytes(1152), "1.13 KiB");
+        assert_eq!(format_bytes(1048575), "1 MiB");
+    }
+
+    #[test]
+    fn twelve_rounded_months_use_years() {
+        assert_eq!(
+            format_when("2027-01-01T00:00:00.000Z", 1798761600000 + 354 * 86400000),
+            "1 year ago (2027-01-01 00:00 UTC)"
+        );
+    }
 
     #[test]
     fn reference_formats() {

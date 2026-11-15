@@ -44,7 +44,7 @@ pub(crate) fn require_read(
             ));
         }
         if matches!(kind, "files" | "keyring") {
-            let header = super::vault_chain(options.storage.as_ref(), &auth.request.vault_id)?.0;
+            let header = super::vault_chain(&options.storage, &auth.request.vault_id)?.0;
             let expected = if kind == "files" {
                 header.body.files_hash
             } else {

@@ -62,3 +62,78 @@ pub(crate) fn require_ticket(options: &IAppOptions, auth: &IAuth) -> Result<()> 
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::http::types::IServerKeys;
+    use envden_core::adapters::storage::{IRestoredVault, IStoredVault};
+    use envden_testing::storage::IFakeStorageAdapter;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn sk_and_repair_proofs_bind_requests_and_honor_refusal() {
+        let state = Arc::new(Mutex::new(IStoredVault {
+            active: true,
+            ..Default::default()
+        }));
+        let vault = state.clone();
+        let secret = [7; 16];
+        let id = [2; 32];
+        let options = IAppOptions {
+            storage: Arc::new(IFakeStorageAdapter {
+                vault: Some(Box::new(move |_| Ok(Some(vault.lock().unwrap().clone())))),
+                state: Some(Box::new(move |_, _, _| {
+                    Ok(Some(sk_pub(&secret, &id).to_vec()))
+                })),
+                ..Default::default()
+            }),
+            storage_lock: Arc::new(Mutex::new(())),
+            now: Arc::new(|| 1000000),
+            server_keys: IServerKeys {
+                secret_key: [0; 32],
+                public_key: [0; 32],
+                opaque_setup: String::new(),
+            },
+            app_version: "1.0.0".into(),
+            min_client: "1.0.0".into(),
+        };
+        let request = IRequest {
+            server_pin: [0; 32],
+            vault_id: id,
+            method: "GET".into(),
+            path_and_query: "/v1/settings/unlock-period".into(),
+            body_hash: [0; 32],
+            time: 1000000,
+            nonce: [0; 16],
+            device: [0; 16],
+            client_version: "1.0.0".into(),
+        };
+        let mut auth = IAuth {
+            proof: Some(sign_sk_proof(&secret, &id, &request).unwrap().to_vec()),
+            request,
+            member: true,
+        };
+        assert!(has_proof(&options, &auth, "sk").unwrap());
+        let signed = auth.proof.clone();
+        auth.proof = Some(vec![0; 64]);
+        assert!(!has_proof(&options, &auth, "sk").unwrap());
+        auth.proof = signed;
+        state.lock().unwrap().sk_refused = true;
+        assert!(!has_proof(&options, &auth, "sk").unwrap());
+        let repair = token_key(TTokenKind::Repair, &[9; 20]);
+        state.lock().unwrap().restored = Some(IRestoredVault {
+            repair_token_hash: repair.to_vec(),
+            restored_head: vec![8; 32],
+            finish_progress: None,
+        });
+        auth.proof = Some(
+            token_proof(TTokenKind::Repair, &repair, &auth.request)
+                .unwrap()
+                .to_vec(),
+        );
+        assert!(has_proof(&options, &auth, "repair").unwrap());
+        auth.proof = Some(sign_sk_proof(&secret, &id, &auth.request).unwrap().to_vec());
+        assert!(!has_proof(&options, &auth, "repair").unwrap());
+    }
+}

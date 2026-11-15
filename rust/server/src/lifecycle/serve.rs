@@ -104,7 +104,7 @@ pub async fn serve(options: IServeOptions) -> Result<RunningServer> {
         let listener = TcpListener::bind(("127.0.0.1",options.port.unwrap_or(4280))).await.map_err(|error| EnvdenError::with_source(ErrorCode::Internal,"Server listen failed",error))?;
         let url = format!("http://{}/",listener.local_addr().map_err(|error| EnvdenError::with_source(ErrorCode::Internal,"Server listen failed",error))?);
         let (stop,receive) = oneshot::channel();
-        let task = tokio::spawn(async move {axum::serve(listener,app).with_graceful_shutdown(async {let _ = receive.await;}).await});
+        let task = tokio::spawn(async move {super::transport::listen(listener,app,receive).await});
         println!("envden listening on {url}");
         let scheduler = options.scheduler.unwrap_or_else(|| Arc::new(SystemScheduler));
         let prune: super::scheduler::TJob = Arc::new(move || {

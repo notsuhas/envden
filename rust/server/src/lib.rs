@@ -6,7 +6,7 @@ pub mod lifecycle;
 pub mod repair;
 pub mod status;
 
-pub use app::create_app;
+pub use app::{create_app, create_app_with_budget};
 pub use lifecycle::serve::{IServeOptions, RunningServer, serve};
 
 pub mod middleware;

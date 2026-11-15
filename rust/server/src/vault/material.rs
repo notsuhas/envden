@@ -86,3 +86,67 @@ pub(crate) fn stored_swap(swap: &ISwap, digest: &[u8]) -> Result<IStoredSwap> {
         clear_repair_reports: None,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keyring_uploads_cannot_exceed_protocol_epoch_history_size() {
+        for epoch in [1, 2, 65] {
+            let keyring = seal_keyring(
+                &IKeyring {
+                    vault_id: [0; 32],
+                    epoch,
+                    id_key: [0; 32],
+                    older: (1..epoch)
+                        .map(|epoch| IOlderKey {
+                            epoch,
+                            key: [0; 32],
+                        })
+                        .collect(),
+                },
+                &[0; 32],
+                &[0; 24],
+            )
+            .unwrap();
+            let header = sign_object(
+                IManifestHeader {
+                    vault_id: [0; 32],
+                    seq: 2,
+                    op: 6,
+                    prev: [0; 32],
+                    list_seq: 0,
+                    list_head: [0; 32],
+                    epoch,
+                    keyring_hash: [0; 32],
+                    files_hash: [0; 32],
+                    envelope_hash: [0; 32],
+                    created_at: 1,
+                    signer: [0; 16],
+                },
+                &[0; 32],
+                "manifest",
+            )
+            .unwrap();
+            let mut swap = ISwap {
+                expected_head: [0; 32],
+                entries: vec![],
+                header,
+                files: None,
+                keyring: Some(keyring.clone()),
+                envelope: None,
+                sk_pub: None,
+                opaque_record: None,
+                approver: None,
+            };
+            assert!(stored_swap(&swap, &[0; 32]).is_ok());
+            swap.keyring = Some(vec![0; keyring.len() + 1]);
+            assert!(stored_swap(&swap, &[0; 32]).is_err());
+            if epoch == 2 {
+                swap.keyring = Some(vec![0; 1024 * 1024]);
+                assert!(stored_swap(&swap, &[0; 32]).is_err());
+            }
+        }
+    }
+}

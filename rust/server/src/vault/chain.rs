@@ -2,13 +2,11 @@ use envden_core::{
     adapters::storage::IStorageAdapter,
     errors::{EnvdenError, ErrorCode, Result},
 };
-use envden_protocol::{
-    chain::{IDeviceListState, TDeviceListResult, verify_chain},
-    protocol::*,
-};
+use envden_protocol::{chain::IDeviceListState, protocol::*};
+use std::sync::Arc;
 
 pub(crate) fn vault_chain(
-    storage: &dyn IStorageAdapter,
+    storage: &Arc<dyn IStorageAdapter>,
     vault: &[u8],
 ) -> Result<(ISigned<IManifestHeader>, IDeviceListState)> {
     let head = storage
@@ -18,23 +16,13 @@ pub(crate) fn vault_chain(
         .header(vault, &head)?
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Invalid stored chain"))?;
     let header: ISigned<IManifestHeader> = decode(&stored.bytes)?;
-    let entries = storage
-        .entries(vault, 0, header.body.list_seq, None, None)?
-        .into_iter()
-        .map(|row| decode::<ISigned<TEntry>>(&row.bytes))
-        .collect::<Result<Vec<_>>>()?;
-    let TDeviceListResult::Valid { state } = verify_chain(&entries)? else {
-        return Err(EnvdenError::new(
-            ErrorCode::InvalidData,
-            "Invalid stored chain",
-        ));
-    };
+    let state = super::cache::verified_list(storage, vault, &header.body)?;
 
-    Ok((header, *state))
+    Ok((header, state))
 }
 
 pub(crate) fn membership(
-    storage: &dyn IStorageAdapter,
+    storage: &Arc<dyn IStorageAdapter>,
     vault: &[u8],
     device: &[u8; 16],
 ) -> Result<Option<IDeviceRecord>> {
@@ -46,7 +34,7 @@ pub(crate) fn membership(
 }
 
 pub(crate) fn ordered_devices(
-    storage: &dyn IStorageAdapter,
+    storage: &Arc<dyn IStorageAdapter>,
     vault: &[u8],
 ) -> Result<Vec<IDeviceRecord>> {
     let (_, state) = vault_chain(storage, vault)?;

@@ -40,7 +40,7 @@ pub(crate) fn commit_swap(
             result = Some(TCommitResult::HeadMoved { head: Some(head) });
             return Ok(());
         }
-        let (previous, state) = vault_chain(storage, id)?;
+        let (previous, state) = vault_chain(&options.storage, id)?;
         let files: IFiles = decode(
             &storage
                 .file_list(id, &previous.body.files_hash)?
@@ -142,17 +142,18 @@ pub(crate) fn commit_swap(
         }
         let destination = state.server_pin;
         crate::moving::prepare_move(options, auth, swap, &mut stored, &destination)?;
+        let registrant = if vault.active {
+            Some(auth.request.device.to_vec())
+        } else {
+            storage.state(id, TStateKind::MoveSession, &[])?
+        };
         let committed =
             storage.commit_swap(id, Some(&swap.expected_head), &stored, (options.now)())?;
         if matches!(committed, TCommitResult::Committed)
-            && swap.opaque_record.is_some()
-            && let Some(receipt) = storage.consume_session(
-                id,
-                &session_key(auth, "registration-receipt"),
-                (options.now)(),
-            )?
+            && (swap.opaque_record.is_some() || !vault.active)
+            && let Some(registrant) = registrant
         {
-            storage.refund(&String::from_utf8_lossy(&receipt), (options.now)())?;
+            crate::auth::refund_registration(options, id, &registrant)?;
         }
         result = Some(committed);
 

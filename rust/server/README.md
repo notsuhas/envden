@@ -21,26 +21,30 @@ For tests, `create_app(IAppOptions, Arc<Mutex<IStatusState>>) -> Result<Router>`
 uses the injected storage, clock, keys, versions and status state. All adapter
 construction stays in `src/adapters.rs`.
 
-## Verification limits
+## Verification
 
-Gate 2 is not complete. Thirty-four Rust tests cover identity, status, request
-signatures, body capacity/hash, body reservations, lifecycle and restored startup.
-The remaining TypeScript server suites still need to be ported. Focused runs of
-TypeScript clients exercised setup, recovery join, push/pull, pairing, password
-operations, move and repair against the Rust server.
+Set `CARGO_TARGET_DIR=$PWD/target/server` before building or checking.
 
-The full hybrid differential run is red. The SQLite adapter closes its last
-connection and removes WAL/SHM files; Bun's reference leaves both files behind.
-Bun 1.4's readonly snapshot reader fails with SQLITE_CANTOPEN against that closed
-Rust database. Fix this in the storage adapter rather than masking snapshots.
-The hybrid wrapper also makes shell-integration snapshots contain the delegated
-TypeScript executable path, which the current normalizer does not recognize.
+```sh
+cargo fmt -p envden-server --check
+cargo clippy -p envden-server --all-targets --no-deps -- -D warnings
+cargo test -p envden-server
+cargo build -p envden-server --release
+bun parity/run.ts --impl ts=apps/cli/dist/envden --impl hybrid=parity/hybrid/envden
+bun parity/hybrid/transport.ts
+```
 
-Remaining server parity work includes exact date-fns formatting outside the tested intervals,
-and pruning failure-path coverage. Body reading exposes `read_body_with` for an
-injected clock and scheduler; normal HTTP requests use the Tokio timer edge.
+The TypeScript reference passes 133 cases, with one Windows-only skip on macOS.
+The Rust server passes 105 tests; table rows and related assertions are grouped.
+Both the TS-vs-TS baseline and the hybrid differential pass all 21 scenarios.
+The raw transport comparison checks ordered, case-sensitive headers and exact
+status lines and body bytes across 14 cases, excluding Date and connection headers.
+It includes the reference's HEAD and 413 transport responses.
 
-A declared request body above 32 MiB receives the reference's empty 413 before
-request authentication. Hyper still adds `Content-Length: 0` and its automatic
-Date header there; Bun's transport-level 413 has neither. Exact transport-header
-parity therefore remains unfinished.
+The hybrid launcher uses the release server and delegates other commands to the
+compiled TypeScript CLI. On macOS the SQLite adapter uses Apple's system SQLite,
+matching Bun's checkpoint and persistent WAL/SHM behavior at shutdown.
+
+`create_app_with_budget` permits shared body budgets in concurrency tests.
+Body deadlines use `read_body_with` with an injected clock and scheduler; tests
+expire jobs directly. The preserved HEAD and uptime quirks are in `PARITY-NOTES.md`.

@@ -53,7 +53,7 @@ pub(crate) fn upload_history(
         }
         *state
     } else {
-        let (previous, before) = vault_chain(storage, id)?;
+        let (previous, before) = vault_chain(&options.storage, id)?;
         if swap.expected_head != object_hash(&previous, "manifest")?
             || header.prev != swap.expected_head
             || header.seq != previous.body.seq + 1
@@ -142,7 +142,7 @@ pub(crate) fn upload_chain(
             .storage
             .vault(&auth.request.vault_id)?
             .is_some_and(|v| v.restored.is_some())
-            && !vault_chain(options.storage.as_ref(), &auth.request.vault_id)?
+            && !vault_chain(&options.storage, &auth.request.vault_id)?
                 .1
                 .devices
                 .contains_key(&auth.request.device)

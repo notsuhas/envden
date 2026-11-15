@@ -34,7 +34,7 @@ pub(crate) fn verify_headers(
     {
         return Err(bad());
     }
-    let member = membership(options.storage.as_ref(), &request.vault_id, &request.device)?;
+    let member = membership(&options.storage, &request.vault_id, &request.device)?;
     let supplied = match &member {
         Some(record) => record.clone(),
         None => input(|| decode::<IDeviceRecord>(&binary(header("envden-device-record"), None)?))?,

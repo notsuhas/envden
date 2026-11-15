@@ -96,7 +96,7 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
     let _ = route;
     if auth.member
         && crate::vault::membership(
-            state.options.storage.as_ref(),
+            &state.options.storage,
             &auth.request.vault_id,
             &auth.request.device,
         )?
