@@ -33,3 +33,7 @@ path = "src/bin/serve.rs"
 
 [lints]
 workspace = true
+
+[dev-dependencies.tokio]
+version = "1"
+features = ["test-util"]
