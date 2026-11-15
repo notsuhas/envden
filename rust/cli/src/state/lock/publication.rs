@@ -28,16 +28,15 @@ pub(super) fn publish_owner(path: &Path, owner: &IOwner) -> Result<()> {
     result
 }
 
-pub(super) fn same_directory(before: &fs::Metadata, after: &fs::Metadata) -> bool {
+pub(super) fn directory_identity(path: &Path) -> Result<(u64, u64)> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
-        before.ino() == after.ino() && before.dev() == after.dev()
+        let info = fs::symlink_metadata(path).map_err(failure)?;
+        Ok((info.dev(), info.ino()))
     }
     #[cfg(windows)]
     {
-        use std::os::windows::fs::MetadataExt;
-        before.volume_serial_number() == after.volume_serial_number()
-            && before.file_index() == after.file_index()
+        super::windows::directory_identity(path)
     }
 }

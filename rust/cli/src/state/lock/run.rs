@@ -69,6 +69,7 @@ fn with_observer<T>(
             "State is locked; retry after the other command finishes",
         ));
     }
+    let before = super::publication::directory_identity(&path)?;
     let token = uuid::Uuid::new_v4().to_string();
     let result = (|| {
         let owner = super::owner::IOwner {
@@ -78,10 +79,9 @@ fn with_observer<T>(
             identity: super::owner::process_identity(),
             created_at: now,
         };
-        let before = fs::symlink_metadata(&path).map_err(failure)?;
         super::publication::publish_owner(&path, &owner)?;
-        let after = fs::symlink_metadata(&path).map_err(failure)?;
-        if !super::publication::same_directory(&before, &after) {
+        let after = super::publication::directory_identity(&path)?;
+        if before != after {
             return Err(EnvdenError::new(
                 ErrorCode::Conflict,
                 "Lock ownership changed",

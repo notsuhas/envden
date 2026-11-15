@@ -31,3 +31,27 @@ pub(super) fn process_start(pid: u32) -> TProcess {
         )
     }
 }
+
+#[allow(unsafe_code)]
+pub(super) fn directory_identity(
+    path: &std::path::Path,
+) -> envden_core::errors::Result<(u64, u64)> {
+    use std::os::windows::{fs::OpenOptionsExt, io::AsRawHandle};
+    use windows_sys::Win32::Storage::FileSystem::{
+        BY_HANDLE_FILE_INFORMATION, FILE_FLAG_BACKUP_SEMANTICS, GetFileInformationByHandle,
+    };
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .custom_flags(FILE_FLAG_BACKUP_SEMANTICS)
+        .open(path)
+        .map_err(crate::state::files::failure)?;
+    let mut info = BY_HANDLE_FILE_INFORMATION::default();
+    // Windows requires its handle API to read a stable directory identity.
+    if unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut info) } == 0 {
+        return Err(crate::state::files::failure(std::io::Error::last_os_error()));
+    }
+    Ok((
+        u64::from(info.dwVolumeSerialNumber),
+        (u64::from(info.nFileIndexHigh) << 32) | u64::from(info.nFileIndexLow),
+    ))
+}

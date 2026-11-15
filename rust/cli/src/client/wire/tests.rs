@@ -17,7 +17,8 @@ fn fetch_response(
     let server = std::thread::spawn(move || {
         let (mut stream, _) = listener.accept().unwrap();
         let mut request = [0; 4096];
-        stream.read(&mut request).unwrap();
+        let received = stream.read(&mut request).unwrap();
+        assert!(received > 0);
         write!(
             stream,
             "HTTP/1.1 {status}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
