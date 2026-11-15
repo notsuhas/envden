@@ -14,11 +14,25 @@ use serde_json::{Value, json};
 use std::{path::PathBuf, rc::Rc};
 
 pub(in crate::onboarding) fn push_initial(adapters: &IAdapters, state: &mut Value) -> Result<()> {
-    let connection = vault_connection(adapters, state, Rc::new(UreqTransport))?;
-    let material = checkpoint_material(adapters, state)?;
-    if material.checkpoint.header.body.seq != 1 {
+    crate::client::retry_head(|| attempt(adapters, state, Rc::new(UreqTransport)))
+}
+
+fn attempt(
+    adapters: &IAdapters,
+    state: &mut Value,
+    transport: Rc<dyn crate::client::ITransport>,
+) -> Result<()> {
+    if state["links"].as_array().is_none_or(Vec::is_empty) {
         return Ok(());
     }
+    let connection = vault_connection(adapters, state, transport.clone())?;
+    let history =
+        crate::vault::history::read_history(&connection.client, &connection.vault_id, None)?;
+    let previous = history.headers.last().expect("history");
+    if previous.body.seq != 1 {
+        return super::resume_initial::resume(adapters, transport);
+    }
+    let material = checkpoint_material(adapters, state)?;
     let key = &material.keys[&1];
     let id = material.checkpoint.id_key;
     let mut files = p::IFiles { entries: vec![] };
@@ -43,6 +57,12 @@ pub(in crate::onboarding) fn push_initial(adapters: &IAdapters, state: &mut Valu
         let store = link["store"].as_str().unwrap_or_default();
         let content = std::fs::read(store)
             .map_err(|e| EnvdenError::with_source(ErrorCode::Internal, "File read failed", e))?;
+        if let Some(notice) =
+            crate::sync::local::validation::size::file_size_notice(path, Some(&content))
+        {
+            eprintln!("{notice}");
+            continue;
+        }
         bases.push((
             base_path(
                 &adapters.home,
@@ -102,8 +122,8 @@ pub(in crate::onboarding) fn push_initial(adapters: &IAdapters, state: &mut Valu
         return Ok(());
     }
     files.entries.sort_by_key(|v| v.file_id);
-    let mut header = material.checkpoint.header.body.clone();
-    let expected_head = p::object_hash(&material.checkpoint.header, "manifest")?;
+    let mut header = previous.body.clone();
+    let expected_head = p::object_hash(previous, "manifest")?;
     header.seq = 2;
     header.prev = expected_head;
     header.op = 1;
@@ -140,4 +160,31 @@ pub(in crate::onboarding) fn push_initial(adapters: &IAdapters, state: &mut Valu
         write_bytes(&path, Some(&content), (adapters.now)())?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    struct Offline;
+    impl crate::client::ITransport for Offline {
+        fn fetch(&self, _: crate::client::IHttpRequest) -> Result<crate::client::IHttpResponse> {
+            Err(EnvdenError::new(ErrorCode::ServerUnreachable, "Offline"))
+        }
+    }
+    #[test]
+    fn initial_push_reads_remote_before_trusting_local_checkpoint() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let mut state = crate::state::empty_state("test");
+        state["vaultId"] = p::base32(&[1; 32]).into();
+        state["server"] = json!({"address":"https://server.test","pin":text(&[2;32]),"protocol":1});
+        state["links"] = json!([{}]);
+        assert_eq!(
+            attempt(&adapters, &mut state, Rc::new(Offline))
+                .unwrap_err()
+                .code,
+            ErrorCode::ServerUnreachable
+        );
+    }
 }

@@ -10,13 +10,13 @@ use crate::{
         empty_state,
         repository::{load_state, save_state},
     },
-    vault::{create_genesis, create_vault_swap, recovery::write_kit},
+    vault::{create_genesis, create_vault_swap},
     version::MIN_SERVER,
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
-use std::{path::Path, rc::Rc};
+use std::rc::Rc;
 
 pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Result<Value> {
     let hosted = crate::onboarding::host::host_locally(adapters, options)?;
@@ -31,7 +31,7 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
         Some(v) => v.to_owned(),
         None => match hosted.and_then(|v| v.1) {
             Some(token) => token,
-            None => secret("Server setup token", |_| None)?,
+            None => super::token::read_token()?,
         },
     };
     let token = p::decode_token(p::TTokenKind::Setup, &token)?;
@@ -83,7 +83,30 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
         client.options.proof = Some(Rc::new(move |request| {
             p::token_proof(p::TTokenKind::Setup, &key, request).map(|v| v.to_vec())
         }));
-        if swap.header.body.signer == identity.record.id {
+        let epoch = adapters.keychain.get(
+            &format!("envden/{}/epoch/1", adapters.home.display()),
+            false,
+        )?;
+        let id = adapters
+            .keychain
+            .get(&format!("envden/{}/id-key", adapters.home.display()), false)?;
+        if super::pending::matches_pending(
+            &swap,
+            &vault_id,
+            epoch.as_deref(),
+            id.as_deref(),
+            &identity.record.id,
+        ) {
+            let kit = super::pending_kit::resume_secret(options)?
+                .map(|secret| {
+                    super::pending_kit::resumed_kit(
+                        &swap,
+                        pending["vaultId"].as_str().unwrap_or_default(),
+                        &address,
+                        &secret,
+                    )
+                })
+                .transpose()?;
             match client.request_bytes("/v1/vault", "POST", &bytes) {
                 Ok(_) => {
                     pending
@@ -92,7 +115,11 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
                         .shift_remove("creationPending");
                     record_unlock_window(&client, &mut pending)?;
                     save_state(&adapters.home, &pending, (adapters.now)())?;
-                    return Ok(pending);
+                    return if kit.is_some() {
+                        Ok(pending)
+                    } else {
+                        super::pending_kit::replace_lost(adapters, options, &name, &password)
+                    };
                 }
                 Err(error) if error.code == ErrorCode::Unauthorized => {}
                 Err(error) => return Err(error),
@@ -107,18 +134,8 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
     }));
     let record = register_password(&client, &material.vault_id, &password)?;
     let creation = create_vault_swap(&material, &identity, &password, &record, (adapters.now)())?;
-    let kit = json!({"vaultId":creation.vault_id,"secretKey":creation.secret_key,"server":address,"masterPassword":"________________"});
-    if let Some(path) = options["kitOut"].as_str() {
-        write_kit(Path::new(path), &kit)?;
-        println!("Recovery kit saved to {path}");
-    } else {
-        crate::vault::recovery::pdf::report_kit(
-            &kit,
-            &adapters.user_home,
-            &name,
-            (adapters.now)(),
-        )?;
-    }
+    let kit = setup_kit(&creation.secret_key, &creation.vault_id, &address);
+    super::pending_kit::report(adapters, options, &name, &kit)?;
     let mut state = empty_state(&name);
     state["vaultId"] = json!(creation.vault_id);
     state["server"] = json!({"address":address,"pin":text(&token.1),"protocol":1});
@@ -151,4 +168,25 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
     record_unlock_window(&client, &mut state)?;
     save_state(&adapters.home, &state, (adapters.now)())?;
     Ok(state)
+}
+
+fn setup_kit(secret: &str, vault: &str, address: &str) -> Value {
+    json!({"secretKey":secret,"vaultId":vault,"server":address,"masterPassword":"________________"})
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn kit_serializes_in_reference_order() {
+        let kit = setup_kit("secret", "vault", "server");
+        assert_eq!(
+            kit.as_object()
+                .unwrap()
+                .keys()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            ["secretKey", "vaultId", "server", "masterPassword"]
+        );
+    }
 }

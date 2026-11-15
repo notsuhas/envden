@@ -95,3 +95,39 @@ fn repair_token_rejects_fresh_active_vault() {
         ErrorCode::Unauthorized
     );
 }
+
+#[test]
+fn staged_record_is_checked_during_authorization() {
+    let (mut options, auth, mut swap, mut stored) = fixture();
+    options.storage = Arc::new(IFakeStorageAdapter {
+        device: Some(Box::new(|_, _| {
+            Ok(Some(IStoredDevice {
+                unlocked_until: 200,
+                fresh_until: 200,
+                ..Default::default()
+            }))
+        })),
+        vault: Some(Box::new(|_| {
+            Ok(Some(IStoredVault {
+                active: true,
+                ..Default::default()
+            }))
+        })),
+        session: Some(Box::new(|_, _, _| Ok(None))),
+        ..Default::default()
+    });
+    swap.opaque_record = Some(vec![7; 192]);
+    assert_eq!(
+        authorize(
+            &options,
+            &auth,
+            &swap,
+            TAuthorization::Fresh,
+            &mut stored,
+            None
+        )
+        .unwrap_err()
+        .code,
+        ErrorCode::Unauthorized
+    );
+}

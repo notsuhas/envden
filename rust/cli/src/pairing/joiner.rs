@@ -12,11 +12,24 @@ use crate::{
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
+use zeroize::Zeroizing;
 
 fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
+    let rejoin = options["rejoin"] == true;
+    let namespace = if rejoin {
+        adapters.home.join("rejoin")
+    } else {
+        adapters.home.clone()
+    };
     let receive = format!("envden/{}/pair-receive", adapters.home.display());
     let resume = options["resume"] == true;
-    if resume && adapters.keychain.get(&receive, false)?.is_none() {
+    if resume
+        && adapters
+            .keychain
+            .get(&receive, false)?
+            .map(Zeroizing::new)
+            .is_none()
+    {
         return Err(EnvdenError::new(
             ErrorCode::NotFound,
             "No pairing exchange to resume",
@@ -41,7 +54,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     let identity = if resume {
         let bytes = adapters
             .keychain
-            .get(&format!("envden/{}/device", adapters.home.display()), false)?
+            .get(&format!("envden/{}/device", namespace.display()), false)?
             .ok_or_else(|| {
                 EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume")
             })?;
@@ -49,7 +62,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     } else {
         device_identity(
             &*adapters.keychain,
-            &adapters.home,
+            &namespace,
             name.as_deref().expect("new join"),
             !load_state(&adapters.home)?.is_some_and(|s| s.get("checkpoint").is_some()),
             (adapters.now)(),
@@ -97,15 +110,21 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
                 "Incorrect pairing code; make a new code",
             )
         })?;
-        let (send, receive_key) = p::pairing_channel_keys(&binary(&finish.session_key)?)?;
+        let session = Zeroizing::new(binary(&finish.session_key)?);
+        let (send, receive_key) = p::pairing_channel_keys(&session)?;
+        drop(session);
+        let keys = super::approval::IChannelKeys {
+            receive: receive_key,
+            send,
+        };
         let message = text(&p::seal_pair_joiner(
             &p::IPairJoiner {
                 device: identity.record.clone(),
             },
-            &send,
+            &keys.send,
             &p::random_bytes(),
         )?);
-        adapters.keychain.set(&receive, &receive_key)?;
+        adapters.keychain.set(&receive, &keys.receive)?;
         atomic_write(
             &adapters.home.join("state/pair-joiner"),
             json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
@@ -140,10 +159,10 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             }
         }
     }
-    let key = adapters
-        .keychain
-        .get(&receive, false)?
-        .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume"))?;
+    let key =
+        Zeroizing::new(adapters.keychain.get(&receive, false)?.ok_or_else(|| {
+            EnvdenError::new(ErrorCode::NotFound, "No pairing exchange to resume")
+        })?);
     let message = wait(
         &client,
         "/v1/pairing/approver",
@@ -152,7 +171,10 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             .map(|v| v.saturating_add(86_400_000))
             .unwrap_or_else(|| (adapters.now)() + 86_400_000),
     )?;
-    let approval = p::open_pair_approver(&binary(&message)?, &p::fixed(&key)?)?;
+    let receive_key = Zeroizing::new(p::fixed(&key)?);
+    let approval = p::open_pair_approver(&binary(&message)?, &receive_key)?;
+    drop(receive_key);
+    drop(key);
     if approval.server_pin != server.pin {
         return Err(EnvdenError::new(
             ErrorCode::Unauthorized,
@@ -161,6 +183,9 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     }
     let client = client.for_vault(approval.vault_id);
     let history = read_history(&client, &approval.vault_id, None)?;
+    if rejoin {
+        crate::admin::rejoin::classify::check(adapters, &history)?;
+    }
     let local = accept(
         adapters,
         &client,
@@ -168,6 +193,9 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
         &history,
         &approval.manifest_hash,
     )?;
+    if rejoin {
+        crate::admin::rejoin::classify::finish_identity(adapters)?;
+    }
     adapters.keychain.delete(&receive)?;
     super::persistence::clear(adapters)?;
     Ok(local)

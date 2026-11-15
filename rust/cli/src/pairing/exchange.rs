@@ -10,12 +10,30 @@ pub(super) fn put(client: &IClient, number: u32, slot: &str, message: &str) -> R
             Some(&json!({"message":message})),
         )?
         .json()?;
-    value["expiresAt"]
-        .as_u64()
-        .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Invalid pairing response"))
+    let value: envden_protocol::protocol::IMailboxWriteResponse = serde_json::from_value(value)
+        .map_err(|cause| {
+            EnvdenError::with_source(ErrorCode::InvalidData, "Invalid pairing response", cause)
+        })?;
+    Ok(value.expires_at.max(0) as u64)
 }
 
 pub(super) fn wait(client: &IClient, path: &str, now: TClock, expiry: u64) -> Result<String> {
+    wait_with_pause(
+        path,
+        now,
+        expiry,
+        || client.request(path, "GET", None)?.json(),
+        || (client.options.backoff)(500),
+    )
+}
+
+fn wait_with_pause(
+    path: &str,
+    now: TClock,
+    expiry: u64,
+    mut request: impl FnMut() -> Result<serde_json::Value>,
+    mut pause: impl FnMut(),
+) -> Result<String> {
     let deadline = expiry.min(
         now()
             + if path == "/v1/pairing/approver" {
@@ -26,9 +44,8 @@ pub(super) fn wait(client: &IClient, path: &str, now: TClock, expiry: u64) -> Re
     );
     let mut expiry = deadline;
     while now() < expiry {
-        match client.request(path, "GET", None) {
-            Ok(response) => {
-                let value = response.json()?;
+        match request() {
+            Ok(value) => {
                 let (next_expiry, message) = super::response::response(&value, expiry)?;
                 expiry = next_expiry;
                 if let Some(message) = message {
@@ -38,7 +55,7 @@ pub(super) fn wait(client: &IClient, path: &str, now: TClock, expiry: u64) -> Re
             Err(error) if error.code == ErrorCode::NotFound && path == "/v1/pairing/approver" => {}
             Err(error) => return Err(error),
         }
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        pause();
     }
     Err(EnvdenError::new(
         ErrorCode::Busy,
@@ -79,5 +96,32 @@ mod tests {
                 ErrorCode::Unauthorized
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod pause_tests {
+    use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static CLOCK: AtomicU64 = AtomicU64::new(0);
+    fn now() -> u64 {
+        CLOCK.load(Ordering::SeqCst)
+    }
+    #[test]
+    fn pending_exchange_uses_injected_pause() {
+        CLOCK.store(0, Ordering::SeqCst);
+        let mut calls = 0;
+        let result = wait_with_pause(
+            "/v1/pairing/approver",
+            now,
+            10,
+            || Ok(json!({"kind":"pending"})),
+            || {
+                calls += 1;
+                CLOCK.store(10, Ordering::SeqCst);
+            },
+        );
+        assert_eq!(result.unwrap_err().code, ErrorCode::Busy);
+        assert_eq!(calls, 1);
     }
 }

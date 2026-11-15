@@ -2,19 +2,22 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::Value;
 
 pub(super) fn response(body: &Value, expiry: u64) -> Result<(u64, Option<String>)> {
-    if let Some(message) = body["message"].as_str() {
-        return Ok((
-            body["expiresAt"].as_u64().unwrap_or(expiry).min(expiry),
-            Some(message.into()),
-        ));
+    use envden_protocol::protocol as p;
+    if let Ok(slot) = serde_json::from_value::<p::TMailboxSlotResponse>(body.clone()) {
+        let (at, message) = match slot {
+            p::TMailboxSlotResponse::Message {
+                message,
+                expires_at,
+            } => (expires_at, Some(message)),
+            p::TMailboxSlotResponse::Pending { expires_at, .. } => (expires_at, None),
+        };
+        return Ok((expiry.min(at.max(0) as u64), message));
     }
-    if body["kind"] == "pending"
-        && (body["expiresAt"].as_u64().is_some() || body.get("expiresAt").is_none())
-    {
-        return Ok((
-            body["expiresAt"].as_u64().unwrap_or(expiry).min(expiry),
-            None,
-        ));
+    if let Ok(message) = serde_json::from_value::<p::IMessageResponse>(body.clone()) {
+        return Ok((expiry, Some(message.message)));
+    }
+    if serde_json::from_value::<p::IPendingResponse>(body.clone()).is_ok() {
+        return Ok((expiry, None));
     }
     Err(EnvdenError::new(
         ErrorCode::InvalidData,
@@ -42,7 +45,14 @@ mod tests {
         ] {
             assert_eq!(response(&body, 999).unwrap(), expected);
         }
-        for value in [json!({}), json!({"message":42}), json!({"kind":"other"})] {
+        for value in [
+            json!({}),
+            json!({"message":42}),
+            json!({"kind":"other"}),
+            json!({"message":"ok","extra":true}),
+            json!({"message":"ok","expiresAt":"bad"}),
+            json!({"kind":"pending","extra":true}),
+        ] {
             assert_eq!(
                 response(&value, 999).unwrap_err().code,
                 ErrorCode::InvalidData

@@ -46,3 +46,27 @@ fn refresh(result: envden_core::errors::Result<()>) {
         eprintln!("envden: binary updated; optional installation refresh failed");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn refresh_passes_the_original_executable_to_installed_shells() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut adapters = crate::adapters::create_adapters(
+            Some(temp.path().join("envden")),
+            temp.path().to_owned(),
+            || 1,
+        );
+        adapters.executable = "/opt/homebrew/Cellar/envden/1/bin/envden".into();
+        let shell = adapters.shell(TShell::Zsh);
+        shell
+            .install(&adapters.executable.to_string_lossy())
+            .unwrap();
+        let rc = temp.path().join(".zshrc");
+        let before = std::fs::read_to_string(&rc).unwrap();
+        refresh_installation(&adapters);
+        assert_eq!(std::fs::read_to_string(rc).unwrap(), before);
+    }
+}

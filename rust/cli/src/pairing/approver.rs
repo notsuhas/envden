@@ -18,6 +18,7 @@ use crate::{
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use std::rc::Rc;
+use zeroize::Zeroizing;
 
 pub fn add(adapters: &IAdapters) -> Result<()> {
     let mut state = require_configured(load_state(&adapters.home)?)?;
@@ -45,14 +46,11 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
     let mailbox = client
         .request("/v1/pairing/mailboxes", "POST", None)?
         .json()?;
-    let number = mailbox["number"]
-        .as_u64()
-        .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Invalid pairing response"))?
-        as u32;
-    let expiry = mailbox["expiresAt"]
-        .as_u64()
-        .unwrap_or(0)
-        .min((adapters.now)() + 600_000);
+    let mailbox: p::IMailboxOpened = serde_json::from_value(mailbox).map_err(|cause| {
+        EnvdenError::with_source(ErrorCode::InvalidData, "Invalid pairing response", cause)
+    })?;
+    let number = mailbox.number;
+    let expiry = (mailbox.expires_at.max(0) as u64).min((adapters.now)() + 600_000);
     super::exchange::require_window(expiry, (adapters.now)())?;
     let pin = client.options.pin;
     let attempt = prepare(&pin, number)?;
@@ -96,7 +94,9 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
             return Err(error);
         }
     };
-    let (receive, send) = p::pairing_channel_keys(&binary(&finish.session_key)?)?;
+    let session = Zeroizing::new(binary(&finish.session_key)?);
+    let (receive, send) = p::pairing_channel_keys(&session)?;
+    drop(session);
     let keys = super::approval::IChannelKeys { receive, send };
     let message = wait(
         client,

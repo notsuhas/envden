@@ -21,12 +21,19 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
 use std::path::Path;
+use zeroize::Zeroizing;
 
 pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
     crate::state::files::private_directory(&adapters.home)?;
-    with_state_lock(&adapters.home, (adapters.now)(), || {
-        crate::pairing::persistence::guard(adapters)
-    })?;
+    let mut options = options.clone();
+    let rejoin = load_state(&adapters.home)?.is_some_and(|s| s["checkpoint"].is_string());
+    options["rejoin"] = json!(rejoin);
+    let options = &options;
+    if !rejoin {
+        with_state_lock(&adapters.home, (adapters.now)(), || {
+            crate::pairing::persistence::guard(adapters)
+        })?;
+    }
     let mut state = if options["recovery"] == true || options["recoveryKit"].is_string() {
         let name = device_name(options)?;
         let kit = read_kit(options["recoveryKit"].as_str().map(Path::new))?;
@@ -73,11 +80,17 @@ fn recovery(
     let pending = adapters.home.join("state/kit-join");
     let attempt = json!({"vaultId":vault,"pin":p::base32(&server.pin),"name":name}).to_string();
     let resuming = std::fs::read_to_string(&pending).is_ok_and(|v| v == attempt);
+    let rejoin = load_state(&adapters.home)?.is_some_and(|s| s["checkpoint"].is_string());
+    let namespace = if rejoin {
+        adapters.home.join("rejoin")
+    } else {
+        adapters.home.clone()
+    };
     let identity = device_identity(
         &*adapters.keychain,
-        &adapters.home,
+        &namespace,
         name,
-        !resuming,
+        !resuming && !rejoin,
         (adapters.now)(),
     )?;
     atomic_write(&pending, attempt.as_bytes(), (adapters.now)())?;
@@ -92,7 +105,14 @@ fn recovery(
             Ok(_) => {
                 let history = read_history(&client, &vault_id, None)?;
                 let hash = p::object_hash(history.headers.last().expect("history"), "manifest")?;
+                require_pin(&history, &server.pin)?;
+                if rejoin {
+                    crate::admin::rejoin::classify::check(adapters, &history)?;
+                }
                 let local = accept(adapters, &client, &identity, &history, &hash)?;
+                if rejoin {
+                    crate::admin::rejoin::classify::finish_identity(adapters)?;
+                }
                 let _ = std::fs::remove_file(&pending);
                 return Ok(local);
             }
@@ -107,6 +127,10 @@ fn recovery(
         p::TLoginPurpose::Kit,
     )?;
     let history = read_history(&client, &vault_id, None)?;
+    require_pin(&history, &server.pin)?;
+    if rejoin {
+        crate::admin::rejoin::classify::check(adapters, &history)?;
+    }
     let head = history.headers.last().expect("history");
     let bytes = client.request("/v1/envelope", "GET", None)?.body;
     if p::h("envelope-blob", &bytes) != head.body.envelope_hash {
@@ -115,7 +139,9 @@ fn recovery(
             "Envelope hash mismatch",
         ));
     }
-    let envelope = p::open_envelope(&bytes, password, &p::decode_secret_key(secret)?, &vault_id)?;
+    let secret = Zeroizing::new(p::decode_secret_key(secret)?);
+    let envelope = p::open_envelope(&bytes, password, &secret, &vault_id)?;
+    drop(secret);
     if envelope.checkpoint != [0; 32]
         && !history
             .headers
@@ -148,6 +174,9 @@ fn recovery(
     )?;
     client.request_bytes("/v1/swap", "POST", &p::encode(&swap)?)?;
     let updated = read_history(&client, &vault_id, None)?;
+    if rejoin {
+        crate::admin::rejoin::classify::check(adapters, &updated)?;
+    }
     let local = accept(
         adapters,
         &client,
@@ -155,6 +184,19 @@ fn recovery(
         &updated,
         &p::object_hash(&swap.header, "manifest")?,
     )?;
+    if rejoin {
+        crate::admin::rejoin::classify::finish_identity(adapters)?;
+    }
     let _ = std::fs::remove_file(pending);
     Ok(local)
+}
+
+fn require_pin(history: &crate::vault::history::IVaultHistory, pin: &[u8; 32]) -> Result<()> {
+    if history.state.server_pin != *pin {
+        return Err(EnvdenError::new(
+            ErrorCode::Moving,
+            "Vault moved; use its current server address",
+        ));
+    }
+    Ok(())
 }

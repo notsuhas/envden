@@ -37,6 +37,7 @@ pub(crate) fn accept(
     history: &IVaultHistory,
     hash: &[u8; 32],
 ) -> Result<Value> {
+    latest_membership(&history.state, &identity.record.id, &client.options.pin)?;
     let header = history
         .headers
         .iter()
@@ -55,6 +56,28 @@ pub(crate) fn accept(
         .filter(|e| e.body.seq <= header.body.list_seq)
         .cloned()
         .collect();
+    let existing = crate::state::repository::load_state(&adapters.home)?;
+    if let Some(existing) = existing.as_ref().filter(|s| s["checkpoint"].is_string()) {
+        let floor = crate::client::binary(existing["checkpoint"].as_str().expect("checkpoint"))?;
+        let descends = history
+            .headers
+            .iter()
+            .any(|h| p::object_hash(h, "manifest").is_ok_and(|v| v.as_slice() == floor));
+        let dropped = !descends
+            && matches!(
+                crate::admin::rejoin::classify::check(adapters, history)?,
+                Some(envden_protocol::chain::TNonMember::DroppedByRepair)
+            );
+        if !descends && !dropped {
+            return Err(EnvdenError::new(
+                ErrorCode::Fork,
+                "Joined history does not descend from the local checkpoint",
+            ));
+        }
+        if !dropped {
+            return super::vault::advance::advance(adapters, client, identity, existing, history);
+        }
+    }
     let wrap = epoch_wrap(&entries, &identity.record.id)
         .ok_or_else(|| invalid("Missing device epoch wrap"))?;
     let commit = state
@@ -85,13 +108,27 @@ pub(crate) fn accept(
         &state.vault_id,
         header.body.epoch,
         &state.commits,
-        None,
+        existing
+            .as_ref()
+            .map(|_| {
+                adapters
+                    .keychain
+                    .get(&format!("envden/{}/id-key", adapters.home.display()), false)
+            })
+            .transpose()?
+            .flatten()
+            .as_deref()
+            .map(p::fixed)
+            .transpose()?
+            .as_ref(),
     )?;
     let files = blob("files", "files", &header.body.files_hash)?;
     let _: p::IFiles = p::decode(&files)?;
     let committed = &state.devices[&identity.record.id];
     adopt_committed_name(&*adapters.keychain, &adapters.home, committed)?;
-    let mut local = empty_state(&committed.name);
+    let mut local = crate::state::repository::load_state(&adapters.home)?
+        .unwrap_or_else(|| empty_state(&committed.name));
+    local["deviceName"] = json!(committed.name);
     local["verifiedState"] = encode_verified_state(state, &history.entries)?;
     local["vaultId"] = json!(p::base32(&state.vault_id));
     local["server"] =
@@ -134,4 +171,42 @@ pub(crate) fn accept(
 
 fn invalid(message: &'static str) -> EnvdenError {
     EnvdenError::new(ErrorCode::InvalidData, message)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{adapters::create_adapters, identity::device_identity, vault::create_genesis};
+    use envden_protocol::chain::{TDeviceListResult, verify_chain};
+
+    #[test]
+    fn latest_membership_rejects_removed_device_and_changed_pin() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let identity =
+            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
+        let material = create_genesis(&identity, [2; 32], 42).unwrap();
+        let TDeviceListResult::Valid { mut state } =
+            verify_chain(&[material.genesis, material.epoch]).unwrap()
+        else {
+            panic!("valid")
+        };
+        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_ok());
+        state.server_pin = [3; 32];
+        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_err());
+        state.server_pin = [2; 32];
+        state.devices.remove(&identity.record.id);
+        assert!(latest_membership(&state, &identity.record.id, &[2; 32]).is_err());
+    }
+}
+
+fn latest_membership(
+    _state: &envden_protocol::chain::IDeviceListState,
+    _id: &[u8; 16],
+    _pin: &[u8; 32],
+) -> Result<()> {
+    if !_state.devices.contains_key(_id) || _state.server_pin != *_pin {
+        return Err(invalid("Pairing membership verification failed"));
+    }
+    Ok(())
 }

@@ -52,7 +52,7 @@ pub fn reclaimable(
 }
 
 pub(super) fn process_identity() -> Option<String> {
-    let host = String::from_utf8(Command::new("/bin/hostname").output().ok()?.stdout)
+    let host = String::from_utf8(Command::new("hostname").output().ok()?.stdout)
         .ok()?
         .trim()
         .to_string();
@@ -67,7 +67,7 @@ pub(super) fn process_identity() -> Option<String> {
             .to_string_lossy()
             .to_string(),
     );
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
     let (boot, namespace) = {
         let output = Command::new("/usr/sbin/sysctl")
             .args(["-n", "kern.boottime"])
@@ -77,6 +77,22 @@ pub(super) fn process_identity() -> Option<String> {
         let seconds = value.split("sec = ").nth(1)?.split(',').next()?.trim();
         let micros = value.split("usec = ").nth(1)?.split('}').next()?.trim();
         (format!("{seconds}:{micros}"), String::new())
+    };
+    #[cfg(windows)]
+    let (boot, namespace) = {
+        let output = Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
+            ])
+            .output()
+            .ok()?;
+        (
+            String::from_utf8(output.stdout).ok()?.trim().to_string(),
+            String::new(),
+        )
     };
     Some(serde_json::json!({"host":host,"boot":boot,"namespace":namespace}).to_string())
 }
@@ -90,9 +106,10 @@ pub(super) fn try_reclaim(path: &Path, now: u64) -> Result<()> {
     let expired = match &previous {
         Some(owner) => {
             let identity = process_identity();
-            let observed = match super::run::process_start(owner.pid) {
-                Ok(start) => TProcess::Live(start),
-                Err(_) => TProcess::Unknown,
+            let observed = if identity.is_some() && owner.identity == identity {
+                super::process::process_start(owner.pid)
+            } else {
+                TProcess::Unknown
             };
             reclaimable(owner, &observed, identity.as_deref(), now)
         }
@@ -130,6 +147,45 @@ fn read_owner(path: &Path) -> Option<IOwner> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn expired_reclaim_guard_does_not_block_recovery() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("write.lock");
+        fs::create_dir(&path).unwrap();
+        fs::create_dir(path.join("reclaim")).unwrap();
+        let old = std::time::UNIX_EPOCH + std::time::Duration::from_millis(1);
+        fs::File::open(path.join("reclaim"))
+            .unwrap()
+            .set_times(fs::FileTimes::new().set_modified(old))
+            .unwrap();
+        fs::File::open(&path)
+            .unwrap()
+            .set_times(fs::FileTimes::new().set_modified(old))
+            .unwrap();
+        try_reclaim(&path, 100_000).unwrap();
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn exited_same_machine_owner_is_reclaimed() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("write.lock");
+        fs::create_dir(&path).unwrap();
+        let mut child = Command::new("true").spawn().unwrap();
+        let pid = child.id();
+        child.wait().unwrap();
+        let owner = IOwner {
+            pid,
+            token: "old".into(),
+            started_at: "old".into(),
+            identity: process_identity(),
+            created_at: 100,
+        };
+        fs::write(path.join("owner.json"), serde_json::to_vec(&owner).unwrap()).unwrap();
+        try_reclaim(&path, 100).unwrap();
+        assert!(!path.exists());
+    }
+
     #[test]
     fn owner_reclaim_matrix() {
         let owner = IOwner {

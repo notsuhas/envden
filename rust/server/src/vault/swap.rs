@@ -122,16 +122,6 @@ pub(crate) fn commit_swap(
                 "Missing uploaded blob",
             ));
         }
-        if let Some(record) = &swap.opaque_record {
-            let key = session_key(auth, "registration-record");
-            if storage.session(id, &key, (options.now)())?.as_ref() != Some(record) {
-                return Err(EnvdenError::new(
-                    ErrorCode::Unauthorized,
-                    "Staged registration required",
-                ));
-            }
-            stored.consume_sessions.get_or_insert_default().push(key);
-        }
         if swap.sk_pub.is_some() {
             let mut vault = vault.clone();
             vault.sk_refused = false;
