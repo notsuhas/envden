@@ -20,7 +20,7 @@ chacha20poly1305 = { version = "0.10", features = ["std"] }
 ed25519-dalek = "2"
 curve25519-dalek = "4"
 x25519-dalek = { version = "2", features = ["static_secrets"] }
-hpke = { version = "0.13", features = ["x25519"] }
+hpke = { version = "=0.13.0", features = ["x25519"] }
 rand = "0.8"
 opaque-ke = "=4.0.1"
 argon2 = "=0.5.3"

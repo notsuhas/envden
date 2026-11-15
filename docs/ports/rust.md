@@ -46,6 +46,6 @@ CLAUDE.md applies, in idiomatic Rust:
 | XChaCha20-Poly1305 | `chacha20poly1305` | RustCrypto |
 | Ed25519 | `ed25519-dalek` | strict verification |
 | X25519 | `x25519-dalek` | |
-| HPKE | `hpke` | RFC 9180, X25519-HKDF-SHA256 + ChaCha20Poly1305 |
+| HPKE | `hpke` 0.13.0, vendored in `rust/vendor/hpke` with a small patch | RFC 9180. TS uses raw random bytes as the ephemeral key; the patch exposes the crate's own fixed-ephemeral encapsulation so wraps match (`ENVDEN-PATCH.md`) |
 | Argon2id | `argon2` | RustCrypto |
 | Errors | `thiserror` | |

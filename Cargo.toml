@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
-members = ["rust/core", "rust/protocol"]
+members = ["rust/core", "rust/protocol", "rust/testing"]
+exclude = ["rust/vendor"]
 
 [workspace.package]
 version = "0.3.8"
@@ -16,6 +17,10 @@ all = { level = "deny", priority = -1 }
 
 [workspace.dependencies]
 thiserror = "2"
+
+[patch.crates-io]
+# exposes fixed-ephemeral encapsulation; see rust/vendor/hpke/ENVDEN-PATCH.md
+hpke = { path = "rust/vendor/hpke" }
 
 [profile.release]
 opt-level = 3
