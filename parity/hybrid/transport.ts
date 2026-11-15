@@ -105,6 +105,11 @@ async function runTransport() {
     const replay = signed("/v1/opaque/registration/start", "{");
 
     const cases = [
+      [
+        "signed hello",
+        `GET /v1/hello?challenge=${Buffer.alloc(32).toString("base64url")} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n`,
+        200,
+      ],
       ["HEAD status page", "HEAD / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n", 404],
       [
         "HEAD status JSON",

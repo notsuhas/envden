@@ -38,7 +38,7 @@ The TypeScript reference passes 133 cases, with one Windows-only skip on macOS.
 The Rust server passes 106 tests; table rows and related assertions are grouped.
 Both the TS-vs-TS baseline and the hybrid differential pass all 21 scenarios.
 The raw transport comparison checks ordered, case-sensitive headers and exact
-status lines and body bytes across 16 cases, excluding Date and connection headers.
+status lines and body bytes across 17 cases, excluding Date and connection headers.
 It includes the reference's HEAD and 413 responses on fresh and reused connections.
 
 The hybrid launcher uses the release server and delegates other commands to the
