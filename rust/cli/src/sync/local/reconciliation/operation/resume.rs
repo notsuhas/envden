@@ -30,6 +30,19 @@ pub fn commit_file(
 ) -> Result<()> {
     let before = hashes(context, store, targets)?;
     let hash = content_hash(next);
+    let mut copies_recorded = true;
+    for target in targets.iter().filter(|t| t.mode == "copy") {
+        copies_recorded &= read_bytes(&base_path(
+            &context.adapters.home,
+            &target.store,
+            Some(&target.root),
+        ))?
+        .as_deref()
+            == next;
+    }
+    if before.iter().all(|before| *before == hash) && copies_recorded {
+        return finish_file(context, targets, store, next, server, entry, None);
+    }
     let record = IOperation {
         targets: targets.to_vec(),
         written: before.iter().map(|h| *h == hash).collect(),
@@ -101,14 +114,25 @@ pub fn resume_file(context: &mut ISyncContext<'_>, store: &str) -> Result<()> {
     {
         return write_bytes(&path, None, (context.options.now)());
     }
+    let targets = operation.targets.clone();
+    let entry = operation.entry.clone();
     finish_file(
         context,
-        &operation.targets,
+        &targets,
         store,
         next.as_deref(),
         server.as_deref(),
-        operation.entry.as_deref(),
+        entry.as_deref(),
+        Some(&mut operation),
     )?;
+    if let Some(entry) = entry {
+        crate::sync::local::applied::mark_applied_entry(
+            &context.adapters.home,
+            &entry,
+            None,
+            (context.options.now)(),
+        )?;
+    }
     write_bytes(&path, None, (context.options.now)())
 }
 

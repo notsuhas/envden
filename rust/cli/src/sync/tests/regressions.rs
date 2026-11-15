@@ -6,7 +6,7 @@ use crate::{links::approval::checkout_value, *};
 use serde_json::json;
 use std::fs;
 
-fn reconciliation(repair: bool, consume: bool) {
+fn reconciliation(repair: bool, consume: bool, journal: bool, interrupted: bool) {
     use std::{cell::Cell, collections::HashSet, rc::Rc};
     use sync::local::{
         conflicts::IConflictTarget, files::base_path, reconciliation::file::reconcile_file,
@@ -64,9 +64,21 @@ fn reconciliation(repair: bool, consume: bool) {
         }
         let calls = Rc::new(Cell::new(0));
         let record = calls.clone();
+        if interrupted {
+            let exclude = root.join(".git/info/exclude");
+            c.options.report = Some(Rc::new(move |_| {
+                let _ = fs::remove_file(&exclude);
+                fs::create_dir_all(&exclude).unwrap();
+            }));
+        }
         c.options.choose = Some(Rc::new(move |_| {
             record.set(record.get() + 1);
-            Ok("keep-mine".into())
+            Ok(if interrupted {
+                "take-server"
+            } else {
+                "keep-mine"
+            }
+            .into())
         }));
         let result = reconcile_file(
             &mut c,
@@ -75,7 +87,21 @@ fn reconciliation(repair: bool, consume: bool) {
             Some(&e),
             &repairs,
         );
+        if interrupted {
+            assert!(result.is_err());
+            let pending = sync::local::reconciliation::operation::deletion::suffix(
+                &base_path(&a.home, store.to_str().unwrap(), None),
+                ".pending",
+            );
+            let operation: serde_json::Value =
+                serde_json::from_slice(&fs::read(pending).unwrap()).unwrap();
+            assert_eq!(operation["written"][0], true);
+            return;
+        }
         assert_eq!(result.unwrap().1, usize::from(repair));
+        if journal {
+            assert!(a.home.join("state/placement.json").exists());
+        }
         if !repair {
             assert_eq!(calls.get(), 1);
         }
@@ -105,11 +131,26 @@ fn reconciliation(repair: bool, consume: bool) {
 
 #[test]
 fn detached_chooser() {
-    reconciliation(false, false);
+    reconciliation(false, false, false, false);
 }
 
 #[test]
-fn aligned_conflicts() { reconciliation(true, false); }
+fn aligned_conflicts() {
+    reconciliation(true, false, false, false);
+}
 
 #[test]
-fn repair_marker_is_consumed() { reconciliation(true, true); }
+fn repair_marker_is_consumed() {
+    reconciliation(true, true, false, false);
+}
+
+#[test]
+fn placement_writes_a_journal() {
+    reconciliation(false, false, true, false);
+}
+
+#[test]
+fn interrupted_placement_marks_completed_store_write() {
+    reconciliation(false, false, false, true);
+}
+
