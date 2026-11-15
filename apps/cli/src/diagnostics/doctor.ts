@@ -2,6 +2,7 @@ import { updateStatus } from "../updates/status.ts";
 import { mkdtemp, symlink, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { TAdapters } from "../adapters.ts";
+import { homePath, realHome } from "../output/home-path.ts";
 import { ensurePaths, type paths } from "../settings/paths.ts";
 
 export async function doctor(adapters: TAdapters, location: ReturnType<typeof paths>) {
@@ -28,7 +29,10 @@ export async function doctor(adapters: TAdapters, location: ReturnType<typeof pa
   );
 
   return {
-    keychain: (await adapters.keychain.available()) ? "os" : "file-fallback",
+    keys: {
+      location: homePath(adapters.home, await realHome(adapters.userHome)),
+      ownerOnly: await adapters.keychain.ownerOnly(),
+    },
     symlinks,
     update: await updateStatus(adapters.home),
     tailscale: await adapters.network.status(),

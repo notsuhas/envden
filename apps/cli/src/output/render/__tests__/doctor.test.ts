@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { doctorText } from "../doctor.ts";
 
 const healthy = {
-  keychain: "os",
+  keys: { location: "~/.envden", ownerOnly: true },
   symlinks: true,
   update: { available: false, required: false },
   tailscale: { ready: true, running: true, loggedIn: true, httpsEnabled: true, hostname: "box" },
@@ -15,7 +15,7 @@ const healthy = {
 
 test("doctor prints a pass/fail checklist", () => {
   expect(doctorText({ ...healthy, shells: [...healthy.shells] }).split("\n")).toEqual([
-    "✓ Keychain: OS keychain",
+    "✓ Keys: private files in ~/.envden (owner-only, like ~/.ssh)",
     "✓ Symlinks work",
     "✓ envden is up to date",
     "✓ Tailscale: connected as box",
@@ -25,7 +25,7 @@ test("doctor prints a pass/fail checklist", () => {
 
   expect(
     doctorText({
-      keychain: "file-fallback",
+      keys: { location: "~/.envden", ownerOnly: false },
       symlinks: false,
       update: { available: true, required: false },
       tailscale: { ready: false, running: true, loggedIn: false, httpsEnabled: false },
@@ -36,7 +36,7 @@ test("doctor prints a pass/fail checklist", () => {
       shells: [],
     }).split("\n"),
   ).toEqual([
-    "! Keychain: unavailable; keys are kept in a private file",
+    "✗ Keys: other users can read key files in ~/.envden; run chmod -R go-rwx ~/.envden",
     "! Symlinks unavailable; checkouts get copies",
     "! Update available; run envden update",
     "✗ Tailscale: not logged in",

@@ -29,7 +29,6 @@ export async function createDevice(root: string, name: string, env?: string): Pr
       USERPROFILE: home,
       XDG_CONFIG_HOME: join(home, ".config"),
       ENVDEN_HOME: join(root, name, "envden"),
-      ENVDEN_KEYCHAIN: "file",
       ENVDEN_NO_UPDATE_CHECK: "1",
       ENVDEN_TELEMETRY: "0",
       PATH: process.env.PATH ?? "",

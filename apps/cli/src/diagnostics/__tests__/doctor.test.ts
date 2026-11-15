@@ -17,7 +17,7 @@ test("doctor uses injected adapters and explicit paths including HTTPS checks", 
       {
         home,
         userHome: home,
-        keychain: createMemoryKeychainAdapter(["available"]),
+        keychain: createMemoryKeychainAdapter(["ownerOnly"]),
       },
       fixtureClock,
     );
@@ -33,6 +33,7 @@ test("doctor uses injected adapters and explicit paths including HTTPS checks", 
     const result = await doctor(adapters, paths(home));
     expect(JSON.stringify(result, null, 2).split("\n").length).toBeGreaterThan(3);
     expect(result.https.kind).toBe("https-disabled");
+    expect(result.keys).toEqual({ location: "~", ownerOnly: true });
     expect(result.shells.every((shell) => shell.path.startsWith(home))).toBe(true);
   } finally {
     await rm(home, { recursive: true, force: true });

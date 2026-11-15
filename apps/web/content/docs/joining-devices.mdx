@@ -21,8 +21,6 @@ envden join https://envden.your-tailnet.ts.net
 
 Use your server's address and enter the pairing code. envden suggests your hostname without its domain as the device name; edit it at the prompt or pass `--name`. Without a terminal it takes the suggestion. If another device already has that name, envden adds `-2`, `-3` and so on. On the existing device, confirm the new device's name. The new device checks that it reached the same server your other device uses, and stays unlocked for as long as that device has left.
 
-On a machine without a desktop keychain, such as a server you reach over SSH, see [where device keys are kept](/docs/security#where-device-keys-are-kept) before joining.
-
 If the join stops after the code was accepted, run `envden join <server> --resume` to finish it. The approval stays on the server for 24 hours. If there's nothing to resume, `--resume` stops at once; start again with a new code.
 
 ## Join with your recovery kit

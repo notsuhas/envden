@@ -84,9 +84,9 @@ Decoders reject:
 
 | Key | Type | Created | Held by |
 |---|---|---|---|
-| Device encryption key | X25519 | device setup | that device's keychain |
-| Device object key | Ed25519 | device setup | that device's keychain |
-| Device request key | Ed25519 | device setup | that device's keychain; separate so a request signature never counts as a vault object |
+| Device encryption key | X25519 | device setup | that device's key files |
+| Device object key | Ed25519 | device setup | that device's key files |
+| Device request key | Ed25519 | device setup | that device's key files; separate so a request signature never counts as a vault object |
 | Recovery encryption key | X25519 | vault creation, kit replacement, password reset | the password envelope; held in memory only while creating, joining with the kit, replacing the kit, or changing or resetting the password |
 | Recovery object key | Ed25519 | same | same |
 | Epoch key `K_e` | 32 random bytes | each new epoch | HPKE-wrapped to members; older ones in the keyring |
@@ -468,7 +468,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
    A keeps only the throwaway setup and the record, and shows the code.
 3. **B** runs `envden join <server>`:
    - does hello and remembers that pin
-   - generates its device keys and stores them in its keychain
+   - generates its device keys and stores them in its key files
    - asks for the code
    - posts `KE1` to mailbox `m`
 4. **S** stores `KE1` in the mailbox's `KE1` slot (see Server rules).
@@ -478,7 +478,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
 8. **Channel keys.**
    - `k_BA = KDF(sessionKey, empty, "pair/joiner-to-approver", empty)`
    - `k_AB` is the same with label `pair/approver-to-joiner`
-   - Each side stores the keys it needs in its keychain until pairing ends, then erases them along with `sessionKey`.
+   - Each side stores the keys it needs in its key files until pairing ends, then erases them along with `sessionKey`.
 9. **Messages.** Each message is `u8 1 ‖ random nonce(24) ‖ XChaCha20-Poly1305(key, nonce, plaintext, AD = empty)`. Each is encrypted once, stored, and resent byte-for-byte on retry of the same attempt. If A's pair swap loses the compare-and-swap, A rebuilds the add-device entry (with a new wrap if the epoch moved), the header and the `PairApprover`, with a fresh nonce.
 10. **B → A**: `PairJoiner (0x07) { type, version, device DeviceRecord }`. A recomputes the ID and checks that the keys are unused. If the name is taken, A appends `-2`, `-3`, … to the first free one, shortening the name to stay within 64 bytes. The ID doesn't cover the name, so the record stays valid.
 11. **A** asks "Add *name*? [y/N]" with that name. On yes, before the exchange window ends, A makes the pair swap. On a rebuild after a lost compare-and-swap, A picks the name again and re-checks the 64-device limit. It carries a device-signed add-device with B's wrap of the current epoch key.

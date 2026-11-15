@@ -7,9 +7,11 @@ export function doctorText(report: TReport) {
   const shells = report.shells.filter((shell) => shell.installed);
 
   const lines = [
-    report.keychain === "os"
-      ? pass("Keychain: OS keychain")
-      : warn("Keychain: unavailable; keys are kept in a private file"),
+    report.keys.ownerOnly
+      ? pass(`Keys: private files in ${report.keys.location} (owner-only, like ~/.ssh)`)
+      : fail(
+          `Keys: other users can read key files in ${report.keys.location}; run chmod -R go-rwx ${report.keys.location}`,
+        ),
     report.symlinks ? pass("Symlinks work") : warn("Symlinks unavailable; checkouts get copies"),
     updateLine(report.update),
     tailscaleLine(report.tailscale),

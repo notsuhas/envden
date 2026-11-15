@@ -2,13 +2,47 @@
 
 A stable `vX.Y.Z` tag matching the CLI and server starts the release workflow. It builds and smoke-tests eight binaries, stages a multi-architecture GHCR image, uploads `SHA256SUMS`, then publishes the GitHub release. npm uses trusted publishing; Homebrew and Scoop use the release environment's `ENVDEN_HOMEBREW_TAP_KEY` and `ENVDEN_SCOOP_BUCKET_KEY` deploy keys. `ENVDEN_GHCR_NAMESPACE` selects the image namespace. No npm token is stored.
 
-Only the highest stable release moves GitHub Latest, Docker latest/major/minor tags and the Homebrew and Scoop manifests. Backports retain exact image tags and use npm's `backport` tag. Published releases are immutable. Retries compare rebuilt checksums with the published release and fail if they differ. npm verifies an existing version's pinned hashes. Downstream jobs read published checksums and the published image digest.
+Only the highest stable release moves GitHub Latest, Docker latest/major/minor tags and the Homebrew and Scoop manifests. Backports retain exact image tags and use npm's `backport` tag. Published releases are immutable. Retries compare rebuilt checksums with the published release and fail if they differ, except for signed macOS binaries (see [macOS signing](#macos-signing)). npm verifies an existing version's pinned hashes. Downstream jobs read published checksums and the published image digest.
 
 After a partial failure, use "Re-run failed jobs" on the original run. Do not delete and re-push a tag or rebuild published binaries with "Re-run all jobs". Two consecutive local builds to the same output path matched, but byte identity across runners or toolchain changes is not guaranteed. If rebuilt hashes differ, re-run only failed jobs from the original run, or release a new version for changed binaries. A draft left by an interrupted upload is completed and published on retry.
 
 ## Version bumps
 
 Add a changeset (`bunx changeset`) with each user-facing change. To cut a release, run `bun run release:version`: it applies the pending changesets to `apps/cli` and `apps/server` (versioned together; the site reads the CLI version and deploys from main on its own), writes `apps/cli/CHANGELOG.md`, syncs `packaging/npm/package.json` and the getting-started version output, refreshes `bun.lock` and formats. Run the root checks, web build and three-OS CI before requesting approval to tag.
+
+## macOS signing
+
+When `MACOS_CERTIFICATE_P12` is set, the macOS build jobs sign each darwin binary with a Developer ID certificate under the hardened runtime, notarize it and smoke the signed binary before hashing and upload. When it is empty, they log a notice and ship the ad-hoc signed binary as before. Every signed release keeps the identifier `dev.envden.cli` and team ID, so macOS treats each version as the same app.
+
+A bare CLI binary can't have its notarization ticket stapled, so Gatekeeper checks it online the first time a downloaded copy runs. Homebrew, npm, the install scripts and self-update download without the quarantine flag and never trigger that check.
+
+`packaging/macos/entitlements.plist` grants only `allow-jit`. Without it the binary still runs, but JavaScriptCore drops to its interpreter and `bun:ffi` fails. Bun's guide also lists `allow-unsigned-executable-memory`, `disable-executable-page-protection`, `allow-dyld-environment-variables` and `disable-library-validation`. envden doesn't need them, and the last two would let other code be loaded into envden.
+
+A timestamped signature differs every time a binary is signed, so a rebuilt signed darwin binary never matches the published one. Retries therefore skip the checksum comparison for darwin assets while signing is on and compare the other six. Each signed binary is checked in its own build job instead: `codesign --verify --strict`, an online notarization check and a smoke run. Nothing is uploaded when the release is already published, and Homebrew, npm and Scoop read the published `SHA256SUMS`, which is computed after signing.
+
+Add these as repository secrets, not `release` environment secrets, because the build jobs run outside that environment:
+
+| Secret | Value |
+| --- | --- |
+| `MACOS_CERTIFICATE_P12` | Developer ID Application certificate and private key, `.p12`, base64 |
+| `MACOS_CERTIFICATE_PASSWORD` | Password of that `.p12` |
+| `APPLE_API_KEY_P8` | App Store Connect API key, `.p8`, base64 |
+| `APPLE_API_KEY_ID` | Key ID of that API key |
+| `APPLE_API_ISSUER_ID` | Issuer ID shown above the key list |
+
+1. Certificate (needs the Account Holder role): Xcode → Settings → Accounts → Manage Certificates → + → Developer ID Application. In Keychain Access, under My Certificates, export "Developer ID Application: …" as a `.p12` with a password.
+2. API key: App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → +, with the Developer role. Download `AuthKey_<KEY_ID>.p8` (it can be downloaded once) and note the Issuer ID.
+3. Store them:
+
+```sh
+base64 -i developer-id.p12 | gh secret set MACOS_CERTIFICATE_P12
+gh secret set MACOS_CERTIFICATE_PASSWORD
+base64 -i AuthKey_<KEY_ID>.p8 | gh secret set APPLE_API_KEY_P8
+gh secret set APPLE_API_KEY_ID --body <KEY_ID>
+gh secret set APPLE_API_ISSUER_ID --body <ISSUER_ID>
+```
+
+Delete the local `.p12` and `.p8` afterwards. If the certificate is set but an API secret is missing, the macOS build jobs fail rather than publish binaries that aren't notarized.
 
 ## Manual channels
 

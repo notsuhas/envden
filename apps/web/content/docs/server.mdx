@@ -11,17 +11,17 @@ Use the [Docker setup](/docs/getting-started/home-lab-first) or let [laptop setu
 envden serve --data-dir /path/to/data
 ```
 
-Without flags it keeps data in `~/.envden/server` and listens on `127.0.0.1:4280`. That address only works on this machine, so don't give it to setup. Publish the server on your tailnet with Tailscale Serve:
+Without flags it keeps data in `~/.envden/server` and listens on `127.0.0.1:4280`. That address only works on this machine, so don't give it to setup. Publish the server on your tailnet with Tailscale Serve, on its own port so it doesn't take the machine's main address from another app:
 
 ```sh
-tailscale serve --bg --https=443 http://127.0.0.1:4280
+tailscale serve --bg --https=4280 http://127.0.0.1:4280
 ```
 
-Then give `envden setup` the HTTPS address, `https://<machine>.<tailnet>.ts.net`. Tailscale Serve needs HTTPS certificates enabled for your tailnet.
+Then give `envden setup` the HTTPS address, `https://<machine>.<tailnet>.ts.net:4280`. Tailscale Serve needs HTTPS certificates enabled for your tailnet.
 
 On first start the server prints a setup token, a single word under the `Setup token` line. It lets your first device check that it reached this server before creating a vault, and it's used up once a vault exists. Env files on your devices keep working if the server goes offline.
 
-To run the server on the same machine as your first device, skip all this and run `envden setup --host-server`. It installs the server, publishes it with Tailscale Serve and reads the setup token itself, so there's nothing to paste.
+To run the server on the same machine as your first device, skip all this and run `envden setup --host-server`. It installs the server, publishes it with Tailscale Serve at `https://<machine>.<tailnet>.ts.net:4783` and reads the setup token itself, so there's nothing to paste. If another app already uses port 4783 on this machine, it picks a free port instead, and it never replaces anything Tailscale Serve already publishes.
 
 To replace the active setup token, start the server with `ENVDEN_SETUP_TOKEN` set to a token for this server. `serve` has no token flag, since flags show up in `ps`.
 

@@ -42,10 +42,10 @@ bun scripts/new-adapter.ts <kind> <impl>
 bun install
 ```
 
-`<kind>` is one lowercase word and `<impl>` is kebab-case. For `keychain secret-service` this creates:
+`<kind>` is one lowercase word and `<impl>` is kebab-case. For `keychain one-password` this creates:
 
-- `packages/adapters/keychain/secret-service`, named `@envden/adapter-keychain-secret-service`
-- `src/adapter.ts`, exporting `createSecretServiceKeychainAdapter`, which returns `IKeychainAdapter`
+- `packages/adapters/keychain/one-password`, named `@envden/adapter-keychain-one-password`
+- `src/adapter.ts`, exporting `createOnePasswordKeychainAdapter`, which returns `IKeychainAdapter`
 - `src/index.ts`, which only re-exports it
 - `src/__tests__/contract.test.ts`, which runs the kind's contract suite
 
@@ -56,7 +56,7 @@ The template lives in `packaging/templates/adapter`. `base/` applies to every ki
 ## 5. Make the contract test pass
 
 - [ ] `src/__tests__/contract.test.ts` runs `<kind>Contract` from `@envden/testing/<kind>`. This test is required: `packages/testing` fails if an adapter package has none.
-- [ ] The factory builds your adapter against what the suite hands it: a temp directory, a scenario name, or a fixture. Take the home folder, the data folder and any command runner as arguments, so the test never touches the real keychain, the user's home or a real tailnet.
+- [ ] The factory builds your adapter against what the suite hands it: a temp directory, a scenario name, or a fixture. Take the home folder, the data folder and any command runner as arguments, so the test never touches the user's real keys, their home or a real tailnet.
 - [ ] If the suite is missing a case every implementation of the kind should pass, add it to the suite. Cases only your adapter has go in your own `__tests__/`.
 - [ ] Time is an argument. No `Date.now()` in the adapter.
 
@@ -82,7 +82,7 @@ Until it is wired, Fallow reports the factory as unused.
 
 Callers never ask which adapter they have. No `adapter.id === "tailscale"`, no `instanceof`.
 
-If callers need to act differently, put the difference on the interface and read it there. Existing examples: `IPlacementAdapter.mode` and `supported(dir)`, `IKeychainAdapter.available()`, and the fields of `INetworkStatus`. `id` is for display and logs only.
+If callers need to act differently, put the difference on the interface and read it there. Existing examples: `IPlacementAdapter.mode` and `supported(dir)`, `IKeychainAdapter.ownerOnly()`, and the fields of `INetworkStatus`. `id` is for display and logs only.
 
 A new capability is an interface change, so it also needs a contract case and a fake update.
 
@@ -110,4 +110,4 @@ bun test
 ./node_modules/.bin/fallow
 ```
 
-The commit scope is the package name without `@envden/`, for example `feat(adapter-keychain-secret-service): ...`.
+The commit scope is the package name without `@envden/`, for example `feat(adapter-keychain-one-password): ...`.

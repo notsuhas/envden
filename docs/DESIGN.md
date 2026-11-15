@@ -20,7 +20,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 - **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
 - **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
   - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
-  - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in `Bun.secrets` behind the keychain adapter, git via the `git` command.
+  - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
   - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
   - Releases: GitHub Actions builds every platform binary and the Docker image, uploads the binaries and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
@@ -33,7 +33,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 | Network | How devices reach the server | Tailscale | NetBird, ZeroTier, LAN |
 | Repo | Which repo is this checkout? | Git | Jujutsu, Mercurial, plain folders |
 | Storage | Where the server keeps ciphertext | Local disk (SQLite + files) | S3, R2, MinIO |
-| Keychain | Where a device keeps its keys | macOS Keychain, Windows Credential Manager (`persist: local`), Linux Secret Service, 0600 file fallback (forced by `ENVDEN_KEYCHAIN=file`) | 1Password CLI |
+| Keychain | Where a device keeps its keys | Private files (`0600` in a `0700` folder, ACLs on Windows) | 1Password CLI |
 | Placement | How files appear in a checkout | Link, copy | — |
 | Shell | Out-of-sync line | zsh, bash, fish, PowerShell | nushell |
 
@@ -45,7 +45,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 
 ### Keys and signatures
 
-- **Device keys**: each device has an X25519 key pair (encryption), an Ed25519 key pair for vault objects, and a separate Ed25519 key pair for server requests. Held via the keychain adapter.
+- **Device keys**: each device has an X25519 key pair (encryption), an Ed25519 key pair for vault objects, and a separate Ed25519 key pair for server requests. Held via the keychain adapter, in owner-only files under `ENVDEN_HOME`, like SSH keys in `~/.ssh`.
 - **Signatures are domain-separated**: every signature covers `label ‖ length-prefixed bytes`, with one label per object type (device-list entry, manifest, request, server hello). Requests bind the server pin, method, path, body hash, time and a nonce. Secrets (setup token, secret key) are never sent; requests carry a MAC over the signed request instead.
 - **Epoch keys**: the vault key has generations. Each epoch has a random 256-bit key. New writes use the newest epoch; old data is never re-encrypted. Older epoch keys live in a keyring encrypted under the newest; the keyring's hash is in the manifest.
 - **Wraps**: an epoch key is wrapped to each member with HPKE base mode (RFC 9180), info = vault ID ‖ epoch ‖ recipient. The wraps live inside the signed device-list entry that creates the epoch (or adds the device), with a key commitment each recipient checks.
@@ -112,7 +112,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 
 ## Server
 
-- Listens on localhost behind `tailscale serve`. Every request is device-signed, so forged headers or local processes gain nothing. Tailscale identity headers aren't used (they're empty for tagged devices). Setup checks that HTTPS certificates are enabled on the tailnet. When Tailscale isn't ready, the network adapter names the cause (not installed, not running, logged out, no certificates) so setup can say what to fix. Publishing never replaces something else already served on port 443.
+- Listens on localhost behind `tailscale serve`. Every request is device-signed, so forged headers or local processes gain nothing. Tailscale identity headers aren't used (they're empty for tagged devices). Setup checks that HTTPS certificates are enabled on the tailnet. When Tailscale isn't ready, the network adapter names the cause (not installed, not running, logged out, no certificates) so setup can say what to fix. A hosted server is published on its own HTTPS port (4783, or a free port if that's taken), never on 443, so it can't take the machine's main address from another app; publishing never replaces something already served on that port.
 - **Creating a vault** needs a one-time setup token printed in the server logs (`docker logs`, or the `envden serve` output). It embeds the server pin (see Vault creation). After that, only device signatures count. `envden setup --host-server` issues the token in-process, so hosting on the same machine never asks for it.
 - Devices **pin** the server (a hash of its signing key) at setup or join, and store its address separately.
 - History: every manifest and ciphertext version kept for 90 days, and at least the last 20 per file. Deletes are tombstones and outlive history pruning, so an offline device can't bring a deleted file back without an explicit restore. Repair-fix file lists, and the list before each, are kept forever. A list kept for one file's version keeps no other file's ciphertext, and a swap whose list adds no ciphertext and isn't bigger commits even over the storage quota, so deletes always work.
@@ -274,6 +274,10 @@ Replaces printing the secret key to the terminal, with a prompt that waited unti
 ### User files are written through their symlinks
 
 Dotfiles managers make `~/.zshrc`, `~/.claude/skills` or `~/Library/LaunchAgents` symlinks into a repo. envden edits the file a link points to and keeps the link, and resolves `ENVDEN_HOME` to its real path at startup so owned-path checks agree. Checkout scans follow symlinked folders once per real path, so `~/Work` on another disk is found and a link back to a parent can't loop. Replaces skipping every symlinked folder and refusing a symlinked `ENVDEN_HOME`. A `.env` that is the user's own symlink is skipped with its target named, since syncing it would overwrite a file another tool owns. Rejected: replacing links with regular files, which silently detaches the dotfiles repo.
+
+### Device keys live in private files; no OS keychain
+
+Replaces keys in the OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager) with a `0600` file fallback and `ENVDEN_KEYCHAIN` to choose. Every envden update is a new binary, so macOS asked "envden wants to use your confidential information" for each key after each upgrade, which looks like malware in a tool that handles `.env` files. The keychain added little: the synced `.env` files are plaintext on disk anyway, and once a user clicks "Always Allow", any process running as that user can run envden to read the keys. Keys are now owner-only files under `ENVDEN_HOME`, the same threat model as `~/.ssh`, and `envden doctor` fails if other users can read them. Rejected: keeping the keychain as an opt-in, which doubled the storage paths to test for a protection the plaintext files already undo.
 
 ### Device keys, signed device list, key epochs, OPAQUE pairing
 
