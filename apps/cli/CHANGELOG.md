@@ -1,5 +1,19 @@
 # @envden/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 97eadec: `envden ui` opens a dashboard on localhost: repos, checkouts and files with their sync status, conflicts, devices, unlock expiry and history, with pull, push, resolve, restore and rename. It only listens on 127.0.0.1, needs a per-run token and shows key names, never values.
+- 97eadec: Device names: setup and join suggest your hostname (edit it, or pass `--name`), runs without a terminal use it as is, and a name that's taken gets `-2`, `-3`. `envden device rename <name>` renames this device; it needs no password while the device is unlocked.
+- 97eadec: `envden history [file]` lists the versions your server keeps: when, which device pushed it, and the key names that changed. `--restore <version>` writes one back as a local edit for you to review and push.
+- 97eadec: Worktrees of a clone you've approved now get its env files without a prompt. Turn it off with `envden config auto-approve-worktrees off`. Separate clones still ask once.
+
+### Patch Changes
+
+- Updated dependencies [97eadec]
+  - @envden/server@0.3.0
+
 ## 0.2.3
 
 ### Patch Changes
