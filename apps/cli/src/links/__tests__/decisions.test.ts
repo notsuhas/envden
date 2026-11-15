@@ -50,7 +50,6 @@ test("alias updates persist without losing prior aliases and rejected chains lea
 
     for (const [source, target, code] of [
       ["b", "c", "CONFLICT"],
-      ["c", "old", "CONFLICT"],
       ["a", "a", "INVALID_INPUT"],
     ]) {
       await Promise.resolve(

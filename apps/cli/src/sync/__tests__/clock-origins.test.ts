@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { basePath } from "../local/files.ts";
 import { untrack } from "../../links/checkout/untrack.ts";
@@ -11,8 +10,8 @@ import { pull } from "../engine.ts";
 const fixture = createSharedFixture();
 
 test("untrack quarantine survives pruning with the same command clock", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   await atomicWrite(basePath(f.second.home, targets[0]!.store) + ".delete", "garbage", f.now);
   await untrack(f.second, targets[1]!.root);
   const directory = join(f.second.home, "base");

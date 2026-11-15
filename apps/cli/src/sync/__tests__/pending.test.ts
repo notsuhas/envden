@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { mkdir, rm } from "node:fs/promises";
 import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { pull, push } from "../engine.ts";
@@ -16,8 +15,8 @@ const fixture = createSharedFixture();
 
 for (const edit of ["target", "store", "none"] as const)
   test(`failed placement resumes without reverting newer ${edit} content`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy", "copy", "link"]);
+    const f = await fixture(["copy", "copy", "link"]);
+    const { targets } = f;
     const store = targets[0]!.store;
     await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
@@ -67,8 +66,8 @@ for (const step of [
   test(`interrupted ${step} write converges on retry`, async () => {
     const { spyOn } = await import("bun:test");
     const files = await import("../../state/store/files.ts");
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy", "copy", "link"]);
+    const f = await fixture(["copy", "copy", "link"]);
+    const { targets } = f;
     const store = targets[0]!.store;
     await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
@@ -122,8 +121,8 @@ for (const step of [
   });
 
 test("resumed placement skips a checkout recreated after the failed pull", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const { targets } = f;
   const recreated = { ...f.checkoutB, root: join(f.root, "round-recreated"), mode: "copy" };
   await mkdir(recreated.root, { recursive: true });
   const state = (await loadState(f.second.home))!;

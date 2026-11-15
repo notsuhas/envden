@@ -16,15 +16,12 @@ const devices = [
   { ...device, id: "ID3", name: "old", clientVersion: null, unconfirmed: true, current: false },
 ];
 
-test("device list marks this device and hides ids unless asked", () => {
-  expect(deviceListText(devices)).toBe(
-    [
-      "* mainbook  this device · v0.3.2 · has held the recovery keys",
-      "  laptop-b  v0.3.2",
-      "  old       not confirmed yet · has held the recovery keys",
-    ].join("\n"),
-  );
+test("device list marks this device, aligns names and hides ids unless asked", () => {
+  const [mine, other, old] = deviceListText(devices).split("\n");
 
-  expect(deviceListText(devices.slice(1, 2), true)).toBe("  laptop-b  v0.3.2 · id ID2");
-  expect(deviceListText([])).toBe("No devices");
+  expect(mine).toMatch(/^\* mainbook  this device · v0\.3\.2 · .*recovery keys$/);
+  expect(other).toBe("  laptop-b  v0.3.2");
+  expect(old).toMatch(/^ {2}old {7}not confirmed yet · .*recovery keys$/);
+  expect(deviceListText(devices.slice(1, 2), true)).toEndWith("· id ID2");
+  expect(deviceListText([])).toMatch(/no devices/i);
 });

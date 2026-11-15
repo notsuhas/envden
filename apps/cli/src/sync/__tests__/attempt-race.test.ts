@@ -4,7 +4,6 @@ import { readdir } from "node:fs/promises";
 import type { TFetch } from "../../client/fetch.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { serverBytes } from "./interleaving/fixture.ts";
 import { pull, push } from "../engine.ts";
 
@@ -17,8 +16,8 @@ function isSwap(input: Parameters<TFetch>[0]) {
 }
 
 test("late superseded attempt advances the merge ancestor before retry", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const { targets } = f;
   const path = join(targets[0]!.root, ".env");
   await atomicWrite(f.aStore, "ALPHA=a\nBETA=1\n", fixtureClock);
   await push(f.first, f.opts);
@@ -65,8 +64,8 @@ test("late superseded attempt advances the merge ancestor before retry", async (
 });
 
 test("an attempt with a mismatched header is quarantined before a stale push", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const { targets } = f;
   await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=edit\n", fixtureClock);
 
   const lost: TFetch = async (input, init) => {
@@ -96,8 +95,8 @@ test("an attempt with a mismatched header is quarantined before a stale push", a
 });
 
 test("an attempt sequence inconsistent with its proposal cannot be rejected as stale", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const { targets } = f;
   await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=edit\n", fixtureClock);
 
   const lost: TFetch = async (input, init) => {

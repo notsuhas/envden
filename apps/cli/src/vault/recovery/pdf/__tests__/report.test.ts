@@ -29,9 +29,8 @@ test("kit is saved to Downloads and the terminal shows only where", async () => 
     const { out, err } = await reported(home);
     const name = `envden Recovery Kit ${kit.vaultId.slice(0, 6)}.pdf`;
 
-    expect(out).toBe(
-      `Recovery kit saved to ${join("~", "Downloads", name)}\nPrint it or store it offline, then delete the file from this computer.`,
-    );
+    expect(out).toContain(join("~", "Downloads", name));
+    expect(out).not.toContain(kit.secretKey);
 
     expect(err).toBe("");
     expect(await readdir(join(home, "Downloads"))).toEqual([name]);
@@ -47,7 +46,7 @@ test("kit is saved to Downloads and the terminal shows only where", async () => 
 test("kit is printed when its file can't be written", async () => {
   const { out, err } = await reported(join(tmpdir(), "envden-kit-missing", "home"));
 
-  expect(err).toBe("envden: Couldn't write the recovery kit file; save the kit printed below");
+  expect(err).toContain("Couldn't write");
   expect(out).toContain(kit.vaultId);
   expect(out).toContain(kit.secretKey);
 });

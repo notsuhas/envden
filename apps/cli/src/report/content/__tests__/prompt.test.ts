@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { NEW_ISSUE_URL, REPOSITORY } from "../issue.ts";
 import { agentPrompt } from "../prompt.ts";
 
 test("the prompt names the report, the logs, the repo and the consent step", () => {
@@ -7,18 +8,14 @@ test("the prompt names the report, the logs, the repo and the consent step", () 
     "/h/.envden/state/",
   ]);
 
-  expect(prompt).toContain("A redacted report is at /h/.envden/reports/r.md.");
-  expect(prompt).toContain("You may also read: /h/.envden/server.log, /h/.envden/state/.");
-  expect(prompt).toContain("https://github.com/notsuhas/envden");
+  for (const part of [
+    "/h/.envden/reports/r.md",
+    "/h/.envden/server.log, /h/.envden/state/",
+    "Never copy env file contents",
+    `Only after I agree, create it with \`gh issue create --repo ${REPOSITORY}\``,
+    NEW_ISSUE_URL,
+  ])
+    expect(prompt).toContain(part);
 
-  expect(prompt).toContain(
-    "Never copy env file contents, keys, tokens, passwords or recovery kit values",
-  );
-
-  expect(prompt).toContain(
-    "Only after I agree, create it with `gh issue create --repo notsuhas/envden`",
-  );
-
-  expect(prompt).toContain("https://github.com/notsuhas/envden/issues/new");
-  expect(agentPrompt("/r.md", [])).not.toContain("You may also read");
+  expect(agentPrompt("/r.md", []).split("\n")).toHaveLength(prompt.split("\n").length - 1);
 });

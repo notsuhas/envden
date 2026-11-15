@@ -11,19 +11,10 @@ import { replaceKit, changePassword } from "../credentials.ts";
 import { resetPassword } from "../reset.ts";
 
 test("rotate and remove revoke the removed device", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      address: f.result.kit.server,
-      name: "second",
-      ...f.result.kit,
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const second = f.joined.second!;
 
     await rotateVault(f.first, "old password", f.now);
 
@@ -114,19 +105,10 @@ test("password change replaces login while preserving the kit", async () => {
 });
 
 test("stale locked device resets with the same secret key", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      address: f.result.kit.server,
-      ...f.result.kit,
-      name: "second",
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const second = f.joined.second!;
 
     await rotateVault(f.first, "old password", f.now);
     const laterTime = f.now() + 31 * 86400000;

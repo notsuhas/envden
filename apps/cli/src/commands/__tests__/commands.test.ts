@@ -1,18 +1,19 @@
 import { spawnTrusted } from "@envden/core/process";
+import type { CommandUnknownOpts } from "@commander-js/extra-typings";
 import { resolutionChoice } from "../sync/resolve.ts";
 import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createProgram } from "../../program.ts";
+import { NOT_SET_UP } from "../../state/configured.ts";
 
 const fixtureClock = () => 1800000000000;
 
-async function cli(args: string[]) {
-  const home = await mkdtemp(join(tmpdir(), "envden-command-"));
-
+async function run(args: string[], home: string, env: Record<string, string | undefined>) {
   const child = spawnTrusted([process.execPath, join(import.meta.dir, "../../main.ts"), ...args], {
     env: {
-      ...process.env,
+      ...env,
       HOME: home,
       USERPROFILE: home,
       ENVDEN_HOME: home,
@@ -24,20 +25,33 @@ async function cli(args: string[]) {
     stdin: "ignore",
   });
 
-  const result = {
+  return {
     code: await child.exited,
     stdout: await new Response(child.stdout).text(),
     stderr: await new Response(child.stderr).text(),
   };
-
-  await rm(home, { recursive: true, force: true });
-
-  return result;
 }
 
-test("command help and shared stub exit", async () => {
-  const help = await cli(["--help"]);
-  expect(help.code).toBe(0);
+async function cli(args: string[]) {
+  const home = await mkdtemp(join(tmpdir(), "envden-command-"));
+
+  try {
+    return await run(args, home, process.env);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+}
+
+function help(...path: string[]) {
+  let command: CommandUnknownOpts = createProgram(fixtureClock);
+
+  for (const name of path) command = command.commands.find((child) => child.name() === name)!;
+
+  return command.helpInformation();
+}
+
+test("help lists every command and a fresh home fails each gate with its exit code", async () => {
+  const root = help();
 
   for (const command of [
     "setup",
@@ -59,25 +73,24 @@ test("command help and shared stub exit", async () => {
     "doctor",
     "version",
   ])
-    expect(help.stdout).toMatch(new RegExp(`\\b${command}\\b`));
+    expect(root).toMatch(new RegExp(`\\b${command}\\b`));
 
-  for (const args of [
-    ["pull", "--all"],
-    ["push", "--yes"],
-  ]) {
-    const result = await cli(args);
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain("Not set up yet. Run envden setup or envden join");
-  }
+  const [pushed, status, setup, push, resolve] = await Promise.all([
+    cli(["push", "--yes"]),
+    cli(["status", "--json"]),
+    cli(["setup"]),
+    cli(["push"]),
+    cli(["resolve", "file", "--keep-mine"]),
+  ]);
 
-  const status = await cli(["status", "--json"]);
+  expect(pushed.code).toBe(1);
+  expect(pushed.stderr).toContain(NOT_SET_UP);
   expect(status.code).toBe(0);
   expect(JSON.parse(status.stdout).configured).toBe(false);
-});
-
-test("noninteractive safety gates", async () => {
-  expect((await cli(["setup"])).stderr).toContain("Missing choices:");
-  expect((await cli(["push"])).stderr).toContain("push needs --yes");
+  expect(setup.stderr).toContain("--server <url> or --host-server");
+  expect(push.stderr).toContain("--yes");
+  expect(resolve.code).toBe(2);
+  expect(resolve.stderr).toContain("agent-merge");
 });
 
 for (const [keep, take, choice] of [
@@ -89,19 +102,12 @@ for (const [keep, take, choice] of [
     expect(resolutionChoice(keep, take)).toBe(choice);
   });
 
-test("unattended resolution lists the terminal and agent override choices", async () => {
-  const result = await cli(["resolve", "file", "--keep-mine"]);
-  expect(result.code).toBe(2);
-  expect(result.stderr).toContain("agent-merge");
-});
-
-test("replacement commands offer private kit files", async () => {
-  for (const args of [
-    ["vault", "kit", "replace", "--help"],
-    ["device", "rm", "--help"],
-  ]) {
-    expect((await cli(args)).stdout).toContain("--kit-out");
-  }
+test("replacement commands offer private kit files", () => {
+  for (const path of [
+    ["vault", "kit", "replace"],
+    ["device", "rm"],
+  ])
+    expect(help(...path)).toContain("--kit-out");
 });
 
 test("human status keeps notice lines and diagnostics survive unreadable state", async () => {
@@ -111,49 +117,28 @@ test("human status keeps notice lines and diagnostics survive unreadable state",
 
   try {
     await saveUpdateCache(home, { message: "Cannot confirm envden is up to date" }, fixtureClock);
+    const status = await run(["status"], home, {});
 
-    for (const command of ["status", "config"]) {
-      if (command !== "status")
-        await atomicWrite(join(home, "state", "device.json"), "{", fixtureClock);
+    expect(status.code).toBe(0);
 
-      const child = spawnTrusted(
-        [process.execPath, join(import.meta.dir, "../../main.ts"), command],
-        {
-          env: {
-            HOME: home,
-            USERPROFILE: home,
-            ENVDEN_HOME: home,
-            ENVDEN_TELEMETRY: "0",
-            ENVDEN_NO_UPDATE_CHECK: "1",
-          },
-          stdout: "pipe",
-          stderr: "pipe",
-          stdin: "ignore",
-        },
-      );
+    expect(status.stdout.trim().split("\n")).toEqual([
+      NOT_SET_UP,
+      "Cannot confirm envden is up to date",
+    ]);
 
-      const stdout = await new Response(child.stdout).text();
-      expect(await child.exited).toBe(0);
+    await atomicWrite(join(home, "state", "device.json"), "{", fixtureClock);
 
-      if (command === "status")
-        expect(stdout.trim().split("\n")).toEqual([
-          "Not set up yet. Run envden setup or envden join",
-          "Cannot confirm envden is up to date",
-        ]);
-    }
+    expect((await run(["config"], home, {})).code).toBe(0);
   } finally {
     await rm(home, { recursive: true, force: true });
   }
 });
 
-test("secret-prompt commands no longer recommend piped tokens", async () => {
-  for (const args of [
-    ["setup", "--help"],
-    ["server", "move", "--help"],
-    ["server", "repair", "--help"],
-  ]) {
-    const result = await cli(args);
-    expect(result.stdout).not.toContain("prefer stdin or the prompt");
-    expect(result.stdout).toContain("terminal");
+test("secret-prompt commands no longer recommend piped tokens", () => {
+  for (const path of [["setup"], ["server", "move"], ["server", "repair"]]) {
+    const text = help(...path);
+
+    expect(text).not.toContain("prefer stdin or the prompt");
+    expect(text).toContain("terminal");
   }
 });

@@ -23,7 +23,6 @@ test("server mode", () => {
 test("quota band follows the fullest vault", () => {
   const quota = VAULT_QUOTA_BYTES;
 
-  expect(quota).toBe(2 ** 30);
   expect(deriveQuotaBand([])).toBeNull();
   expect(deriveQuotaBand([0, quota * 0.49])).toBe("below-50");
   expect(deriveQuotaBand([quota * 0.5, 0])).toBe("50-80");

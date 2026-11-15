@@ -1,7 +1,6 @@
 import { expect, spyOn, test } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { readIdentity } from "../../../identity/stored.ts";
 import { loadState } from "../../../state/store/repository.ts";
 import { pull } from "../../../sync/engine.ts";
@@ -32,21 +31,12 @@ test("rename check rejects invalid and taken names and spots no-ops", () => {
 });
 
 test("a device renames itself and every device sees the new name", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
   const output = spyOn(console, "error").mockImplementation(() => {});
 
   try {
-    const second = f.home("second");
+    const second = f.joined.second!;
     const rename = (name: string) => renameDevice(second, name, f.now, f.fetcher);
-
-    await kitJoin(second, {
-      address: f.result.kit.server,
-      name: "second",
-      ...f.result.kit,
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
 
     for (const name of ["first", ""])
       await Promise.resolve(expect(rename(name)).rejects.toMatchObject({ code: "INVALID_INPUT" }));
@@ -69,7 +59,7 @@ test("a device renames itself and every device sees the new name", async () => {
     const first = (await loadState(f.first.home))!;
     expect(first.deviceName).toBe("first");
     await reportRecoveryJoins(f.first.home, first, undefined, f.now);
-    expect(output.mock.calls.flat()).toEqual(["envden: laptop joined with the recovery kit"]);
+    expect(output.mock.calls.flat()).toEqual([expect.stringContaining("laptop joined")]);
   } finally {
     output.mockRestore();
     await f.close();

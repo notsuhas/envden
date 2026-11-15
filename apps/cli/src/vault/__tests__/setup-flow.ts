@@ -30,7 +30,7 @@ export async function setupFlow() {
   try {
     if (typeof token !== "string") throw new Error("Missing setup token");
 
-    const homes = ["first", "second", "third"].map((name) =>
+    const homes = ["first", "second"].map((name) =>
       createAdapters(
         {
           fetcher,
@@ -44,7 +44,6 @@ export async function setupFlow() {
 
     const first = homes[0]!;
     const second = homes[1]!;
-    const third = homes[2]!;
     const address = running.server.url.toString();
 
     let loseResponse = true;
@@ -111,7 +110,7 @@ export async function setupFlow() {
     expect(result.state.vaultId).toBe(result.kit.vaultId);
     expect(result.state.creationPending).toBeUndefined();
 
-    return { root, now, running, fetcher, first, second, third, address, token, result, cleanup };
+    return { now, fetcher, first, second, address, token, result, cleanup };
   } catch (error) {
     await cleanup();
     throw error;

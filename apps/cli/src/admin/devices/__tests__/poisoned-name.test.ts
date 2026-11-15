@@ -1,26 +1,16 @@
 import { expect, test } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { adminContext } from "../../shared/context.ts";
 import { currentHistory } from "../../shared/history.ts";
 import { removeDevice } from "../remove.ts";
 import { pull } from "../../../sync/engine.ts";
 
 test("a member's unreadable file name blocks neither pull nor its removal", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const attacker = f.home("attacker");
-
-    await kitJoin(attacker, {
-      address: f.result.kit.server,
-      name: "attacker",
-      ...f.result.kit,
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const attacker = f.joined.second!;
 
     const context = await adminContext(attacker, f.now);
     const history = await currentHistory(context);
@@ -73,7 +63,7 @@ test("a member's unreadable file name blocks neither pull nor its removal", asyn
 
     const removed = await removeDevice(
       f.first,
-      "attacker",
+      "second",
       "old password",
       f.now,
       f.fetcher,

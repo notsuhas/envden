@@ -132,13 +132,13 @@ export async function checkCompletion(input: ICompletion) {
     fixtureClock,
   );
 
-  await recoveryJoin(fifth, address, "fifth", kitPath, now, async () => "master password");
+  await recoveryJoin(fifth, address, "fifth", kitPath, now, async () => "old password");
   expect((await loadState(fifth.home))?.vaultId).toBe(kit.vaultId);
 
   const saved = (await loadState(first.home))!;
   delete saved.session;
   await saveState(first.home, saved, fixtureClock);
-  await unlockDevice(first, "master password", now, fetcher);
+  await unlockDevice(first, "old password", now, fetcher);
   const unlocked = (await loadState(first.home))!;
   expect(unlocked.session?.unlockedUntil).toBeGreaterThan(now());
 

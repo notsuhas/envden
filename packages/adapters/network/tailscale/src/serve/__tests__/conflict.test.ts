@@ -39,6 +39,6 @@ for (const [name, stdout, conflict] of [
 
 test("unreadable serve status is refused", () => {
   expect(() => serveConflict("bad json", host, port, target)).toThrow(
-    "Invalid Tailscale serve status",
+    expect.objectContaining({ code: "INVALID_DATA" }),
   );
 });

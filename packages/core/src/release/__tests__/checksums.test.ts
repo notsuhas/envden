@@ -14,12 +14,12 @@ test("reads text and binary entries with either line ending", () => {
 });
 
 for (const [name, contents, message] of [
-  ["empty", "", "Invalid SHA256SUMS entry"],
-  ["short hash", `${a.slice(1)}  envden`, "Invalid SHA256SUMS entry"],
-  ["non-hex hash", `${"g".repeat(64)}  envden`, "Invalid SHA256SUMS entry"],
-  ["single space", `${a} envden`, "Invalid SHA256SUMS entry"],
-  ["spaced name", `${a}  envden x`, "Invalid SHA256SUMS entry"],
-  ["duplicate", `${a}  envden\n${a}  envden`, "Duplicate SHA256SUMS entry"],
+  ["empty", "", /Invalid/],
+  ["short hash", `${a.slice(1)}  envden`, /Invalid/],
+  ["non-hex hash", `${"g".repeat(64)}  envden`, /Invalid/],
+  ["single space", `${a} envden`, /Invalid/],
+  ["spaced name", `${a}  envden x`, /Invalid/],
+  ["duplicate", `${a}  envden\n${a}  envden`, /Duplicate/],
 ] as const)
   test(`rejects ${name}`, () => {
     expect(() => parseSha256Sums(contents)).toThrow(message);

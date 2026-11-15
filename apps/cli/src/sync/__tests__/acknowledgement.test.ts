@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { serverBytes } from "./interleaving/fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { pull, push } from "../engine.ts";
@@ -29,8 +28,8 @@ async function loseResponse(f: Awaited<ReturnType<typeof fixture>>) {
 }
 
 test("acknowledgement leaves skipped copy ancestors unchanged", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   const original = f.second.repo.checkoutAt.bind(f.second.repo);
 
   f.second.repo.checkoutAt = async (root) =>
@@ -45,8 +44,8 @@ test("acknowledgement leaves skipped copy ancestors unchanged", async () => {
 
 for (const unpushed of [false, true])
   test(`tracked detached revert is an edit; unpushed store ${unpushed}`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["link"]);
+    const f = await fixture(["link"]);
+    const { targets } = f;
     await atomicWrite(targets[0]!.store, edited, fixtureClock);
     if (!unpushed) await push(f.second, f.opts);
     const path = join(targets[0]!.root, ".env");
@@ -60,8 +59,8 @@ for (const unpushed of [false, true])
 
 for (const command of [push, pull])
   test(`acknowledgement preserves a later removal on ${command.name}`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy"]);
+    const f = await fixture(["copy"]);
+    const { targets } = f;
     await atomicWrite(join(targets[0]!.root, ".env"), edited, fixtureClock);
     await loseResponse(f);
     await removeFile(f.second, join(targets[0]!.root, ".env"), { yes: true, now: f.now });
@@ -72,8 +71,8 @@ for (const command of [push, pull])
 
 for (const mode of ["copy", "link"] as const)
   test(`pending resume preserves a written ${mode} reverted by the user`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, [mode, "copy"]);
+    const f = await fixture([mode, "copy"]);
+    const { targets } = f;
     await atomicWrite(f.aStore, edited, fixtureClock);
     await push(f.first, f.opts);
     const original = f.second.repo.ensureIgnored.bind(f.second.repo);
@@ -97,8 +96,8 @@ for (const mode of ["copy", "link"] as const)
   });
 
 test("already matching copy records its content before a placement failure", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["link", "copy"]);
+  const f = await fixture(["link", "copy"]);
+  const { targets } = f;
   await atomicWrite(targets[0]!.store, edited, fixtureClock);
   await atomicWrite(join(targets[1]!.root, ".env"), edited, fixtureClock);
   const original = f.second.repo.ensureIgnored.bind(f.second.repo);

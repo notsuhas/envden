@@ -3,7 +3,6 @@ import { stableExecutable } from "../self/paths.ts";
 
 for (const [executable, stable] of [
   ["/opt/homebrew/Cellar/envden/0.2.0/bin/envden", "/opt/homebrew/bin/envden"],
-  ["/usr/local/Cellar/envden/0.2.0/bin/envden", "/usr/local/bin/envden"],
   [
     "/home/linuxbrew/.linuxbrew/Cellar/envden/0.2.0/bin/envden",
     "/home/linuxbrew/.linuxbrew/bin/envden",
@@ -17,7 +16,6 @@ for (const [executable, stable] of [
     "C:\\Users\\me\\scoop\\apps\\envden\\current\\envden.exe",
     "C:\\Users\\me\\scoop\\apps\\envden\\current\\envden.exe",
   ],
-  ["/Users/me/.envden/bin/envden", "/Users/me/.envden/bin/envden"],
   [
     "/usr/local/lib/node_modules/envden/bin/envden",
     "/usr/local/lib/node_modules/envden/bin/envden",

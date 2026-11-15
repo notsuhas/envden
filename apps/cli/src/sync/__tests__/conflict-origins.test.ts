@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { rm, readFile } from "node:fs/promises";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 import { linkCheckout } from "../../links/place.ts";
@@ -14,8 +13,8 @@ import { resolveConflict } from "../resolve.ts";
 const fixture = createSharedFixture();
 
 test("restore preserves the copy edit on mine and real server on theirs", async () => {
-  const f = await fixture();
-  const [target] = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const [target] = f.targets;
   await atomicWrite(f.aStore, "TOKEN=server-edit\n", f.now);
   await push(f.first, f.opts);
   await rm(target!.store);

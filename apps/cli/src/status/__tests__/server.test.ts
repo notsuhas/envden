@@ -19,11 +19,7 @@ test("status says unreachable only when the transport cannot reach the server", 
     for (const status of [403, 500])
       expect(
         await localStatus(f.first, false, async () => new Response("bad hello", { status })),
-      ).toMatchObject({
-        server: "error",
-        serverReason:
-          "Server didn't answer as envden. Check the address points at an envden server",
-      });
+      ).toMatchObject({ server: "error", serverReason: expect.stringContaining("envden") });
   } finally {
     await f.close();
   }

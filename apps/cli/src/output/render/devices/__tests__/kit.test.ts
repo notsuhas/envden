@@ -18,18 +18,17 @@ function printed(print: () => void) {
 test("kit block labels each field", () => {
   const text = printed(() => printKit(kit));
 
-  expect(text).toContain("like a passport");
   expect(text).toContain("  Vault ID:    VAULT");
   expect(text).toContain("  Secret key:  SECRET");
   expect(text).toContain("  Server:      https://envden.example");
 });
 
-test.each([
-  [
-    "pdf",
-    "Recovery kit saved to ~/kit\nPrint it or store it offline, then delete the file from this computer.",
-  ],
-  ["json", "Recovery kit saved to ~/kit"],
-] as const)("saved %s kit shows only where it is", (format, text) => {
-  expect(printed(() => printKitSaved("~/kit", format))).toBe(text);
+test("a saved kit shows only where it is, and a PDF asks to be printed and deleted", () => {
+  const pdf = printed(() => printKitSaved("~/kit", "pdf"));
+  const json = printed(() => printKitSaved("~/kit", "json"));
+
+  expect(json).toContain("~/kit");
+  expect(json.split("\n")).toHaveLength(1);
+  expect(pdf).toStartWith(json);
+  expect(pdf).toContain("delete");
 });

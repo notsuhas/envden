@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { PromptCancelled } from "../../state/cancelled.ts";
+import { NEW_ISSUE_URL } from "../content/issue.ts";
 import { reportProblem } from "../run.ts";
 
 const TOKEN =
@@ -49,11 +50,8 @@ test("choosing an agent writes a private redacted report and starts the agent on
   const { offered, launched, report, home } = await scenario("claude");
   const document = await readFile(report, "utf8");
 
-  expect(offered).toEqual([
-    "Ask Claude Code to look into it and draft a GitHub issue",
-    "Open a pre-filled GitHub issue in the browser",
-    "No",
-  ]);
+  expect(offered).toHaveLength(3);
+  expect(offered[0]).toContain("Claude Code");
 
   expect(document).toContain("- Command: envden join --setup-token [redacted]");
   expect(document).toContain("~~~\nSetup token:\n  [setup token]\nenvden listening\n~~~");
@@ -67,7 +65,7 @@ test("the browser fallback opens a pre-filled issue and says what to do when it 
   const { opened, printed } = await scenario("browser");
 
   expect(new URL(opened[0]!).searchParams.get("title")).toBe("envden join fails with INVALID_DATA");
-  expect(printed.at(-1)).toContain("Couldn't open a browser");
+  expect(printed.at(-1)).toContain(NEW_ISSUE_URL);
 });
 
 test("declining, cancelling or running inside an agent writes nothing", async () => {

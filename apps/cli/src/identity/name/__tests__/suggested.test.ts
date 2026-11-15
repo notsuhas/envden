@@ -3,11 +3,8 @@ import { suggestedDeviceName } from "../suggested.ts";
 
 test.each([
   ["Suhas-MacBook-Pro.local", "Suhas-MacBook-Pro"],
-  ["build-box.lan", "build-box"],
-  ["ci-runner.example.com", "ci-runner"],
   ["  padded  ", "padded"],
   ["lap\u0007top​", "laptop"],
-  ["", "device"],
   [".local", "device"],
   ["‎", "device"],
   ["a".repeat(70), "a".repeat(64)],

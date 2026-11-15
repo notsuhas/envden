@@ -77,9 +77,7 @@ test("one failed takeover leaves that link and carries on with the rest", async 
     expect(left.map((link) => link.checkout.root)).toEqual([join(f.root, "main")]);
     expect(state.links.map((link) => link.root)).toEqual([join(f.root, "worktree")]);
 
-    expect(f.errors).toEqual([
-      "envden: couldn't take over ~/main/.env; left it linked to ~/shared.env",
-    ]);
+    expect(f.errors).toEqual([expect.stringMatching(/~\/main\/\.env.*~\/shared\.env/)]);
   } finally {
     await f.close();
   }

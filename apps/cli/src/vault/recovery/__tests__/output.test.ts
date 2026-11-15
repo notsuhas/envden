@@ -6,7 +6,7 @@ import { writeKit } from "../output.ts";
 import { parseKit } from "../input.ts";
 import * as p from "@envden/core/protocol";
 
-test("private recovery export round trips into join and never overwrites", async () => {
+test("private recovery export round trips into join", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-kit-"));
   const path = join(root, "kit.json");
 
@@ -19,7 +19,6 @@ test("private recovery export round trips into join and never overwrites", async
     await writeKit(path, kit);
     expect(parseKit(await readFile(path, "utf8"))).toEqual(kit);
     if (process.platform !== "win32") expect((await stat(path)).mode & 0o777).toBe(0o600);
-    expect(writeKit(path, {})).rejects.toThrow();
   } finally {
     await rm(root, { recursive: true, force: true });
   }

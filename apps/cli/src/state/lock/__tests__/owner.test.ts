@@ -18,14 +18,21 @@ test("lock reclamation separates hosts, boots and PID namespaces", () => {
 
   expect(reclaimable(previous, { kind: "unknown" }, identity("host", "new"), 3600000)).toBe(true);
   expect(reclaimable(previous, { kind: "dead" }, identity("other", "old"), 3600000)).toBe(false);
+  expect(reclaimable(previous, { kind: "dead" }, identity("other", "old"), 86400000)).toBe(true);
 
   expect(reclaimable(previous, { kind: "dead" }, identity("host", "old", "pid:2"), 3600000)).toBe(
     false,
   );
 
+  expect(reclaimable(previous, { kind: "unknown" }, previous.identity, 3600000)).toBe(false);
+
   expect(
     reclaimable(previous, { kind: "live", startedAt: "first" }, previous.identity, 3600000),
   ).toBe(false);
+
+  expect(
+    reclaimable(previous, { kind: "live", startedAt: "second" }, previous.identity, 3600000),
+  ).toBe(true);
 
   expect(reclaimable(previous, { kind: "dead" }, previous.identity, 3600000)).toBe(true);
 });

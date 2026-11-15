@@ -106,7 +106,7 @@ test("page and JSON load unsigned with strict headers", async () => {
 
     expect([page.status, json.status]).toEqual([200, 200]);
     expect(page.headers.get("Content-Type")).toStartWith("text/html");
-    expect(html).toContain("Per-vault details are only in");
+    expect(html).toContain("envden ui");
     expect(html).not.toContain("<script");
 
     const inline = html.match(/<style>([\s\S]*?)<\/style>/)![1]!;
@@ -179,7 +179,7 @@ test("restored mode and the last prune show", async () => {
       lastPrune: { at: new Date(1000000).toISOString(), ok: true },
     });
 
-    expect(html).toContain("Restored from backup");
+    expect(html).toMatch(/restored/i);
     expect(html).toContain("succeeded");
   } finally {
     f.close();

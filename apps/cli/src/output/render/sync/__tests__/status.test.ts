@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { NOT_SET_UP } from "../../../../state/configured.ts";
 import { statusText } from "../status.ts";
 
 const place = { cwd: "/home/me/app", userHome: "/home/me" };
@@ -15,37 +16,31 @@ function report(files: { root?: string; path?: string; state: string; reason?: s
   } as Parameters<typeof statusText>[0];
 }
 
-test("status says in sync in one line", () => {
-  expect(statusText(report([{ state: "in-sync" }, { state: "local-only" }]), place)).toBe(
-    "In sync: 1 repo, 1 env file. Server reachable.",
-  );
+test("status sums up an in-sync vault in one line", () => {
+  const synced = statusText(report([{ state: "in-sync" }, { state: "local-only" }]), place);
 
-  expect(statusText(report([]), place)).toBe(
-    "Nothing tracked yet. Run envden track in a checkout.",
-  );
+  expect(synced.split("\n")).toHaveLength(1);
+  expect(synced).toContain("1 repo, 1 env file");
+  expect(statusText(report([]), place)).toContain("envden track");
 });
 
 test("status lists each file once per action, with short paths", () => {
-  expect(
-    statusText(
-      report([
-        { state: "diverged" },
-        { root: "/home/me/api", state: "changed" },
-        { root: "/srv/web", state: "remote" },
-        { path: "a/.env", state: "conflict" },
-        { path: "b/.env", state: "held-back", reason: "checkout needs approval; run envden track" },
-      ]),
-      place,
-    ),
-  ).toBe(
-    [
-      "Server: reachable",
-      "Changed here (run envden push): .env, ~/api/.env",
-      "Newer on server (run envden pull): .env, /srv/web/.env",
-      "Conflicts (run envden resolve --list): a/.env",
-      "Held back: b/.env: checkout needs approval; run envden track",
-    ].join("\n"),
-  );
+  const lines = statusText(
+    report([
+      { state: "diverged" },
+      { root: "/home/me/api", state: "changed" },
+      { root: "/srv/web", state: "remote" },
+      { path: "a/.env", state: "conflict" },
+      { path: "b/.env", state: "held-back", reason: "checkout needs approval" },
+    ]),
+    place,
+  ).split("\n");
+
+  expect(lines).toHaveLength(5);
+  expect(lines[1]).toMatch(/envden push.*: \.env, ~\/api\/\.env$/);
+  expect(lines[2]).toMatch(/envden pull.*: \.env, \/srv\/web\/\.env$/);
+  expect(lines[3]).toMatch(/envden resolve.*: a\/\.env$/);
+  expect(lines[4]).toMatch(/b\/\.env: checkout needs approval$/);
 });
 
 test("status without the server never claims to be in sync", () => {
@@ -56,13 +51,17 @@ test("status without the server never claims to be in sync", () => {
     serverChecked: false,
   } as Parameters<typeof statusText>[0];
 
-  expect(statusText(offline, place)).toBe(
-    "Server: unreachable (connection refused)\nNo changes here",
-  );
+  const text = statusText(offline, place);
+
+  expect(text).toContain("unreachable (connection refused)");
+  expect(text).not.toMatch(/in sync/i);
 });
 
-test("status without setup says how to start", () => {
-  expect(
-    statusText({ configured: false, update: { ...update, message: "Update available" } }, place),
-  ).toBe("Not set up yet. Run envden setup or envden join\nUpdate available");
+test("status without setup says how to start and keeps the update notice", () => {
+  const text = statusText(
+    { configured: false, update: { ...update, message: "Update available" } },
+    place,
+  );
+
+  expect(text).toBe(`${NOT_SET_UP}\nUpdate available`);
 });

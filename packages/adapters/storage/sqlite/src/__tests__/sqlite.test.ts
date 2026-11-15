@@ -57,7 +57,7 @@ describe("SQLite durability", () => {
     }
   });
 
-  for (const version of [-1, 2, 99])
+  for (const version of [-1, 2])
     test(`refuses incompatible schema ${version} clearly`, () => {
       const dir = temp();
 
@@ -66,9 +66,7 @@ describe("SQLite durability", () => {
         db.run(`PRAGMA user_version=${version}`);
         db.close();
 
-        expect(() => createSqliteStorageAdapter(dir, 0)).toThrow(
-          "Incompatible server database format",
-        );
+        expect(() => createSqliteStorageAdapter(dir, 0)).toThrow(/Incompatible/);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

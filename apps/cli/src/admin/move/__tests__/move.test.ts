@@ -11,7 +11,7 @@ import { kitJoin } from "../../../vault/recovery/kit.ts";
 
 for (const crash of [false, true])
   test(`server move${crash ? " resumes after source commit" : " copies to another server"}`, async () => {
-    const f = await fixture();
+    const f = await fixture(["second"]);
     const log = spyOn(console, "log").mockImplementation(() => {});
 
     const destination = await f.serve({
@@ -26,17 +26,7 @@ for (const crash of [false, true])
 
     try {
       if (typeof token !== "string") throw new Error("Missing setup token");
-      const other = f.home("other");
-
-      await kitJoin(other, {
-        ...f.result.kit,
-        address: f.result.kit.server,
-        password: "old password",
-        name: "other",
-        now: f.now,
-        fetcher: f.fetcher,
-      });
-
+      const other = f.joined.second!;
       const address = destination.server.url.toString();
       let failed = false;
 

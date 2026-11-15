@@ -25,12 +25,12 @@ test("own links group by target and the question names the first checkout and th
     ["/home/me/other.env", 1],
   ]);
 
-  expect(takeoverQuestion(groups[0]!, "/home/me")).toBe(
-    "~/Work/app/main/.env and 2 others link to ~/.config/dev-envs/app/.env. Let envden manage it? Each checkout will use envden's synced copy instead of that file, and later edits to the file won't reach them.",
+  expect(takeoverQuestion(groups[0]!, "/home/me")).toStartWith(
+    "~/Work/app/main/.env and 2 others link to ~/.config/dev-envs/app/.env.",
   );
 
-  expect(takeoverQuestion(groups[1]!, "/home/me")).toBe(
-    "~/Work/other/.env links to ~/other.env. Let envden manage it? The checkout will use envden's synced copy instead of that file, and later edits to the file won't reach it.",
+  expect(takeoverQuestion(groups[1]!, "/home/me")).toStartWith(
+    "~/Work/other/.env links to ~/other.env.",
   );
 });
 

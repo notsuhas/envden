@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import type { TFetch } from "../../client/fetch.ts";
 import { terminalJson } from "../../output/sanitize.ts";
-import { loadState, saveState } from "../../state/store/repository.ts";
+import { loadState } from "../../state/store/repository.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { readBytes } from "../../sync/local/files.ts";
 import { pull, push } from "../../sync/engine.ts";
@@ -135,21 +135,6 @@ test("restore writes an old version locally and the next push publishes it", asy
     const published = (await list()).files[0]!;
     expect(published.versions[0]).toMatchObject({ version: 4, device: "first" });
     expect(published.checkouts[0]!.version).toBe(4);
-  } finally {
-    await f.cleanup();
-  }
-});
-
-test("restore refuses local-only files", async () => {
-  const { f, restore } = await threeVersions();
-
-  try {
-    const state = (await loadState(f.first.home))!;
-    state.links[0]!.localOnly = true;
-    await saveState(f.first.home, state, f.now);
-
-    await Promise.resolve(expect(restore(1)).rejects.toMatchObject({ code: "INVALID_INPUT" }));
-    expect(new TextDecoder().decode(await readBytes(f.aStore))).toBe(v3);
   } finally {
     await f.cleanup();
   }

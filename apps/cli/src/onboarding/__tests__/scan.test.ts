@@ -103,9 +103,9 @@ test("the skipped summary repeats the scan that ran, with --verbose", async () =
     await setupCheckouts(adapters, emptyState("test"), { now: () => 100 });
 
     expect(output.mock.calls.flat().filter((line) => line.startsWith("Skipped"))).toEqual([
-      "Skipped 1 repo without a usable git remote. Run envden track ~/'My Work' --verbose to list it.",
-      "Skipped 1 repo without a usable git remote. Run envden setup --scan-root ~/'My Work' --verbose to list it.",
-      "Skipped 1 repo without a usable git remote. Run envden track ~ --verbose to list it.",
+      expect.stringContaining("envden track ~/'My Work' --verbose"),
+      expect.stringContaining("envden setup --scan-root ~/'My Work' --verbose"),
+      expect.stringContaining("envden track ~ --verbose"),
     ]);
   } finally {
     output.mockRestore();

@@ -1,20 +1,10 @@
 import { test, expect } from "bun:test";
 import * as p from "@envden/core/protocol";
-import { acceptedLostRepair, reportedRepair } from "./repair-file-fixture.ts";
+import { acceptedLostRepair } from "./repair-file-fixture.ts";
 import { membership } from "../vault/chain.ts";
 
-test("repair drops an unreported member before accepting lost files", async () => {
-  const { f } = await acceptedLostRepair();
-
-  try {
-    expect(membership(f.storage, f.vaultId, f.b.record.id)).toBeUndefined();
-  } finally {
-    f.close();
-  }
-});
-
-test("repair stores independent device reports", async () => {
-  const { f, proof } = await reportedRepair();
+test("repair keeps device reports, drops unreported members and consumes reports on close", async () => {
+  const { f, remove, repairId, join, fix, secret, proof } = await acceptedLostRepair();
 
   try {
     const reports = await f.request("/v1/repair/reports", undefined, f.a, proof);
@@ -22,15 +12,9 @@ test("repair stores independent device reports", async () => {
     expect(await reports.json()).toMatchObject({
       objects: [expect.any(String), expect.any(String)],
     });
-  } finally {
-    f.close();
-  }
-});
 
-test("repair close consumes reports", async () => {
-  const { f, remove, repairId, join, fix, secret, proof } = await acceptedLostRepair();
+    expect(membership(f.storage, f.vaultId, f.b.record.id)).toBeUndefined();
 
-  try {
     const done = p.signObject(
       p.EntryCodec,
       {

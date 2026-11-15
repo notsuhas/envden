@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import type { syncFixture } from "../flows.ts";
-import { approveLayout } from "../round-fixture.ts";
 import { Reference } from "./model.ts";
 import { syncContext } from "../../remote/context.ts";
 import { acceptHead } from "../../remote/accept.ts";
@@ -12,8 +11,10 @@ export const read = async (path: string) =>
     .exists()
     .then((exists) => (exists ? Bun.file(path).text() : undefined));
 
-export async function interleavingFixture(f: Awaited<ReturnType<typeof syncFixture>>) {
-  const targets = await approveLayout(f, ["copy", "copy", "link"]);
+export function interleavingFixture(
+  f: Awaited<ReturnType<typeof syncFixture>> & { targets: { root: string; store: string }[] },
+) {
+  const { targets } = f;
   const reports: string[] = [];
   const saved: string[] = [];
 
@@ -30,7 +31,7 @@ export async function interleavingFixture(f: Awaited<ReturnType<typeof syncFixtu
   };
 }
 
-export type TRun = Awaited<ReturnType<typeof interleavingFixture>>;
+export type TRun = ReturnType<typeof interleavingFixture>;
 
 export async function serverBytes(f: TRun["f"]) {
   const context = await syncContext(f.third, f.opts);

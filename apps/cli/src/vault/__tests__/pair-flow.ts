@@ -16,9 +16,21 @@ import { login } from "../../session/login.ts";
 import { openPairing, approvePairing } from "../../pairing/approver.ts";
 import { exchangeJoiner, resumeJoiner, resendJoiner } from "../../pairing/joiner.ts";
 
+import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
+
 const fixtureClock = () => 1800000000000;
 
-import { setupFlow } from "./setup-flow.ts";
+async function vaultFlow() {
+  const f = await fixture();
+
+  return {
+    ...f,
+    second: f.home("second"),
+    third: f.home("third"),
+    address: f.result.kit.server,
+    cleanup: () => f.close(),
+  };
+}
 
 function signal() {
   let resolve = () => {};
@@ -31,11 +43,11 @@ function signal() {
 }
 
 export async function pairedFlow(
-  beforeResume?: (flow: Awaited<ReturnType<typeof setupFlow>>) => Promise<void>,
+  beforeResume?: (flow: Awaited<ReturnType<typeof vaultFlow>>) => Promise<void>,
   interrupt = false,
   joinerName = "second",
 ) {
-  const flow = await setupFlow();
+  const flow = await vaultFlow();
   const { root, now, first, second, address, result, fetcher } = flow;
 
   try {
@@ -97,7 +109,7 @@ export async function pairedFlow(
       version: "0.0.0",
     });
 
-    await login(client, vaultId, "master password");
+    await login(client, vaultId, "old password");
     const attempt = await openPairing(client, pin);
     const joiner = await deviceIdentity(second.keychain, second.home, joinerName);
     const joinerId = p.base32(joiner.record.id);
@@ -217,7 +229,7 @@ export async function joinedFlow() {
       address,
       vaultId: result.kit.vaultId,
       secretKey: result.kit.secretKey,
-      password: "master password",
+      password: "old password",
       name: "third",
       now,
       fetcher,

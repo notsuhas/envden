@@ -82,9 +82,7 @@ test("a missing target is not offered and a differing synced copy leaves the lin
     expect(await readlink(join(f.root, "kept", ".env"))).toBe(differing);
     expect(state.links).toEqual([]);
 
-    expect(f.errors).toEqual([
-      "envden: left ~/kept/.env linked to ~/mine.env: its synced copy differs",
-    ]);
+    expect(f.errors).toEqual([expect.stringMatching(/~\/kept\/\.env.*~\/mine\.env/)]);
   } finally {
     await f.close();
   }

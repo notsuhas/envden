@@ -13,34 +13,33 @@ const healthy = {
   ],
 } as const;
 
-test("doctor prints a pass/fail checklist", () => {
-  expect(doctorText({ ...healthy, shells: [...healthy.shells] }).split("\n")).toEqual([
-    "✓ Keys: private files in ~/.envden (owner-only, like ~/.ssh)",
-    "✓ Symlinks work",
-    "✓ envden is up to date",
-    "✓ Tailscale: connected as box",
-    "✓ HTTPS certificates enabled",
-    "✓ Shell notice: zsh (/home/.zshrc)",
-  ]);
+const marks = (text: string) => text.split("\n").map((line) => line[0]);
 
-  expect(
-    doctorText({
-      keys: { location: "~/.envden", ownerOnly: false },
-      symlinks: false,
-      update: { available: true, required: false },
-      tailscale: { ready: false, running: true, loggedIn: false, httpsEnabled: false },
-      https: {
-        kind: "https-disabled",
-        message: "Enable HTTPS certificates in the Tailscale admin console",
-      },
-      shells: [],
-    }).split("\n"),
-  ).toEqual([
-    "✗ Keys: other users can read key files in ~/.envden; run chmod -R go-rwx ~/.envden",
-    "! Symlinks unavailable; checkouts get copies",
-    "! Update available; run envden update",
-    "✗ Tailscale: not logged in",
-    "✗ HTTPS certificates: Enable HTTPS certificates in the Tailscale admin console",
-    "! Shell notice: not installed; run envden shell install",
-  ]);
+test("doctor prints a pass/fail checklist with the fix for each failure", () => {
+  const passing = doctorText({ ...healthy, shells: [...healthy.shells] });
+
+  expect(marks(passing)).toEqual(["✓", "✓", "✓", "✓", "✓", "✓"]);
+  expect(passing).toContain("box");
+  expect(passing).toContain("zsh (/home/.zshrc)");
+  expect(passing).not.toContain("bash");
+
+  const failing = doctorText({
+    keys: { location: "~/.envden", ownerOnly: false },
+    symlinks: false,
+    update: { available: true, required: false },
+    tailscale: { ready: false, running: true, loggedIn: false, httpsEnabled: false },
+    https: { kind: "https-disabled", message: "Enable HTTPS in the admin console" },
+    shells: [],
+  });
+
+  expect(marks(failing)).toEqual(["✗", "!", "!", "✗", "✗", "!"]);
+
+  for (const fix of [
+    "chmod -R go-rwx ~/.envden",
+    "envden update",
+    "not logged in",
+    "Enable HTTPS in the admin console",
+    "envden shell install",
+  ])
+    expect(failing).toContain(fix);
 });

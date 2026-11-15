@@ -48,24 +48,14 @@ test("rejoin --recovery accepts a pasted kit", async () => {
 test("classifying a device dropped by repair preserves its stored floor", async () => {
   const p = await import("@envden/core/protocol");
   const { verifyChain } = await import("@envden/core/chain");
-  const { kitJoin } = await import("../../../vault/recovery/kit.ts");
   const { loadState } = await import("../../../state/store/repository.ts");
   const { adminContext } = await import("../../shared/context.ts");
   const { currentHistory } = await import("../../shared/history.ts");
   const { adoptRejoin } = await import("../classify.ts");
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      ...f.result.kit,
-      address: f.result.kit.server,
-      name: "second",
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const second = f.joined.second!;
 
     const before = (await loadState(second.home))!;
     const context = await adminContext(f.first, f.now);

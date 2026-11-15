@@ -6,7 +6,6 @@ import { test, expect, spyOn } from "bun:test";
 import { join } from "node:path";
 import { cp } from "node:fs/promises";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { rotateVault } from "../../devices/rotate.ts";
 import { uploadRepair } from "../upload.ts";
 import { finishRepair } from "../finish.ts";
@@ -15,7 +14,6 @@ import { saveState, loadState } from "../../../state/store/repository.ts";
 const fixtureClock = () => 1800000000000;
 
 for (const [mode, crash, drop] of [
-  ["rotate", "none", false],
   ["rotate", "before-close", true],
   ["password", "after-close", false],
   ["password", "adoption", true],
@@ -25,17 +23,8 @@ for (const [mode, crash, drop] of [
   ["missing-envelope", "adoption", false],
 ] as const)
   test(`restore repair ${mode} ${crash} ${drop ? "drops an unreported member" : "combines two device reports"}`, async () => {
-    const f = await fixture();
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      ...f.result.kit,
-      address: f.result.kit.server,
-      password: "old password",
-      name: "second",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const f = await fixture(["second"]);
+    const second = f.joined.second!;
 
     await f.running.shutdown();
     await cp(join(f.root, "server"), join(f.root, "backup"), { recursive: true });

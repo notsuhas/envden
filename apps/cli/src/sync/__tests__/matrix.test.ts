@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { layouts } from "./matrix-cases.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { pull, push } from "../engine.ts";
@@ -22,8 +21,8 @@ for (const modes of layouts)
     ["divergence", B, C, B, 1],
   ] as const)
     test(`${modes.join("+")}: ${name}`, async () => {
-      const f = await fixture();
-      const targets = await approveLayout(f, modes);
+      const f = await fixture(modes);
+      const { targets } = f;
       await atomicWrite(targets[0]!.store, store, fixtureClock);
       await atomicWrite(f.aStore, remote, fixtureClock);
       await push(f.first, f.opts);
@@ -49,8 +48,8 @@ for (const [name, store, copied, remote, expected, conflicts] of [
   ["copy and remote diverge", A, B, C, A, 1],
 ] as const)
   test(name, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy", "copy", "link"]);
+    const f = await fixture(["copy", "copy", "link"]);
+    const { targets } = f;
     await atomicWrite(targets[0]!.store, store, fixtureClock);
     await atomicWrite(join(targets[0]!.root, ".env"), copied, fixtureClock);
     await atomicWrite(f.aStore, remote, fixtureClock);

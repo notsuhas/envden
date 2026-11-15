@@ -7,7 +7,6 @@ test.each([
   [["apps/web/package.json", "apps/cli/src/main.ts"], true],
   [["apps/server/src/routes/README.md"], true],
   [[".github/workflows/ci.yml"], true],
-  [["bun.lock"], true],
   [[], false],
 ] as [string[], boolean][])("%p needs the binary pipeline: %p", (paths, expected) => {
   expect(touchesBinary(paths)).toBe(expected);

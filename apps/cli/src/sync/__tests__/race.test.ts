@@ -69,7 +69,6 @@ test("sync race", async () => {
     await Promise.resolve(
       expect(push(second, { ...opts, fetcher: alwaysRacing })).rejects.toMatchObject({
         code: "HEAD_MOVED",
-        message: "Another device kept changing files during sync. Run the command again",
       }),
     );
   } finally {
@@ -117,7 +116,7 @@ test("an expired unlock prompts when interactive and names envden unlock otherwi
     await Promise.resolve(
       expect(pull(f.second, { ...opts, interactive: false })).rejects.toMatchObject({
         code: "LOCKED",
-        message: "Unlock expired. Run envden unlock",
+        message: expect.stringContaining("envden unlock"),
       }),
     );
 

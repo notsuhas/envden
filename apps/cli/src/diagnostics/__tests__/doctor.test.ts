@@ -31,7 +31,6 @@ test("doctor uses injected adapters and explicit paths including HTTPS checks", 
 
     adapters.network.checkHttpsCertificate = async () => ({ kind: "https-disabled", message: "x" });
     const result = await doctor(adapters, paths(home));
-    expect(JSON.stringify(result, null, 2).split("\n").length).toBeGreaterThan(3);
     expect(result.https.kind).toBe("https-disabled");
     expect(result.keys).toEqual({ location: "~", ownerOnly: true });
     expect(result.shells.every((shell) => shell.path.startsWith(home))).toBe(true);

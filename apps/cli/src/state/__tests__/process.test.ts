@@ -1,6 +1,5 @@
 import { expect, test } from "bun:test";
 import { linuxStart, processStart } from "../lock/process.ts";
-import { reclaimable } from "../lock/owner.ts";
 
 test("Linux starttime handles spaces and parentheses in process names", () => {
   const fields = ["S", ...Array.from({ length: 18 }, () => "0"), "123456", "0"];
@@ -13,14 +12,6 @@ test("process identity is observable without GNU ps", async () => {
   expect(identity).toMatchObject({ kind: "live" });
   expect(await processStart(process.pid)).toEqual(identity);
   expect(await processStart(2147483647)).toEqual({ kind: "dead" });
-});
-
-test("only proven death or a different observed start permits reclaim", () => {
-  const previous = { pid: 123, token: "owner", startedAt: "first", identity: "host", createdAt: 0 };
-  expect(reclaimable(previous, { kind: "unknown" }, "host")).toBe(false);
-  expect(reclaimable(previous, { kind: "live", startedAt: "first" }, "host")).toBe(false);
-  expect(reclaimable(previous, { kind: "live", startedAt: "second" }, "host")).toBe(true);
-  expect(reclaimable(previous, { kind: "dead" }, "host")).toBe(true);
 });
 
 test("Linux reads proc starttime even when ps is unavailable", async () => {

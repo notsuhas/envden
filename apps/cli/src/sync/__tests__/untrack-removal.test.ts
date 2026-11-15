@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { removeFile } from "../remove.ts";
 import { untrack } from "../../links/checkout/untrack.ts";
 import { readDeletion } from "../local/reconciliation/operation/deletion.ts";
@@ -12,8 +11,8 @@ const fixtureClock = () => 1800000000000;
 const fixture = createSharedFixture();
 
 test("untracking one copy preserves the other checkout's removal", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   await removeFile(f.second, join(targets[0]!.root, ".env"), { yes: true, now: f.now });
   expect(await untrack(f.second, targets[1]!.root)).toEqual([]);
 
@@ -28,8 +27,8 @@ test("untracking one copy preserves the other checkout's removal", async () => {
 
 test("untracking a dangling store link removes the owned link", async () => {
   const { rm, lstat } = await import("node:fs/promises");
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "link"]);
+  const f = await fixture(["copy", "link"]);
+  const { targets } = f;
   await rm(targets[1]!.store);
   expect(await untrack(f.second, targets[1]!.root)).toEqual([]);
   expect(await lstat(join(targets[1]!.root, ".env")).catch(() => undefined)).toBeUndefined();
@@ -39,8 +38,8 @@ test("take-server preserves live server after removal skipped an edited checkout
   const { loadState, saveState } = await import("../../state/store/repository.ts");
   const { atomicWrite } = await import("../../state/store/files.ts");
   const { resolveConflict } = await import("../resolve.ts");
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   const state = (await loadState(f.second.home))!;
   const approved = state.approved;
   state.approved = approved.filter((item) => item.root !== targets[1]!.root);

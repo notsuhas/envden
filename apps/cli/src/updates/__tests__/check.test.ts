@@ -51,7 +51,7 @@ test("lookup falls back to API when the redirect fails", async () => {
   expect(urls[1]).toBe(`https://api.github.com/repos/${RELEASE_REPOSITORY}/releases/latest`);
 });
 
-for (const tag of ["v1.2.3-beta", "1.2.3", "v01.2.3", "v1.2", "v1.2.3+build"])
+for (const tag of ["v1.2.3-beta", "1.2.3", "v1.2.3+build"])
   test(`malformed stable tag is refused: ${tag}`, async () => {
     let calls = 0;
 

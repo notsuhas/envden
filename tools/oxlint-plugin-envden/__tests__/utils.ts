@@ -83,3 +83,8 @@ export function runFixture(rule: string, files: Record<string, string>, fix = fa
     rmSync(directory, { recursive: true, force: true });
   }
 }
+
+// Lets one oxlint run serve several cases: each case reads only its own file's diagnostics.
+export function diagnosticsFor(diagnostics: { filename: string }[], file: string) {
+  return diagnostics.filter((diagnostic) => diagnostic.filename.endsWith(`/${file}`));
+}

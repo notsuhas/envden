@@ -1,30 +1,26 @@
 import { isToken } from "@envden/core/protocol";
 import { expect, test, spyOn } from "bun:test";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { setupFlow } from "./setup-flow.ts";
+import { testNetwork } from "@envden/server/testing";
+import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
+import { createAdapters } from "../../adapters.ts";
+import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { setupVault } from "../setup.ts";
 import { kitJoin } from "../recovery/kit.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
 const fixtureClock = () => 1800000000000;
 
-for (const missing of [
-  "epoch/1",
-  "id-key",
-  "both",
-  "device",
-  "wrong-epoch",
-  "expired",
-  "write-fails",
-])
+for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "expired", "write-fails"])
   test(`setup cannot commit without keys: ${missing}`, async () => {
-    const f = await setupFlow();
-    let timestamp = f.now();
+    let timestamp = fixtureClock();
     const now = () => timestamp;
-    const { network, running, token } = await freshServer(f.root, now);
+    const { network, running, token, home, cleanup } = await freshServer(now);
 
     try {
-      const adapters = f.third;
+      const adapters = home("third");
       const originalSet = adapters.keychain.set.bind(adapters.keychain);
 
       if (missing === "write-fails")
@@ -66,8 +62,7 @@ for (const missing of [
       else {
         expect(pending?.creationPending).toBeDefined();
 
-        for (const key of missing === "both" ? ["epoch/1", "id-key", "device"] : [missing])
-          await adapters.keychain.delete(`envden/${adapters.home}/${key}`);
+        await adapters.keychain.delete(`envden/${adapters.home}/${missing}`);
       }
 
       await replaceWrongEpoch(missing, originalSet, adapters.home);
@@ -79,14 +74,13 @@ for (const missing of [
       expect(await adapters.keychain.get(`envden/${adapters.home}/id-key`)).toBeDefined();
       if (pending) expect(result.state.vaultId).not.toBe(pending.vaultId);
     } finally {
-      await running.shutdown();
-      await f.cleanup();
+      await cleanup();
     }
   });
 
 test("setup resumed without the first kit finishes the vault with a new kit", async () => {
-  const f = await setupFlow();
-  const { network, running, token } = await freshServer(f.root, f.now);
+  const { network, running, token, home, cleanup } = await freshServer(fixtureClock);
+  const third = home("third");
 
   try {
     const issued: string[] = [];
@@ -97,7 +91,7 @@ test("setup resumed without the first kit finishes the vault with a new kit", as
       token,
       name: "third",
       password: "password",
-      now: f.now,
+      now: fixtureClock,
       onKit: async (kit: { secretKey: string }) => {
         issued.push(kit.secretKey);
       },
@@ -113,10 +107,10 @@ test("setup resumed without the first kit finishes the vault with a new kit", as
     };
 
     await Promise.resolve(
-      expect(setupVault(f.third, { ...options, fetcher: lossy })).rejects.toThrow(),
+      expect(setupVault(third, { ...options, fetcher: lossy })).rejects.toThrow(),
     );
 
-    const result = await setupVault(f.third, {
+    const result = await setupVault(third, {
       ...options,
       fetcher: network.fetcher,
       readResumeSecretKey: async () => undefined,
@@ -125,37 +119,37 @@ test("setup resumed without the first kit finishes the vault with a new kit", as
     expect(result.state.creationPending).toBeUndefined();
     expect(issued).toEqual([expect.any(String), result.kit.secretKey]);
 
-    const joined = await kitJoin(f.second, {
+    const joined = await kitJoin(home("second"), {
       ...result.kit,
       address: options.address,
       password: "password",
       name: "second",
-      now: f.now,
+      now: fixtureClock,
       fetcher: network.fetcher,
     });
 
     expect(joined.vaultId).toBe(result.kit.vaultId);
   } finally {
-    await running.shutdown();
-    await f.cleanup();
+    await cleanup();
   }
 });
 
 test("join refuses a foreign committed vault without changing state or keys", async () => {
-  const f = await setupFlow();
+  const f = await fixture();
+  const second = f.home("second");
 
   try {
     const state = { ...f.result.state, vaultId: "foreign-vault", aliases: { old: "preserved" } };
-    await saveState(f.second.home, state, fixtureClock);
+    await saveState(second.home, state, fixtureClock);
     const key = new Uint8Array(32).fill(7);
-    await f.second.keychain.set(`envden/${f.second.home}/id-key`, key);
+    await second.keychain.set(`envden/${second.home}/id-key`, key);
 
     await Promise.resolve(
       expect(
-        kitJoin(f.second, {
-          address: f.address,
+        kitJoin(second, {
+          address: f.result.kit.server,
           ...f.result.kit,
-          password: "master password",
+          password: "old password",
           name: "second",
           now: f.now,
           fetcher: f.fetcher,
@@ -163,10 +157,10 @@ test("join refuses a foreign committed vault without changing state or keys", as
       ).rejects.toMatchObject({ code: "CONFLICT" }),
     );
 
-    expect(await loadState(f.second.home)).toEqual(state);
-    expect(await f.second.keychain.get(`envden/${f.second.home}/id-key`)).toEqual(key);
+    expect(await loadState(second.home)).toEqual(state);
+    expect(await second.keychain.get(`envden/${second.home}/id-key`)).toEqual(key);
   } finally {
-    await f.cleanup();
+    await f.close();
   }
 });
 
@@ -178,16 +172,32 @@ async function replaceWrongEpoch(
   if (missing === "wrong-epoch") await set(`envden/${home}/epoch/1`, new Uint8Array(32).fill(7));
 }
 
-async function freshServer(root: string, now: () => number) {
+async function freshServer(now: () => number) {
+  const root = await mkdtemp(join(tmpdir(), "envden-state-safety-"));
   const log = spyOn(console, "log").mockImplementation(() => {});
-  const { testNetwork } = await import("@envden/server/testing");
   const network = testNetwork();
-  const running = await network.serve({ dataDir: join(root, "fresh-server"), port: 0, now });
+  const running = await network.serve({ dataDir: join(root, "server"), port: 0, now });
 
   const token = log.mock.calls.flat().find((v) => isToken("setup", v));
 
   log.mockRestore();
   if (typeof token !== "string") throw new Error("Missing token");
 
-  return { network, running, token };
+  const home = (name: string) =>
+    createAdapters(
+      {
+        fetcher: network.fetcher,
+        home: join(root, name),
+        userHome: join(root, name),
+        keychain: createMemoryKeychainAdapter(["get", "set", "delete"]),
+      },
+      now,
+    );
+
+  const cleanup = async () => {
+    await running.shutdown();
+    await rm(root, { recursive: true, force: true });
+  };
+
+  return { network, running, token, home, cleanup };
 }

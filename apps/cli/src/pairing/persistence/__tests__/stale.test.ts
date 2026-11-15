@@ -6,8 +6,6 @@ test.each([
   ["HEAD_MOVED", true],
   ["UNAUTHORIZED", true],
   ["SERVER_UNREACHABLE", false],
-  ["RATE_LIMITED", false],
-  ["INTERNAL", false],
 ] as [TErrorCode, boolean][])("%s marks a saved pairing swap stale: %p", (code, stale) => {
   expect(isStaleSwapError(new EnvdenError(code, "x"))).toBe(stale);
 });

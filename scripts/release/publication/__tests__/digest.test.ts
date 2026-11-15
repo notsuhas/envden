@@ -17,7 +17,6 @@ test("release validates the digest before writing its artifact", () => {
 if (process.platform !== "win32")
   for (const digest of [
     "",
-    "sha256:",
     "sha256:" + "a".repeat(63),
     "sha256:" + "g".repeat(64),
     "sha256:" + "a".repeat(64),

@@ -1,5 +1,4 @@
 import { test, expect } from "bun:test";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 import { adminContext } from "../../shared/context.ts";
 import { currentHistory } from "../../shared/history.ts";
@@ -8,20 +7,10 @@ import { removeDevice } from "../remove.ts";
 import { listDevices } from "../list.ts";
 
 test("device removal asks about recovery keys before committing", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      address: f.result.kit.server,
-      name: "second",
-      ...f.result.kit,
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
-
+    const second = f.joined.second!;
     let asked = false;
 
     await removeDevice(second, "first", "old password", f.now, f.fetcher, false, async () => {
@@ -68,7 +57,7 @@ test("exposure downloads identical historical file lists once", async () => {
 });
 
 test("unknown device does not ask for credentials and confirmation precedes removal", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
     let passwords = 0;
@@ -89,17 +78,7 @@ test("unknown device does not ask for credentials and confirmation precedes remo
     );
 
     expect(passwords).toBe(0);
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      address: f.result.kit.server,
-      name: "second",
-      ...f.result.kit,
-      password: "old password",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
-
+    const second = f.joined.second!;
     let confirmed = false;
 
     await Promise.resolve(

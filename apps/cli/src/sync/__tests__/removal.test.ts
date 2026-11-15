@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { rm } from "node:fs/promises";
 import { createSharedFixture } from "./shared-fixture.ts";
 import { layouts } from "./matrix-cases.ts";
-import { approveLayout, approveThird } from "./round-fixture.ts";
+import { approveThird } from "./round-fixture.ts";
 import { removeFile } from "../remove.ts";
 import { pull, push } from "../engine.ts";
 import { readBytes, basePath } from "../local/files.ts";
@@ -14,8 +14,8 @@ const fixture = createSharedFixture();
 
 for (const modes of layouts) {
   test(`explicit rm publishes deletion across devices: ${modes.join("+")}`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, modes);
+    const f = await fixture(modes);
+    const { targets } = f;
     const store = targets[0]!.store;
 
     const observer = await approveThird(f);
@@ -46,8 +46,8 @@ for (const modes of layouts) {
   });
 
   test(`absence never publishes deletion: ${modes.join("+")}`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, modes);
+    const f = await fixture(modes);
+    const { targets } = f;
     const store = targets[0]!.store;
 
     for (const mask of [1, 2, 3, 4, 5, 6, 7]) {
@@ -81,7 +81,7 @@ test("rm refuses non-interactive removal without explicit confirmation", async (
 
 async function removePlaces(
   home: string,
-  targets: Awaited<ReturnType<typeof approveLayout>>,
+  targets: Awaited<ReturnType<typeof fixture>>["targets"],
   mask: number,
 ) {
   const store = targets[0]!.store;
@@ -125,8 +125,8 @@ test("rm of an unpublished file keeps other checkouts' local-only links", async 
   const { linkFile } = await import("../../links/file.ts");
   const { atomicWrite } = await import("../../state/store/files.ts");
   const { loadState, saveState } = await import("../../state/store/repository.ts");
-  const f = await fixture();
-  const [shared, separate] = await approveLayout(f, ["link", "link"]);
+  const f = await fixture(["link", "link"]);
+  const [shared, separate] = f.targets;
   const state = (await loadState(f.second.home))!;
 
   for (const [target, content, choice] of [

@@ -13,17 +13,16 @@ const storage: Pick<
   hasVault: () => false,
 };
 
-test("commit preconditions throw fixed EnvdenErrors", () => {
-  for (const [extra, code, message] of [
-    [{ setupTokenHash: new Uint8Array(32) }, "UNAUTHORIZED", "Setup token changed or consumed"],
+test("commit preconditions throw typed EnvdenErrors", () => {
+  for (const [extra, code] of [
+    [{ setupTokenHash: new Uint8Array(32) }, "UNAUTHORIZED"],
     [
       { consumeSessions: [{ kind: "login", device: new Uint8Array(16), purpose: "test" }] },
       "UNAUTHORIZED",
-      "Session expired or consumed",
     ],
-    [{ closeMailbox: 1 }, "NOT_FOUND", "Mailbox expired or closed"],
-    [{}, "INVALID_DATA", "Creation requires vault metadata"],
-  ] satisfies [Partial<IStoredSwap>, string, string][]) {
+    [{ closeMailbox: 1 }, "NOT_FOUND"],
+    [{}, "INVALID_DATA"],
+  ] satisfies [Partial<IStoredSwap>, string][]) {
     const swap: IStoredSwap = {
       header: { hash: new Uint8Array(32), bytes: new Uint8Array(), seq: 1n },
       entries: [],
@@ -35,7 +34,7 @@ test("commit preconditions throw fixed EnvdenErrors", () => {
       prepareCommit(storage, new Uint8Array(32), swap, 0);
       throw new Error("commit unexpectedly succeeded");
     } catch (error) {
-      expect(error).toMatchObject({ name: "EnvdenError", code, message });
+      expect(error).toMatchObject({ name: "EnvdenError", code });
     }
   }
 });

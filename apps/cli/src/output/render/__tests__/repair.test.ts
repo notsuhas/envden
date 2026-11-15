@@ -1,26 +1,27 @@
 import { expect, test } from "bun:test";
 import { repairText } from "../repair.ts";
 
-test("each repair outcome reads as a sentence", () => {
-  expect(repairText({ kind: "missing-reports", devices: ["laptop", "desktop"] })).toStartWith(
-    "Waiting for laptop, desktop to run envden server repair.",
-  );
+test("each repair outcome names who or what it waits for and the next step", () => {
+  const waiting = repairText({ kind: "missing-reports", devices: ["laptop", "desktop"] });
 
-  expect(
-    repairText({
-      kind: "missing-blobs",
-      missing: [],
-      lost: [{ repoId: "repo", path: ".env" }],
-    }),
-  ).toBe(
-    "No device has the newest version of repo/.env.\nCheck those files, then finish with --accept-lost to use the newest older version.",
-  );
+  expect(waiting).toContain("laptop, desktop");
+  expect(waiting).toContain("envden server repair");
 
-  expect(repairText({ kind: "finished", report: undefined, replaceKit: false })).toBe(
-    "Server restore finished",
-  );
+  const lost = repairText({
+    kind: "missing-blobs",
+    missing: [],
+    lost: [{ repoId: "repo", path: ".env" }],
+  });
 
-  expect(repairText({ kind: "finished", report: "repo/.env: lost", replaceKit: true })).toBe(
-    "Server restore finished\n\nrepo/.env: lost\nThe restored server can't vouch for the current recovery kit; replace it.",
-  );
+  expect(lost).toContain("repo/.env");
+  expect(lost).toContain("--accept-lost");
+  expect(lost).not.toContain("Waiting");
+
+  const plain = repairText({ kind: "finished", report: undefined, replaceKit: false });
+  const kit = repairText({ kind: "finished", report: "repo/.env: lost", replaceKit: true });
+
+  expect(plain.split("\n")).toHaveLength(1);
+  expect(kit).toStartWith(plain);
+  expect(kit).toContain("repo/.env: lost");
+  expect(kit).toContain("recovery kit");
 });

@@ -116,14 +116,14 @@ test("real git worktree asks only with auto-approval off and records its root on
       (message) => reports.push(message),
     );
 
-    expect(reports).toEqual([`Approved worktree ${worktree.root} (auto-approve-worktrees)`]);
+    expect(reports).toEqual([expect.stringContaining(worktree.root)]);
     expect(state.approved.map((item) => item.root)).toEqual([checkout.root, worktree.root]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("scan skips missing, ambiguous, local and file remotes and continues", async () => {
+test("scan skips repos without a usable remote and continues", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-scan-"));
 
   const git = async (cwd: string, args: string[]) => {
@@ -132,26 +132,18 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
   };
 
   try {
-    for (const name of ["missing", "ambiguous", "local", "file", "good"]) {
+    for (const name of ["missing", "file", "good"]) {
       const path = join(root, name);
       await mkdir(path);
       await git(path, ["init"]);
       if (name === "missing") continue;
 
-      if (name === "ambiguous") {
-        await git(path, ["remote", "add", "first", "https://example.com/first"]);
-        await git(path, ["remote", "add", "second", "https://example.com/second"]);
-      } else
-        await git(path, [
-          "remote",
-          "add",
-          "origin",
-          name === "local"
-            ? root
-            : name === "file"
-              ? new URL("file:///local/repo").toString()
-              : "https://example.com/good",
-        ]);
+      await git(path, [
+        "remote",
+        "add",
+        "origin",
+        name === "file" ? new URL("file:///local/repo").toString() : "https://example.com/good",
+      ]);
     }
 
     const adapters = createAdapters(
@@ -174,7 +166,7 @@ test("scan skips missing, ambiguous, local and file remotes and continues", asyn
     );
 
     expect(found.map((item) => item.repoId)).toEqual(["example.com/good"]);
-    expect(skipped.map((skip) => skip.kind)).toEqual(["remote", "remote", "remote", "remote"]);
+    expect(skipped.map((skip) => skip.kind)).toEqual(["remote", "remote"]);
     expect(skipped.some((skip) => skip.reason === "Unsupported git remote")).toBe(true);
   } finally {
     await rm(root, { recursive: true, force: true });

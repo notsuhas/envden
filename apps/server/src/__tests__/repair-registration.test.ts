@@ -154,7 +154,7 @@ async function registeredRepair() {
       close.opaqueRecord,
     );
 
-    return { f, close };
+    return { f };
   } catch (error) {
     f.close();
     throw error;
@@ -171,19 +171,7 @@ test("repair requires re-registration after a password change", async () => {
   }
 });
 
-test("repair stores the replacement registration", async () => {
-  const { f, close } = await registeredRepair();
-
-  try {
-    expect(f.storage.state(f.vaultId, "opaqueRecord", new Uint8Array())).toEqual(
-      close.opaqueRecord,
-    );
-  } finally {
-    f.close();
-  }
-});
-
-test("repair preserves SK refusal after kit replacement", async () => {
+test("repair stores the replacement registration and preserves SK refusal after kit replacement", async () => {
   const { f } = await registeredRepair();
 
   try {

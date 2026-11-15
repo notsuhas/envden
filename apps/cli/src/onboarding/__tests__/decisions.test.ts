@@ -18,9 +18,12 @@ for (const [value, yes, fallback, expected] of [
     expect(deriveConsent(value, yes, fallback)).toEqual(expected);
   });
 
-for (const shell of ["zsh", "bash", "fish", "powershell", "none", "unknown"])
+for (const [shell, kind] of [
+  ["zsh", "install"],
+  ["none", "skip"],
+] as const)
   test(`shell ${shell}`, () => {
-    expect(deriveShell(shell).kind).toBe(["none", "unknown"].includes(shell) ? "skip" : "install");
+    expect(deriveShell(shell).kind).toBe(kind);
   });
 
 for (const [agent, yes, kind] of [

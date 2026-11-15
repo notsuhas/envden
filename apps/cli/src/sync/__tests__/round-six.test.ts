@@ -117,9 +117,8 @@ test("detached link with old content is adopted as an edit", async () => {
 });
 
 test("untracking divergent copy lets remaining link advance", async () => {
-  const { approveLayout } = await import("./round-fixture.ts");
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "link"]);
+  const f = await fixture(["copy", "link"]);
+  const { targets } = f;
   await atomicWrite(join(targets[0]!.root, ".env"), "TOKEN=mine\n", fixtureClock);
   await atomicWrite(f.aStore, "TOKEN=theirs\n", fixtureClock);
   await push(f.first, f.opts);

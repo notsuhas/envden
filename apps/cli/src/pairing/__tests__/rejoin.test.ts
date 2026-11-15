@@ -2,7 +2,6 @@ import type { TFetch } from "../../client/fetch.ts";
 import { rotateVault } from "../../admin/devices/rotate.ts";
 import { test, expect } from "bun:test";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { kitJoin } from "../../vault/recovery/kit.ts";
 import { removeDevice } from "../../admin/devices/remove.ts";
 import { rejoinIdentity } from "../../admin/rejoin/classify.ts";
 import { adminContext } from "../../admin/shared/context.ts";
@@ -23,19 +22,10 @@ function signal() {
 }
 
 test("removed device rejoins through pairing with a new identity and retained floor", async () => {
-  const f = await fixture();
+  const f = await fixture(["second"]);
 
   try {
-    const second = f.home("second");
-
-    await kitJoin(second, {
-      ...f.result.kit,
-      address: f.result.kit.server,
-      password: "old password",
-      name: "second",
-      now: f.now,
-      fetcher: f.fetcher,
-    });
+    const second = f.joined.second!;
 
     const before = await loadState(second.home);
     f.advance(1000);

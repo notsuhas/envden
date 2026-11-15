@@ -40,23 +40,6 @@ test("completed setup skips credentials, kit and certificate prompts", async () 
   }
 });
 
-test("setup preferences persist only in config", async () => {
-  const { setupPreferences } = await import("../preferences.ts");
-  const { readConfig } = await import("../../settings/config.ts");
-  const f = await fixture();
-
-  try {
-    await setupPreferences(f.first, { telemetry: "on", updateCheck: "off", yes: true });
-
-    expect(await readConfig(f.first.home)).toMatchObject({
-      telemetry: true,
-      "update-check": false,
-    });
-  } finally {
-    await f.close();
-  }
-});
-
 test("a failing shell notice or agent skill warns instead of aborting setup", async () => {
   const { setupPreferences } = await import("../preferences.ts");
   const { readConfig } = await import("../../settings/config.ts");
@@ -79,13 +62,15 @@ test("a failing shell notice or agent skill warns instead of aborting setup", as
       yes: true,
     });
 
-    expect(await readConfig(f.first.home)).toMatchObject({ telemetry: true });
-    expect(warnings).toHaveLength(2);
-    expect(warnings[0]).toStartWith("Skipped the shell notice: ");
+    expect(await readConfig(f.first.home)).toMatchObject({
+      telemetry: true,
+      "update-check": false,
+    });
 
-    expect(warnings[1]).toBe(
-      "Skipped the agent skill: ~/.claude/skills/envden already holds a different skill. Set it up later with: envden agent install",
-    );
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toStartWith("Skipped the shell notice");
+    expect(warnings[1]).toStartWith("Skipped the agent skill");
+    expect(warnings[1]).toContain("envden agent install");
   } finally {
     console.error = original;
     await f.close();
@@ -217,12 +202,12 @@ test("setup checks the address and token against the server before the name and 
     await Promise.resolve(
       expect(
         runSetup(adapters, { server: `http://${server}`, setupToken: token }, f.now),
-      ).rejects.toThrow("This setup token is for a different server"),
+      ).rejects.toThrow("different server"),
     );
 
     await Promise.resolve(
       expect(runSetup(adapters, { server, setupToken: token }, f.now)).rejects.toThrow(
-        `Can't reach https://${server}. Check the address and that the server is running`,
+        `https://${server}`,
       ),
     );
 

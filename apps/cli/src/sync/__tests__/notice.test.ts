@@ -5,7 +5,9 @@ import { withStateLock } from "../../state/lock/lock.ts";
 import { readRemoteNotice, remoteNotice } from "../../notice/remote.ts";
 import { noticeStatus } from "../../notice/cache.ts";
 import { loadState } from "../../state/store/repository.ts";
-import { syncFixture } from "./flows.ts";
+import { createSharedFixture } from "./shared-fixture.ts";
+
+const syncFixture = createSharedFixture();
 
 test("background refresh fetches outside the state lock and locks only to write", async () => {
   const fixture = await syncFixture();

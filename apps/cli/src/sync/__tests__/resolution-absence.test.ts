@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { lstat, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { markLocalOnly } from "../../links/local-only.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
@@ -41,8 +40,8 @@ for (const side of ["mine", "server"] as const)
   });
 
 test("resolve leaves a target marked local only after the conflict", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["link", "link"]);
+  const f = await fixture(["link", "link"]);
+  const { targets } = f;
   const store = targets[0]!.store;
   const kept = join(targets[1]!.root, ".env");
   await atomicWrite(store, "TOKEN=mine\n", fixtureClock);

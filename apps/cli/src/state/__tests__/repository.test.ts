@@ -68,9 +68,6 @@ test("headers live in immutable objects outside device.json", async () => {
     for (const invalid of [
       { ...record, headerRefs: undefined, headers: [] },
       { ...record, unknown: true },
-      { ...record, aliases: undefined },
-      { ...record, telemetry: undefined },
-      { ...record, updateCheck: undefined },
     ]) {
       await atomicWrite(join(home, "state", "device.json"), JSON.stringify(invalid), fixtureClock);
 

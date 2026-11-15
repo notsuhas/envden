@@ -197,18 +197,19 @@ test("mailbox response cannot extend the client deadline", () => {
 });
 
 test("timeout preserves the saved join exchange", async () => {
-  const { setupFlow } = await import("../../vault/__tests__/setup-flow.ts");
+  const { fixture } = await import("../../admin/recovery/__tests__/fixture.ts");
   const { finishPairing } = await import("../finish.ts");
   const { atomicWrite, optionalRead } = await import("../../state/store/files.ts");
   const { join } = await import("node:path");
   const { deviceIdentity } = await import("../../identity/device.ts");
-  const f = await setupFlow();
+  const f = await fixture();
+  const second = f.home("second");
 
   try {
-    const identity = await deviceIdentity(f.second.keychain, f.second.home, "second");
+    const identity = await deviceIdentity(second.keychain, second.home, "second");
 
     const client = createClient({
-      address: f.address,
+      address: f.result.kit.server,
       pin: p.unbase32(f.result.kit.vaultId),
       vaultId: new Uint8Array(32),
       identity,
@@ -217,19 +218,19 @@ test("timeout preserves the saved join exchange", async () => {
       fetcher: f.fetcher,
     });
 
-    await atomicWrite(join(f.second.home, "state", "pair-expiry"), "0", fixtureClock);
-    await atomicWrite(join(f.second.home, "state", "pair-joiner"), "saved", fixtureClock);
-    await f.second.keychain.set(`envden/${f.second.home}/pair-receive`, new Uint8Array(32));
+    await atomicWrite(join(second.home, "state", "pair-expiry"), "0", fixtureClock);
+    await atomicWrite(join(second.home, "state", "pair-joiner"), "saved", fixtureClock);
+    await second.keychain.set(`envden/${second.home}/pair-receive`, new Uint8Array(32));
 
     await Promise.resolve(
       expect(
-        finishPairing(f.second, client, identity, f.address, new Uint8Array(32), f.now),
+        finishPairing(second, client, identity, f.result.kit.server, new Uint8Array(32), f.now),
       ).rejects.toMatchObject({ code: "BUSY" }),
     );
 
-    expect(await optionalRead(join(f.second.home, "state", "pair-joiner"))).toBe("saved");
-    expect(await f.second.keychain.get(`envden/${f.second.home}/pair-receive`)).not.toBeNull();
+    expect(await optionalRead(join(second.home, "state", "pair-joiner"))).toBe("saved");
+    expect(await second.keychain.get(`envden/${second.home}/pair-receive`)).not.toBeNull();
   } finally {
-    await f.cleanup();
+    await f.close();
   }
 });

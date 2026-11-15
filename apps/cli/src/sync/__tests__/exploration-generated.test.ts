@@ -1,10 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
-import {
-  WORKER_COUNT,
-  startWorkers,
-  stopWorkers,
-  runWorker,
-} from "./exploration/fixtures/workers.ts";
+import { testTraces, type ITrace } from "./exploration/drivers/batched.ts";
 import { randomTraces, sequences } from "./exploration/drivers/generated.ts";
 
 // ENVDEN_DEEP_EXPLORATION=1 adds depth-four traces and 600 seeded random traces.
@@ -46,32 +40,10 @@ const alphabet = [
 
 const layouts = [["copy"], ["copy", "copy"], ["link"], ["link", "copy"]] as const;
 
-// Workers start while the file loads, so their key-derivation setup is outside the per-test limit.
-await startWorkers();
-
-afterAll(stopWorkers);
-
-interface ITrace {
-  layout: readonly ("copy" | "link")[];
-  tokens: string[];
-  label: string;
-}
-
 const cases: ITrace[] = [];
 
 function register(layout: ITrace["layout"], tokens: string[], label = "exhaustive") {
   cases.push({ layout, tokens, label });
-}
-
-async function verifyTrace(scenario: ITrace, index: number) {
-  const { layout, tokens } = scenario;
-  const result = await runWorker(index, layout, tokens);
-
-  expect({
-    violations: result.violations,
-    notes: result.notes,
-    trace: result.violations.length ? result.trace : [],
-  }).toEqual({ violations: [], notes: [], trace: [] });
 }
 
 for (const layout of layouts)
@@ -86,15 +58,4 @@ if (deep) {
     for (const tokens of sequences(["a", "Be", "Bx", "Bf"], 4)) register(layout, tokens, "deep");
 }
 
-for (let offset = 0; offset < cases.length; offset += WORKER_COUNT) {
-  const batch = cases.slice(offset, offset + WORKER_COUNT);
-  const name = batch
-    .map(
-      (scenario) => `${scenario.label} ${scenario.layout.join("+")} ${scenario.tokens.join(" ")}`,
-    )
-    .join(" | ");
-
-  test(name, async () => {
-    await Promise.all(batch.map(verifyTrace));
-  });
-}
+await testTraces(cases);

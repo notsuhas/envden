@@ -25,20 +25,7 @@ test("setup resumes after losing the creation response", async () => {
   }
 });
 
-test("pairing persists a confirmed second device", async () => {
-  const flow = await pairedFlow();
-
-  try {
-    const state = await loadState(flow.second.home);
-
-    expect(state?.vaultId).toBe(flow.result.kit.vaultId);
-    expect(state?.session).toEqual({ unlockedUntil: flow.now() + period, freshUntil: 0 });
-  } finally {
-    await flow.cleanup();
-  }
-});
-
-test("pairing numbers a taken name and the joiner adopts it", async () => {
+test("pairing persists the joiner and numbers a taken name it adopts", async () => {
   const { listDevices } = await import("../../admin/devices/list.ts");
   const { readIdentity } = await import("../../identity/stored.ts");
   const flow = await pairedFlow(undefined, false, "first");
@@ -53,29 +40,22 @@ test("pairing numbers a taken name and the joiner adopts it", async () => {
       "first-2",
     ]);
 
-    expect((await loadState(flow.second.home))?.deviceName).toBe("first-2");
+    const state = await loadState(flow.second.home);
+
+    expect(state?.vaultId).toBe(flow.result.kit.vaultId);
+    expect(state?.session).toEqual({ unlockedUntil: flow.now() + period, freshUntil: 0 });
+    expect(state?.deviceName).toBe("first-2");
     expect(readIdentity(stored!).record.name).toBe("first-2");
   } finally {
     await flow.cleanup();
   }
 });
 
-test("kit join adopts the history after pairing", async () => {
+test("kit join adopts the history and onboarding completion unlocks joined homes", async () => {
   const flow = await joinedFlow();
 
   try {
-    expect(flow.recovered.vaultId).toBe(flow.result.kit.vaultId);
-    expect(flow.recovered.entries).toHaveLength(4);
     expect(flow.recovered.session).toEqual({ unlockedUntil: flow.now() + period, freshUntil: 0 });
-  } finally {
-    await flow.cleanup();
-  }
-});
-
-test("onboarding completion resumes and unlocks joined homes", async () => {
-  const flow = await joinedFlow();
-
-  try {
     await checkCompletion({ ...flow, kit: flow.result.kit });
   } finally {
     await flow.cleanup();
@@ -87,7 +67,7 @@ test("pairing stores only headers through its approved checkpoint", async () => 
   const { pull } = await import("../../sync/engine.ts");
 
   const flow = await pairedFlow(async (f) => {
-    await rotateVault(f.first, "master password", f.now);
+    await rotateVault(f.first, "old password", f.now);
   });
 
   try {

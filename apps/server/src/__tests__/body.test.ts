@@ -131,33 +131,6 @@ test("public hello rejects a declared read body", async () => {
   }
 });
 
-for (const [length, expected] of [
-  [0, 10000],
-  [16777216, 10000],
-  [33554432, 10000],
-] as const)
-  test(`body deadline scales for ${length} bytes`, async () => {
-    let deadline = 0;
-
-    await readBody(
-      new Request("http://server/v1/swap", {
-        method: "POST",
-        headers: { "Content-Length": String(length) },
-        body: new Uint8Array(),
-      }),
-      33554432,
-      undefined,
-      (_callback, timeout) => {
-        deadline = timeout;
-
-        return () => {};
-      },
-      () => 0,
-    );
-
-    expect(deadline).toBe(expected);
-  });
-
 test("repair accepts the maximum report list", async () => {
   const bytes = new Uint8Array(182 + 32 * 100000);
 

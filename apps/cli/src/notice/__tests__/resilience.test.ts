@@ -2,7 +2,7 @@ import { test, expect, spyOn } from "bun:test";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { syncFixture } from "../../sync/__tests__/flows.ts";
+import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { commandNotice } from "../command.ts";
 import { readRemoteNotice } from "../remote.ts";
 import { reportPendingJoins } from "../pending.ts";
@@ -16,7 +16,7 @@ import { emptyState } from "../../state/model.ts";
 const fixtureClock = () => 1800000000000;
 
 test("a server consuming its deadline leaves a fresh deadline for GitHub", async () => {
-  const f = await syncFixture();
+  const f = await fixture();
   const controller = new AbortController();
   const timeout = spyOn(AbortSignal, "timeout").mockImplementation(() => controller.signal);
   const before = process.env.ENVDEN_NO_UPDATE_CHECK;
@@ -24,7 +24,7 @@ test("a server consuming its deadline leaves a fresh deadline for GitHub", async
   let github = 0;
 
   try {
-    await commandNotice(f.second, f.now(), async (input) => {
+    await commandNotice(f.first, f.now(), async (input) => {
       const url = input instanceof Request ? input.url : input.toString();
 
       if (url.includes("github.com")) {
@@ -39,14 +39,14 @@ test("a server consuming its deadline leaves a fresh deadline for GitHub", async
     });
 
     expect(github).toBeGreaterThan(0);
-    expect((await readUpdateCache(f.second.home)).latest).toBe("99.0.0");
+    expect((await readUpdateCache(f.first.home)).latest).toBe("99.0.0");
   } finally {
     timeout.mockRestore();
 
     if (before === undefined) delete process.env.ENVDEN_NO_UPDATE_CHECK;
     else process.env.ENVDEN_NO_UPDATE_CHECK = before;
 
-    await f.cleanup();
+    await f.close();
   }
 });
 

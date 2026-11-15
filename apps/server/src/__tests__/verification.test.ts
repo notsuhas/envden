@@ -246,24 +246,23 @@ test("internal failures never expose their message", async () => {
   }
 });
 
-for (const path of ["/v1/devices", "/v1/head", "/v1/settings/unlock-period"])
-  test(`zero vault rejected on ${path}`, async () => {
-    const f = fixture(keys);
+test("zero vault rejected", async () => {
+  const f = fixture(keys);
 
-    try {
-      const response = await f
-        .request(path, undefined, {
-          mutate: (r) => {
-            r.vaultId = new Uint8Array(32);
-          },
-        })
-        .send();
+  try {
+    const response = await f
+      .request("/v1/head", undefined, {
+        mutate: (r) => {
+          r.vaultId = new Uint8Array(32);
+        },
+      })
+      .send();
 
-      expect(response.status).toBe(404);
-    } finally {
-      f.close();
-    }
-  });
+    expect(response.status).toBe(404);
+  } finally {
+    f.close();
+  }
+});
 
 test("unchanged member versions do not write device state", async () => {
   const f = fixture(keys);

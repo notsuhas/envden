@@ -88,11 +88,10 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
         const { repo, root } = await factory(directory);
         const checkout = await requireCheckout(repo, root);
         await mkdir(join(root, "generated"));
+        await writeFile(join(root, ".gitignore"), ".env*\nsecrets.conf\n");
 
-        for (const path of [".env", ".env.local", "secrets.conf", ".envrc", "generated/.env"]) {
+        for (const path of [".env", ".env.local", "secrets.conf", ".envrc", "generated/.env"])
           await writeFile(join(root, path), "A=1\n");
-          await repo.ensureIgnored(checkout, path);
-        }
 
         expect(await repo.envFiles(checkout, { include: ["secrets.*", ".envrc"] })).toEqual([
           "secrets.conf",
@@ -118,10 +117,11 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
           await writeFile(join(root, path), "A=1\n");
         }
 
+        await writeFile(join(root, ".gitignore"), ".env.example\n.envrc\n");
         expect(await repo.isIgnored(checkout, ".env")).toBe(false);
 
-        for (const path of [".env", ".env.local", ".env.example", ".envrc"]) {
-          await repo.ensureIgnored(checkout, path);
+        // .env twice: a repeat must be a no-op
+        for (const path of [".env", ".env", ".env.local"]) {
           await repo.ensureIgnored(checkout, path);
           expect(await repo.isIgnored(checkout, path)).toBe(true);
         }

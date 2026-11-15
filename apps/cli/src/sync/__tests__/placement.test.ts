@@ -75,7 +75,7 @@ test("pull places env files in a worktree of an approved clone unless the settin
 
     await setConfig("auto-approve-worktrees", "on", second.home, () => 0, true);
     await pull(second, options);
-    expect(reports).toContain(`Approved worktree ${worktree.root} (auto-approve-worktrees)`);
+    expect(reports).toContainEqual(expect.stringContaining(worktree.root));
     expect(await Bun.file(join(worktree.root, ".env")).text()).toBe("TOKEN=local-test-value\n");
 
     expect((await loadState(second.home))!.approved.map((item) => item.root)).toContain(

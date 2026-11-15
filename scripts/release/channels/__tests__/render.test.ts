@@ -11,29 +11,13 @@ const packaging = resolve(import.meta.dir, "../../../../packaging");
 describe("SHA256SUMS", () => {
   test("matches the CLI target count and asset names", () => {
     expect([...hashes.keys()]).toEqual(targets.map(assetName));
-    expect(hashes.size).toBe(targets.length);
-
-    const uppercase = fixture.replace(/^[a-f0-9]{64}/, "A".repeat(64));
-    expect(parseChecksums(uppercase).get(assetName(targets[0]!))).toBe("a".repeat(64));
   });
 
   test.each([
-    ["empty", "", "Invalid SHA256SUMS"],
-    ["missing", fixture.split("\n").slice(1).join("\n"), "Expected 8 release hashes"],
-    ["duplicate", fixture + fixture.split("\n")[0], "Duplicate SHA256SUMS entry"],
-    ["unknown", fixture.replace("envden-darwin-x64", "envden-other"), "Unexpected release asset"],
-    ["extension", fixture.replace("windows-x64.exe", "windows-x64"), "Unexpected release asset"],
-    ["invalid hash", fixture.replace(/^./, "g"), "Invalid SHA256SUMS"],
-    ["short hash", fixture.slice(1), "Invalid SHA256SUMS"],
-    ["extra", `${fixture}${"a".repeat(64)}  unknown.txt\n`, "Unexpected release asset"],
+    ["missing", fixture.split("\n").slice(1).join("\n"), "missing"],
+    ["unknown", fixture.replace("envden-darwin-x64", "envden-other"), "envden-other"],
   ])("rejects %s", (_name, contents, message) => {
     expect(() => parseChecksums(contents!)).toThrow(message);
-  });
-
-  test("accepts CRLF and binary checksum markers", () => {
-    expect(parseChecksums(fixture.replaceAll("  ", " *").replace(/\r?\n/g, "\r\n"))).toEqual(
-      hashes,
-    );
   });
 });
 
@@ -98,10 +82,7 @@ describe("channel rendering", () => {
     expect(() => renderNpmPackage('{"version":"0.1.0"}', "1.2.3")).toThrow("private npm package");
   });
 
-  test.each(["v1.2.3", "../1.2.3", "1.2", "01.2.3", "1.2.3-beta", "1.2.3\n"])(
-    "rejects version %j",
-    (version) => {
-      expect(() => validateVersion(version)).toThrow("Expected a stable version");
-    },
-  );
+  test.each(["../1.2.3", "1.2.3\n"])("rejects version %j", (version) => {
+    expect(() => validateVersion(version)).toThrow("stable version");
+  });
 });

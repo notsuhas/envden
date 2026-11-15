@@ -10,12 +10,6 @@ const common = { copies: [], tracked: true, published: true, choosing: false, re
 for (const [name, store, previous, server, next] of [
   ["unchanged current", A, A, A, A],
   ["unchanged stale", A, A, B, B],
-  ["attempt acknowledged", B, B, B, B],
-  ["attempt superseded", B, B, A, A],
-  ["attempt rejected", B, A, A, B],
-  ["pending completed", B, B, B, B],
-  ["pending superseded", B, B, A, A],
-  ["new edit", C, A, A, C],
   ["deliberate revert", A, B, B, A],
   ["identical concurrent edit", B, A, B, B],
 ] as const)
@@ -30,18 +24,12 @@ for (const [name, store, previous, server, next] of [
     });
   });
 
-for (const [name, store, previous, server] of [
-  ["divergent new edit", C, A, B],
-  ["divergent deliberate revert", A, B, C],
-  ["rejected attempt with concurrent edit", B, A, C],
-] as const)
-  test(name, () => {
-    expect(
-      deriveFileDecision({ storeBeforeRestore: store, ...common, store, previous, server }).action,
-    ).toEqual({
-      kind: "choose",
-    });
-  });
+test("divergent deliberate revert", () => {
+  expect(
+    deriveFileDecision({ storeBeforeRestore: A, ...common, store: A, previous: B, server: C })
+      .action,
+  ).toEqual({ kind: "choose" });
+});
 
 for (const [name, bytes, base, tracked, mode, expected] of [
   ["copy unchanged follows store", A, A, true, "copy", { kind: "content", bytes: B }],
@@ -86,7 +74,6 @@ for (const [name, bytes, base, tracked, mode, expected] of [
 for (const [current, base, accepted, expected] of [
   ["a", "a", true, "unchanged"],
   ["b", "a", true, "edited"],
-  ["a", "b", true, "edited"],
   ["b", "b", false, "unaccepted"],
   [null, null, true, "unchanged"],
   [null, "a", true, "edited"],

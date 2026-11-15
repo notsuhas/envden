@@ -3,7 +3,7 @@ import * as p from "@envden/core/protocol";
 import { vaultFixture } from "./vault-fixture.ts";
 import { startRestored } from "../repair/start.ts";
 
-export async function reportedRepair() {
+async function reportedRepair() {
   const f = await vaultFixture();
 
   try {

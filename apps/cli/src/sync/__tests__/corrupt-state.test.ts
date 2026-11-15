@@ -3,7 +3,6 @@ import { basename, join } from "node:path";
 import { readdir, utimes } from "node:fs/promises";
 import { EnvdenError } from "@envden/core/errors";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { basePath } from "../local/files.ts";
 import { heldBackFiles } from "../local/lineage/held-back.ts";
@@ -19,8 +18,8 @@ const fixture = createSharedFixture();
 
 for (const suffix of [".entry", ".pending", ".delete", "attempt"])
   test(`corrupt ${suffix} is quarantined and resolvable`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy"]);
+    const f = await fixture(["copy"]);
+    const { targets } = f;
     const store = targets[0]!.store;
 
     const path =
@@ -47,8 +46,7 @@ for (const suffix of [".entry", ".pending", ".delete", "attempt"])
   });
 
 test("invalid applied state is a named EnvdenError", async () => {
-  const f = await fixture();
-  await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
   const path = join(f.second.home, "state", "applied-files.json");
   await atomicWrite(path, "{invalid", fixtureClock);
 
@@ -62,8 +60,8 @@ test("invalid applied state is a named EnvdenError", async () => {
 });
 
 test("untrack cancels removal and tolerates a corrupt pending record", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy"]);
+  const f = await fixture(["copy"]);
+  const { targets } = f;
   const target = targets[0]!;
   await removeFile(f.second, join(target.root, ".env"), { yes: true, now: f.now });
 
@@ -74,8 +72,8 @@ test("untrack cancels removal and tolerates a corrupt pending record", async () 
 });
 
 test("untracking one target preserves a shared corrupt-state hold", async () => {
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   await atomicWrite(targets[0]!.store, "TOKEN=unknown\n", fixtureClock);
 
   await atomicWrite(

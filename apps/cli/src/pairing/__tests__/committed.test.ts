@@ -1,6 +1,6 @@
 import { test, expect } from "bun:test";
 import { join } from "node:path";
-import { setupFlow } from "../../vault/__tests__/setup-flow.ts";
+import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
 import { deviceIdentity } from "../../identity/device.ts";
 import { createClient } from "../../client/request.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
@@ -10,7 +10,7 @@ import { exchangeJoiner } from "../joiner.ts";
 const fixtureClock = () => 1800000000000;
 
 test("committed join refuses before any exchange and clears pending pairing", async () => {
-  const f = await setupFlow();
+  const f = await fixture();
 
   try {
     const identity = await deviceIdentity(f.first.keychain, f.first.home, "first");
@@ -18,7 +18,7 @@ test("committed join refuses before any exchange and clears pending pairing", as
     let requests = 0;
 
     const client = createClient({
-      address: f.address,
+      address: f.result.kit.server,
       pin,
       identity,
       vaultId: new Uint8Array(32),
@@ -42,6 +42,6 @@ test("committed join refuses before any exchange and clears pending pairing", as
     expect(requests).toBe(0);
     expect(await optionalRead(saved)).toBeUndefined();
   } finally {
-    await f.cleanup();
+    await f.close();
   }
 });

@@ -14,12 +14,11 @@ for (const [key, values, expected] of [
   });
 
 for (const [key, values, message] of [
-  ["telemtry", ["off"], "Unknown setting 'telemtry'. Valid settings: telemetry, update-check"],
-  ["bogus", [], "Unknown setting 'bogus'"],
-  ["unlock-period", ["2d"], "Expected 1d, 7d, 30d or never"],
-  ["telemetry", ["yes"], "Expected on or off for telemetry"],
-  ["telemetry", ["on", "off"], "Expected one value for telemetry"],
-  ["placement", ["."], "Expected placement <checkout> link|copy"],
+  ["telemtry", ["off"], "'telemtry'"],
+  ["unlock-period", ["2d"], "30d"],
+  ["telemetry", ["yes"], "on or off"],
+  ["telemetry", ["on", "off"], "one value"],
+  ["placement", ["."], "link|copy"],
 ] as const)
   test(`setting request rejects ${key} ${values.join(" ")}`, () => {
     expect(() => settingRequest(key, [...values])).toThrow(message);

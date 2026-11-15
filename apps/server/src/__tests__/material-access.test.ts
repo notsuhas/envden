@@ -1,87 +1,62 @@
-import { expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import * as p from "@envden/core/protocol";
 import { text } from "../http/encoding.ts";
 import { vaultFixture } from "./vault-fixture.ts";
 
-for (const kind of ["files", "keyring", "envelope", "skPub"])
+let restored: Awaited<ReturnType<typeof vaultFixture>>;
+
+let proof: (r: p.IRequest) => Uint8Array;
+
+// The rejection cases below write nothing, so one restored vault serves them all.
+beforeAll(async () => {
+  restored = await vaultFixture();
+  await restored.initialize();
+  const repair = p.randomBytes(32);
+
+  restored.storage.configureVault(restored.vaultId, {
+    ...restored.storage.vault(restored.vaultId)!,
+    restored: { repairTokenHash: repair, restoredHead: restored.storage.head(restored.vaultId)! },
+  });
+
+  proof = (r) => p.tokenProof("repair", repair, r);
+});
+
+afterAll(() => restored.close());
+
+for (const kind of ["files", "keyring"])
   test(`repair ${kind} rejects a non-member holding the token`, async () => {
-    const f = await vaultFixture();
+    const response = await restored.request(
+      `/v1/repair/material/${kind}/${text(p.randomBytes(32))}`,
+      p.randomBytes(32),
+      restored.b,
+      proof,
+      "PUT",
+    );
 
-    try {
-      await f.initialize();
-      const repair = p.randomBytes(32);
-
-      f.storage.configureVault(f.vaultId, {
-        ...f.storage.vault(f.vaultId)!,
-        restored: { repairTokenHash: repair, restoredHead: f.storage.head(f.vaultId)! },
-      });
-
-      const response = await f.request(
-        `/v1/repair/material/${kind}/${text(p.randomBytes(32))}`,
-        p.randomBytes(32),
-        f.b,
-        (r) => p.tokenProof("repair", repair, r),
-        "PUT",
-      );
-
-      expect(response.status).toBe(403);
-    } finally {
-      f.close();
-    }
+    expect(response.status).toBe(403);
   });
 
 test("restored reads require membership as well as the repair token", async () => {
-  const f = await vaultFixture();
-
-  try {
-    await f.initialize();
-    const repair = p.randomBytes(32);
-
-    f.storage.configureVault(f.vaultId, {
-      ...f.storage.vault(f.vaultId)!,
-      restored: { repairTokenHash: repair, restoredHead: f.storage.head(f.vaultId)! },
-    });
-
-    const proof = (r: p.IRequest) => p.tokenProof("repair", repair, r);
-    expect((await f.request("/v1/head", undefined, f.b, proof)).status).toBe(403);
-    expect((await f.request("/v1/head", undefined, f.a, proof)).status).toBe(200);
-  } finally {
-    f.close();
-  }
+  expect((await restored.request("/v1/head", undefined, restored.b, proof)).status).toBe(403);
+  expect((await restored.request("/v1/head", undefined, restored.a, proof)).status).toBe(200);
 });
 
 for (const kind of ["keyring", "envelope", "skPub"])
   test(`repair rejects unnamed ${kind}`, async () => {
-    const f = await vaultFixture();
+    const bytes = p.randomBytes(32);
 
-    try {
-      await f.initialize();
-      const repair = p.randomBytes(32);
+    const hash =
+      kind === "skPub" ? bytes : p.H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes);
 
-      f.storage.configureVault(f.vaultId, {
-        ...f.storage.vault(f.vaultId)!,
-        restored: { repairTokenHash: repair, restoredHead: f.storage.head(f.vaultId)! },
-      });
+    const response = await restored.request(
+      `/v1/repair/material/${kind}/${text(hash)}`,
+      bytes,
+      restored.a,
+      proof,
+      "PUT",
+    );
 
-      const bytes = p.randomBytes(32);
-
-      const hash =
-        kind === "skPub"
-          ? bytes
-          : p.H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes);
-
-      const response = await f.request(
-        `/v1/repair/material/${kind}/${text(hash)}`,
-        bytes,
-        f.a,
-        (r) => p.tokenProof("repair", repair, r),
-        "PUT",
-      );
-
-      expect(response.status).toBe(400);
-    } finally {
-      f.close();
-    }
+    expect(response.status).toBe(400);
   });
 
 test("zero vault cannot open a move session", async () => {

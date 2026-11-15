@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createProgram } from "../../program.ts";
 import { setConfig } from "../../settings/config.ts";
+import { NOT_SET_UP } from "../../state/configured.ts";
 
 const fixtureClock = () => 1800000000000;
 
@@ -90,7 +91,7 @@ test("status succeeds while another command owns the state lock", async () => {
     await ready;
     process.env.ENVDEN_HOME = root;
     await createProgram(fixtureClock).parseAsync(["node", "envden", "status"]);
-    expect(log.mock.calls.flat()).toContain("Not set up yet. Run envden setup or envden join");
+    expect(log.mock.calls.flat()).toContain(NOT_SET_UP);
   } finally {
     release();
     await running;

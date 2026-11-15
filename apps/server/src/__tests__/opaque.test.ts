@@ -137,14 +137,16 @@ test("five starts lock out members independently of kit bucket; finish refunds",
   const f = fixture(keys, record);
 
   try {
-    let finish: Awaited<ReturnType<typeof login>> | undefined;
-    for (let i = 0; i < 5; i++) finish = await login(f, "unlock");
     const start = await p.opaqueStartLogin("password");
 
-    expect(
+    const begin = async () =>
       (await f.request(startPath, { purpose: "unlock", message: start.startLoginRequest }).send())
-        .status,
-    ).toBe(429);
+        .status;
+
+    // Only starts are charged, so four bare starts and one full login make five.
+    for (let i = 0; i < 4; i++) expect(await begin()).toBe(200);
+    const finish = await login(f, "unlock");
+    expect(await begin()).toBe(429);
 
     expect(
       (
@@ -158,18 +160,9 @@ test("five starts lock out members independently of kit bucket; finish refunds",
       ).status,
     ).toBe(200);
 
-    expect(finish).toBeDefined();
-    expect((await f.request(finishPath, finish!.body).send()).status).toBe(200);
-
-    expect(
-      (await f.request(startPath, { purpose: "unlock", message: start.startLoginRequest }).send())
-        .status,
-    ).toBe(200);
-
-    expect(
-      (await f.request(startPath, { purpose: "unlock", message: start.startLoginRequest }).send())
-        .status,
-    ).toBe(429);
+    expect((await f.request(finishPath, finish.body).send()).status).toBe(200);
+    expect(await begin()).toBe(200);
+    expect(await begin()).toBe(429);
   } finally {
     f.close();
   }

@@ -12,8 +12,8 @@ const record = {
   mineDeleted: false,
 } as IConflictRecord;
 
-test("conflict list is readable and says when there are none", () => {
-  expect(conflictsText([])).toBe("No conflicts");
+test("conflict list names each file, its edit file and saved variants", () => {
+  expect(conflictsText([])).toMatch(/no conflicts/i);
 
   const saved = {
     ...record,
@@ -22,14 +22,17 @@ test("conflict list is readable and says when there are none", () => {
     alternatives: ["/c/ABC.variant-1", "/c/ABC.variant-2"],
   };
 
-  expect(conflictsText([record, saved])).toBe(
-    [
-      "Conflicts:",
-      "  /repo/.env\n    edit /home/conflicts/ABC",
-      "  /repo/.env.local (deleted on the server)\n    edit /home/conflicts/ABC\n    saved server: /c/ABC.variant-1\n    saved /other/.env.local: /c/ABC.variant-2",
-      "Edit the file, then run envden resolve <file>, or pass --keep-mine or --take-server",
-    ].join("\n"),
-  );
+  const text = conflictsText([record, saved]);
+
+  for (const line of [
+    "  /repo/.env\n    edit /home/conflicts/ABC",
+    "  /repo/.env.local (deleted on the server)",
+    "    saved server: /c/ABC.variant-1",
+    "    saved /other/.env.local: /c/ABC.variant-2",
+  ])
+    expect(text).toContain(line);
+
+  expect(text).toContain("envden resolve");
 });
 
 test("resolution names the file and where backups went", () => {
@@ -42,11 +45,15 @@ test("resolution names the file and where backups went", () => {
     savedBackups: [],
   };
 
-  expect(resolvedText(result)).toBe(
-    "Resolved .env\nCopied .env into /repo\nBackups saved in /home/conflicts/backups",
-  );
+  const text = resolvedText(result);
 
-  expect(resolvedText({ ...result, preserved: [], placementReports: [] })).toBe("Resolved .env");
+  expect(text).toContain(".env");
+  expect(text).toContain("Copied .env into /repo");
+  expect(text).toContain("/home/conflicts/backups");
+
+  expect(resolvedText({ ...result, preserved: [], placementReports: [] }).split("\n")).toHaveLength(
+    1,
+  );
 });
 
 test("a conflict notice is one line naming the cause and the next step", () => {
@@ -58,15 +65,15 @@ test("a conflict notice is one line naming the cause and the next step", () => {
     theirs: "live",
   } as const;
 
-  const edit = "Edit /c/ABC, then run envden resolve app/.env";
+  const keys = conflictNotice({ ...notice, keys: ["TOKEN"], device: "laptop" });
+  const deleted = conflictNotice({ ...notice, marked: false, mine: "deleted" });
 
-  for (const [extra, expected] of [
-    [{ keys: ["TOKEN"], device: "laptop" }, `TOKEN changed here and on laptop. ${edit}`],
-    [{}, `changed here and on the server. ${edit}`],
-    [
-      { marked: false, mine: "deleted" },
-      "deleted here and changed on the server. Run envden resolve app/.env with --keep-mine or --take-server, or edit /c/ABC first",
-    ],
-  ] as const)
-    expect(conflictNotice({ ...notice, ...extra })).toBe(`Conflict in app/.env: ${expected}`);
+  expect(keys).toMatch(
+    /^Conflict in app\/\.env: TOKEN .*laptop.*Edit \/c\/ABC.*envden resolve app\/\.env$/,
+  );
+
+  expect(conflictNotice(notice)).toContain("the server");
+  expect(deleted).toContain("deleted here");
+  expect(deleted).toContain("--keep-mine or --take-server");
+  expect(deleted.split("\n")).toHaveLength(1);
 });

@@ -9,7 +9,7 @@ const fixture = createSharedFixture();
 
 for (const [index, sequence] of sequences().entries())
   test(`interleaving ${index}: ${sequence.join(",")}`, async () => {
-    const run = await interleavingFixture(await fixture());
+    const run = interleavingFixture(await fixture(["copy", "copy", "link"]));
 
     for (const [step, code] of sequence.entries()) {
       const device = code % 2;

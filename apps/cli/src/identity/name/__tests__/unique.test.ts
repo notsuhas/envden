@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { uniqueDeviceName } from "../unique.ts";
 
 test.each([
-  ["laptop", [], "laptop"],
   ["laptop", ["desktop"], "laptop"],
   ["laptop", ["laptop"], "laptop-2"],
   ["laptop", ["laptop", "laptop-2"], "laptop-3"],

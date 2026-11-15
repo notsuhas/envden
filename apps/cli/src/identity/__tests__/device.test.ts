@@ -53,7 +53,6 @@ test("configured state cannot silently replace a missing identity", async () => 
     await Promise.resolve(
       expect(deviceIdentity(keychain, root, "replacement")).rejects.toMatchObject({
         code: "LOCKED",
-        message: "Vault keys unavailable",
       }),
     );
   } finally {

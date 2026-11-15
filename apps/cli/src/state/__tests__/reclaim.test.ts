@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, rename, rm, writeFile, readFile } from "node:fs/promise
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { reclaimLock } from "../lock/reclaim.ts";
-import { reclaimable, owner } from "../lock/owner.ts";
+import { owner } from "../lock/owner.ts";
 
 test("a suspended reclaimer preserves the replacement owner", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-race-"));
@@ -35,20 +35,6 @@ test("a suspended reclaimer preserves the replacement owner", async () => {
   } finally {
     await rm(home, { recursive: true, force: true });
   }
-});
-
-test("foreign namespaces use age even when their PID looks dead", () => {
-  const previous = {
-    pid: 123,
-    token: "owner",
-    startedAt: "start",
-    identity: "container",
-    createdAt: 100,
-  };
-
-  expect(reclaimable(previous, { kind: "dead" }, "host", 101)).toBe(false);
-  expect(reclaimable(previous, { kind: "dead" }, "container", 101)).toBe(true);
-  expect(reclaimable(previous, { kind: "live", startedAt: "same" }, "host", 86400101)).toBe(true);
 });
 
 for (const crash of ["guard", "renamed"])

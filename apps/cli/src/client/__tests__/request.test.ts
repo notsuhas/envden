@@ -86,9 +86,7 @@ for (const latest of [undefined, "v1.0.0"])
 
     expect(createClient({ ...options, fetcher }).request("/v1/test")).rejects.toMatchObject({
       code: "CLIENT_TOO_OLD",
-      message: latest
-        ? "The server requires a version that doesn't exist"
-        : "Update envden to meet the signed server minimum",
+      message: expect.stringContaining(latest ? "doesn't exist" : "signed server minimum"),
     });
 
     expect(hello(options.address, p.randomBytes(32), fetcher, "0.0.0")).rejects.toMatchObject({
@@ -142,26 +140,11 @@ test("wire errors use the shared code schema", async () => {
 
   expect((await responseError(Response.json({ error: "MADE_UP" }))).code).toBe("INVALID_DATA");
 
-  for (const [error, path, message] of [
-    ["LOCKED", "/v1/history", "Unlock expired. Run envden unlock"],
-    ["RATE_LIMITED", "/v1/opaque/login/start", "Too many attempts. Wait 15 minutes and try again"],
-    [
-      "NOT_MEMBER",
-      "/v1/history",
-      "This device was removed from the vault. Run envden join to rejoin",
-    ],
-    [
-      "CONFLICT",
-      "/v1/pairing/mailboxes/4/a",
-      "Pairing code expired or already used. Run envden device add for a new one",
-    ],
-    [
-      "NOT_FOUND",
-      "/v1/history",
-      "Server doesn't know this vault. Check the server address with envden status",
-    ],
+  for (const [error, path, command] of [
+    ["LOCKED", "/v1/history", "envden unlock"],
+    ["CONFLICT", "/v1/pairing/mailboxes/4/a", "envden device add"],
   ] as const)
-    expect((await responseError(Response.json({ error }), path)).message).toBe(message);
+    expect((await responseError(Response.json({ error }), path)).message).toContain(command);
 });
 
 for (const recover of [true, false])
@@ -247,7 +230,6 @@ test("kit replacement refusal never retries unlock", async () => {
   await Promise.resolve(
     expect(client.request("/v1/move/sk-pub")).rejects.toMatchObject({
       code: "RECOVERY_KIT_REQUIRED",
-      message: "Replace the recovery kit first. Run envden vault kit replace",
     }),
   );
 

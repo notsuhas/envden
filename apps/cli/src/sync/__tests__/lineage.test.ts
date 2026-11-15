@@ -2,7 +2,6 @@ import { heldBackFiles } from "../local/lineage/held-back.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
 import { createSharedFixture } from "./shared-fixture.ts";
-import { approveLayout } from "./round-fixture.ts";
 import { pull, push } from "../engine.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { loadState } from "../../state/store/repository.ts";
@@ -37,8 +36,8 @@ test("accepted attempt superseded by another device's revert is stale", async ()
 
 for (const lostBase of [false, true])
   test(`partially placed server version superseded by a revert is stale; lost base ${lostBase}`, async () => {
-    const f = await fixture();
-    const targets = await approveLayout(f, ["copy", "copy", "link"]);
+    const f = await fixture(["copy", "copy", "link"]);
+    const { targets } = f;
     await atomicWrite(f.aStore, "TOKEN=remote\n", fixtureClock);
     await push(f.first, f.opts);
     const original = f.second.repo.ensureIgnored.bind(f.second.repo);
@@ -73,8 +72,8 @@ for (const mode of ["copy", "link"] as const)
   test(`restoring bytes cancels pending removal in ${mode} mode`, async () => {
     const { removeFile } = await import("../remove.ts");
     const { rm } = await import("node:fs/promises");
-    const f = await fixture();
-    const targets = await approveLayout(f, [mode]);
+    const f = await fixture([mode]);
+    const { targets } = f;
     const path = join(targets[0]!.root, ".env");
     await removeFile(f.second, path, { yes: true, now: f.now });
     await rm(path, { force: true });
@@ -208,8 +207,8 @@ test("failed removal never records deletion intent", async () => {
   const { removeFile } = await import("../remove.ts");
   const { deletionRequested } = await import("../local/reconciliation/operation/deletion.ts");
   const { rm, symlink } = await import("node:fs/promises");
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   const destination = join(targets[1]!.root, ".env");
   await rm(destination);
   const unrelated = join(f.root, "unrelated-env");
@@ -230,8 +229,8 @@ test("failed removal never records deletion intent", async () => {
 
 test("removal skips copies whose checkout needs approval", async () => {
   const { removeFile } = await import("../remove.ts");
-  const f = await fixture();
-  const targets = await approveLayout(f, ["copy", "copy"]);
+  const f = await fixture(["copy", "copy"]);
+  const { targets } = f;
   const original = f.second.repo.checkoutAt.bind(f.second.repo);
 
   f.second.repo.checkoutAt = async (root) => {
