@@ -10,10 +10,10 @@ use crate::{
 use base64::{Engine, engine::general_purpose::STANDARD};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct IOperation {
     pub targets: Vec<IConflictTarget>,
     pub before: Vec<Option<String>>,

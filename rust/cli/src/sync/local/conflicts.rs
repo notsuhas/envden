@@ -174,3 +174,5 @@ fn nullable_entry<'de, D: serde::Deserializer<'de>>(
 
 pub mod record;
 pub mod render;
+
+pub mod author;

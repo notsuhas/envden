@@ -4,3 +4,9 @@ pub mod diff;
 pub mod local;
 pub mod remote;
 pub mod resolution;
+
+pub mod engine;
+
+pub mod resolve;
+
+pub mod remove;
