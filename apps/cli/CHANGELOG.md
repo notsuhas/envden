@@ -1,5 +1,15 @@
 # @envden/cli
 
+## 0.3.7
+
+### Patch Changes
+
+- 08afdd1: `envden setup --host-server` publishes the server on its own port, `https://<machine>.<tailnet>.ts.net:4783`, instead of taking the machine's main HTTPS address from other apps. If port 4783 is busy, it picks a free one.
+- 12c6411: Device keys are now private files in `~/.envden`, like SSH keys in `~/.ssh`, instead of the OS keychain. macOS no longer asks for keychain access after every update. `ENVDEN_KEYCHAIN` is gone, and `envden doctor` fails if other users can read the key files.
+- e0e097d: macOS binaries are signed with a Developer ID and notarized by Apple, so macOS knows who made them and doesn't warn about an unidentified developer.
+- 08afdd1: Running `envden setup` again no longer asks to approve checkouts that are already tracked.
+- @envden/server@0.3.7
+
 ## 0.3.6
 
 ### Patch Changes
