@@ -46,6 +46,19 @@ body:has(#nd-docs-layout) .den-pulse {
   }
 }
 
+/* desktop: the sidebar wordmark sits where the landing header puts it (16px header padding, 1px border) */
+@media (width >= 48rem) {
+  #nd-sidebar > div:first-child {
+    padding-top: 0;
+  }
+
+  #nd-sidebar > div:first-child > div:first-child {
+    align-items: center;
+    min-height: 3.5rem;
+    padding-inline-start: max(17px, calc(41px - max(0px, (100vw - var(--den-frame)) / 2)));
+  }
+}
+
 /* phones: match the landing header and inset so nothing jumps between pages */
 @media (width < 48rem) {
   #nd-subnav {

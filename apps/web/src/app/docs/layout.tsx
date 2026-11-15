@@ -15,7 +15,7 @@ export default function Layout(props: IDocsLayout) {
     <DocsLayout
       tree={source.getPageTree()}
       {...baseOptions()}
-      sidebar={{ footer: <SidebarFooter /> }}
+      sidebar={{ footer: <SidebarFooter />, collapsible: false }}
     >
       {children}
     </DocsLayout>
