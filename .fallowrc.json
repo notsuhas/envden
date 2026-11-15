@@ -2,7 +2,7 @@
   "$schema": "./node_modules/fallow/schema.json",
   "includeEntryExports": true,
   "entry": [
-    "apps/cli/scripts/{build-all,e2e,smoke,targets}.ts",
+    "apps/cli/scripts/{build-all,cli-reference,e2e,smoke,targets}.ts",
     "tools/*/index.ts",
     "scripts/ci/changes.ts",
     "scripts/release/{checksums,homebrew-formula,scoop-manifest,npm-package,publish-channels}.ts",
