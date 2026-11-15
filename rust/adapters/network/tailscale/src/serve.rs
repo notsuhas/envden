@@ -97,6 +97,9 @@ mod tests {
             serde_json::json!({"TCP":{"4280":{"HTTPS":true}},"Web":{"laptop.tail.example:4280":{"Handlers":handlers}}}).to_string()
         };
         for (value, expected) in [
+            ("{}".into(), false),
+            ("".into(), false),
+            ("null".into(), false),
             (site(serde_json::json!({"/":{"Proxy":target}})), false),
             (site(serde_json::json!({"/":{"Proxy":"http://127.0.0.1:3000"}})), true),
             (site(serde_json::json!({"/":{"Proxy":target},"/app":{"Proxy":target}})), true),
@@ -105,9 +108,14 @@ mod tests {
             (r#"{"TCP":{"443":{"HTTPS":true}},"Web":{"laptop.tail.example:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:3773"}}}}}"#.into(), false),
             (r#"{"Web":{"x.tail.example:443":{"Handlers":{"/":{"Proxy":"http://127.0.0.1:1"}}}}}"#.into(), false),
         ] { assert_eq!(conflict(&value,host,port,target).unwrap(),expected); }
+        assert_eq!(
+            conflict("bad json", host, port, target).unwrap_err().code,
+            ErrorCode::InvalidData
+        );
         for value in [
             "[]",
             "bad",
+            "bad json",
             r#"{"TCP":null}"#,
             r#"{"TCP":{"80":{"TCPForward":3}}}"#,
             r#"{"Web":{"host:80":{}}}"#,
