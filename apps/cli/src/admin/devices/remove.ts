@@ -7,11 +7,12 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
 import { login } from "../../session/login.ts";
-import { adminContext } from "../shared/context.ts";
+import { adminContext, type TAdminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";
 import { commitAdmin } from "../shared/commit.ts";
 import { recoveryHolders } from "./recovery-holders.ts";
-import { replaceKit } from "../recovery/credentials.ts";
+import { replaceKit, type IReplacementKit } from "../recovery/credentials.ts";
+import { settlePendingKit } from "../recovery/pending.ts";
 
 async function attemptRemoveDevice(
   adapters: TAdapters,
@@ -22,11 +23,12 @@ async function attemptRemoveDevice(
   newKit = false,
   recommend?: () => Promise<boolean>,
   confirm?: (exposure: Awaited<ReturnType<typeof exposedNames>>) => Promise<boolean>,
+  onKit?: (kit: IReplacementKit) => Promise<void>,
 ) {
   const context = await adminContext(adapters, now, fetcher);
-  const history = await currentHistory(context);
-
-  const device = removableDevice(history, context.identity.record.id, name);
+  const target = await removalTarget(context, name);
+  if (!target) return { kind: "finished" as const };
+  const { history, device } = target;
 
   const credential = typeof password === "string" ? password : await password();
   await login(context.client, context.vaultId, credential);
@@ -39,20 +41,29 @@ async function attemptRemoveDevice(
 
   const replace = newKit || (recommendNewKit && recommend ? await recommend() : false);
 
-  if (replace)
-    return {
-      recommendNewKit,
-      exposure,
-      kit: await replaceKit(adapters, credential, now, fetcher, device.id),
-    };
+  if (replace) await replaceKit(adapters, credential, now, kitOutput(onKit), fetcher, device.id);
+  else await commitAdmin(context, await revocationSwap(context, history, device, now()));
 
-  await commitAdmin(context, await revocationSwap(context, history, device, now()));
-
-  return { recommendNewKit, exposure };
+  return { kind: "removed" as const, recommendNewKit, exposure };
 }
 
 export function removeDevice(...args: Parameters<typeof attemptRemoveDevice>) {
   return withStateLock(args[0].home, () => retryHead(() => attemptRemoveDevice(...args)));
+}
+
+// A settled removal whose device is already gone counts as this removal finishing.
+async function removalTarget(context: TAdminContext, name: string) {
+  const finished = await settlePendingKit(context);
+  const history = await currentHistory(context);
+  if (finished && !findDevice(history, name)) return undefined;
+
+  return { history, device: removableDevice(history, context.identity.record.id, name) };
+}
+
+function kitOutput(onKit?: (kit: IReplacementKit) => Promise<void>) {
+  if (!onKit) throw new EnvdenError("INTERNAL", "Missing recovery kit output");
+
+  return onKit;
 }
 
 function removableDevice(
@@ -60,9 +71,7 @@ function removableDevice(
   ownId: Uint8Array,
   name: string,
 ) {
-  const device = [...history.state.devices.values()].find(
-    (item) => item.name === name || p.base32(item.id) === name,
-  );
+  const device = findDevice(history, name);
 
   if (!device) throw new EnvdenError("NOT_FOUND", "Device not found");
 
@@ -70,4 +79,10 @@ function removableDevice(
     throw new EnvdenError("INVALID_INPUT", "Cannot remove this device or the last device");
 
   return device;
+}
+
+function findDevice(history: Awaited<ReturnType<typeof currentHistory>>, name: string) {
+  return [...history.state.devices.values()].find(
+    (item) => item.name === name || p.base32(item.id) === name,
+  );
 }

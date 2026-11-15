@@ -10,7 +10,7 @@ import type { TAdapters } from "../adapters.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { pushInitialFiles } from "../vault/initial/push.ts";
 import { setupVault } from "../vault/setup.ts";
-import { readFile } from "node:fs/promises";
+import { optionalRead } from "../state/store/files.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
 import { secret, input, consent } from "../output/questions.ts";
@@ -77,7 +77,7 @@ async function createState(
     password,
     now,
     fetcher: adapters.fetcher,
-    readResumeSecretKey: async () => (await resumeKey(vaultId, options.kitOut))!,
+    readResumeSecretKey: () => resumeKey(vaultId, options.kitOut),
     onKit: (kit) => reportKit(options.kitOut, kit),
   });
 
@@ -98,7 +98,15 @@ export function runSetup(...args: Parameters<typeof lockedrunSetup>) {
 
 async function resumeKey(vaultId: string | undefined, kitOut: string | undefined) {
   if (!vaultId) return undefined;
-  if (kitOut) return parseKit(JSON.parse(await readFile(kitOut, "utf8"))).secretKey;
+
+  if (kitOut) {
+    const saved = await optionalRead(kitOut);
+
+    return saved === undefined ? undefined : parseKit(JSON.parse(saved)).secretKey;
+  }
+
+  if (!(await consent("Do you still have the recovery kit printed by the first setup run?", true)))
+    return undefined;
 
   return secret("Recovery secret key issued before creation");
 }

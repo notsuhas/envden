@@ -71,8 +71,19 @@ test("a member's unreadable file name blocks neither pull nor its removal", asyn
 
     await pull(f.first, { all: true, now: f.now, fetcher: f.fetcher });
 
-    const removed = await removeDevice(f.first, "attacker", "old password", f.now, f.fetcher, true);
-    expect(removed.exposure.incomplete).toBe(true);
+    const removed = await removeDevice(
+      f.first,
+      "attacker",
+      "old password",
+      f.now,
+      f.fetcher,
+      true,
+      undefined,
+      undefined,
+      async () => {},
+    );
+
+    expect(removed).toMatchObject({ exposure: { incomplete: true } });
 
     const after = await currentHistory(await adminContext(f.first, f.now));
     expect(after.state.devices.has(p.base32(context.identity.record.id))).toBe(false);

@@ -1,4 +1,4 @@
-import { reportReplacementKit } from "../vault/output.ts";
+import { replacementKitOutput } from "../vault/output.ts";
 import { terminalJson } from "../../output/sanitize.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
@@ -10,6 +10,8 @@ export const deviceRmCommand = new Command("rm")
   .option("--kit-out <file>", "Write the new recovery kit to a private file")
   .option("--new-kit", "Replace the recovery kit in the same swap")
   .action(async (device, options) => {
+    const output = replacementKitOutput(options.kitOut);
+
     const result = await removeDevice(
       createAdapters(undefined, Date.now),
       device,
@@ -25,9 +27,12 @@ export const deviceRmCommand = new Command("rm")
           "Remove this device and rotate keys? Previously exposed values need rotation.",
         );
       },
+      output.show,
+    ).catch(output.fail);
+
+    console.log(
+      result.kind === "finished"
+        ? "Finished an interrupted removal; the recovery kit it showed is now active"
+        : "Device removed",
     );
-
-    if (result.kit) await reportReplacementKit(result.kit, options.kitOut);
-
-    console.log("Device removed");
   });

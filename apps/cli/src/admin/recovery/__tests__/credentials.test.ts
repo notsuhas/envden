@@ -27,9 +27,9 @@ test("rotate and remove revoke the removed device", async () => {
 
     await rotateVault(f.first, "old password", f.now);
 
-    expect((await removeDevice(f.first, "second", "old password", f.now)).recommendNewKit).toBe(
-      true,
-    );
+    expect(await removeDevice(f.first, "second", "old password", f.now)).toMatchObject({
+      recommendNewKit: true,
+    });
 
     const removed = await adminContext(second, f.now);
 
@@ -51,7 +51,9 @@ test("replace kit invalidates old kit and allows new kit", async () => {
   const f = await fixture();
 
   try {
-    const kit = await replaceKit(f.first, "old password", f.now);
+    const replaced = await replaceKit(f.first, "old password", f.now, async () => {});
+    if (replaced.kind !== "replaced") throw new Error("Kit not replaced");
+    const { kit } = replaced;
 
     await Promise.resolve(
       expect(f.joinHome("old-kit")).rejects.toMatchObject({ code: "INVALID_DATA" }),
@@ -178,3 +180,47 @@ test("kit join resumes after its swap commits but key storage fails", async () =
     await f.close();
   }
 });
+
+for (const lost of ["response", "request"])
+  test(`kit replacement shows the kit before a lost ${lost} and settles on rerun`, async () => {
+    const f = await fixture();
+
+    try {
+      const shown: string[] = [];
+      let interrupted = false;
+
+      const fetcher: typeof f.fetcher = async (input, init) => {
+        const path = new URL(input instanceof Request ? input.url : input.toString()).pathname;
+
+        if (interrupted || path !== "/v1/swap") return f.fetcher(input, init);
+        interrupted = true;
+        if (lost === "request") throw new Error("injected network failure");
+        await f.fetcher(input, init);
+
+        throw new Error("injected lost response");
+      };
+
+      const replace = (via: typeof f.fetcher) =>
+        replaceKit(
+          f.first,
+          "old password",
+          f.now,
+          async (kit) => {
+            shown.push(kit.secretKey);
+          },
+          via,
+        );
+
+      await Promise.resolve(expect(replace(fetcher)).rejects.toThrow());
+      expect(shown).toHaveLength(1);
+
+      const rerun = await replace(f.fetcher);
+      expect(rerun.kind).toBe(lost === "response" ? "finished" : "replaced");
+      expect(shown).toHaveLength(lost === "response" ? 1 : 2);
+
+      const joined = await f.joinHome("after", { ...f.result.kit, secretKey: shown.at(-1)! });
+      expect(joined.vaultId).toBe(f.result.kit.vaultId);
+    } finally {
+      await f.close();
+    }
+  });

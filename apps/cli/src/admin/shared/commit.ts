@@ -5,9 +5,15 @@ import { atomicWrite } from "../../state/store/files.ts";
 import { acceptJoin } from "../../vault/join/accept.ts";
 import { submitAdmin } from "./submission.ts";
 import type { TAdminContext } from "./context.ts";
+import type { THistory } from "../../vault/history.ts";
 
 export async function commitAdmin(context: TAdminContext, swap: p.ISwap) {
   const { history } = await submitAdmin(context, swap);
+
+  await acceptAdmin(context, swap, history);
+}
+
+export async function acceptAdmin(context: TAdminContext, swap: p.ISwap, history: THistory) {
   const server = context.local.server;
   if (!server) throw new EnvdenError("NOT_FOUND", "Missing server configuration");
 

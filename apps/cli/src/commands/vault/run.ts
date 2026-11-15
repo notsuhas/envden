@@ -1,4 +1,4 @@
-import { reportReplacementKit } from "./output.ts";
+import { replacementKitOutput } from "./output.ts";
 import type { TAdapters } from "../../adapters.ts";
 import { confirmedPassword } from "../../onboarding/password.ts";
 import { secret } from "../../output/questions.ts";
@@ -14,8 +14,20 @@ export async function runVaultAdmin(
   kitOut?: string,
 ) {
   if (action === "replace") {
-    const kit = await replaceKit(adapters, await prompt("Master password"), now);
-    await reportReplacementKit(kit, kitOut);
+    const output = replacementKitOutput(kitOut);
+
+    const result = await replaceKit(
+      adapters,
+      await prompt("Master password"),
+      now,
+      output.show,
+    ).catch(output.fail);
+
+    console.log(
+      result.kind === "finished"
+        ? "Finished an interrupted kit replacement; the kit it showed is now active. Run again for another kit."
+        : "Recovery kit replaced; the old kit no longer works",
+    );
 
     return;
   }

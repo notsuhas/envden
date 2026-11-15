@@ -41,8 +41,9 @@ for (const existing of [false, true])
         expect(await readFile(path, "utf8")).toBe("original");
         expect(JSON.parse(String(log.mock.calls[0]?.[0])).secretKey).toBeString();
       } else {
-        expect(log).not.toHaveBeenCalled();
-        expect(JSON.parse(await readFile(path, "utf8")).secretKey).toBeString();
+        const { secretKey } = JSON.parse(await readFile(path, "utf8"));
+        expect(secretKey).toBeString();
+        expect(log.mock.calls.flat().join("")).not.toContain(secretKey);
       }
     } finally {
       log.mockRestore();

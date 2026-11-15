@@ -1,4 +1,9 @@
-import { resumedKit } from "./recovery/pending-kit.ts";
+import {
+  resumedKit,
+  lostKitReplacement,
+  BLANK_PASSWORD,
+  type ISetupKit,
+} from "./recovery/pending-kit.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
@@ -25,13 +30,8 @@ async function lockedsetupVault(
     now: () => number;
     fetcher: TFetch;
     resumeSecretKey?: string;
-    readResumeSecretKey?: () => Promise<string>;
-    onKit?: (kit: {
-      secretKey: string;
-      vaultId: string;
-      server: string;
-      masterPassword: string;
-    }) => Promise<void>;
+    readResumeSecretKey?: () => Promise<string | undefined>;
+    onKit?: (kit: ISetupKit) => Promise<void>;
   },
 ) {
   const existing = await loadState(adapters.home);
@@ -86,7 +86,7 @@ async function lockedsetupVault(
 
     const bytes = p.encode(p.SwapCodec, creation.swap);
     state.creationPending = text(bytes);
-    const kit = { ...creation.kit, server: options.address, masterPassword: "________________" };
+    const kit = { ...creation.kit, server: options.address, masterPassword: BLANK_PASSWORD };
 
     await options.onKit?.(kit);
 
@@ -143,6 +143,12 @@ async function resumeCreation(
   identity: Awaited<ReturnType<typeof deviceIdentity>>,
   pending: NonNullable<Awaited<ReturnType<typeof resumableCreation>>>,
 ) {
+  const resumeSecretKey = options.resumeSecretKey ?? (await options.readResumeSecretKey?.());
+
+  const kit = resumeSecretKey
+    ? resumedKit(pending.state, { ...options, resumeSecretKey })
+    : undefined;
+
   const client = createClient({
     address: pending.server.address,
     pin: token.serverPin,
@@ -160,21 +166,17 @@ async function resumeCreation(
       "POST",
       new Uint8Array(Buffer.from(pending.creationPending, "base64url")),
     );
-
-    const resumeSecretKey = options.resumeSecretKey ?? (await options.readResumeSecretKey?.());
-
-    const kit = resumedKit(pending.state, {
-      ...options,
-      ...(resumeSecretKey ? { resumeSecretKey } : {}),
-    });
-
-    delete pending.state.creationPending;
-    await saveState(adapters.home, pending.state, adapters.now);
-
-    return { state: pending.state, kit };
   } catch (error) {
     if (!(error instanceof EnvdenError) || error.code !== "UNAUTHORIZED") throw error;
+
+    return undefined;
   }
+
+  delete pending.state.creationPending;
+  await saveState(adapters.home, pending.state, adapters.now);
+  if (kit) return { state: pending.state, kit };
+
+  return lostKitReplacement(adapters, options);
 }
 
 function matchesPendingKey(

@@ -14,3 +14,22 @@ export async function reportReplacementKit(kit: unknown, path?: string) {
 
   console.log(terminalJson(kit));
 }
+
+export function replacementKitOutput(path?: string) {
+  let shown = false;
+
+  return {
+    show: async (kit: unknown) => {
+      await reportReplacementKit(kit, path);
+      shown = true;
+    },
+    fail: (error: unknown): never => {
+      if (shown)
+        console.error(
+          "envden: The new recovery kit is not confirmed yet. Keep the old kit too, and rerun this command to finish.",
+        );
+
+      throw error;
+    },
+  };
+}
