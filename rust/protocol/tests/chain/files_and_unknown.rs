@@ -82,3 +82,39 @@ fn unknown_data_order_and_future_formats() {
         TUnknownData::Invalid
     );
 }
+
+#[test]
+fn unknown_classification_orders_comparison_signature_and_format() {
+    let received = [1; 32];
+    let stored = [2; 32];
+    let input = || IUnknownData {
+        received: &received,
+        stored: Some(&stored),
+        mismatch: TUnknownData::Fork,
+        unknown_format: true,
+        current_version: "1.0.0",
+        latest_version: "2.0.0",
+    };
+    assert_eq!(
+        classify_unknown_data(input(), || panic!("must not verify before comparison")).unwrap(),
+        TUnknownData::Fork
+    );
+    let mut rollback = input();
+    rollback.mismatch = TUnknownData::Rollback;
+    assert_eq!(
+        classify_unknown_data(rollback, || panic!("must not verify before comparison")).unwrap(),
+        TUnknownData::Rollback
+    );
+    for (verify, format, current, expected) in [
+        (false, true, "1.0.0", TUnknownData::Invalid),
+        (true, true, "1.0.0", TUnknownData::UpdateRequired),
+        (true, true, "2.0.0", TUnknownData::Unreadable),
+        (true, false, "1.0.0", TUnknownData::Known),
+    ] {
+        let mut i = input();
+        i.stored = None;
+        i.unknown_format = format;
+        i.current_version = current;
+        assert_eq!(classify_unknown_data(i, || verify).unwrap(), expected);
+    }
+}

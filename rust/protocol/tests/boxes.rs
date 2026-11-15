@@ -104,6 +104,21 @@ fn file_boxes_bind_every_context_field_and_identity() {
     let hash = h("blob", &b);
     assert_eq!(open_file(&b, &key, &id, &c, &hash, &name).unwrap(), v);
     assert!(open_file(&b, &key, &id, &c, &[0; 32], &name).is_err());
+    assert!(open_file(&b, &key, &[0; 32], &c, &hash, &name).is_err());
+    assert!(
+        open_file(
+            &b,
+            &key,
+            &id,
+            &c,
+            &hash,
+            &IFileName {
+                path: "other".into(),
+                ..name.clone()
+            }
+        )
+        .is_err()
+    );
     assert!(open_file_name(&n, &key, &[0; 32], &c).is_err());
     for c in [
         IFileContext {

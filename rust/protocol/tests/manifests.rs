@@ -1,37 +1,13 @@
 mod support;
-use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::errors::ErrorCode;
 use envden_protocol::{chain::*, protocol::*};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use support::*;
 
-struct Source {
-    headers: BTreeMap<[u8; 32], ISigned<IManifestHeader>>,
-    entries: BTreeMap<[u8; 32], ISigned<TEntry>>,
-    files: IFiles,
-    fail: bool,
-}
+#[path = "manifests/source.rs"]
+mod source;
+use source::Source;
 
-impl IChainSource for Source {
-    fn header(&self, h: &[u8; 32]) -> Result<Option<ISigned<IManifestHeader>>> {
-        Ok(self.headers.get(h).cloned())
-    }
-    fn entry(&self, h: &[u8; 32]) -> Result<Option<ISigned<TEntry>>> {
-        Ok(self.entries.get(h).cloned())
-    }
-    fn files(&self, _: &[u8; 32]) -> Result<Option<IFiles>> {
-        if self.fail {
-            Err(EnvdenError::new(ErrorCode::InvalidData, "source failure"))
-        } else {
-            Ok(Some(self.files.clone()))
-        }
-    }
-    fn keyring(&self, _: &[u8; 32]) -> Result<Option<Vec<u8>>> {
-        Ok(None)
-    }
-    fn epoch_key(&self, _: u32) -> Result<Option<[u8; 32]>> {
-        Ok(None)
-    }
-}
 #[test]
 fn accepts_descending_signed_manifests_and_preserves_source_errors() {
     let (s, g, e) = fixture();
@@ -66,7 +42,7 @@ fn accepts_descending_signed_manifests_and_preserves_source_errors() {
             .map(|e| (object_hash(&e, "entry").unwrap(), e))
             .collect(),
         files: files.clone(),
-        fail: false,
+        fail: None,
     };
     let c = ICheckpoint {
         header: previous.clone(),
@@ -96,97 +72,103 @@ fn accepts_descending_signed_manifests_and_preserves_source_errors() {
         .unwrap(),
         TManifestResult::Unchanged
     ));
-    source.fail = true;
-    let error = accept_manifest(&c, &head, &[previous], &source, &BTreeSet::new())
-        .err()
-        .unwrap();
-    assert_eq!(error.message, "source failure");
-    assert_eq!(error.code, ErrorCode::InvalidData);
-}
-#[test]
-fn swap_roundtrip_and_rename_authorization() {
-    let (s, _, _) = fixture();
-    let (d, key) = device(1);
-    let files = IFiles { entries: vec![] };
-    let previous = header(&s, &files);
-    let e = entry(
-        &s,
-        TEntryPayload::RenameDevice(IRenameDevice {
-            device: d.id,
-            name: "laptop".into(),
-        }),
-        &d,
-        &key,
-    );
-    let next = apply(Some(&s), &e).unwrap();
-    let expected = object_hash(&previous, "manifest").unwrap();
-    let mut h = previous.body.clone();
-    h.seq += 1;
-    h.prev = expected;
-    h.op = 13;
-    h.list_head = next.head;
-    h.list_seq = next.seq;
-    let mut swap = ISwap {
-        expected_head: expected,
-        entries: vec![e],
-        header: sign_object(h, &key, "manifest").unwrap(),
-        files: None,
-        keyring: None,
-        envelope: None,
-        sk_pub: None,
-        opaque_record: None,
-        approver: None,
-    };
-    assert_eq!(decode::<ISwap>(&encode(&swap).unwrap()).unwrap(), swap);
-    let c = ISwapContext {
-        previous,
-        state: s,
-        files,
-        request_signer: d.id,
-        missing_blobs: BTreeSet::new(),
-        destination_pin: None,
-        ancestor_header_hashes: BTreeSet::new(),
-        repair_registration_required: false,
-    };
-    assert!(matches!(
-        validate_swap(&swap, &c).unwrap(),
-        TSwapResult::Valid {
-            authorization: TAuthorization::Unlocked,
-            ..
+    for field in 0..8 {
+        let mut body = head.body.clone();
+        match field {
+            0 => (),
+            1 => body.vault_id = [0; 32],
+            2 => body.epoch = 0,
+            3 => body.keyring_hash = [0; 32],
+            4 => body.envelope_hash = [0; 32],
+            5 => body.signer = c.state.recovery.id,
+            6 => body.list_seq += 1,
+            _ => body.prev = [0; 32],
         }
-    ));
-    swap.approver = Some(vec![1]);
-    assert!(matches!(
-        validate_swap(&swap, &c).unwrap(),
-        TSwapResult::Invalid
-    ));
-    swap.approver = None;
-    swap.expected_head = [0; 32];
-    assert!(matches!(
-        validate_swap(&swap, &c).unwrap(),
-        TSwapResult::Invalid
-    ));
-}
-#[test]
-fn operation_matrix_constraints() {
-    let (s, _, _) = fixture();
-    let files = IFiles { entries: vec![] };
-    let previous = header(&s, &files).body;
-    for op in [1, 8, 11] {
-        let mut h = previous.clone();
-        h.op = op;
-        if op == 8 {
-            h.envelope_hash = [11; 32];
-        } else {
-            h.files_hash = [12; 32];
+        let mut bad = sign_object(body, &key, "manifest").unwrap();
+        if field == 0 {
+            bad.signature.fill(0);
         }
-        assert!(operation_requirement(&previous, &h, &[], &s, false).is_ok());
-        h.epoch += 1;
-        assert!(operation_requirement(&previous, &h, &[], &s, false).is_err());
+        assert!(
+            matches!(
+                accept_manifest(
+                    &c,
+                    &bad,
+                    std::slice::from_ref(&previous),
+                    &source,
+                    &BTreeSet::new()
+                )
+                .unwrap(),
+                TManifestResult::Invalid
+            ),
+            "field {field}"
+        );
     }
-    for op in [0, 2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14] {
-        let mut h = previous.clone();
-        h.op = op;
-        assert!(operation_requirement(&previous, &h, &[], &s, false).is_err());
+    let TManifestResult::Accepted { checkpoint, .. } = accept_manifest(
+        &c,
+        &head,
+        std::slice::from_ref(&previous),
+        &source,
+        &BTreeSet::new(),
+    )
+    .unwrap() else {
+        panic!("valid manifest rejected")
+    };
+    assert!(matches!(
+        accept_manifest(
+            &checkpoint,
+            &previous,
+            &[previous.clone(), head.clone()],
+            &source,
+            &BTreeSet::new()
+        )
+        .unwrap(),
+        TManifestResult::Rollback
+    ));
+    let mut body = previous.body.clone();
+    body.created_at += 1;
+    let fork = sign_object(body, &key, "manifest").unwrap();
+    assert!(matches!(
+        accept_manifest(
+            &c,
+            &fork,
+            std::slice::from_ref(&previous),
+            &source,
+            &BTreeSet::new()
+        )
+        .unwrap(),
+        TManifestResult::Fork
+    ));
+    let mut bad = fork;
+    bad.signature.fill(0);
+    assert!(matches!(
+        accept_manifest(
+            &c,
+            &bad,
+            std::slice::from_ref(&previous),
+            &source,
+            &BTreeSet::new()
+        )
+        .unwrap(),
+        TManifestResult::Invalid
+    ));
+    for method in ["header", "files"] {
+        for code in [
+            ErrorCode::Internal,
+            ErrorCode::NotFound,
+            ErrorCode::InvalidData,
+        ] {
+            source.fail = Some((method, code));
+            let error = accept_manifest(
+                &c,
+                &head,
+                std::slice::from_ref(&previous),
+                &source,
+                &BTreeSet::new(),
+            )
+            .err()
+            .unwrap();
+            assert_eq!(error.message, "source failure");
+            assert_eq!(error.code, code);
+        }
     }
 }

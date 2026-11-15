@@ -115,10 +115,10 @@ fn epochs_reject_wrong_recipients_and_numbers() {
             change: TEntryPayload::NewEpoch(INewEpoch { change: c }),
             signer: d.id,
         };
-        let signed = ISigned {
-            body: e,
-            signature: vec![0; 64],
-        };
+        let signature = encode(&e)
+            .map(|bytes| sign(&key, "entry", &bytes).to_vec())
+            .unwrap_or_else(|_| vec![0; 64]);
+        let signed = ISigned { body: e, signature };
         assert!(apply(Some(&s), &signed).is_err());
     }
     let initial = apply(None, &fixture().1).unwrap();

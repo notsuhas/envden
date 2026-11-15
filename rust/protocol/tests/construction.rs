@@ -69,6 +69,18 @@ fn request_time_replay_binding_and_hello() {
         client_version: "1.0.0".into(),
     };
     let v = sign_request(r, &sk).unwrap();
+    assert!(matches!(
+        verify_request(&v, &public, &[0; 32], b"body", 400000, false),
+        TVerification::Invalid { .. }
+    ));
+    assert!(matches!(
+        verify_request_hash(&v, &public, &pin, &v.body.body_hash, 400000, false),
+        TVerification::Valid(_)
+    ));
+    assert!(matches!(
+        verify_request_hash(&v, &public, &pin, &[0; 32], 400000, false),
+        TVerification::Invalid { .. }
+    ));
     for now in [100001, 400000, 699999] {
         assert!(matches!(
             verify_request(&v, &public, &pin, b"body", now, false),
@@ -93,6 +105,21 @@ fn request_time_replay_binding_and_hello() {
         verify_request(&v, &public, &pin, b"body", 400000, true),
         TVerification::Invalid { .. }
     ));
+    let setup = token_key(TTokenKind::Setup, &[3; 20]);
+    let repair = token_key(TTokenKind::Repair, &[3; 20]);
+    assert_ne!(setup, repair);
+    let proof = token_proof(TTokenKind::Setup, &setup, &v.body).unwrap();
+    assert!(verify_token_proof(TTokenKind::Setup, &setup, &v.body, &proof).unwrap());
+    assert!(!verify_token_proof(TTokenKind::Repair, &repair, &v.body, &proof).unwrap());
+    let signature = sign_sk_proof(&[0; 16], &[0; 32], &v.body).unwrap();
+    let public_sk = sk_pub(&[0; 16], &[0; 32]);
+    assert!(verify_sk_proof(&public_sk, &v.body, &signature).unwrap());
+    assert!(!verify(
+        &public_sk,
+        "request",
+        &encode(&v.body).unwrap(),
+        &signature
+    ));
     let hello = build_hello(
         IServerHello {
             challenge: [6; 32],
@@ -109,6 +136,16 @@ fn request_time_replay_binding_and_hello() {
         verify_hello(&hello, &[6; 32], "EXAMPLE.COM", &pin, "1.1.0"),
         TVerification::Valid(_)
     ));
+    for (challenge, host, expected_pin) in [
+        ([0; 32], "example.com", pin),
+        ([6; 32], "other", pin),
+        ([6; 32], "example.com", [0; 32]),
+    ] {
+        assert!(matches!(
+            verify_hello(&hello, &challenge, host, &expected_pin, "1.1.0"),
+            TVerification::Invalid { .. }
+        ));
+    }
     assert!(matches!(
         verify_hello(&hello, &[6; 32], "example.com", &pin, "2.0.0"),
         TVerification::Invalid { .. }

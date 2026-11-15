@@ -24,19 +24,20 @@ fn rename_is_self_only_and_unique() {
         (d.id, "a".repeat(65)),
         (d.id, "laptop\u{200b}".into()),
     ] {
-        let e = ISigned {
-            body: TEntry {
-                vault_id: s.vault_id,
-                seq: s.seq + 1,
-                parent: s.head,
-                change: TEntryPayload::RenameDevice(IRenameDevice {
-                    device: target,
-                    name,
-                }),
-                signer: d.id,
-            },
-            signature: vec![0; 64],
+        let body = TEntry {
+            vault_id: s.vault_id,
+            seq: s.seq + 1,
+            parent: s.head,
+            change: TEntryPayload::RenameDevice(IRenameDevice {
+                device: target,
+                name,
+            }),
+            signer: d.id,
         };
+        let signature = encode(&body)
+            .map(|bytes| sign(&key, "entry", &bytes).to_vec())
+            .unwrap_or_else(|_| vec![0; 64]);
+        let e = ISigned { body, signature };
         assert!(apply(Some(&s), &e).is_err());
     }
 }

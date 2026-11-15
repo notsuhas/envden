@@ -135,6 +135,15 @@ fn protocol_compositions() {
         encode_token(TTokenKind::Setup, &[7; 20], &f(&v["serverPin"])),
         v["setupToken"].as_str().unwrap()
     );
+    let token = v["setupToken"].as_str().unwrap();
+    assert_eq!(decode_token(TTokenKind::Setup, token).unwrap().0.len(), 20);
+    assert!(is_token(
+        TTokenKind::Setup,
+        &format!(" {}\n{} ", &token[..40], token[40..].to_lowercase())
+    ));
+    assert!(decode_token(TTokenKind::Repair, token).is_err());
+    let text = v["secretText"].as_str().unwrap();
+    assert!(decode_secret_key(&format!("{}Z", &text[..text.len() - 1])).is_err());
     assert_eq!(
         generate_pairing_code(1, &[0, 1, 2, 3, 4]).unwrap(),
         v["pairingCode"].as_str().unwrap()
