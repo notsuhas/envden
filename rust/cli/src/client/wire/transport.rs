@@ -53,7 +53,8 @@ impl ITransport for UreqTransport {
             }
             let wire = wire.body(request.body).map_err(ureq::Error::Http)?;
             let mut response = agent.run(wire)?;
-            if response.status().is_redirection() && !request.allow_redirect_response
+            if matches!(response.status().as_u16(), 301 | 302 | 303 | 307 | 308)
+                && !request.allow_redirect_response
             {
                 return Err(ureq::Error::TooManyRedirects);
             }

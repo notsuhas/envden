@@ -45,3 +45,44 @@ fn response_body_has_no_ten_mebibyte_limit() {
     assert_eq!(response.body.len(), size);
 }
 
+#[test]
+fn redirects_are_refused_except_for_manual_release_lookup() {
+    use envden_core::errors::ErrorCode;
+    for status in [
+        "301 Moved Permanently",
+        "302 Found",
+        "303 See Other",
+        "307 Temporary Redirect",
+        "308 Permanent Redirect",
+    ] {
+        let error = fetch_response(status, vec![], false).unwrap_err();
+        assert_eq!(error.code, ErrorCode::ServerUnreachable);
+        assert_eq!(
+            error.message,
+            "Server unreachable; check the server address and your private network"
+        );
+        assert!((300..400).contains(&fetch_response(status, vec![], true).unwrap().status));
+    }
+}
+
+#[test]
+fn malformed_error_json_uses_reference_message() {
+    let response = fetch_response(
+        "500 Internal Server Error",
+        b"<html>unavailable</html>".to_vec(),
+        false,
+    )
+    .unwrap();
+    let error = super::errors::response_error(&response.json().unwrap_or_default(), "/v1/head");
+    assert_eq!(error.code, envden_core::errors::ErrorCode::InvalidData);
+    assert_eq!(error.message, "Invalid server response");
+}
+
+#[test]
+fn non_redirect_three_hundred_status_is_a_server_response() {
+    let response = fetch_response("304 Not Modified", vec![], false).unwrap();
+    assert_eq!(response.status, 304);
+    assert!(!response.ok());
+    let error = super::errors::response_error(&response.json().unwrap_or_default(), "/v1/head");
+    assert_eq!(error.message, "Invalid server response");
+}
