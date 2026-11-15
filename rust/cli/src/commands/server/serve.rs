@@ -15,6 +15,16 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let runtime = tokio::runtime::Runtime::new()
         .map_err(|e| EnvdenError::with_source(ErrorCode::Internal, "Server start failed", e))?;
     runtime.block_on(async {
+        #[cfg(unix)]
+        let (mut terminate, mut interrupt) = {
+            use tokio::signal::unix::{SignalKind, signal};
+            let failure =
+                |e| EnvdenError::with_source(ErrorCode::Internal, "Server shutdown failed", e);
+            (
+                signal(SignalKind::terminate()).map_err(failure)?,
+                signal(SignalKind::interrupt()).map_err(failure)?,
+            )
+        };
         let mut server = envden_server::serve(IServeOptions {
             data_dir: options
                 .get("dataDir")
@@ -37,6 +47,9 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
             ..Default::default()
         })
         .await?;
+        #[cfg(unix)]
+        tokio::select! { _ = terminate.recv() => {}, _ = interrupt.recv() => {} }
+        #[cfg(not(unix))]
         tokio::signal::ctrl_c().await.map_err(|e| {
             EnvdenError::with_source(ErrorCode::Internal, "Server shutdown failed", e)
         })?;
