@@ -24,6 +24,7 @@ for (const state of ["new", "draft", "published", "rebuilt"] as const)
           tag: "v1.2.3",
           repository: "test/envden",
           highest,
+          macosSigned: false,
           directory,
           gh: async (args) => {
             calls.push(args);

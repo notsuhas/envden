@@ -33,7 +33,10 @@ jobs:
           - { os: windows-2025, targets: windows-x64, smoke: envden-windows-x64.exe }
           - { os: windows-11-arm, targets: windows-arm64, smoke: envden-windows-arm64.exe }
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: ${{ startsWith(matrix.targets, 'darwin-') && 60 || 25 }}
+    env:
+      MACOS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12 != '' }}
+      BINARY: apps/cli/dist/${{ matrix.smoke }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -43,6 +46,70 @@ jobs:
       - run: bun apps/cli/scripts/build-all.ts ${{ matrix.targets }}
         env:
           ENVDEN_TELEMETRY_KEY: ${{ vars.ENVDEN_TELEMETRY_KEY }}
+      - name: Skip macOS signing
+        if: runner.os == 'macOS' && env.MACOS_SIGNING != 'true'
+        run: echo "::notice::MACOS_CERTIFICATE_P12 is not set, so $BINARY stays ad-hoc signed and is not notarized."
+      - name: Import the Developer ID certificate
+        if: runner.os == 'macOS' && env.MACOS_SIGNING == 'true'
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/envden-signing.keychain-db"
+          echo "SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+          password=$(openssl rand -base64 32)
+          echo "::add-mask::$password"
+          security list-keychains -d user > "$RUNNER_TEMP/keychains-before"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$MACOS_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -f pkcs12 -P "$MACOS_CERTIFICATE_PASSWORD" -A
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          xargs security list-keychains -d user -s "$keychain" < "$RUNNER_TEMP/keychains-before"
+          identity=$(security find-identity -p codesigning "$keychain" | awk '/"Developer ID Application: /{ print $2; exit }')
+          if [ -z "$identity" ]; then echo "::error::No Developer ID Application identity in MACOS_CERTIFICATE_P12"; exit 1; fi
+          echo "SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
+      - name: Sign the macOS binary
+        if: runner.os == 'macOS' && env.MACOS_SIGNING == 'true'
+        run: |
+          codesign --force --options runtime --timestamp --entitlements packaging/macos/entitlements.plist --identifier dev.envden.cli --keychain "$SIGNING_KEYCHAIN" --sign "$SIGNING_IDENTITY" "$BINARY"
+          codesign --verify --strict --verbose=2 "$BINARY"
+          codesign --display --verbose=2 "$BINARY"
+          "$BINARY" version
+      - name: Notarize the macOS binary
+        if: runner.os == 'macOS' && env.MACOS_SIGNING == 'true'
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          for name in APPLE_API_KEY_P8 APPLE_API_KEY_ID APPLE_API_ISSUER_ID; do
+            if [ -z "${!name}" ]; then echo "::error::$name is required when MACOS_CERTIFICATE_P12 is set"; exit 1; fi
+          done
+          key="$RUNNER_TEMP/notary-key.p8"
+          printf '%s' "$APPLE_API_KEY_P8" | base64 --decode > "$key"
+          auth=(--key "$key" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER_ID")
+          archive="$RUNNER_TEMP/${{ matrix.smoke }}.zip"
+          ditto -c -k --keepParent "$BINARY" "$archive"
+          xcrun notarytool submit "$archive" "${auth[@]}" --wait --timeout 30m --output-format json > "$RUNNER_TEMP/notary.json" || true
+          if ! id=$(plutil -extract id raw -o - "$RUNNER_TEMP/notary.json"); then cat "$RUNNER_TEMP/notary.json"; exit 1; fi
+          status=$(plutil -extract status raw -o - "$RUNNER_TEMP/notary.json")
+          echo "Notarization $id: $status"
+          if [ "$status" != Accepted ]; then
+            xcrun notarytool log "$id" "${auth[@]}"
+            exit 1
+          fi
+          rm -f "$key" "$archive"
+          # spctl rejects every bare CLI tool as "not an app", so check the online ticket directly.
+          codesign --verify --strict --verbose=2 -R=notarized --check-notarization "$BINARY"
+      - name: Remove the signing keychain
+        if: always() && runner.os == 'macOS' && env.MACOS_SIGNING == 'true'
+        run: |
+          if [ -f "$RUNNER_TEMP/keychains-before" ]; then xargs security list-keychains -d user -s < "$RUNNER_TEMP/keychains-before"; fi
+          if [ -n "$SIGNING_KEYCHAIN" ]; then security delete-keychain "$SIGNING_KEYCHAIN" || true; fi
+          rm -f "$RUNNER_TEMP/certificate.p12" "$RUNNER_TEMP/notary-key.p8"
       - if: ${{ !contains(matrix.targets, 'musl') }}
         run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
       - name: Smoke musl on Alpine
@@ -120,6 +187,7 @@ jobs:
         env:
           HIGHEST: ${{ steps.current.outputs.highest }}
           IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
+          MACOS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12 != '' }}
         run: |
           if ! [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then echo "Invalid image digest" >&2; exit 1; fi
           printf '%s\n' "$IMAGE_DIGEST" > release/IMAGE_DIGEST

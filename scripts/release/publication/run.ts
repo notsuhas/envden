@@ -10,6 +10,7 @@ await publishRelease({
   tag,
   repository,
   highest: process.env.HIGHEST === "true",
+  macosSigned: process.env.MACOS_SIGNING === "true",
   directory: process.cwd(),
   gh: (args) => command("gh", args, process.cwd()),
 });

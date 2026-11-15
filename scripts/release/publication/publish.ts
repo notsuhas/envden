@@ -6,10 +6,11 @@ export async function publishRelease(options: {
   tag: string;
   repository: string;
   highest: boolean;
+  macosSigned: boolean;
   directory: string;
   gh: (args: string[]) => Promise<string>;
 }) {
-  const { tag, repository, highest, directory, gh } = options;
+  const { tag, repository, highest, macosSigned, directory, gh } = options;
 
   const release = findRelease(
     JSON.parse(await gh(["api", "--paginate", "--slurp", `repos/${repository}/releases`])),
@@ -26,6 +27,7 @@ export async function publishRelease(options: {
     verifyReleaseChecksums(
       await readFile(join(published, "SHA256SUMS"), "utf8"),
       await readFile(join(builds, "SHA256SUMS"), "utf8"),
+      macosSigned,
     );
 
     return;
