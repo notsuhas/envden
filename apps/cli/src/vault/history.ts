@@ -79,6 +79,7 @@ export async function readHistory(
     throw new EnvdenError("INVALID_DATA", "Invalid vault history");
 
   verifyNewHeaders(headers, firstHeader, states, vaultId);
+  verifyRestoredHeads(headers, entries);
 
   const final = headers.at(-1)!.body;
 
@@ -144,6 +145,25 @@ function verifyNewHeaders(
 
     previous = p.objectHash(p.ManifestHeaderCodec, signed, "manifest");
     previousEpoch = h.epoch;
+  }
+}
+
+function verifyRestoredHeads(
+  headers: p.ISigned<p.IManifestHeader>[],
+  entries: p.ISigned<p.TEntry>[],
+) {
+  const earlier = new Set<string>();
+  let next = 0;
+
+  for (const signed of headers) {
+    for (; next < entries.length && entries[next]!.body.seq <= signed.body.listSeq; next++) {
+      const e = entries[next]!.body;
+
+      if (e.kind === 6 && !earlier.has(p.base32(e.payload.restoredHead)))
+        throw new EnvdenError("INVALID_DATA", "Invalid repair history");
+    }
+
+    earlier.add(p.base32(p.objectHash(p.ManifestHeaderCodec, signed, "manifest")));
   }
 }
 

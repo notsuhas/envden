@@ -19,6 +19,7 @@ export async function checkRejoin(adapters: TAdapters, history: THistory) {
     storedHeaders: local.headers.map((h) =>
       p.decode(p.signedCodec(p.ManifestHeaderCodec), binary(h)),
     ),
+    storedEntries: local.entries.map((e) => p.decode(p.signedCodec(p.EntryCodec), binary(e))),
     verifiedHeaders: history.headers,
     verifiedEntries: history.entries,
     state: history.state,
