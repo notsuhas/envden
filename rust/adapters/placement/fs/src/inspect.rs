@@ -23,7 +23,9 @@ pub(crate) fn inspect(
             .components()
             .map(|c| c.as_os_str()),
     ) {
-        parent.push(part);
+        if !part.is_empty() {
+            parent.push(part);
+        }
         let info = match fs::symlink_metadata(&parent) {
             Ok(m) => m,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound && parent != root => {

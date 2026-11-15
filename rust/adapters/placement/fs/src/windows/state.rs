@@ -69,7 +69,9 @@ pub(crate) fn parents(
             .components()
             .map(|c| c.as_os_str()),
     ) {
-        current.push(part);
+        if !part.is_empty() {
+            current.push(part);
+        }
         let mut info = stat(&current)?;
         if info.is_none() && create && current != root {
             match fs::create_dir(&current) {

@@ -1,6 +1,6 @@
 use super::state;
 use crate::create_fs_placement_adapter;
-use envden_core::adapters::*;
+use envden_core::{adapters::*, errors::ErrorCode};
 use std::{
     fs,
     os::windows::fs::{symlink_dir, symlink_file},
@@ -17,18 +17,41 @@ fn fallback_refuses_unsafe_roots_parents_sources_and_destinations() {
     let dest = root.join(".env");
     let alias = temp.path().join("alias");
     symlink_dir(&root, &alias).unwrap();
-    assert!(
-        state::parents(&alias, Path::new("nested/.env"), true)
-            .unwrap_err()
-            .message
-            .contains("Unsafe checkout root")
-    );
-    assert!(
-        state::parents(&store, Path::new(".env"), true)
-            .unwrap_err()
-            .message
-            .contains("Unsafe checkout root")
-    );
+    for unsafe_root in [&alias, &store] {
+        for relative in [".env", "nested/.env"] {
+            for create in [true, false] {
+                let error = state::parents(unsafe_root, Path::new(relative), create).unwrap_err();
+                assert_eq!(
+                    error.code,
+                    if create {
+                        ErrorCode::InvalidInput
+                    } else {
+                        ErrorCode::Conflict
+                    }
+                );
+                assert_eq!(
+                    error.message,
+                    if create {
+                        "Unsafe checkout root"
+                    } else {
+                        "Unsafe checkout parent"
+                    }
+                );
+            }
+            let adapter =
+                create_fs_placement_adapter(TPlacementMode::Copy, unsafe_root, None, || {
+                    1800000000000.0
+                });
+            let error = adapter
+                .inspect(
+                    store.to_str().unwrap(),
+                    unsafe_root.join(relative).to_str().unwrap(),
+                )
+                .unwrap_err();
+            assert_eq!(error.code, ErrorCode::InvalidInput);
+            assert_eq!(error.message, "Unsafe checkout root");
+        }
+    }
     let adapter =
         create_fs_placement_adapter(TPlacementMode::Copy, &root, None, || 1800000000000.0);
     let place = |source: &Path, dest: &Path| {
