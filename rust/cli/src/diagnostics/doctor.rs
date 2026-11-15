@@ -1,9 +1,5 @@
 use crate::{
-    adapters::IAdapters,
-    output::home_path,
-    settings::ensure_paths,
-    state::files::{failure, optional_read},
-    version::VERSION,
+    adapters::IAdapters, output::home_path, settings::ensure_paths, state::files::failure,
 };
 use envden_adapter_shell_rc::TShell;
 use envden_core::{
@@ -62,21 +58,7 @@ pub fn doctor(adapters: &IAdapters) -> Result<IDoctorReport> {
             installed: adapter.installed()?,
         });
     }
-    let cache: Value = optional_read(&adapters.home.join("state/updates.json"))
-        .ok()
-        .flatten()
-        .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or_default();
-    let available = cache["latest"].as_str().is_some_and(|v| {
-        envden_protocol::protocol::compare_semver(v, VERSION)
-            .is_ok_and(|n| n == std::cmp::Ordering::Greater)
-    });
-    let required =
-        optional_read(&adapters.home.join("state/update-required"))?.as_deref() == Some(VERSION);
-    let mut update = serde_json::json!({"available":available,"required":required});
-    if let Some(message) = cache.get("message").filter(|v| v.is_string()) {
-        update["message"] = message.clone();
-    }
+    let update = crate::updates::status::update_status(&adapters.home)?;
     Ok(IDoctorReport {
         keys: IKeyReport {
             location: home_path(

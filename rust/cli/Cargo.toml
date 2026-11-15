@@ -10,6 +10,12 @@ name = "envden"
 path = "src/main.rs"
 
 [dependencies]
+envden-server = { path = "../server" }
+tokio = { version = "1", features = ["rt-multi-thread", "signal", "io-util"] }
+regex = "1"
+subtle = "2.6"
+axum = "0.8"
+base64 = "0.22"
 envden-core = { path = "../core" }
 envden-protocol = { path = "../protocol" }
 envden-adapter-keychain-file = { path = "../adapters/keychain/file" }
@@ -25,14 +31,12 @@ serde_json = { version = "1", features = ["preserve_order"] }
 crossterm = "0.29"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
-
-base64 = "0.22.1"
-
 url = "2"
-
 unicode-general-category = "1"
 
 [dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
 tempfile = "3"
 
 [lints]
