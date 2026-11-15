@@ -1,0 +1,8 @@
+Usage: envden ui [options]
+
+Open a local dashboard for this device
+
+Options:
+  --port <port>  Port on 127.0.0.1 (default: random)
+  --no-open      Print the link without opening a browser
+  -h, --help     display help for command

@@ -1,0 +1,6 @@
+Usage: envden version [options]
+
+Print the version
+
+Options:
+  -h, --help  display help for command

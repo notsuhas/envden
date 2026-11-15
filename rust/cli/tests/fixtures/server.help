@@ -1,0 +1,14 @@
+Usage: envden server [options] [command]
+
+Move, switch or repair the server
+
+Options:
+  -h, --help               display help for command
+
+Commands:
+  move [options] [server]  Move the vault to a new server
+  switch <server>          Follow a signed move when the old server is
+                           unreachable
+  repair [options]         After a server restore, re-upload this device's data,
+                           or finish the restore with --finish
+  help [command]           display help for command

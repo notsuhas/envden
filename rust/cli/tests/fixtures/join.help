@@ -1,0 +1,20 @@
+Usage: envden join [options] <server>
+
+Join using a pairing code or recovery kit in your own terminal
+
+Arguments:
+  server                   Server address, e.g. envden.your-tailnet.ts.net
+
+Options:
+  --recovery               Paste a recovery secret key and vault ID
+  --recovery-kit <path>    Recovery kit path
+  --name <name>            Device name
+  --yes                    Use default preferences
+  --telemetry <choice>     Anonymous telemetry (choices: "on", "off")
+  --update-check <choice>  Daily update check (choices: "on", "off")
+  --shell <shell>          Shell notice (choices: "zsh", "bash", "fish",
+                           "powershell", "none")
+  --agent <choice>         Install the agent skill (choices: "on", "off")
+  --resume                 Finish a join that was approved while this command
+                           wasn't running
+  -h, --help               display help for command

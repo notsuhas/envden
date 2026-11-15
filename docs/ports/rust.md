@@ -49,3 +49,17 @@ CLAUDE.md applies, in idiomatic Rust:
 | HPKE | `hpke` 0.13.0, vendored in `rust/vendor/hpke` with a small patch | RFC 9180. TS uses raw random bytes as the ephemeral key; the patch exposes the crate's own fixed-ephemeral encapsulation so wraps match (`ENVDEN-PATCH.md`) |
 | Argon2id | `argon2` | RustCrypto |
 | Errors | `thiserror` | |
+
+## CLI foundation
+
+- `program::parse(command_tree(), args)` returns help, version, an error, or an `IInvocation`.
+- Implement `ICommandActions::run` to dispatch a command path; pass it to `program::dispatch`.
+- Keep parsing and help metadata in `program`; actions live under `commands/<domain>`.
+- `ICommandHooks` supplies pre-action notices and outcome reporting; notice failures are ignored.
+- Use `output::{print, print_error, terminal_json}` and `output::prompts` for terminal output.
+- Use `state::repository::{load_state, save_state}`; state preserves tagged JSON collections.
+- Use `state::lock::with_state_lock` for read-modify-write operations; nested calls share ownership.
+- `adapters::IAdapters` holds adapters and factories; keep all concrete adapter imports there.
+- `adapters.now` is the injected millisecond clock; `main` owns the system clock.
+- `settings` handles config validation, persistence and rendering; `store::store_path` names files.
+- `ENVDEN_CAPTURE_HELP=1 cargo test -p envden-cli --test help` refreshes fixtures from the TS binary.

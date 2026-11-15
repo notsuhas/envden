@@ -1,0 +1,9 @@
+Usage: envden push [options]
+
+Send your changes to the server
+
+Options:
+  --json      Print the result as JSON
+  --all       Sync all repos
+  --yes       Confirm clean changes
+  -h, --help  display help for command

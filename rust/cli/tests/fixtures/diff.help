@@ -1,0 +1,8 @@
+Usage: envden diff [options]
+
+Show changed key names without values
+
+Options:
+  --json      Print the result as JSON
+  --all       Include all repos
+  -h, --help  display help for command

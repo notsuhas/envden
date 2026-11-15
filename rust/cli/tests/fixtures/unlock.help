@@ -1,0 +1,6 @@
+Usage: envden unlock [options]
+
+Log in with your master password to restart the unlock period
+
+Options:
+  -h, --help  display help for command

@@ -1,0 +1,10 @@
+Usage: envden shell install [options] [shell]
+
+Add the out-of-sync notice to your shell config
+
+Arguments:
+  shell       Shell; asks if omitted (choices: "zsh", "bash", "fish",
+              "powershell")
+
+Options:
+  -h, --help  display help for command

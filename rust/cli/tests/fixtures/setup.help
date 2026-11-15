@@ -1,0 +1,24 @@
+Usage: envden setup [options]
+
+Create a vault and configure this device
+
+Options:
+  --yes                     Take defaults; secrets and checkout approval still
+                            require your terminal
+  --server <url>            Use this server
+  --kit-out <file>          Write the recovery kit as JSON to a private file
+                            instead of a PDF
+  --name <name>             Device name
+  --host-server             Run the envden server on this machine; no setup
+                            token needed
+  --setup-token <token>     Setup token, visible to other processes; use the
+                            prompt in a terminal
+  --telemetry <choice>      Anonymous telemetry (choices: "on", "off")
+  --update-check <choice>   Daily update check (choices: "on", "off")
+  --shell <shell>           Shell notice (choices: "zsh", "bash", "fish",
+                            "powershell", "none")
+  --agent <choice>          Install the agent skill (choices: "on", "off")
+  --scan-root <path...>     Roots to scan for repos
+  --exclude-root <path...>  Roots to skip
+  --verbose                 List each repo and env file the scan skipped
+  -h, --help                display help for command

@@ -1,0 +1,10 @@
+Usage: envden shell uninstall [options] [shell]
+
+Remove the out-of-sync notice from your shell config
+
+Arguments:
+  shell       Shell; asks if omitted (choices: "zsh", "bash", "fish",
+              "powershell")
+
+Options:
+  -h, --help  display help for command

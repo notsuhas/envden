@@ -1,0 +1,33 @@
+[package]
+name = "envden-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "envden"
+path = "src/main.rs"
+
+[dependencies]
+envden-core = { path = "../core" }
+envden-protocol = { path = "../protocol" }
+envden-adapter-keychain-file = { path = "../adapters/keychain/file" }
+envden-adapter-network-tailscale = { path = "../adapters/network/tailscale" }
+envden-adapter-repo-git = { path = "../adapters/repo/git" }
+envden-adapter-shell-rc = { path = "../adapters/shell/rc" }
+envden-adapter-placement-fs = { path = "../adapters/placement/fs" }
+ureq = { version = "3", features = ["json"] }
+chrono = "0.4"
+chrono-tz = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+crossterm = "0.29"
+uuid = { version = "1", features = ["v4"] }
+sha2 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

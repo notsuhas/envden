@@ -1,0 +1,9 @@
+Usage: envden untrack [options] <path>
+
+Stop tracking a checkout and restore regular env files
+
+Arguments:
+  path        Checkout root
+
+Options:
+  -h, --help  display help for command

@@ -1,0 +1,6 @@
+Usage: envden agent install [options]
+
+Install or refresh the agent skill
+
+Options:
+  -h, --help  display help for command

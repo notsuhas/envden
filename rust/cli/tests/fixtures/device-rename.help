@@ -1,0 +1,9 @@
+Usage: envden device rename [options] <name>
+
+Rename this device
+
+Arguments:
+  name        New name, unique in the vault
+
+Options:
+  -h, --help  display help for command

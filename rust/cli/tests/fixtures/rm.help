@@ -1,0 +1,11 @@
+Usage: envden rm [options] <path>
+
+Remove an env file everywhere on the next push
+
+Arguments:
+  path        Env file path
+
+Options:
+  --yes       Confirm deletion, including local edits and conflicts
+  --json      Print the result as JSON
+  -h, --help  display help for command
