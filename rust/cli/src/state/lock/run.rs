@@ -23,6 +23,22 @@ fn resolved_home(home: &Path) -> Result<PathBuf> {
     Ok(resolved)
 }
 
+pub struct ILockTiming<'a> {
+    pub now: &'a dyn Fn() -> u64,
+    pub wait: &'a dyn Fn(u64),
+    pub delays: &'a [u64],
+}
+
+pub fn with_state_lock_timing<T>(
+    home: &Path,
+    timing: &ILockTiming<'_>,
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    with_timing_observer(home, timing, action, || {
+        super::process::process_start(std::process::id())
+    })
+}
+
 pub fn with_state_lock<T>(home: &Path, now: u64, action: impl FnOnce() -> Result<T>) -> Result<T> {
     with_observer(home, now, action, || {
         super::process::process_start(std::process::id())
@@ -32,6 +48,24 @@ pub fn with_state_lock<T>(home: &Path, now: u64, action: impl FnOnce() -> Result
 fn with_observer<T>(
     home: &Path,
     now: u64,
+    action: impl FnOnce() -> Result<T>,
+    observe: impl FnOnce() -> super::owner::TProcess,
+) -> Result<T> {
+    with_timing_observer(
+        home,
+        &ILockTiming {
+            now: &|| now,
+            wait: &|delay| std::thread::sleep(std::time::Duration::from_millis(delay)),
+            delays: &[50, 100, 200, 400, 800, 1000],
+        },
+        action,
+        observe,
+    )
+}
+
+fn with_timing_observer<T>(
+    home: &Path,
+    timing: &ILockTiming<'_>,
     action: impl FnOnce() -> Result<T>,
     observe: impl FnOnce() -> super::owner::TProcess,
 ) -> Result<T> {
@@ -51,11 +85,16 @@ fn with_observer<T>(
         }
     };
     let mut acquired = false;
-    for delay in [0, 50, 100, 200, 400, 800, 1000] {
-        if delay > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(delay));
+    for (attempt, delay) in std::iter::once(0)
+        .chain(timing.delays.iter().copied())
+        .enumerate()
+    {
+        if attempt > 0 {
+            (timing.wait)(delay);
         }
-        let mut builder = fs::DirBuilder::new();
+        let builder = fs::DirBuilder::new();
+        #[cfg(unix)]
+        let mut builder = builder;
         #[cfg(unix)]
         {
             use std::os::unix::fs::DirBuilderExt;
@@ -67,7 +106,7 @@ fn with_observer<T>(
                 break;
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-                super::owner::try_reclaim(&path, now)?;
+                super::owner::try_reclaim(&path, (timing.now)())?;
                 if builder.create(&path).is_ok() {
                     acquired = true;
                     break;
@@ -90,7 +129,7 @@ fn with_observer<T>(
             token: token.clone(),
             started_at,
             identity: super::owner::process_identity(),
-            created_at: now as f64,
+            created_at: (timing.now)() as f64,
         };
         super::publication::publish_owner(&path, &owner)?;
         let after = super::publication::directory_identity(&path)?;
