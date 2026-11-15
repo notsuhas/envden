@@ -1,11 +1,9 @@
-use super::{
-    IHello, IHttpRequest, IHttpResponse, ITransport, hello, response_error, retry_busy, text,
-};
+use super::{IHttpRequest, IHttpResponse, ITransport, hello, response_error, retry_busy, text};
 use crate::{time::TClock, version::MIN_SERVER};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use sha2::{Digest, Sha256};
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc, time::Duration};
+use std::{collections::BTreeMap, rc::Rc, time::Duration};
 
 pub type TProof = Rc<dyn Fn(&p::IRequest) -> Result<Vec<u8>>>;
 pub type TUnlock = Rc<dyn Fn() -> Result<()>>;
@@ -27,24 +25,17 @@ pub struct IClientOptions {
 
 pub struct IClient {
     pub options: IClientOptions,
-    greeting: Rc<RefCell<Option<IHello>>>,
 }
 
 pub fn create_client(options: IClientOptions) -> IClient {
-    IClient {
-        options,
-        greeting: Rc::new(RefCell::new(None)),
-    }
+    IClient { options }
 }
 
 impl IClient {
     pub fn for_vault(&self, vault_id: [u8; 32]) -> Self {
         let mut options = self.options.clone();
         options.vault_id = vault_id;
-        Self {
-            options,
-            greeting: self.greeting.clone(),
-        }
+        Self { options }
     }
 
     pub fn request(
@@ -98,15 +89,7 @@ impl IClient {
                 "Invalid request destination",
             ));
         }
-        if self.greeting.borrow().is_none() {
-            let greeting = hello(
-                &options.address,
-                Some(&options.pin),
-                &*options.transport,
-                MIN_SERVER,
-            )?;
-            *self.greeting.borrow_mut() = Some(greeting);
-        }
+        super::member_hello(&options.address, &options.pin, &options.transport)?;
         let value = p::IRequest {
             server_pin: options.pin,
             vault_id: options.vault_id,
