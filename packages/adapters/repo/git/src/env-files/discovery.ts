@@ -2,7 +2,7 @@ import type { Dirent } from "node:fs";
 import { gitSession } from "../exec/git.ts";
 import type { ICheckout, IEnvFileRules } from "@envden/core/adapters";
 import { acceptsEnvPath } from "@envden/core/adapters";
-import { readdir, lstat, readlink } from "node:fs/promises";
+import { readdir, lstat, readlink, realpath } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { placeInRoot } from "@envden/core/paths";
 import { caseInsensitive } from "../checkout/case.ts";
@@ -81,11 +81,22 @@ async function walk(
 
 async function discoverable(path: string, storeRoot?: string) {
   if (!(await lstat(path)).isSymbolicLink()) return true;
-  const target = resolve(dirname(path), await readlink(path));
-  if (storeRoot && placeInRoot(storeRoot, target) === "inside") return true;
-  console.error(`envden: skipped symlink ${JSON.stringify(path)}`);
+  const text = await readlink(path);
+  if (storeRoot && (await inStore(storeRoot, resolve(dirname(path), text)))) return true;
+
+  console.error(
+    `envden: skipped ${JSON.stringify(path)}: it links to ${JSON.stringify(text)}, and envden only syncs files it owns`,
+  );
 
   return false;
+}
+
+// the link text may go through a symlinked ENVDEN_HOME, so also compare real paths
+async function inStore(storeRoot: string, target: string) {
+  if (placeInRoot(storeRoot, target) === "inside") return true;
+  const [root, real] = await Promise.all([realpath(storeRoot), realpath(target)]).catch(() => []);
+
+  return !!root && !!real && placeInRoot(root, real) === "inside";
 }
 
 function candidate(entry: Dirent, path: string, options: IEnvFileRules) {

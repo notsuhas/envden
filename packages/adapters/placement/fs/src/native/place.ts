@@ -5,6 +5,7 @@ import { EnvdenError } from "@envden/core/errors";
 import type { TPlacementMode } from "@envden/core/adapters";
 import { assertIdentity, linkTarget, openParent, readAt, writeAt } from "./directory.ts";
 import { backupContents } from "../backups/write.ts";
+import { sameTarget } from "../paths/same-target.ts";
 import { checked, cstring, identity, libc } from "./libc.ts";
 
 export function placeNative(
@@ -28,7 +29,7 @@ export function placeNative(
     if (before) {
       const target = linkTarget(fd, name);
 
-      if (target !== undefined && resolve(root, dirname(path), target) !== resolve(storePath))
+      if (target !== undefined && !sameTarget(resolve(root, dirname(path), target), storePath))
         throw new EnvdenError("INVALID_INPUT", "Refusing an unrelated symlink");
 
       if (target === undefined) previous = readAt(fd, name);

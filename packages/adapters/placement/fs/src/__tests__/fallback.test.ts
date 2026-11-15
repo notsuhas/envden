@@ -251,3 +251,25 @@ test("fallback preserves the original error and removes staged plaintext", async
     verify.mockRestore();
   }
 });
+
+// a link made through a symlinked ENVDEN_HOME is still ours once paths are resolved
+for (const runtime of [fallback, undefined])
+  test.skipIf(process.platform === "win32")(
+    `${runtime ? "fallback" : "native"} placement treats a link through a linked home as the store`,
+    async () => {
+      const { createFsPlacementAdapter } = await import("../index.ts");
+      const { root, checkout, store } = await setup();
+      await symlink(root, join(root, "home-link"));
+      const destination = join(checkout, ".env");
+      await symlink(join(root, "home-link", "store"), destination);
+      const now = () => 1800000000000;
+      const adapter = createFsPlacementAdapter("link", checkout, undefined, now);
+
+      expect(await adapter.inspect(store, destination)).toBe("linked");
+      await place("link", checkout, store, destination, undefined, runtime, async () => {}, now);
+      expect(await readFile(destination, "utf8")).toBe("A=secret\n");
+      await symlink(join(root, "home-link", "store"), join(checkout, ".env.old"));
+      await remove(checkout, store, join(checkout, ".env.old"), runtime);
+      await rejects(lstat(join(checkout, ".env.old")));
+    },
+  );

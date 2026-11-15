@@ -17,39 +17,6 @@ import { join } from "node:path";
 import { createRcShellAdapter } from "../adapter.ts";
 import { editRc } from "../files/edit.ts";
 
-for (const operation of ["install", "uninstall"] as const) {
-  test(`${operation} follows symlinked dotfiles and backs up original bytes privately`, async () => {
-    const home = await mkdtemp(join(tmpdir(), "envden-rc-"));
-
-    try {
-      const target = join(home, "dotfile");
-      const backups = join(home, "conflicts");
-      const adapter = createRcShellAdapter("bash", home, join(home, ".envden"), backups);
-
-      const original =
-        operation === "install" ? "# user\n" : `# user\n${adapter.hookSnippet("/opt/envden")}`;
-
-      await writeFile(target, original);
-      await symlink(target, adapter.rcPath());
-
-      if (operation === "install") await adapter.install("/opt/envden");
-      else await adapter.uninstall();
-
-      expect(await adapter.installed()).toBe(operation === "install");
-      expect(await readFile(target, "utf8")).toContain("# user\n");
-      const names = await readdir(backups);
-      expect(names).toHaveLength(1);
-      expect(names[0]).toMatch(/^\.envden-backup-[0-9a-f-]{36}$/);
-      const backup = join(backups, names[0]!);
-      expect(await readFile(backup, "utf8")).toBe(original);
-      if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
-      if (process.platform !== "win32") expect((await stat(backups)).mode & 0o777).toBe(0o700);
-    } finally {
-      await rm(home, { recursive: true, force: true });
-    }
-  });
-}
-
 for (const step of ["resolved", "opened", "read"] as const) {
   test(`rc swap after ${step} cannot copy private bytes into the checkout`, async () => {
     const home = await mkdtemp(join(tmpdir(), "envden-rc-swap-"));

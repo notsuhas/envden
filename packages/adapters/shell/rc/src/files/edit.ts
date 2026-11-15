@@ -1,9 +1,11 @@
 import { constants } from "node:fs";
-import { mkdir, open, realpath, rename, rm, lstat, chmod } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { mkdir, open, readlink, realpath, rename, rm, lstat, chmod } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { rcStat } from "./stat.ts";
 import { backupRc } from "./backup.ts";
+
+const MAX_LINKS = 40;
 
 interface IEditHooks {
   resolved?: () => Promise<void>;
@@ -98,20 +100,32 @@ async function replaceRc(
 }
 
 async function resolveRc(path: string, transform: (current: string) => string) {
-  await mkdir(dirname(path), { recursive: true });
-  let resolved: string;
-  let flags = constants.O_RDONLY | constants.O_NOFOLLOW;
+  let resolved = path;
 
-  try {
-    resolved = await realpath(path);
-  } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
-    if (transform("") === "") return;
-    resolved = path;
-    flags |= constants.O_CREAT | constants.O_EXCL;
+  for (let hops = 0; hops < MAX_LINKS; hops++) {
+    const real = await realpath(resolved).catch(missing);
+
+    if (real !== undefined)
+      return { resolved: real, flags: constants.O_RDONLY | constants.O_NOFOLLOW };
+
+    if (!(await lstat(resolved).catch(missing))?.isSymbolicLink()) break;
+
+    // a dangling link into a dotfiles repo: create the file it points to
+    resolved = resolve(dirname(resolved), await readlink(resolved));
   }
 
-  return { resolved, flags };
+  if (transform("") === "") return;
+  await mkdir(dirname(resolved), { recursive: true });
+
+  return {
+    resolved,
+    flags: constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_CREAT | constants.O_EXCL,
+  };
+}
+
+function missing(error: unknown): undefined {
+  if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined;
+  throw error;
 }
 
 function sameRc(

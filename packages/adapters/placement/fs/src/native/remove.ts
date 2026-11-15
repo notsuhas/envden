@@ -3,6 +3,7 @@ import { basename, dirname, resolve } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { assertIdentity, linkTarget, openParent, readAt } from "./directory.ts";
 import { checked, cstring, identity, libc } from "./libc.ts";
+import { sameTarget } from "../paths/same-target.ts";
 
 export function removeNative(
   root: string,
@@ -19,7 +20,7 @@ export function removeNative(
     const target = linkTarget(fd, name);
 
     if (target !== undefined) {
-      if (!storePath || resolve(root, dirname(path), target) !== resolve(storePath))
+      if (!storePath || !sameTarget(resolve(root, dirname(path), target), storePath))
         throw new EnvdenError("INVALID_INPUT", "Refusing an unrelated symlink");
     } else readAt(fd, name);
 
