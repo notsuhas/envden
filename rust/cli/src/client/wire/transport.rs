@@ -1,6 +1,6 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::Value;
-use std::{collections::BTreeMap, time::Duration};
+use std::{collections::BTreeMap, io::Read, time::Duration};
 
 pub struct IHttpRequest {
     pub url: url::Url,
@@ -53,9 +53,16 @@ impl ITransport for UreqTransport {
             }
             let wire = wire.body(request.body).map_err(ureq::Error::Http)?;
             let mut response = agent.run(wire)?;
-            if response.status().is_redirection() && !request.allow_redirect_response {
+            if response.status().is_redirection() && !request.allow_redirect_response
+            {
                 return Err(ureq::Error::TooManyRedirects);
             }
+            let mut body = Vec::new();
+            response
+                .body_mut()
+                .as_reader()
+                .read_to_end(&mut body)
+                .map_err(ureq::Error::Io)?;
             Ok(IHttpResponse {
                 status: response.status().as_u16(),
                 location: response
@@ -63,7 +70,7 @@ impl ITransport for UreqTransport {
                     .get("location")
                     .and_then(|h| h.to_str().ok())
                     .map(str::to_owned),
-                body: response.body_mut().read_to_vec()?,
+                body,
             })
         };
         run().map_err(|cause| {
