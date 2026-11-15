@@ -1,4 +1,4 @@
-import { saveApproval, resumeApproval } from "./persistence/submission.ts";
+import { saveApproval, submitApproval } from "./persistence/submission.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { currentMaterial } from "../admin/shared/material.ts";
 import { checkFloor } from "../admin/shared/history.ts";
@@ -107,7 +107,7 @@ async function lockedapprovePairing(
 
         const bytes = p.encode(p.SwapCodec, swap);
         await saveApproval(adapters, number, bytes);
-        await resumeApproval(adapters, client, vaultId);
+        await submitApproval(adapters, client, vaultId);
       }),
     );
 

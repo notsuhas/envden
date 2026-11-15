@@ -8,8 +8,23 @@ import type { TClient } from "../../client/request.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { binary, text } from "../../client/encoding.ts";
 import { readHistory } from "../../vault/history.ts";
+import { isStaleSwapError } from "./stale.ts";
 
 export async function resumeApproval(adapters: TAdapters, client: TClient, vaultId: Uint8Array) {
+  try {
+    return await submitApproval(adapters, client, vaultId);
+  } catch (error) {
+    if (!isStaleSwapError(error)) throw error;
+
+    await rm(join(adapters.home, "state", "pair-swap"), { force: true });
+
+    throw new EnvdenError("CONFLICT", "Pairing approval expired; run envden device add again", {
+      cause: error,
+    });
+  }
+}
+
+export async function submitApproval(adapters: TAdapters, client: TClient, vaultId: Uint8Array) {
   const path = join(adapters.home, "state", "pair-swap");
   const saved = await optionalRead(path);
   if (!saved) return false;
