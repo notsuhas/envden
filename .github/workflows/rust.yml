@@ -1,0 +1,136 @@
+name: Rust
+on:
+  push:
+    branches: [port/rust]
+    paths:
+      [
+        "rust/**",
+        "Cargo.*",
+        "rust-toolchain.toml",
+        "parity/**",
+        "scripts/rust/**",
+        ".github/workflows/rust*.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "rust/**",
+        "Cargo.*",
+        "rust-toolchain.toml",
+        "parity/**",
+        "scripts/rust/**",
+        ".github/workflows/rust*.yml",
+      ]
+permissions:
+  contents: read
+concurrency:
+  group: rust-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: bun run check
+      - run: bun run fallow --fail-on-issues
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - run: cargo test --workspace
+  windows-check:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - run: rustup target add aarch64-pc-windows-msvc
+      - run: cargo check --workspace --all-targets --target aarch64-pc-windows-msvc
+  parity:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+        working-directory: apps/cli
+      - run: cargo build --release -p envden-cli
+      - run: CARGO_TARGET_DIR=target/server cargo build --release -p envden-server --bin envden-serve
+      - run: bash scripts/rust/install-tailscale.sh
+      - run: mkdir -p parity-logs
+      - name: Compare binaries
+        run: bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden 2>&1 | tee parity-logs/binaries.log
+      - name: Compare mixed roles
+        if: success() || failure()
+        run: bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden --mix 2>&1 | tee parity-logs/mixed.log
+      - name: Compare hybrid server
+        if: success() || failure()
+        run: bun parity/run.ts --impl ts=apps/cli/dist/envden --impl hybrid=parity/hybrid/envden 2>&1 | tee parity-logs/hybrid.log
+      - name: CLI end to end
+        if: success() || failure()
+        run: bun apps/cli/scripts/e2e.ts target/release/envden 2>&1 | tee parity-logs/e2e.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: parity-logs-${{ matrix.os }}
+          path: parity-logs
+          if-no-files-found: warn
+  host-here:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PARITY_HOST_SHIMS: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+        working-directory: apps/cli
+      - run: cargo build --release -p envden-cli
+      - run: CARGO_TARGET_DIR=target/server cargo build --release -p envden-server --bin envden-serve
+      - run: bash scripts/rust/install-host-shims.sh
+      - run: mkdir -p parity-logs
+      - name: Check host harness repeatability
+        run: bun parity/run.ts --filter host-here --impl ts=apps/cli/dist/envden --impl self=apps/cli/dist/envden 2>&1 | tee parity-logs/host-self.log
+      - name: Compare host installation
+        if: success() || failure()
+        run: bun parity/run.ts --filter host-here --impl ts=apps/cli/dist/envden --impl rust=target/release/envden 2>&1 | tee parity-logs/host-rust.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: parity-logs-host
+          path: parity-logs
+          if-no-files-found: warn

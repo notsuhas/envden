@@ -1,3 +1,4 @@
+import hostHere from "./scenarios/onboarding/host-here.ts";
 import onboardingOptions from "./scenarios/onboarding/options.ts";
 import resolutionOptions from "./scenarios/files/resolution.ts";
 import recoveryPdf from "./scenarios/onboarding/recovery-pdf.ts";
@@ -20,7 +21,16 @@ import scenario8 from "./scenarios/settings.ts";
 import scenario9 from "./scenarios/sync.ts";
 import scenario10 from "./scenarios/unreachable.ts";
 
+if (
+  process.env.PARITY_HOST_SHIMS === "1" &&
+  (process.env.CI !== "true" ||
+    process.env.GITHUB_ACTIONS !== "true" ||
+    process.platform !== "linux")
+)
+  throw new Error("Host shims require a disposable GitHub runner");
+
 export const scenarios = [
+  ...(process.env.PARITY_HOST_SHIMS === "1" ? [hostHere] : []),
   onboardingOptions,
   resolutionOptions,
   recoveryPdf,

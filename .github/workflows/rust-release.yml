@@ -1,0 +1,143 @@
+name: Rust release builds
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: rust-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {
+              os: macos-15-intel,
+              platform: darwin-x64,
+              target: x86_64-apple-darwin,
+              asset: envden-darwin-x64,
+            }
+          - {
+              os: macos-15,
+              platform: darwin-arm64,
+              target: aarch64-apple-darwin,
+              asset: envden-darwin-arm64,
+            }
+          - {
+              os: ubuntu-24.04,
+              platform: linux-x64,
+              target: x86_64-unknown-linux-gnu,
+              asset: envden-linux-x64,
+            }
+          - {
+              os: ubuntu-24.04-arm,
+              platform: linux-arm64,
+              target: aarch64-unknown-linux-gnu,
+              asset: envden-linux-arm64,
+            }
+          - {
+              os: ubuntu-24.04,
+              platform: linux-x64-musl,
+              target: x86_64-unknown-linux-musl,
+              asset: envden-linux-x64-musl,
+            }
+          - {
+              os: ubuntu-24.04-arm,
+              platform: linux-arm64-musl,
+              target: aarch64-unknown-linux-musl,
+              asset: envden-linux-arm64-musl,
+            }
+          - {
+              os: windows-2025,
+              platform: windows-x64,
+              target: x86_64-pc-windows-msvc,
+              asset: envden-windows-x64.exe,
+            }
+          - {
+              os: windows-11-arm,
+              platform: windows-arm64,
+              target: aarch64-pc-windows-msvc,
+              asset: envden-windows-arm64.exe,
+            }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: rustup target add ${{ matrix.target }}
+      - name: Install native musl toolchain
+        if: contains(matrix.platform, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo build --locked --release -p envden-cli --target ${{ matrix.target }}
+      - name: Stage binary
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/envden${{ runner.os == 'Windows' && '.exe' || '' }} dist/${{ matrix.asset }}
+      # Rust signing awaits a separate approval and credential setup.
+      - name: Sign binary
+        if: false
+        run: echo 'Rust signing is disabled'
+      # Rust notarization awaits signed binary verification.
+      - name: Notarize binary
+        if: false
+        run: echo 'Rust notarization is disabled'
+      - if: ${{ !contains(matrix.platform, 'musl') }}
+        run: bun apps/cli/scripts/smoke.ts dist/${{ matrix.asset }}
+      - name: Smoke musl on Alpine
+        if: contains(matrix.platform, 'musl')
+        run: |
+          docker run --rm -v "$PWD/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'for args in "--version" "--help" "doctor --json"; do /dist/${{ matrix.asset }} $args; done'
+      - name: Record binary size
+        run: echo '${{ matrix.asset }}' "$(wc -c < dist/${{ matrix.asset }})" bytes >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rust-binary-${{ matrix.platform }}
+          path: dist/envden-*
+          if-no-files-found: error
+  checksums:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: rust-binary-*
+          merge-multiple: true
+          path: dist
+      - run: sha256sum envden-* > SHA256SUMS
+        working-directory: dist
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rust-checksums
+          path: dist/SHA256SUMS
+          if-no-files-found: error
+  # Publishing Rust requires a separate release decision.
+  publish:
+    if: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Rust GitHub release publication is disabled'
+  # npm keeps shipping the TypeScript binaries.
+  npm:
+    if: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Rust npm publication is disabled'
+  # The production image keeps shipping the TypeScript binary.
+  image:
+    if: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: echo 'Rust image publication is disabled'

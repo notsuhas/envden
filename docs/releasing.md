@@ -71,3 +71,7 @@ Docker builds require musl binaries through `--build-context release-artifacts=.
 ## Validation limits
 
 The tag workflow cannot be executed locally. Its eight-target smoke matrix, Windows arm64 runner availability and publishing credentials still require confirmation from an actual tag run. Disposable-host installer tests on Windows, macOS, glibc and musl, the editor/tool link-mode matrix, and independent human review of the protocol and implementation remain unvalidated here.
+
+## Rust binaries
+
+The manual `rust-release.yml` workflow builds and smoke-tests the same eight platforms as TypeScript, then uploads binaries and `SHA256SUMS` as run artifacts. It never tags or publishes. Signing, notarization, GitHub releases, npm and image publication are disabled with `if: false` until Rust parity is accepted and each release integration is approved. The TypeScript release workflow is unchanged.

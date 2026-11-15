@@ -79,3 +79,9 @@ Add one `.ts` file under `scenarios/` (domain subfolders are supported), registe
 
 `parity/hybrid/envden` delegates `serve` to `target/server/debug/envden-serve` and every other command to the built TypeScript CLI.
 Build with `CARGO_TARGET_DIR=target/server cargo build -p envden-server --bin envden-serve`, then run `bun parity/run.ts --impl ts=apps/cli/dist/envden --impl hybrid=parity/hybrid/envden`.
+
+## CI host installation
+
+`PARITY_HOST_SHIMS=1` enables `host-here` only with `CI=true` and `GITHUB_ACTIONS=true` on Linux. The Rust CI job installs the logging shims into `/usr/bin` on its disposable runner before starting either binary. Never run the installer on a shared machine.
+
+The scenario creates a vault on loopback, then runs `setup --host-server` twice. It compares service definitions, Tailscale exposure, host-tool logs and repeat installation for TS against itself and against Rust. First-time host onboarding over Tailscale HTTPS still needs TLS forwarding and is not covered.

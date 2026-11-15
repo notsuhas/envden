@@ -8,6 +8,12 @@ export async function hostShims(c: Context, role: string) {
   await writeFile(log, "");
   const quoted = "'" + log.replaceAll("'", "'\\''") + "'";
 
+  await writeHostShims(join(c.root, "bin"), quoted);
+
+  return log;
+}
+
+export async function writeHostShims(directory: string, log: string) {
   for (const tool of [
     "tailscale",
     "launchctl",
@@ -29,11 +35,9 @@ fi`
         : "";
 
     await writeFile(
-      join(c.root, "bin", tool),
-      `#!/bin/sh\nprintf '%s\\n' '${tool}' "$@" >> ${quoted}\n${output}\n`,
+      join(directory, tool),
+      `#!/bin/sh\nprintf '%s\\n' '${tool}' "$@" >> ${log}\n${output}\n`,
       { mode: 0o755 },
     );
   }
-
-  return log;
 }
