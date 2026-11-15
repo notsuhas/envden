@@ -43,12 +43,6 @@ pub fn create_rc_shell_adapter(
     }
 }
 
-impl RcShellAdapter {
-    pub fn try_hook_snippet(&self, binary: &str) -> Result<String> {
-        render::render(self.shell, binary, &self.envden_home)
-    }
-}
-
 pub(crate) fn strip(value: &str) -> String {
     let start = "# >>> envden >>>";
     let end = "# <<< envden <<<";
@@ -109,8 +103,8 @@ impl IShellAdapter for RcShellAdapter {
         };
         path.to_string_lossy().into_owned()
     }
-    fn hook_snippet(&self, binary: &str) -> String {
-        self.try_hook_snippet(binary).unwrap_or_default()
+    fn hook_snippet(&self, binary: &str) -> Result<String> {
+        render::render(self.shell, binary, &self.envden_home)
     }
     fn installed(&self) -> Result<bool> {
         let value = match fs::read(self.rc_path()) {
@@ -121,7 +115,7 @@ impl IShellAdapter for RcShellAdapter {
         Ok(strip(&value) != value)
     }
     fn install(&self, binary: &str) -> Result<()> {
-        let snippet = self.try_hook_snippet(binary)?;
+        let snippet = self.hook_snippet(binary)?;
         edit::edit(
             Path::new(&self.rc_path()),
             self.backup.as_deref(),

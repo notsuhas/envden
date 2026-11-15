@@ -14,7 +14,7 @@ pub fn shell_contract(factory: impl Fn(&str) -> Box<dyn IShellAdapter>) {
         let binary = binary.to_str().unwrap();
         adapter.install(binary).unwrap();
         let installed = fs::read_to_string(&rc).unwrap();
-        assert!(installed.contains(&adapter.hook_snippet(binary)));
+        assert!(installed.contains(&adapter.hook_snippet(binary).unwrap()));
         assert!(adapter.installed().unwrap());
         adapter.install(binary).unwrap();
         assert_eq!(fs::read_to_string(&rc).unwrap(), installed);

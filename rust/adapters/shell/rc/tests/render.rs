@@ -21,7 +21,9 @@ fn typescript_vectors() {
             None,
         );
         assert_eq!(
-            adapter.hook_snippet(row["binary"].as_str().unwrap()),
+            adapter
+                .hook_snippet(row["binary"].as_str().unwrap())
+                .unwrap(),
             row["expected"].as_str().unwrap()
         );
     }
@@ -55,7 +57,7 @@ fn invalid_paths_are_typed_and_profile_resolution_is_lazy() {
     assert_eq!(calls.load(Ordering::SeqCst), 1);
     for binary in ["relative", "/bad\npath"] {
         assert_eq!(
-            adapter.try_hook_snippet(binary).unwrap_err().code,
+            adapter.hook_snippet(binary).unwrap_err().code,
             ErrorCode::InvalidInput
         );
     }

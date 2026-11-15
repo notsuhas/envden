@@ -49,3 +49,21 @@ fn shell_uninstall_is_strict() {
         .is_err()
     );
 }
+
+#[test]
+fn shell_hook_snippet_preserves_typed_errors() {
+    use envden_core::errors::{EnvdenError, ErrorCode};
+    let fake = shell::IFakeShellAdapter {
+        hook_snippet: Some(Box::new(|_| {
+            Err(EnvdenError::new(
+                ErrorCode::InvalidInput,
+                "Invalid hook path",
+            ))
+        })),
+        ..Default::default()
+    };
+    assert_eq!(
+        fake.hook_snippet("relative").unwrap_err().code,
+        ErrorCode::InvalidInput
+    );
+}
