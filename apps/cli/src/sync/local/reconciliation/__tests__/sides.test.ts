@@ -1,58 +1,128 @@
-import { z } from "zod";
 import { expect, test } from "bun:test";
 import { deriveFileSides } from "../content/sides.ts";
-import rows from "./sides/copy.json";
+import { scenarios } from "./sides/scenarios.ts";
+import { cases } from "./sides/cases.ts";
+import { reference, type TScenario, type TValue } from "./sides/reference.ts";
 
-const content = z.enum(["A", "B", "C"]).nullable();
-const serverState = z.enum(["absent", "tombstone", "A", "B", "C"]);
+const bytes = (value: TValue) => (value === null ? undefined : new TextEncoder().encode(value));
 
-const rowSchema = z.tuple([
-  content,
-  content,
-  content,
-  serverState,
-  content,
-  content,
-  z.boolean(),
-  content,
-  serverState,
-]);
-
-const bytes = (value: string | null) =>
-  value === null ? undefined : new TextEncoder().encode(value);
-
-function remote(value: string) {
-  if (value === "absent") return { kind: "absent" } as const;
-  if (value === "tombstone") return { kind: "tombstone" } as const;
-
-  return { kind: "live", bytes: bytes(value)! } as const;
+function derive(input: TScenario) {
+  return deriveFileSides({
+    storeBeforeRestore: bytes(input.store),
+    recorded: bytes(input.recorded),
+    previous: bytes(input.previous),
+    server:
+      input.server === "absent" || input.server === "tombstone"
+        ? { kind: input.server }
+        : { kind: "live", bytes: bytes(input.server)! },
+    pendingRemoval: input.pending,
+    copies: [
+      {
+        bytes: bytes(input.copy),
+        base: bytes(input.base),
+        tracked: true,
+        detached: false,
+        mode: "copy",
+        historical: input.base === null && input.copy !== null && input.copy === input.previous,
+      },
+    ],
+  });
 }
 
-test("literal conflict sides cover every store, base, server, copy and removal combination", () => {
-  const cases = new Set<string>();
+for (const [why, store, recorded, previous, server, copy, base, pending, mine] of cases)
+  test(why, () => {
+    if (pending && store !== null) throw new Error("Unreachable removal");
 
-  for (const row of rows) {
-    const [store, recorded, previous, server, copy, base, pending, mine, theirs] =
-      rowSchema.parse(row);
+    const input: TScenario = pending
+      ? { store: null, recorded, previous, server, copy, base, pending: true }
+      : { store, recorded, previous, server, copy, base, pending: false };
 
-    cases.add(JSON.stringify(row.slice(0, 7)));
+    expect(derive(input).mine).toEqual(bytes(mine));
+    expect(reference(input)).toBe(mine);
+  });
 
-    const result = deriveFileSides({
-      storeBeforeRestore: bytes(store),
-      recorded: bytes(recorded),
-      previous: bytes(previous),
-      server: remote(server),
-      pendingRemoval: pending,
-      copies: [
-        { bytes: bytes(copy), base: bytes(base), tracked: true, mode: "copy", detached: false },
-      ],
-    });
+test("reachable copy states agree with DESIGN and retain local edits", () => {
+  let count = 0;
 
-    expect({ mine: result.mine, theirs: result.theirs }).toEqual({
-      mine: bytes(mine),
-      theirs: remote(theirs),
-    });
+  for (const input of scenarios()) {
+    verify(input);
+    count++;
   }
 
-  expect(cases.size).toBe(10240);
+  expect(count).toBe(6400);
+});
+
+function verify(input: TScenario) {
+  const { server, pending } = input;
+  const result = derive(input);
+  const expected = reference(input);
+  expect({ input, mine: result.mine }).toEqual({ input, mine: bytes(expected) });
+
+  expect(result.theirs).toEqual(
+    server === "absent" || server === "tombstone"
+      ? { kind: server }
+      : { kind: "live", bytes: bytes(server)! },
+  );
+
+  if (pending) expect(result.mine).toBeUndefined();
+
+  verifyRetained(input, result);
+  verifyDistinct(input, result);
+}
+
+function verifyRetained(input: TScenario, result: ReturnType<typeof derive>) {
+  const { previous, server, copy, base } = input;
+  const saved = [result.mine, ...(result.local.kind === "conflict" ? result.local.variants : [])];
+
+  const edits = [unsettledStore(input), copy !== null && copy !== (base ?? previous) ? copy : null];
+
+  for (const edit of edits)
+    if (edit !== null && edit !== server)
+      expect({
+        input,
+        retained: saved.some((value) => new TextDecoder().decode(value) === edit),
+      }).toEqual({ input, retained: true });
+}
+
+function verifyDistinct(input: TScenario, result: ReturnType<typeof derive>) {
+  if (result.local.kind !== "conflict") return;
+  const mine = result.mine === undefined ? null : new TextDecoder().decode(result.mine);
+  const server = result.theirs.kind === "live" ? input.server : null;
+
+  // A local variant still needs a choice when the owning edit already matches the server.
+  if (mine === server) {
+    expect(input.pending || (input.store !== null && input.store === input.server)).toBe(true);
+
+    return;
+  }
+
+  expect(result.mine).not.toEqual(result.theirs.kind === "live" ? result.theirs.bytes : undefined);
+}
+
+function unsettledStore(input: TScenario) {
+  const { store, copy, base, recorded, previous } = input;
+
+  if (store === null) return null;
+  if (base === store && copy !== null && copy !== base) return null;
+
+  return store !== (recorded ?? previous) || store !== previous ? store : null;
+}
+
+test("a changed store stays mine regardless of target order", () => {
+  const copies = [
+    { bytes: bytes("B"), base: bytes("A"), tracked: true, mode: "copy" as const, detached: false },
+    { bytes: bytes("C"), base: undefined, tracked: true, mode: "copy" as const, detached: false },
+  ];
+
+  for (const targets of [copies, copies.toReversed()])
+    expect(
+      deriveFileSides({
+        storeBeforeRestore: bytes("A"),
+        recorded: undefined,
+        previous: undefined,
+        server: { kind: "absent" },
+        pendingRemoval: false,
+        copies: targets,
+      }).mine,
+    ).toEqual(bytes("A"));
 });

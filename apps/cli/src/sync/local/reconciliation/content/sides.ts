@@ -19,19 +19,24 @@ export function deriveFileSides(input: {
   const edited =
     input.pendingRemoval ||
     (input.storeBeforeRestore !== undefined &&
-      !same(input.storeBeforeRestore, input.recorded ?? input.previous));
+      (!same(input.storeBeforeRestore, input.recorded ?? input.previous) ||
+        !same(input.storeBeforeRestore, input.previous)));
 
   const local = deriveFileContent(
     store,
-    input.copies.filter((copy) => !(same(copy.bytes, server) && same(store, input.previous))),
+    input.copies.filter(
+      (copy) =>
+        !(same(copy.bytes, server) && (copy.base === undefined || same(store, input.previous))),
+    ),
     input.pendingRemoval || remote.kind === "tombstone",
     edited,
   );
 
-  const mine =
-    local.kind === "conflict"
-      ? input.pendingRemoval
-        ? local.variants[0]
+  const mine = input.pendingRemoval
+    ? undefined
+    : local.kind === "conflict"
+      ? edited
+        ? store
         : local.variants.find((bytes) => bytes !== undefined)
       : local.bytes;
 
@@ -74,7 +79,8 @@ function targetEdits(
 ): TBytes[] {
   if (copy.bytes === undefined || same(copy.bytes, store) || copy.historical) return [];
 
-  if (!copy.tracked || copy.base === undefined) return [copy.bytes, store];
+  if (!copy.tracked || copy.base === undefined)
+    return storeEdited ? [store, copy.bytes] : [copy.bytes, store];
 
   if (copy.mode === "link") return same(store, copy.base) ? [copy.bytes] : [store, copy.bytes];
 

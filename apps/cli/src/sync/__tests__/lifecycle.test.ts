@@ -1,3 +1,4 @@
+import { conflictRecords } from "../local/conflicts.ts";
 import { removeFile } from "../remove.ts";
 import { expect, test } from "bun:test";
 import { join } from "node:path";
@@ -85,7 +86,7 @@ test("notice failure does not fail a committed push", async () => {
   }
 });
 
-test("unpublished detached files can resolve while other files push", async () => {
+test("unpublished detached conflicts keep the unpushed store as mine while other files push", async () => {
   const f = await syncFixture();
 
   try {
@@ -109,10 +110,17 @@ test("unpublished detached files can resolve while other files push", async () =
     const result = await push(f.first, f.opts);
     expect(result.conflicts).toBe(1);
     expect(result.changed).toBe(1);
+    const conflict = (await conflictRecords(f.first.home))[0]!;
+    expect(await Bun.file(conflict.mine).text()).toBe("KEY=original\n");
+
+    expect(await Promise.all(conflict.alternatives.map((path) => Bun.file(path).text()))).toContain(
+      "KEY=detached\n",
+    );
+
     await resolveConflict(f.first, { file: ".env.local", choice: "keep-mine", now: f.now });
     expect((await push(f.first, f.opts)).conflicts).toBe(0);
     await pull(f.second, f.opts);
-    expect(await Bun.file(join(f.checkoutB.root, ".env.local")).text()).toBe("KEY=detached\n");
+    expect(await Bun.file(join(f.checkoutB.root, ".env.local")).text()).toBe("KEY=original\n");
   } finally {
     await f.cleanup();
   }

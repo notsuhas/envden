@@ -46,15 +46,15 @@ for (const [name, store, previous, server] of [
 for (const [name, bytes, base, tracked, mode, expected] of [
   ["copy unchanged follows store", A, A, true, "copy", { kind: "content", bytes: B }],
   [
-    "copy edit conflicts with synced store",
+    "copy edit conflicts with unpushed store",
     C,
     A,
     true,
     "copy",
-    { kind: "conflict", variants: [C, B] },
+    { kind: "conflict", variants: [B, C] },
   ],
-  ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", variants: [C, B] }],
-  ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", variants: [C, B] }],
+  ["untracked bytes conflict", C, A, false, "copy", { kind: "conflict", variants: [B, C] }],
+  ["unbased bytes conflict", C, undefined, true, "copy", { kind: "conflict", variants: [B, C] }],
   ["detached bytes conflict", C, A, true, "link", { kind: "conflict", variants: [B, C] }],
   ["tracked detached revert is an edit", A, B, true, "link", { kind: "content", bytes: A }],
   ["tracked detached new bytes are an edit", C, B, true, "link", { kind: "content", bytes: C }],
@@ -65,7 +65,7 @@ for (const [name, bytes, base, tracked, mode, expected] of [
     B,
     false,
     "link",
-    { kind: "conflict", variants: [A, B] },
+    { kind: "conflict", variants: [B, A] },
   ],
   ["missing copy restores", undefined, A, true, "copy", { kind: "content", bytes: B }],
 ] as const)

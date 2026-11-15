@@ -91,10 +91,7 @@ export async function recordConflict(
       continue;
     }
 
-    const source =
-      side === "Theirs"
-        ? "server"
-        : (sources[variants.findIndex((value) => same(value, bytes))] ?? target.store);
+    const source = conflictSource(side, bytes, sources, variants, target.store);
 
     context.options.report?.(
       sanitizeTerminal(`${side}: ${source}; saved ${file}.${side === "Mine" ? "mine" : "server"}`),
@@ -190,4 +187,17 @@ export async function removeConflictTargets(home: string, root: string, now: () 
   }
 
   await saveConflicts(home, retained, now);
+}
+
+function conflictSource(
+  side: string,
+  bytes: Uint8Array | undefined,
+  sources: string[],
+  variants: (Uint8Array | undefined)[],
+  store: string,
+) {
+  if (bytes === undefined) return "deleted";
+  if (side === "Theirs") return "server";
+
+  return sources[variants.findIndex((value) => same(value, bytes))] ?? store;
 }
