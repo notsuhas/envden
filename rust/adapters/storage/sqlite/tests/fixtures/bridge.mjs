@@ -4,12 +4,24 @@ import { createSqliteStorageAdapter } from "../../../../../../packages/adapters/
 // oxlint-disable-next-line no-restricted-imports -- Cross-language tests load the frozen reference without workspace installation.
 import { H } from "../../../../../../packages/core/src/protocol/index.ts";
 
+import { statSync } from "node:fs";
+import { join } from "node:path";
+
 const [mode, dir] = process.argv.slice(2);
 const db = createSqliteStorageAdapter(dir, 0);
 const b = (n) => new Uint8Array([n]);
 
 try {
-  if (mode === "write") {
+  if (mode === "shutdown") {
+    db.setSetupToken(new Uint8Array(32).fill(7));
+    db.close();
+    const files = ["envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"].map((name) => {
+      const stat = statSync(join(dir, name));
+
+      return { name, size: stat.size, mode: stat.mode & 0o777 };
+    });
+    process.stdout.write(JSON.stringify(files));
+  } else if (mode === "write") {
     db.configureVault(b(1), { active: true, frozen: false, skRefused: false, unlockPeriod: 123 });
     db.putDevice(b(1), b(2), { unlockedUntil: 100, freshUntil: 50, clientVersion: "1.0.0" });
     db.writeState(

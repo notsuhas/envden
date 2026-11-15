@@ -10,11 +10,17 @@ workspace = true
 
 [dependencies]
 envden-core = { path = "../../../core" }
-rusqlite = { version = "0.38", features = ["bundled", "serialize"] }
 parking_lot = "0.12"
 hex = "0.4"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
+
+# Bun uses Apple SQLite on macOS, including its persistent-WAL default.
+[target.'cfg(target_os = "macos")'.dependencies]
+rusqlite = { version = "0.38", features = ["serialize"] }
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+rusqlite = { version = "0.38", features = ["bundled", "serialize"] }
 
 [dev-dependencies]
 envden-testing = { path = "../../../testing" }
