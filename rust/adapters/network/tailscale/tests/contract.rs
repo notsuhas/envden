@@ -112,3 +112,37 @@ fn schema_fallbacks_and_capped_command_errors() {
         assert_eq!(adapter.status().unwrap().problem.unwrap().kind, kind);
     }
 }
+
+#[test]
+fn recorded_status_and_capped_serve_failure() {
+    let fixture = include_str!(
+        "../../../../../packages/adapters/network/tailscale/src/__tests__/running.json"
+    );
+    let hint = "Serve is not enabled on your tailnet. To enable, visit: https://login.tailscale.com/f/serve";
+    let adapter = create_tailscale_network_adapter(Some(Box::new(move |args| {
+        Ok(ICommandResult {
+            exit_code: if args.get(1).map(String::as_str) == Some("--bg") {
+                1
+            } else {
+                0
+            },
+            stdout: if args[0] == "status" {
+                fixture.into()
+            } else {
+                "{}".into()
+            },
+            stderr: format!("{hint}\n{}", "x".repeat(2000)),
+        })
+    })));
+    let status = adapter.status().unwrap();
+    assert!(status.ready && status.running && status.logged_in && status.https_enabled);
+    assert_eq!(status.hostname.as_deref(), Some("laptop.tail.example"));
+    assert!(status.problem.is_none());
+    assert_eq!(
+        adapter.check_https_certificate().unwrap(),
+        THttpsCheck::Ready
+    );
+    let error = adapter.expose(4280.0).unwrap_err();
+    assert!(error.message.contains(hint));
+    assert!(error.message.len() < 600);
+}
