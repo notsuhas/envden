@@ -1,0 +1,15 @@
+{
+  "journal_mode": "wal",
+  "synchronous": 2,
+  "foreign_keys": 1,
+  "user_version": 1,
+  "busy_timeout": 5000,
+  "page_size": 4096,
+  "auto_vacuum": 0,
+  "encoding": "UTF-8",
+  "wal_autocheckpoint": 1000,
+  "journal_size_limit": 32768,
+  "locking_mode": "normal",
+  "secure_delete": 2,
+  "temp_store": 0
+}

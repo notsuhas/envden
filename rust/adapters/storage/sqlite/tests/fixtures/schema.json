@@ -1,0 +1,278 @@
+[
+  {
+    "type": "table",
+    "name": "approvers",
+    "tbl_name": "approvers",
+    "sql": "CREATE TABLE approvers (vault BLOB NOT NULL, device BLOB NOT NULL, bytes BLOB NOT NULL, expires REAL NOT NULL, PRIMARY KEY(vault,device))"
+  },
+  {
+    "type": "index",
+    "name": "approvers_expires",
+    "tbl_name": "approvers",
+    "sql": "CREATE INDEX approvers_expires ON approvers(expires)"
+  },
+  {
+    "type": "table",
+    "name": "blob_garbage",
+    "tbl_name": "blob_garbage",
+    "sql": "CREATE TABLE blob_garbage (vault BLOB NOT NULL, hash BLOB NOT NULL, PRIMARY KEY(vault,hash))"
+  },
+  {
+    "type": "table",
+    "name": "blob_usage",
+    "tbl_name": "blob_usage",
+    "sql": "CREATE TABLE blob_usage (vault BLOB NOT NULL, hash BLOB NOT NULL, size INTEGER NOT NULL, at REAL NOT NULL, PRIMARY KEY(vault,hash))"
+  },
+  {
+    "type": "table",
+    "name": "blobs",
+    "tbl_name": "blobs",
+    "sql": "CREATE TABLE blobs (vault BLOB NOT NULL, hash BLOB NOT NULL, PRIMARY KEY(vault,hash))"
+  },
+  {
+    "type": "table",
+    "name": "buckets",
+    "tbl_name": "buckets",
+    "sql": "CREATE TABLE buckets (key TEXT PRIMARY KEY, until REAL NOT NULL, strikes INTEGER NOT NULL)"
+  },
+  {
+    "type": "index",
+    "name": "buckets_until",
+    "tbl_name": "buckets",
+    "sql": "CREATE INDEX buckets_until ON buckets(until)"
+  },
+  {
+    "type": "table",
+    "name": "charges",
+    "tbl_name": "charges",
+    "sql": "CREATE TABLE charges (receipt TEXT PRIMARY KEY, bucket TEXT NOT NULL, at REAL NOT NULL)"
+  },
+  {
+    "type": "index",
+    "name": "charges_at",
+    "tbl_name": "charges",
+    "sql": "CREATE INDEX charges_at ON charges(at)"
+  },
+  {
+    "type": "index",
+    "name": "charges_bucket",
+    "tbl_name": "charges",
+    "sql": "CREATE INDEX charges_bucket ON charges(bucket)"
+  },
+  {
+    "type": "table",
+    "name": "devices",
+    "tbl_name": "devices",
+    "sql": "CREATE TABLE devices (vault BLOB NOT NULL REFERENCES vaults(id), id BLOB NOT NULL, unlocked REAL NOT NULL, fresh REAL NOT NULL, version TEXT NOT NULL, grant BLOB, PRIMARY KEY(vault,id))"
+  },
+  {
+    "type": "table",
+    "name": "digests",
+    "tbl_name": "digests",
+    "sql": "CREATE TABLE digests (vault BLOB NOT NULL REFERENCES vaults(id), digest BLOB NOT NULL, PRIMARY KEY(vault,digest))"
+  },
+  {
+    "type": "table",
+    "name": "entries",
+    "tbl_name": "entries",
+    "sql": "CREATE TABLE entries (vault BLOB NOT NULL REFERENCES vaults(id), seq TEXT NOT NULL, hash BLOB NOT NULL, bytes BLOB NOT NULL, PRIMARY KEY(vault,seq), UNIQUE(vault,hash))"
+  },
+  {
+    "type": "table",
+    "name": "headers",
+    "tbl_name": "headers",
+    "sql": "CREATE TABLE headers (vault BLOB NOT NULL REFERENCES vaults(id), seq TEXT NOT NULL, hash BLOB NOT NULL, bytes BLOB NOT NULL, at REAL NOT NULL, files BLOB, PRIMARY KEY(vault,seq), UNIQUE(vault,hash))"
+  },
+  {
+    "type": "index",
+    "name": "headers_files",
+    "tbl_name": "headers",
+    "sql": "CREATE INDEX headers_files ON headers(vault,files)"
+  },
+  {
+    "type": "table",
+    "name": "lists",
+    "tbl_name": "lists",
+    "sql": "CREATE TABLE lists (vault BLOB NOT NULL REFERENCES vaults(id), hash BLOB NOT NULL, bytes BLOB NOT NULL, at REAL NOT NULL, permanent INTEGER NOT NULL, PRIMARY KEY(vault,hash))"
+  },
+  {
+    "type": "table",
+    "name": "mailboxes",
+    "tbl_name": "mailboxes",
+    "sql": "CREATE TABLE mailboxes (number INTEGER PRIMARY KEY, vault BLOB NOT NULL, device BLOB NOT NULL, expires REAL NOT NULL)"
+  },
+  {
+    "type": "table",
+    "name": "nonces",
+    "tbl_name": "nonces",
+    "sql": "CREATE TABLE nonces (device BLOB NOT NULL, nonce BLOB NOT NULL, expires REAL NOT NULL, PRIMARY KEY(device,nonce))"
+  },
+  {
+    "type": "index",
+    "name": "nonces_expires",
+    "tbl_name": "nonces",
+    "sql": "CREATE INDEX nonces_expires ON nonces(expires)"
+  },
+  {
+    "type": "table",
+    "name": "openings",
+    "tbl_name": "openings",
+    "sql": "CREATE TABLE openings (vault BLOB NOT NULL, at REAL NOT NULL)"
+  },
+  {
+    "type": "table",
+    "name": "sessions",
+    "tbl_name": "sessions",
+    "sql": "CREATE TABLE sessions (vault BLOB NOT NULL, kind TEXT NOT NULL, device BLOB NOT NULL, purpose TEXT NOT NULL, bytes BLOB NOT NULL, expires REAL NOT NULL, PRIMARY KEY(vault,kind,device,purpose))"
+  },
+  {
+    "type": "index",
+    "name": "sessions_expires",
+    "tbl_name": "sessions",
+    "sql": "CREATE INDEX sessions_expires ON sessions(expires)"
+  },
+  {
+    "type": "table",
+    "name": "setup",
+    "tbl_name": "setup",
+    "sql": "CREATE TABLE setup (singleton INTEGER PRIMARY KEY CHECK(singleton=1), bytes BLOB NOT NULL)"
+  },
+  {
+    "type": "table",
+    "name": "slots",
+    "tbl_name": "slots",
+    "sql": "CREATE TABLE slots (number INTEGER NOT NULL REFERENCES mailboxes(number) ON DELETE CASCADE, slot TEXT NOT NULL, bytes BLOB NOT NULL, PRIMARY KEY(number,slot))"
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_approvers_1",
+    "tbl_name": "approvers",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_blob_garbage_1",
+    "tbl_name": "blob_garbage",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_blob_usage_1",
+    "tbl_name": "blob_usage",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_blobs_1",
+    "tbl_name": "blobs",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_buckets_1",
+    "tbl_name": "buckets",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_charges_1",
+    "tbl_name": "charges",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_devices_1",
+    "tbl_name": "devices",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_digests_1",
+    "tbl_name": "digests",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_entries_1",
+    "tbl_name": "entries",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_entries_2",
+    "tbl_name": "entries",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_headers_1",
+    "tbl_name": "headers",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_headers_2",
+    "tbl_name": "headers",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_lists_1",
+    "tbl_name": "lists",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_nonces_1",
+    "tbl_name": "nonces",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_sessions_1",
+    "tbl_name": "sessions",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_slots_1",
+    "tbl_name": "slots",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_state_1",
+    "tbl_name": "state",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_vaults_1",
+    "tbl_name": "vaults",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_versions_1",
+    "tbl_name": "versions",
+    "sql": null
+  },
+  {
+    "type": "table",
+    "name": "state",
+    "tbl_name": "state",
+    "sql": "CREATE TABLE state (vault BLOB NOT NULL, kind TEXT NOT NULL, key BLOB NOT NULL, bytes BLOB NOT NULL, PRIMARY KEY(vault,kind,key))"
+  },
+  {
+    "type": "table",
+    "name": "vaults",
+    "tbl_name": "vaults",
+    "sql": "CREATE TABLE vaults (id BLOB PRIMARY KEY, head BLOB, active INTEGER NOT NULL, frozen INTEGER NOT NULL, moved BLOB, refused INTEGER NOT NULL, period REAL, repair BLOB, restored BLOB, progress BLOB)"
+  },
+  {
+    "type": "table",
+    "name": "versions",
+    "tbl_name": "versions",
+    "sql": "CREATE TABLE versions (vault BLOB NOT NULL, list BLOB NOT NULL, file BLOB NOT NULL, version TEXT NOT NULL, blob BLOB, tombstone INTEGER NOT NULL, PRIMARY KEY(vault,list,file), FOREIGN KEY(vault,list) REFERENCES lists(vault,hash) ON DELETE CASCADE)"
+  }
+]
