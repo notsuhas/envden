@@ -1,4 +1,6 @@
-use crate::errors::{EnvdenError, ErrorCode, Result};
+use crate::errors::Result;
+#[cfg(unix)]
+use crate::errors::{EnvdenError, ErrorCode};
 use std::path::Path;
 pub fn acl_arguments(path: &str, directory: bool, username: &str) -> Vec<String> {
     vec![
@@ -25,7 +27,7 @@ pub fn restrict_access(path: impl AsRef<Path>, directory: bool) -> Result<()> {
             &acl_arguments(
                 &path.as_ref().to_string_lossy(),
                 directory,
-                &std::env::var("USERNAME").unwrap_or_default(),
+                &super::windows_user::username()?,
             ),
             &Default::default(),
         )

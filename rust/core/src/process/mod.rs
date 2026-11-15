@@ -10,3 +10,5 @@ pub use permissions::*;
 pub use roots::*;
 pub use spawn::*;
 pub use trust::*;
+#[cfg(windows)]
+mod windows_user;

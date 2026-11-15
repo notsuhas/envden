@@ -90,14 +90,14 @@ pub fn placement_contract(factory: impl Fn(&str, Option<&str>) -> Box<dyn IPlace
     });
     placement_links_contract(factory);
 }
-fn placement_links_contract(factory: impl Fn(&str, Option<&str>) -> Box<dyn IPlacementAdapter>) {
+fn placement_links_contract(_factory: impl Fn(&str, Option<&str>) -> Box<dyn IPlacementAdapter>) {
     #[cfg(unix)]
     with_directory(|root| {
         use std::os::unix::fs::symlink;
         let checkout = root.join("checkout");
         let backups = root.join("backups");
         fs::create_dir(&checkout).unwrap();
-        let adapter = factory(checkout.to_str().unwrap(), Some(backups.to_str().unwrap()));
+        let adapter = _factory(checkout.to_str().unwrap(), Some(backups.to_str().unwrap()));
         if !adapter.supported(checkout.to_str().unwrap()).unwrap() {
             return;
         }
