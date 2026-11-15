@@ -144,8 +144,24 @@ fn hashes(
     let stored = read_bytes(Path::new(store))?;
     let mut hashes = vec![content_hash(stored.as_deref())];
     for target in targets {
-        let snapshot = super::super::snapshot::snapshot(context, target, stored.as_deref(), None)?;
-        hashes.push(content_hash(snapshot.bytes.as_deref()));
+        let path = Path::new(&target.root).join(&target.path);
+        let mode = if target.mode == "copy" {
+            envden_core::adapters::TPlacementMode::Copy
+        } else {
+            envden_core::adapters::TPlacementMode::Link
+        };
+        let status = context
+            .adapters
+            .placement(mode, Path::new(&target.root))
+            .inspect(store, &path.to_string_lossy())?;
+        let placed;
+        let bytes = if status == envden_core::adapters::TPlacementState::Linked {
+            stored.as_deref()
+        } else {
+            placed = read_bytes(&path)?;
+            placed.as_deref()
+        };
+        hashes.push(content_hash(bytes));
     }
     Ok(hashes)
 }
