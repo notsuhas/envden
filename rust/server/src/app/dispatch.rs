@@ -17,6 +17,19 @@ use envden_protocol::protocol::*;
 use super::{authenticated::authenticated, types::AppState};
 
 pub(super) async fn dispatch(State(state): State<AppState>, request: Request) -> Response<Body> {
+    if request
+        .headers()
+        .get("content-length")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.parse::<u64>().ok())
+        .is_some_and(|length| length > 33554432)
+    {
+        return Response::builder()
+            .status(413)
+            .header("connection", "close")
+            .body(Body::empty())
+            .expect("fixed transport response");
+    }
     let path = request.uri().path().to_owned();
     let public_status = request.method() == "GET" && matches!(path.as_str(), "/" | "/v1/status");
     let public =

@@ -113,3 +113,29 @@ async fn error_mapping_and_login_hint_are_exact() {
         r#"{"error":"UNAUTHORIZED","hint":"The vault may have moved; try the current server address"}"#
     );
 }
+
+#[tokio::test]
+async fn listener_body_ceiling_precedes_request_authentication() {
+    let (_directory, options) = fixture::fixture();
+    let app = create_app(options, Arc::new(Mutex::new(IStatusState::new(0, None)))).unwrap();
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/swap")
+                .header("content-length", "33554433")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 413);
+    assert!(!response.headers().contains_key("content-type"));
+    assert_eq!(response.headers()["connection"], "close");
+    assert!(
+        to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+}

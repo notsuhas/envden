@@ -23,7 +23,7 @@ construction stays in `src/adapters.rs`.
 
 ## Verification limits
 
-Gate 2 is not complete. Thirty-three Rust tests cover identity, status, request
+Gate 2 is not complete. Thirty-four Rust tests cover identity, status, request
 signatures, body capacity/hash, body reservations, lifecycle and restored startup.
 The remaining TypeScript server suites still need to be ported. Focused runs of
 TypeScript clients exercised setup, recovery join, push/pull, pairing, password
@@ -39,3 +39,8 @@ TypeScript executable path, which the current normalizer does not recognize.
 Remaining server parity work includes exact date-fns formatting outside the tested intervals,
 and pruning failure-path coverage. Body reading exposes `read_body_with` for an
 injected clock and scheduler; normal HTTP requests use the Tokio timer edge.
+
+A declared request body above 32 MiB receives the reference's empty 413 before
+request authentication. Hyper still adds `Content-Length: 0` and its automatic
+Date header there; Bun's transport-level 413 has neither. Exact transport-header
+parity therefore remains unfinished.
