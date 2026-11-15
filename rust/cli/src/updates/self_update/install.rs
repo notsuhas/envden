@@ -1,6 +1,6 @@
 use crate::state::files::optional_read;
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TInstallMethod {
@@ -31,9 +31,16 @@ pub fn install_method(
     } else {
         None
     };
-    let method = preferred
-        .or(marker.as_deref())
-        .or_else(|| (binary.parent() == Some(home.join("bin").as_path())).then_some("script"));
+    let method = preferred.or(marker.as_deref());
+    let method = match method {
+        Some(method) => Some(method),
+        None if resolved(binary.parent().unwrap_or(Path::new(".")))?
+            == resolved(&home.join("bin"))? =>
+        {
+            Some("script")
+        }
+        None => None,
+    };
     let command = match method {
         Some("script") => return Ok(TInstallMethod::Script),
         Some("brew") => vec!["brew", "upgrade", "envden"],
@@ -50,6 +57,23 @@ pub fn install_method(
     Ok(TInstallMethod::Manager(
         command.into_iter().map(str::to_string).collect(),
     ))
+}
+
+fn resolved(path: &Path) -> Result<PathBuf> {
+    let mut resolved = PathBuf::new();
+    for component in std::path::absolute(path)
+        .map_err(crate::state::files::failure)?
+        .components()
+    {
+        match component {
+            std::path::Component::ParentDir => {
+                resolved.pop();
+            }
+            _ => resolved.push(component.as_os_str()),
+        }
+    }
+
+    Ok(resolved)
 }
 
 #[cfg(test)]
@@ -110,5 +134,19 @@ mod tests {
             TInstallMethod::Manager(_)
         ));
         assert!(install_method(temp.path(), Some("unknown"), Path::new("/envden"), None).is_err());
+    }
+    #[test]
+    fn script_detection_resolves_parent_components_and_relative_paths() {
+        let root = tempfile::tempdir().unwrap();
+        let binary = root.path().join("bin/../bin/envden");
+        assert_eq!(
+            install_method(root.path(), None, &binary, None).unwrap(),
+            TInstallMethod::Script
+        );
+        let relative = Path::new("envden-home");
+        assert_eq!(
+            install_method(relative, None, &relative.join("bin/envden"), None).unwrap(),
+            TInstallMethod::Script
+        );
     }
 }
