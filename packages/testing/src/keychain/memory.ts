@@ -7,7 +7,7 @@ export function createMemoryKeychainAdapter(
   const values = new Map<string, Uint8Array>();
 
   return createFakeKeychainAdapter({
-    available: operations.includes("available") ? async () => true : undefined,
+    ownerOnly: operations.includes("ownerOnly") ? async () => true : undefined,
     get: operations.includes("get") ? async (name) => values.get(name)?.slice() : undefined,
     set: operations.includes("set")
       ? async (name, value) => {

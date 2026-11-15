@@ -27,7 +27,7 @@ export function networkContract(
       expect(status.problem).toBeUndefined();
       expect(await adapter.checkHttpsCertificate()).toEqual({ kind: "ready" });
       expect(status.hostname).toBeTruthy();
-      expect(await adapter.expose(8080)).toBe(`https://${status.hostname}`);
+      expect(await adapter.expose(8080)).toBe(`https://${status.hostname}:8080`);
     });
 
     for (const scenario of problems) {

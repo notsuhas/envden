@@ -17,7 +17,7 @@
     "@clack/prompts": "1.9.0",
     "@commander-js/extra-typings": "15.1.0",
     "@date-fns/tz": "1.5.0",
-    "@envden/adapter-keychain-os": "workspace:*",
+    "@envden/adapter-keychain-file": "workspace:*",
     "@envden/adapter-network-tailscale": "workspace:*",
     "@envden/adapter-placement-fs": "workspace:*",
     "@envden/adapter-repo-git": "workspace:*",

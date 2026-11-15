@@ -6,10 +6,7 @@ export function createFakeKeychainAdapter(
 ): IKeychainAdapter {
   return {
     id: operations.id ?? "fake-keychain",
-    available: operations.available?.bind(operations) ?? unexpected("keychain.available"),
-    ...(operations.takeFallbackNotice
-      ? { takeFallbackNotice: operations.takeFallbackNotice.bind(operations) }
-      : {}),
+    ownerOnly: operations.ownerOnly?.bind(operations) ?? unexpected("keychain.ownerOnly"),
     get: operations.get?.bind(operations) ?? unexpected("keychain.get"),
     set: operations.set?.bind(operations) ?? unexpected("keychain.set"),
     delete: operations.delete?.bind(operations) ?? unexpected("keychain.delete"),

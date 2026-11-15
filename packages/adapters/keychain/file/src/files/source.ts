@@ -1,24 +1,15 @@
-import { lstat, mkdir, open, rename, rm } from "node:fs/promises";
+import { mkdir, open, rename, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { restrictAccess } from "@envden/core/process";
 
-export async function hasFileSource(path: string): Promise<boolean> {
-  try {
-    const stat = await lstat(path + ".file");
+export async function readKeyFile(path: string): Promise<Uint8Array | undefined> {
+  const file = await open(path, "r").catch((error: unknown) => {
+    if (missing(error)) return undefined;
+    throw error;
+  });
 
-    if (!stat.isFile() || stat.isSymbolicLink())
-      throw new EnvdenError("INVALID_DATA", "Invalid key source marker");
-
-    return true;
-  } catch (cause) {
-    if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return false;
-    throw cause;
-  }
-}
-
-export async function readKeyFile(path: string): Promise<Uint8Array> {
-  const file = await open(path, "r");
+  if (!file) return undefined;
 
   try {
     if (process.platform !== "win32" && (await file.stat()).mode & 0o077)
@@ -31,21 +22,6 @@ export async function readKeyFile(path: string): Promise<Uint8Array> {
 }
 
 export async function writeKeyFile(path: string, value: Uint8Array) {
-  await markFileSource(path);
-  await durableWrite(path, value);
-}
-
-export async function removeKeyFile(path: string) {
-  await markFileSource(path);
-  await rm(path, { force: true });
-  await syncDirectory(dirname(path));
-}
-
-async function markFileSource(path: string) {
-  if (!(await hasFileSource(path))) await durableWrite(path + ".file", new Uint8Array());
-}
-
-export async function durableWrite(path: string, value: Uint8Array) {
   const directory = dirname(path);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   await restrictAccess(directory, true);
@@ -67,6 +43,18 @@ export async function durableWrite(path: string, value: Uint8Array) {
   } finally {
     await rm(temporary, { force: true });
   }
+}
+
+export async function removeKeyFile(path: string) {
+  await rm(path, { force: true });
+
+  await syncDirectory(dirname(path)).catch((error: unknown) => {
+    if (!missing(error)) throw error;
+  });
+}
+
+function missing(error: unknown) {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 async function syncDirectory(path: string) {

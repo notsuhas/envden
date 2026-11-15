@@ -1,5 +1,5 @@
 {
-  "name": "@envden/adapter-keychain-os",
+  "name": "@envden/adapter-keychain-file",
   "version": "0.0.0",
   "private": true,
   "type": "module",

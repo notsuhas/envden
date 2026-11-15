@@ -20,6 +20,6 @@ export interface INetworkAdapter {
   readonly id: string;
   checkHttpsCertificate(): Promise<THttpsCheck>;
   status(): Promise<INetworkStatus>;
-  // Publishes the local server port to the network and returns the address devices dial.
+  // Publishes the local server on the same port number of its own, so it never takes another app's address.
   expose(port: number): Promise<string>;
 }

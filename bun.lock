@@ -24,7 +24,7 @@
         "@clack/prompts": "1.9.0",
         "@commander-js/extra-typings": "15.1.0",
         "@date-fns/tz": "1.5.0",
-        "@envden/adapter-keychain-os": "workspace:*",
+        "@envden/adapter-keychain-file": "workspace:*",
         "@envden/adapter-network-tailscale": "workspace:*",
         "@envden/adapter-placement-fs": "workspace:*",
         "@envden/adapter-repo-git": "workspace:*",
@@ -78,8 +78,8 @@
         "tailwindcss": "4.3.5",
       },
     },
-    "packages/adapters/keychain/os": {
-      "name": "@envden/adapter-keychain-os",
+    "packages/adapters/keychain/file": {
+      "name": "@envden/adapter-keychain-file",
       "version": "0.0.0",
       "dependencies": {
         "@envden/core": "workspace:*",
@@ -217,7 +217,7 @@
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@2.2.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw=="],
 
-    "@envden/adapter-keychain-os": ["@envden/adapter-keychain-os@workspace:packages/adapters/keychain/os"],
+    "@envden/adapter-keychain-file": ["@envden/adapter-keychain-file@workspace:packages/adapters/keychain/file"],
 
     "@envden/adapter-network-tailscale": ["@envden/adapter-network-tailscale@workspace:packages/adapters/network/tailscale"],
 

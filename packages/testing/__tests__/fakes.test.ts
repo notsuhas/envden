@@ -11,7 +11,7 @@ import { createFakeShellAdapter } from "../src/shell/index.ts";
 import { createFakeStorageAdapter } from "../src/storage/index.ts";
 
 keychainContract("Memory keychain", () =>
-  createMemoryKeychainAdapter(["available", "get", "set", "delete"]),
+  createMemoryKeychainAdapter(["ownerOnly", "get", "set", "delete"]),
 );
 
 for (const [kind, fake] of [
@@ -32,15 +32,9 @@ for (const [kind, fake] of [
 
 test("memory keychain requires explicit operations and returns independent bytes", async () => {
   const adapter = createMemoryKeychainAdapter(["get", "set"]);
-  expect(() => adapter.available()).toThrow("Unexpected fake operation");
+  expect(() => adapter.ownerOnly()).toThrow("Unexpected fake operation");
   await adapter.set("key", new Uint8Array([1]));
   const value = await adapter.get("key");
   value?.fill(9);
   expect(await adapter.get("key")).toEqual(new Uint8Array([1]));
-});
-
-test("fake keychain forwards fallback notices", () => {
-  expect(createFakeKeychainAdapter({ takeFallbackNotice: () => true }).takeFallbackNotice?.()).toBe(
-    true,
-  );
 });
