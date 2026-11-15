@@ -35,7 +35,7 @@ export function pinnedInstall(manager: string, executable: string) {
       return prefix
         ? {
             manager: `${prefix}/shims/scoop.cmd`,
-            binary: `${prefix}/apps/envden/current/envden.exe`,
+            binary: `${prefix}/shims/envden.exe`,
           }
         : undefined;
     }

@@ -88,6 +88,10 @@ test("repo selection refuses changed remotes and path-prefix siblings", async ()
   const options = { now: () => 1, fetcher: fetch, cwd: join(fixture, "nested") };
   expect([...(await selectedRepos(adapters, state, options))]).toEqual([checkout.repoId]);
 
+  expect([
+    ...(await selectedRepos(adapters, state, { ...options, cwd: join(fixture, "..nested") })),
+  ]).toEqual([checkout.repoId]);
+
   await Promise.resolve(
     expect(
       selectedRepos(adapters, state, { ...options, cwd: fixture + "-other" }),

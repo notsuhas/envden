@@ -25,8 +25,8 @@ async function runCommand(
   if (status !== 0) throw new EnvdenError("INVALID_INPUT", "Update command failed");
 }
 
-export async function postInstall(binary: string, run = runCommand) {
-  await run([binary, "update", "--post-install"], postInstallEnvironment());
+export async function postInstall(binary: string, run = runCommand, managerBin?: string) {
+  await run([binary, "update", "--post-install"], postInstallEnvironment(managerBin), managerBin);
 }
 
 export async function managerUpdate(
@@ -75,7 +75,7 @@ export async function managerUpdate(
     // Homebrew reads system and prefix brew.env files even with an isolated user config.
     if (command[0] === "brew") env.HOMEBREW_XDG_CONFIG_HOME = config;
     await run(absolute, env, managerBin);
-    await postInstall(pinned.binary, run);
+    await postInstall(pinned.binary, run, managerBin);
   } finally {
     await rm(config, { recursive: true, force: true });
   }
@@ -103,7 +103,7 @@ async function installerCommand(manager: string, path: string) {
   }
 }
 
-function postInstallEnvironment() {
+function postInstallEnvironment(managerBin?: string) {
   const extra: Record<string, string> = {};
 
   for (const key of [
@@ -117,5 +117,5 @@ function postInstallEnvironment() {
     if (value !== undefined) extra[key] = value;
   }
 
-  return sanitizedEnvironment(extra);
+  return sanitizedEnvironment(extra, process.env, managerBin);
 }

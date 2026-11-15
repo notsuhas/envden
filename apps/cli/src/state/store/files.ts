@@ -1,6 +1,6 @@
 import { restrictAccess } from "./permissions.ts";
 import { mkdir, open, rename, rm, readFile, lstat } from "node:fs/promises";
-import { dirname, join, resolve, relative, isAbsolute } from "node:path";
+import { dirname, join, resolve, relative, isAbsolute, sep } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 
 const owned = new Set<string>();
@@ -70,7 +70,7 @@ export async function optionalRead(path: string): Promise<string | undefined> {
 function inside(root: string, path: string) {
   const rel = relative(root, resolve(path));
 
-  return !rel.startsWith("..") && !isAbsolute(rel);
+  return rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 }
 
 async function prepareDirectory(path: string) {

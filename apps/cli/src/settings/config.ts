@@ -36,7 +36,15 @@ export async function readConfig(home: string) {
   }
 }
 
-export async function setConfig(key: string, value: string, home: string) {
+export async function setConfig(
+  key: string,
+  value: string,
+  home: string,
+  interactive = Boolean(process.stdin.isTTY),
+) {
+  if (key === "agent-merge" && value === "on" && !interactive)
+    throw new EnvdenError("INVALID_INPUT", "Turning on agent-merge requires a terminal");
+
   return withStateLock(paths(home).home, async () => {
     const current = await readConfig(home);
 

@@ -1,4 +1,4 @@
-import { relative, isAbsolute } from "node:path";
+import { relative, isAbsolute, sep } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import type { TAdapters } from "../../adapters.ts";
 import type { ILocalState } from "../../state/model.ts";
@@ -41,7 +41,7 @@ export async function selectedRepos(
 }
 
 function includesCheckout(all: boolean | undefined, rel: string) {
-  return all || (!rel.startsWith("..") && !isAbsolute(rel));
+  return all || (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel));
 }
 
 function ignoreNotice() {}

@@ -18,7 +18,7 @@ for (const [manager, binary, installer, replacement] of [
     "scoop",
     "C:/Users/me/scoop/apps/envden/1/envden.exe",
     "C:/Users/me/scoop/shims/scoop.cmd",
-    "C:/Users/me/scoop/apps/envden/current/envden.exe",
+    "C:/Users/me/scoop/shims/envden.exe",
   ],
   [
     "winget",
@@ -128,7 +128,8 @@ for (const manager of ["brew", "npm", "scoop", "winget"]) {
         async () => true,
         async (args, env, managerBin) => {
           calls++;
-          expect(Boolean(managerBin)).toBe(calls === 1);
+          // The npm launcher needs the pinned Node directory on PATH during post-install.
+          expect(managerBin).toBeTruthy();
           expect(env).toBeDefined();
           if (!env) throw new Error("Expected sanitized environment");
 

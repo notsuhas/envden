@@ -21,6 +21,10 @@ test("config validates, persists and uses private paths", async () => {
       expect((await stat(paths(home).state)).mode & 0o777).toBe(0o700);
 
     expect(setConfig("bad", "on", home)).rejects.toThrow();
+    expect(setConfig("agent-merge", "on", home, false)).rejects.toThrow("requires a terminal");
+    await setConfig("agent-merge", "off", home, false);
+    await setConfig("agent-merge", "on", home, true);
+    expect((await readConfig(home))["agent-merge"]).toBe(true);
     expect(() => parseConfig({ telemetry: "yes" })).toThrow();
     expect(() => parseConfig({ unknown: true })).toThrow();
   } finally {
