@@ -15,9 +15,10 @@ percent-encoding = "2"
 unicode-normalization = "0.1"
 uuid = { version = "1", features = ["v4"] }
 path-clean = "1"
+tempfile = "3"
+
 [dev-dependencies]
 envden-testing = { path = "../../../testing" }
-tempfile = "3"
 
 [lints]
 workspace = true

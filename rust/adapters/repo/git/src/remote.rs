@@ -90,6 +90,16 @@ pub fn normalize_repo_id(remote: &str, hostname: Option<&str>) -> Result<String>
 }
 
 pub(crate) fn resolve_host(host: &str) -> Result<String> {
+    resolve_host_with(host, |command, args| {
+        let output = exec_trusted(command, args, &ISpawnOptions::default())?;
+        Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+    })
+}
+
+pub(crate) fn resolve_host_with(
+    host: &str,
+    run: impl FnOnce(&str, &[String]) -> Result<String>,
+) -> Result<String> {
     if host.starts_with('-')
         || host.is_empty()
         || !host
@@ -98,12 +108,8 @@ pub(crate) fn resolve_host(host: &str) -> Result<String> {
     {
         return Err(error("Unsafe SSH host"));
     }
-    let output = exec_trusted(
-        "ssh",
-        &["-G", "--", host].map(str::to_owned),
-        &ISpawnOptions::default(),
-    )?;
-    String::from_utf8_lossy(&output.stdout)
+    let output = run("ssh", &["-G", "--", host].map(str::to_owned))?;
+    output
         .lines()
         .find_map(|s| s.strip_prefix("hostname ").map(|s| s.trim().to_owned()))
         .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "SSH hostname resolution failed"))

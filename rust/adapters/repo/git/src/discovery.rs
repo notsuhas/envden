@@ -21,12 +21,32 @@ pub(crate) fn files(
     checkout: &ICheckout,
     rules: Option<&IEnvFileRules>,
 ) -> Result<Vec<String>> {
+    let empty = adapter.empty_global()?;
+    let safe = exec::global("^safe\\.directory$", adapter.home.as_deref())?;
+    files_with(checkout, rules, |args, input| {
+        exec::git_with_config(
+            &checkout.root,
+            args,
+            input,
+            false,
+            adapter.home.as_deref(),
+            Some(&safe),
+            &empty,
+        )
+    })
+}
+
+pub(crate) fn files_with(
+    checkout: &ICheckout,
+    rules: Option<&IEnvFileRules>,
+    mut run: impl FnMut(&[&str], Option<&str>) -> Result<String>,
+) -> Result<Vec<String>> {
     let insensitive = case::insensitive(&checkout.root, false)?;
     let key = |s: &str| {
         let s: String = s.nfc().collect();
         if insensitive { s.to_lowercase() } else { s }
     };
-    let output = adapter.git(&checkout.root, &["ls-files", "--stage", "-z"], None)?;
+    let output = run(&["ls-files", "--stage", "-z"], None)?;
     let entries: Vec<_> = output.split('\0').filter(|s| !s.is_empty()).collect();
     let submodules: HashSet<_> = entries
         .iter()
@@ -43,8 +63,7 @@ pub(crate) fn files(
     if files.is_empty() {
         return Ok(files);
     }
-    match adapter.git(
-        &checkout.root,
+    match run(
         &["check-ignore", "--stdin", "-z"],
         Some(&(files.join("\0") + "\0")),
     ) {

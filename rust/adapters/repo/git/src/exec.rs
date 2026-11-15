@@ -4,6 +4,11 @@ use envden_core::{
 };
 use std::{collections::BTreeMap, path::PathBuf, process::Output};
 
+#[cfg(test)]
+thread_local! {
+    pub(crate) static CALLS: std::cell::RefCell<Vec<(Vec<String>, Option<String>)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
 #[derive(Debug)]
 pub(crate) struct Exit(pub i32);
 impl std::fmt::Display for Exit {
@@ -40,6 +45,13 @@ fn run(
             ),
         );
     }
+    #[cfg(test)]
+    CALLS.with(|calls| {
+        calls.borrow_mut().push((
+            args.to_vec(),
+            env.get("GIT_CONFIG_GLOBAL").cloned().flatten(),
+        ))
+    });
     let result = spawn_trusted(
         "git",
         args,
@@ -61,7 +73,7 @@ fn run(
     Ok(result)
 }
 
-fn global(pattern: &str, home: Option<&str>) -> Result<Vec<(String, String)>> {
+pub(crate) fn global(pattern: &str, home: Option<&str>) -> Result<Vec<(String, String)>> {
     let result = run(
         &["config", "--global", "--null", "--get-regexp", pattern].map(str::to_owned),
         BTreeMap::from([("GIT_CONFIG_NOSYSTEM".into(), Some("1".into()))]),
@@ -85,6 +97,19 @@ pub(crate) fn git(
     rewrites: bool,
     home: Option<&str>,
 ) -> Result<String> {
+    let empty = tempfile::NamedTempFile::new().map_err(failure)?;
+    git_with_config(root, args, input, rewrites, home, None, empty.path())
+}
+
+pub(crate) fn git_with_config(
+    root: &str,
+    args: &[&str],
+    input: Option<&str>,
+    rewrites: bool,
+    home: Option<&str>,
+    safe: Option<&[(String, String)]>,
+    empty: &std::path::Path,
+) -> Result<String> {
     let mut command = Vec::new();
     for config in [
         "safe.bareRepository=explicit",
@@ -99,7 +124,11 @@ pub(crate) fn git(
     ] {
         command.extend(["-c".into(), config.into()]);
     }
-    for (key, value) in global("^safe\\.directory$", home)? {
+    let safe = match safe {
+        Some(config) => config.to_vec(),
+        None => global("^safe\\.directory$", home)?,
+    };
+    for (key, value) in safe {
         command.extend(["-c".into(), format!("{key}={value}")]);
     }
     if args.first() == Some(&"ls-files") {
@@ -113,10 +142,13 @@ pub(crate) fn git(
         ("GIT_OPTIONAL_LOCKS", "0"),
         ("GIT_PAGER", "cat"),
         ("GIT_CONFIG_NOSYSTEM", "1"),
-        ("GIT_CONFIG_GLOBAL", "/dev/null"),
     ] {
         env.insert(key.into(), Some(value.into()));
     }
+    env.insert(
+        "GIT_CONFIG_GLOBAL".into(),
+        Some(empty.to_string_lossy().into_owned()),
+    );
     if rewrites {
         let config = global("^url\\..*\\.insteadof$", home)?;
         if !config.is_empty() {

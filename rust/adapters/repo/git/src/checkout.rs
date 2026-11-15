@@ -27,20 +27,8 @@ fn id(adapter: &GitRepoAdapter, root: &str, name: &str) -> Result<String> {
 }
 
 pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<ICheckout>> {
-    let stat = fs::symlink_metadata(path).map_err(exec::failure)?;
-    let dir = if stat.is_dir() {
-        Path::new(path)
-    } else {
-        Path::new(path).parent().unwrap()
-    };
-    let root = match adapter.git(
-        &dir.to_string_lossy(),
-        &["rev-parse", "--show-toplevel"],
-        None,
-    ) {
-        Ok(s) => s.trim_end().to_owned(),
-        Err(e) if exec::exit(&e).is_some() => return Ok(None),
-        Err(e) => return Err(e),
+    let Some(root) = root_with(path, |root, args| adapter.git(root, args, None))? else {
+        return Ok(None);
     };
     let remotes = adapter.git(&root, &["remote"], None)?;
     let remotes: Vec<_> = remotes.trim().lines().filter(|s| !s.is_empty()).collect();
@@ -130,16 +118,15 @@ fn registered(adapter: &GitRepoAdapter, root: &str, common: &str) -> bool {
 }
 
 pub(crate) fn worktrees(adapter: &GitRepoAdapter, checkout: &ICheckout) -> Result<Vec<String>> {
-    let (output, sep) = match adapter.git(
-        &checkout.root,
-        &["worktree", "list", "--porcelain", "-z"],
-        None,
-    ) {
+    worktrees_with(|args| adapter.git(&checkout.root, args, None))
+}
+
+pub(crate) fn worktrees_with(
+    mut run: impl FnMut(&[&str]) -> Result<String>,
+) -> Result<Vec<String>> {
+    let (output, sep) = match run(&["worktree", "list", "--porcelain", "-z"]) {
         Ok(s) => (s, "\0"),
-        Err(_) => (
-            adapter.git(&checkout.root, &["worktree", "list", "--porcelain"], None)?,
-            "\n",
-        ),
+        Err(_) => (run(&["worktree", "list", "--porcelain"])?, "\n"),
     };
     Ok(output
         .split(&sep.repeat(2))
@@ -178,4 +165,22 @@ pub(crate) fn submodules(adapter: &GitRepoAdapter, checkout: &ICheckout) -> Resu
         .filter(|s| !s.is_empty())
         .map(|s| s.split_once('\n').map(|(_, v)| v).unwrap_or(s).to_owned())
         .collect())
+}
+
+pub(crate) fn root_with(
+    path: &str,
+    run: impl FnOnce(&str, &[&str]) -> Result<String>,
+) -> Result<Option<String>> {
+    let stat = fs::symlink_metadata(path).map_err(exec::failure)?;
+    let dir = if stat.is_dir() {
+        Path::new(path)
+    } else {
+        Path::new(path).parent().unwrap()
+    };
+    let root = match run(&dir.to_string_lossy(), &["rev-parse", "--show-toplevel"]) {
+        Ok(s) => s.trim_end().to_owned(),
+        Err(e) if exec::exit(&e).is_some() => return Ok(None),
+        Err(e) => return Err(e),
+    };
+    Ok(Some(root))
 }
