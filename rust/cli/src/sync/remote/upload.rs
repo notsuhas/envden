@@ -1,8 +1,6 @@
 use super::{content::entry_content, context::ISyncContext};
 use crate::{
-    client::text,
     links::checkout::repo::checkout_repo,
-    state::files::atomic_write,
     sync::local::{
         conflicts::conflict_records, files::read_bytes,
         reconciliation::operation::deletion::read_deletion, validation::size::file_size_notice,
@@ -22,8 +20,7 @@ pub fn upload_changes(
     let mut files = context.checkpoint.files.clone();
     let blocked = conflict_records(&context.adapters.home)?;
     let mut seen = HashSet::new();
-    let mut changed = 0;
-    let mut places = Vec::new();
+    let mut places = places::IPlaces::default();
     let mut uploaded = Vec::new();
     for link in context.state["links"].as_array().into_iter().flatten() {
         let root = link["root"].as_str().unwrap_or_default();
@@ -44,9 +41,6 @@ pub fn upload_changes(
             continue;
         }
         let id = p::file_id(&context.checkpoint.id_key, repo, path)?;
-        if !seen.insert(id) {
-            continue;
-        }
         let bytes = read_bytes(Path::new(store))?;
         if let Some(notice) = file_size_notice(path, bytes.as_deref()) {
             if let Some(report) = &context.options.report {
@@ -82,7 +76,19 @@ pub fn upload_changes(
         if bytes == baseline {
             continue;
         }
-        let next = seal(
+        places.record(
+            &context.adapters.home,
+            store,
+            if link["mode"] == "copy" {
+                Some(root)
+            } else {
+                None
+            },
+        );
+        if !seen.insert(id) {
+            continue;
+        }
+        let next = seal::seal(
             context,
             repo,
             path,
@@ -91,24 +97,12 @@ pub fn upload_changes(
             bytes.as_deref(),
         )?;
         uploaded.push(next.clone());
-        places.push(
-            crate::sync::local::files::base_path(&context.adapters.home, store, None)
-                .to_string_lossy()
-                .into_owned(),
-        );
-        if link["mode"] == "copy" {
-            places.push(
-                crate::sync::local::files::base_path(&context.adapters.home, store, Some(root))
-                    .to_string_lossy()
-                    .into_owned(),
-            );
-        }
         match files.entries.iter().position(|e| e.file_id == id) {
             Some(index) => files.entries[index] = next,
             None => files.entries.push(next),
         }
-        changed += 1;
     }
+    let changed = places.count();
     if changed == 0 {
         return Ok(0);
     }
@@ -133,7 +127,7 @@ pub fn upload_changes(
         opaque_record: None,
         approver: None,
     };
-    super::attempt::record::save_attempt(context, &uploaded, &header, places)?;
+    super::attempt::record::save_attempt(context, &uploaded, &header, places.receipts())?;
     context
         .client
         .request_bytes("/v1/swap", "POST", &p::encode(&swap)?)?;
@@ -159,54 +153,5 @@ pub fn upload_changes(
     Ok(changed)
 }
 
-fn seal(
-    context: &ISyncContext<'_>,
-    repo: &str,
-    path: &str,
-    id: [u8; 32],
-    version: u64,
-    bytes: Option<&[u8]>,
-) -> Result<p::IFileEntry> {
-    let epoch = context.checkpoint.header.body.epoch;
-    let key = &context.keys[&epoch];
-    let c = p::IFileContext {
-        vault_id: context.vault_id,
-        epoch,
-        file_id: id,
-        version,
-    };
-    let name = p::IFileName {
-        repo_id: repo.into(),
-        path: path.into(),
-    };
-    let mut hash = [0; 32];
-    if let Some(bytes) = bytes {
-        let blob = p::seal_file(
-            &p::IFile {
-                repo_id: repo.into(),
-                path: path.into(),
-                content: bytes.to_vec(),
-            },
-            key,
-            &c,
-            &p::random_bytes::<24>(),
-        )?;
-        hash = p::h("blob", &blob);
-        context
-            .client
-            .request_bytes(&format!("/v1/blobs/{}", text(&hash)), "PUT", &blob)?;
-        atomic_write(
-            &context.adapters.home.join("state/blobs").join(text(&hash)),
-            &blob,
-            (context.options.now)(),
-        )?;
-    }
-    Ok(p::IFileEntry {
-        file_id: id,
-        epoch,
-        version,
-        state: if bytes.is_some() { 1 } else { 2 },
-        blob_hash: hash,
-        name: p::seal_file_name(&name, key, &c, &p::random_bytes::<24>())?,
-    })
-}
+mod places;
+mod seal;
