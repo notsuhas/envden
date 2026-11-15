@@ -1,9 +1,10 @@
-import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { createDevice, type IDevice } from "./e2e/device.ts";
-import { failure } from "./e2e/failure.ts";
-import { PtySession } from "./e2e/pty.ts";
+import { inSync, keysOnDisk, same, statusSays } from "./e2e/checks.ts";
+import { conflictRound } from "./e2e/conflict.ts";
+import { createDevice } from "./e2e/device.ts";
+import { joinLikeAUser, setupLikeAUser } from "./e2e/onboarding.ts";
 import { run } from "./e2e/run.ts";
 import { startServer, type IServer } from "./e2e/server.ts";
 
@@ -11,130 +12,37 @@ const binary = resolve(process.argv[2] ?? "apps/cli/dist/envden");
 const root = await mkdtemp(join(tmpdir(), "envden-e2e-"));
 const password = "correct horse battery staple";
 
-const preferences = [
-  "--telemetry",
-  "off",
-  "--update-check",
-  "off",
-  "--shell",
-  "none",
-  "--agent",
-  "off",
-];
-
 const original =
   "# shared settings\nAPI_URL=https://api.example.com\n\n# keep this blank line above\nTOKEN=one\n";
 
 const edited =
   "# shared settings\nAPI_URL=https://api.example.com\n\n\n# edited on device A\nTOKEN=two # inline note\nNEW_KEY=\n";
 
-async function inSync(device: IDevice, step: string): Promise<void> {
-  const output = await run(`${device.name} status`, [binary, "status", "--json"], device.env);
-
-  const report = JSON.parse(output) as {
-    configured: boolean;
-    server: string;
-    serverChecked: boolean;
-    files: { state: string }[];
-  };
-
-  const problems = [
-    !report.configured,
-    report.server !== "reachable",
-    !report.serverChecked,
-    report.files.length === 0,
-    report.files.some((file) => file.state !== "in-sync"),
-  ];
-
-  if (problems.some(Boolean)) throw failure(`${device.name} is not in sync ${step}`, output);
-}
-
-// keys must land in the temp home, never in the runner's real keychain
-async function keysOnDisk(device: IDevice): Promise<void> {
-  const keys = await readdir(join(device.env.ENVDEN_HOME!, "state", "keys")).catch(() => []);
-
-  if (!keys.some((name) => name.endsWith(".key")))
-    throw failure(`${device.name} stored no keys under ENVDEN_HOME`, keys.join("\n"));
-}
-
-async function same(a: IDevice, b: IDevice, expected: string, step: string): Promise<void> {
-  const mine = await readFile(join(a.checkout, ".env"), "utf8");
-  const theirs = await readFile(join(b.checkout, ".env"), "utf8").catch(() => "<missing>");
-
-  if (mine !== expected || theirs !== expected)
-    throw failure(`.env differs ${step}`, `device-a:\n${mine}\ndevice-b:\n${theirs}`);
-}
-
+// the path a new user walks, answered the way they would: no flags, defaults, Enter
 async function main(server: IServer): Promise<void> {
   const a = await createDevice(root, "device-a", original);
   const b = await createDevice(root, "device-b");
 
-  const setup = new PtySession({
-    label: "device-a setup",
-    binary,
-    env: a.env,
-    args: [
-      "setup",
-      "--server",
-      server.url,
-      "--setup-token",
-      server.token,
-      "--name",
-      a.name,
-      "--kit-out",
-      join(root, "kit.json"),
-      "--scan-root",
-      a.home,
-      ...preferences,
-    ],
-  });
-
-  await setup.steps([
-    { expect: "Master password", send: `${password}\r` },
-    { expect: "Confirm master password", send: `${password}\r` },
-    { expect: "Sync env files for these checkouts", send: "\r" },
-  ]);
-
-  await setup.succeeds();
+  await setupLikeAUser(binary, a, server, password);
   await keysOnDisk(a);
-  await inSync(a, "after setup");
+  await inSync(binary, a, "after setup");
 
-  const add = new PtySession({
-    label: "device-a device add",
-    binary,
-    env: a.env,
-    args: ["device", "add"],
-  });
-
-  await add.steps([{ expect: "Master password", send: `${password}\r` }]);
-  const code = await add.expect(/\b(\d{1,3}-[0-9A-Z]{4}-[0-9A-Z]{4})\b/);
-
-  const joining = new PtySession({
-    label: "device-b join",
-    binary,
-    env: b.env,
-    args: ["join", server.url, "--name", b.name, ...preferences],
-  });
-
-  await joining.steps([{ expect: "Pairing code", send: `${code}\r` }]);
-  await add.steps([{ expect: `Add ${b.name}?`, send: "y" }]);
-  await add.succeeds();
-
-  await joining.steps([
-    { expect: "Sync env files for these checkouts", send: "\r" },
-    { expect: "Joined as" },
-  ]);
-
-  await joining.succeeds();
+  await joinLikeAUser(binary, a, b, server, password);
   await keysOnDisk(b);
   await same(a, b, original, "after join");
 
   await writeFile(join(a.checkout, ".env"), edited);
+  await statusSays(binary, a, "Changed here");
   await run("device-a push", [binary, "push", "--yes"], a.env, a.checkout);
+  await statusSays(binary, b, "Newer on server");
   await run("device-b pull", [binary, "pull", "--yes"], b.env, b.checkout);
   await same(a, b, edited, "after push and pull");
-  await inSync(a, "after push");
-  await inSync(b, "after pull");
+  await inSync(binary, a, "after push");
+  await inSync(binary, b, "after pull");
+
+  await conflictRound(binary, a, b);
+  await inSync(binary, a, "after the conflict");
+  await inSync(binary, b, "after the conflict");
 }
 
 const server = await startServer(binary, join(root, "server"), {

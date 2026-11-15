@@ -16,6 +16,29 @@ async function finished(
   return stdout;
 }
 
+export async function attempt(
+  command: string[],
+  env: Record<string, string>,
+  cwd?: string,
+): Promise<{ code: number; output: string }> {
+  // oxlint-disable-next-line envden/trusted-process -- E2E executes the build artifact inside the checkout.
+  const child = Bun.spawn(command, {
+    env,
+    ...(cwd ? { cwd } : {}),
+    stdin: "ignore",
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
+  ]);
+
+  return { code, output: `${stdout}${stderr}` };
+}
+
 export function run(
   label: string,
   command: string[],
