@@ -9,3 +9,4 @@ pub mod store;
 pub mod time;
 pub mod version;
 pub mod client;
+pub mod session;
