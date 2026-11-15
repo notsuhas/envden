@@ -70,6 +70,15 @@ fn ssh_only_executes_safe_option_terminated_hosts() {
             .code,
         ErrorCode::Internal
     );
+    for separator in [" ", "\t", "  "] {
+        assert_eq!(
+            resolve_host_with("work", |_, _| Ok(format!(
+                "user git\nhostname{separator}github.com\n"
+            )))
+            .unwrap(),
+            "github.com"
+        );
+    }
     let error = resolve_host_with("work", |_, _| {
         Err(EnvdenError::new(ErrorCode::Conflict, "ssh failed"))
     })

@@ -109,9 +109,10 @@ pub(crate) fn resolve_host_with(
         return Err(error("Unsafe SSH host"));
     }
     let output = run("ssh", &["-G", "--", host].map(str::to_owned))?;
-    output
-        .lines()
-        .find_map(|s| s.strip_prefix("hostname ").map(|s| s.trim().to_owned()))
+    regex::Regex::new(r"(?m)^hostname\s+(.+)$")
+        .unwrap()
+        .captures(&output)
+        .and_then(|captures| captures.get(1).map(|name| name.as_str().trim().to_owned()))
         .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "SSH hostname resolution failed"))
 }
 

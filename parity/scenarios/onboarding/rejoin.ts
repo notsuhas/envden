@@ -1,4 +1,6 @@
-import { setup, password, recoveryJoin } from "../../harness/onboarding.ts";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { password } from "../../harness/onboarding.ts";
 import type { Context } from "../../harness/context.ts";
 import type { IScenario } from "../../harness/types.ts";
 
@@ -6,8 +8,7 @@ export default {
   name: "rejoin-after-removal",
   roles: ["server", "device-a", "device-b"],
   async run(c) {
-    const { server, kit } = await setup(c);
-    await recoveryJoin(c, server.url, kit);
+    const { server, kit } = await prepare(c);
 
     for (const mode of ["kit", "pairing"]) {
       const remove = c.pty("device-a", ["device", "rm", "beta"]);
@@ -28,6 +29,45 @@ export default {
       result.stdout = result.stdout.replace(/^envden: beta joined with the recovery kit\n/gm, "");
   },
 } satisfies IScenario;
+
+async function prepare(c: Context) {
+  const server = await c.server();
+  await c.device("device-a");
+  const home = c.get("device-a").home;
+  const scan = join(home, "empty-scan");
+  const kit = join(home, "kit.json");
+  await mkdir(scan);
+  const setup = c.pty("device-a", [
+    "setup",
+    "--server",
+    server.url,
+    "--name",
+    "alpha",
+    "--kit-out",
+    kit,
+    "--yes",
+    "--scan-root",
+    scan,
+  ]);
+  await setup.expect("Server setup token", `${server.token}\r`);
+  await setup.expect("Master password", `${password}\r`);
+  await setup.expect("Confirm master password", `${password}\r`);
+  await c.finish("device-a", "setup", setup);
+  await c.device("device-b");
+  const recovery = c.pty("device-b", [
+    "join",
+    server.url,
+    "--name",
+    "beta",
+    "--recovery-kit",
+    kit,
+    "--yes",
+  ]);
+  await recovery.expect("Master password", `${password}\r`);
+  await c.finish("device-b", "join recovery", recovery);
+
+  return { server, kit };
+}
 
 interface IRejoin {
   address: string;
