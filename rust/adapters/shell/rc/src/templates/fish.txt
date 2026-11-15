@@ -1,0 +1,66 @@
+# >>> envden >>>
+function _envden_inside
+  set -l directory $argv[2]
+  while test -n "$directory"
+    if test "$directory" -ef "$argv[1]"
+      return 0
+    end
+    if test "$directory" = /
+      break
+    end
+    set directory (string replace -r '/[^/]*$' '' -- "$directory")
+    test -n "$directory"; or set directory /
+  end
+  return 1
+end
+function _envden_notice --on-variable PWD
+  set -l saved_status $status
+  set -l cache '/__ENVDEN_HOME__/state/notice'
+  set -l physical (pwd -P)
+  set -l approved 0
+  if test -f '/__ENVDEN_HOME__/state/approved-checkouts'
+    while read -l root
+      if test -n "$root"; and _envden_inside "$root" "$physical"
+        set approved 1
+        break
+      end
+    end < '/__ENVDEN_HOME__/state/approved-checkouts'
+  end
+  set -l offered '/__ENVDEN_HOME__/state/track-offered'
+  if test -f '/__ENVDEN_HOME__/state/track-offers'
+    while read -l root
+      if test -n "$root"; and _envden_inside "$root" "$physical"
+        if not contains -- "$root" (cat -- "$offered" 2>/dev/null)
+          printf '%s\n' 'envden: env files found; run envden track'
+          printf '%s\n' "$root" >> "$offered"
+        end
+        break
+      end
+    end < '/__ENVDEN_HOME__/state/track-offers'
+  end
+  set -l day (date +%Y-%m-%d)
+  if test -f '/__ENVDEN_HOME__/state/notice-update'
+    while read -l line
+      switch "$line"
+        case 'envden: update required; run envden update'
+          printf '%s\n' "$line"
+        case 'envden: update available; run envden update'
+          if test (cat -- '/__ENVDEN_HOME__/state/update-offered-day' 2>/dev/null; or echo missing) != "$day"
+            printf '%s\n' "$line"
+            printf '%s\n' "$day" > '/__ENVDEN_HOME__/state/update-offered-day'
+          end
+      end
+    end < '/__ENVDEN_HOME__/state/notice-update'
+  end
+  if test "$approved" = 1; and test -f "$cache"
+    env LC_ALL=C tr -cd '\11\12\40-\176' < "$cache"
+  end
+  set -l modified (stat -c %Y "$cache" 2>/dev/null; or stat -f %m "$cache" 2>/dev/null; or echo 0)
+  if test (math (date +%s) - "$modified") -gt 60
+    env -u BUN_OPTIONS -u BUN_BE_BUN '/__ENVDEN_BINARY__' status --refresh-cache </dev/null >/dev/null 2>&1 &
+    disown
+  end
+  return $saved_status
+end
+_envden_notice
+# <<< envden <<<

@@ -1,0 +1,22 @@
+[package]
+name = "envden-adapter-shell-rc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+envden-core = { path = "../../../core" }
+uuid = { version = "1", features = ["v4"] }
+rustix = { version = "1", features = ["fs", "process"] }
+regex = "1"
+path-clean = "1"
+[dev-dependencies]
+envden-testing = { path = "../../../testing" }
+tempfile = "3"
+
+[lints]
+workspace = true
+
+[dev-dependencies.serde_json]
+version = "1"
