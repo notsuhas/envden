@@ -9,18 +9,40 @@ export type TScenario = {
 } & ({ pending: true; store: null } | { pending: false; store: TValue });
 
 export function reference(input: TScenario): TValue {
-  const { store, recorded, previous, copy, base, server, pending } = input;
+  const { store, recorded, previous, copy, server } = input;
   const live = server === "absent" || server === "tombstone" ? null : server;
-  const effective = store ?? (pending ? null : live);
-  const storeEdit = isStoreEdit(store, recorded, previous);
-  const copyEdit = isCopyEdit(input, effective, live);
+  const effective = store ?? (input.pending ? null : live);
 
-  if (pending) return null;
-  if (storeEdit && (!copyEdit || base !== effective)) return store;
-  if (copyEdit) return copy;
-  if (effective === null && copy !== null && base !== null && server !== "tombstone") return copy;
+  const edits = [
+    isStoreEdit(store, recorded, previous) ? store : null,
+    isCopyEdit(input, effective, live) ? copy : null,
+  ];
 
-  return effective;
+  const owner = owned(input, effective, edits);
+
+  const onServer = (value: TValue) =>
+    server === "tombstone" ? value === null : server !== "absent" && value === server;
+
+  // A copy edited from the current store replaces it, so nothing is left to choose.
+  if (!onServer(owner) || (input.base !== null && input.base === effective)) return owner;
+
+  return edits.find((edit) => edit !== null && edit !== owner && !onServer(edit)) ?? owner;
+}
+
+function owned(input: TScenario, effective: TValue, edits: TValue[]): TValue {
+  const [storeEdit, copyEdit] = edits.map((edit) => edit !== null);
+
+  if (input.pending) return null;
+  if (storeEdit && (!copyEdit || input.base !== effective)) return input.store;
+  if (copyEdit) return input.copy;
+
+  return recovered(input, effective) ? input.copy : effective;
+}
+
+function recovered(input: TScenario, effective: TValue) {
+  return (
+    effective === null && input.copy !== null && input.base !== null && input.server !== "tombstone"
+  );
 }
 
 function isStoreEdit(store: TValue, recorded: TValue, previous: TValue) {

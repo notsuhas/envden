@@ -4,23 +4,20 @@ type TBytes = Uint8Array | undefined;
 
 type TServer = { kind: "absent" } | { kind: "live"; bytes: Uint8Array } | { kind: "tombstone" };
 
-export function deriveFileSides(input: {
+type TSidesInput = {
   storeBeforeRestore: TBytes;
   recorded: TBytes;
   previous: TBytes;
   server: TServer;
   copies: Parameters<typeof deriveFileContent>[1];
   pendingRemoval: boolean;
-}) {
+};
+
+export function deriveFileSides(input: TSidesInput) {
   const remote = input.server;
   const server = remote.kind === "live" ? remote.bytes : undefined;
   const store = input.storeBeforeRestore ?? (!input.pendingRemoval ? server : undefined);
-
-  const edited =
-    input.pendingRemoval ||
-    (input.storeBeforeRestore !== undefined &&
-      (!same(input.storeBeforeRestore, input.recorded ?? input.previous) ||
-        !same(input.storeBeforeRestore, input.previous)));
+  const edited = input.pendingRemoval || storeEdited(input);
 
   const local = deriveFileContent(
     store,
@@ -32,15 +29,36 @@ export function deriveFileSides(input: {
     edited,
   );
 
-  const mine = input.pendingRemoval
-    ? undefined
-    : local.kind === "conflict"
-      ? edited
-        ? store
-        : local.variants.find((bytes) => bytes !== undefined)
-      : local.bytes;
+  const owner = input.pendingRemoval ? undefined : ownedBytes(local, edited, store);
 
-  return { local, mine, theirs: remote };
+  return { local, mine: settledMine(local, owner, remote), theirs: remote };
+}
+
+function storeEdited(input: TSidesInput) {
+  const store = input.storeBeforeRestore;
+
+  if (store === undefined) return false;
+
+  return !same(store, input.recorded ?? input.previous) || !same(store, input.previous);
+}
+
+function ownedBytes(local: ReturnType<typeof deriveFileContent>, edited: boolean, store: TBytes) {
+  if (local.kind === "content") return local.bytes;
+
+  return edited ? store : local.variants.find((bytes) => bytes !== undefined);
+}
+
+// An owning edit the server already holds is settled, so the next differing edit needs the choice.
+function settledMine(local: ReturnType<typeof deriveFileContent>, owner: TBytes, server: TServer) {
+  if (local.kind !== "conflict" || !matchesServer(owner, server)) return owner;
+
+  return local.variants.find((bytes) => !matchesServer(bytes, server)) ?? owner;
+}
+
+function matchesServer(bytes: TBytes, server: TServer) {
+  if (server.kind === "live") return same(bytes, server.bytes);
+
+  return server.kind === "tombstone" && bytes === undefined;
 }
 
 function deriveFileContent(

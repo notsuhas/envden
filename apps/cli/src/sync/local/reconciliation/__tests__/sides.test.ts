@@ -64,7 +64,7 @@ function verify(input: TScenario) {
       : { kind: "live", bytes: bytes(server)! },
   );
 
-  if (pending) expect(result.mine).toBeUndefined();
+  if (pending && server !== "tombstone") expect(result.mine).toBeUndefined();
 
   verifyRetained(input, result);
   verifyDistinct(input, result);
@@ -86,17 +86,18 @@ function verifyRetained(input: TScenario, result: ReturnType<typeof derive>) {
 
 function verifyDistinct(input: TScenario, result: ReturnType<typeof derive>) {
   if (result.local.kind !== "conflict") return;
-  const mine = result.mine === undefined ? null : new TextDecoder().decode(result.mine);
-  const server = result.theirs.kind === "live" ? input.server : null;
+  const theirs = result.theirs.kind === "live" ? result.theirs.bytes : undefined;
 
-  // A local variant still needs a choice when the owning edit already matches the server.
-  if (mine === server) {
-    expect(input.pending || (input.store !== null && input.store === input.server)).toBe(true);
+  if (result.theirs.kind === "absent") return;
 
-    return;
-  }
+  expect({ input, same: result.mine === theirs || equalBytes(result.mine, theirs) }).toEqual({
+    input,
+    same: false,
+  });
+}
 
-  expect(result.mine).not.toEqual(result.theirs.kind === "live" ? result.theirs.bytes : undefined);
+function equalBytes(left: Uint8Array | undefined, right: Uint8Array | undefined) {
+  return left !== undefined && right !== undefined && Buffer.from(left).equals(right);
 }
 
 function unsettledStore(input: TScenario) {

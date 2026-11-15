@@ -12,7 +12,7 @@ export const cases: [
   TValue,
 ][] = [
   [
-    "store ownership can match the server while a copy needs a choice",
+    "a store edit the server already holds leaves the copy edit as mine",
     "A",
     "B",
     "B",
@@ -20,7 +20,7 @@ export const cases: [
     "C",
     "B",
     false,
-    "A",
+    "C",
   ],
   ["G1 removal outranks an unbased copy", null, null, null, "absent", "A", null, true, null],
   ["G2 server bytes cannot hide the store edit", "A", null, null, "B", "B", null, false, "A"],
@@ -52,7 +52,7 @@ export const cases: [
   ["matching copies relink without changing mine", "A", "B", "B", "C", "A", "B", false, "A"],
   ["removal survives a live server", null, "A", "A", "B", "C", "A", true, null],
   [
-    "removal survives a server tombstone and extra copy",
+    "a removal the server already holds leaves the extra copy as mine",
     null,
     "A",
     "A",
@@ -60,7 +60,7 @@ export const cases: [
     "B",
     null,
     true,
-    null,
+    "B",
   ],
   ["an empty file state stays absent", null, null, null, "absent", null, null, false, null],
   ["a changed copy can deliberately revert", "B", "B", "B", "C", "A", "B", false, "A"],
