@@ -43,10 +43,10 @@ func TestTSHelpParity(t *testing.T) {
 		})
 	}
 }
-func TestStub(t *testing.T) {
+func TestActionsRequireRuntime(t *testing.T) {
 	p := CreateProgram()
 	_, err := p.Parse([]string{"push"})
-	if !errors.Is(err, errors.NotImplemented) || err.Error() != "not implemented" {
+	if !errors.Is(err, errors.Internal) || err.Error() != "Command runtime is not configured" {
 		t.Fatal(err)
 	}
 }

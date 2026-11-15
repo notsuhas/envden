@@ -17,11 +17,14 @@ type Window struct {
 	FreshUntil    int64  `json:"freshUntil"`
 }
 type Checkout struct {
-	Root       string  `json:"root"`
-	GitDir     string  `json:"gitDir"`
-	RepoID     string  `json:"repoId"`
-	Identity   *string `json:"identity,omitempty"`
-	RootDevice *int64  `json:"rootDevice,omitempty"`
+	UpstreamRepoID     *string  `json:"upstreamRepoId,omitempty"`
+	Root               string   `json:"root"`
+	GitDir             string   `json:"gitDir"`
+	RepoID             string   `json:"repoId"`
+	Identity           *string  `json:"identity,omitempty"`
+	RootDevice         *int64   `json:"rootDevice,omitempty"`
+	RegisteredWorktree *bool    `json:"registeredWorktree,omitempty"`
+	Order              []string `json:"-"`
 }
 type Link struct {
 	Root         string  `json:"root"`

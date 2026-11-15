@@ -162,5 +162,6 @@ func (c *Client) signedRequest(ctx context.Context, path, method string, body an
 			return nil, err
 		}
 	}
+	if err = authenticated(ctx); err != nil { response.Body.Close(); return nil,err }
 	return response, nil
 }

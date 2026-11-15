@@ -28,7 +28,7 @@ for target in $targets; do
 
   # CGO off gives static binaries, so the musl targets need no separate libc build
   CGO_ENABLED=0 GOOS="$os" GOARCH="$goarch" go build -trimpath \
-    -ldflags "-s -w -X github.com/notsuhas/envden/go/cli/version.TelemetryKey=${ENVDEN_TELEMETRY_KEY:-}" \
+    -ldflags "-s -w -X github.com/notsuhas/envden/go/cli/settings.TelemetryKey=${ENVDEN_TELEMETRY_KEY:-}" \
     -o "dist/$asset" ./cmd/envden
 
   echo "built dist/$asset"

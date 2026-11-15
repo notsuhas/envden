@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/notsuhas/envden/go/core/errors"
 	"io"
+	"strings"
 )
 
 func ErrorExitCode(code errors.Code) int {
@@ -31,7 +32,12 @@ type TerminalWriter struct {
 }
 
 func (w TerminalWriter) Write(p []byte) (int, error) {
-	text := SanitizeTerminal(string(p))
+	raw := string(p)
+	newline := strings.HasSuffix(raw, "\n")
+	text := SanitizeTerminal(strings.TrimSuffix(raw, "\n"))
+	if newline {
+		text += "\n"
+	}
 	if w.Console {
 		text = SanitizeConsole(string(p))
 	}
