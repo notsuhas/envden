@@ -12,6 +12,7 @@ const end = entrypoint.indexOf("\ntimeout 5 tailscale serve", start);
 
 const script = `
 set -eu
+auth_key=\${TS_AUTHKEY:-}
 sleep() { :; }
 timeout() { shift; "$@"; }
 tailscale() {
