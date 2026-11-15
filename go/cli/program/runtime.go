@@ -15,7 +15,9 @@ func SetExecutionRoots(home string) func(*commander.Command, *commander.Command)
 				roots = append(roots, checkout.Root)
 			}
 		}
+
 		process.SetUntrustedRoots(roots)
+
 		return nil
 	}
 }

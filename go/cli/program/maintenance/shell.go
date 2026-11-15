@@ -1,9 +1,11 @@
 package maintenance
 
-import "github.com/notsuhas/envden/go/cli/program/runtime"
-import "github.com/notsuhas/envden/go/cli/agent"
-import "github.com/notsuhas/envden/go/cli/output/prompts"
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/cli/agent"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/runtime"
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func ShellCommand() *commander.Command {
 	c := commander.New("shell").Description("Manage the shell notice")
@@ -14,6 +16,7 @@ func ShellCommand() *commander.Command {
 		if e != nil {
 			return e
 		}
+
 		shell := ""
 		if len(i.Args) > 0 {
 			shell = i.Args[0]
@@ -23,6 +26,7 @@ func ShellCommand() *commander.Command {
 				return e
 			}
 		}
+
 		return agent.ManageShell(env.Adapters, i.Command.CommandName, shell)
 	})
 	c.AddCommand(c0)
@@ -33,6 +37,7 @@ func ShellCommand() *commander.Command {
 		if e != nil {
 			return e
 		}
+
 		shell := ""
 		if len(i.Args) > 0 {
 			shell = i.Args[0]
@@ -42,8 +47,10 @@ func ShellCommand() *commander.Command {
 				return e
 			}
 		}
+
 		return agent.ManageShell(env.Adapters, i.Command.CommandName, shell)
 	})
 	c.AddCommand(c1)
+
 	return c
 }

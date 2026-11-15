@@ -2,6 +2,7 @@ package restore
 
 import (
 	"fmt"
+
 	"github.com/notsuhas/envden/go/cli/history/list"
 	"github.com/notsuhas/envden/go/cli/output"
 )
@@ -13,5 +14,6 @@ func RestoreText(r Result) string {
 	case "cancelled":
 		return "Restore cancelled"
 	}
+
 	return output.SanitizeConsole(fmt.Sprintf("Restored %s to version %d as a local edit: %s\nReview it with envden diff, then run envden push to publish it", r.Path, r.Version, list.ChangesText(r.Changes)))
 }

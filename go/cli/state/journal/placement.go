@@ -2,12 +2,13 @@ package journal
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/errors"
-	"os"
-	"path/filepath"
 )
 
 func JournalPlacement(home string, state *model.State, now func() int64) error {
@@ -19,14 +20,17 @@ func JournalPlacement(home string, state *model.State, now func() int64) error {
 	if err != nil {
 		return err
 	}
+
 	path := filepath.Join(home, "state", "placement.json")
 	old, err := files.OptionalRead(path)
 	if err != nil {
 		return err
 	}
+
 	if old != nil && *old == string(b) {
 		return nil
 	}
+
 	return files.AtomicWrite(path, b, now)
 }
 
@@ -36,6 +40,7 @@ func RestorePlacement(home string, state *model.State) error {
 	if err != nil || raw == nil {
 		return err
 	}
+
 	var v struct {
 		Checkpoint string
 		Links      []model.Link
@@ -43,9 +48,11 @@ func RestorePlacement(home string, state *model.State) error {
 	if err = json.Unmarshal([]byte(*raw), &v); err != nil {
 		return errors.New(errors.InvalidData, "Invalid sync state: "+path+"; move this file aside and run envden pull")
 	}
+
 	if v.Checkpoint != state.Checkpoint || v.Links == nil {
 		return nil
 	}
+
 	for _, link := range v.Links {
 		found := false
 		for _, item := range state.Links {
@@ -54,10 +61,12 @@ func RestorePlacement(home string, state *model.State) error {
 				break
 			}
 		}
+
 		if !found {
 			state.Links = append(state.Links, link)
 		}
 	}
+
 	return nil
 }
 
@@ -66,5 +75,6 @@ func ClearPlacement(home string) error {
 	if os.IsNotExist(err) {
 		return nil
 	}
+
 	return err
 }

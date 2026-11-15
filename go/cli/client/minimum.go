@@ -2,9 +2,10 @@ package client
 
 import (
 	"context"
+	"io"
+
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/versions"
-	"io"
 )
 
 type cancelBody struct {
@@ -20,10 +21,12 @@ func (c *Client) checkServerMinimum(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	comparison, err := versions.CompareSemver(o.Version, verified.Hello.MinClient)
 	if err != nil {
 		return err
 	}
+
 	if comparison < 0 {
 		if o.LatestRelease != nil {
 			latest, e := o.LatestRelease(ctx)
@@ -34,7 +37,9 @@ func (c *Client) checkServerMinimum(ctx context.Context) error {
 				}
 			}
 		}
+
 		return errors.New(errors.ClientTooOld, "Update envden to meet the signed server minimum")
 	}
+
 	return errors.New(errors.InvalidData, "Server rejected a supported client")
 }

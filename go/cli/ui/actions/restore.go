@@ -7,5 +7,5 @@ import (
 )
 
 func DashboardRestoreOptions(a contracts.Adapters, now func() int64, target inputs.Input) restore.Options {
-	return restore.Options{Cwd: target.Root, File: target.Path, Version: uint64(target.Version), Yes: true, Interactive: true, Confirm: func(string) (bool, error) { return true, nil }, Now: now, Fetcher: a.Fetcher}
+	return restore.Options{Cwd: target.Root, File: target.Path, Version: uint64(target.Version), Yes: true, Interactive: true, Confirm: func(string) (bool, error) { return true, nil }, Now: now, Fetcher: a.Fetcher} //nolint:gosec // The dashboard input schema accepts only positive safe-integer versions.
 }

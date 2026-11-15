@@ -1,6 +1,8 @@
 package devicesandvault
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func DeviceCommand() *commander.Command {
 	c := commander.New("device").Description("Add, list, rename and remove devices")
@@ -22,5 +24,6 @@ func DeviceCommand() *commander.Command {
 	c3.AddArgument(commander.NewArgument("<device>", "Device name or ID"))
 	c3.Action(deviceRemoveAction)
 	c.AddCommand(c3)
+
 	return c
 }

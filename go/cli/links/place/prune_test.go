@@ -2,11 +2,12 @@ package place
 
 import (
 	"context"
-	"github.com/notsuhas/envden/go/cli/state/lock"
-	"github.com/notsuhas/envden/go/cli/state/model"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/cli/state/model"
 )
 
 func TestPruneRequiresPresentParent(t *testing.T) {
@@ -20,9 +21,11 @@ func TestPruneRequiresPresentParent(t *testing.T) {
 	if err := PruneMissingCheckouts(context.Background(), home, state, func(s string) { notices = append(notices, s) }, lock.Timing{Now: now}); err != nil {
 		t.Fatal(err)
 	}
+
 	if len(state.Approved) != 1 || state.Approved[0].Root != offline || len(notices) != 1 || notices[0] != "Missing checkout removed: "+gone {
 		t.Fatal(state.Approved, notices)
 	}
+
 	if _, err := os.Stat(filepath.Join(home, "state", "device.json")); err != nil {
 		t.Fatal(err)
 	}

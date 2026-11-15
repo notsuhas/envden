@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/notsuhas/envden/go/core/errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestDownloadUpdate(t *testing.T) {
@@ -29,6 +30,7 @@ func TestDownloadUpdate(t *testing.T) {
 				}
 				body = fmt.Sprintf("%x  envden-darwin-arm64\n", sum)
 			}
+
 			return &http.Response{StatusCode: status, Header: header, Body: io.NopCloser(strings.NewReader(body))}, nil
 		}
 		bytes, e := DownloadUpdate(context.Background(), fetch, "0.3.8", "darwin-arm64")

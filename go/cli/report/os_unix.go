@@ -3,8 +3,9 @@
 package report
 
 import (
-	"golang.org/x/sys/unix"
 	"strings"
+
+	"golang.org/x/sys/unix"
 )
 
 func OSRelease() string {
@@ -12,12 +13,15 @@ func OSRelease() string {
 	if unix.Uname(&info) != nil {
 		return ""
 	}
+
 	var text strings.Builder
 	for _, c := range info.Release {
 		if c == 0 {
 			break
 		}
-		text.WriteByte(byte(c))
+
+		text.WriteByte(c)
 	}
+
 	return text.String()
 }

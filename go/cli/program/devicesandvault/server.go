@@ -1,6 +1,8 @@
 package devicesandvault
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func ServerCommand() *commander.Command {
 	c := commander.New("server").Description("Move, switch or repair the server")
@@ -22,5 +24,6 @@ func ServerCommand() *commander.Command {
 	c2.AddOption(commander.NewOption("--accept-lost", "Accept the newest verified older version of a missing file"))
 	c2.Action(serverRepairAction)
 	c.AddCommand(c2)
+
 	return c
 }

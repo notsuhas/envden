@@ -7,6 +7,7 @@ import (
 )
 
 const Repository = "notsuhas/envden"
+
 const NewIssueURL = "https://github.com/" + Repository + "/issues/new"
 
 func encode(text string) string {
@@ -21,8 +22,10 @@ func encode(text string) string {
 			b.WriteByte(hex[v&15])
 		}
 	}
+
 	return b.String()
 }
+
 func IssueTitle(args []string, code string) string {
 	command := ""
 	for _, arg := range args {
@@ -31,14 +34,17 @@ func IssueTitle(args []string, code string) string {
 			break
 		}
 	}
+
 	return strings.Join(strings.Fields("envden "+command+" fails with "+code), " ")
 }
+
 func IssueURL(title, report string) string {
 	url := func(body string) string { return NewIssueURL + "?title=" + encode(title) + "&body=" + encode(body) }
 	report = strings.ToValidUTF8(report, "�")
 	if len(url(report)) <= 7000 {
 		return url(report)
 	}
+
 	suffix := "\n\n(Truncated. The full report is on the reporter's machine.)"
 	budget := 7000 - len(url(suffix))
 	units := utf16.Encode([]rune(report))
@@ -52,5 +58,6 @@ func IssueURL(title, report string) string {
 			high = middle - 1
 		}
 	}
+
 	return url(prefix(low) + suffix)
 }

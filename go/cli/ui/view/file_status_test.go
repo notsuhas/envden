@@ -1,6 +1,8 @@
 package view
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestFileStatus(t *testing.T) {
 	for _, row := range []struct {
@@ -13,12 +15,15 @@ func TestFileStatus(t *testing.T) {
 			t.Fatalf("%+v got %q", row.facts, got)
 		}
 	}
+
 	if PendingCount([]string{"in-sync", "local-only", "conflict", "remote-changes"}) != 2 {
 		t.Fatal("pending")
 	}
+
 	if MostUrgent([]string{"local-only"}) != "local-only" || MostUrgent([]string{"detached", "conflict"}) != "conflict" {
 		t.Fatal("urgency")
 	}
+
 	if SyncSummary("pull", 2, 1) != "Pulled: 2 changed, 1 conflict." || SyncSummary("push", 0, 0) != "Pushed: 0 changed, 0 conflicts." {
 		t.Fatal("summary")
 	}

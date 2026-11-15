@@ -10,6 +10,7 @@ func TestOrderAndNoHTMLEscaping(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+
 	data, e := Marshal(value)
 	if e != nil || string(data) != raw {
 		t.Fatal(string(data), e)

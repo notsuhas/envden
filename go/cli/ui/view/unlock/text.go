@@ -1,8 +1,9 @@
 package unlock
 
 import (
-	"github.com/notsuhas/envden/go/lib/datefns"
 	"time"
+
+	"github.com/notsuhas/envden/go/lib/datefns"
 )
 
 func UnlockText(unlock Unlock, now int64, date func(int64) string) string {
@@ -10,8 +11,10 @@ func UnlockText(unlock Unlock, now int64, date func(int64) string) string {
 	if unlock.Kind != "until" {
 		return fixed[unlock.Kind]
 	}
+
 	if unlock.Until <= now {
 		return fixed["locked"]
 	}
+
 	return date(unlock.Until) + " (" + datefns.FormatDistanceStrict(time.UnixMilli(unlock.Until), time.UnixMilli(now), datefns.DistanceOptions{AddSuffix: true}) + ")"
 }

@@ -1,8 +1,9 @@
 package restore
 
 import (
-	"github.com/notsuhas/envden/go/core/errors"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestRestoreGate(t *testing.T) {
@@ -18,6 +19,7 @@ func TestRestoreGate(t *testing.T) {
 		}
 	}
 }
+
 func TestRestoreRefusal(t *testing.T) {
 	for _, c := range []struct {
 		managed, local, detached, conflicted bool
@@ -33,6 +35,7 @@ func TestRestoreRefusal(t *testing.T) {
 		}
 	}
 }
+
 func TestParseVersion(t *testing.T) {
 	for _, c := range []struct {
 		value string
@@ -43,6 +46,7 @@ func TestParseVersion(t *testing.T) {
 			t.Fatal(c, got, err)
 		}
 	}
+
 	for _, v := range []string{"0", "-1", "1.5", "x", "", "01", "V3", "10000000000000000", "\u00853\u0085"} {
 		if _, err := ParseVersion(v); !errors.Is(err, errors.InvalidInput) {
 			t.Fatal(v, err)

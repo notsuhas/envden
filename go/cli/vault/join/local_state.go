@@ -11,11 +11,14 @@ func LocalState(home, vaultID string) (*model.State, error) {
 	if err != nil || state == nil || state.VaultID == "" {
 		return nil, err
 	}
+
 	if state.VaultID == vaultID {
 		return state, nil
 	}
+
 	if state.CreationPending == "" {
 		return nil, errors.New(errors.Conflict, "Device is already configured for another vault")
 	}
+
 	return nil, nil
 }

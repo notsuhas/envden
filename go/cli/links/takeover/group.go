@@ -2,12 +2,13 @@ package takeover
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/links/model"
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/links/model"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 func GroupOwnLinks(links []model.OwnLink) []model.OwnLinkGroup {
@@ -20,12 +21,15 @@ func GroupOwnLinks(links []model.OwnLink) []model.OwnLinkGroup {
 				break
 			}
 		}
+
 		if index < 0 {
 			groups = append(groups, model.OwnLinkGroup{Target: l.Target, Links: []model.OwnLink{}})
 			index = len(groups) - 1
 		}
+
 		groups[index].Links = append(groups[index].Links, l)
 	}
+
 	c := collate.New(language.English)
 	sort.SliceStable(groups, func(i, j int) bool { return c.CompareString(groups[i].Target, groups[j].Target) < 0 })
 	for i := range groups {
@@ -36,9 +40,11 @@ func GroupOwnLinks(links []model.OwnLink) []model.OwnLinkGroup {
 			if wx != wy {
 				return !wx
 			}
+
 			return c.CompareString(filepath.Join(x.Checkout.Root, x.Path), filepath.Join(y.Checkout.Root, y.Path)) < 0
 		})
 	}
+
 	return groups
 }
 
@@ -46,9 +52,11 @@ func homePath(path, home string) string {
 	if path == home {
 		return "~"
 	}
+
 	if strings.HasPrefix(path, home+string(filepath.Separator)) {
 		return "~" + strings.TrimPrefix(path, home)
 	}
+
 	return path
 }
 
@@ -56,6 +64,7 @@ func TakeoverQuestion(group model.OwnLinkGroup, home string) string {
 	if len(group.Links) == 0 {
 		return ""
 	}
+
 	first := homePath(filepath.Join(group.Links[0].Checkout.Root, group.Links[0].Path), home)
 	who := first + " links"
 	subject, object := "The checkout", "it"
@@ -64,8 +73,10 @@ func TakeoverQuestion(group model.OwnLinkGroup, home string) string {
 		if others == 1 {
 			noun = "other"
 		}
+
 		who = fmt.Sprintf("%s and %d %s link", first, others, noun)
 		subject, object = "Each checkout", "them"
 	}
+
 	return fmt.Sprintf("%s to %s. Let envden manage it? %s will use envden's synced copy instead of that file, and later edits to the file won't reach %s.", who, homePath(group.Target, home), subject, object)
 }

@@ -2,9 +2,10 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"reflect"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/jsonvalue"
 )
 
 type Server struct {
@@ -12,10 +13,12 @@ type Server struct {
 	Pin      string `json:"pin"`
 	Protocol int    `json:"protocol"`
 }
+
 type Window struct {
 	UnlockedUntil *int64 `json:"unlockedUntil"`
 	FreshUntil    int64  `json:"freshUntil"`
 }
+
 type Checkout struct {
 	UpstreamRepoID     *string  `json:"upstreamRepoId,omitempty"`
 	Root               string   `json:"root"`
@@ -26,6 +29,7 @@ type Checkout struct {
 	RegisteredWorktree *bool    `json:"registeredWorktree,omitempty"`
 	Order              []string `json:"-"`
 }
+
 type Link struct {
 	Root         string  `json:"root"`
 	Path         string  `json:"path"`
@@ -71,11 +75,14 @@ func (s *State) Record() jsonvalue.Object {
 		if tag[0] == "-" {
 			continue
 		}
+
 		if len(tag) > 1 && v.Field(i).IsZero() {
 			continue
 		}
+
 		values.Set(tag[0], v.Field(i).Interface())
 	}
+
 	result := jsonvalue.Object{}
 	for _, key := range s.Order {
 		for _, f := range values {
@@ -84,9 +91,11 @@ func (s *State) Record() jsonvalue.Object {
 			}
 		}
 	}
+
 	for _, f := range values {
 		result.Set(f.Key, f.Value)
 	}
+
 	return result
 }
 
@@ -95,16 +104,19 @@ func (s *State) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, (*plain)(s)); err != nil {
 		return err
 	}
+
 	v, err := jsonvalue.Parse(data)
 	if err != nil {
 		return err
 	}
+
 	for _, f := range v.(jsonvalue.Object) {
 		s.Order = append(s.Order, f.Key)
 		if f.Key == "aliases" {
 			s.Aliases, _ = f.Value.(jsonvalue.Object)
 		}
 	}
+
 	return nil
 }
 
@@ -117,6 +129,7 @@ func (s *State) Touch(keys ...string) {
 				break
 			}
 		}
+
 		if !found {
 			s.Order = append(s.Order, key)
 		}

@@ -1,8 +1,9 @@
 package network
 
 import (
-	"github.com/notsuhas/envden/go/core/errors"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestUnsupplied(t *testing.T) {
@@ -10,6 +11,7 @@ func TestUnsupplied(t *testing.T) {
 	if n.ID() != "unsupplied" {
 		t.Fatal(n.ID())
 	}
+
 	_, a := n.Status()
 	_, b := n.CheckHTTPSCertificate()
 	_, c := n.Expose(4783)

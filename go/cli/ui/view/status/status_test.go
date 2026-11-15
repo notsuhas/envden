@@ -2,6 +2,10 @@ package status
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/lock"
@@ -12,9 +16,6 @@ import (
 	"github.com/notsuhas/envden/go/core/merge"
 	placementfake "github.com/notsuhas/envden/go/testing/placement"
 	repofake "github.com/notsuhas/envden/go/testing/repo"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestNotConfiguredDoesNotProbe(t *testing.T) {
@@ -39,6 +40,7 @@ func TestStatusReportsKeysWithoutValues(t *testing.T) {
 	if err := store.SaveState(ctx, home, state, timing); err != nil {
 		t.Fatal(err)
 	}
+
 	a := contracts.Adapters{Home: home, Now: now, Timing: timing, Repo: repofake.CreateFakeRepoAdapter(repofake.Operations{CheckoutAt: func(string) (*adapters.Checkout, error) {
 		return &adapters.Checkout{Root: root, GitDir: root + "/.git", RepoID: "host/repo"}, nil
 	}}), Placement: func(adapters.PlacementMode, string) adapters.Placement {
@@ -51,10 +53,12 @@ func TestStatusReportsKeysWithoutValues(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	raw, err := jsonvalue.Marshal(value)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	text := string(raw)
 	if strings.Contains(text, "never-report-me") || !strings.Contains(text, `"keys":{"kind":"diff","added":["NEW"],"removed":[],"changed":[]}`) || !strings.Contains(text, `"pending":1`) || !strings.Contains(text, `"vaultId":"abcdefgh"`) {
 		t.Fatal(text)

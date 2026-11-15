@@ -1,10 +1,11 @@
 package files
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/errors"
-	"testing"
 )
 
 func TestHistoryTargets(t *testing.T) {
@@ -17,20 +18,24 @@ func TestHistoryTargets(t *testing.T) {
 	if err != nil || len(ts) != 2 || ts[0].Path != ".env" || ts[1].Path != "api/.env.local" {
 		t.Fatal(ts, err)
 	}
+
 	ts, err = HistoryTargets(s, repos, Selection{Cwd: "/", All: true})
 	if err != nil || len(ts) != 3 {
 		t.Fatal(ts, err)
 	}
+
 	file := "../app/.env.test"
 	ts, err = HistoryTargets(s, repos, Selection{Cwd: "/work/app-feature", File: &file})
 	if err != nil || len(ts) != 1 || ts[0].Link != &s.Links[3] {
 		t.Fatal(ts, err)
 	}
+
 	file = ".env.gone"
 	ts, err = HistoryTargets(s, repos, Selection{Cwd: "/work/other", File: &file})
 	if err != nil || ts[0].RepoID != "example/app" || ts[0].Link != nil {
 		t.Fatal(ts, err)
 	}
+
 	for _, c := range []struct {
 		file string
 		code errors.Code
@@ -40,6 +45,7 @@ func TestHistoryTargets(t *testing.T) {
 			t.Fatal(c, err)
 		}
 	}
+
 	file = "/work/app/api/.env"
 	if got := SelectionDirectory(Selection{Cwd: "/", File: &file}); got != "/work/app/api" {
 		t.Fatal(got)

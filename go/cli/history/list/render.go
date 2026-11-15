@@ -2,12 +2,13 @@ package list
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/output"
-	ct "github.com/notsuhas/envden/go/cli/time"
-	"golang.org/x/text/width"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/notsuhas/envden/go/cli/output"
+	clitime "github.com/notsuhas/envden/go/cli/time"
+	"golang.org/x/text/width"
 )
 
 func ChangesText(changes any) string {
@@ -15,22 +16,28 @@ func ChangesText(changes any) string {
 		if s == "unknown" {
 			return "changes unknown"
 		}
+
 		return "changed (file not parsable)"
 	}
+
 	c := changes.(KeyChanges)
 	parts := []string{}
 	if len(c.Added) > 0 {
 		parts = append(parts, "added "+strings.Join(c.Added, ", "))
 	}
+
 	if len(c.Changed) > 0 {
 		parts = append(parts, "changed "+strings.Join(c.Changed, ", "))
 	}
+
 	if len(c.Removed) > 0 {
 		parts = append(parts, "removed "+strings.Join(c.Removed, ", "))
 	}
+
 	if len(parts) == 0 {
 		return "no key changes"
 	}
+
 	return strings.Join(parts, "; ")
 }
 
@@ -38,6 +45,7 @@ func HistoryText(result Result, now int64, zone string) string {
 	if len(result.Files) == 0 {
 		return "No env files to show"
 	}
+
 	blocks := []string{}
 	for _, file := range result.Files {
 		lines := []string{file.RepoID + " " + file.Path}
@@ -45,8 +53,9 @@ func HistoryText(result Result, now int64, zone string) string {
 		for _, v := range file.Versions {
 			when := "unknown time"
 			if t, e := time.Parse(time.RFC3339Nano, v.Time); e == nil {
-				when, _ = ct.WhenText(t.UnixMilli(), now, zone)
+				when, _ = clitime.WhenText(t.UnixMilli(), now, zone)
 			}
+
 			device := v.Device
 			if device == "" {
 				device = "unknown device"
@@ -54,6 +63,7 @@ func HistoryText(result Result, now int64, zone string) string {
 					device = "removed device"
 				}
 			}
+
 			change := ChangesText(v.Changes)
 			switch v.Kind {
 			case "deleted":
@@ -63,6 +73,7 @@ func HistoryText(result Result, now int64, zone string) string {
 			case "restored":
 				change = "restored by a server repair; " + change
 			}
+
 			parts := []string{fmt.Sprintf("  v%d", v.Version), column(when, 42), column(device, 16), change}
 			for _, c := range file.Checkouts {
 				if c.Version != nil && *c.Version == v.Version {
@@ -70,28 +81,36 @@ func HistoryText(result Result, now int64, zone string) string {
 					if !single {
 						mark += " in " + c.Root
 					}
+
 					parts = append(parts, mark)
 				}
 			}
+
 			lines = append(lines, strings.Join(parts, "  "))
 		}
+
 		if len(file.Versions) == 0 {
 			lines = append(lines, "  no retained versions")
 		}
+
 		if file.Pruned {
 			lines = append(lines, "  older versions pruned")
 		}
+
 		for _, c := range file.Checkouts {
 			if c.Version == nil {
 				root := c.Root
 				if single {
 					root = "This checkout"
 				}
+
 				lines = append(lines, "  "+root+" matches no retained version")
 			}
 		}
+
 		blocks = append(blocks, strings.Join(lines, "\n"))
 	}
+
 	return output.SanitizeConsole(strings.Join(blocks, "\n\n"))
 }
 
@@ -103,6 +122,7 @@ func stringWidth(s string) int {
 		if unicode.Is(unicode.Mn, r) || unicode.Is(unicode.Me, r) || unicode.Is(unicode.Cf, r) {
 			continue
 		}
+
 		switch width.LookupRune(r).Kind() {
 		case width.EastAsianWide, width.EastAsianFullwidth:
 			n += 2
@@ -110,5 +130,6 @@ func stringWidth(s string) int {
 			n++
 		}
 	}
+
 	return n
 }

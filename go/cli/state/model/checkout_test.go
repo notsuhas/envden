@@ -13,15 +13,18 @@ func TestPreserveCheckoutJSON(t *testing.T) {
 	if err := json.Unmarshal([]byte(raw), &checkout); err != nil {
 		t.Fatal(err)
 	}
+
 	encoded, err := jsonvalue.Marshal(checkout)
 	if err != nil || string(encoded) != raw {
 		t.Fatal(string(encoded), err)
 	}
+
 	checkout.Root = "/moved"
 	encoded, err = jsonvalue.Marshal(checkout)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	var again Checkout
 	if err = json.Unmarshal(encoded, &again); err != nil || again.Root != "/moved" || again.RegisteredWorktree == nil || *again.RegisteredWorktree {
 		t.Fatal(again, err)

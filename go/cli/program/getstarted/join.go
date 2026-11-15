@@ -1,6 +1,8 @@
 package getstarted
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func JoinCommand() *commander.Command {
 	c := commander.New("join").Description("Join using a pairing code or recovery kit in your own terminal")
@@ -15,5 +17,6 @@ func JoinCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--resume", "Finish a join that was approved while this command wasn't running"))
 	c.AddArgument(commander.NewArgument("<server>", "Server address, e.g. envden.your-tailnet.ts.net"))
 	c.Action(joinAction)
+
 	return c
 }

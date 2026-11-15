@@ -9,13 +9,17 @@ func TerminalJSON(value any) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	v, err := jsonvalue.Parse(raw)
 	if err != nil {
 		return "", err
 	}
+
 	raw, err = jsonvalue.Marshal(sanitizeValue(v))
+
 	return string(raw), err
 }
+
 func sanitizeValue(v any) any {
 	switch x := v.(type) {
 	case string:

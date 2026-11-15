@@ -1,15 +1,16 @@
 package diagnostics
 
 import (
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/core/adapters"
 	key "github.com/notsuhas/envden/go/testing/keychain"
-	network "github.com/notsuhas/envden/go/testing/network"
-	shell "github.com/notsuhas/envden/go/testing/shell"
-	"os"
-	"path/filepath"
-	"testing"
+	"github.com/notsuhas/envden/go/testing/network"
+	"github.com/notsuhas/envden/go/testing/shell"
 )
 
 func TestDoctorWithFakes(t *testing.T) {
@@ -24,6 +25,7 @@ func TestDoctorWithFakes(t *testing.T) {
 	if e != nil || !r.Symlinks || !r.Keys.OwnerOnly || r.Keys.Location != "~/.envden" || len(r.Shells) != 4 || !r.Shells[0].Installed {
 		t.Fatal(r, e)
 	}
+
 	entries, e := os.ReadDir(filepath.Join(a.Home, "state"))
 	if e != nil || len(entries) != 0 {
 		t.Fatal(entries, e)

@@ -18,19 +18,24 @@ func SkippedSummary(c SkipCounts, command string) string {
 			if r.count == 1 {
 				noun = r.one
 			}
+
 			parts = append(parts, fmt.Sprintf("%d %s", r.count, noun))
 		}
 	}
+
 	if len(parts) == 0 {
 		return ""
 	}
+
 	list := parts[0]
 	if len(parts) > 1 {
 		list = strings.Join(parts[:len(parts)-1], ", ") + " and " + parts[len(parts)-1]
 	}
+
 	pronoun := "them"
 	if c.Remote+c.Identity+c.OwnLinks == 1 {
 		pronoun = "it"
 	}
+
 	return "Skipped " + list + ". Run " + command + " --verbose to list " + pronoun + "."
 }

@@ -1,6 +1,8 @@
 package devicesandvault
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func VaultCommand() *commander.Command {
 	c := commander.New("vault").Description("Re-key the vault, replace the recovery kit, or change or reset the password")
@@ -21,5 +23,6 @@ func VaultCommand() *commander.Command {
 	c21.Action(vaultAction("reset"))
 	c2.AddCommand(c21)
 	c.AddCommand(c2)
+
 	return c
 }

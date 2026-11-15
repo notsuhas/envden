@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/core/errors"
 	fake "github.com/notsuhas/envden/go/testing/shell"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestRefreshFailureDoesNotStopOtherShells(t *testing.T) {
@@ -37,6 +38,7 @@ func TestUpdateLockRefusesSecondUpdater(t *testing.T) {
 		if !errors.Is(err, errors.Conflict) || err.Error() != "Another envden update is running" {
 			t.Fatal(err)
 		}
+
 		return nil
 	})
 	if e != nil {

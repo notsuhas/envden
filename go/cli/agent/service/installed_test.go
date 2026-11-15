@@ -13,6 +13,7 @@ func TestServiceText(t *testing.T) {
 	for i, w := range words {
 		binary.LittleEndian.PutUint16(raw[i*2:], w)
 	}
+
 	for _, r := range []struct {
 		raw      []byte
 		platform string

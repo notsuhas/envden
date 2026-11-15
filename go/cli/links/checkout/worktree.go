@@ -16,14 +16,17 @@ func WorktreeApproval(state *model.State, item adapters.Checkout, clone *adapter
 	if !enabled || !registered(item) || clone == nil || registered(*clone) || clone.Root == item.Root || clone.GitDir != item.GitDir || RepoID(state, clone.RepoID) != RepoID(state, item.RepoID) {
 		return "ask"
 	}
+
 	for _, a := range state.Approved {
 		if a.Root == item.Root {
 			return "ask"
 		}
 	}
+
 	if CheckoutApproval(state, *clone) == "approved" {
 		return "approved"
 	}
+
 	return "ask"
 }
 
@@ -31,37 +34,44 @@ func AutoApprovedWorktree(a contracts.Adapters, state *model.State, item adapter
 	if !registered(item) || CheckoutApproval(state, item) != "ask" {
 		return false, nil
 	}
+
 	config, err := settings.ReadConfig(a.Home)
 	if err != nil {
 		return false, err
 	}
+
 	for _, old := range state.Approved {
 		if old.GitDir != item.GitDir || old.Root == item.Root {
 			continue
 		}
+
 		clone, err := a.Repo.CheckoutAt(old.Root)
 		if err == nil && clone != nil && !registered(*clone) {
 			return WorktreeApproval(state, item, clone, config.AutoApproveWorktrees) == "approved", nil
 		}
 	}
+
 	return false, nil
 }
 
 func AdoptWorktreeAt(a contracts.Adapters, state *model.State, path string, report func(string)) error {
 	item, err := a.Repo.CheckoutAt(path)
 	if err != nil || item == nil {
-		return nil
+		return nil //nolint:nilerr // An unreadable checkout is not eligible for automatic adoption.
 	}
+
 	approved, err := AutoApprovedWorktree(a, state, *item)
 	if err != nil {
 		return err
 	}
+
 	if approved {
 		state.Approved = append(state.Approved, ApprovalRecord(*item))
 		if report != nil {
 			report(WorktreeApprovedNotice(*item))
 		}
 	}
+
 	return nil
 }
 

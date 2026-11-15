@@ -1,9 +1,10 @@
 package render
 
 import (
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/admin/repair"
 	"github.com/notsuhas/envden/go/cli/output"
-	"strings"
 )
 
 func RepairText(r repair.Result) string {
@@ -35,5 +36,6 @@ func RepairText(r repair.Result) string {
 			lines = append(lines, "The restored server can't vouch for the current recovery kit; replace it.")
 		}
 	}
+
 	return output.SanitizeConsole(strings.Join(lines, "\n"))
 }

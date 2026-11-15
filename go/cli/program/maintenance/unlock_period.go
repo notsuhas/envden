@@ -15,23 +15,29 @@ func applyUnlockPeriod(i *commander.Invocation, env runtime.Environment, r setti
 	if e != nil {
 		return e
 	}
+
 	c, e := vault.VaultConnection(env.Context, env.Adapters, s, nil)
 	if e != nil {
 		return e
 	}
+
 	if r.Kind == "read" {
 		v, e := settings.GetUnlockPeriod(env.Context, c.Client)
 		if e != nil {
 			return e
 		}
+
 		return runtime.Print(i, render.UnlockPeriodText(v.Period))
 	}
+
 	password, e := prompts.Secret("Master password")
 	if e != nil {
 		return e
 	}
+
 	if e = settings.SetUnlockPeriod(env.Context, c.Client, c.VaultID, r.Value, password); e != nil {
 		return e
 	}
+
 	return runtime.Print(i, "unlock-period: "+r.Value)
 }

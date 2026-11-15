@@ -2,7 +2,9 @@
 
 package lock
 
-import "syscall"
+import (
+	"syscall"
+)
 
 func dead(pid int) bool { return syscall.Kill(pid, 0) == syscall.ESRCH }
 

@@ -1,6 +1,8 @@
 package status
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDeriveFileState(t *testing.T) {
 	for _, r := range []struct {

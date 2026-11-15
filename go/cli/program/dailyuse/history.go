@@ -1,6 +1,8 @@
 package dailyuse
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func HistoryCommand() *commander.Command {
 	c := commander.New("history").Description("List the versions the server keeps, or restore one as a local edit")
@@ -10,5 +12,6 @@ func HistoryCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--json", "Print the result as JSON"))
 	c.AddArgument(commander.NewArgument("[file]", "Env file path"))
 	c.Action(historyAction)
+
 	return c
 }

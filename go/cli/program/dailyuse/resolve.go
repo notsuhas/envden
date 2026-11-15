@@ -1,6 +1,8 @@
 package dailyuse
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func ResolveCommand() *commander.Command {
 	c := commander.New("resolve").Description("Keep yours, take the server's, or finish an edited conflict")
@@ -11,5 +13,6 @@ func ResolveCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--take-server", "Take the server's version"))
 	c.AddArgument(commander.NewArgument("[file]", "Conflicted env file"))
 	c.Action(resolveAction)
+
 	return c
 }

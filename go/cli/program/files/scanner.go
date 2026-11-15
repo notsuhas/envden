@@ -3,6 +3,11 @@ package files
 import (
 	"context"
 	"fmt"
+	"io"
+	"path/filepath"
+	"regexp"
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/links"
 	"github.com/notsuhas/envden/go/cli/links/checkout"
@@ -17,10 +22,6 @@ import (
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/lib/clack"
-	"io"
-	"path/filepath"
-	"regexp"
-	"strings"
 )
 
 func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr io.Writer) TrackScanner {
@@ -29,18 +30,21 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 		if err != nil {
 			return err
 		}
+
 		home := output.RealHome(a.UserHome)
 		own := []links.OwnLink{}
-		report := func(message string) { fmt.Fprintln(stderr, message) }
+		report := func(message string) { _, _ = fmt.Fprintln(stderr, message) }
 		ask := func(message string) (bool, error) {
 			initial := false
 			yes, err := terminal.Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
+
 			return yes, cancelled(err)
 		}
 		shownRoots := []string{}
 		for _, root := range o.ScanRoot {
 			shownRoots = append(shownRoots, scanShellPath(root, home))
 		}
+
 		command := "envden track " + strings.Join(shownRoots, " ")
 		dependencies := checkouts.Dependencies{
 			Find: func(state *model.State) ([]checkouts.Eligible, error) {
@@ -52,49 +56,61 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 					for _, p := range o.ScanRoot {
 						shown = append(shown, output.HomePath(output.RealHome(p), home))
 					}
+
 					spinner.Start("Looking for repos in " + strings.Join(shown, ", ") + " … 0 found")
 				}
+
 				found, err := discovery.DiscoverRepos(a.Repo, discovery.DiscoveryScope{Roots: o.ScanRoot, Home: a.UserHome}, discovery.DiscoveryEvents{Report: func(skip discovery.RepoSkip) { skips = append(skips, skip) }})
 				if err != nil {
 					if spinner != nil {
 						spinner.Clear()
 					}
+
 					return nil, err
 				}
+
 				eligible, err := discovery.EligibleCheckouts(a, state, found, repos)
 				if err != nil {
 					if spinner != nil {
 						spinner.Clear()
 					}
+
 					return nil, err
 				}
+
 				if spinner != nil {
 					noun := "repos"
 					if len(eligible) == 1 {
 						noun = "repo"
 					}
+
 					spinner.Stop(fmt.Sprintf("Found %d %s with env files", len(eligible), noun))
 				}
+
 				counts := scanrender.SkipCounts{}
 				for _, skip := range skips {
 					if o.Verbose {
 						report(output.SanitizeTerminal(output.HomePath(skip.Path, home) + ": skipped: " + skip.Reason))
 					}
+
 					if skip.Kind == "remote" {
 						counts.Remote++
 					} else {
 						counts.Identity++
 					}
 				}
+
 				if !o.Verbose {
 					if line := scanrender.SkippedSummary(counts, command); line != "" {
 						report(line)
 					}
 				}
+
 				result := []checkouts.Eligible{}
 				for _, item := range eligible {
 					result = append(result, checkouts.Eligible{Checkout: item.Checkout, Files: item.Files})
 				}
+
 				return result, nil
 			},
 			AutoApprove: func(state *model.State, item adapters.Checkout) (bool, error) {
@@ -109,33 +125,41 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 				}); err != nil {
 					return err
 				}
+
 				if err := store.SaveState(ctx, a.Home, state, a.Timing); err != nil {
 					return err
 				}
+
 				choose := func(path string) (string, error) {
 					if !interactive {
 						return "skip", nil
 					}
+
 					value, err := terminal.Select(clack.PromptOptions{Message: output.SanitizeTerminal(path + " differs from the synced copy"), Options: []clack.Option{{Value: "separate", Label: "Keep separate (local only)"}, {Value: "store", Label: "Use the synced version"}}})
+
 					return value, cancelled(err)
 				}
 				values, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Copy: o.Copy, Interactive: interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Choose: choose, Report: report})
 				own = append(own, values...)
+
 				return err
 			},
 			Finish: func(ctx context.Context, state *model.State) error {
 				confirm := func(message string) (bool, error) {
 					initial := true
 					yes, err := terminal.Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
+
 					return yes, cancelled(err)
 				}
 				if !interactive {
 					confirm = func(string) (bool, error) { return false, nil }
 				}
+
 				left, err := takeover.OfferTakeover(ctx, a, state, own, o.Copy, confirm, report)
 				if err != nil {
 					return err
 				}
+
 				if o.Verbose {
 					for _, link := range left {
 						report("envden: skipped " + output.SanitizeTerminal(output.HomePath(filepath.Join(link.Checkout.Root, link.Path), home)) + ": it links to " + output.SanitizeTerminal(link.Link) + ", and envden only syncs files it owns")
@@ -143,9 +167,11 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 				} else if line := scanrender.SkippedSummary(scanrender.SkipCounts{OwnLinks: len(left)}, command); line != "" {
 					report(line)
 				}
+
 				return nil
 			},
 		}
+
 		return cancelled(checkouts.Setup(ctx, a, state, interactive, terminal, stdout, dependencies))
 	}
 }
@@ -154,6 +180,7 @@ func cancelled(err error) error {
 	if clack.IsCancel(err) {
 		return state.PromptCancelled()
 	}
+
 	return err
 }
 
@@ -164,13 +191,16 @@ func scanShellPath(path, home string) string {
 		if regexp.MustCompile(`^[\w@%+=:,./-]+$`).MatchString(value) {
 			return value
 		}
+
 		return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 	}
 	if err != nil || strings.HasPrefix(relative, "..") {
 		return quote(absolute)
 	}
+
 	if relative == "." {
 		return "~"
 	}
+
 	return "~/" + quote(filepath.ToSlash(relative))
 }

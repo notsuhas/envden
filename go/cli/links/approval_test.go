@@ -1,10 +1,11 @@
 package links
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"testing"
 )
 
 func TestApprovalIdentityAndAlias(t *testing.T) {
@@ -16,15 +17,18 @@ func TestApprovalIdentityAndAlias(t *testing.T) {
 	if CheckoutApproval(state, item) != "approved" {
 		t.Fatal("original rejected")
 	}
+
 	item.Identity = &changed
 	if CheckoutApproval(state, item) != "ask" {
 		t.Fatal("recreated identity approved")
 	}
+
 	item.Identity = &id
 	item.RepoID = "upstream"
 	if CheckoutApproval(state, item) != "changed" {
 		t.Fatal("remote change accepted")
 	}
+
 	state.Aliases.Set("fork", "upstream")
 	if CheckoutApproval(state, item) != "approved" {
 		t.Fatal("alias rejected")
@@ -53,10 +57,12 @@ func TestForkAlias(t *testing.T) {
 	if !ShouldAskAlias(state, item, repos) {
 		t.Fatal("new fork not offered")
 	}
+
 	err := OfferForkAlias(state, item, repos, func(a, b string) (bool, error) { return false, nil })
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if ShouldAskAlias(state, item, repos) {
 		t.Fatal("declined fork asked twice")
 	}

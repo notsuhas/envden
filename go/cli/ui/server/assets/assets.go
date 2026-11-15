@@ -18,11 +18,13 @@ func PageAssets() (map[string]PageAsset, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	result := map[string]PageAsset{}
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
 		}
+
 		name := e.Name()
 		kind := ""
 		route := "/" + name
@@ -37,11 +39,14 @@ func PageAssets() (map[string]PageAsset, error) {
 		default:
 			continue
 		}
+
 		body, err := bundled.ReadFile(name)
 		if err != nil {
 			return nil, err
 		}
+
 		result[route] = PageAsset{body, kind}
 	}
+
 	return result, nil
 }

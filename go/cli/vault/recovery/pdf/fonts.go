@@ -21,8 +21,9 @@ var fontMetrics = loadMetrics()
 func loadMetrics() map[string]fontMetric {
 	var result map[string]fontMetric
 	if err := json.Unmarshal(metricsJSON, &result); err != nil {
-		panic(err)
+		panic(err) // Invalid embedded font metrics are a build defect.
 	}
+
 	return result
 }
 
@@ -31,6 +32,7 @@ func printable(value, font string) string {
 		if _, ok := fontMetrics[font].Mapping[strconv.Itoa(int(r))]; !ok {
 			return '?'
 		}
+
 		return r
 	}, value)
 }
@@ -44,6 +46,7 @@ func width(value, font string, size float64) float64 {
 		if mapping == nil {
 			mapping = metric.Mapping["63"]
 		}
+
 		name := mapping[1].(string)
 		total += metric.Widths[name]
 		if i+1 < len(chars) {
@@ -53,6 +56,7 @@ func width(value, font string, size float64) float64 {
 			}
 		}
 	}
+
 	return float64(total) * (size / 1000)
 }
 
@@ -65,7 +69,9 @@ func encodeText(value, font string) string {
 		if len(hex) == 1 {
 			result.WriteByte('0')
 		}
+
 		result.WriteString(hex)
 	}
+
 	return result.String()
 }

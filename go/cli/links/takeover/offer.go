@@ -2,11 +2,12 @@ package takeover
 
 import (
 	"context"
+	"path/filepath"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	linkmodel "github.com/notsuhas/envden/go/cli/links/model"
 	"github.com/notsuhas/envden/go/cli/links/takeover/target"
 	"github.com/notsuhas/envden/go/cli/state/model"
-	"path/filepath"
 )
 
 func OfferTakeover(ctx context.Context, a contracts.Adapters, state *model.State, links []linkmodel.OwnLink, copy bool, ask func(string) (bool, error), report func(string)) ([]linkmodel.OwnLink, error) {
@@ -14,6 +15,7 @@ func OfferTakeover(ctx context.Context, a contracts.Adapters, state *model.State
 	if err != nil {
 		home = a.UserHome
 	}
+
 	left := []linkmodel.OwnLink{}
 	for _, group := range GroupOwnLinks(links) {
 		yes := false
@@ -23,11 +25,13 @@ func OfferTakeover(ctx context.Context, a contracts.Adapters, state *model.State
 				return nil, err
 			}
 		}
+
 		if yes {
 			left = append(left, AdoptGroup(ctx, a, state, group, copy, report)...)
 		} else {
 			left = append(left, group.Links...)
 		}
 	}
+
 	return left, nil
 }

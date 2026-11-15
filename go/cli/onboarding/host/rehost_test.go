@@ -3,15 +3,16 @@ package host
 import (
 	"context"
 	"encoding/binary"
-	"github.com/notsuhas/envden/go/cli/contracts"
-	service "github.com/notsuhas/envden/go/cli/host"
-	"github.com/notsuhas/envden/go/cli/state/lock"
-	"github.com/notsuhas/envden/go/cli/state/model"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"unicode/utf16"
+
+	"github.com/notsuhas/envden/go/cli/contracts"
+	service "github.com/notsuhas/envden/go/cli/host"
+	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/cli/state/model"
 )
 
 func TestRehostKeepsInstalledPort(t *testing.T) {
@@ -20,10 +21,12 @@ func TestRehostKeepsInstalledPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	path := service.ServiceFile(runtime.GOOS, root, root)
 	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		t.Fatal(err)
 	}
+
 	raw := []byte(definition.Content)
 	if runtime.GOOS == "windows" {
 		raw = nil
@@ -31,12 +34,15 @@ func TestRehostKeepsInstalledPort(t *testing.T) {
 			raw = binary.LittleEndian.AppendUint16(raw, unit)
 		}
 	}
+
 	if err = os.WriteFile(path, raw, 0600); err != nil {
 		t.Fatal(err)
 	}
+
 	ports := []int{}
 	a := contracts.Adapters{Home: root, UserHome: root, Timing: lock.Timing{Now: func() int64 { return 1800000000000 }}, HostServer: func(port int) (service.Installed, error) {
 		ports = append(ports, port)
+
 		return service.Installed{}, nil
 	}, ServerPort: func() (int, error) { t.Fatal("must retain installed port"); return 0, nil }}
 	state := model.EmptyState("laptop")
@@ -44,6 +50,7 @@ func TestRehostKeepsInstalledPort(t *testing.T) {
 	if err = RehostServer(context.Background(), a, state); err != nil {
 		t.Fatal(err)
 	}
+
 	if len(ports) != 1 || ports[0] != 4783 {
 		t.Fatal(ports)
 	}

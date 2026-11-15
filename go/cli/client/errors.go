@@ -2,11 +2,12 @@ package client
 
 import (
 	"encoding/json"
-	"github.com/notsuhas/envden/go/core/errors"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/errors"
+	serverprotocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 )
 
 var messages = map[errors.Code]string{
@@ -35,26 +36,31 @@ var messages = map[errors.Code]string{
 }
 
 func ResponseError(response *http.Response, path string) error {
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }() // Best-effort cleanup must not replace the operation result.
 	raw, err := io.ReadAll(response.Body)
 	if err != nil {
 		return errors.New(errors.InvalidData, "Invalid server response")
 	}
+
 	var head struct{ Kind string }
 	if json.Unmarshal(raw, &head) == nil && head.Kind == "head-moved" {
 		return errors.New(errors.HeadMoved, messages[errors.HeadMoved])
 	}
-	parsed, err := p.ErrorResponseSchema.Decode(raw)
+
+	parsed, err := serverprotocol.ErrorResponseSchema.Decode(raw)
 	if err != nil {
 		return errors.New(errors.InvalidData, "Invalid server response")
 	}
+
 	code := errors.Code(parsed.Error)
 	message := messages[code]
 	if strings.HasPrefix(path, "/v1/pairing/") && (code == errors.NotFound || code == errors.Conflict || code == errors.Unauthorized) {
 		message = "Pairing code expired or already used. Run envden device add for a new one"
 	}
+
 	if strings.HasPrefix(path, "/v1/opaque/login/") && code == errors.Unauthorized {
 		message = "Login expired or the vault moved. Check the server address and try again"
 	}
+
 	return errors.New(code, message)
 }

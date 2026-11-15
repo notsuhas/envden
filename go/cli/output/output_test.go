@@ -1,9 +1,10 @@
 package output
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/core/errors"
-	"testing"
 )
 
 func TestOutput(t *testing.T) {
@@ -11,10 +12,12 @@ func TestOutput(t *testing.T) {
 	if got := SanitizeTerminal(unsafe); got != "repo/name" {
 		t.Fatal(got)
 	}
+
 	got, e := TerminalJSON(jsonvalue.Object{{Key: "path", Value: unsafe}})
 	if e != nil || got != `{"path":"repo/name"}` {
 		t.Fatal(got, e)
 	}
+
 	for _, row := range []struct {
 		code errors.Code
 		want int
@@ -23,6 +26,7 @@ func TestOutput(t *testing.T) {
 			t.Fatal(row)
 		}
 	}
+
 	if SanitizeConsole("a\n\tb\x1b") != "a\n\tb" {
 		t.Fatal("console whitespace")
 	}

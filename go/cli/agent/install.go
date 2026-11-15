@@ -1,12 +1,13 @@
 package agent
 
 import (
-	"github.com/notsuhas/envden/go/cli/host"
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/host"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 const skill = `---
@@ -33,26 +34,33 @@ func InstallAgent(userHome string, now func() int64) error {
 	if e != nil && !os.IsNotExist(e) {
 		return e
 	}
+
 	if e == nil && !regexp.MustCompile(`(?m)^name: envden$`).MatchString(strings.SplitN(string(raw), "\n---", 2)[0]) {
 		return errors.New(errors.Conflict, "~/.agents/skills/envden already holds a different skill")
 	}
+
 	if e = host.WriteThrough(file, []byte(skill), now); e != nil {
 		return e
 	}
-	if e = os.MkdirAll(filepath.Dir(link), 0777); e != nil {
+
+	if e = os.MkdirAll(filepath.Dir(link), 0777); e != nil { //nolint:gosec // Match TS directory creation permissions; the process umask applies.
 		return e
 	}
+
 	_, e = os.Lstat(link)
 	if os.IsNotExist(e) {
 		return os.Symlink(target, link)
 	}
+
 	if e != nil {
 		return e
 	}
+
 	real, e := filepath.EvalSymlinks(link)
 	dest, d := filepath.EvalSymlinks(target)
 	if e != nil || d != nil || real != dest {
 		return errors.New(errors.Conflict, "~/.claude/skills/envden already holds a different skill")
 	}
+
 	return nil
 }

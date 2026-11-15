@@ -2,11 +2,12 @@ package session
 
 import (
 	"context"
+	"io"
+
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/errors"
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	"io"
+	serverprotocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 )
 
 func RecordUnlockWindow(ctx context.Context, c *client.Client, state *model.State) error {
@@ -14,18 +15,23 @@ func RecordUnlockWindow(ctx context.Context, c *client.Client, state *model.Stat
 	if errors.Is(err, errors.Locked) || errors.Is(err, errors.RestoredMode) {
 		return nil
 	}
+
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+
+	defer func() { _ = response.Body.Close() }() // Best-effort cleanup must not replace the operation result.
 	raw, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
-	window, err := p.UnlockWindowSchema.Decode(raw)
+
+	window, err := serverprotocol.UnlockWindowSchema.Decode(raw)
 	if err != nil {
 		return err
 	}
+
 	state.Session = &model.Window{UnlockedUntil: window.UnlockedUntil, FreshUntil: window.FreshUntil}
+
 	return nil
 }

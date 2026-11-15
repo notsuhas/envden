@@ -1,6 +1,8 @@
 package program
 
 import (
+	"io"
+
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/program/dailyuse"
 	"github.com/notsuhas/envden/go/cli/program/devicesandvault"
@@ -9,12 +11,11 @@ import (
 	"github.com/notsuhas/envden/go/cli/program/maintenance"
 	"github.com/notsuhas/envden/go/cli/version"
 	"github.com/notsuhas/envden/go/lib/commander"
-	"io"
 )
 
 func CreateProgram() *commander.Command {
 	c := commander.New("envden").Description("Encrypted whole-file env sync over your private network").Version(version.Version)
-	c.OutputError = func(message string, w io.Writer) { io.WriteString(w, output.SanitizeTerminal(message)+"\n") }
+	c.OutputError = func(message string, w io.Writer) { _, _ = io.WriteString(w, output.SanitizeTerminal(message)+"\n") }
 	c.CommandsGroup("Get started:")
 	c.AddCommand(getstarted.SetupCommand())
 	c.AddCommand(getstarted.JoinCommand())
@@ -45,5 +46,6 @@ func CreateProgram() *commander.Command {
 	c.AddCommand(maintenance.ShellCommand())
 	c.AddCommand(maintenance.ServeCommand())
 	c.AddCommand(maintenance.VersionCommand())
+
 	return c
 }

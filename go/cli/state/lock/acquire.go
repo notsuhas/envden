@@ -1,10 +1,11 @@
 package lock
 
 import (
-	"github.com/google/uuid"
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
+
+	"github.com/google/uuid"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 type Timing struct {
@@ -19,12 +20,15 @@ func AcquireLock(path string, timing Timing) error {
 		if err != nil {
 			return err
 		}
+
 		if ok {
 			return nil
 		}
+
 		if attempt >= len(timing.Delays) {
 			return errors.New(errors.Conflict, "State is locked; retry after the other command finishes")
 		}
+
 		if err := timing.Wait(timing.Delays[attempt]); err != nil {
 			return err
 		}
@@ -36,13 +40,16 @@ func tryAcquire(path string, now int64) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
+
 	if !os.IsExist(err) {
 		return false, err
 	}
+
 	s, err := os.Lstat(path)
 	if err != nil || !s.IsDir() {
-		return false, nil
+		return false, nil //nolint:nilerr // An unreadable or fresh lock cannot be reclaimed.
 	}
+
 	previous := ReadOwner(path)
 	expired := false
 	if previous == nil {
@@ -54,54 +61,69 @@ func tryAcquire(path string, now int64) (bool, error) {
 		if identity != "" && identity == previous.Identity {
 			observed = ProcessStart(previous.PID)
 		}
+
 		expired = Reclaimable(*previous, observed, identity, now)
 	}
+
 	if !expired {
 		return false, nil
 	}
+
 	token := ""
 	if previous != nil {
 		token = previous.Token
 	}
+
 	ok, err := ReclaimLock(path, token, now, nil)
 	if err != nil || !ok {
 		return false, err
 	}
+
 	return tryAcquire(path, now)
 }
 
 func ReclaimLock(path, token string, now int64, beforeRename func() error) (bool, error) {
 	guard := filepath.Join(path, "reclaim")
-	if err := os.Mkdir(guard, 0777); err != nil {
+	if err := os.Mkdir(guard, 0777); err != nil { //nolint:gosec // Match TS directory creation permissions; the process umask applies.
 		s, e := os.Lstat(guard)
 		if e != nil || now-s.ModTime().UnixMilli() < 30000 {
-			return false, nil
+			return false, nil //nolint:nilerr // An unreadable or fresh lock cannot be reclaimed.
 		}
+
 		if err = os.RemoveAll(guard); err != nil {
 			return false, err
 		}
+
 		return ReclaimLock(path, token, now, beforeRename)
 	}
+
 	if ownerToken(path) != token {
-		os.RemoveAll(guard)
+		_ = os.RemoveAll(guard) // Best-effort cleanup preserves the original operation result.
+
 		return false, nil
 	}
+
 	if beforeRename != nil {
 		if err := beforeRename(); err != nil {
 			return false, err
 		}
 	}
+
 	abandoned := path + "." + uuid.NewString() + ".abandoned"
 	if err := os.Rename(path, abandoned); err != nil {
 		return false, err
 	}
+
 	if ownerToken(abandoned) != token {
 		if err := os.Rename(abandoned, path); err != nil {
 			return false, err
 		}
-		os.RemoveAll(guard)
+
+		_ = os.RemoveAll(guard) // Best-effort cleanup preserves the original operation result.
+
 		return false, nil
 	}
+
 	return true, os.RemoveAll(abandoned)
 }
 
@@ -109,5 +131,6 @@ func ownerToken(path string) string {
 	if o := ReadOwner(path); o != nil {
 		return o.Token
 	}
+
 	return ""
 }

@@ -2,12 +2,13 @@ package lock
 
 import (
 	"encoding/json"
-	"github.com/notsuhas/envden/go/core/process"
 	"os"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/process"
 )
 
 type Process struct {
@@ -20,13 +21,16 @@ func LinuxStart(stat string) string {
 	if end < 0 {
 		return ""
 	}
+
 	fields := strings.Fields(stat[end+1:])
 	if len(fields) <= 19 {
 		return ""
 	}
+
 	if !regexp.MustCompile(`^\d+$`).MatchString(fields[19]) {
 		return ""
 	}
+
 	return fields[19]
 }
 
@@ -34,6 +38,7 @@ func ProcessStart(pid int) Process {
 	if runtime.GOOS == "windows" {
 		return windowsStart(pid)
 	}
+
 	var started string
 	if runtime.GOOS == "linux" {
 		data, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/stat")
@@ -46,12 +51,15 @@ func ProcessStart(pid int) Process {
 			started = strings.TrimSpace(result.Stdout)
 		}
 	}
+
 	if started != "" {
 		return Process{"live", started}
 	}
+
 	if dead(pid) {
 		return Process{Kind: "dead"}
 	}
+
 	return Process{Kind: "unknown"}
 }
 
@@ -60,8 +68,10 @@ func ProcessIdentity() string {
 	if err != nil {
 		return ""
 	}
+
 	boot, namespace := "", ""
-	if runtime.GOOS == "linux" {
+	switch runtime.GOOS {
+	case "linux":
 		b, e := os.ReadFile("/proc/sys/kernel/random/boot_id")
 		if e != nil {
 			return ""
@@ -71,7 +81,7 @@ func ProcessIdentity() string {
 		if e != nil {
 			return ""
 		}
-	} else if runtime.GOOS == "darwin" {
+	case "darwin":
 		result, e := process.ExecTrusted("sysctl", []string{"-n", "kern.boottime"}, process.Options{})
 		b := []byte(result.Stdout)
 		if e != nil {
@@ -83,21 +93,25 @@ func ProcessIdentity() string {
 		}
 		boot = m[1] + ":" + m[2]
 	}
+
 	if runtime.GOOS == "windows" {
 		result, e := process.ExecTrusted("powershell", []string{"-NoProfile", "-NonInteractive", "-Command", "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks"}, process.Options{})
 		if e != nil {
 			return ""
 		}
+
 		boot = strings.TrimSpace(result.Stdout)
 	}
 
 	if boot == "" {
 		return ""
 	}
+
 	b, _ := json.Marshal(struct {
 		Host      string `json:"host"`
 		Boot      string `json:"boot"`
 		Namespace string `json:"namespace"`
 	}{host, boot, namespace})
+
 	return string(b)
 }

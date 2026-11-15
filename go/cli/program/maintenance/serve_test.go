@@ -1,6 +1,8 @@
 package maintenance
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestParsePort(t *testing.T) {
 	for _, r := range []struct {
@@ -12,6 +14,7 @@ func TestParsePort(t *testing.T) {
 		if (e == nil) != r.valid || r.valid && port != r.port {
 			t.Fatal(r, port, e)
 		}
+
 		if e != nil && e.Error() != "Expected a port from 0 (any free port) to 65535." {
 			t.Fatal(e)
 		}

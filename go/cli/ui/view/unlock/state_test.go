@@ -1,6 +1,8 @@
 package unlock
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDeriveUnlock(t *testing.T) {
 	future, past, period := int64(200), int64(50), int64(30)

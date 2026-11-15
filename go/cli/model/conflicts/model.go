@@ -1,6 +1,8 @@
 package conflicts
 
-import "github.com/notsuhas/envden/go/cli/state/model"
+import (
+	"github.com/notsuhas/envden/go/cli/state/model"
+)
 
 type Record struct {
 	JSONOrder    []string     `json:"-"`

@@ -7,14 +7,13 @@ import (
 	"strings"
 )
 
-func NewToken() string { return base64.RawURLEncoding.EncodeToString(randBytes()) }
-
-func randBytes() []byte {
+func NewToken() (string, error) {
 	value := make([]byte, 32)
 	if _, err := rand.Read(value); err != nil {
-		panic(err)
+		return "", err
 	}
-	return value
+
+	return base64.RawURLEncoding.EncodeToString(value), nil
 }
 
 func TokenMatches(authorization, token string) bool {
@@ -22,5 +21,6 @@ func TokenMatches(authorization, token string) bool {
 	if strings.HasPrefix(authorization, "Bearer ") {
 		presented = strings.TrimPrefix(authorization, "Bearer ")
 	}
+
 	return subtle.ConstantTimeCompare([]byte(presented), []byte(token)) == 1
 }

@@ -1,11 +1,14 @@
 package rejoin
 
-import "context"
+import (
+	"context"
+)
 
 type Options struct {
 	RecoveryKit string
 	Recovery    bool
 }
+
 type Actions struct {
 	Recovery KitJoin
 	Pairing  func(context.Context, bool) error
@@ -22,5 +25,6 @@ func RunRejoin(ctx context.Context, o Options, a Actions) error {
 			return err
 		}
 	}
+
 	return a.Complete(ctx)
 }

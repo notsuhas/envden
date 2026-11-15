@@ -1,6 +1,8 @@
 package rejoin
 
-import "context"
+import (
+	"context"
+)
 
 type KitJoin func(context.Context, bool) error
 

@@ -2,11 +2,12 @@ package devices
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/admin/shared"
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/client/routes"
 	"github.com/notsuhas/envden/go/cli/contracts"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type Device struct {
@@ -23,19 +24,22 @@ func ListDevices(ctx context.Context, a contracts.Adapters, now func() int64, fe
 	if err != nil {
 		return nil, err
 	}
+
 	h, err := shared.CurrentHistory(ctx, c)
 	if err != nil {
 		return nil, err
 	}
+
 	holders := RecoveryHolders(h)
 	seen, err := routes.Do(ctx, c.Client, routes.Devices, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	result := []Device{}
 	for _, key := range h.State.DeviceOrder {
 		d := h.State.Devices[key]
-		item := Device{ID: b.Base32(d.Id), Name: d.Name, Unconfirmed: true, RecoveryKeyHeld: holders[b.Base32(d.Id)], Current: b.Equal(d.Id, c.Identity.Record.Id)}
+		item := Device{ID: encoding.Base32(d.Id), Name: d.Name, Unconfirmed: true, RecoveryKeyHeld: holders[encoding.Base32(d.Id)], Current: encoding.Equal(d.Id, c.Identity.Record.Id)}
 		for _, s := range seen.Devices {
 			if s.Id == client.Text(d.Id) {
 				item.ClientVersion = s.ClientVersion
@@ -43,7 +47,9 @@ func ListDevices(ctx context.Context, a contracts.Adapters, now func() int64, fe
 				break
 			}
 		}
+
 		result = append(result, item)
 	}
+
 	return result, nil
 }

@@ -2,6 +2,7 @@ package versions
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/admin/shared"
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
@@ -19,13 +20,16 @@ func HistorySource(ctx context.Context, a contracts.Adapters, now func() int64, 
 	if err != nil {
 		return Source{}, err
 	}
+
 	h, err := shared.CurrentHistory(ctx, c)
 	if err != nil {
 		return Source{}, err
 	}
+
 	material, err := shared.CurrentMaterial(ctx, c, h)
 	if err != nil {
 		return Source{}, err
 	}
+
 	return Source{c, h, material.Keys, material.Ring.IdKey}, nil
 }

@@ -3,8 +3,11 @@ package onboarding
 import (
 	"context"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
-	host "github.com/notsuhas/envden/go/cli/onboarding/host"
+	"github.com/notsuhas/envden/go/cli/onboarding/host"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
@@ -13,8 +16,6 @@ import (
 	"github.com/notsuhas/envden/go/cli/vault/recovery"
 	"github.com/notsuhas/envden/go/cli/vault/setup"
 	"github.com/notsuhas/envden/go/core/errors"
-	"io"
-	"strings"
 )
 
 type SetupOptions struct {
@@ -41,16 +42,19 @@ func RunSetup(ctx context.Context, a contracts.Adapters, o SetupOptions, p Promp
 		if err != nil {
 			return err
 		}
+
 		if existing != nil && existing.VaultID != "" && existing.CreationPending == "" {
 			if o.HostServer {
 				rehost := e.Rehost
 				if rehost == nil {
 					rehost = host.RehostServer
 				}
+
 				if err = rehost(ctx, a, existing); err != nil {
 					return err
 				}
 			}
+
 			result = existing
 			if err = UpdatePreferences(ctx, a, o.Preferences, p, e.InstallAgent); err != nil {
 				return err
@@ -61,21 +65,26 @@ func RunSetup(ctx context.Context, a contracts.Adapters, o SetupOptions, p Promp
 				return err
 			}
 		}
+
 		if e.Checkouts != nil {
 			if err = e.Checkouts(ctx, a, result, o); err != nil {
 				return err
 			}
 		}
+
 		if e.PushInitial != nil {
 			if err = e.PushInitial(ctx, a, result); err != nil {
 				return err
 			}
 		}
+
 		if e.RefreshNotice != nil {
 			return e.RefreshNotice(ctx, a, result)
 		}
+
 		return nil
 	})
+
 	return result, err
 }
 
@@ -84,19 +93,23 @@ func createState(ctx context.Context, a contracts.Adapters, o SetupOptions, p Pr
 	if err != nil {
 		return nil, err
 	}
+
 	if o.Server != "" {
 		address = o.Server
 	}
+
 	if address == "" {
 		address, err = p.Input("Server address", "", true, AddressProblem)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	address, err = RequireServerAddress(address)
 	if err != nil {
 		return nil, err
 	}
+
 	token := hostedToken
 	if token == "" {
 		token, err = readToken(o.SetupToken, p, stdin)
@@ -104,60 +117,77 @@ func createState(ctx context.Context, a contracts.Adapters, o SetupOptions, p Pr
 			return nil, err
 		}
 	}
+
 	if !hosted {
 		if err = checkServer(ctx, a, address, token); err != nil {
 			return nil, err
 		}
 	}
+
 	deviceName, err := askName(o.Name, a.Hostname, p)
 	if err != nil {
 		return nil, err
 	}
+
 	attempts := 1
 	if p.Interactive {
 		attempts = 3
 	}
+
 	password, err := ConfirmedPassword(func(label string) (string, error) { return p.Secret(label, nil) }, attempts, p.Stderr)
 	if err != nil {
 		return nil, err
 	}
+
 	result, err := setup.SetupVault(ctx, a, setup.Options{Address: address, Token: token, Name: deviceName, Password: password, Now: a.Now,
 		ReadResumeSecretKey: func() (string, error) {
 			if existing == nil || existing.VaultID == "" {
 				return "", nil
 			}
+
 			if o.KitOut != "" {
 				saved, err := files.OptionalRead(o.KitOut)
 				if err != nil || saved == nil {
 					return "", err
 				}
+
 				kit, err := recovery.ParseKit(*saved)
+
 				return kit.SecretKey, err
 			}
+
 			has, err := p.Consent("Setup stopped after giving you a recovery kit. Do you still have it?", true)
 			if err != nil || !has {
 				return "", err
 			}
+
 			key, err := p.Secret("Secret key from that kit (EK1-…)", recovery.SecretKeyProblem)
+
 			return strings.TrimSpace(key), err
 		}, OnKit: func(kit vault.SetupKit) error {
 			if o.KitOut != "" {
 				if err := recovery.WriteKit(o.KitOut, kit); err != nil {
 					return err
 				}
-				fmt.Fprintf(stdout, "Recovery kit saved to %s\n", o.KitOut)
+
+				_, _ = fmt.Fprintf(stdout, "Recovery kit saved to %s\n", o.KitOut)
+
 				return nil
 			}
+
 			if e.ReportKit != nil {
 				return e.ReportKit(kit, deviceName)
 			}
+
 			return errors.New(errors.NotImplemented, "Recovery kit PDF writer is not configured")
 		}})
 	if err != nil {
 		return nil, err
 	}
+
 	if err = SetupPreferences(ctx, a, o.Preferences, p, e.InstallAgent); err != nil {
 		return nil, err
 	}
+
 	return result.State, store.SaveState(ctx, a.Home, result.State, a.Timing)
 }

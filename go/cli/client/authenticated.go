@@ -1,6 +1,8 @@
 package client
 
-import "context"
+import (
+	"context"
+)
 
 type authenticatedKey struct{}
 
@@ -12,5 +14,6 @@ func authenticated(ctx context.Context) error {
 	if callback, ok := ctx.Value(authenticatedKey{}).(func() error); ok {
 		return callback()
 	}
+
 	return nil
 }

@@ -14,9 +14,11 @@ func TestHistoryText(t *testing.T) {
 			t.Fatalf("missing %q in %q", want, got)
 		}
 	}
+
 	if strings.Contains(got, "\x1b") {
 		t.Fatal("terminal escape was not sanitized")
 	}
+
 	if got := HistoryText(Result{}, 0, ""); got != "No env files to show" {
 		t.Fatal(got)
 	}

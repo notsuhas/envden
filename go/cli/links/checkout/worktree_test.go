@@ -1,9 +1,10 @@
 package checkout
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"testing"
 )
 
 func TestWorktreeApproval(t *testing.T) {

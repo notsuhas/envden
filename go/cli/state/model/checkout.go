@@ -11,10 +11,12 @@ func (c *Checkout) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, (*plain)(c)); err != nil {
 		return err
 	}
+
 	parsed, err := jsonvalue.Parse(data)
 	if err != nil {
 		return err
 	}
+
 	c.Order = nil
 	for _, field := range parsed.(jsonvalue.Object) {
 		c.Order = append(c.Order, field.Key)
@@ -29,10 +31,12 @@ func (c Checkout) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	parsed, err := jsonvalue.Parse(raw)
 	if err != nil {
 		return nil, err
 	}
+
 	values := parsed.(jsonvalue.Object)
 	ordered := jsonvalue.Object{}
 	for _, key := range c.Order {
@@ -42,6 +46,7 @@ func (c Checkout) MarshalJSON() ([]byte, error) {
 			}
 		}
 	}
+
 	for _, field := range values {
 		ordered.Set(field.Key, field.Value)
 	}

@@ -3,15 +3,16 @@ package program
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/core/errors"
-	"net/http"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestMaintenanceLifecycle(t *testing.T) {
@@ -32,6 +33,7 @@ func TestMaintenanceLifecycle(t *testing.T) {
 		} else if e != nil {
 			t.Fatal(r.args, e)
 		}
+
 		if stdout.String() != r.want || stderr.Len() != 0 {
 			t.Fatal(r.args, stdout.String(), stderr.String())
 		}
@@ -48,9 +50,11 @@ func TestNoTelemetryForHelpOrCacheRefresh(t *testing.T) {
 	if e := files.PrivateDirectory(home); e != nil {
 		t.Fatal(e)
 	}
+
 	if e := os.WriteFile(filepath.Join(home, "config.json"), []byte(`{"telemetry":true}`), 0600); e != nil {
 		t.Fatal(e)
 	}
+
 	sent := []string{}
 	for _, args := range [][]string{{"--help"}, {"version"}, {"status", "--refresh-cache"}} {
 		var stdout, stderr bytes.Buffer
@@ -59,6 +63,7 @@ func TestNoTelemetryForHelpOrCacheRefresh(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
+
 	if len(sent) != 1 {
 		t.Fatal(sent)
 	}

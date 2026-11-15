@@ -13,8 +13,10 @@ func Fit(value string, reserved int) string {
 		if length+size > 64-reserved {
 			return value[:i]
 		}
+
 		length += size
 	}
+
 	return value
 }
 
@@ -23,6 +25,7 @@ func Suggested(hostname string) string {
 		if unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Cf, r) {
 			return -1
 		}
+
 		return r
 	}, hostname)
 	host = strings.Split(host, ".")[0]
@@ -30,6 +33,7 @@ func Suggested(hostname string) string {
 	if value == "" {
 		return "device"
 	}
+
 	return value
 }
 
@@ -38,9 +42,11 @@ func Unique(value string, taken []string) string {
 	for _, n := range taken {
 		names[n] = true
 	}
+
 	if !names[value] {
 		return value
 	}
+
 	for n := 2; ; n++ {
 		suffix := "-" + strconv.Itoa(n)
 		candidate := Fit(value, len(suffix)) + suffix

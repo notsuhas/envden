@@ -1,8 +1,9 @@
 package diff
 
 import (
-	"github.com/notsuhas/envden/go/cli/status"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/status"
 )
 
 func TestStatusText(t *testing.T) {
@@ -12,11 +13,13 @@ func TestStatusText(t *testing.T) {
 	if got := StatusText(r, p); got != "In sync: 1 repo, 1 env file. Server reachable." {
 		t.Fatal(got)
 	}
+
 	r.Files = []status.File{{Root: p.Cwd, Path: ".env", State: "diverged"}, {Root: "/home/me/api", Path: ".env", State: "changed"}, {Root: "/srv/web", Path: ".env", State: "remote"}, {Root: p.Cwd, Path: "a/.env", State: "conflict"}, {Root: p.Cwd, Path: "b/.env", State: "held-back", Reason: "checkout needs approval"}}
 	want := "Server: reachable\nChanged here (run envden push): .env, ~/api/.env\nNewer on server (run envden pull): .env, /srv/web/.env\nConflicts (run envden resolve --list): a/.env\nHeld back: b/.env: checkout needs approval"
 	if got := StatusText(r, p); got != want {
 		t.Fatal(got)
 	}
+
 	r.Server = "unreachable"
 	r.ServerReason = "connection refused"
 	r.Files = nil

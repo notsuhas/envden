@@ -2,10 +2,11 @@ package lock
 
 import (
 	"context"
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestLockAndReentrancy(t *testing.T) {
@@ -17,18 +18,22 @@ func TestLockAndReentrancy(t *testing.T) {
 		if o == nil || o.PID != os.Getpid() || o.Token == "" {
 			t.Fatal(o)
 		}
+
 		if e := WithStateLock(context.Background(), home, timing, func(context.Context) error { return nil }); !errors.Is(e, errors.Conflict) {
 			t.Fatal(e)
 		}
+
 		return WithStateLock(ctx, home, timing, func(context.Context) error { return nil })
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if _, e := os.Lstat(path); !os.IsNotExist(e) {
 		t.Fatal(e)
 	}
 }
+
 func TestReclaimable(t *testing.T) {
 	same := `{"host":"h","boot":"a","namespace":"n"}`
 	old := Owner{PID: 1, StartedAt: "old", Identity: same, CreatedAt: 0}
@@ -43,12 +48,22 @@ func TestReclaimable(t *testing.T) {
 		}
 	}
 }
+
 func TestOwnerRejectsLinks(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "lock")
-	os.Mkdir(path, 0700)
-	os.WriteFile(filepath.Join(root, "target"), []byte(`{"pid":1,"startedAt":"a","token":"t","createdAt":0}`), 0600)
-	os.Symlink(filepath.Join(root, "target"), filepath.Join(path, "owner.json"))
+	if err := os.Mkdir(path, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(root, "target"), []byte(`{"pid":1,"startedAt":"a","token":"t","createdAt":0}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Symlink(filepath.Join(root, "target"), filepath.Join(path, "owner.json")); err != nil {
+		t.Fatal(err)
+	}
+
 	if ReadOwner(path) != nil {
 		t.Fatal("symlink owner accepted")
 	}

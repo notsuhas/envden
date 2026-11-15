@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestAdapterWiring(t *testing.T) {
@@ -13,22 +14,33 @@ func TestAdapterWiring(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+
 	if a.Network.ID() != "unsupplied" || a.Repo.ID() != "git" || a.Keychain.ID() != "file" || a.Executable != "/opt/homebrew/bin/envden" {
 		t.Fatal(a)
 	}
+
 	if _, e = a.Network.Status(); !errors.Is(e, errors.Internal) {
 		t.Fatal(e)
 	}
+
 	slot := "envden/" + a.Home + "/device"
 	value, e := a.Keychain.Get(slot, false)
 	if e != nil || value != nil {
 		t.Fatal(value, e)
 	}
-	os.MkdirAll(filepath.Join(home, "state"), 0700)
-	os.WriteFile(filepath.Join(home, "state", "device.json"), []byte("{}"), 0600)
+
+	if err := os.MkdirAll(filepath.Join(home, "state"), 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(home, "state", "device.json"), []byte("{}"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
 	if _, e = a.Keychain.Get(slot, false); !errors.Is(e, errors.Locked) {
 		t.Fatal(e)
 	}
+
 	if a.ServerPort == nil || a.LocalSetupToken == nil || a.HostServer == nil || a.Timing.Now() != 0 {
 		t.Fatal("missing hook")
 	}

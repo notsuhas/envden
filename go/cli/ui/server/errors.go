@@ -1,6 +1,8 @@
 package server
 
-import "github.com/notsuhas/envden/go/core/errors"
+import (
+	"github.com/notsuhas/envden/go/core/errors"
+)
 
 type ErrorResponse struct {
 	Error   errors.Code `json:"error"`
@@ -32,5 +34,6 @@ func ErrorBody(err error) ErrorResponse {
 	if e, ok := errors.As(err); ok {
 		return ErrorResponse{e.Code, e.Message}
 	}
+
 	return ErrorResponse{errors.Internal, "envden ui hit an internal error"}
 }

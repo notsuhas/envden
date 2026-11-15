@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/links"
 	"github.com/notsuhas/envden/go/cli/links/checkout"
@@ -18,8 +21,6 @@ import (
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"io"
-	"strings"
 )
 
 func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.State, o onboarding.SetupOptions, p onboarding.Prompts, stdout io.Writer) error {
@@ -33,6 +34,7 @@ func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.Stat
 			if roots == nil {
 				roots = []string{a.UserHome}
 			}
+
 			var progress interface{ Stop(string) }
 			if p.Interactive {
 				spinner := p.Terminal.Spinner()
@@ -40,66 +42,79 @@ func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.Stat
 				for _, root := range roots {
 					shown = append(shown, output.HomePath(output.RealHome(root), a.UserHome))
 				}
+
 				spinner.Start("Looking for repos in " + strings.Join(shown, ", ") + " … 0 found")
 				progress = spinner
 			}
+
 			skips := []discovery.RepoSkip{}
 			repos, err := discovery.DiscoverRepos(a.Repo, discovery.DiscoveryScope{Roots: roots, Excluded: o.ExcludeRoot, Home: a.UserHome}, discovery.DiscoveryEvents{Report: func(skip discovery.RepoSkip) { skips = append(skips, skip) }})
 			if err != nil {
 				return nil, err
 			}
+
 			config, err := settings.ReadConfig(a.Home)
 			if err != nil {
 				return nil, err
 			}
+
 			var rules *adapters.EnvFileRules
 			if config.EnvFiles != nil {
 				raw, err := json.Marshal(config.EnvFiles)
 				if err != nil {
 					return nil, err
 				}
+
 				rules = &adapters.EnvFileRules{}
 				if err = json.Unmarshal(raw, rules); err != nil {
 					return nil, err
 				}
 			}
+
 			stored, err = vaultRepos(a, state)
 			if err != nil {
 				return nil, err
 			}
+
 			eligible := []checkouts.Eligible{}
 			for _, item := range repos {
 				files, err := a.Repo.EnvFiles(item, rules)
 				if err != nil {
 					return nil, err
 				}
+
 				id := checkout.RepoID(state, item.RepoID)
 				if len(files) > 0 || stored[id] {
 					eligible = append(eligible, checkouts.Eligible{Checkout: item, Files: files})
 				}
 			}
+
 			if progress != nil {
 				word := "repos"
 				if len(eligible) == 1 {
 					word = "repo"
 				}
+
 				progress.Stop(fmt.Sprintf("Found %d %s with env files", len(eligible), word))
 			}
+
 			counts := scanrender.SkipCounts{}
 			for _, skip := range skips {
 				if o.Verbose {
-					fmt.Fprintln(p.Stderr, scanrender.RepoSkipLine(skip.Path, skip.Reason, a.UserHome))
+					_, _ = fmt.Fprintln(p.Stderr, scanrender.RepoSkipLine(skip.Path, skip.Reason, a.UserHome))
 				} else if skip.Kind == "remote" {
 					counts.Remote++
 				} else {
 					counts.Identity++
 				}
 			}
+
 			if !o.Verbose {
 				if summary := scanrender.SkippedSummary(counts, command); summary != "" {
-					fmt.Fprintln(p.Stderr, summary)
+					_, _ = fmt.Fprintln(p.Stderr, summary)
 				}
 			}
+
 			return eligible, nil
 		}, AutoApprove: func(state *model.State, item adapters.Checkout) (bool, error) {
 			return checkout.AutoApprovedWorktree(a, state, item)
@@ -113,26 +128,32 @@ func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.Stat
 			}); err != nil {
 				return err
 			}
+
 			if err := store.SaveState(ctx, a.Home, state, a.Timing); err != nil {
 				return err
 			}
-			found, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Interactive: p.Interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Report: func(line string) { fmt.Fprintln(p.Stderr, line) }})
+
+			found, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Interactive: p.Interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Report: func(line string) { _, _ = fmt.Fprintln(p.Stderr, line) }})
 			own = append(own, found...)
+
 			return err
 		}, Finish: func(ctx context.Context, state *model.State) error {
-			left, err := takeover.OfferTakeover(ctx, a, state, own, false, ask, func(line string) { fmt.Fprintln(p.Stderr, line) })
+			left, err := takeover.OfferTakeover(ctx, a, state, own, false, ask, func(line string) { _, _ = fmt.Fprintln(p.Stderr, line) })
 			if err != nil {
 				return err
 			}
+
 			if o.Verbose {
 				for _, link := range left {
-					fmt.Fprintln(p.Stderr, scanrender.OwnLinkLine(link.Checkout.Root, link.Path, link.Link, a.UserHome))
+					_, _ = fmt.Fprintln(p.Stderr, scanrender.OwnLinkLine(link.Checkout.Root, link.Path, link.Link, a.UserHome))
 				}
 			} else if summary := scanrender.SkippedSummary(scanrender.SkipCounts{OwnLinks: len(left)}, command); summary != "" {
-				fmt.Fprintln(p.Stderr, summary)
+				_, _ = fmt.Fprintln(p.Stderr, summary)
 			}
+
 			return nil
 		},
 	}
+
 	return checkouts.Setup(ctx, a, state, p.Interactive, p.Terminal, stdout, d)
 }

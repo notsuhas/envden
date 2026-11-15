@@ -14,7 +14,9 @@ func TestRunRejoin(t *testing.T) {
 				if !rejoin {
 					t.Fatal("missing rejoin flag")
 				}
+
 				steps = append(steps, name)
+
 				return nil
 			}
 		}
@@ -23,6 +25,7 @@ func TestRunRejoin(t *testing.T) {
 		if options.Recovery || options.RecoveryKit != "" {
 			want = "kit"
 		}
+
 		if err != nil || !reflect.DeepEqual(steps, []string{want, "complete"}) {
 			t.Fatal(steps, err)
 		}

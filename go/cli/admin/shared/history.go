@@ -2,14 +2,15 @@ package shared
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/vault"
 	"github.com/notsuhas/envden/go/core/errors"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type History = vault.History
@@ -24,32 +25,38 @@ func CheckFloor(local *model.State, history History) error {
 		if err != nil {
 			return err
 		}
-		stored, err := b.Decode(b.SignedCodec(m.ManifestHeaderCodec), raw)
+
+		stored, err := encoding.Decode(encoding.SignedCodec(manifests.ManifestHeaderCodec), raw)
 		if err != nil {
 			return err
 		}
-		var remote *b.Signed[m.ManifestHeader]
+
+		var remote *encoding.Signed[manifests.ManifestHeader]
 		for i := range history.Headers {
 			if history.Headers[i].Body.Seq == stored.Body.Seq {
 				remote = &history.Headers[i]
 				break
 			}
 		}
+
 		if remote == nil {
 			return errors.New(errors.Rollback, "Server is behind this device; run envden server repair")
 		}
-		if !b.Equal(HeaderHash(stored), HeaderHash(*remote)) {
+
+		if !encoding.Equal(HeaderHash(stored), HeaderHash(*remote)) {
 			return errors.New(errors.Fork, "Server history conflicts with stored headers")
 		}
 	}
+
 	return nil
 }
 
-func HeaderHash(h b.Signed[m.ManifestHeader]) []byte {
-	return b.Must(crypto.ObjectHash(m.ManifestHeaderCodec, h, "manifest"))
+func HeaderHash(h encoding.Signed[manifests.ManifestHeader]) []byte {
+	return encoding.Must(crypto.ObjectHash(manifests.ManifestHeaderCodec, h, "manifest"))
 }
-func EntryHash(e b.Signed[c.Entry]) []byte {
-	return b.Must(crypto.ObjectHash(c.EntryCodec, e, "entry"))
+
+func EntryHash(e encoding.Signed[codecs.Entry]) []byte {
+	return encoding.Must(crypto.ObjectHash(codecs.EntryCodec, e, "entry"))
 }
 
 func CurrentHistory(ctx context.Context, c *Context) (History, error) {
@@ -57,5 +64,6 @@ func CurrentHistory(ctx context.Context, c *Context) (History, error) {
 	if err == nil {
 		err = CheckFloor(c.Local, h)
 	}
+
 	return h, err
 }

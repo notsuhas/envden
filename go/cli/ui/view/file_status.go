@@ -1,6 +1,8 @@
 package view
 
-import "slices"
+import (
+	"slices"
+)
 
 type FileFacts struct {
 	LocalOnly                           bool
@@ -36,6 +38,7 @@ func PendingCount(statuses []string) int {
 			count++
 		}
 	}
+
 	return count
 }
 
@@ -45,5 +48,6 @@ func MostUrgent(statuses []string) string {
 			return s
 		}
 	}
+
 	return "in-sync"
 }

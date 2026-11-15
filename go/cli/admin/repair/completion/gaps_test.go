@@ -1,6 +1,8 @@
 package completion
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDeriveGapAction(t *testing.T) {
 	for _, c := range []struct {

@@ -2,12 +2,13 @@ package discovery
 
 import (
 	"fmt"
+	"sync"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/adapters"
 	fake "github.com/notsuhas/envden/go/testing/repo"
-	"sync"
-	"testing"
 )
 
 func TestEligibleRetainsInputOrderWithConcurrentChecks(t *testing.T) {
@@ -15,6 +16,7 @@ func TestEligibleRetainsInputOrderWithConcurrentChecks(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		repos = append(repos, adapters.Checkout{Root: fmt.Sprint(i), RepoID: fmt.Sprint(i)})
 	}
+
 	gate := make(chan struct{})
 	var once sync.Once
 	var mu sync.Mutex
@@ -25,9 +27,11 @@ func TestEligibleRetainsInputOrderWithConcurrentChecks(t *testing.T) {
 		if running > peak {
 			peak = running
 		}
+
 		if running == 8 {
 			once.Do(func() { close(gate) })
 		}
+
 		mu.Unlock()
 		<-gate
 		mu.Lock()
@@ -36,23 +40,28 @@ func TestEligibleRetainsInputOrderWithConcurrentChecks(t *testing.T) {
 		if c.Root == "3" {
 			return []string{}, nil
 		}
+
 		return []string{".env"}, nil
 	}})
 	got, err := EligibleCheckouts(contracts.Adapters{Home: t.TempDir(), Repo: repo}, model.EmptyState("x"), repos, map[string]bool{})
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if peak != 8 || len(got) != 19 {
 		t.Fatal(peak, len(got))
 	}
+
 	index := 0
 	for i := range repos {
 		if i == 3 {
 			continue
 		}
+
 		if got[index].Checkout.Root != repos[i].Root {
 			t.Fatal("order changed")
 		}
+
 		index++
 	}
 }

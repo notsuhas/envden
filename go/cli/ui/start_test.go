@@ -3,11 +3,12 @@ package ui
 import (
 	"context"
 	"encoding/base64"
-	"github.com/notsuhas/envden/go/core/errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestDashboardRefusesUnattendedAndBadPorts(t *testing.T) {
@@ -17,6 +18,7 @@ func TestDashboardRefusesUnattendedAndBadPorts(t *testing.T) {
 			t.Fatal(port, err)
 		}
 	}
+
 	_, err := RunDashboard(context.Background(), DashboardOptions{})
 	if !errors.Is(err, errors.InvalidInput) {
 		t.Fatal(err)
@@ -32,25 +34,35 @@ func TestDashboardServesBeforeReportingAndStops(t *testing.T) {
 		if !ok {
 			t.Fatal(url)
 		}
+
 		decoded, err := base64.RawURLEncoding.DecodeString(token)
 		if err != nil || len(decoded) != 32 {
 			t.Fatal("token", err)
 		}
-		response, err := http.Get(base)
+
+		response, err := http.Get(base) //nolint:gosec // The URL points at the test loopback dashboard.
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer response.Body.Close()
+
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				t.Error(err)
+			}
+		}()
 		body, err := io.ReadAll(response.Body)
 		if err != nil || response.StatusCode != 200 || !strings.Contains(string(body), "envden ui") {
 			t.Fatal(response.StatusCode, err)
 		}
+
 		cancel()
+
 		return false
 	}})
 	if err != nil || result.Kind != "stopped" {
 		t.Fatal(result, err)
 	}
+
 	if len(lines) != 3 || lines[1] != "Press Ctrl-C to stop." || lines[2] != "Could not open a browser; open the link above." {
 		t.Fatal(lines)
 	}

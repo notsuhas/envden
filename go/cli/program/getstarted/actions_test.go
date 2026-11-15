@@ -1,9 +1,10 @@
 package getstarted
 
 import (
-	"github.com/notsuhas/envden/go/cli/onboarding"
 	"reflect"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/onboarding"
 )
 
 func TestMissingSetupFlags(t *testing.T) {
@@ -11,6 +12,7 @@ func TestMissingSetupFlags(t *testing.T) {
 	if got := missingSetupFlags(false, onboarding.SetupOptions{}); !reflect.DeepEqual(got, want) {
 		t.Fatal(got)
 	}
+
 	for _, row := range []struct {
 		interactive bool
 		o           onboarding.SetupOptions

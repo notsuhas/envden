@@ -2,14 +2,15 @@ package repair
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/admin/shared"
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
-	r "github.com/notsuhas/envden/go/core/chain/repair"
+	"github.com/notsuhas/envden/go/core/chain/repair"
 	"github.com/notsuhas/envden/go/core/errors"
-	s "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	serverprotocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/proofs"
 )
 
@@ -23,28 +24,35 @@ func RepairContext(ctx context.Context, a contracts.Adapters, text string, now f
 	if err != nil {
 		return nil, err
 	}
+
 	key, err := proofs.TokenKey("repair", token.Secret)
 	if err != nil {
 		return nil, err
 	}
-	c, err := shared.AdminContext(ctx, a, now, fetch, func(request s.Request) ([]byte, error) { return proofs.TokenProof("repair", key, request) })
+
+	c, err := shared.AdminContext(ctx, a, now, fetch, func(request serverprotocol.Request) ([]byte, error) { return proofs.TokenProof("repair", key, request) })
 	if err != nil {
 		return nil, err
 	}
+
 	pin, err := client.Binary(c.Local.Server.Pin)
 	if err != nil {
 		return nil, err
 	}
-	if !b.Equal(pin, token.ServerPin) {
+
+	if !encoding.Equal(pin, token.ServerPin) {
 		return nil, errors.New(errors.InvalidInput, "Repair token is for another server")
 	}
+
 	_, chain, err := LocalRepairChain(c.Local.Entries)
 	if err != nil {
 		return nil, err
 	}
+
 	id := crypto.H("repair-id", token.Secret)
-	if chain.Kind != "valid" || r.IsReusedRepairToken(id, chain.State.RepairIds) {
+	if chain.Kind != "valid" || repair.IsReusedRepairToken(id, chain.State.RepairIds) {
 		return nil, errors.New(errors.InvalidData, "Repair token was already used")
 	}
+
 	return &Context{c, id}, nil
 }

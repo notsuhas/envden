@@ -2,9 +2,10 @@ package output
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/core/errors"
 	"io"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func ErrorExitCode(code errors.Code) int {
@@ -19,10 +20,11 @@ func ErrorExitCode(code errors.Code) int {
 }
 
 func ReportError(w io.Writer, err error) int {
-	fmt.Fprintln(w, SanitizeTerminal(err.Error()))
+	_, _ = fmt.Fprintln(w, SanitizeTerminal(err.Error()))
 	if e, ok := errors.As(err); ok {
 		return ErrorExitCode(e.Code)
 	}
+
 	return 1
 }
 
@@ -38,9 +40,12 @@ func (w TerminalWriter) Write(p []byte) (int, error) {
 	if newline {
 		text += "\n"
 	}
+
 	if w.Console {
 		text = SanitizeConsole(string(p))
 	}
+
 	_, err := io.WriteString(w.Writer, text)
+
 	return len(p), err
 }

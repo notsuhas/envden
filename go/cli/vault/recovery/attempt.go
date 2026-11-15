@@ -2,6 +2,7 @@ package recovery
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/state/lock"
@@ -19,7 +20,9 @@ func KitJoin(ctx context.Context, a contracts.Adapters, o JoinOptions) (*model.S
 	err := lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
 		var err error
 		result, err = client.RetryHead(func() (*model.State, error) { return attemptKitJoin(ctx, a, o) })
+
 		return err
 	})
+
 	return result, err
 }

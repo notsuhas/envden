@@ -3,13 +3,14 @@ package files
 import (
 	"bytes"
 	"context"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
-	"testing"
 )
 
 func TestTrackActionPassesChoicesUnderReentrantLock(t *testing.T) {
@@ -22,12 +23,14 @@ func TestTrackActionPassesChoicesUnderReentrantLock(t *testing.T) {
 	if err := store.SaveState(ctx, a.Home, state, a.Timing); err != nil {
 		t.Fatal(err)
 	}
+
 	called := false
 	command := TrackCommand(func(ctx context.Context, a contracts.Adapters, state *model.State, o TrackOptions) error {
 		called = true
 		if !o.Copy || !o.Verbose || len(o.ScanRoot) != 1 || o.ScanRoot[0] != "/repo" || o.Command != "track" || o.Now() != 100 {
 			t.Fatal(o)
 		}
+
 		return store.SaveState(ctx, a.Home, state, a.Timing)
 	})
 	runtime.Bind(command, runtime.Environment{Context: ctx, Adapters: a})
@@ -35,6 +38,7 @@ func TestTrackActionPassesChoicesUnderReentrantLock(t *testing.T) {
 	if _, err := command.Parse([]string{"/repo", "--copy", "--verbose"}); err != nil {
 		t.Fatal(err)
 	}
+
 	if !called {
 		t.Fatal("scanner not called")
 	}
@@ -47,6 +51,7 @@ func TestPromptWriterPreservesControlBytes(t *testing.T) {
 	if _, err := writer.Write([]byte(control)); err != nil {
 		t.Fatal(err)
 	}
+
 	if buffer.String() != control {
 		t.Fatal("terminal controls sanitized")
 	}

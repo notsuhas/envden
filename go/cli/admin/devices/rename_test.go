@@ -1,9 +1,10 @@
 package devices
 
 import (
-	"github.com/notsuhas/envden/go/core/protocol/codecs/members"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/protocol/codecs/members"
 )
 
 func TestRenameCheck(t *testing.T) {

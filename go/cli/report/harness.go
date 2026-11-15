@@ -10,12 +10,15 @@ func DetectHarnesses(which func(string) string) []Harness {
 			result = append(result, h)
 		}
 	}
+
 	return result
 }
+
 func LaunchCommand(h Harness, prompt string) []string {
 	command := []string{h.Path}
 	if h.ID == "gemini" {
 		command = append(command, "-i")
 	}
+
 	return append(command, prompt)
 }

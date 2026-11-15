@@ -1,6 +1,8 @@
 package inputs
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestInputs(t *testing.T) {
 	for _, row := range []struct {

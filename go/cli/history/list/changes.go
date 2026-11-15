@@ -30,16 +30,20 @@ func VersionChanges(content [][]byte, complete bool) []any {
 			result = append(result, "unknown")
 			continue
 		}
+
 		var previous []byte
 		if i+1 < len(content) {
 			previous = content[i+1]
 		}
+
 		diff := merge.DiffEnvKeys(previous, current)
 		if diff.Kind == "conflict" {
 			result = append(result, "unparsed")
 			continue
 		}
+
 		result = append(result, KeyChanges{diff.Added, diff.Changed, diff.Removed})
 	}
+
 	return result
 }

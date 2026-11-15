@@ -2,6 +2,7 @@ package unlock
 
 import (
 	"context"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state/store"
@@ -22,8 +23,10 @@ func ProbeUnlock(ctx context.Context, a contracts.Adapters) Probe {
 			}
 		}
 	}
+
 	if errors.Is(err, errors.Locked) {
 		return Probe{Kind: "locked"}
 	}
+
 	return Probe{Kind: "unreachable"}
 }

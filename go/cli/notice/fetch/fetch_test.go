@@ -14,9 +14,16 @@ func TestBoundedFetch(t *testing.T) {
 	fetch, stop := BoundedFetch(ctx, func(*http.Request) (*http.Response, error) { t.Fatal("cancelled fetch called"); return nil, nil })
 	defer stop()
 	request, _ := http.NewRequestWithContext(context.Background(), "GET", "https://example.invalid", nil)
-	if _, e := fetch(request); e == nil {
+	cancelled, e := fetch(request)
+	if cancelled != nil {
+		if err := cancelled.Body.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if e == nil {
 		t.Fatal("deadline ignored")
 	}
+
 	fetch, stop = BoundedFetch(context.Background(), func(r *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader("body"))}, nil
 	})
@@ -25,8 +32,11 @@ func TestBoundedFetch(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+
 	raw, e := io.ReadAll(response.Body)
-	response.Body.Close()
+	if err := response.Body.Close(); err != nil {
+		t.Fatal(err)
+	}
 	if e != nil || string(raw) != "body" {
 		t.Fatal(string(raw), e)
 	}

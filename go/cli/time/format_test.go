@@ -13,6 +13,7 @@ func TestFormat(t *testing.T) {
 			t.Fatal(got, e)
 		}
 	}
+
 	for _, row := range []struct {
 		now  int64
 		want string
@@ -21,6 +22,7 @@ func TestFormat(t *testing.T) {
 			t.Fatal(got)
 		}
 	}
+
 	got, e := WhenText(at, at+3600000, "Asia/Kolkata")
 	if e != nil || got != "1 hour ago (2027-01-15 13:30 GMT+5:30)" {
 		t.Fatal(got, e)

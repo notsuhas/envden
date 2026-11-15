@@ -1,9 +1,10 @@
 package checkout
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"testing"
 )
 
 func TestApprovalRecordMatchesGitCheckoutJSON(t *testing.T) {
@@ -16,6 +17,7 @@ func TestApprovalRecordMatchesGitCheckoutJSON(t *testing.T) {
 	if err != nil || string(raw) != want {
 		t.Fatal(string(raw), err)
 	}
+
 	upstream := "host/upstream"
 	item := adapters.Checkout{Root: "/repo", RepoID: "fork", GitDir: "/repo/.git", UpstreamRepoID: &upstream}
 	raw, err = jsonvalue.Marshal(ApprovalRecord(item))

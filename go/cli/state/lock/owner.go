@@ -2,9 +2,10 @@ package lock
 
 import (
 	"encoding/json"
-	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"os"
 	"path/filepath"
+
+	"github.com/notsuhas/envden/go/cli/jsonvalue"
 )
 
 type Owner struct {
@@ -20,34 +21,41 @@ func ReadOwner(path string) *Owner {
 	if err != nil || !d.IsDir() {
 		return nil
 	}
+
 	p := filepath.Join(path, "owner.json")
 	s, err := os.Lstat(p)
 	if err != nil || !s.Mode().IsRegular() {
 		return nil
 	}
+
 	f, err := os.Open(p)
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+
+	defer func() { _ = f.Close() }() // Best-effort cleanup must not replace the operation result.
 	info, err := f.Stat()
 	if err != nil || !os.SameFile(s, info) {
 		return nil
 	}
+
 	var v map[string]json.RawMessage
 	if json.NewDecoder(f).Decode(&v) != nil {
 		return nil
 	}
+
 	for _, key := range []string{"pid", "token", "startedAt", "createdAt"} {
 		if v[key] == nil {
 			return nil
 		}
 	}
+
 	b, _ := json.Marshal(v)
 	var value Owner
 	if json.Unmarshal(b, &value) != nil || value.PID <= 0 {
 		return nil
 	}
+
 	return &value
 }
 
@@ -59,8 +67,10 @@ func Reclaimable(previous Owner, observed Process, identity string, now int64) b
 				return true
 			}
 		}
+
 		return now-previous.CreatedAt >= 86400000
 	}
+
 	return observed.Kind == "dead" || observed.Kind == "live" && observed.StartedAt != previous.StartedAt
 }
 
@@ -70,20 +80,25 @@ func PublishOwner(path string, value Owner) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(temporary)
+
+	defer func() { _ = os.Remove(temporary) }() // Best-effort cleanup must not replace the operation result.
 	b, err := jsonvalue.Marshal(value)
 	if err == nil {
 		_, err = f.Write(b)
 	}
+
 	if err == nil {
 		err = f.Sync()
 	}
+
 	closeErr := f.Close()
 	if err == nil {
 		err = closeErr
 	}
+
 	if err != nil {
 		return err
 	}
+
 	return os.Link(temporary, filepath.Join(path, "owner.json"))
 }

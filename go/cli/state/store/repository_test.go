@@ -2,65 +2,76 @@ package store
 
 import (
 	"context"
-	"github.com/notsuhas/envden/go/cli/state/files"
-	"github.com/notsuhas/envden/go/cli/state/lock"
-	"github.com/notsuhas/envden/go/cli/state/model"
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/state/files"
+	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/cli/state/model"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func fixtureTiming() lock.Timing {
 	return lock.Timing{Now: func() int64 { return 1800000000000 }, Wait: func(int64) error { return nil }}
 }
+
 func TestRepository(t *testing.T) {
 	home := t.TempDir()
 	s, err := LoadState(home)
 	if err != nil || s != nil {
 		t.Fatal(s, err)
 	}
+
 	s = model.EmptyState("test")
 	if err = SaveState(context.Background(), home, s, fixtureTiming()); err != nil {
 		t.Fatal(err)
 	}
+
 	path := filepath.Join(home, "state", "device.json")
 	raw, _ := os.ReadFile(path)
 	expected := `{"format":1,"deviceName":"test","entries":[],"approved":[],"links":[],"aliases":{},"telemetry":false,"updateCheck":true,"headerRefs":[]}`
 	if string(raw) != expected {
 		t.Fatalf("state bytes\ngot  %s\nwant %s", raw, expected)
 	}
+
 	s.Telemetry = true
 	s.Headers = []string{"first-header"}
 	if err = SaveState(context.Background(), home, s, fixtureTiming()); err != nil {
 		t.Fatal(err)
 	}
+
 	loaded, err := LoadState(home)
 	if err != nil || !loaded.Telemetry || !reflect.DeepEqual(s.Headers, loaded.Headers) {
 		t.Fatal(loaded, err)
 	}
+
 	for _, p := range []string{home, filepath.Dir(path), path} {
 		info, _ := os.Stat(p)
 		want := os.FileMode(0700)
 		if p == path {
 			want = 0600
 		}
+
 		if info.Mode().Perm() != want {
 			t.Fatal(p, info.Mode())
 		}
 	}
+
 	refs, err := StoreHeaders(home, s.Headers, fixtureTiming().Now)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	hp := filepath.Join(home, "state", "headers", refs[0])
 	before, _ := os.Stat(hp)
 	s.Headers = append(s.Headers, "second-header")
 	if err = SaveState(context.Background(), home, s, fixtureTiming()); err != nil {
 		t.Fatal(err)
 	}
+
 	after, _ := os.Stat(hp)
 	if !before.ModTime().Equal(after.ModTime()) {
 		t.Fatal("immutable header rewritten")
@@ -73,6 +84,7 @@ func TestInvalidState(t *testing.T) {
 		if err := files.AtomicWrite(filepath.Join(home, "state", "device.json"), []byte(raw), fixtureTiming().Now); err != nil {
 			t.Fatal(err)
 		}
+
 		if _, err := LoadState(home); !errors.Is(err, errors.InvalidData) {
 			t.Fatal(err)
 		}

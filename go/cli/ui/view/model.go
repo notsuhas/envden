@@ -8,16 +8,19 @@ type FileView struct {
 	ConflictID string `json:"conflictId,omitempty"`
 	Keys       any    `json:"keys,omitempty"`
 }
+
 type CheckoutView struct {
 	Root     string     `json:"root"`
 	Approval string     `json:"approval"`
 	Files    []FileView `json:"files"`
 }
+
 type RepoView struct {
 	RepoID    string         `json:"repoId"`
 	Status    string         `json:"status"`
 	Checkouts []CheckoutView `json:"checkouts"`
 }
+
 type ConflictView struct {
 	ID            string   `json:"id"`
 	Path          string   `json:"path"`

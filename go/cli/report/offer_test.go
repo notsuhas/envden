@@ -2,8 +2,9 @@ package report
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/core/errors"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestReportOffer(t *testing.T) {

@@ -1,9 +1,10 @@
 package view
 
 import (
+	"sort"
+
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
-	"sort"
 )
 
 type FileRow struct {
@@ -21,10 +22,12 @@ func GroupRepos(rows []FileRow) []RepoView {
 				break
 			}
 		}
+
 		if ri < 0 {
 			repos = append(repos, RepoView{row.RepoID, row.File.Status, []CheckoutView{}})
 			ri = len(repos) - 1
 		}
+
 		repo := &repos[ri]
 		ci := -1
 		for i, c := range repo.Checkouts {
@@ -33,14 +36,18 @@ func GroupRepos(rows []FileRow) []RepoView {
 				break
 			}
 		}
+
 		if ci < 0 {
 			repo.Checkouts = append(repo.Checkouts, CheckoutView{row.Root, row.Approval, []FileView{}})
 			ci = len(repo.Checkouts) - 1
 		}
+
 		repo.Checkouts[ci].Files = append(repo.Checkouts[ci].Files, row.File)
 		repo.Status = MostUrgent([]string{repo.Status, row.File.Status})
 	}
+
 	c := collate.New(language.English)
 	sort.SliceStable(repos, func(i, j int) bool { return c.CompareString(repos[i].RepoID, repos[j].RepoID) < 0 })
+
 	return repos
 }

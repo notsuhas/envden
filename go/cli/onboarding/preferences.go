@@ -3,6 +3,7 @@ package onboarding
 import (
 	"context"
 	"fmt"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/lib/clack"
@@ -27,14 +28,17 @@ func SetupPreferences(ctx context.Context, a contracts.Adapters, o Preferences, 
 				return err
 			}
 		}
+
 		text := "off"
 		if value {
 			text = "on"
 		}
+
 		if _, err := settings.SetConfig(ctx, item.key, text, a.Home, a.Timing, p.Interactive); err != nil {
 			return err
 		}
 	}
+
 	shell := o.Shell
 	if shell == "" && !o.Yes && p.Interactive {
 		var err error
@@ -43,11 +47,13 @@ func SetupPreferences(ctx context.Context, a contracts.Adapters, o Preferences, 
 			return err
 		}
 	}
+
 	if DeriveShell(shell) == "install" {
 		if err := a.Shell(shell).Install(a.Executable); err != nil {
-			fmt.Fprintf(p.Stderr, "Skipped the shell notice: %s. Set it up later with: envden shell install\n", err)
+			_, _ = fmt.Fprintf(p.Stderr, "Skipped the shell notice: %s. Set it up later with: envden shell install\n", err)
 		}
 	}
+
 	agent := DeriveAgent(o.Agent, o.Yes || !p.Interactive)
 	install := agent == "install"
 	if agent == "ask" {
@@ -57,11 +63,13 @@ func SetupPreferences(ctx context.Context, a contracts.Adapters, o Preferences, 
 			return err
 		}
 	}
+
 	if install && installAgent != nil {
 		if err := installAgent(); err != nil {
-			fmt.Fprintf(p.Stderr, "Skipped the agent skill: %s. Set it up later with: envden agent install\n", err)
+			_, _ = fmt.Fprintf(p.Stderr, "Skipped the agent skill: %s. Set it up later with: envden agent install\n", err)
 		}
 	}
+
 	return nil
 }
 
@@ -70,6 +78,7 @@ func UpdatePreferences(ctx context.Context, a contracts.Adapters, o Preferences,
 	if err != nil {
 		return err
 	}
+
 	o.Yes = true
 	if o.Telemetry == "" {
 		o.Telemetry = "off"
@@ -77,11 +86,13 @@ func UpdatePreferences(ctx context.Context, a contracts.Adapters, o Preferences,
 			o.Telemetry = "on"
 		}
 	}
+
 	if o.UpdateCheck == "" {
 		o.UpdateCheck = "off"
 		if config.UpdateCheck {
 			o.UpdateCheck = "on"
 		}
 	}
+
 	return SetupPreferences(ctx, a, o, p, installAgent)
 }

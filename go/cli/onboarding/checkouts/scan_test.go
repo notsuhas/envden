@@ -2,14 +2,15 @@ package checkouts
 
 import (
 	"context"
+	"io"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/core/errors"
-	"io"
-	"testing"
 )
 
 func TestUnattendedApproval(t *testing.T) {
@@ -21,6 +22,7 @@ func TestUnattendedApproval(t *testing.T) {
 			if approved {
 				s.Approved = []model.Checkout{{Root: "/repo"}}
 			}
+
 			linked := 0
 			d := Dependencies{Find: func(*model.State) ([]Eligible, error) {
 				return []Eligible{{Checkout: adapters.Checkout{Root: "/repo"}, Files: []string{".env"}}}, nil
@@ -30,11 +32,14 @@ func TestUnattendedApproval(t *testing.T) {
 				if !errors.Is(err, errors.InvalidInput) || linked != 0 {
 					t.Fatal(linked, err)
 				}
+
 				return
 			}
+
 			if err != nil || linked != 1 {
 				t.Fatal(linked, err)
 			}
+
 			saved, err := store.LoadState(home)
 			if err != nil || saved == nil || len(saved.Approved) != 1 {
 				t.Fatal(saved, err)

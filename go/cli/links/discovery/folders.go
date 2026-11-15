@@ -1,6 +1,8 @@
 package discovery
 
-import "strings"
+import (
+	"strings"
+)
 
 type FolderPlace struct{ Home, Project bool }
 
@@ -10,6 +12,7 @@ func contains(names []string, name string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -23,5 +26,6 @@ func ProjectFolder(names []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

@@ -1,6 +1,8 @@
 package checkouts
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestRescanCommand(t *testing.T) {
 	for _, row := range []struct {

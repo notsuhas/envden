@@ -2,11 +2,12 @@ package updates
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/core/protocol/versions"
-	"os"
-	"path/filepath"
 )
 
 type Cache struct {
@@ -21,18 +22,22 @@ func ReadUpdateCache(home string) Cache {
 	if e != nil {
 		return Cache{}
 	}
+
 	var c Cache
 	if json.Unmarshal(raw, &c) != nil {
 		return Cache{}
 	}
+
 	value, e := jsonvalue.Parse(raw)
 	if e != nil {
 		return Cache{}
 	}
+
 	o, ok := value.(jsonvalue.Object)
 	if !ok {
 		return Cache{}
 	}
+
 	for _, field := range o {
 		switch field.Key {
 		case "latest":
@@ -53,8 +58,10 @@ func ReadUpdateCache(home string) Cache {
 		default:
 			continue
 		}
+
 		c.touch(field.Key)
 	}
+
 	return c
 }
 
@@ -64,6 +71,7 @@ func (c *Cache) touch(key string) {
 			return
 		}
 	}
+
 	c.order = append(c.order, key)
 }
 
@@ -86,6 +94,7 @@ func (c Cache) MarshalJSON() ([]byte, error) {
 			}
 		}
 	}
+
 	return jsonvalue.Marshal(o)
 }
 
@@ -94,5 +103,6 @@ func SaveUpdateCache(home string, c Cache, now func() int64) error {
 	if e != nil {
 		return e
 	}
+
 	return files.AtomicWrite(filepath.Join(home, "state", "updates.json"), raw, now)
 }

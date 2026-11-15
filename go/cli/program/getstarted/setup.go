@@ -1,6 +1,8 @@
 package getstarted
 
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func SetupCommand() *commander.Command {
 	c := commander.New("setup").Description("Create a vault and configure this device")
@@ -18,5 +20,6 @@ func SetupCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--exclude-root <path...>", "Roots to skip"))
 	c.AddOption(commander.NewOption("--verbose", "List each repo and env file the scan skipped"))
 	c.Action(setupAction)
+
 	return c
 }

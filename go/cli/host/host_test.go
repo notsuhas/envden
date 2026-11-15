@@ -17,6 +17,7 @@ func TestPortDecisions(t *testing.T) {
 			t.Fatal(p, e)
 		}
 	}
+
 	for _, definition := range []string{`--port 1234`, `--port</string><string>1234`, `--port" "1234`} {
 		p := InstalledPort(definition)
 		if p == nil || *p != 1234 {
@@ -24,6 +25,7 @@ func TestPortDecisions(t *testing.T) {
 		}
 	}
 }
+
 func TestDefinitions(t *testing.T) {
 	for _, platform := range []string{"darwin", "linux", "win32"} {
 		d, e := ServiceDefinition(platform, "/path/with space/envden", "/data&home", "/logs/output", 4783)
@@ -31,6 +33,7 @@ func TestDefinitions(t *testing.T) {
 			t.Fatal(d, e)
 		}
 	}
+
 	_, e := ServiceDefinition("linux", "/unsafe\npath", "/data", "/log", 4783)
 	if e == nil {
 		t.Fatal("unsafe unit path")
@@ -44,13 +47,16 @@ func TestWriteThroughDanglingLink(t *testing.T) {
 	if e := os.Symlink("new/target", link); e != nil {
 		t.Fatal(e)
 	}
+
 	if e := WriteThrough(link, []byte("bytes"), func() int64 { return 0 }); e != nil {
 		t.Fatal(e)
 	}
+
 	info, e := os.Lstat(link)
 	if e != nil || info.Mode()&os.ModeSymlink == 0 {
 		t.Fatal(info, e)
 	}
+
 	raw, e := os.ReadFile(target)
 	if e != nil || string(raw) != "bytes" {
 		t.Fatal(string(raw), e)

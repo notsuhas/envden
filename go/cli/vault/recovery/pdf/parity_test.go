@@ -17,6 +17,7 @@ func TestPDFLibBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	checkPDFLibBytes(t, raw)
 }
 
@@ -27,6 +28,7 @@ func TestPDFLibLiveReference(t *testing.T) {
 	if err != nil {
 		t.Fatal("pdf-lib reference:", err)
 	}
+
 	checkPDFLibBytes(t, raw)
 }
 
@@ -47,26 +49,32 @@ func checkPDFLibBytes(t *testing.T, raw []byte) {
 	if err := json.Unmarshal(raw, &cases); err != nil {
 		t.Fatal(err)
 	}
+
 	for i, c := range cases {
 		if got := pako.Deflate(c.Content); !bytes.Equal(got, c.Compressed) {
 			t.Errorf("case %d: pako content differs", i)
 		}
+
 		document, err := KitDocument(c.Kit.VaultID, c.Kit.SecretKey, c.Kit.Server, c.Kit.Device, c.Kit.Date)
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		if !reflect.DeepEqual(document, c.Document) {
 			t.Errorf("case %d: kit document differs", i)
 		}
+
 		got, err := RenderKit(document, c.MetadataTime)
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		if !bytes.Equal(got, c.PDF) {
 			first := 0
 			for first < min(len(got), len(c.PDF)) && got[first] == c.PDF[first] {
 				first++
 			}
+
 			t.Errorf("case %d: PDF differs at offset %d (Go %d bytes, pdf-lib %d bytes)", i, first, len(got), len(c.PDF))
 		}
 	}

@@ -1,6 +1,8 @@
 package scan
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSkippedSummary(t *testing.T) {
 	for _, r := range []struct {

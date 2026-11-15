@@ -1,17 +1,19 @@
 package files
 
 import (
-	"github.com/notsuhas/envden/go/cli/state/model"
-	"github.com/notsuhas/envden/go/core/errors"
-	f "github.com/notsuhas/envden/go/core/protocol/files"
 	"path/filepath"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/state/model"
+	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/files"
 )
 
 type Target struct {
 	Root, Path, RepoID string
 	Link               *model.Link
 }
+
 type Selection struct {
 	Cwd  string
 	File *string
@@ -22,6 +24,7 @@ func SelectionDirectory(o Selection) string {
 	if o.File == nil {
 		return o.Cwd
 	}
+
 	return filepath.Dir(resolve(o.Cwd, *o.File))
 }
 
@@ -34,24 +37,29 @@ func HistoryTargets(state *model.State, repos map[string]bool, o Selection) ([]T
 				break
 			}
 		}
+
 		if repos[c.RepoID] {
 			approved = append(approved, c)
 		}
 	}
+
 	if o.File != nil {
 		absolute := resolve(o.Cwd, *o.File)
 		checkout := deepest(approved, absolute)
 		if checkout == nil {
 			return nil, errors.New(errors.NotFound, "File is not in an approved checkout")
 		}
+
 		rel, err := filepath.Rel(checkout.Root, absolute)
 		if err != nil {
 			return nil, err
 		}
+
 		path := filepath.ToSlash(rel)
-		if err = f.ValidatePath(path); err != nil {
+		if err = files.ValidatePath(path); err != nil {
 			return nil, errors.Wrap(errors.InvalidInput, "Name an env file inside the checkout", err)
 		}
+
 		t := Target{Root: checkout.Root, Path: path, RepoID: checkout.RepoID}
 		for i := range state.Links {
 			l := &state.Links[i]
@@ -60,8 +68,10 @@ func HistoryTargets(state *model.State, repos map[string]bool, o Selection) ([]T
 				break
 			}
 		}
+
 		return []Target{t}, nil
 	}
+
 	roots := approved
 	if !o.All {
 		roots = nil
@@ -69,6 +79,7 @@ func HistoryTargets(state *model.State, repos map[string]bool, o Selection) ([]T
 			roots = []model.Checkout{*inside}
 		}
 	}
+
 	targets := []Target{}
 	for _, c := range roots {
 		for i := range state.Links {
@@ -78,6 +89,7 @@ func HistoryTargets(state *model.State, repos map[string]bool, o Selection) ([]T
 			}
 		}
 	}
+
 	return targets, nil
 }
 
@@ -85,8 +97,10 @@ func resolve(cwd, path string) string {
 	if filepath.IsAbs(path) {
 		return filepath.Clean(path)
 	}
+
 	return filepath.Join(cwd, path)
 }
+
 func deepest(checkouts []model.Checkout, path string) *model.Checkout {
 	var found *model.Checkout
 	for _, c := range checkouts {
@@ -94,10 +108,12 @@ func deepest(checkouts []model.Checkout, path string) *model.Checkout {
 		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			continue
 		}
+
 		if found == nil || len(c.Root) > len(found.Root) {
 			copy := c
 			found = &copy
 		}
 	}
+
 	return found
 }

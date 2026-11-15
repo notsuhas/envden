@@ -3,13 +3,14 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/notsuhas/envden/go/cli/ui/routes"
-	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
-	"github.com/notsuhas/envden/go/cli/ui/server/assets"
-	e "github.com/notsuhas/envden/go/core/errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/ui/routes"
+	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
+	"github.com/notsuhas/envden/go/cli/ui/server/assets"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestDashboardSecurityAndRouting(t *testing.T) {
@@ -44,6 +45,7 @@ func TestDashboardSecurityAndRouting(t *testing.T) {
 			if response.Code != row.status || response.Body.String() != row.want {
 				t.Fatalf("got %d %s", response.Code, response.Body.String())
 			}
+
 			if response.Header().Get("X-Content-Type-Options") != "nosniff" || !strings.Contains(response.Header().Get("Content-Security-Policy"), "frame-ancestors 'none'") {
 				t.Fatal("missing security headers")
 			}
@@ -60,18 +62,31 @@ func TestHostAndToken(t *testing.T) {
 			t.Fatal(row)
 		}
 	}
+
 	if !SameOrigin("http://localhost:4100", "localhost:4100") || SameOrigin("https://localhost:4100", "localhost:4100") || SameOrigin("", "localhost:4100") {
 		t.Fatal("origin")
 	}
-	token := NewToken()
-	if len(token) != 43 || token == NewToken() {
+
+	token, err := NewToken()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	other, err := NewToken()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(token) != 43 || token == other {
 		t.Fatal("token entropy")
 	}
+
 	for _, header := range []string{"", token, "bearer " + token, "Bearer " + token + "x", "Bearer " + token[1:]} {
 		if TokenMatches(header, token) {
 			t.Fatal("bad token accepted")
 		}
 	}
+
 	if !TokenMatches("Bearer "+token, token) {
 		t.Fatal("valid token rejected")
 	}
@@ -82,7 +97,8 @@ func TestErrorsSanitized(t *testing.T) {
 	if body.Message != "envden ui hit an internal error" || ErrorStatus(body.Error) != 500 {
 		t.Fatal(body)
 	}
-	body = ErrorBody(e.New(e.Locked, "Locked"))
+
+	body = ErrorBody(envdenerrors.New(envdenerrors.Locked, "Locked"))
 	if body.Message != "Locked" || ErrorStatus(body.Error) != 403 {
 		t.Fatal(body)
 	}

@@ -3,10 +3,11 @@ package pdf
 import (
 	"bytes"
 	"fmt"
-	"github.com/notsuhas/envden/go/lib/pako"
 	"strings"
 	"time"
 	"unicode/utf16"
+
+	"github.com/notsuhas/envden/go/lib/pako"
 )
 
 func hexString(value string) string {
@@ -15,7 +16,9 @@ func hexString(value string) string {
 	for _, c := range utf16.Encode([]rune(value)) {
 		fmt.Fprintf(&out, "%04X", c)
 	}
+
 	out.WriteByte('>')
+
 	return out.String()
 }
 
@@ -27,6 +30,7 @@ func serialize(title, resources string, content []byte, metadataTime int64) ([]b
 	for _, name := range []string{"Helvetica", "Helvetica-Bold", "Courier"} {
 		objects = append(objects, "<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /"+name+"\n/Encoding /WinAnsiEncoding\n>>")
 	}
+
 	objects = append(objects, fmt.Sprintf("<<\n/Filter /FlateDecode\n/Length %d\n>>\nstream\n", len(stream))+string(stream)+"\nendstream")
 	var result bytes.Buffer
 	result.WriteString("%PDF-1.7\n%\x81\x81\x81\x81\n\n")
@@ -35,11 +39,14 @@ func serialize(title, resources string, content []byte, metadataTime int64) ([]b
 		offsets = append(offsets, result.Len())
 		fmt.Fprintf(&result, "%d 0 obj\n%s\nendobj\n\n", i+1, object)
 	}
+
 	xref := result.Len()
 	fmt.Fprintf(&result, "xref\n0 9\n0000000000 65535 f \n")
 	for _, offset := range offsets {
 		fmt.Fprintf(&result, "%010d 00000 n \n", offset)
 	}
+
 	fmt.Fprintf(&result, "\ntrailer\n<<\n/Size 9\n/Root 2 0 R\n/Info 3 0 R\n>>\n\nstartxref\n%d\n%%%%EOF", xref)
+
 	return result.Bytes(), nil
 }

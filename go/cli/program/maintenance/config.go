@@ -1,11 +1,13 @@
 package maintenance
 
-import "github.com/notsuhas/envden/go/cli/program/runtime"
-import "github.com/notsuhas/envden/go/cli/settings"
-import "github.com/notsuhas/envden/go/cli/output/render"
-import "github.com/notsuhas/envden/go/cli/state/store"
-import "github.com/notsuhas/envden/go/cli/state"
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"github.com/notsuhas/envden/go/cli/output/render"
+	"github.com/notsuhas/envden/go/cli/program/runtime"
+	"github.com/notsuhas/envden/go/cli/settings"
+	"github.com/notsuhas/envden/go/cli/state"
+	"github.com/notsuhas/envden/go/cli/state/store"
+	"github.com/notsuhas/envden/go/lib/commander"
+)
 
 func ConfigCommand() *commander.Command {
 	c := commander.New("config").Description("Read or change settings")
@@ -16,26 +18,32 @@ func ConfigCommand() *commander.Command {
 		if e != nil {
 			return e
 		}
+
 		var key *string
 		values := []string{}
 		if len(i.Args) > 0 {
 			key = &i.Args[0]
 			values = i.Args[1:]
 		}
+
 		r, e := settings.SettingRequest(key, values)
 		if e != nil {
 			return e
 		}
+
 		if r.Kind == "unlock-period" || r.Key == "unlock-period" {
 			s, e := store.LoadState(env.Adapters.Home)
 			if e != nil {
 				return e
 			}
+
 			if _, e = state.RequireConfigured(s); e != nil {
 				return e
 			}
+
 			return applyUnlockPeriod(i, env, r)
 		}
+
 		var c settings.Config
 		switch r.Kind {
 		case "placement":
@@ -45,17 +53,22 @@ func ConfigCommand() *commander.Command {
 		default:
 			c, e = settings.ReadConfig(env.Adapters.Home)
 		}
+
 		if e != nil {
 			return e
 		}
+
 		if r.Kind == "list" {
 			return runtime.Print(i, render.ConfigText(c, env.Env))
 		}
+
 		k := r.Key
 		if r.Kind == "placement" {
 			k = "placement"
 		}
+
 		return runtime.Print(i, render.SettingText(k, c, env.Env))
 	})
+
 	return c
 }

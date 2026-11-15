@@ -1,12 +1,13 @@
 package recovery_test
 
 import (
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/admin/repair"
 	"github.com/notsuhas/envden/go/cli/admin/repair/finish"
 	"github.com/notsuhas/envden/go/cli/client"
-	sr "github.com/notsuhas/envden/go/server/repair"
-	ss "github.com/notsuhas/envden/go/server/shared"
-	"testing"
+	serverrepair "github.com/notsuhas/envden/go/server/repair"
+	"github.com/notsuhas/envden/go/server/shared"
 )
 
 func TestRepairUploadsAndDrop(t *testing.T) {
@@ -17,18 +18,22 @@ func TestRepairUploadsAndDrop(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			restored, err := sr.StartRestored(ss.Options{Storage: f.server.Storage, Now: f.now, ServerKeys: ss.Keys{PublicKey: greeting.Hello.ServerSignPub}})
+
+			restored, err := serverrepair.StartRestored(shared.Options{Storage: f.server.Storage, Now: f.now, ServerKeys: shared.Keys{PublicKey: greeting.Hello.ServerSignPub}})
 			if err != nil || len(restored) != 1 {
 				t.Fatal(restored, err)
 			}
+
 			token := restored[0].Token
 			if _, err = repair.UploadRepair(f.ctx, f.a, token, f.now, f.a.Fetcher); err != nil {
 				t.Fatal(err)
 			}
+
 			result, err := finish.FinishRepair(f.ctx, f.a, finish.Options{Token: token, Password: "old password", Now: f.now, Fetcher: f.a.Fetcher})
 			if err != nil || result.Kind != "missing-reports" || len(result.Devices) != 1 || result.Devices[0] != "second" {
 				t.Fatal(result, err)
 			}
+
 			options := finish.Options{Token: token, Password: "old password", Now: f.now, Fetcher: f.a.Fetcher}
 			if drop {
 				options.Without = []string{"second"}
@@ -38,6 +43,7 @@ func TestRepairUploadsAndDrop(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
+
 			result, err = finish.FinishRepair(f.ctx, f.a, options)
 			if err != nil || result.Kind != "finished" {
 				t.Fatal(result, err)

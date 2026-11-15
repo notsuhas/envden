@@ -1,9 +1,12 @@
 package server
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func AllowedHost(host string, port int) bool {
 	suffix := ":" + strconv.Itoa(port)
+
 	return host == "127.0.0.1"+suffix || host == "localhost"+suffix
 }
 

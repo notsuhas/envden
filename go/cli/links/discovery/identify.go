@@ -16,6 +16,7 @@ func Identify(repo adapters.Repo, path string, report func(RepoSkip)) *adapters.
 	if err == nil && item != nil {
 		return item
 	}
+
 	skip := RepoSkip{path, "Repository identity unavailable", "identity"}
 	if e, ok := errors.As(err); ok {
 		skip.Reason = e.Message
@@ -23,8 +24,10 @@ func Identify(repo adapters.Repo, path string, report func(RepoSkip)) *adapters.
 			skip.Kind = "remote"
 		}
 	}
+
 	if report != nil {
 		report(skip)
 	}
+
 	return nil
 }

@@ -2,13 +2,14 @@ package self
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/updates/check"
-	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/core/process"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/updates/check"
+	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/process"
 )
 
 func pinnedInstall(manager, binary string) (string, string) {
@@ -50,21 +51,27 @@ func pinnedInstall(manager, binary string) (string, string) {
 			return m[1] + "/Microsoft/WindowsApps/winget.exe", m[1] + "/Microsoft/WinGet/Links/envden.exe"
 		}
 	}
+
 	return "", ""
 }
+
 func ManagerUpdate(command []string, binary string, o Options) (check.Result, error) {
 	home := o.Env["HOME"]
 	if home == "" {
 		home = o.Env["USERPROFILE"]
 	}
+
 	temp := os.TempDir()
 	if real, e := filepath.EvalSymlinks(temp); e == nil {
 		temp = real
 	}
+
 	if process.InsideWorkingTree(home) || process.InsideWorkingTree(temp) {
-		fmt.Fprintln(o.Stderr, "envden: HOME or temp directory is inside a checkout. Run manually: "+strings.Join(command, " "))
+		_, _ = fmt.Fprintln(o.Stderr, "envden: HOME or temp directory is inside a checkout. Run manually: "+strings.Join(command, " "))
+
 		return check.Result{Kind: "manual"}, nil
 	}
+
 	manager, stable := pinnedInstall(command[0], binary)
 	installer := []string{manager}
 	if command[0] == "npm" && manager != "" {
@@ -73,39 +80,50 @@ func ManagerUpdate(command []string, binary string, o Options) (check.Result, er
 		if regexp.MustCompile(`^[A-Za-z]:`).MatchString(manager) {
 			node += ".exe"
 		}
+
 		cli := filepath.Clean(filepath.Join(directory, "../lib/node_modules/npm/bin/npm-cli.js"))
 		if _, e := os.Stat(node); e != nil {
 			manager = ""
 		}
+
 		if _, e := os.Stat(cli); e != nil {
 			manager = ""
 		}
+
 		installer = []string{node, cli}
 	}
+
 	if manager == "" {
-		fmt.Fprintln(o.Stderr, "envden: Cannot pin installer path. Run manually: "+strings.Join(command, " "))
+		_, _ = fmt.Fprintln(o.Stderr, "envden: Cannot pin installer path. Run manually: "+strings.Join(command, " "))
+
 		return check.Result{Kind: "manual"}, nil
 	}
+
 	absolute := append(installer, command[1:]...)
 	yes, e := o.Confirm(strings.Join(absolute, " "))
 	if e != nil {
 		return check.Result{}, e
 	}
+
 	if !yes {
 		return check.Result{Kind: "cancelled"}, nil
 	}
+
 	config, e := os.MkdirTemp(temp, "envden-manager-")
 	if e != nil {
 		return check.Result{}, e
 	}
-	defer os.RemoveAll(config)
+
+	defer func() { _ = os.RemoveAll(config) }() // Best-effort cleanup must not replace the operation result.
 	if command[0] == "npm" {
 		file := filepath.Join(config, "npmrc")
 		if e = os.WriteFile(file, nil, 0600); e != nil {
 			return check.Result{}, e
 		}
+
 		absolute = append(absolute, "--userconfig", file)
 	}
+
 	run := o.Run
 	if run == nil {
 		run = func(c []string) error {
@@ -113,15 +131,19 @@ func ManagerUpdate(command []string, binary string, o Options) (check.Result, er
 			if result.ExitCode != 0 {
 				return errors.New(errors.InvalidInput, "Update command failed")
 			}
+
 			return e
 		}
 	}
+
 	if e = run(absolute); e != nil {
 		return check.Result{}, e
 	}
+
 	if e = run([]string{stable, "update", "--post-install"}); e != nil {
 		return check.Result{}, e
 	}
+
 	return check.Result{Kind: "updated"}, nil
 }
 
@@ -132,5 +154,6 @@ func postInstallEnvironment(env map[string]string) map[string]string {
 			extra[key] = v
 		}
 	}
+
 	return extra
 }

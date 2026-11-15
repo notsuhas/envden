@@ -26,6 +26,7 @@ func TestVersionChanges(t *testing.T) {
 			}
 		})
 	}
+
 	for state, want := range map[int]string{1: "live", 2: "deleted", 3: "restored", 4: "lost", 0: "live"} {
 		if got := VersionKind(state); got != want {
 			t.Fatal(state, got, want)

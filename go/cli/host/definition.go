@@ -1,25 +1,30 @@
 package host
 
 import (
-	"github.com/notsuhas/envden/go/core/errors"
 	"strconv"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func xml(value string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;", "\"", "&quot;", ">", "&gt;").Replace(value)
 }
+
 func unitPath(value string) (string, error) {
 	if strings.ContainsAny(value, "\r\n\x00") {
 		return "", errors.New(errors.InvalidInput, "Invalid service path")
 	}
+
 	return strings.ReplaceAll(value, "%", "%%"), nil
 }
+
 func unit(value string) (string, error) {
 	value, err := unitPath(value)
 	if err != nil {
 		return "", err
 	}
+
 	return "\"" + strings.NewReplacer("\\", "\\\\", "\"", "\\\"").Replace(value) + "\"", nil
 }
 
@@ -40,6 +45,7 @@ func ServiceDefinition(platform, executable, home, log string, port int) (Defini
 			if err != nil {
 				return Definition{}, err
 			}
+
 			args[i] = v
 		}
 		path, err := unitPath(log)
@@ -53,5 +59,6 @@ func ServiceDefinition(platform, executable, home, log string, port int) (Defini
 		settings := `<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><ExecutionTimeLimit>PT0S</ExecutionTimeLimit><RestartOnFailure><Interval>PT1M</Interval><Count>999</Count></RestartOnFailure>`
 		return Definition{"task", `<?xml version="1.0" encoding="UTF-16"?><Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers><Settings>` + settings + `</Settings><Actions Context="Author"><Exec><Command>powershell.exe</Command><Arguments>-NoProfile -NonInteractive -Command ` + xml(script) + `</Arguments></Exec></Actions></Task>`}, nil
 	}
+
 	return Definition{}, errors.New(errors.NotImplemented, "Login services are unsupported on this platform")
 }

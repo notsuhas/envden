@@ -1,8 +1,9 @@
 package render
 
 import (
-	"github.com/notsuhas/envden/go/cli/settings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/settings"
 )
 
 func TestSettingsText(t *testing.T) {
@@ -11,6 +12,7 @@ func TestSettingsText(t *testing.T) {
 	if got := ConfigText(c, map[string]string{"ENVDEN_NO_UPDATE_CHECK": "1"}); got != want {
 		t.Fatal(got)
 	}
+
 	period := int64(604800000)
 	if UnlockPeriodText(&period) != "unlock-period: 7d" || UnlockPeriodText(nil) != "unlock-period: never" {
 		t.Fatal("period")

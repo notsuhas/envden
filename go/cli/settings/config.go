@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"os"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/core/errors"
-	"os"
 )
 
 type Config struct {
@@ -27,6 +28,7 @@ func ParseConfig(data []byte) (Config, error) {
 	if json.Unmarshal(data, &m) != nil || m == nil {
 		return invalid()
 	}
+
 	for k, v := range m {
 		switch k {
 		case "placement":
@@ -65,10 +67,12 @@ func ParseConfig(data []byte) (Config, error) {
 				if f.Key != "include" && f.Key != "exclude" && f.Key != "extraSkipped" {
 					return invalid()
 				}
+
 				a, ok := f.Value.([]any)
 				if !ok {
 					return invalid()
 				}
+
 				for _, x := range a {
 					s, ok := x.(string)
 					if !ok || s == "" {
@@ -96,6 +100,7 @@ func ParseConfig(data []byte) (Config, error) {
 			return invalid()
 		}
 	}
+
 	return c, nil
 }
 
@@ -104,12 +109,15 @@ func ReadConfig(home string) (Config, error) {
 	if os.IsNotExist(err) {
 		return ParseConfig([]byte("{}"))
 	}
+
 	if err != nil {
 		return Config{}, errors.Wrap(errors.InvalidData, "Unreadable config", err)
 	}
+
 	if !json.Valid(raw) {
 		return Config{}, errors.New(errors.InvalidData, "Unreadable config")
 	}
+
 	return ParseConfig(raw)
 }
 
@@ -117,20 +125,24 @@ func SetConfig(ctx context.Context, key, value, home string, timing lock.Timing,
 	if (key == "agent-merge" || key == "auto-approve-worktrees") && value == "on" && !interactive {
 		return Config{}, errors.New(errors.InvalidInput, "Turning on "+key+" requires a terminal")
 	}
+
 	var result Config
 	err := lock.WithStateLock(ctx, Paths(home).Home, timing, func(context.Context) error {
 		current, e := ReadConfig(home)
 		if e != nil {
 			return e
 		}
+
 		b, e := jsonvalue.Marshal(current)
 		if e != nil {
 			return e
 		}
+
 		parsed, e := jsonvalue.Parse(b)
 		if e != nil {
 			return e
 		}
+
 		object := parsed.(jsonvalue.Object)
 		var next any
 		if key == "placement" || key == "env-files" {
@@ -142,30 +154,38 @@ func SetConfig(ctx context.Context, key, value, home string, timing lock.Timing,
 			if value != "on" && value != "off" {
 				return errors.New(errors.InvalidInput, "Expected on or off")
 			}
+
 			next = value == "on"
 		}
+
 		object.Set(key, next)
 		b, e = jsonvalue.Marshal(object)
 		if e != nil {
 			return e
 		}
+
 		result, e = ParseConfig(b)
 		if e != nil {
 			return e
 		}
+
 		p, e := EnsurePaths(home)
 		if e != nil {
 			return e
 		}
+
 		b, e = jsonvalue.Marshal(result)
 		if e != nil {
 			return e
 		}
+
 		var pretty bytes.Buffer
 		if e = json.Indent(&pretty, b, "", "  "); e != nil {
 			return e
 		}
+
 		return files.AtomicWrite(p.Config, append(pretty.Bytes(), '\n'), timing.Now)
 	})
+
 	return result, err
 }

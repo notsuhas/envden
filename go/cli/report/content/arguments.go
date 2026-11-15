@@ -16,11 +16,14 @@ func MaskArguments(args []string) []string {
 			} else {
 				masked = append(masked, arg)
 			}
+
 			for range args[i+1:] {
 				masked = append(masked, "[redacted]")
 			}
+
 			return masked
 		}
+
 		if secret(flag) && has {
 			masked = append(masked, flag+"=[redacted]")
 		} else if i > 0 && secret(args[i-1]) {
@@ -29,5 +32,6 @@ func MaskArguments(args []string) []string {
 			masked = append(masked, arg)
 		}
 	}
+
 	return masked
 }

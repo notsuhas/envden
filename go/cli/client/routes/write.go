@@ -1,34 +1,46 @@
 package routes
 
 import (
-	p "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"strconv"
+
+	serverprotocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 )
 
-var LoginStart = Route[p.MailboxWrite]{"/v1/opaque/login/start", "POST", p.MessageResponseSchema}
-var LoginFinish = Route[p.LoginFinishResponse]{"/v1/opaque/login/finish", "POST", p.LoginFinishResponseSchema}
-var RegistrationStart = Route[p.MailboxWrite]{"/v1/opaque/registration/start", "POST", p.MessageResponseSchema}
-var RegistrationFinish = Route[p.KindResponse]{"/v1/opaque/registration/finish", "POST", p.RegistrationResponseSchema}
-var SetUnlockPeriod = Route[p.UnlockPeriod]{"/v1/settings/unlock-period", "PUT", p.UnlockPeriodSchema}
-var OpenMailbox = Route[p.MailboxOpened]{"/v1/pairing/mailboxes", "POST", p.MailboxOpenedSchema}
-var CreateVault = Route[p.CommitResponse]{"/v1/vault", "POST", p.CommitResponseSchema}
+var LoginStart = Route[serverprotocol.MailboxWrite]{"/v1/opaque/login/start", "POST", serverprotocol.MessageResponseSchema}
 
-func Swap(mailbox *int) Route[p.CommitResponse] {
+var LoginFinish = Route[serverprotocol.LoginFinishResponse]{"/v1/opaque/login/finish", "POST", serverprotocol.LoginFinishResponseSchema}
+
+var RegistrationStart = Route[serverprotocol.MailboxWrite]{"/v1/opaque/registration/start", "POST", serverprotocol.MessageResponseSchema}
+
+var RegistrationFinish = Route[serverprotocol.KindResponse]{"/v1/opaque/registration/finish", "POST", serverprotocol.RegistrationResponseSchema}
+
+var SetUnlockPeriod = Route[serverprotocol.UnlockPeriod]{"/v1/settings/unlock-period", "PUT", serverprotocol.UnlockPeriodSchema}
+
+var OpenMailbox = Route[serverprotocol.MailboxOpened]{"/v1/pairing/mailboxes", "POST", serverprotocol.MailboxOpenedSchema}
+
+var CreateVault = Route[serverprotocol.CommitResponse]{"/v1/vault", "POST", serverprotocol.CommitResponseSchema}
+
+func Swap(mailbox *int) Route[serverprotocol.CommitResponse] {
 	path := "/v1/swap"
 	if mailbox != nil {
 		path += "?mailbox=" + strconv.Itoa(*mailbox)
 	}
-	return Route[p.CommitResponse]{path, "POST", p.CommitResponseSchema}
+
+	return Route[serverprotocol.CommitResponse]{path, "POST", serverprotocol.CommitResponseSchema}
 }
-func CloseMailbox(number int) Route[p.KindResponse] {
-	return Route[p.KindResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number), "DELETE", p.MailboxClosedSchema}
+
+func CloseMailbox(number int) Route[serverprotocol.KindResponse] {
+	return Route[serverprotocol.KindResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number), "DELETE", serverprotocol.MailboxClosedSchema}
 }
-func MailboxSlot(number int, slot string) Route[p.MailboxSlotResponse] {
-	return Route[p.MailboxSlotResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number) + "/" + slot, "GET", p.MailboxSlotResponseSchema}
+
+func MailboxSlot(number int, slot string) Route[serverprotocol.MailboxSlotResponse] {
+	return Route[serverprotocol.MailboxSlotResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number) + "/" + slot, "GET", serverprotocol.MailboxSlotResponseSchema}
 }
-func WriteMailboxSlot(number int, slot string) Route[p.MailboxWriteResponse] {
-	return Route[p.MailboxWriteResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number) + "/" + slot, "PUT", p.MailboxWriteResponseSchema}
+
+func WriteMailboxSlot(number int, slot string) Route[serverprotocol.MailboxWriteResponse] {
+	return Route[serverprotocol.MailboxWriteResponse]{"/v1/pairing/mailboxes/" + strconv.Itoa(number) + "/" + slot, "PUT", serverprotocol.MailboxWriteResponseSchema}
 }
-func Transfer(path, method string) Route[p.KindResponse] {
-	return Route[p.KindResponse]{path, method, p.TransferResponseSchema}
+
+func Transfer(path, method string) Route[serverprotocol.KindResponse] {
+	return Route[serverprotocol.KindResponse]{path, method, serverprotocol.TransferResponseSchema}
 }

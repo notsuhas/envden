@@ -2,11 +2,12 @@ package settings
 
 import (
 	"context"
-	"github.com/notsuhas/envden/go/cli/state/lock"
-	"github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestConfig(t *testing.T) {
@@ -16,6 +17,7 @@ func TestConfig(t *testing.T) {
 	if err != nil || c.Telemetry || !c.UpdateCheck || !c.AutoApproveWorktrees {
 		t.Fatal(c, err)
 	}
+
 	for _, row := range []struct {
 		key, value  string
 		interactive bool
@@ -26,20 +28,24 @@ func TestConfig(t *testing.T) {
 			t.Fatalf("%v: %v", row, err)
 		}
 	}
+
 	c, err = ReadConfig(home)
 	if err != nil || !c.Telemetry || c.Placement == nil {
 		t.Fatal(c, err)
 	}
+
 	for _, raw := range []string{`{"telemetry":"yes"}`, `{"unknown":true}`, `{"env-files":{"include":"*"}}`, `{"placement":{"/checkout":"bad"}}`} {
 		if _, err = ParseConfig([]byte(raw)); !errors.Is(err, errors.InvalidInput) {
 			t.Fatal(raw, err)
 		}
 	}
+
 	data, _ := os.ReadFile(Paths(home).Config)
 	if !strings.HasSuffix(string(data), "\n") || strings.Index(string(data), `"placement"`) > strings.Index(string(data), `"env-files"`) {
 		t.Fatal(string(data))
 	}
 }
+
 func TestSettingRequests(t *testing.T) {
 	for _, row := range []struct {
 		key    string
@@ -51,6 +57,7 @@ func TestSettingRequests(t *testing.T) {
 			t.Fatal(r, e)
 		}
 	}
+
 	for _, row := range []struct {
 		key    string
 		values []string
@@ -59,6 +66,7 @@ func TestSettingRequests(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
+
 	for _, row := range []struct {
 		value string
 		want  int64
@@ -68,11 +76,13 @@ func TestSettingRequests(t *testing.T) {
 			t.Fatal(p, e)
 		}
 	}
+
 	p, e := UnlockPeriod("never")
 	if p != nil || e != nil {
 		t.Fatal(p, e)
 	}
 }
+
 func TestPrivacy(t *testing.T) {
 	if TelemetryEnabled(false, nil) || !TelemetryEnabled(true, nil) || TelemetryEnabled(true, map[string]string{"DO_NOT_TRACK": "1"}) || TelemetryEnabled(true, map[string]string{"ENVDEN_TELEMETRY": "0"}) || UpdateCheckEnabled(true, map[string]string{"ENVDEN_NO_UPDATE_CHECK": "1"}) || !UpdateCheckEnabled(true, nil) {
 		t.Fatal("privacy overrides")

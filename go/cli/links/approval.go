@@ -1,9 +1,10 @@
 package links
 
 import (
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"strings"
 )
 
 func RepoID(state *model.State, id string) string {
@@ -14,6 +15,7 @@ func RepoID(state *model.State, id string) string {
 			}
 		}
 	}
+
 	return id
 }
 
@@ -23,6 +25,7 @@ func CheckoutRepo(state *model.State, root string) string {
 			return RepoID(state, item.RepoID)
 		}
 	}
+
 	return ""
 }
 
@@ -32,14 +35,17 @@ func CheckoutApproval(state *model.State, checkout adapters.Checkout) string {
 			if RepoID(state, item.RepoID) != RepoID(state, checkout.RepoID) {
 				return "changed"
 			}
+
 			break
 		}
 	}
+
 	for _, item := range state.Approved {
 		if item.Root == checkout.Root && item.GitDir == checkout.GitDir && equalIdentity(item.Identity, checkout.Identity) && RepoID(state, item.RepoID) == RepoID(state, checkout.RepoID) {
 			return "approved"
 		}
 	}
+
 	return "ask"
 }
 
@@ -52,9 +58,11 @@ func ApprovedCheckout(repo adapters.Repo, state *model.State, root string) (*ada
 	if err != nil {
 		return nil, err
 	}
+
 	if item != nil && CheckoutApproval(state, *item) == "approved" {
 		return item, nil
 	}
+
 	return nil, nil
 }
 
@@ -65,10 +73,12 @@ func CheckoutLabel(state *model.State, item adapters.Checkout, files []string, h
 	} else if strings.HasPrefix(path, home+"/") {
 		path = "~" + strings.TrimPrefix(path, home)
 	}
+
 	found := strings.Join(files, ", ")
 	if len(files) == 0 {
 		found = "files from the vault"
 	}
+
 	if item.RegisteredWorktree != nil && *item.RegisteredWorktree {
 		for _, a := range state.Approved {
 			if a.GitDir == item.GitDir && a.RepoID == item.RepoID {
@@ -76,5 +86,6 @@ func CheckoutLabel(state *model.State, item adapters.Checkout, files []string, h
 			}
 		}
 	}
+
 	return path + " (" + found + ")"
 }

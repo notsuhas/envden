@@ -2,14 +2,16 @@ package routes
 
 import (
 	"context"
+	"io"
+	"net/http"
+
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
 	"github.com/notsuhas/envden/go/core/errors"
-	"io"
-	"net/http"
 )
 
 type Action func(context.Context, inputs.Input) (any, error)
+
 type Actions struct{ Status, Devices, Pull, Push, Resolve, Rename, History, Restore Action }
 
 func API(r *http.Request, actions Actions) (any, bool, error) {
@@ -39,6 +41,7 @@ func API(r *http.Request, actions Actions) (any, bool, error) {
 	default:
 		return nil, false, nil
 	}
+
 	var input inputs.Input
 	if kind != "" {
 		var raw []byte
@@ -49,19 +52,24 @@ func API(r *http.Request, actions Actions) (any, bool, error) {
 					object.Set(k, v[0])
 				}
 			}
+
 			raw, _ = jsonvalue.Marshal(object)
 		} else {
 			raw, _ = io.ReadAll(r.Body)
 		}
+
 		var err error
 		input, err = inputs.ParseInput(kind, raw)
 		if err != nil {
 			return nil, true, err
 		}
 	}
+
 	if action == nil {
 		return nil, true, errors.New(errors.NotImplemented, "not implemented")
 	}
+
 	result, err := action(r.Context(), input)
+
 	return result, true, err
 }

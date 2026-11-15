@@ -1,14 +1,17 @@
 package maintenance
 
-import "github.com/notsuhas/envden/go/cli/program/runtime"
-import "github.com/notsuhas/envden/go/server"
-import "os"
-import "os/signal"
-import "syscall"
-import "strconv"
-import "regexp"
-import "errors"
-import "github.com/notsuhas/envden/go/lib/commander"
+import (
+	"errors"
+	"os"
+	"os/signal"
+	"regexp"
+	"strconv"
+	"syscall"
+
+	"github.com/notsuhas/envden/go/cli/program/runtime"
+	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/server"
+)
 
 func ServeCommand() *commander.Command {
 	c := commander.New("serve").Description("Run the server; ENVDEN_SETUP_TOKEN replaces the setup token")
@@ -21,11 +24,12 @@ func ServeCommand() *commander.Command {
 	c.Action(func(i *commander.Invocation) error {
 		str := func(k string) string { v, _ := i.Values[k].(string); return v }
 		token := os.Getenv("ENVDEN_SETUP_TOKEN")
-		os.Unsetenv("ENVDEN_SETUP_TOKEN")
+		_ = os.Unsetenv("ENVDEN_SETUP_TOKEN") // Best-effort cleanup preserves the original operation result.
 		o := server.ServeOptions{DataDir: str("dataDir"), MinClient: str("minClient"), SetupToken: token, Restored: i.Values["restored"] == true, Stdout: runtime.Writer(i.Command, false), Stderr: runtime.Writer(i.Command, true)}
 		if p, ok := i.Values["port"].(int); ok {
 			o.Port = &p
 		}
+
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		defer signal.Stop(stop)
@@ -33,16 +37,20 @@ func ServeCommand() *commander.Command {
 		if e != nil {
 			return e
 		}
+
 		<-stop
+
 		return running.Shutdown()
 	})
+
 	return c
 }
 
 func ParsePort(value string) (int, error) {
 	port, e := strconv.Atoi(value)
 	if e != nil || !regexp.MustCompile(`^[0-9]{1,5}$`).MatchString(value) || port < 0 || port > 65535 {
-		return 0, errors.New("Expected a port from 0 (any free port) to 65535.")
+		return 0, errors.New("Expected a port from 0 (any free port) to 65535.") //nolint:staticcheck // Preserve the exact TS error text.
 	}
+
 	return port, nil
 }
