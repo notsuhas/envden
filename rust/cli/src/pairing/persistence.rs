@@ -51,6 +51,25 @@ pub(super) fn save_approval(adapters: &IAdapters, number: u32, swap: &p::ISwap) 
     )
 }
 
+pub(super) fn resume(adapters: &IAdapters, client: &IClient) -> Result<bool> {
+    match submit(adapters, client) {
+        Err(error) if matches!(error.code, ErrorCode::HeadMoved | ErrorCode::Unauthorized) => {
+            let path = adapters.home.join("state/pair-swap");
+            if path.exists() {
+                std::fs::remove_file(path).map_err(|cause| {
+                    EnvdenError::with_source(ErrorCode::Internal, "Pairing cleanup failed", cause)
+                })?;
+            }
+            Err(EnvdenError::with_source(
+                ErrorCode::Conflict,
+                "Pairing approval expired; run envden device add again",
+                error,
+            ))
+        }
+        result => result,
+    }
+}
+
 pub(super) fn submit(adapters: &IAdapters, client: &IClient) -> Result<bool> {
     let path = adapters.home.join("state/pair-swap");
     let Some(saved) = optional_read(&path)? else {

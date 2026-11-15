@@ -45,3 +45,39 @@ pub(super) fn wait(client: &IClient, path: &str, now: TClock, expiry: u64) -> Re
         "Pairing timed out; run envden join --resume after approval, or create a new pairing code",
     ))
 }
+
+pub(super) fn require_window(expiry: u64, now: u64) -> Result<()> {
+    if expiry > now.saturating_add(600_000) {
+        return Err(EnvdenError::new(
+            ErrorCode::InvalidData,
+            "Pairing window exceeds ten minutes",
+        ));
+    }
+    if now >= expiry {
+        return Err(EnvdenError::new(
+            ErrorCode::Unauthorized,
+            "Pairing exchange expired",
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pairing_window_boundaries() {
+        assert!(require_window(600_042, 42).is_ok());
+        assert_eq!(
+            require_window(600_043, 42).unwrap_err().code,
+            ErrorCode::InvalidData
+        );
+        for expiry in [0, 41, 42] {
+            assert_eq!(
+                require_window(expiry, 42).unwrap_err().code,
+                ErrorCode::Unauthorized
+            );
+        }
+    }
+}

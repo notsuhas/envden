@@ -1,3 +1,4 @@
+pub(crate) mod approval;
 mod approver;
 mod exchange;
 mod joiner;

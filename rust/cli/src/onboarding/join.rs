@@ -9,7 +9,7 @@ use super::{
 };
 use crate::{
     adapters::IAdapters,
-    client::{UreqTransport, hello},
+    client::{UreqTransport, hello, retry_head},
     identity::device_identity,
     output::prompts::secret,
     session::{TPassword, login},
@@ -32,14 +32,16 @@ pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<
         let kit = read_kit(options["recoveryKit"].as_str().map(Path::new))?;
         let password = secret("Master password", |_| None)?;
         with_state_lock(&adapters.home, (adapters.now)(), || {
-            recovery(
-                adapters,
-                address,
-                &name,
-                &kit.vault_id,
-                &kit.secret_key,
-                &password,
-            )
+            retry_head(|| {
+                recovery(
+                    adapters,
+                    address,
+                    &name,
+                    &kit.vault_id,
+                    &kit.secret_key,
+                    &password,
+                )
+            })
         })?
     } else {
         crate::pairing::join(adapters, address, options)?

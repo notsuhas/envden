@@ -15,26 +15,25 @@ pub fn require_terminal(label: &str) -> Result<()> {
 }
 
 pub(super) struct Terminal {
-    lines: u16,
+    previous: String,
 }
 
 impl Terminal {
     pub(super) fn open(label: &str) -> Result<Self> {
         require_terminal(label)?;
         crossterm::terminal::enable_raw_mode().map_err(failure)?;
-        Ok(Self { lines: 0 })
+        Ok(Self {
+            previous: String::new(),
+        })
     }
 
     pub(super) fn render(&mut self, text: &str) -> Result<()> {
         use std::io::Write;
         let mut output = io::stdout();
-        if self.lines > 0 {
-            write!(output, "\x1b[{}A\r\x1b[J", self.lines).map_err(failure)?;
-        }
-        let text = text.replace('\n', "\r\n");
-        write!(output, "\x1b[?25l{text}").map_err(failure)?;
+        let update = redraw(&self.previous, text);
+        write!(output, "\x1b[?25l{update}").map_err(failure)?;
         output.flush().map_err(failure)?;
-        self.lines = text.matches('\n').count() as u16;
+        self.previous = text.into();
         Ok(())
     }
 
@@ -45,6 +44,23 @@ impl Terminal {
             }
         }
     }
+}
+
+fn redraw(previous: &str, text: &str) -> String {
+    let shared = previous
+        .split_inclusive('\n')
+        .zip(text.split_inclusive('\n'))
+        .take_while(|(old, new)| old == new)
+        .map(|(_, line)| line.len())
+        .sum::<usize>();
+    let remaining = &previous[shared..];
+    let lines = remaining.matches('\n').count();
+    let movement = if lines > 0 {
+        format!("\x1b[{lines}A\r\x1b[J")
+    } else {
+        String::new()
+    };
+    format!("{movement}{}", text[shared..].replace('\n', "\r\n"))
 }
 
 impl Drop for Terminal {
@@ -67,6 +83,14 @@ pub(super) fn cancelled() -> EnvdenError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn input_repaints_do_not_repeat_the_prompt_header() {
+        let previous = "│\n◆  Wrong master password. Try again\n│  ▪\n└\n";
+        let next = previous.replace("│  ▪", "│  ▪▪");
+        assert_eq!(redraw(previous, &next), "\x1b[2A\r\x1b[J│  ▪▪\r\n└\r\n");
+        assert_eq!(redraw(previous, previous), "");
+    }
+
     #[test]
     fn nonterminal_errors_are_actionable() {
         if !io::stdin().is_terminal() {

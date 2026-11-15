@@ -1,18 +1,19 @@
 use super::{exchange::put, exchange::wait, local::prepare};
 use crate::{
     adapters::IAdapters,
+    admin::shared::context::admin_context,
     client::{UreqTransport, binary},
-    onboarding::vault::add_swap::add_swap,
     output::{
         prompts::{consent, secret},
         sanitize_console,
     },
     session::{TPassword, login},
     state::{
+        lock::with_state_lock,
         repository::{load_state, save_state},
         require_configured,
     },
-    vault::{checkpoint_material, history::read_history, vault_connection},
+    vault::{history::read_history, vault_connection},
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
@@ -29,10 +30,15 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
         TPassword::Fixed(&password),
         p::TLoginPurpose::Unlock,
     )? {
-        state["session"] = serde_json::to_value(session).expect("window");
-        save_state(&adapters.home, &state, (adapters.now)())?;
+        with_state_lock(&adapters.home, (adapters.now)(), || {
+            state = require_configured(load_state(&adapters.home)?)?;
+            state["session"] = serde_json::to_value(session).expect("window");
+            save_state(&adapters.home, &state, (adapters.now)())
+        })?;
     }
-    if super::persistence::submit(adapters, client)? {
+    if with_state_lock(&adapters.home, (adapters.now)(), || {
+        super::persistence::resume(adapters, client)
+    })? {
         println!("Device added");
         return Ok(());
     }
@@ -47,6 +53,7 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
         .as_u64()
         .unwrap_or(0)
         .min((adapters.now)() + 600_000);
+    super::exchange::require_window(expiry, (adapters.now)())?;
     let pin = client.options.pin;
     let attempt = prepare(&pin, number)?;
     println!(
@@ -81,47 +88,33 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
         server_login_state: response.server_login_state,
         finish_login_request: ke3,
         identifiers: Some(p::pairing_identifiers(&pin, number)?.identifiers),
-    })?;
+    });
+    let finish = match finish {
+        Ok(finish) => finish,
+        Err(error) => {
+            client.request(&format!("/v1/pairing/mailboxes/{number}"), "DELETE", None)?;
+            return Err(error);
+        }
+    };
     let (receive, send) = p::pairing_channel_keys(&binary(&finish.session_key)?)?;
+    let keys = super::approval::IChannelKeys { receive, send };
     let message = wait(
         client,
         &format!("/v1/pairing/mailboxes/{number}/PairJoiner"),
         adapters.now,
         expiry,
     )?;
-    let candidate = p::open_pair_joiner(&binary(&message)?, &receive)?.device;
-    if !consent(&format!("Add {}?", candidate.name), false)? {
+    let candidate = p::open_pair_joiner(&binary(&message)?, &keys.receive)?.device;
+    let history = read_history(client, &connection.vault_id, None)?;
+    let name = super::approval::named_for_list(candidate.clone(), &history).name;
+    if !consent(&format!("Add {name}?"), false)? {
         client.request(&format!("/v1/pairing/mailboxes/{number}"), "DELETE", None)?;
         println!("Declined");
         return Ok(());
     }
-    let history = read_history(client, &connection.vault_id, None)?;
-    let material = checkpoint_material(adapters, &state)?;
-    let epoch = &material.keys[&history.state.epoch];
-    let name = candidate.name.clone();
-    let mut swap = add_swap(
-        &history,
-        candidate,
-        (
-            connection.identity.record.id,
-            &connection.identity.keys.obj_sk,
-        ),
-        epoch,
-        2,
-        &connection.identity,
-        (adapters.now)(),
-    )?;
-    swap.approver = Some(p::seal_pair_approver(
-        &p::IPairApprover {
-            vault_id: connection.vault_id,
-            server_pin: pin,
-            manifest_hash: p::object_hash(&swap.header, "manifest")?,
-        },
-        &send,
-        &p::random_bytes(),
-    )?);
-    super::persistence::save_approval(adapters, number, &swap)?;
-    super::persistence::submit(adapters, client)?;
+    super::approval::approve(adapters, number, expiry, &candidate, &keys.send, || {
+        admin_context(adapters, Rc::new(UreqTransport))
+    })?;
     println!("{}", sanitize_console(&format!("Device {name} added")));
     Ok(())
 }
