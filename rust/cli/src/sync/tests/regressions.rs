@@ -154,3 +154,22 @@ fn interrupted_placement_marks_completed_store_write() {
     reconciliation(false, false, false, true);
 }
 
+#[test]
+fn missing_unpublished_link_content_is_held_back() {
+    use std::collections::HashSet;
+    let (_dir, a, server, _) = fixture::fixture();
+    let root = repo(&a);
+    let mut c = sync::remote::context::sync_context(&a, opts(&a), server).unwrap();
+    let checkout = a.repo.checkout_at(root.to_str().unwrap()).unwrap().unwrap();
+    let store = store::store_path(&a.home, "github.com/test/review", ".env").unwrap();
+    c.state["approved"] = json!([checkout_value(&checkout)]);
+    c.state["links"] = json!([{"root":root,"path":".env","store":store,"mode":"link"}]);
+    let result = sync::local::reconcile::reconcile(
+        &mut c,
+        &HashSet::from(["github.com/test/review".into()]),
+        &HashSet::new(),
+    )
+    .unwrap();
+    assert_eq!(result.conflicts, 1);
+    assert!(result.failed_stores.contains(store.to_str().unwrap()));
+}
