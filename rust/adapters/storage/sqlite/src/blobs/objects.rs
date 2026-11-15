@@ -42,11 +42,15 @@ impl SqliteStorageAdapter {
                 let mut options = OpenOptions::new(); options.write(true).create_new(true);
                 #[cfg(unix)] { use std::os::unix::fs::OpenOptionsExt; options.mode(0o600); }
                 let mut file = options.open(&temp).map_err(fail)?;
+                #[cfg(test)]
+                tests::exit_at("partial", &mut file);
                 file.write_all(bytes).map_err(fail)?; file.sync_all().map_err(fail)?; drop(file);
                 if let Err(error) = fs::hard_link(&temp, &path) {
                     if !path.exists() { return Err(fail(error)); }
                     if fs::read(&path).map_err(fail)? != bytes { return Err(invalid("Conflicting content for blob hash")); }
                 }
+                #[cfg(test)]
+                tests::exit_at("published", &mut fs::File::open(&path).map_err(fail)?);
                 sync_dir(dir)?;
                 self.run("INSERT OR IGNORE INTO blobs VALUES(?,?)", params![vault, hash])?;
                 self.run("INSERT INTO blob_usage VALUES(?,?,?,?) ON CONFLICT(vault,hash) DO UPDATE SET at=excluded.at", params![vault, hash, bytes.len() as i64, now.unwrap_or(0) as f64])?;
@@ -89,3 +93,7 @@ impl SqliteStorageAdapter {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "objects_tests.rs"]
+mod tests;

@@ -8,11 +8,18 @@ use std::{
     time::UNIX_EPOCH,
 };
 
+#[cfg(not(test))]
 pub(crate) use envden_core::process::restrict_access as restrict;
 
-pub(crate) fn sync_dir(path: &Path) -> Result<()> {
+#[cfg(test)]
+pub(crate) fn restrict(path: &Path, directory: bool) -> Result<()> {
+    tests::RESTRICTED.with_borrow_mut(|calls| calls.push((path.to_path_buf(), directory)));
+    envden_core::process::restrict_access(path, directory)
+}
+
+pub(crate) fn sync_dir(_path: &Path) -> Result<()> {
     #[cfg(not(windows))]
-    fs::File::open(path)
+    fs::File::open(_path)
         .and_then(|f| f.sync_all())
         .map_err(fail)?;
     Ok(())
@@ -103,6 +110,22 @@ pub(crate) fn prune_backups(dir: &Path, now: u64) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    thread_local! {
+        pub(super) static RESTRICTED: std::cell::RefCell<Vec<(std::path::PathBuf, bool)>> =
+            const { std::cell::RefCell::new(Vec::new()) };
+    }
+
+    #[test]
+    fn startup_uses_shared_access_helper_for_directory_and_database() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = super::open_database(dir.path(), 0).unwrap();
+        RESTRICTED.with_borrow(|calls| {
+            assert!(calls.contains(&(dir.path().to_path_buf(), true)));
+            assert!(calls.contains(&(dir.path().join("envden.sqlite"), false)));
+        });
+        drop(db);
+    }
+
     #[test]
     fn connection_pragmas_match_typescript() {
         let dir = tempfile::tempdir().unwrap();

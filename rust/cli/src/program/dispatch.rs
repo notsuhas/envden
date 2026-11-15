@@ -47,6 +47,7 @@ impl ICommandActions for DefaultActions {
             .collect::<Vec<_>>()
             .as_slice()
         {
+            ["unlock"] => return crate::commands::onboarding::run_unlock(adapters),
             ["version"] => print(VERSION),
             ["config"] => print(&config(invocation, adapters)?),
             _ => return Err(not_implemented()),

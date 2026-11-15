@@ -2,32 +2,24 @@ mod support;
 use envden_adapter_storage_sqlite::create_sqlite_storage_adapter;
 use envden_core::adapters::*;
 use rusqlite::{Connection, params};
-use std::{fs, process::Command};
+use std::fs;
 
-fn verified_hash(dir: &std::path::Path) -> Vec<u8> {
-    let output = Command::new("bun")
-        .arg(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/bridge.mjs"
-        ))
-        .arg("hash")
-        .arg(dir)
-        .output()
-        .unwrap();
-    assert!(output.status.success());
-    hex::decode(output.stdout).unwrap()
+fn verified_hash() -> Vec<u8> {
+    hex::decode("73bb395871b361f25d9758a2f06c8ab5c994d4befa96c1da5defd0ceb67a3d31").unwrap()
 }
+
 #[test]
 fn adopts_verified_orphans_removes_invalid_and_temporary_files() {
     let dir = tempfile::tempdir().unwrap();
-    let hash = verified_hash(dir.path());
+    let hash = verified_hash();
     let path = dir.path().join("blobs/01");
     fs::create_dir_all(&path).unwrap();
-    fs::write(path.join(hex::encode(&hash)), [6]).unwrap();
+    fs::write(path.join(hex::encode(&hash)), [4, 5, 6]).unwrap();
     fs::write(path.join("02"), [3]).unwrap();
     fs::write(path.join(".tmp-interrupted"), [9]).unwrap();
     let storage = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
-    assert_eq!(storage.get_blob(&[1], &hash).unwrap(), Some(vec![6]));
+    assert_eq!(storage.get_blob(&[1], &hash).unwrap(), Some(vec![4, 5, 6]));
+    assert!(storage.get_blob(&[1], &[2]).unwrap().is_none());
     assert!(!path.join("02").exists());
     assert!(!path.join(".tmp-interrupted").exists());
     storage
@@ -39,8 +31,9 @@ fn adopts_verified_orphans_removes_invalid_and_temporary_files() {
 fn honors_pending_garbage_and_preserves_reuploads() {
     for present in [false, true] {
         let (dir, db) = support::setup();
-        let hash = verified_hash(dir.path());
-        db.put_blob(&[1], &hash, &[6], None, None, None).unwrap();
+        let hash = verified_hash();
+        db.put_blob(&[1], &hash, &[4, 5, 6], None, None, None)
+            .unwrap();
         db.close().unwrap();
         let inspect = Connection::open(dir.path().join("envden.sqlite")).unwrap();
         if !present {
@@ -58,7 +51,7 @@ fn honors_pending_garbage_and_preserves_reuploads() {
         let storage = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
         assert_eq!(
             storage.get_blob(&[1], &hash).unwrap(),
-            present.then_some(vec![6])
+            present.then_some(vec![4, 5, 6])
         );
         assert_eq!(
             dir.path().join("blobs/01").join(hex::encode(hash)).exists(),
@@ -77,6 +70,7 @@ fn failed_garbage_deletion_is_durable_and_retried() {
     fs::create_dir(&path).unwrap();
     db.transaction(&mut || db.discard_inactive_vault(&[1]))
         .unwrap();
+    assert!(!db.has_vault(&[1]).unwrap());
     let inspect = Connection::open(dir.path().join("envden.sqlite")).unwrap();
     assert_eq!(
         inspect
@@ -104,10 +98,31 @@ fn failed_garbage_deletion_is_durable_and_retried() {
             .unwrap(),
         0
     );
+    db.configure_vault(&[1], &support::vault(false), &[], None)
+        .unwrap();
+    db.put_blob(&[1], &[2], &[3], None, None, None).unwrap();
+    db.discard_inactive_vault(&[1]).unwrap();
+    assert!(!path.exists());
 }
 #[test]
 fn live_maintenance_prunes_expired_secrets_and_backups() {
-    let (dir, db) = support::setup();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("envden.sqlite");
+    let original = Connection::open(&path).unwrap();
+    original
+        .execute_batch("CREATE TABLE fixture(value); INSERT INTO fixture VALUES(42)")
+        .unwrap();
+    drop(original);
+    fs::write(dir.path().join("pre-1"), "partial").unwrap();
+    let db = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
+    let backup = Connection::open(dir.path().join("pre-1")).unwrap();
+    assert_eq!(
+        backup
+            .query_row("SELECT value FROM fixture", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        42
+    );
+    drop(backup);
     let key = ISessionKey {
         kind: TSessionKind::Login,
         device: vec![1],
@@ -118,7 +133,6 @@ fn live_maintenance_prunes_expired_secrets_and_backups() {
     inspect
         .execute_batch("INSERT INTO approvers VALUES(x'01',x'01',x'02',100)")
         .unwrap();
-    fs::write(dir.path().join("pre-1"), "backup").unwrap();
     fs::File::open(dir.path().join("pre-1"))
         .unwrap()
         .set_times(fs::FileTimes::new().set_modified(std::time::UNIX_EPOCH))
@@ -134,4 +148,14 @@ fn live_maintenance_prunes_expired_secrets_and_backups() {
         );
     }
     assert!(!dir.path().join("pre-1").exists());
+    assert_eq!(
+        inspect
+            .query_row(
+                "SELECT name FROM sqlite_master WHERE name='nonces_expires'",
+                [],
+                |r| r.get::<_, String>(0)
+            )
+            .unwrap(),
+        "nonces_expires"
+    );
 }

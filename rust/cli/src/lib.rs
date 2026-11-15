@@ -11,3 +11,6 @@ pub mod version;
 pub mod client;
 pub mod session;
 pub mod identity;
+pub mod onboarding;
+pub mod vault;
+pub mod commands;

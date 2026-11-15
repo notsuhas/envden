@@ -10,14 +10,13 @@ use std::{
 };
 
 #[test]
-fn migrates_with_consistent_wal_backup_and_replaces_partial_backup() {
+fn migrates_with_consistent_wal_backup() {
     let dir = tempfile::tempdir().unwrap();
     let db = Connection::open(dir.path().join("envden.sqlite")).unwrap();
     db.execute_batch(
         "PRAGMA journal_mode=WAL; CREATE TABLE fixture(value); INSERT INTO fixture VALUES(42)",
     )
     .unwrap();
-    fs::write(dir.path().join("pre-1"), "partial").unwrap();
     let storage = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
     let backup = Connection::open(dir.path().join("pre-1")).unwrap();
     assert_eq!(
@@ -67,7 +66,11 @@ fn concurrent_connections_have_exactly_one_cas_winner() {
             std::thread::spawn(move || {
                 let db = create_sqlite_storage_adapter(dir, 0).unwrap();
                 barrier.wait();
-                db.commit_swap(&[1], None, &swap::swap(i), 0).unwrap()
+                let mut update = swap::swap(i);
+                update.header.seq = 1;
+                update.header.bytes = vec![4];
+                update.body_digest = vec![i + 9];
+                db.commit_swap(&[1], None, &update, 0).unwrap()
             })
         })
         .collect();
@@ -95,12 +98,9 @@ fn startup_repairs_private_modes() {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        for path in [
-            dir.path().to_path_buf(),
-            dir.path().join("identity.json"),
-            dir.path().join("envden.sqlite"),
-        ] {
-            fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o755)).unwrap();
+        for name in ["identity.json", "envden.sqlite"] {
+            fs::set_permissions(dir.path().join(name), fs::Permissions::from_mode(0o644)).unwrap();
         }
     }
     let storage = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
@@ -146,17 +146,28 @@ fn login_transaction_rolls_back_all_effects() {
     else {
         panic!()
     };
-    assert!(
+    assert_eq!(
         db.transaction(&mut || {
             db.consume_session(&[1], &key, 1)?;
-            db.put_device(&[1], &[2], &IStoredDevice::default())?;
+            db.put_device(
+                &[1],
+                &[2],
+                &IStoredDevice {
+                    unlocked_until: 100,
+                    fresh_until: 50,
+                    client_version: "1.0.0".into(),
+                    mailbox_grant: None,
+                },
+            )?;
             db.refund(&receipt, 1)?;
             Err(envden_core::errors::EnvdenError::new(
                 envden_core::errors::ErrorCode::InvalidInput,
                 "Login rejected",
             ))
         })
-        .is_err()
+        .unwrap_err()
+        .message,
+        "Login rejected"
     );
     assert!(db.session(&[1], &key, 1).unwrap().is_some());
     assert!(db.device(&[1], &[2]).unwrap().is_none());

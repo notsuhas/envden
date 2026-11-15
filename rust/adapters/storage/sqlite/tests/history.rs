@@ -59,6 +59,7 @@ fn restored_current_list_stays_pinned_after_header_only_import() {
     swap.files = Some(files(1, vec![live(1, 1, 1)]));
     db.commit_swap(&[1], None, &swap, 1).unwrap();
     let mut swap = swap::swap(2);
+    swap.vault = None;
     swap.files_hash = Some(vec![2]);
     db.commit_swap(&[1], Some(&[1]), &swap, 2).unwrap();
     db.put_file_list(&[1], &files(2, vec![live(1, 2, 2)]), 2)
@@ -136,7 +137,12 @@ fn over_quota_deletions_commit_but_new_content_does_not() {
         db.put_blob(&[1], &[i], &[i], None, None, None).unwrap();
     }
     let mut swap = swap::swap(1);
-    swap.files = Some(files(1, vec![live(1, 1, 1), live(2, 1, 2)]));
+    swap.header.hash = vec![11];
+    swap.header.bytes = vec![11];
+    swap.body_digest = vec![11];
+    let mut list = files(21, vec![live(1, 1, 1), live(2, 1, 2)]);
+    list.bytes = vec![1; 8];
+    swap.files = Some(list);
     db.commit_swap(&[1], None, &swap, 0).unwrap();
     let inspect = rusqlite::Connection::open(dir.path().join("envden.sqlite")).unwrap();
     inspect
@@ -155,14 +161,26 @@ fn over_quota_deletions_commit_but_new_content_does_not() {
             },
         ],
     ));
+    swap.header.hash = vec![12];
+    swap.header.bytes = vec![12];
+    swap.body_digest = vec![12];
+    swap.files.as_mut().unwrap().hash = vec![22];
+    swap.files.as_mut().unwrap().bytes = vec![2; 8];
     assert_eq!(
-        db.commit_swap(&[1], Some(&[1]), &swap, 0).unwrap(),
+        db.commit_swap(&[1], Some(&[11]), &swap, 0).unwrap(),
         TCommitResult::Committed
     );
     let mut swap = swap::swap(3);
     swap.files = Some(files(3, vec![live(1, 1, 1), live(3, 1, 3)]));
+    swap.header.hash = vec![13];
+    swap.header.bytes = vec![13];
+    swap.body_digest = vec![13];
+    swap.files.as_mut().unwrap().hash = vec![23];
+    swap.files.as_mut().unwrap().bytes = vec![3; 8];
     assert_eq!(
-        db.commit_swap(&[1], Some(&[2]), &swap, 0).unwrap_err().code,
+        db.commit_swap(&[1], Some(&[12]), &swap, 0)
+            .unwrap_err()
+            .code,
         envden_core::errors::ErrorCode::StorageQuota
     );
 }

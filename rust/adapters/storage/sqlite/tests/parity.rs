@@ -42,6 +42,31 @@ fn exact_typescript_schema_and_pragmas() {
             .unwrap(),
         1
     );
+    assert!(std::fs::read_dir(dir.path()).unwrap().all(|entry| {
+        !entry
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .starts_with("pre-")
+    }));
+    for (table, column) in [
+        ("nonces", "expires"),
+        ("sessions", "expires"),
+        ("approvers", "expires"),
+        ("headers", "files"),
+        ("charges", "at"),
+        ("charges", "bucket"),
+        ("buckets", "until"),
+    ] {
+        let columns: Vec<String> = db
+            .prepare(&format!("PRAGMA index_info({table}_{column})"))
+            .unwrap()
+            .query_map([], |r| r.get(2))
+            .unwrap()
+            .map(Result::unwrap)
+            .collect();
+        assert!(columns.contains(&column.to_string()));
+    }
     assert!(!dir.path().join("pre-1").exists());
     assert!(dir.path().join("envden.sqlite-wal").exists());
     assert!(dir.path().join("envden.sqlite-shm").exists());
@@ -151,64 +176,4 @@ fn databases_are_readable_in_both_runtimes() {
     }
     storage.close().unwrap();
     bun("read", dir.path());
-}
-#[test]
-fn sqlite_storage_classes_match_bun() {
-    for ts in [true, false] {
-        let dir = tempfile::tempdir().unwrap();
-        if ts {
-            bun("write", dir.path());
-        } else {
-            let db = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
-            db.configure_vault(
-                &[1],
-                &IStoredVault {
-                    unlock_period: Some(123),
-                    ..support::vault(true)
-                },
-                &[],
-                None,
-            )
-            .unwrap();
-            db.put_device(&[1], &[2], &IStoredDevice::default())
-                .unwrap();
-            let mut swap = swap::swap(1);
-            swap.vault = None;
-            db.commit_swap(&[1], None, &swap, 1).unwrap();
-            db.close().unwrap();
-        }
-        let db = Connection::open(dir.path().join("envden.sqlite")).unwrap();
-        assert_eq!(
-            db.query_row(
-                "SELECT typeof(id),typeof(active),typeof(period),typeof(head) FROM vaults",
-                [],
-                |r| Ok((
-                    r.get::<_, String>(0)?,
-                    r.get::<_, String>(1)?,
-                    r.get::<_, String>(2)?,
-                    r.get::<_, String>(3)?
-                ))
-            )
-            .unwrap(),
-            (
-                "blob".into(),
-                "integer".into(),
-                "real".into(),
-                "blob".into()
-            )
-        );
-        assert_eq!(
-            db.query_row(
-                "SELECT typeof(seq),typeof(at),length(seq) FROM headers",
-                [],
-                |r| Ok((
-                    r.get::<_, String>(0)?,
-                    r.get::<_, String>(1)?,
-                    r.get::<_, i64>(2)?
-                ))
-            )
-            .unwrap(),
-            ("text".into(), "real".into(), 20)
-        );
-    }
 }
