@@ -18,8 +18,20 @@ test.each([
   ["opted out", crash, true, { ENVDEN_NO_REPORT: "1" }, false],
   ["a cancelled prompt", new PromptCancelled(), true, {}, false],
   ["INVALID_INPUT", new EnvdenError("INVALID_INPUT", "Bad"), true, {}, false],
-  ["CONFLICT", new EnvdenError("CONFLICT", "Conflict"), true, {}, false],
-  ["SERVER_UNREACHABLE", new EnvdenError("SERVER_UNREACHABLE", "Down"), true, {}, false],
 ] as const)("%s offers %p", (_label, error, interactive, env, offered) => {
-  expect(deriveReportOffer({ error, interactive, env })).toBe(offered);
+  expect(deriveReportOffer({ error, command: "setup", interactive, env })).toBe(offered);
+});
+
+test.each([
+  ["a sync conflict from pull", "pull", "CONFLICT", false],
+  ["a sync conflict from push", "push", "CONFLICT", false],
+  ["a setup step that hit a CONFLICT", "setup", "CONFLICT", true],
+  ["a wrong password", "unlock", "UNAUTHORIZED", false],
+  ["not set up", "status", "NOT_FOUND", false],
+  ["an unreachable server", "push", "SERVER_UNREACHABLE", false],
+  ["a launchd failure during setup", "setup", "INTERNAL", true],
+] as const)("%s offers %p", (_label, command, code, offered) => {
+  const error = new EnvdenError(code, "x");
+
+  expect(deriveReportOffer({ error, command, interactive: true, env: {} })).toBe(offered);
 });

@@ -43,7 +43,9 @@ export async function reportProblem(
   effects: IReportEffects = systemEffects(),
 ): Promise<void> {
   try {
-    if (!deriveReportOffer({ error, interactive: effects.interactive, env: effects.env })) return;
+    const command = effects.argv.find((arg) => !arg.startsWith("-"));
+    const offer = { error, command, interactive: effects.interactive, env: effects.env };
+    if (!deriveReportOffer(offer)) return;
 
     const harnesses = detectHarnesses(effects.which);
 

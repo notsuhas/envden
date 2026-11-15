@@ -4,6 +4,7 @@ import { PromptCancelled } from "../state/cancelled.ts";
 
 interface IReportOfferInput {
   error: unknown;
+  command?: string | undefined;
   interactive: boolean;
   env: Record<string, string | undefined>;
 }
@@ -22,33 +23,37 @@ const AGENT_VARIABLES = [
   "OPENCODE",
 ];
 
-const ENVDEN_BUG: Record<TErrorCode, boolean> = {
-  INVALID_DATA: true,
-  INTERNAL: true,
-  NOT_IMPLEMENTED: true,
-  HEAD_MOVED: true,
-  BUSY: true,
-  ROLLBACK: true,
-  FORK: true,
-  INVALID_INPUT: false,
+// "No" is the default, so offering too often costs one keypress; missing a real bug costs the report
+const USERS_TO_FIX: Record<TErrorCode, boolean> = {
+  INVALID_INPUT: true,
+  UNAUTHORIZED: true,
+  LOCKED: true,
+  RATE_LIMITED: true,
+  UPDATE_REQUIRED: true,
+  CLIENT_TOO_OLD: true,
+  NOT_FOUND: true,
+  STORAGE_QUOTA: true,
+  SERVER_UNREACHABLE: true,
   CONFLICT: false,
-  LOCKED: false,
-  UNAUTHORIZED: false,
+  INVALID_DATA: false,
+  INTERNAL: false,
+  NOT_IMPLEMENTED: false,
+  HEAD_MOVED: false,
+  BUSY: false,
+  ROLLBACK: false,
+  FORK: false,
   NOT_MEMBER: false,
-  RATE_LIMITED: false,
   RECOVERY_KIT_REQUIRED: false,
-  UPDATE_REQUIRED: false,
-  CLIENT_TOO_OLD: false,
   SERVER_TOO_OLD: false,
-  NOT_FOUND: false,
-  STORAGE_QUOTA: false,
-  SERVER_UNREACHABLE: false,
   MOVING: false,
   RESTORED_MODE: false,
 };
 
+// push, pull and resolve exit with CONFLICT for ordinary sync conflicts
+const SYNC_COMMANDS = new Set(["push", "pull", "resolve"]);
+
 export function deriveReportOffer(input: IReportOfferInput): boolean {
-  const { error, interactive, env } = input;
+  const { error, command, interactive, env } = input;
 
   if (!interactive || env.ENVDEN_NO_REPORT === "1") return false;
 
@@ -56,5 +61,9 @@ export function deriveReportOffer(input: IReportOfferInput): boolean {
 
   if (error instanceof PromptCancelled) return false;
 
-  return isEnvdenError(error) ? ENVDEN_BUG[error.code] : true;
+  if (!isEnvdenError(error)) return true;
+
+  if (error.code === "CONFLICT" && command && SYNC_COMMANDS.has(command)) return false;
+
+  return !USERS_TO_FIX[error.code];
 }
