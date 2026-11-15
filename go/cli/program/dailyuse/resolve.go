@@ -1,6 +1,5 @@
 package dailyuse
 
-import "github.com/notsuhas/envden/go/cli/program/stub"
 import "github.com/notsuhas/envden/go/lib/commander"
 
 func ResolveCommand() *commander.Command {
@@ -11,6 +10,6 @@ func ResolveCommand() *commander.Command {
 	c.AddOption(commander.NewOption("--keep-mine", "Keep your version").Conflicts("takeServer"))
 	c.AddOption(commander.NewOption("--take-server", "Take the server's version"))
 	c.AddArgument(commander.NewArgument("[file]", "Conflicted env file"))
-	c.Action(stub.Action)
+	c.Action(resolveAction)
 	return c
 }

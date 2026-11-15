@@ -1,0 +1,42 @@
+package files
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	e "github.com/notsuhas/envden/go/core/errors"
+)
+
+func TestSafeSyncFiles(t *testing.T) {
+	home := t.TempDir()
+	path := filepath.Join(home, "nested", "file")
+	now := func() int64 { return 1700000000000 }
+	if value, err := ReadBytes(path); err != nil || value != nil {
+		t.Fatal(value, err)
+	}
+	for _, value := range [][]byte{{}, []byte("TOKEN=fixture\n"), nil} {
+		if err := WriteBytes(path, value, now); err != nil {
+			t.Fatal(err)
+		}
+		got, err := ReadBytes(path)
+		if err != nil || !Same(got, value) {
+			t.Fatal(got, err)
+		}
+	}
+	for _, target := range []string{home, path} {
+		if err := os.Symlink(target, path+".link"); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := ReadBytes(path + ".link"); !e.Is(err, e.InvalidData) {
+			t.Fatal(err)
+		}
+		_ = os.Remove(path + ".link")
+	}
+	if _, err := ReadBytes(home); !e.Is(err, e.InvalidData) {
+		t.Fatal(err)
+	}
+	if BasePath(home, path) == BasePath(home, path, "root") || BasePath(home, path) != BasePath(home, path, "") {
+		t.Fatal("base identity")
+	}
+}
