@@ -12,11 +12,11 @@ fn permissions_and_required() {
     use envden_core::{adapters::IKeychainAdapter, errors::ErrorCode};
     let home = tempfile::tempdir().unwrap();
     let adapter = envden_adapter_keychain_file::create_file_keychain_adapter(home.path());
-    let missing = adapter.get("missing", true).unwrap_err();
+    let missing = adapter.get("device", true).unwrap_err();
     assert_eq!(missing.code, ErrorCode::Locked);
     assert!(missing.message.contains("run envden join"));
     assert!(adapter.owner_only().unwrap());
-    adapter.set("key", &[0, 255]).unwrap();
+    adapter.set("key", &[1]).unwrap();
     let directory = home.path().join("state/keys");
     let paths: Vec<_> = std::fs::read_dir(&directory)
         .unwrap()
@@ -57,6 +57,7 @@ fn persists_long_names_and_fixed_failures() {
     let name = "k".repeat(200);
     let adapter = envden_adapter_keychain_file::create_file_keychain_adapter(home.path());
     adapter.set(&name, &[7]).unwrap();
+    assert_eq!(adapter.get(&name, false).unwrap(), Some(vec![7]));
     assert_eq!(
         envden_adapter_keychain_file::create_file_keychain_adapter(home.path())
             .get(&name, false)

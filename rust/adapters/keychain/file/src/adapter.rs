@@ -41,11 +41,11 @@ impl IKeychainAdapter for FileKeychainAdapter {
             paths.push(entry.map_err(files::failure)?.path());
         }
         for path in paths {
-            let info = fs::metadata(path).map_err(files::failure)?;
+            let _info = fs::metadata(path).map_err(files::failure)?;
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                if info.permissions().mode() & 0o077 != 0 {
+                if _info.permissions().mode() & 0o077 != 0 {
                     return Ok(false);
                 }
             }
