@@ -33,3 +33,36 @@ pub fn authenticated_request_succeeded(home: &Path) -> Result<()> {
         Err(e) => Err(failure(e)),
     }
 }
+
+thread_local! {
+    static REQUEST_HOME: std::cell::RefCell<Option<std::path::PathBuf>> = const { std::cell::RefCell::new(None) };
+}
+
+pub fn with_update_status<T>(home: &Path, action: impl FnOnce() -> T) -> T {
+    struct Restore(Option<std::path::PathBuf>);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            REQUEST_HOME.set(self.0.take());
+        }
+    }
+    let _restore = Restore(REQUEST_HOME.replace(Some(home.to_owned())));
+    action()
+}
+
+pub(crate) fn scoped_authenticated_request_succeeded() -> Result<()> {
+    REQUEST_HOME.with_borrow(|home| {
+        home.as_deref()
+            .map(authenticated_request_succeeded)
+            .transpose()
+            .map(|_| ())
+    })
+}
+
+pub fn record_command_result(home: &Path, result: Result<()>, now: u64) -> Result<()> {
+    if let Err(error) = &result
+        && error.code == envden_core::errors::ErrorCode::ClientTooOld
+    {
+        record_update_required(home, error, now)?;
+    }
+    result
+}

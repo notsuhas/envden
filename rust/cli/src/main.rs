@@ -4,6 +4,7 @@ use envden_cli::{
     program::{
         DefaultActions, DefaultHooks, TParseResult, command_tree, dispatch, format_help, parse,
     },
+    updates::status::{record_command_result, with_update_status},
     version::VERSION,
 };
 use std::{
@@ -54,11 +55,40 @@ fn main() {
                 .map(PathBuf::from)
                 .unwrap_or_default();
             let adapters = create_adapters(None, home, now);
-            if let Err(error) = dispatch(&invocation, &adapters, &DefaultActions, &DefaultHooks) {
+            let result = with_update_status(&adapters.home, || {
+                dispatch(&invocation, &adapters, &DefaultActions, &DefaultHooks)
+            });
+            if let Err(error) = record_command_result(&adapters.home, result, now()) {
                 print_error(&error.message);
                 envden_cli::report::launch::offer_report(&error, &adapters);
                 std::process::exit(error_exit_code(error.code));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn client_too_old_records_running_version_except_unpublished_minimum() {
+        use envden_cli::updates::status::record_command_result;
+        use envden_core::errors::{EnvdenError, ErrorCode};
+        let home = tempfile::tempdir().unwrap();
+        let marker = home.path().join("state/update-required");
+        let unpublished = Err(EnvdenError::new(
+            ErrorCode::ClientTooOld,
+            "The server requires a version that doesn't exist",
+        ));
+        assert!(record_command_result(home.path(), unpublished, 1).is_err());
+        assert!(!marker.exists());
+        let rejected = Err(EnvdenError::new(
+            ErrorCode::ClientTooOld,
+            "Update envden to meet the signed server minimum",
+        ));
+        assert!(record_command_result(home.path(), rejected, 1).is_err());
+        assert_eq!(
+            std::fs::read_to_string(marker).unwrap(),
+            envden_cli::version::VERSION
+        );
     }
 }

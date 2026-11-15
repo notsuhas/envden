@@ -146,6 +146,7 @@ impl IClient {
             }
             return Err(error);
         }
+        crate::updates::status::scoped_authenticated_request_succeeded()?;
         Ok(response)
     }
 
