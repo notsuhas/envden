@@ -48,7 +48,12 @@ pub(super) fn decode(saved: &str, receipt: &str) -> Result<IAttempt> {
     let record: IAttempt = serde_json::from_str(saved).map_err(|_| invalid())?;
     if record.header.len() != 43
         || record.sequence.len() > 20
-        || record.sequence.parse::<u64>().is_err()
+        || !record
+            .header
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        || record.sequence.is_empty()
+        || !record.sequence.bytes().all(|b| b.is_ascii_digit())
     {
         return Err(invalid());
     }

@@ -70,3 +70,26 @@ fn detects_corrupt_attempts_without_changing_records() {
     fs::write(home.path().join("state/attempts"), "not a directory").unwrap();
     assert!(!invalid_attempt_state(home.path()).unwrap());
 }
+
+#[test]
+fn attempt_header_and_decimal_sequence_match_typescript_schema() {
+    for (header, sequence, valid) in [
+        ("A".repeat(43), "99999999999999999999", true),
+        ("A".repeat(43), "+1", false),
+        ("A".repeat(43), "", false),
+        ("!".repeat(43), "1", false),
+    ] {
+        let document = serde_json::to_string(&IAttempt {
+            header,
+            sequence: sequence.into(),
+            places: vec![],
+            entries: vec![],
+        })
+        .unwrap();
+        assert_eq!(
+            decode(&document, &text(&Sha256::digest(document.as_bytes()))).is_ok(),
+            valid,
+            "{sequence}"
+        );
+    }
+}
