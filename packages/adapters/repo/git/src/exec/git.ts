@@ -1,4 +1,3 @@
-import { emptyGlobalConfig } from "./config.ts";
 import { globalConfig, type TConfigEntry } from "./global-config.ts";
 import { execTrusted as exec } from "@envden/core/process";
 
@@ -19,8 +18,6 @@ export async function git(root: string, args: string[], input?: string): Promise
 }
 
 export async function gitSession(root: string, config: TConfigEntry[] = []) {
-  const emptyConfig = await emptyGlobalConfig();
-
   const directories = (await globalConfig("^safe\\.directory$")).flatMap(([key, value]) => [
     "-c",
     `${key}=${value}`,
@@ -44,7 +41,8 @@ export async function gitSession(root: string, config: TConfigEntry[] = []) {
           GIT_OPTIONAL_LOCKS: "0",
           GIT_PAGER: "cat",
           GIT_CONFIG_NOSYSTEM: "1",
-          GIT_CONFIG_GLOBAL: emptyConfig,
+          // git reads /dev/null as an empty file on every platform, Git for Windows included
+          GIT_CONFIG_GLOBAL: "/dev/null",
           ...configEnvironment(config),
         },
       },
