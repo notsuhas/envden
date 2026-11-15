@@ -1,0 +1,23 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - misspell
+    - nilerr
+    - unconvert
+
+  settings:
+    gosec:
+      excludes:
+        # file paths come from ENVDEN_HOME and checkouts the user approved
+        - G304
+        # CLI and git subprocesses go through core/process trusted spawning
+        - G204
+
+formatters:
+  enable:
+    - gofmt

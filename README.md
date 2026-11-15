@@ -108,6 +108,27 @@ bun run --cwd apps/cli build   # writes apps/cli/dist/envden
 
 The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [docs/releasing.md](docs/releasing.md).
 
+### Go port
+
+The `go/` folder holds a Go implementation that must behave exactly like the TypeScript one. It needs Go 1.26.
+
+```sh
+cd go
+go build -o dist/envden ./cmd/envden   # one binary, CLI and server
+go test ./...
+./scripts/build-all.sh                 # the eight release platforms, into go/dist
+```
+
+The parity suite runs both binaries through the same scenarios and diffs their output, files and server database. It needs Bun, Git and the TypeScript build:
+
+```sh
+bun run --cwd apps/cli build
+bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden
+bun apps/cli/scripts/e2e.ts go/dist/envden
+```
+
+`--server-binary` and `--device-binary` mix the two implementations in one run. See [parity/README.md](parity/README.md), [docs/ports/go.md](docs/ports/go.md) and the known differences in [PARITY-NOTES.md](PARITY-NOTES.md).
+
 ## Repository layout
 
 | Path | Contents |
@@ -118,6 +139,8 @@ The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile),
 | `packages/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
 | `packages/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
 | `packages/testing` | Contract tests and fakes for adapters |
+| `go/` | The Go port of core, adapters, CLI and server |
+| `parity/` | Differential test runner shared by every implementation |
 | `docs/` | Design and decisions, protocol spec, terms, adapter guide, release runbook |
 
 ## Contributing

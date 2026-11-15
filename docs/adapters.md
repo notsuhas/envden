@@ -102,12 +102,24 @@ A new capability is an interface change, so it also needs a contract case and a 
 
 For an adapter that wraps a command-line tool, read `packages/adapters/network/tailscale`. Its runner is an argument, so the contract test drives every scenario without Tailscale installed.
 
+## 11. The Go port
+
+Every adapter exists in TypeScript and in Go, and both must behave the same. In Go:
+
+- The interface is in `go/core/adapters/<kind>.go`.
+- The implementation is the package `go/adapters/<kind>/<impl>`, exporting `Create<Impl><Kind>Adapter`.
+- The contract suite and fake are in `go/testing/<kind>`, and `contract_test.go` in the adapter package runs the suite.
+- It is wired in `go/cli/adapters.go` or the server's `Serve`.
+
+Port the TypeScript contract cases as they are. A new case goes into both suites in the same PR. Behaviour the contract can't see, such as file names and permissions, is checked by the parity suite (`parity/README.md`).
+
 ## Before the PR
 
 ```sh
 ./node_modules/.bin/vp check --fix
 bun test
 ./node_modules/.bin/fallow
+(cd go && go vet ./... && go test ./...)
 ```
 
 The commit scope is the package name without `@envden/`, for example `feat(adapter-keychain-one-password): ...`.

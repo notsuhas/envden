@@ -18,7 +18,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 
 - **Server**: one Docker container, or `envden serve` on one of the user's devices (launchd / systemd / Windows login service). Stores ciphertext and opaque IDs only. One server per vault, no peer-to-peer (see Decisions). Many vaults per server, one owner each.
 - **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
-- **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
+- **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`. A Go port of everything except the site lives in `go/` and must behave identically (see Decisions).
   - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
   - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
@@ -243,7 +243,15 @@ Each vault has exactly one authoritative server at a time; devices push and pull
 
 ### TypeScript on Bun, not Go
 
-Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
+Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext. A Go port now exists alongside it (next entry); TypeScript stays the reference.
+
+### Several implementations, kept in exact parity
+
+Replaces TypeScript as the only implementation. envden now also has a Go port in `go/`, and a third language may follow. TypeScript is the reference: every other implementation must produce the same stdout, stderr, exit codes, files and permissions, server database rows and wire bytes, bugs included. A port that behaves "better" still fails: devices running different implementations share one vault and one server, so they must agree on every byte.
+
+`parity/` checks this as a black box: it runs each scenario against two binaries in throwaway homes and diffs everything they produce, with random values mapped to placeholders. CI runs it on every push to a port, plus mixed setups (a TS device and a Go device in one vault, each CLI against the other's server) and `apps/cli/scripts/e2e.ts` unchanged against the port. Byte-level vectors in `packages/core/src/protocol/__tests__/vectors` gate the crypto.
+
+A fix or improvement found in one implementation is recorded in `PARITY-NOTES.md` and lands in all of them together, never in one alone. Rejected: letting ports differ in "harmless" output such as wording or JSON key order, since scripts and agents parse both.
 
 ### Built-in adapters; crypto, sync and merge are not pluggable
 
