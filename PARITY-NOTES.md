@@ -13,3 +13,47 @@ TS behaviour: returns 31556951999 or 7889237999 milliseconds, preserving floatin
 Possible improvement: round these durations to the nearest millisecond.
 Why: multiplication of the mean-year constant lands just below an integer.
 Bug-in-TS: yes
+
+## server switch: destination unlock required after move
+
+Scenario: `parity/server-move` creates two devices, moves the server with device A, stops the source, then switches device B to the destination.
+
+TS behaviour: device B's `server switch <destination>` exits 1 with `Unlock expired. Run envden unlock`. The destination has no unlocked session for B, and switch reads history before changing B's configured address.
+
+Possible improvement: authenticate to the destination during switch before reading its history.
+
+Why: unlocking against B's configured source cannot unlock B on the destination, especially after the source is stopped.
+
+Bug-in-TS: yes
+
+## protocol: HPKE vector test method
+
+Scenario: Reproducing stored HPKE wraps with a fixed ephemeral seed.
+TS behaviour: sealWrap accepts an injected RNG for deterministic ciphertexts; production uses fresh randomness.
+Possible improvement: retain this as a test-method difference. Go opens both stored HPKE vectors and checks their ephemeral public keys; SealWrap uses crypto/hpke randomness and has no RNG parameter.
+Why: Go 1.26 crypto/hpke does not expose ephemeral-key injection. Production wire behaviour matches.
+Bug-in-TS: no
+
+## protocol: OPAQUE setup dummy key
+
+Scenario: Restoring a setup or serving a login without a registration record.
+TS behaviour: opaque-ke 4 serializes OPRF seed (64), server private key (32), and dummy public key (32). The dummy record uses that public key, a fresh masking key, and a zero envelope.
+Possible improvement: correct the port briefing's final-field name from fakeSk to dummy public key.
+Why: Go follows opaque-ke 4 source, including missing-record responses; deriving another public key from the final bytes would break parity. Source: https://github.com/facebook/opaque-ke/blob/v4.0.0/src/opaque.rs and src/messages.rs.
+Bug-in-TS: no
+
+## protocol: library diagnostic text
+
+Scenario: Syntactically valid OPAQUE messages fail library deserialization or authentication, or HTTP JSON fails a schema.
+TS behaviour: exposes serenity-kit/opaque-ke or Zod diagnostic text. Wrong-password client login returns undefined.
+Possible improvement: standardize library diagnostics at the protocol boundary.
+Why: Go preserves every explicit requireValue and EnvdenError message, but underlying bytemare errors use its own text and schema decoding reports INVALID_DATA with Invalid protocol data. Wrong-password client login returns OK=false with no error. These library diagnostic strings are not byte-for-byte equivalents.
+Bug-in-TS: no
+
+## testing storage: memory refunds retain rate strikes
+
+Scenario: Charge a memory bucket five times, refund a charge, then charge five times after the receipt window expires.
+TS behaviour: The memory fake resets the lock deadline but retains strikes, so the next lock lasts 30 minutes. SQLite resets both and locks for 15 minutes. The Go implementations preserve this difference.
+Possible improvement: Reset memory strikes on refund to match persistent storage.
+Why: Tests using memory can predict a different lockout duration from production.
+Bug-in-TS: yes

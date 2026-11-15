@@ -1,0 +1,28 @@
+{
+  "ids": {
+    "userIdentifier": "0C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G",
+    "identifiers": {
+      "client": "envden/v1/unlock/0C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G60R30C1G",
+      "server": "envden/v1/unlock-server"
+    }
+  },
+  "registration": {
+    "serverSetup": "zMA2iOsp8Jbt556ji6I4VnEnnzBfr_uR5LvyDcZZsk6PrG1rmckCYfjxSdexOubYHQEXlkxJLRA3JNGHVZIrggaBGBjFU28kIjlb0bYT8UrAOdDC9DCgMyvVowAZz0ME_ohlOr6294ZWI2V24ehozFM-8bhUhvbruGrLSJdbu0E",
+    "clientRegistrationState": "IEqmN9xXpiDbjWogw9K7RFf5_g8sS_laNg6ChvVSdgyoLZAMM_FoHHdk1CDm17SM575wtWEMvEd4HkV4aiOjAQ",
+    "registrationRequest": "qC2QDDPxaBx3ZNQg5te0jOe-cLVhDLxHeB5FeGojowE",
+    "registrationResponse": "7BR1dJAU6o5V--cZFqeegvMR9JB1GntxgRxKcyPfyS5OHghgRiHy3t7tp_a0VLsANM6EXHfYsfGGMvxEQJHqEg",
+    "registrationRecord": "ihRuqGtpF0CSWSJHvIB9X9edGWTfTSu_ub-sy2fashWyAbmv2Bn0AWG1mEL52q-CUsHVPO-USpcdfzl7_cmyrxPbOg-zu82LvzyACUYAm6JVqpSWyInmNuftAzVt2w9TmrQjE6qtBqdfZ0AqdDznPaouTH1X_xbzpwkDNsPO87KWm4D9OsfqneBeIRyTkgFT-jsgDMNUhovut5d7DY6YsZvHh8xIH5uQAVNoXVNtDF9TYeBnxFYCXIX1_ku8-kks",
+    "exportKey": "EOdlDB4S8d3AEb740y1grXvv-2-AxhNDbp9As4JFJ6tYOMw1ZairRtkDVBueotcLNfVyDv1b-9f-3vHQP-I3aA",
+    "serverStaticPublicKey": "Th4IYEYh8t7e7af2tFS7ADTOhFx32LHxhjL8RECR6hI"
+  },
+  "login": {
+    "clientLoginState": "wPOHxhpdbFfSehWqZUOrDZ90PNaD110CSzApeGltzwwyzLke9rEEmgq5DfTOvsiqHIrZD19YKOq7CkpWCuDTADrPBSTTBApQ_2YR1Elxn8UPbuVxAIHcg2oN6yo_yCb2hpexv_d2sRBaYqrg114GB922fxSEKCqexPRGJ1kT6zyfEIBF8j6kNirlEqrVCJF2Ywq2_fwAEqFr-PHS36k0BjrPBSTTBApQ_2YR1Elxn8UPbuVxAIHcg2oN6yo_yCb2",
+    "startLoginRequest": "Msy5HvaxBJoKuQ30zr7IqhyK2Q9fWCjquwpKVgrg0wA6zwUk0wQKUP9mEdRJcZ_FD27lcQCB3INqDesqP8gm9oaXsb_3drEQWmKq4NdeBgfdtn8UhCgqnsT0RidZE-s8",
+    "serverLoginState": "nkhDA3dzPY6todllKRaGJxQPOxtOuZ5bTI1NKPnTcwTiml9Uo2IGwnikQu3YRjLBrBr6F9maSBjc15JH_CguUnRZA4N2S_OKHkB0xKlVu3cxhQnsHsDZ8GrfoW9mhY3pnqQr0zLPD6w-K_OQK_ibzjG-hdl_c4RRZNaTx1P5uWY",
+    "loginResponse": "3lcP4sMvCHs4VMiKXCdv0W55sPc6MWjA0kBGSgLSSnpjSg23SZWTHRyPgWGk_9CRHKdNBjCgtfU1joPOHj2RPa-qXZcqq1xGiLEdTQMwDBhNVI4Pdbf0zra0rE1c8jSaRCxgVJuaydKoZtwM5YCaJRcHqfeJ6j5L45o17BoPWW95-10BAfD2M1okotD9PJAbn8qPlEotkVjuFLOtOh5rlaCBAqHN_oX_NGfFnVH6P3wzwPXEte4aLgOFWBeHt-gPnM7-eGlKUHy1dbxrlUgmMXy4uTSpOw952AbhKk8Eyg-KThBVvWTNfbo6k4ytnOfRfRqq_yKISoZm4IUllNGlUsBAOxwkDTk-Lu5iEe8DY8V8qX3hy-7kGiZn0JhSgk3dhIxmbu9OLvvrhg5bq34qzJIPx2IRfjTRrcjRX1PK2-U",
+    "finishLoginRequest": "dFkDg3ZL84oeQHTEqVW7dzGFCewewNnwat-hb2aFjemepCvTMs8PrD4r85Ar-JvOMb6F2X9zhFFk1pPHU_m5Zg",
+    "sessionKey": "nkhDA3dzPY6todllKRaGJxQPOxtOuZ5bTI1NKPnTcwTiml9Uo2IGwnikQu3YRjLBrBr6F9maSBjc15JH_CguUg",
+    "exportKey": "EOdlDB4S8d3AEb740y1grXvv-2-AxhNDbp9As4JFJ6tYOMw1ZairRtkDVBueotcLNfVyDv1b-9f-3vHQP-I3aA",
+    "serverStaticPublicKey": "Th4IYEYh8t7e7af2tFS7ADTOhFx32LHxhjL8RECR6hI"
+  }
+}
