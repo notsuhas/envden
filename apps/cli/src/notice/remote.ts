@@ -11,7 +11,7 @@ import type { TAdapters } from "../adapters.ts";
 import type { ISyncOptions } from "../sync/model.ts";
 import { syncContext, type TSyncContext } from "../sync/remote/context.ts";
 import { acceptHead } from "../sync/remote/accept.ts";
-import { entryName } from "../sync/remote/content.ts";
+import { entryName, readableEntries } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
@@ -51,7 +51,7 @@ async function pendingRepos(context: TSyncContext) {
 
   const repos = new Set<string>();
 
-  for (const entry of context.checkpoint.files.entries) {
+  for (const entry of readableEntries(context)) {
     if (applied[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry))) continue;
     const name = entryName(context, entry);
 

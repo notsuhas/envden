@@ -10,7 +10,7 @@ import { text } from "../../client/encoding.ts";
 import type { TSyncContext } from "../remote/context.ts";
 
 import { storePath } from "../../store/path.ts";
-import { entryName } from "../remote/content.ts";
+import { entryName, readableEntries } from "../remote/content.ts";
 import { appliedFiles, saveAppliedFiles } from "./applied.ts";
 import { reconciliationTargets } from "./reconciliation/targets.ts";
 import { reconcileFile } from "./reconciliation/file.ts";
@@ -74,7 +74,7 @@ function selectedEntries(
   repos: Set<string>,
   rules: Parameters<typeof acceptsEnvPath>[1],
 ) {
-  return context.checkpoint.files.entries.filter((entry) => {
+  return readableEntries(context).filter((entry) => {
     const name = entryName(context, entry);
     if (!repos.has(name.repoId)) return false;
     if (acceptsEnvPath(name.path, rules)) return true;

@@ -19,7 +19,9 @@ export async function inspectExposedFile(
     version: entry.version,
   };
 
-  const name = p.openFileName(entry.name, keys.get(entry.epoch)!, ring.idKey, c);
+  const name = openedName(entry, keys, ring.idKey, c);
+  if (!name) return true;
+
   const id = text(entry.fileId);
   const found = names.get(id) ?? { ...name, keys: new Set<string>() };
   names.set(id, found);
@@ -38,4 +40,20 @@ export async function inspectExposedFile(
   else return true;
 
   return false;
+}
+
+function openedName(
+  entry: p.IFileEntry,
+  keys: Map<number, Uint8Array>,
+  idKey: Uint8Array,
+  c: Parameters<typeof p.openFileName>[3],
+) {
+  const key = keys.get(entry.epoch);
+  if (!key) return undefined;
+
+  try {
+    return p.openFileName(entry.name, key, idKey, c);
+  } catch {
+    return undefined;
+  }
 }

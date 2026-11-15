@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
-import { entryName } from "../../remote/content.ts";
+import { entryName, readableEntries } from "../../remote/content.ts";
 import { pathCollisions } from "./collisions.ts";
 
 export async function collisionEntries(context: TSyncContext, repos: Set<string>) {
@@ -20,7 +20,7 @@ export async function collisionEntries(context: TSyncContext, repos: Set<string>
       roots.map((item) => context.adapters.repo.caseInsensitive(item.root)),
     );
 
-    const entries = context.checkpoint.files.entries.filter(
+    const entries = readableEntries(context).filter(
       (entry) => entryName(context, entry).repoId === repoId,
     );
 

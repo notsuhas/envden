@@ -16,6 +16,21 @@ export function entryName(context: TSyncContext, entry: p.IFileEntry) {
   });
 }
 
+export function readableEntries(context: TSyncContext) {
+  return context.checkpoint.files.entries.filter((entry) => {
+    try {
+      entryName(context, entry);
+
+      return true;
+    } catch (error) {
+      // A member can publish an entry whose name doesn't open; skip it rather than block sync.
+      if (error instanceof EnvdenError && error.code === "LOCKED") throw error;
+
+      return false;
+    }
+  });
+}
+
 export async function entryContent(
   context: TSyncContext,
   entry: p.IFileEntry,
