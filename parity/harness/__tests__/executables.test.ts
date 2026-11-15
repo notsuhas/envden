@@ -22,3 +22,11 @@ test("history timestamp padding is independent of elapsed time width", () => {
     n.text("v1  12 seconds ago (2026-11-16 12:00 GMT+5:30)   alpha"),
   );
 });
+
+test("history UTC offsets without minutes normalize dates and padding", () => {
+  const n = new Normalizer("/tmp/scenario");
+
+  expect(n.text("v1  2 seconds ago (2026-11-16 12:00 GMT+0)  alpha")).toBe(
+    n.text("v1  12 seconds ago (2026-11-16 12:01 GMT+0)   alpha"),
+  );
+});

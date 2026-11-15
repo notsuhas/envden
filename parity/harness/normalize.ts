@@ -36,7 +36,7 @@ export class Normalizer {
 
     text = text
       .replace(/\b\d+ (?:seconds?|minutes?|hours?|days?) ago\b/g, "<RELATIVE_TIME>")
-      .replace(/\b\d{4}-\d\d-\d\d \d\d:\d\d GMT[+-]\d{1,2}:\d\d\b/g, "<TIME>");
+      .replace(/\b\d{4}-\d\d-\d\d \d\d:\d\d GMT[+-]\d{1,2}(?::\d\d)?\b/g, "<TIME>");
 
     text = text.replace(/(<RELATIVE_TIME> \(<TIME>\)) +/g, "$1  ");
 
