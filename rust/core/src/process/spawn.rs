@@ -1,4 +1,4 @@
-use super::{environment::sanitized_environment, trust::resolve_trusted_executable};
+use super::{environment::sanitized_with_directories, trust::resolve_with_directories};
 use crate::errors::{EnvdenError, ErrorCode, Result};
 use std::{
     collections::BTreeMap,
@@ -40,12 +40,25 @@ pub fn spawn_trusted(
     args: &[String],
     options: &ISpawnOptions,
 ) -> Result<ITrustedChild> {
-    let mut command = Command::new(resolve_trusted_executable(name)?);
-    command.args(args).env_clear().envs(sanitized_environment(
-        &options.env,
-        &std::env::vars().collect(),
-        options.manager_bin.as_deref(),
-    ));
+    spawn_with_directories(name, args, options, None)
+}
+
+pub(crate) fn spawn_with_directories(
+    name: &str,
+    args: &[String],
+    options: &ISpawnOptions,
+    directories: Option<&[String]>,
+) -> Result<ITrustedChild> {
+    let mut command = Command::new(resolve_with_directories(name, directories)?);
+    command
+        .args(args)
+        .env_clear()
+        .envs(sanitized_with_directories(
+            &options.env,
+            &std::env::vars().collect(),
+            options.manager_bin.as_deref(),
+            directories,
+        ));
     if let Some(cwd) = &options.cwd {
         command.current_dir(cwd);
     }

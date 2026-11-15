@@ -62,6 +62,7 @@ fn environment_allowlist() {
     ]);
     let env = sanitized_environment(&extra, &inherited, None);
     assert_eq!(env["HOME"], "/home/test");
+    assert_eq!(env["XDG_CONFIG_HOME"], "/home/test/.config");
     assert_eq!(env["LC_ALL"], "C");
     assert_eq!(env["GIT_CONFIG_NOSYSTEM"], "1");
     for key in [

@@ -5,6 +5,15 @@ pub fn sanitized_environment(
     inherited: &BTreeMap<String, String>,
     manager_bin: Option<&str>,
 ) -> BTreeMap<String, String> {
+    sanitized_with_directories(extra, inherited, manager_bin, None)
+}
+
+pub(crate) fn sanitized_with_directories(
+    extra: &BTreeMap<String, Option<String>>,
+    inherited: &BTreeMap<String, String>,
+    manager_bin: Option<&str>,
+    directories: Option<&[String]>,
+) -> BTreeMap<String, String> {
     let allowed = [
         "home",
         "xdg_config_home",
@@ -45,7 +54,7 @@ pub fn sanitized_environment(
     }
     env.insert(
         "PATH".into(),
-        trusted_directories(None, manager_bin).join(if cfg!(windows) { ";" } else { ":" }),
+        trusted_directories(directories, manager_bin).join(if cfg!(windows) { ";" } else { ":" }),
     );
     env
 }

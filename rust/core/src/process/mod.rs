@@ -12,3 +12,6 @@ pub use spawn::*;
 pub use trust::*;
 #[cfg(windows)]
 mod windows_user;
+
+#[cfg(all(test, unix))]
+mod parity;

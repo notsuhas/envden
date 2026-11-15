@@ -58,6 +58,26 @@ fn trust_registry_and_checkout_rejection() {
         &bin,
         Some(&[root.to_str().unwrap().into()])
     ));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+        let link = root.join("linked");
+        fs::create_dir(&link).unwrap();
+        symlink(checkout.join("tool"), link.join("tool")).unwrap();
+        assert!(resolve_trusted_executable(link.join("tool").to_str().unwrap()).is_err());
+        fs::remove_file(root.join(".git")).unwrap();
+        fs::create_dir(root.join(".git")).unwrap();
+        assert!(inside_working_tree(&bin, None));
+        assert!(!inside_working_tree(
+            &bin,
+            Some(&[root.to_string_lossy().into()])
+        ));
+        fs::remove_dir(root.join(".git")).unwrap();
+        fs::set_permissions(&bin, fs::Permissions::from_mode(0o777)).unwrap();
+        assert!(resolve_trusted_executable(bin.join("tool").to_str().unwrap()).is_err());
+        fs::set_permissions(&bin, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::write(root.join(".git"), "gitdir: elsewhere").unwrap();
+    }
     let prefix = bin.join("prefix");
     fs::create_dir_all(prefix.join(".git")).unwrap();
     assert!(inside_working_tree(

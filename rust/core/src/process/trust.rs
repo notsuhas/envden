@@ -5,7 +5,14 @@ use super::{
 use crate::errors::{EnvdenError, ErrorCode, Result};
 use std::path::{Path, PathBuf};
 pub fn inside_working_tree(path: impl AsRef<Path>, exceptions: Option<&[String]>) -> bool {
-    let path = path.as_ref();
+    inside_working_tree_with(path.as_ref(), exceptions, |p| p.exists())
+}
+
+pub(crate) fn inside_working_tree_with(
+    path: &Path,
+    exceptions: Option<&[String]>,
+    exists: impl Fn(&Path) -> bool,
+) -> bool {
     if inside_untrusted_root(path) {
         return true;
     }
@@ -19,7 +26,7 @@ pub fn inside_working_tree(path: impl AsRef<Path>, exceptions: Option<&[String]>
     );
     let exceptions = exceptions.unwrap_or(&defaults);
     for dir in path.ancestors() {
-        if dir.join(".git").exists() && !exceptions.iter().any(|e| Path::new(e) == dir) {
+        if exists(&dir.join(".git")) && !exceptions.iter().any(|e| Path::new(e) == dir) {
             return true;
         }
     }
@@ -90,6 +97,13 @@ pub fn trusted_directories(
     result
 }
 pub fn resolve_trusted_executable(name: &str) -> Result<PathBuf> {
+    resolve_with_directories(name, None)
+}
+
+pub(crate) fn resolve_with_directories(
+    name: &str,
+    directories: Option<&[String]>,
+) -> Result<PathBuf> {
     let current = std::env::current_exe().map_err(|e| {
         EnvdenError::with_source(ErrorCode::InvalidInput, "Trusted executable unavailable", e)
     })?;
@@ -100,7 +114,7 @@ pub fn resolve_trusted_executable(name: &str) -> Result<PathBuf> {
     let candidates = if path.is_absolute() {
         vec![path.to_owned()]
     } else if path.file_name().is_some_and(|s| s == name) {
-        trusted_directories(None, None)
+        trusted_directories(directories, None)
             .into_iter()
             .flat_map(|dir| {
                 let base = Path::new(&dir).join(name);
