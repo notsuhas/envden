@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { atomicWrite } from "../../state/store/files.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { serviceDefinition } from "./generate.ts";
+import { serviceFile } from "./location.ts";
 
 export async function installHostService(
   options: {
@@ -25,10 +26,9 @@ export async function installHostService(
     log,
   );
 
-  let path: string;
+  const path = serviceFile(options.platform, options.userHome, options.home)!;
 
   if (definition.kind === "launchd") {
-    path = join(options.userHome, "Library", "LaunchAgents", "com.envden.server.plist");
     await options.write(path, definition.content, now);
 
     await options
@@ -37,13 +37,11 @@ export async function installHostService(
 
     await options.run(["launchctl", "bootstrap", `gui/${options.uid}`, path]);
   } else if (definition.kind === "systemd") {
-    path = join(options.userHome, ".config", "systemd", "user", "envden.service");
     await options.write(path, definition.content, now);
     await options.run(["systemctl", "--user", "daemon-reload"]);
     await options.run(["systemctl", "--user", "enable", "envden.service"]);
     await options.run(["systemctl", "--user", "restart", "envden.service"]);
   } else {
-    path = join(options.home, "envden-task.xml");
     await options.write(path, new Uint8Array(Buffer.from(definition.content, "utf16le")), now);
     await options.run(["schtasks", "/End", "/TN", "envden"]).catch(() => {});
     await options.run(["schtasks", "/Create", "/TN", "envden", "/XML", path, "/F"]);

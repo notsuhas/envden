@@ -21,6 +21,14 @@ function npmPaths(path: string, executable: string) {
   return windows ? { manager: `${windows}/npm.cmd`, binary: executable } : undefined;
 }
 
+// Cleanup removes versioned Cellar and Scoop folders, so persisted paths use the managers' stable links.
+export function stableExecutable(executable: string) {
+  return (
+    brewPaths(executable)?.binary ??
+    executable.replace(/^([A-Za-z]:([\\/]).*\2scoop\2apps\2envden\2)[^\\/]+(?=\2)/i, "$1current")
+  );
+}
+
 export function pinnedInstall(manager: string, executable: string) {
   const path = executable.replaceAll("\\", "/");
 

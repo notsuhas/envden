@@ -62,7 +62,9 @@ async function installShell(adapters: TAdapters, options: TPreferenceOptions) {
     options.shell ?? (options.yes || !process.stdin.isTTY ? "none" : await shellChoice());
 
   const selection = deriveShell(shell);
-  if (selection.kind === "install") await adapters.shell(selection.shell).install(process.execPath);
+
+  if (selection.kind === "install")
+    await adapters.shell(selection.shell).install(adapters.executable);
 }
 
 async function installAgentPreference(adapters: TAdapters, options: TPreferenceOptions) {

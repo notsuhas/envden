@@ -7,7 +7,6 @@ import { createAdapters } from "../../adapters.ts";
 import { atomicWrite } from "../../state/store/files.ts";
 import { refreshInstallation } from "../self/maintenance.ts";
 import { releasePlatform } from "../self/platform.ts";
-import { restartHostService } from "../../agent/service/restart.ts";
 import { installMethod } from "../install.ts";
 
 const fixtureClock = () => 1800000000000;
@@ -65,30 +64,54 @@ test("post-swap refresh only updates installed skills and tolerates shell failur
       hookSnippet: () => "",
     });
 
-    await refreshInstallation(adapters, "/bin/envden");
+    await refreshInstallation(adapters, "linux");
     expect(shells).toBe(4);
     const skill = join(root, ".agents", "skills", "envden", "SKILL.md");
     expect(await Bun.file(skill).exists()).toBe(false);
     await atomicWrite(skill, "old", fixtureClock);
-    await refreshInstallation(adapters, "/bin/envden");
+    await refreshInstallation(adapters, "linux");
     expect(await readFile(skill, "utf8")).toContain("Run envden status");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("service restart requires an installed definition", async () => {
-  const root = await mkdtemp(join(tmpdir(), "envden-restart-"));
+test("refresh rewrites an installed service and hooks with the stable Homebrew path", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-refresh-service-"));
 
   try {
-    const calls: string[][] = [];
+    const adapters = createAdapters(
+      {
+        home: join(root, "home"),
+        userHome: root,
+        keychain: createMemoryKeychainAdapter([]),
+        executable: "/opt/homebrew/Cellar/envden/0.2.1/bin/envden",
+      },
+      fixtureClock,
+    );
 
-    const run = async (args: string[]) => {
-      calls.push(args);
+    const hooks: string[] = [];
+    let services = 0;
+
+    adapters.hostServer = async () => {
+      services++;
+
+      return { log: "", path: "" };
     };
 
-    await restartHostService(root, root, "linux", run);
-    expect(calls).toEqual([]);
+    adapters.shell = () => ({
+      id: "test",
+      installed: async () => true,
+      install: async (binary) => {
+        hooks.push(binary);
+      },
+      uninstall: async () => {},
+      rcPath: () => "",
+      hookSnippet: () => "",
+    });
+
+    await refreshInstallation(adapters, "linux");
+    expect(services).toBe(0);
 
     await atomicWrite(
       join(root, ".config", "systemd", "user", "envden.service"),
@@ -96,8 +119,10 @@ test("service restart requires an installed definition", async () => {
       fixtureClock,
     );
 
-    await restartHostService(root, root, "linux", run);
-    expect(calls).toEqual([["systemctl", "--user", "restart", "envden.service"]]);
+    await refreshInstallation(adapters, "linux");
+    expect(services).toBe(1);
+    expect(adapters.executable).toBe("/opt/homebrew/bin/envden");
+    expect(new Set(hooks)).toEqual(new Set(["/opt/homebrew/bin/envden"]));
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -3,6 +3,7 @@ import { access } from "node:fs/promises";
 import type { TFetch } from "./client/fetch.ts";
 import { installHostService, runServiceCommand } from "./agent/service/install.ts";
 import { atomicWrite } from "./state/store/files.ts";
+import { stableExecutable } from "./updates/self/paths.ts";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { createOsKeychainAdapter } from "@envden/adapter-keychain-os";
@@ -19,18 +20,21 @@ export function createAdapters(
         userHome: string;
         keychain: IKeychainAdapter;
         fetcher?: TFetch;
+        executable?: string;
       }
     | undefined,
   now: () => number,
 ) {
   const userHome = options?.userHome ?? homedir();
   const home = resolve(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
+  const executable = stableExecutable(options?.executable ?? process.execPath);
 
   const adapters = {
     now,
     prunePlacementBackups: (now: number) => pruneBackups(join(home, "conflicts"), now, 30),
     home,
     userHome,
+    executable,
     fetcher: options?.fetcher ?? fetch,
     keychain: options?.keychain ?? visibleKeychain(home),
     repo: createGitRepoAdapter({ storeRoot: join(home, "store") }),
@@ -59,7 +63,7 @@ export function createAdapters(
       installHostService(
         {
           platform: process.platform,
-          executable: process.execPath,
+          executable,
           userHome,
           home,
           uid: process.getuid?.() ?? 0,

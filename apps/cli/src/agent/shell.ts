@@ -13,6 +13,6 @@ export async function manageShell(
 
   const adapter = adapters.shell(shell);
 
-  if (action === "install") await adapter.install(process.execPath);
+  if (action === "install") await adapter.install(adapters.executable);
   else await adapter.uninstall();
 }
