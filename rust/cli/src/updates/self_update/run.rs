@@ -83,29 +83,36 @@ fn update(adapters: &IAdapters, fetcher: &dyn IFetcher) -> Result<Value> {
 }
 
 fn run_binary(path: &Path, args: &[&str], inherit: bool) -> Result<()> {
-    let stream = if inherit {
-        TStdio::Inherit
-    } else {
-        TStdio::Ignore
-    };
+    if inherit {
+        return super::execute::post_install(&path.to_string_lossy(), None);
+    }
+
     exec_trusted(
         &path.to_string_lossy(),
         &args.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         &ISpawnOptions {
-            stdin: Some(stream.clone()),
-            stdout: Some(stream.clone()),
-            stderr: Some(stream),
-            env: [
-                "ENVDEN_HOME",
-                "ENVDEN_NO_UPDATE_CHECK",
-                "ENVDEN_TELEMETRY",
-                "DO_NOT_TRACK",
-            ]
-            .into_iter()
-            .filter_map(|key| std::env::var(key).ok().map(|v| (key.into(), Some(v))))
-            .collect(),
+            stdin: Some(TStdio::Ignore),
+            stdout: Some(TStdio::Ignore),
+            stderr: Some(TStdio::Ignore),
             ..Default::default()
         },
     )
     .map(|_| ())
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_post_install_uses_update_command_error() {
+        let error = run_binary(
+            Path::new("/usr/bin/false"),
+            &["update", "--post-install"],
+            true,
+        )
+        .unwrap_err();
+        assert_eq!(error.code, ErrorCode::InvalidInput);
+        assert_eq!(error.message, "Update command failed");
+    }
 }
