@@ -1,4 +1,5 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::text::js_trim;
 use envden_protocol::protocol as p;
 use serde_json::Value;
 
@@ -9,13 +10,13 @@ pub struct IRecoveryKitInput {
 }
 
 pub fn secret_key_problem(text: &str) -> Option<&'static str> {
-    p::decode_secret_key(text.trim())
+    p::decode_secret_key(js_trim(text))
         .is_err()
         .then_some("Not a secret key. Copy the EK1-… line from your recovery kit")
 }
 
 pub fn vault_id_problem(text: &str) -> Option<&'static str> {
-    (!p::unbase32(text.trim()).is_ok_and(|b| b.len() == 32))
+    (!p::unbase32(js_trim(text)).is_ok_and(|b| b.len() == 32))
         .then_some("Not a vault ID. Copy it from your recovery kit")
 }
 
@@ -28,8 +29,8 @@ pub fn parse_kit(text: &str) -> Result<IRecoveryKitInput> {
             return None;
         }
         Some(IRecoveryKitInput {
-            vault_id: vault_id.trim().into(),
-            secret_key: secret_key.trim().into(),
+            vault_id: js_trim(vault_id).into(),
+            secret_key: js_trim(secret_key).into(),
         })
     };
     parse().ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Not a recovery kit file"))
@@ -66,6 +67,11 @@ mod tests {
         );
         assert!(secret_key_problem(&format!(" {} ", secret_key.to_lowercase())).is_none());
         assert!(vault_id_problem(&vault_id).is_none());
+        let bom = json!({"vaultId":format!("\u{feff}{vault_id}\u{feff}"),"secretKey":format!("\u{feff}{secret_key}\u{feff}")});
+        let parsed = parse_kit(&bom.to_string()).unwrap();
+        assert_eq!(parsed.vault_id, vault_id);
+        assert_eq!(parsed.secret_key, secret_key);
+        assert!(vault_id_problem(&format!("\u{85}{vault_id}\u{85}")).is_some());
         for typo in [
             format!("{}0", &secret_key[..secret_key.len() - 1]),
             vault_id.clone(),

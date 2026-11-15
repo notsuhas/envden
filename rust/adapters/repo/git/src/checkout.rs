@@ -1,6 +1,7 @@
 use crate::{adapter::GitRepoAdapter, exec, remote};
 use envden_core::filesystem::ICanonicalPath;
 use envden_core::filesystem::path_identity;
+use envden_core::text::{js_trim, js_trim_end};
 use envden_core::{
     adapters::ICheckout,
     errors::{EnvdenError, ErrorCode, Result},
@@ -16,7 +17,7 @@ fn id(adapter: &GitRepoAdapter, root: &str, name: &str) -> Result<String> {
         true,
         adapter.home.as_deref(),
     )?;
-    let remote = remote.trim();
+    let remote = js_trim(&remote);
     let (host, _, ssh) = remote::parts(remote)?;
     let hostname = if ssh {
         Some((adapter.resolve_host)(&host)?)
@@ -31,7 +32,10 @@ pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<IC
         return Ok(None);
     };
     let remotes = adapter.git(&root, &["remote"], None)?;
-    let remotes: Vec<_> = remotes.trim().lines().filter(|s| !s.is_empty()).collect();
+    let remotes: Vec<_> = js_trim(&remotes)
+        .lines()
+        .filter(|s| !s.is_empty())
+        .collect();
     let name = if remotes.contains(&"origin") {
         "origin"
     } else if remotes.len() == 1 {
@@ -45,7 +49,7 @@ pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<IC
     let repo_id = id(adapter, &root, name)?;
     let common = adapter.git(&root, &["rev-parse", "--git-common-dir"], None)?;
     let git_dir = Path::new(&root)
-        .join(common.trim_end())
+        .join(js_trim_end(&common))
         .canonical_path()
         .map_err(exec::failure)?;
     let root = Path::new(&root).canonical_path().map_err(exec::failure)?;
@@ -83,12 +87,9 @@ fn registered(adapter: &GitRepoAdapter, root: &str, common: &str) -> bool {
             return Some(false);
         }
         let private = Path::new(root)
-            .join(
-                adapter
-                    .git(root, &["rev-parse", "--git-dir"], None)
-                    .ok()?
-                    .trim_end(),
-            )
+            .join(js_trim_end(
+                &adapter.git(root, &["rev-parse", "--git-dir"], None).ok()?,
+            ))
             .canonical_path()
             .ok()?;
         let registrations = Path::new(common).join("worktrees");
@@ -108,7 +109,7 @@ fn registered(adapter: &GitRepoAdapter, root: &str, common: &str) -> bool {
         }
         Some(
             private
-                .join(fs::read_to_string(backlink).ok()?.trim_end())
+                .join(js_trim_end(&fs::read_to_string(backlink).ok()?))
                 .canonical_path()
                 .ok()?
                 == dot.canonical_path().ok()?,
@@ -178,7 +179,7 @@ pub(crate) fn root_with(
         Path::new(path).parent().unwrap()
     };
     let root = match run(&dir.to_string_lossy(), &["rev-parse", "--show-toplevel"]) {
-        Ok(s) => s.trim_end().to_owned(),
+        Ok(s) => js_trim_end(&s).to_owned(),
         Err(e) if exec::exit(&e).is_some() => return Ok(None),
         Err(e) => return Err(e),
     };

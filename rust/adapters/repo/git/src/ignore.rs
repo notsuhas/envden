@@ -45,15 +45,11 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
         ));
     }
     let exclude = Path::new(&checkout.root)
-        .join(
-            adapter
-                .git(
-                    &checkout.root,
-                    &["rev-parse", "--git-path", "info/exclude"],
-                    None,
-                )?
-                .trim_end(),
-        )
+        .join(envden_core::text::js_trim_end(&adapter.git(
+            &checkout.root,
+            &["rev-parse", "--git-path", "info/exclude"],
+            None,
+        )?))
         .clean();
     let common = Path::new(&checkout.git_dir)
         .canonical_path()

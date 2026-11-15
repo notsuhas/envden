@@ -46,7 +46,7 @@ pub(crate) fn bash(home: &Path, platform: &str) -> PathBuf {
     home.join(
         if content
             .lines()
-            .any(|s| !s.trim_start().starts_with('#') && source.is_match(s))
+            .any(|s| !envden_core::text::js_trim_start(s).starts_with('#') && source.is_match(s))
         {
             ".bashrc"
         } else {

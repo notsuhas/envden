@@ -11,8 +11,11 @@ pub fn suggested_device_name(hostname: &str) -> String {
             )
         })
         .collect();
-    let name = fit_device_name(host.split('.').next().unwrap_or_default().trim(), 0);
-    let name = name.trim();
+    let name = fit_device_name(
+        envden_core::text::js_trim(host.split('.').next().unwrap_or_default()),
+        0,
+    );
+    let name = envden_core::text::js_trim(&name);
     if name.is_empty() {
         "device".into()
     } else {

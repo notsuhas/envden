@@ -1,3 +1,4 @@
+use envden_core::text::js_trim;
 use envden_core::{
     errors::{EnvdenError, ErrorCode, Result},
     process::{ISpawnOptions, exec_trusted},
@@ -65,7 +66,7 @@ pub fn normalize_repo_id(remote: &str, hostname: Option<&str>) -> Result<String>
     if controls(&decode(remote)?) {
         return Err(error("Unsafe git remote"));
     }
-    let (host, path, _) = parts(remote.trim())?;
+    let (host, path, _) = parts(js_trim(remote))?;
     let host = hostname.unwrap_or(&host).to_lowercase();
     let mut path = path.trim_matches('/').to_owned();
     if path.to_ascii_lowercase().ends_with(".git") {
@@ -109,11 +110,17 @@ pub(crate) fn resolve_host_with(
         return Err(error("Unsafe SSH host"));
     }
     let output = run("ssh", &["-G", "--", host].map(str::to_owned))?;
-    regex::Regex::new(r"(?m)^hostname\s+(.+)$")
-        .unwrap()
-        .captures(&output)
-        .and_then(|captures| captures.get(1).map(|name| name.as_str().trim().to_owned()))
-        .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "SSH hostname resolution failed"))
+    regex::Regex::new(
+        r"(?m)(?:^|[\r\u{2028}\u{2029}])hostname[\s\u{feff}&&[^\u{85}]]+([^\r\n\u{2028}\u{2029}]+)",
+    )
+    .unwrap()
+    .captures(&output)
+    .and_then(|captures| {
+        captures
+            .get(1)
+            .map(|name| js_trim(name.as_str()).to_owned())
+    })
+    .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "SSH hostname resolution failed"))
 }
 
 #[cfg(test)]

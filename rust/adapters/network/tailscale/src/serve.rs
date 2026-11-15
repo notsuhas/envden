@@ -2,15 +2,12 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::Value;
 
 pub(crate) fn conflict(stdout: &str, hostname: &str, port: u16, target: &str) -> Result<bool> {
+    let stdout = envden_core::text::js_trim(stdout);
     let invalid = || EnvdenError::new(ErrorCode::InvalidData, "Invalid Tailscale serve status");
-    let mut value: Value = serde_json::from_str(if stdout.trim().is_empty() {
-        "{}"
-    } else {
-        stdout
-    })
-    .map_err(|e| {
-        EnvdenError::with_source(ErrorCode::InvalidData, "Invalid Tailscale serve status", e)
-    })?;
+    let mut value: Value = serde_json::from_str(if stdout.is_empty() { "{}" } else { stdout })
+        .map_err(|e| {
+            EnvdenError::with_source(ErrorCode::InvalidData, "Invalid Tailscale serve status", e)
+        })?;
     if value.is_null() {
         value = serde_json::json!({});
     }
@@ -71,6 +68,7 @@ mod tests {
         for (value, expected) in [
             ("", false),
             ("null", false),
+            ("\u{feff}{}\u{feff}", false),
             ("{}", false),
             (r#"{"TCP":{"8080":{"HTTPS":true}}}"#, true),
             (r#"{"TCP":{"8080":{"TCPForward":"other"}}}"#, true),

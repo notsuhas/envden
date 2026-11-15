@@ -14,3 +14,6 @@ mod parity;
 
 #[cfg(test)]
 mod batching_tests;
+
+#[cfg(test)]
+mod whitespace_tests;

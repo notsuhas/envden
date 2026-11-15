@@ -21,7 +21,7 @@ pub fn read_kit(path: Option<&Path>) -> Result<IRecoveryKitInput> {
         vault_id_problem(v).map(str::to_owned)
     })?;
     Ok(IRecoveryKitInput {
-        secret_key: secret_key.trim().into(),
-        vault_id: vault_id.trim().into(),
+        secret_key: envden_core::text::js_trim(&secret_key).into(),
+        vault_id: envden_core::text::js_trim(&vault_id).into(),
     })
 }

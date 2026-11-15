@@ -1,4 +1,5 @@
 use crate::{serve, status};
+use envden_core::text::js_trim;
 use envden_core::{
     adapters::*,
     errors::{EnvdenError, ErrorCode, Result},
@@ -39,7 +40,7 @@ impl TailscaleAdapter {
         let result = (self.runner)(args)
             .map_err(|e| EnvdenError::with_source(ErrorCode::Internal, summary, e))?;
         if result.exit_code != 0 {
-            let detail: String = result.stderr.trim().chars().take(500).collect();
+            let detail: String = js_trim(&result.stderr).chars().take(500).collect();
             return Err(EnvdenError::new(
                 ErrorCode::Internal,
                 if detail.is_empty() {
@@ -111,5 +112,30 @@ impl INetworkAdapter for TailscaleAdapter {
             "Tailscale serve failed",
         )?;
         Ok(format!("https://{hostname}:{port}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn command_stderr_uses_javascript_whitespace() {
+        for (stderr, detail) in [
+            ("\u{feff}detail\u{feff}", "detail"),
+            ("\u{85}detail\u{85}", "\u{85}detail\u{85}"),
+        ] {
+            let adapter = create_tailscale_network_adapter(Some(Box::new(move |_| {
+                Ok(ICommandResult {
+                    exit_code: 1,
+                    stdout: String::new(),
+                    stderr: stderr.into(),
+                })
+            })));
+            assert_eq!(
+                adapter.command(&[], "failed").unwrap_err().message,
+                format!("failed: {detail}")
+            );
+        }
     }
 }

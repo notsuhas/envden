@@ -28,23 +28,47 @@ impl IServiceEffects for Effects {
         if output.status.success() {
             return Ok(());
         }
-        let stderr = String::from_utf8_lossy(&output.stderr)
-            .trim()
-            .chars()
-            .take(300)
-            .collect::<String>();
-        let detail = if stderr.is_empty() {
-            format!("{} exited {}", args[0], output.status.code().unwrap_or(1))
-        } else {
-            stderr
-        };
-        Err(EnvdenError::new(
-            ErrorCode::Internal,
-            format!("Could not start the envden server service: {detail}"),
+        Err(command_failure(
+            args,
+            output.status.code().unwrap_or(1),
+            &String::from_utf8_lossy(&output.stderr),
         ))
     }
     fn pause(&mut self, milliseconds: u64) {
         std::thread::sleep(std::time::Duration::from_millis(milliseconds));
+    }
+}
+
+fn command_failure(args: &[String], code: i32, stderr: &str) -> EnvdenError {
+    let stderr = envden_core::text::js_trim(stderr)
+        .chars()
+        .take(300)
+        .collect::<String>();
+    let detail = if stderr.is_empty() {
+        format!("{} exited {code}", args[0])
+    } else {
+        stderr
+    };
+    EnvdenError::new(
+        ErrorCode::Internal,
+        format!("Could not start the envden server service: {detail}"),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn service_errors_use_javascript_whitespace() {
+        for (stderr, expected) in [
+            ("\u{feff}failed\u{feff}", "failed"),
+            ("\u{85}failed\u{85}", "\u{85}failed\u{85}"),
+        ] {
+            assert_eq!(
+                command_failure(&["service".into()], 1, stderr).message,
+                format!("Could not start the envden server service: {expected}")
+            );
+        }
     }
 }
 

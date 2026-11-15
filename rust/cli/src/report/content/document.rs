@@ -13,7 +13,7 @@ pub struct IReportFacts {
 }
 
 fn fenced(text: &str) -> String {
-    format!("~~~\n{}\n~~~", text.trim_end())
+    format!("~~~\n{}\n~~~", envden_core::text::js_trim_end(text))
 }
 
 pub fn report_document(facts: &IReportFacts) -> String {
@@ -39,7 +39,7 @@ pub fn report_document(facts: &IReportFacts) -> String {
     let tail = facts
         .server_log
         .as_deref()
-        .map(str::trim_end)
+        .map(envden_core::text::js_trim_end)
         .map(|s| s.split('\n').collect::<Vec<_>>())
         .map(|lines| lines[lines.len().saturating_sub(80)..].join("\n"))
         .filter(|s| !s.is_empty());
@@ -73,6 +73,12 @@ pub fn report_document(facts: &IReportFacts) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn fences_use_javascript_trailing_whitespace() {
+        assert_eq!(fenced("line\u{feff}"), "~~~\nline\n~~~");
+        assert_eq!(fenced("line\u{85}"), "~~~\nline\u{85}\n~~~");
+    }
+
     #[test]
     fn report_redacts_home_values_and_keeps_only_last_eighty_log_lines() {
         let facts = IReportFacts {

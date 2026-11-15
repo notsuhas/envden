@@ -49,6 +49,12 @@ fn bash_login_profile_matrix() {
             ".bashrc",
         ),
         (".bash_profile", "# source ~/.bashrc", ".bash_profile"),
+        (
+            ".bash_profile",
+            "\u{feff}# source ~/.bashrc",
+            ".bash_profile",
+        ),
+        (".bash_profile", "\u{85}# source ~/.bashrc", ".bashrc"),
     ] {
         let home = tempfile::tempdir().unwrap();
         fs::write(home.path().join(file), content).unwrap();
