@@ -52,3 +52,14 @@ pub fn vault_connection(
         client,
     })
 }
+
+impl IVaultConnection {
+    pub fn with_unlock(mut self, unlock: Rc<dyn Fn(&IClient, &[u8; 32]) -> Result<()>>) -> Self {
+        let options = self.client.options.clone();
+        let vault = self.vault_id;
+        self.client.options.unlock = Some(Rc::new(move || {
+            unlock(&create_client(options.clone()), &vault)
+        }));
+        self
+    }
+}

@@ -56,7 +56,27 @@ pub fn sync_context(
                 .all(|key| s.get(key).is_some_and(|v| !v.is_null()))
         })
         .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, NOT_SET_UP))?;
-    let connection = vault_connection(adapters, &state, transport)?;
+    let mut connection = vault_connection(adapters, &state, transport)?;
+    if options.interactive {
+        connection = connection.with_unlock(Rc::new(|client, vault| {
+            crate::session::login(
+                client,
+                vault,
+                crate::session::TPassword::Prompt(&mut |retry| {
+                    crate::output::prompts::secret(
+                        if retry {
+                            "Wrong master password. Try again"
+                        } else {
+                            "Master password"
+                        },
+                        |_| None,
+                    )
+                }),
+                p::TLoginPurpose::Unlock,
+            )
+            .map(|_| ())
+        }));
+    }
     let material = checkpoint_material(adapters, &state)?;
     Ok(ISyncContext {
         adapters,
