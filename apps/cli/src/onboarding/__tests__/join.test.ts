@@ -35,3 +35,19 @@ test("a fresh pairing ignores the abandoned server pin", async () => {
     await f.close();
   }
 });
+
+test("join --resume without an exchange fails before asking for a name", async () => {
+  const f = await fixture();
+  const name = spyOn(questions, "input").mockRejectedValue(new Error("asked for a name"));
+
+  try {
+    await Promise.resolve(
+      expect(
+        runJoin(f.home("unpaired"), f.result.kit.server, { resume: true }, f.now),
+      ).rejects.toMatchObject({ code: "NOT_FOUND" }),
+    );
+  } finally {
+    name.mockRestore();
+    await f.close();
+  }
+});
