@@ -24,6 +24,8 @@ use serde_json::Value;
 use std::{collections::BTreeMap, path::Path};
 
 pub fn held_files(adapters: &IAdapters, state: &Value) -> Result<BTreeMap<String, &'static str>> {
+    let invalid_attempt =
+        crate::sync::remote::attempt::record::invalid_attempt_state(&adapters.home)?;
     let config = read_config(&adapters.home)?;
     let patterns = |key| {
         config["env-files"][key].as_array().map(|a| {
@@ -65,7 +67,8 @@ pub fn held_files(adapters: &IAdapters, state: &Value) -> Result<BTreeMap<String
         .is_err()
             || read_sync_record(&suffix(&base, ".pending"), decode_operation).is_err()
             || read_sync_record(&suffix(&base, ".delete"), decode_deletion).is_err()
-            || read_bytes(&suffix(&base, ".corrupt"))?.is_some();
+            || read_bytes(&suffix(&base, ".corrupt"))?.is_some()
+            || invalid_attempt;
         let stored = read_bytes(Path::new(store))?;
         let approved = adapters
             .repo
@@ -117,4 +120,41 @@ pub fn held_files(adapters: &IAdapters, state: &Value) -> Result<BTreeMap<String
         }
     }
     Ok(held)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn corrupt_attempt_holds_synced_files_and_skips_local_only() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = crate::adapters::create_adapters(
+            Some(dir.path().join("home")),
+            dir.path().into(),
+            || 1,
+        );
+        let attempts = adapters.home.join("state/attempts");
+        std::fs::create_dir_all(&attempts).unwrap();
+        let marker = attempts.join(format!("{}.invalid", "A".repeat(43)));
+        std::fs::write(&marker, "unchanged").unwrap();
+        let root = dir.path().join("checkout");
+        std::fs::create_dir(&root).unwrap();
+        let store = adapters.home.join("store/file");
+        let state = json!({"links":[
+            {"root":root,"path":".env","store":store,"mode":"link","localOnly":false},
+            {"root":root,"path":".env.local","store":store,"mode":"link","localOnly":true}
+        ]});
+
+        let held = held_files(&adapters, &state).unwrap();
+
+        assert_eq!(held.len(), 1);
+        assert_eq!(
+            held[&root.join(".env").to_string_lossy().into_owned()],
+            "invalid-state"
+        );
+        assert_eq!(std::fs::read_to_string(&marker).unwrap(), "unchanged");
+        assert_eq!(std::fs::read_dir(&attempts).unwrap().count(), 1);
+    }
 }
