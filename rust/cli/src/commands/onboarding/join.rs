@@ -10,3 +10,33 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        adapters::create_adapters,
+        state::{empty_state, repository::save_state},
+    };
+    #[test]
+    fn existing_checkpoint_routes_to_rejoin() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let mut state = empty_state("test");
+        state["vaultId"] = "vault".into();
+        state["checkpoint"] = "floor".into();
+        save_state(&adapters.home, &state, 42).unwrap();
+        let error = crate::onboarding::run_join(
+            &adapters,
+            "https://server.test",
+            &serde_json::json!({"recoveryKit":dir.path().join("missing.json"), "name":"test"}),
+        )
+        .unwrap_err();
+        assert_ne!(error.code, envden_core::errors::ErrorCode::Conflict);
+        assert_eq!(
+            crate::state::repository::load_state(&adapters.home)
+                .unwrap()
+                .unwrap(),
+            state
+        );
+    }
+}
