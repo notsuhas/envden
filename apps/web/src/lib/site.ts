@@ -1,4 +1,4 @@
-import { version } from "../../package.json";
+import { version } from "@envden/cli/package.json";
 import { SITE_URL } from "@envden/core/site";
 
 export { SITE_URL };

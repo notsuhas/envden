@@ -11,8 +11,8 @@ describe("ENVDEN_VERSION", () => {
     expect(docs).toContain(`\n${ENVDEN_VERSION}\n`);
   });
 
-  test("matches all release package versions", async () => {
-    for (const path of ["cli", "server", "web"]) {
+  test("follows the cli, server and npm release versions", async () => {
+    for (const path of ["cli", "server"]) {
       const manifest = Bun.file(new URL(`../../../../${path}/package.json`, import.meta.url));
 
       expect((await manifest.json()).version).toBe(ENVDEN_VERSION);

@@ -2,10 +2,13 @@
   "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
   "baseBranch": "main",
   "access": "restricted",
-  "fixed": [["@envden/cli", "@envden/server", "@envden/web"]],
+  "fixed": [["@envden/cli", "@envden/server"]],
   "linked": [],
   "updateInternalDependencies": "patch",
-  "privatePackages": { "version": true, "tag": false },
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  },
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "format": false,
