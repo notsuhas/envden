@@ -28,7 +28,10 @@ export function createHistory(context: IMemoryContext): Pick<IStorageAdapter, "p
           .filter((list) => list.vault === hex(vault))
           .flatMap((list) =>
             list.files.versions.flatMap((version) =>
-              version.blobHash ? [hex(version.blobHash)] : [],
+              version.blobHash &&
+              (list.at >= now - policy.maxAge || isRanked(versions, version, policy.minVersions))
+                ? [hex(version.blobHash)]
+                : [],
             ),
           ),
       );
@@ -54,11 +57,7 @@ function retainedLists(lists: TLists, versions: Map<string, bigint[]>, minVersio
 
   for (const [key, list] of lists)
     for (const version of list.files.versions) {
-      if (
-        !version.tombstone &&
-        !(versions.get(hex(version.fileId)) ?? []).slice(0, minVersions).includes(version.version)
-      )
-        continue;
+      if (!isRanked(versions, version, minVersions)) continue;
 
       const versionKey = `${hex(version.fileId)}:${version.version}`;
       const prior = retained.get(versionKey);
@@ -66,6 +65,14 @@ function retainedLists(lists: TLists, versions: Map<string, bigint[]>, minVersio
     }
 
   return retained;
+}
+
+function isRanked(
+  versions: Map<string, bigint[]>,
+  version: { fileId: Uint8Array; version: bigint },
+  minVersions: number,
+) {
+  return (versions.get(hex(version.fileId)) ?? []).slice(0, minVersions).includes(version.version);
 }
 
 function fileVersions(lists: TLists) {

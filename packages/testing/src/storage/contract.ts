@@ -266,12 +266,13 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       }
 
       expect(db.prune(b(1), { maxAge: 1, minVersions: 1 }, 7)).toEqual({
-        lists: 2,
-        blobs: 2,
+        lists: 3,
+        blobs: 4,
       });
 
-      expect(db.fileList(b(1), b(51))).toBeUndefined();
-      for (const i of [2, 3, 4, 6]) expect(db.fileList(b(1), b(50 + i))).toBeDefined();
+      for (const i of [1, 2, 5]) expect(db.fileList(b(1), b(50 + i))).toBeUndefined();
+      for (const i of [3, 4, 6]) expect(db.fileList(b(1), b(50 + i))).toBeDefined();
+      expect(db.getBlob(b(1), b(106))).toEqual(b(6));
       expect(db.headers(b(1), 1n, 6n)).toHaveLength(6);
     });
   });

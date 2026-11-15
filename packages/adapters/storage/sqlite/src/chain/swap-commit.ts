@@ -1,4 +1,4 @@
-import { checkQuota, vaultUsage } from "../db/quota.ts";
+import { addsContent, checkQuota, listContent, vaultUsage } from "../db/quota.ts";
 import { prepareCommit, writeCommitState } from "@envden/core/adapters";
 import type { IStorageAdapter, IStoredSwap } from "@envden/core/adapters";
 import type { TContext } from "../db/context.ts";
@@ -52,31 +52,13 @@ export function createSwapCommit(
           vault,
         );
 
+        const prior = priorFiles && listContent(context, vault, priorFiles);
+
         writeFiles(context, vault, swap, now, priorFiles);
 
-        const filesHash = currentFilesHash(swap, priorFiles);
-        if (filesHash) run("UPDATE lists SET at=? WHERE vault=? AND hash=?", now, vault, filesHash);
+        writeChain(context, vault, swap, now, currentFilesHash(swap, priorFiles));
 
-        run(
-          "INSERT INTO headers VALUES(?,?,?,?,?,?)",
-          vault,
-          seq(swap.header.seq),
-          swap.header.hash,
-          swap.header.bytes,
-          now,
-          filesHash ?? null,
-        );
-
-        for (const entry of swap.entries)
-          run(
-            "INSERT INTO entries VALUES(?,?,?,?)",
-            vault,
-            seq(entry.seq),
-            entry.hash,
-            entry.bytes,
-          );
-
-        checkQuota(context, vault, before);
+        if (!swap.files || addsContent(prior, swap.files)) checkQuota(context, vault, before);
 
         writeCommitState(storage, vault, swap);
 
@@ -95,6 +77,31 @@ export function createSwapCommit(
   }
 
   return { commitSwap, findCommitted };
+}
+
+function writeChain(
+  context: TContext,
+  vault: Uint8Array,
+  swap: IStoredSwap,
+  now: number,
+  filesHash: Uint8Array | undefined,
+) {
+  const { run } = context;
+
+  if (filesHash) run("UPDATE lists SET at=? WHERE vault=? AND hash=?", now, vault, filesHash);
+
+  run(
+    "INSERT INTO headers VALUES(?,?,?,?,?,?)",
+    vault,
+    seq(swap.header.seq),
+    swap.header.hash,
+    swap.header.bytes,
+    now,
+    filesHash ?? null,
+  );
+
+  for (const entry of swap.entries)
+    run("INSERT INTO entries VALUES(?,?,?,?)", vault, seq(entry.seq), entry.hash, entry.bytes);
 }
 
 function writeFiles(

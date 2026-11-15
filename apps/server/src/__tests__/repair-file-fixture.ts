@@ -41,7 +41,7 @@ export async function reportedRepair() {
     );
 
     expect((await f.send(join, f.b)).status).toBe(200);
-    const token = startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!.token;
+    const token = startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!.token!;
     const secret = p.decodeToken("repair", token).secret;
     const repairId = p.H("repair-id", secret);
     const proof = (r: p.IRequest) => p.tokenProof("repair", p.tokenKey("repair", secret), r);

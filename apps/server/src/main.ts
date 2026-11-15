@@ -2,7 +2,7 @@ import { maxRequestBodySize } from "./middleware/body.ts";
 import { base32 } from "@envden/core/protocol";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { startRestored } from "./repair/start.ts";
+import { restoreNotice, startRestored } from "./repair/start.ts";
 import { pruneHistorySafely } from "./vault/prune.ts";
 import { createApp } from "./app.ts";
 import { createAdapters } from "./adapters.ts";
@@ -42,7 +42,7 @@ export async function serve(
 
     if (options.restored)
       for (const repair of startRestored(appOptions))
-        console.log(base32(repair.vaultId), repair.token);
+        console.log(base32(repair.vaultId), repair.token ?? restoreNotice[repair.kind]);
 
     const app = createApp(appOptions);
 

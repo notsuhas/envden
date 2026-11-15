@@ -3,6 +3,7 @@ import { Database } from "bun:sqlite";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import type { IFileVersion } from "@envden/core/adapters";
 import { createSqliteStorageAdapter } from "../index.ts";
 
 function temp() {
@@ -61,6 +62,52 @@ test("swap quota includes files and rolls back the head", () => {
 
     expect(storage.head(vault)).toBeUndefined();
     expect(storage.hasVault(vault)).toBe(false);
+  } finally {
+    db.close();
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("over quota, a list that only deletes still commits", () => {
+  const dir = temp();
+  const storage = createSqliteStorageAdapter(dir, 0);
+  const db = new Database(join(dir, "envden.sqlite"));
+  const vault = new Uint8Array([1]);
+  const b = (value: number) => new Uint8Array([value]);
+
+  const live = (file: number): IFileVersion => ({
+    fileId: b(file),
+    version: 1n,
+    tombstone: false,
+    blobHash: b(file),
+  });
+
+  const commit = (seq: number, versions: IFileVersion[]) =>
+    storage.commitSwap(
+      vault,
+      seq === 1 ? undefined : b(seq + 9),
+      {
+        header: { seq: BigInt(seq), hash: b(seq + 10), bytes: b(seq + 10) },
+        entries: [],
+        bodyDigest: b(seq + 10),
+        vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+        files: { hash: b(seq + 20), bytes: new Uint8Array(8).fill(seq), versions },
+      },
+      0,
+    );
+
+  try {
+    for (const file of [1, 2, 3]) storage.putBlob(vault, b(file), b(file));
+    commit(1, [live(1), live(2)]);
+    db.query("UPDATE blob_usage SET size=1073741825 WHERE hash=?").run(b(1));
+
+    const deleted = { fileId: b(2), version: 2n, tombstone: true };
+    expect(commit(2, [live(1), deleted]).kind).toBe("committed");
+
+    expect(() => commit(3, [live(1), live(3)])).toThrow(
+      expect.objectContaining({ code: "STORAGE_QUOTA" }),
+    );
   } finally {
     db.close();
     storage.close();

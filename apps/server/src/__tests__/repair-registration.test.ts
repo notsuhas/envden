@@ -11,7 +11,7 @@ async function changedRepair() {
 
     const secret = p.decodeToken(
       "repair",
-      startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!.token,
+      startRestored(f.options).find((item) => p.equal(item.vaultId, f.vaultId))!.token!,
     ).secret;
 
     const proof = (r: p.IRequest) => p.tokenProof("repair", p.tokenKey("repair", secret), r);

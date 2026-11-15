@@ -103,3 +103,56 @@ test("restored current list stays pinned after a header imported without its bod
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("a list kept for another file's version does not keep pruned blobs", () => {
+  const dir = mkdtempSync(join(tmpdir(), "envden-tombstone-history-"));
+  const db = createSqliteStorageAdapter(dir, 0);
+  const live = { fileId: b(2), version: 1n, tombstone: false, blobHash: b(200) };
+  const deleted = { fileId: b(2), version: 2n, tombstone: true };
+
+  try {
+    db.putBlob(b(1), b(200), b(200));
+
+    // List 2 deletes file 2 while file 1 is at v1; file 1 then reaches v31.
+    for (let i = 1; i <= 32; i++) {
+      const version = i <= 2 ? 1 : i - 1;
+      if (i !== 2) db.putBlob(b(1), b(100 + version), b(100 + version));
+
+      db.commitSwap(
+        b(1),
+        i === 1 ? undefined : b(i - 1),
+        {
+          header: { seq: BigInt(i), hash: b(i), bytes: b(i) },
+          entries: [],
+          bodyDigest: b(i),
+          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          files: {
+            hash: b(i),
+            bytes: b(i),
+            versions: [
+              {
+                fileId: b(1),
+                version: BigInt(version),
+                tombstone: false,
+                blobHash: b(100 + version),
+              },
+              i === 1 ? live : deleted,
+            ],
+          },
+        },
+        i,
+      );
+    }
+
+    db.prune(b(1), { maxAge: 0, minVersions: 20 }, 40);
+
+    expect(db.getBlob(b(1), b(101))).toBeUndefined();
+    expect(db.getBlob(b(1), b(111))).toBeUndefined();
+    expect(db.getBlob(b(1), b(112))).toEqual(b(112));
+    expect(db.getBlob(b(1), b(200))).toEqual(b(200));
+    expect(db.fileList(b(1), b(32))).toEqual(b(32));
+  } finally {
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

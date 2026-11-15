@@ -1,5 +1,12 @@
 import { EnvdenError } from "@envden/core/errors";
+import type { IFileVersion } from "@envden/core/adapters";
 import type { TContext } from "./context.ts";
+import { hex } from "./values.ts";
+
+interface IListContent {
+  size: number;
+  blobs: Set<string>;
+}
 
 export function vaultUsage(context: TContext, vault: Uint8Array): number {
   return context.db
@@ -14,6 +21,40 @@ export function vaultUsage(context: TContext, vault: Uint8Array): number {
 
 export function checkQuota(context: TContext, vault: Uint8Array, before: number): void {
   checkGrowthQuota(context, vault, before, vaultUsage(context, vault));
+}
+
+// Deletions stay possible over quota: they add no blob and no bigger list.
+export function addsContent(
+  prior: IListContent | undefined,
+  next: { bytes: Uint8Array; versions: IFileVersion[] },
+) {
+  return (
+    !prior ||
+    next.bytes.length > prior.size ||
+    next.versions.some((v) => !!v.blobHash && !prior.blobs.has(hex(v.blobHash)))
+  );
+}
+
+export function listContent(
+  context: TContext,
+  vault: Uint8Array,
+  list: Uint8Array,
+): IListContent | undefined {
+  const size = context.db
+    .query<{ size: number }, [Uint8Array, Uint8Array]>(
+      "SELECT length(bytes) AS size FROM lists WHERE vault=? AND hash=?",
+    )
+    .get(vault, list)?.size;
+
+  if (size === undefined) return undefined;
+
+  const blobs = context.db
+    .query<{ blob: Uint8Array }, [Uint8Array, Uint8Array]>(
+      "SELECT blob FROM versions WHERE vault=? AND list=? AND blob IS NOT NULL",
+    )
+    .all(vault, list);
+
+  return { size, blobs: new Set(blobs.map((row) => hex(row.blob))) };
 }
 
 export function checkGrowthQuota(
