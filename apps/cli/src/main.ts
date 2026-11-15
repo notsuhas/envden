@@ -5,6 +5,7 @@ import { sanitizeTerminal } from "./output/sanitize.ts";
 import { isEnvdenError } from "@envden/core/errors";
 import { errorExitCode } from "./output/exit-code.ts";
 import { createProgram } from "./program.ts";
+import { reportProblem } from "./report/run.ts";
 
 async function runCli(now: () => number) {
   try {
@@ -17,6 +18,8 @@ async function runCli(now: () => number) {
 
     console.error(sanitizeTerminal(error instanceof Error ? error.message : "Command failed"));
     process.exitCode = isEnvdenError(error) ? errorExitCode(error.code) : 1;
+
+    await reportProblem(error, createAdapters(undefined, now));
   }
 }
 

@@ -35,3 +35,14 @@ They exclude raw errors, stack traces, Repo IDs, file names, key names, values, 
 The CLI sends events to PostHog using `fetch`. The PostHog project is configured to discard IP addresses and skip GeoIP, but PostHog still sees the connection's IP address.
 
 The [daily update check](/docs/updates#control-automatic-checks) is separate. It checks the latest stable GitHub release and has its own setting.
+
+## Reporting a problem
+
+When a command fails because of a bug in envden rather than something you can fix, envden asks whether to report it. It doesn't ask without a terminal or inside a coding agent, and `ENVDEN_NO_REPORT=1` turns the question off.
+
+If you say yes, envden saves a report in `~/.envden/reports/`: the version, OS, install method, command, error and the last 80 lines of the server log. Tokens, secret keys, `KEY=value` pairs and secret flag values are masked. Other log and state files are listed by path only. Nothing leaves your machine until you send it.
+
+Then either:
+
+- envden starts Claude Code, Codex or Gemini CLI, whichever you have, and asks it to find the cause and draft a GitHub issue. It shows you the draft and creates the issue with `gh` only if you agree.
+- envden opens a GitHub issue form filled in with the report. Check it before you submit.

@@ -263,6 +263,10 @@ Replaces a conflict file holding only this device's version, with every saved co
 
 Replaces a backup, and a printed line, before every overwrite. Each clean pull printed a store path and a backup path for a file the user never edited, which buried the backups that mattered. Bytes equal to the applied server version are recoverable with `envden history`, so only other bytes get a backup.
 
+### Bug reports go through the user's own coding agent
+
+When envden fails on its own bug in a terminal, it offers to start the user's installed coding agent (Claude Code, Codex or Gemini CLI) on a redacted report, or to open a pre-filled GitHub issue. An agent can read the logs and envden's source and find a cause before anything is filed, which a stack trace alone can't. It runs from the user's PATH with their environment, outside the trusted-process rule, because the user picked it. Rejected: uploading crash reports, since there is no envden backend and telemetry carries no raw errors; filing issues from envden through the GitHub API, which needs a token and skips the user's review. The offer only covers error codes the user can't fix, and never appears without a terminal, inside an agent, or with `ENVDEN_NO_REPORT=1`.
+
 ### Device keys, signed device list, key epochs, OPAQUE pairing
 
 Each device has its own keys, membership is a member-signed hash-chained log that takes effect only through the signed manifest swap, removal starts a new epoch instead of re-encrypting, and the secret key lives only in the recovery kit (see [Crypto](#crypto)). Rejected:

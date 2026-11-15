@@ -91,18 +91,21 @@ export async function chooseResolution(
   );
 }
 
-export async function choose(
+export async function choose<T extends string>(
   message: string,
-  options: { value: "separate" | "store"; label: string }[],
-): Promise<"separate" | "store"> {
+  options: { value: T; label: string }[],
+  initialValue?: T,
+): Promise<T> {
   terminal(message);
 
-  return answer<"separate" | "store">(
-    await select({
-      message: sanitizeTerminal(message),
-      options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
-    }),
-  );
+  const choice = await select<string>({
+    message: sanitizeTerminal(message),
+    ...(initialValue === undefined ? {} : { initialValue }),
+    options: options.map((option) => ({ ...option, label: sanitizeTerminal(option.label) })),
+  });
+
+  // Only values from options can come back.
+  return answer<string>(choice) as T;
 }
 
 export async function chooseMany(
