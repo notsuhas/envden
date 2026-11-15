@@ -137,6 +137,11 @@ async function runTransport() {
         "GET /v1/status HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
         404,
       ],
+      [
+        "unknown vault before malformed proof",
+        signed("/v1/head").replace(/Envden-Proof: [^\r\n]+/, "Envden-Proof: !"),
+        404,
+      ],
       ["missing approver first", missingApprover, 404],
       ["missing approver retry", missingApprover, 404],
       ["bad signature", signed("/v1/pairing/approver", "", "1.0.0", true), 401],
