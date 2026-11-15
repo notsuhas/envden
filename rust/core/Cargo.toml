@@ -10,3 +10,12 @@ workspace = true
 
 [dependencies]
 thiserror.workspace = true
+shared_child = "1"
+regex = "1"
+globset = "0.4"
+path-clean = "1"
+rustix = { version = "1", features = ["process", "fs"] }
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3"

@@ -1,0 +1,1558 @@
+[
+  { "path": ".env", "options": {}, "accepted": true },
+  { "path": ".env.", "options": {}, "accepted": false },
+  { "path": ".env.local", "options": {}, "accepted": true },
+  { "path": ".envrc", "options": {}, "accepted": false },
+  { "path": ".ENV", "options": {}, "accepted": false },
+  { "path": ".env.example", "options": {}, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": {}, "accepted": true },
+  { "path": "nested/.env", "options": {}, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": {}, "accepted": false },
+  { "path": "vendor/.env", "options": {}, "accepted": false },
+  { "path": "out/.env", "options": {}, "accepted": false },
+  { "path": "generated/.env", "options": {}, "accepted": true },
+  { "path": "a/b/.env", "options": {}, "accepted": true },
+  { "path": "secrets.conf", "options": {}, "accepted": false },
+  { "path": "a/secrets.conf", "options": {}, "accepted": false },
+  { "path": ".env", "options": { "exclude": [] }, "accepted": true },
+  { "path": ".env.", "options": { "exclude": [] }, "accepted": false },
+  { "path": ".env.local", "options": { "exclude": [] }, "accepted": true },
+  { "path": ".envrc", "options": { "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "exclude": [] }, "accepted": false },
+  { "path": ".env.example", "options": { "exclude": [] }, "accepted": true },
+  { "path": ".env.EXAMPLE", "options": { "exclude": [] }, "accepted": true },
+  { "path": "nested/.env", "options": { "exclude": [] }, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": { "exclude": [] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "exclude": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "exclude": [] }, "accepted": false },
+  { "path": "generated/.env", "options": { "exclude": [] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "exclude": [] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "exclude": [] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "exclude": [] }, "accepted": false },
+  { "path": ".env", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": ".env.", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".env.local", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".envrc", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".ENV", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".env.example", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": ".env.EXAMPLE", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": "nested/.env", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": "out/.env", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "exclude": ["*.local"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.local", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".envrc", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.example", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "NODE_MODULES/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "out/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "a/b/.env", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env", "options": { "include": [] }, "accepted": false },
+  { "path": ".env.", "options": { "include": [] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": [] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": [] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": [] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "NODE_MODULES/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "a/b/.env", "options": { "include": [] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "include": [] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "include": [] }, "accepted": false },
+  { "path": ".env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".env.", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "NODE_MODULES/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "a/b/.env", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "include": [], "exclude": [] }, "accepted": false },
+  { "path": ".env", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  {
+    "path": ".env.example",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": "out/.env", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": [], "exclude": ["*.local"] }, "accepted": false },
+  {
+    "path": "secrets.conf",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": [], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": [], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": [], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "include": [], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": [], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": ["*"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["*"] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": ["*"] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": ["*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["*"] }, "accepted": true },
+  { "path": ".env.example", "options": { "include": ["*"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["*"] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": ["*"] }, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": { "include": ["*"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": ["*"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["*"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["*"] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": ["*"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["*"] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["*"] }, "accepted": true },
+  { "path": ".env", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": ["*"], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.example", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.EXAMPLE", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["*"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": ["*"], "exclude": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["*"], "exclude": [] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["*"], "exclude": [] }, "accepted": true },
+  { "path": ".env", "options": { "include": ["*"], "exclude": ["*.local"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": ".env.local",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": ".envrc", "options": { "include": ["*"], "exclude": ["*.local"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": ".env.example",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  { "path": "a/b/.env", "options": { "include": ["*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  { "path": ".env", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": ".env.local",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".envrc", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": true },
+  {
+    "path": ".env.example",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": "out/.env", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": ["*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["*"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  { "path": ".env", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": ["**/*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": ".env.example", "options": { "include": ["**/*"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": { "include": ["**/*"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": ["**/*"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["**/*"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["**/*"] }, "accepted": true },
+  { "path": ".env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": ["**/*"], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.example", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.EXAMPLE", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["**/*"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["**/*"], "exclude": [] }, "accepted": true },
+  { "path": ".env", "options": { "include": ["**/*"], "exclude": ["*.local"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["**/*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": ".env.local",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": ".ENV", "options": { "include": ["**/*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": ".env.example",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["**/*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  { "path": ".env", "options": { "include": ["**/*"], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["**/*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": ".env.local",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".envrc", "options": { "include": ["**/*"], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["**/*"], "exclude": [".env*"] }, "accepted": true },
+  {
+    "path": ".env.example",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["**/*"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  { "path": ".env", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": "NODE_MODULES/.env", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": [".env*"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "include": [".env*"] }, "accepted": false },
+  { "path": ".env", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.local", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": ".envrc", "options": { "include": [".env*"], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": [".env*"], "exclude": [] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": ".env.EXAMPLE", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": "nested/.env", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": [".env*"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": [".env*"], "exclude": [] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": [".env*"], "exclude": [] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": [".env*"], "exclude": [] },
+    "accepted": true
+  },
+  { "path": "a/b/.env", "options": { "include": [".env*"], "exclude": [] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": [".env*"], "exclude": [] }, "accepted": false },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": [".env*"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": [".env*"], "exclude": ["*.local"] }, "accepted": true },
+  {
+    "path": ".env.",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": [".env*"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": [".env*"], "exclude": [".env*"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": [".env*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": ".env.local",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".ENV", "options": { "include": [".env*"], "exclude": [".env*"] }, "accepted": false },
+  {
+    "path": ".env.example",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": [".env*"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  { "path": ".env.", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["{.env,secrets.conf}"] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  { "path": "a/b/.env", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["{.env,secrets.conf}"] }, "accepted": true },
+  {
+    "path": ".env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["{.env,secrets.conf}"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  { "path": ".env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "NODE_MODULES/.env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "a/b/.env", "options": { "include": ["a/**/.env"] }, "accepted": true },
+  { "path": "secrets.conf", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "include": ["a/**/.env"] }, "accepted": false },
+  { "path": ".env", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": ".env.local",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": ".envrc", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "out/.env", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": ["a/**/.env"], "exclude": [] }, "accepted": true },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/**/.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "NODE_MODULES/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "vendor/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "generated/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "a/b/.env", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": "a/secrets.conf", "options": { "include": ["a/*.env"] }, "accepted": false },
+  { "path": ".env", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "out/.env", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": ["a/*.env"], "exclude": [] }, "accepted": false },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["a/*.env"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  { "path": ".env", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".env.", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".env.local", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".envrc", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".ENV", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".env.example", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": ".env.EXAMPLE", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": "nested/.env", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["secrets.*", ".envrc"] },
+    "accepted": false
+  },
+  { "path": "vendor/.env", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": "out/.env", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["secrets.*", ".envrc"] },
+    "accepted": false
+  },
+  { "path": "a/b/.env", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": false },
+  { "path": "secrets.conf", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": true },
+  { "path": "a/secrets.conf", "options": { "include": ["secrets.*", ".envrc"] }, "accepted": true },
+  {
+    "path": ".env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [] },
+    "accepted": true
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": ["*.local"] },
+    "accepted": true
+  },
+  {
+    "path": ".env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.local",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".envrc",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".ENV",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.example",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": ".env.EXAMPLE",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "nested/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "NODE_MODULES/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "vendor/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "out/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "generated/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "a/b/.env",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": false
+  },
+  {
+    "path": "secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": true
+  },
+  {
+    "path": "a/secrets.conf",
+    "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
+    "accepted": true
+  }
+]

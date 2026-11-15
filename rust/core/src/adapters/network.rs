@@ -30,5 +30,5 @@ pub trait INetworkAdapter: Send + Sync {
     fn id(&self) -> &str;
     fn check_https_certificate(&self) -> Result<THttpsCheck>;
     fn status(&self) -> Result<INetworkStatus>;
-    fn expose(&self, port: u16) -> Result<String>;
+    fn expose(&self, port: f64) -> Result<String>;
 }
