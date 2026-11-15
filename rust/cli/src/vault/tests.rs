@@ -122,3 +122,54 @@ fn unknown_history_is_authenticated_before_update_errors() {
         ErrorCode::InvalidData
     );
 }
+
+#[test]
+fn creation_binds_the_envelope_manifest_and_recovery_kit() {
+    let (identity, material) = fixture();
+    let creation = create_vault_swap(
+        &material,
+        &identity,
+        "fixture password",
+        &crate::client::text(&[7; 192]),
+        123,
+    )
+    .unwrap();
+    let swap = &creation.swap;
+    assert_eq!(
+        swap.header.body.list_head,
+        p::object_hash(&material.epoch, "entry").unwrap()
+    );
+    assert_eq!(
+        swap.header.body.keyring_hash,
+        p::h("keyring-blob", swap.keyring.as_ref().unwrap())
+    );
+    assert_eq!(
+        swap.header.body.files_hash,
+        p::h("files", &p::encode(swap.files.as_ref().unwrap()).unwrap())
+    );
+    assert_eq!(
+        swap.header.body.envelope_hash,
+        p::h("envelope-blob", swap.envelope.as_ref().unwrap())
+    );
+    let secret = p::decode_secret_key(&creation.secret_key).unwrap();
+    let envelope = p::open_envelope(
+        swap.envelope.as_ref().unwrap(),
+        "fixture password",
+        &secret,
+        &material.vault_id,
+    )
+    .unwrap();
+    assert_eq!(envelope.recovery_enc_sk, material.recovery_keys.enc_sk);
+    assert_eq!(envelope.recovery_obj_sk, material.recovery_keys.obj_sk);
+    assert_eq!(envelope.sealed_at, 123);
+    assert_eq!(envelope.checkpoint, [0; 32]);
+    assert_eq!(swap.sk_pub, Some(p::sk_pub(&secret, &material.vault_id)));
+    assert!(p::verify_object(
+        &swap.header,
+        &identity.record.obj_pub,
+        "manifest"
+    ));
+    let bytes = p::encode(swap).unwrap();
+    let decoded: p::ISwap = p::decode(&bytes).unwrap();
+    assert_eq!(p::encode(&decoded).unwrap(), bytes);
+}

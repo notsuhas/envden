@@ -66,6 +66,7 @@ impl ITransport for Server {
             }
             "/v1/opaque/login/finish" => {
                 p::opaque_server_finish_login(p::IFinishServerLoginParams {
+                    identifiers: Some(ids.identifiers),
                     server_login_state: self.pending.borrow_mut().take().unwrap(),
                     finish_login_request: message,
                 })?;

@@ -45,16 +45,14 @@ pub fn hello(
             cause,
         )
     })?;
-    let value = body
-        .get("hello")
-        .and_then(serde_json::Value::as_str)
-        .ok_or_else(|| {
-            EnvdenError::new(
-                ErrorCode::InvalidData,
-                "Server sent an invalid hello. Check the address points at an envden server",
-            )
-        })?;
-    let signed: p::ISigned<p::IServerHello> = decode_untrusted(&binary(value)?)?;
+    let body: p::IHelloResponse = serde_json::from_value(body).map_err(|cause| {
+        EnvdenError::with_source(
+            ErrorCode::InvalidData,
+            "Server sent an invalid hello. Check the address points at an envden server",
+            cause,
+        )
+    })?;
+    let signed: p::ISigned<p::IServerHello> = decode_untrusted(&binary(&body.hello)?)?;
     let presented = p::server_pin(&signed.body.server_sign_pub)?;
     if !matches!(
         p::verify_hello(

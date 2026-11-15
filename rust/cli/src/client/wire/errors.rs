@@ -5,13 +5,12 @@ pub fn response_error(data: &Value, path: &str) -> EnvdenError {
     if data.get("kind").and_then(Value::as_str) == Some("head-moved") {
         return EnvdenError::new(ErrorCode::HeadMoved, message(ErrorCode::HeadMoved));
     }
-    let Some(code) = data
-        .get("error")
-        .and_then(Value::as_str)
-        .and_then(ErrorCode::parse)
+    let Ok(parsed) =
+        serde_json::from_value::<envden_protocol::protocol::IErrorResponse>(data.clone())
     else {
         return EnvdenError::new(ErrorCode::InvalidData, "Invalid server response");
     };
+    let code = parsed.error;
     let text = if path.starts_with("/v1/pairing/")
         && matches!(
             code,

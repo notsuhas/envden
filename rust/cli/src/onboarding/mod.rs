@@ -1,4 +1,4 @@
-mod decisions;
+pub mod decisions;
 mod password;
 
 pub use decisions::{
