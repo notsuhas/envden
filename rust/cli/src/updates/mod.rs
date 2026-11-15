@@ -10,3 +10,5 @@ pub mod self_update;
 
 #[cfg(test)]
 mod tests;
+
+mod deadline;

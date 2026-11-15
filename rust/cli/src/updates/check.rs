@@ -14,6 +14,7 @@ pub fn check_release(
     now: u64,
     fetcher: &dyn IFetcher,
     force: bool,
+    clock: &dyn Fn() -> u64,
 ) -> Value {
     if !force
         && cache
@@ -22,7 +23,8 @@ pub fn check_release(
     {
         return json!({"kind":"skipped"});
     }
-    let result = match latest_release(fetcher) {
+    let bounded = super::deadline::Deadline::new(fetcher, clock);
+    let result = match latest_release(&bounded) {
         Ok(latest) => {
             if cache.latest.is_none() {
                 cache.order.push("latest");
@@ -40,10 +42,12 @@ pub fn check_release(
             json!({"kind":"unavailable","message":cache.message})
         }
     };
-    if cache.checked_at.is_none() {
-        cache.order.push("checkedAt");
+    if bounded.sent() {
+        if cache.checked_at.is_none() {
+            cache.order.push("checkedAt");
+        }
+        cache.checked_at = Some(now as f64);
     }
-    cache.checked_at = Some(now as f64);
     result
 }
 
@@ -61,7 +65,7 @@ pub fn run_update_check(
         return Ok(json!({"kind":"skipped"}));
     }
     let mut cache = read_update_cache(&adapters.home);
-    let result = check_release(&mut cache, now, fetcher, force);
+    let result = check_release(&mut cache, now, fetcher, force, &adapters.now);
     if result["kind"] != "skipped" {
         with_state_lock(&adapters.home, (adapters.now)(), || {
             save_update_cache(&adapters.home, &cache, (adapters.now)())

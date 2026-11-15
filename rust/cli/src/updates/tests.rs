@@ -85,20 +85,20 @@ fn daily_cache_for_success_and_failure() {
     let fetch = fake(vec![redirect("v1.2.3")]);
     let mut cache = IUpdateCache::default();
     assert_eq!(
-        check_release(&mut cache, 100, &fetch, false)["kind"],
+        check_release(&mut cache, 100, &fetch, false, &|| 0)["kind"],
         "checked"
     );
     assert_eq!(
-        check_release(&mut cache, 101, &fetch, false)["kind"],
+        check_release(&mut cache, 101, &fetch, false, &|| 0)["kind"],
         "skipped"
     );
     assert_eq!(fetch.calls.borrow().len(), 1);
     assert_eq!(
-        check_release(&mut cache, 86400100, &fetch, false)["kind"],
+        check_release(&mut cache, 86400100, &fetch, false, &|| 0)["kind"],
         "unavailable"
     );
     assert_eq!(
-        check_release(&mut cache, 86400101, &fetch, false)["kind"],
+        check_release(&mut cache, 86400101, &fetch, false, &|| 0)["kind"],
         "skipped"
     );
     assert_eq!(
@@ -160,7 +160,13 @@ fn verified_download_matrix() {
 fn first_check_cache_key_order_matches_javascript_mutation() {
     let temp = tempfile::tempdir().unwrap();
     let mut cache = IUpdateCache::default();
-    check_release(&mut cache, 100, &fake(vec![redirect("v1.2.3")]), false);
+    check_release(
+        &mut cache,
+        100,
+        &fake(vec![redirect("v1.2.3")]),
+        false,
+        &|| 0,
+    );
     super::cache::save_update_cache(temp.path(), &cache, 100).unwrap();
     assert_eq!(
         std::fs::read_to_string(temp.path().join("state/updates.json")).unwrap(),
@@ -173,3 +179,6 @@ fn first_check_cache_key_order_matches_javascript_mutation() {
         r#"{"checkedAt":100,"latest":"1.2.3"}"#
     );
 }
+
+#[path = "check_tests.rs"]
+mod check_tests;
