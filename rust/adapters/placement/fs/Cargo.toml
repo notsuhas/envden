@@ -1,0 +1,23 @@
+[package]
+name = "envden-adapter-placement-fs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+envden-core = { path = "../../../core" }
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+rustix = { version = "1", features = ["fs"] }
+path-clean = "1"
+envden-protocol = { path = "../../../protocol" }
+[dev-dependencies]
+envden-testing = { path = "../../../testing" }
+tempfile = "3"
+
+[lints]
+workspace = true
+
+[dependencies.regex]
+version = "1"
