@@ -50,6 +50,8 @@ async function contents(path: string, n: Normalizer) {
 }
 
 async function walk(path: string, name: string, n: Normalizer): Promise<unknown[]> {
+  if (name === "./.cache/powershell") return [];
+
   const stat = await lstat(path);
   const entry = { path: n.text(name), mode: (stat.mode & 0o7777).toString(8) };
   if (stat.isSymbolicLink()) return [{ ...entry, link: n.text(await readlink(path)) }];

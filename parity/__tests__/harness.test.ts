@@ -73,3 +73,26 @@ test("snapshots retain plaintext, modes, symlink targets and database rows", asy
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("snapshots omit PowerShell runtime caches but retain adjacent user files", async () => {
+  const { mkdtemp, mkdir, writeFile, rm } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { tree } = await import("../harness/snapshot.ts");
+  const root = await mkdtemp(join(tmpdir(), "envden-parity-cache-"));
+
+  try {
+    const cache = join(root, ".cache", "powershell");
+    await mkdir(cache, { recursive: true });
+    await writeFile(join(cache, "runtime"), "first");
+    await writeFile(join(root, ".cache", "user-file"), "keep");
+    const original = await tree(root, new Normalizer(root));
+
+    await writeFile(join(cache, "runtime"), "second");
+    expect(await tree(root, new Normalizer(root))).toEqual(original);
+    expect(JSON.stringify(original)).toContain("user-file");
+    expect(JSON.stringify(original)).not.toContain("powershell");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

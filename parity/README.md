@@ -55,7 +55,7 @@ All command names are maintained in `harness/commands.ts`, checked against `prog
 
 Piped commands retain separate stdout, stderr and exit status. PTYs merge stdout/stderr by OS design; their stdout is the rendered terminal screen, with cursor moves/erasures applied. Intermediate spinner frames and password-entry repaints disappear, while final prompts, answers and messages remain. Every step asserts an explicit exit code before comparing implementations.
 
-Snapshots include each user home (including checkout/worktree files, kits and shell integrations) and ENVDEN_HOME. Git internals are excluded. Entries retain names, contents, permission bits and symlink targets without following symlinks. SQLite snapshots compare exact schema SQL and every table's rows in insertion order; raw database pages and WAL layout are excluded.
+Snapshots include each user home (including checkout/worktree files, kits and shell integrations) and ENVDEN_HOME. Git internals and PowerShell’s nondeterministic runtime cache (`.cache/powershell`) are excluded. Entries retain names, contents, permission bits and symlink targets without following symlinks. SQLite snapshots compare exact schema SQL and every table's rows in insertion order; raw database pages and WAL layout are excluded.
 
 Declarative text rules live in `harness/normalize.ts`:
 
