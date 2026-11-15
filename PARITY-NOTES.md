@@ -50,3 +50,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: the head retry commits the joiner as `mainbook-3`, but the success message still says `Device mainbook-2 added`. Rust preserves the confirmed name in that message.
 - Possible improvement: return the committed name from approval and use it in the success message.
 - Why: the current message can identify a different device after a concurrent add. BUG: fix in all implementations.
+
+## Repair with an absent epoch key
+
+- Scenario: repair needs a file name or recovery blob from an epoch absent from its keyring.
+- TS behaviour: the unchecked map lookup reaches the fixed-byte codec and throws `undefined is not an object (evaluating 'v.length')` in Bun. Rust returns an error with that message instead of panicking.
+- Possible improvement: validate key availability and return a deliberate protocol error.
+- Why: changing the TS failure requires a coordinated fix. BUG: fix in all implementations.
