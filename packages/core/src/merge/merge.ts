@@ -1,4 +1,5 @@
 import { commentsMovedApart } from "./layout/comments.ts";
+import { lineEnding, withLineEnding } from "./layout/line-ending.ts";
 import { shortcut } from "./layout/shortcut.ts";
 import { selectEntry } from "./selection.ts";
 import { equal } from "./bytes.ts";
@@ -36,40 +37,47 @@ export function mergeEnv(base: Uint8Array, local: Uint8Array, remote: Uint8Array
 
   return {
     kind: "clean",
-    bytes: mergeLayout(parsedLocal, parsedRemote, l, b, selected),
+    bytes: mergeLayout(
+      { base: parsedBase, local: parsedLocal, remote: parsedRemote },
+      selected,
+      lineEnding(local, base, remote),
+    ),
     changedKeys,
   };
 }
 
+type TParsed = Extract<TParseResult, { kind: "parsed" }>;
+
 function mergeLayout(
-  parsedLocal: Extract<TParseResult, { kind: "parsed" }>,
-  parsedRemote: Extract<TParseResult, { kind: "parsed" }>,
-  l: Map<string, IEnvEntry>,
-  b: Map<string, IEnvEntry>,
+  files: { base: TParsed; local: TParsed; remote: TParsed },
   selected: Map<string, IEnvEntry>,
+  ending: string,
 ) {
+  const { base, local, remote } = files;
+  const known = new Set([...base.entries, ...local.entries].map((entry) => entry.key));
   const parts: Uint8Array[] = [];
 
-  for (const entry of parsedLocal.entries) {
+  for (const entry of local.entries) {
     const chosen = selected.get(entry.key);
-    if (chosen) appendPart(parts, chosen.raw);
+
+    if (chosen)
+      appendPart(parts, chosen === entry ? chosen.raw : withLineEnding(chosen.raw, ending), ending);
   }
 
-  appendPart(parts, parsedLocal.tail);
+  appendPart(parts, local.tail, ending);
 
-  for (const entry of parsedRemote.entries) {
-    if (!l.has(entry.key) && !b.has(entry.key)) {
-      appendPart(parts, entry.raw);
-    }
-  }
+  for (const entry of remote.entries)
+    if (!known.has(entry.key)) appendPart(parts, withLineEnding(entry.raw, ending), ending);
 
-  return Buffer.concat(parts);
+  const head = equal(base.head, local.head) ? remote.head : local.head;
+
+  return Buffer.concat([head, ...parts]);
 }
 
-function appendPart(parts: Uint8Array[], part: Uint8Array) {
+function appendPart(parts: Uint8Array[], part: Uint8Array, ending: string) {
   if (!part.length) return;
   const previous = parts.at(-1);
-  if (previous?.length && previous[previous.length - 1] !== 10) parts.push(Buffer.from("\n"));
+  if (previous?.length && previous[previous.length - 1] !== 10) parts.push(Buffer.from(ending));
   parts.push(part);
 }
 

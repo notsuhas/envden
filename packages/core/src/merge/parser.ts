@@ -1,9 +1,13 @@
 import { validateValue } from "./value.ts";
 import type { IEnvEntry, TParseResult } from "./types.ts";
 
+const BOM = [0xef, 0xbb, 0xbf];
+
 export function parseEnv(bytes: Uint8Array): TParseResult {
+  const skip = BOM.every((byte, index) => bytes[index] === byte) ? BOM.length : 0;
+  const content = bytes.subarray(skip);
   // Latin-1 keeps byte offsets intact, including invalid UTF-8.
-  const text = Buffer.from(bytes).toString("latin1");
+  const text = Buffer.from(content).toString("latin1");
   const entries: IEnvEntry[] = [];
   const keys = new Set<string>();
   let offset = 0;
@@ -33,7 +37,7 @@ export function parseEnv(bytes: Uint8Array): TParseResult {
 
     entries.push({
       key,
-      raw: bytes.slice(start, offset),
+      raw: content.slice(start, offset),
       exported: Boolean(match[2]),
       quote,
       active: !match[1],
@@ -42,5 +46,5 @@ export function parseEnv(bytes: Uint8Array): TParseResult {
     start = offset;
   }
 
-  return { kind: "parsed", entries, tail: bytes.slice(start) };
+  return { kind: "parsed", head: bytes.slice(0, skip), entries, tail: content.slice(start) };
 }

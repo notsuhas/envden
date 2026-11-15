@@ -18,5 +18,9 @@ type TConflictReason =
   | "layout-change";
 
 export type TConflict = { kind: "conflict"; reason: TConflictReason; key?: string };
-export type TParseResult = { kind: "parsed"; entries: IEnvEntry[]; tail: Uint8Array } | TConflict;
+
+export type TParseResult =
+  | { kind: "parsed"; head: Uint8Array; entries: IEnvEntry[]; tail: Uint8Array }
+  | TConflict;
+
 export type TMergeResult = { kind: "clean"; bytes: Uint8Array; changedKeys: string[] } | TConflict;

@@ -18,7 +18,7 @@ function clean(base: string, local: string, remote: string): string {
 describe("env merge", () => {
   test("raw assignments include preceding comments and preserve non-UTF8 bytes", () => {
     const input = Buffer.concat([
-      bytes("# comment\r\nA="),
+      bytes("\uFEFF# comment\r\nA="),
       Buffer.from([255]),
       bytes("\r\n\r\n# tail"),
     ]);
@@ -27,8 +27,28 @@ describe("env merge", () => {
     expect(parsed.kind).toBe("parsed");
     if (parsed.kind !== "parsed") return;
 
-    expect(Buffer.concat([...parsed.entries.map((entry) => entry.raw), parsed.tail])).toEqual(
-      input,
+    expect(parsed.entries.map((entry) => entry.key)).toEqual(["A"]);
+
+    expect(
+      Buffer.concat([parsed.head, ...parsed.entries.map((entry) => entry.raw), parsed.tail]),
+    ).toEqual(input);
+  });
+
+  test("a leading BOM stays at the start of a merge", () => {
+    expect(clean("\uFEFFA=1\nB=1\n", "\uFEFFB=1\nA=2\n", "\uFEFFA=1\nB=3\nC=1\n")).toBe(
+      "\uFEFFB=3\nA=2\nC=1\n",
+    );
+
+    expect(clean("\uFEFFA=1\n", "\uFEFFA=2\n", "A=1\nB=1\n")).toBe("A=2\nB=1\n");
+  });
+
+  test("merged lines follow the local line ending", () => {
+    expect(clean("A=1\r\nB=1", "A=2\r\nB=1", "A=1\r\nB=1\r\nC=1\r\n")).toBe(
+      "A=2\r\nB=1\r\nC=1\r\n",
+    );
+
+    expect(clean("A=1\nB=1\n", "A=2\nB=1\n", "A=1\nB=3\r\n# c\r\nC=1\r\n")).toBe(
+      "A=2\nB=3\n# c\nC=1\n",
     );
   });
 
@@ -159,6 +179,13 @@ test("final line terminators do not change key selection", () => {
   });
 
   expect(clean("A=1\nB=2", "A=5\nB=2", "A=1")).toBe("A=5\n");
+
+  expect(diffEnvKeys(bytes("A=1\nB=2"), bytes("A=1\nB=2\n"))).toEqual({
+    kind: "diff",
+    added: [],
+    removed: [],
+    changed: [],
+  });
 });
 
 for (const newline of ["\n", "\r\n"])

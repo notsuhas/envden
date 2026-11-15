@@ -89,7 +89,7 @@ test("file IDs cannot drop, decrease versions or change at same version", async 
 
   for (const entries of [
     [],
-    [{ ...f.file, blobHash: bytes(0) }],
+    [{ ...f.file, blobHash: bytes(30) }],
     [{ ...f.file, version: 0n }],
     [{ ...f.file, version: 2n, epoch: 2 }],
     [{ ...f.file, version: 2n, state: 3 }],

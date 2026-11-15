@@ -24,6 +24,8 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
   - A low-order X25519 point fed to HPKE must be rejected.
 - **Key validation.** Public keys are checked on receipt:
   - Ed25519 keys must decode canonically and not be of small order.
+  - X25519 keys must be canonical: u < 2²⁵⁵ − 19 with the top bit clear.
+  - Ed25519 signatures with a noncanonical R or with S ≥ L are rejected.
   - HPKE must reject all-zero X25519 shared secrets.
 
 ## 2. Encoding
@@ -102,11 +104,11 @@ Decoders reject:
 - **File ID** = `MAC(K_id, "file-id", str(repoId) ‖ str(path))`. `path` is relative to the repo root, `/`-separated, NFC, with case preserved. It must be nonempty and contain no `\`, `:`, empty, `.` or `..` segments, or segments ending in a dot or space. Segments must not match the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9` or `LPT1`–`LPT9`, including superscript `¹`, `²`, `³` suffixes, case-insensitively, with or without a dot extension.
 
 ```
-DeviceRecord   { id b16, name str (1–64 bytes), encPub b32, objPub b32, reqPub b32 }
+DeviceRecord   { id b16, name str (1–64 bytes, no Unicode Cf characters), encPub b32, objPub b32, reqPub b32 }
 RecoveryRecord { id b16, encPub b32, objPub b32 }
 ```
 
-Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must permit X25519 key agreement with a nonzero shared secret; receivers reject low-order keys when validating records.
+Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must be canonical (little-endian u < 2²⁵⁵ − 19, so the top bit is clear) and permit X25519 key agreement with a nonzero shared secret; receivers reject noncanonical and low-order keys when validating records. Device names exclude format characters (zero-width, bidi controls) so two names that look the same are the same.
 
 ## 4. Wraps and epochs
 
@@ -198,7 +200,7 @@ FileName (0x0D) { type, version, repoId str, path str }
 
 - `filesHash` = `H("files", Files)`.
 - **States**: 1 live, 2 deleted, 3 recovered (live, restored from an older version by a repair), 4 lost (deleted by a repair). States 3 and 4 appear only in a repair-fix swap.
-- **Deleting** a file writes a new version with state 2 and `blobHash` = zeros. **Restoring** it writes a new live version.
+- **Deleting** a file writes a new version with state 2 and `blobHash` = zeros. **Restoring** it writes a new live version. Decoders reject a live entry (state 1 or 3) whose `blobHash` is zeros, and a tombstone (state 2 or 4) whose `blobHash` isn't.
 - **`name`** is the file's `FileName`, padded and encrypted like a file blob (§ 7) with key `KDF(K_e, vaultId, "file-name-key", fileId)` and AD `ctx("file-name")` ‖ vaultId ‖ `u32 epoch` ‖ fileId ‖ `u64 version`, using the entry's epoch. Every changed entry gets a fresh `name`. A reader decrypts it and recomputes `fileId` from it. This is how a device learns which file IDs belong to its repos without fetching their blobs.
 - File IDs are never dropped from the list, so tombstones outlive history pruning.
 - **Who held the recovery key.** The signer of any header that changes `envelopeHash`, plus every kit-joined device, held the recovery private key in memory. Devices compute this set from history.
@@ -376,8 +378,8 @@ The server rejects a request if:
 - the signature doesn't verify
 - `R.serverPin` isn't its own pin
 - the vault is unknown, except on creation and import
-- `|time − now|` exceeds 300 seconds
-- `(device, nonce)` was seen in the last 10 minutes
+- `|time − now|` is 300 seconds or more
+- `(device, nonce)` was seen in the last 10 minutes. A nonce is kept for exactly 10 minutes, so it outlives every time its request could be accepted.
 - the device isn't a member at the server's current device-list head, except on the non-member endpoints below
 
 **Non-member endpoints.** These requests are signed with the new device's request key and carry its `DeviceRecord`.
@@ -418,7 +420,7 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `s
 **Setup token.**
 - Text: `envden-setup-1:` ‖ `b32(secret(20) ‖ serverPin(32))`.
 - The device decodes the pin and runs hello against it before sending any proof.
-- One token is active at a time, and `envden serve --setup-token` replaces it. It's valid only for creating or importing a vault ID the server doesn't have.
+- One token is active at a time, and starting `envden serve` with `ENVDEN_SETUP_TOKEN` set replaces it. It's valid only for creating or importing a vault ID the server doesn't have.
 - It's consumed when that vault is committed. A retried creation or import with the same body digest returns success.
 
 ## 11. Unlock, fresh login and limits
@@ -562,7 +564,7 @@ The printed kit stays valid, because `SK` is unchanged.
 
 **After the move.** Other devices find the server-moved entry on O and switch to `newAddress`. They accept only `newPin`, and require descent from their checkpoint. A device that missed the entry, because O is gone, runs `envden server switch <address>`. It checks that N's list holds a server-moved entry to N's pin, descending from its checkpoint.
 
-**Repair after a restore.** After restoring a backup, the operator starts the server with `envden serve --restored`. It prints one repair token per vault, `envden-repair-1:` ‖ `b32(secret(20) ‖ serverPin(32))`, and each vault is in restored mode until its own repair finishes. In restored mode the vault rejects every swap and read except those below, and every repair request needs that vault's repair-token proof. The allowed reads are headers, entries, file lists, keyrings, blobs, reports, the envelope and `restoredHead`. The server records the head it was restored at as `restoredHead`, in the database. Running `--restored` on a vault already in restored mode, such as a backup taken mid-repair, keeps the recorded `restoredHead` and only mints a new token, which replaces the old one. The token matters because the restored device list may still include a device removed after the backup.
+**Repair after a restore.** After restoring a backup, the operator starts the server with `envden serve --restored`. It prints one repair token per vault, `envden-repair-1:` ‖ `b32(secret(20) ‖ serverPin(32))`, and each vault is in restored mode until its own repair finishes. In restored mode the vault rejects every swap and read except those below, and every repair request needs that vault's repair-token proof. The allowed reads are headers, entries, file lists, keyrings, blobs, reports, the envelope and `restoredHead`, and only members may make them. The server records the head it was restored at as `restoredHead`, in the database. Running `--restored` on a vault already in restored mode, such as a backup taken mid-repair, keeps the recorded `restoredHead` and only mints a new token, which replaces the old one. The token matters because the restored device list may still include a device removed after the backup.
 
 **Reused tokens.** A device refuses a repair token whose `repairId` already appears in a repair-done entry in a chain it holds. The server mints the token, so this stops a server from reissuing an old one and replaying that repair's reports.
 
@@ -625,7 +627,7 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - file, keyring and envelope blobs at fixed nonces
   - HPKE wraps at a fixed ephemeral key
   - a low-order point
-- **Signatures**: every type label, including cross-type rejection (for example, a manifest signature presented as an entry signature).
+- **Signatures**: every type label, including cross-type rejection (for example, a manifest signature presented as an entry signature), and rejection of a noncanonical R and of S ≥ L.
 - **Swap operations**: every row of the § 6 table accepted with the right fields and authorization, and rejected with:
   - a header whose `op` doesn't match its changes
   - a request not signed by `header.signer`, and the allowed op-10 forward on N

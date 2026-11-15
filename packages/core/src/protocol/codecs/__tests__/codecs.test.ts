@@ -86,7 +86,7 @@ test("every structured codec is exact and validates nested records", () => {
   round(p.KeyringCodec, { vaultId: z, epoch: 2, idKey: z, older: [{ epoch: 1, key: z }] });
 
   round(p.FilesCodec, {
-    entries: [{ fileId: z, version: 1n, epoch: 1, state: 1, blobHash: z, name: z }],
+    entries: [{ fileId: z, version: 1n, epoch: 1, state: 1, blobHash: z.with(0, 1), name: z }],
   });
 
   const header = p.signObject(p.ManifestHeaderCodec, manifest, keys.objSk, "manifest");
@@ -107,7 +107,7 @@ test("every structured codec is exact and validates nested records", () => {
 test("semantic rejection rules", () => {
   expect(() => p.encode(p.DeviceRecordCodec, { ...device, id: new Uint8Array(16) })).toThrow();
 
-  for (const name of ["", "a".repeat(65)])
+  for (const name of ["", "a".repeat(65), "laptop\u200B", "\u202Elaptop"])
     expect(() => p.encode(p.DeviceRecordCodec, { ...device, name })).toThrow();
 
   expect(() => p.encode(p.RecoveryRecordCodec, { ...rec, id: new Uint8Array(16) })).toThrow();
@@ -119,7 +119,7 @@ test("semantic rejection rules", () => {
     p.encode(p.KeyringCodec, { vaultId: z, epoch: 3, idKey: z, older: [{ epoch: 2, key: z }] }),
   ).toThrow();
 
-  for (const state of [0, 5])
+  for (const state of [0, 1, 3, 5])
     expect(() =>
       p.encode(p.FileEntryCodec, { fileId: z, version: 1n, epoch: 1, state, blobHash: z, name: z }),
     ).toThrow();
@@ -176,8 +176,10 @@ test("malformed bytes have coded errors and future operations require an update"
   );
 });
 
-test("member codecs reject low-order encryption keys with matching IDs", () => {
+test("member codecs reject low-order and noncanonical encryption keys with matching IDs", () => {
   for (const encPub of [
+    keys.encPub.with(31, keys.encPub[31]! | 0x80),
+    Uint8Array.from({ length: 32 }, (_, i) => (i === 0 ? 0xf6 : i === 31 ? 0x7f : 0xff)),
     z,
     Uint8Array.of(1, ...new Uint8Array(31)),
     Uint8Array.from(
@@ -204,4 +206,15 @@ test("member codecs reject low-order encryption keys with matching IDs", () => {
     expect(() => p.decode(p.DeviceRecordCodec, deviceBytes)).toThrow();
     expect(() => p.decode(p.RecoveryRecordCodec, recoveryBytes)).toThrow();
   }
+});
+
+test("server data strings are bounded by the largest object they carry", () => {
+  const objects = (length: number) =>
+    p.ObjectsResponseSchema.safeParse({ objects: ["A".repeat(length)] }).success;
+
+  const status = (length: number) =>
+    p.RepairStatusSchema.safeParse({ restoredHead: "A".repeat(length), repairId: "A" }).success;
+
+  expect([objects(4266910), objects(4266911)]).toEqual([true, false]);
+  expect([status(43), status(44)]).toEqual([true, false]);
 });

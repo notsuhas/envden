@@ -17,6 +17,8 @@ export function validateEdPublic(key: Uint8Array): void {
 
 export function validateEncPublic(key: Uint8Array): void {
   b32.write(key);
+  const u = BigInt("0x" + Buffer.from(key).reverse().toString("hex"));
+  requireValue(u < ed25519.Point.Fp.ORDER, "Noncanonical encryption public key");
 
   try {
     x25519.getSharedSecret(new Uint8Array(32), key);

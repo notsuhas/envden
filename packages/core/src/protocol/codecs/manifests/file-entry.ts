@@ -33,10 +33,9 @@ export const FileEntryCodec = codec<IFileEntry>(
     requireValue(v.state >= 1 && v.state <= 4, "Unknown file state");
     requireValue(v.version >= 1n && v.epoch >= 1);
 
-    if (v.state === 2 || v.state === 4)
-      requireValue(
-        v.blobHash.every((b) => b === 0),
-        "Tombstone hash",
-      );
+    requireValue(
+      (v.state === 2 || v.state === 4) === v.blobHash.every((b) => b === 0),
+      "Blob hash does not match file state",
+    );
   },
 );

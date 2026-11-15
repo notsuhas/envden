@@ -30,9 +30,9 @@ export const DeviceRecordCodec = codec<IDeviceRecord>(
       b32.write(v.reqPub),
     ),
   (v) => {
-    requireValue(
-      new TextEncoder().encode(v.name).length >= 1 && new TextEncoder().encode(v.name).length <= 64,
-    );
+    const length = new TextEncoder().encode(v.name).length;
+    requireValue(length >= 1 && length <= 64, "Device name length");
+    requireValue(!/\p{Cf}/u.test(v.name), "Invisible character in device name");
 
     validateEncPublic(v.encPub);
     validateEdPublic(v.objPub);

@@ -42,6 +42,16 @@ test("noncanonical R passes ZIP215 but envden rejects it", () => {
   expect(p.Verify(publicKey, "entry", key, signature).ok).toBe(false);
 });
 
+test("a signature with S at or above the group order is rejected", () => {
+  const signature = p.Sign(key, "entry", key);
+  const s = BigInt("0x" + Buffer.from(signature.subarray(32)).reverse().toString("hex"));
+  const high = Buffer.from((s + ed25519.Point.Fn.ORDER).toString(16).padStart(64, "0"), "hex");
+  const malleated = p.concat(signature.subarray(0, 32), high.reverse());
+
+  expect(p.Verify(keys.objPub, "entry", key, signature).ok).toBe(true);
+  expect(p.Verify(keys.objPub, "entry", key, malleated).ok).toBe(false);
+});
+
 test("box decryption failures carry a fixed EnvdenError and cause", () => {
   const box = p.sealBox(key, key, undefined, rng);
 

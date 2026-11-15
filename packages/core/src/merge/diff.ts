@@ -1,4 +1,5 @@
 import { equal } from "./bytes.ts";
+import { entryBytes } from "./entries/bytes.ts";
 import { parseEnv } from "./parser.ts";
 import type { TConflict } from "./types.ts";
 
@@ -18,7 +19,9 @@ export function diffEnvKeys(
     added: b.entries.filter((entry) => !old.has(entry.key)).map((entry) => entry.key),
     removed: a.entries.filter((entry) => !next.has(entry.key)).map((entry) => entry.key),
     changed: b.entries
-      .filter((entry) => old.has(entry.key) && !equal(old.get(entry.key)?.raw, entry.raw))
+      .filter(
+        (entry) => old.has(entry.key) && !equal(entryBytes(old.get(entry.key)), entryBytes(entry)),
+      )
       .map((entry) => entry.key),
   };
 }

@@ -30,10 +30,7 @@ export function verifyRequest(
   return verifyObject(RequestCodec, value, pub, "request");
 }
 
-export function requestTimeValid(time: bigint, now: bigint): boolean {
-  return time >= now - 300000n && time <= now + 300000n;
-}
-
-export function nonceStillLive(seenAt: bigint, now: bigint): boolean {
-  return seenAt > now - 600000n;
+// Exclusive, so a nonce kept for 600 s outlives every time its request is accepted.
+function requestTimeValid(time: bigint, now: bigint): boolean {
+  return time > now - 300000n && time < now + 300000n;
 }

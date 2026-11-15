@@ -72,7 +72,13 @@ test("repair fix only changes missing live entries to states 3/4 in current epoc
   expect(validateSwap(f.swap, { ...f.context, missingBlobs: new Set() }).kind).toBe("invalid");
 
   for (const state of [1, 2]) {
-    const files = { entries: f.swap.files!.entries.map((e) => ({ ...e, state })) };
+    const files = {
+      entries: f.swap.files!.entries.map((e) => ({
+        ...e,
+        state,
+        blobHash: state === 1 ? bytes(23) : e.blobHash,
+      })),
+    };
 
     const header = signObject(
       ManifestHeaderCodec,
