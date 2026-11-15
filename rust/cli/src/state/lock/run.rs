@@ -10,6 +10,19 @@ use std::{
 
 thread_local! { static HELD: RefCell<HashSet<PathBuf>> = RefCell::default(); }
 
+fn resolved_home(home: &Path) -> Result<PathBuf> {
+    let mut resolved = PathBuf::new();
+    for part in std::path::absolute(home).map_err(failure)?.components() {
+        match part {
+            std::path::Component::ParentDir => {
+                resolved.pop();
+            }
+            _ => resolved.push(part.as_os_str()),
+        }
+    }
+    Ok(resolved)
+}
+
 pub fn with_state_lock<T>(home: &Path, now: u64, action: impl FnOnce() -> Result<T>) -> Result<T> {
     with_observer(home, now, action, || {
         super::process::process_start(std::process::id())
@@ -22,7 +35,7 @@ fn with_observer<T>(
     action: impl FnOnce() -> Result<T>,
     observe: impl FnOnce() -> super::owner::TProcess,
 ) -> Result<T> {
-    let home = std::path::absolute(home).map_err(failure)?;
+    let home = resolved_home(home)?;
     let path = home.join("state/write.lock");
     if HELD.with(|held| held.borrow().contains(&path)) {
         return action();
@@ -102,6 +115,21 @@ fn with_observer<T>(
 mod tests {
     use super::*;
     use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn nested_lock_normalizes_parent_components_before_observing() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir(dir.path().join("child")).unwrap();
+        with_state_lock(dir.path(), 100, || {
+            with_observer(
+                &dir.path().join("child/.."),
+                100,
+                || Ok(()),
+                || panic!("nested ownership must be reused"),
+            )
+        })
+        .unwrap();
+    }
 
     #[test]
     fn failed_owner_identification_does_not_leave_a_lock() {
