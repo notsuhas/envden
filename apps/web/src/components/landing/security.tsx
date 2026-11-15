@@ -46,6 +46,13 @@ export function Security() {
           </ul>
         </Window>
       </div>
+      <p className="border-t border-den-line px-5 py-5 text-[15px] leading-relaxed text-pretty text-den-muted sm:px-8">
+        envden is for one person and their machines. A vault has one owner, and v1 doesn't share
+        secrets with a team.{" "}
+        <Link className="den-link text-den-ink" href={`${DOCS_ROUTE}/compare`}>
+          See how it compares with other tools →
+        </Link>
+      </p>
     </Section>
   );
 }

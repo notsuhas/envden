@@ -1,5 +1,6 @@
 import { Footer } from "@/components/landing/chrome/footer.tsx";
 import { StatusBar } from "@/components/landing/chrome/status-bar.tsx";
+import { Agents } from "@/components/landing/agents/section.tsx";
 import { Closing } from "@/components/landing/closing.tsx";
 import { Features } from "@/components/landing/features.tsx";
 import { Problem } from "@/components/landing/problem.tsx";
@@ -23,8 +24,9 @@ export default function HomePage() {
           <Hero />
           <Problem />
           <RoundTrip />
-          <Features />
           <Yours />
+          <Agents />
+          <Features />
           <Security />
           <Install />
           <Closing />

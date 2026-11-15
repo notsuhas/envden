@@ -32,9 +32,9 @@ export function Drift() {
           lit={synced}
           badge={
             <span
-              className={`${BADGE_CLASS} ${synced ? "border-den-lantern text-den-lantern" : "border-den-alarm text-den-alarm"}`}
+              className={`${BADGE_CLASS} ${synced || machine.current ? "border-den-lantern text-den-lantern" : "border-den-alarm text-den-alarm"}`}
             >
-              {synced ? "identical" : "differs"}
+              {synced ? "identical" : machine.state}
             </span>
           }
         >

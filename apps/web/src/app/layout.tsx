@@ -10,20 +10,26 @@ interface IRootLayout {
   children: ReactNode;
 }
 
+const HOME_TITLE = `${SITE_NAME}: self-hosted Git for your .env files`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME}: whole .env files on every machine you own`,
+    default: HOME_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_TAGLINE,
   openGraph: {
     siteName: SITE_NAME,
+    title: HOME_TITLE,
+    description: SITE_TAGLINE,
     type: "website",
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
+    title: HOME_TITLE,
+    description: SITE_TAGLINE,
   },
 };
 

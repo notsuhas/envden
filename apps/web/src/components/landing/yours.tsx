@@ -1,9 +1,10 @@
 import { Accent } from "@/components/landing/ui/accent.tsx";
 import { Reveal } from "@/components/landing/ui/motion/reveal.tsx";
 import { DeferredArt } from "@/components/landing/art/deferred.tsx";
+import { Adapters } from "@/components/landing/yours/adapters.tsx";
 
 const POINTS = [
-  { value: "0", unit: "accounts", label: "self-hosted" },
+  { value: "0", unit: "third parties", label: "holding your files" },
   { value: "1", unit: "binary", label: "your hardware" },
   { value: "$0", unit: "to pay", label: "free and MIT" },
 ];
@@ -21,9 +22,16 @@ export function Yours() {
             Your server. Your keys. <Accent>Your network.</Accent>
           </h2>
           <p className="mt-4 max-w-xl text-base text-pretty text-den-muted sm:text-lg">
-            Run the server in Docker on a home box, or on the laptop you already have. Devices reach
-            it over Tailscale. There's no account to sign up for and nothing to pay.
+            Run the server in Docker on a home box, or with{" "}
+            <code className="font-mono text-den-ink">envden serve</code> on a laptop you already
+            have. There's no envden account and nothing to pay.
           </p>
+          <p className="mt-4 max-w-xl text-base text-pretty text-den-muted sm:text-lg">
+            How devices reach the server and where it keeps data are both adapters, so you aren't
+            tied to either. Tailscale and SQLite ship today; others can follow, or you can write
+            your own.
+          </p>
+          <Adapters />
         </Reveal>
         <ul className="den-cells border-t border-den-line min-[420px]:grid-cols-3">
           {POINTS.map((point) => (

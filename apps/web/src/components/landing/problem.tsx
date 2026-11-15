@@ -9,10 +9,10 @@ export function Problem() {
       chip="Sound familiar?"
       title={
         <>
-          Every laptop has a <Accent>slightly different</Accent> .env.
+          A secret changes. <Accent>Every other machine</Accent> is now stale.
         </>
       }
-      body="You fix a key on one machine and forget the other. A new worktree starts with no env at all. You end up sending yourself secrets over chat. Secrets managers help, but they store keys, not files, so your comments and layout don't make it."
+      body="You rotate a key on your laptop, and your remote dev box keeps the old one. A new machine or a fresh worktree starts with nothing. Coding agents work in a dozen worktrees, and each one needs the env. So you paste secrets into chat and hope you got them all."
     >
       <DeferredDemo kind="drift" />
     </Section>

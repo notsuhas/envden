@@ -7,6 +7,7 @@ const LINKS = [
   { href: DOCS_ROUTE, label: "Docs" },
   { href: GITHUB_URL, label: "GitHub" },
   { href: `${DOCS_ROUTE}/security`, label: "Security" },
+  { href: `${DOCS_ROUTE}/compare`, label: "Compare" },
   { href: `${GITHUB_URL}/releases`, label: "Changelog" },
   { href: `${GITHUB_URL}/blob/main/LICENSE`, label: "MIT license" },
 ];

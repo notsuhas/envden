@@ -3,7 +3,7 @@ import { ENVDEN_VERSION, SITE_NAME } from "@/lib/site.ts";
 
 export const SOCIAL_CARD_SIZE = { width: 1200, height: 630 };
 
-export const SOCIAL_CARD_ALT = `${SITE_NAME}: your .env files, on every machine`;
+export const SOCIAL_CARD_ALT = `${SITE_NAME}: change a secret once, every machine has it`;
 
 const INK = "rgba(237, 233, 224, 1)";
 const MUTED = "rgba(160, 157, 148, 1)";
@@ -41,19 +41,20 @@ export function renderSocialCard(): ImageResponse {
           <div
             style={{
               display: "flex",
-              flexWrap: "wrap",
-              fontSize: 92,
+              flexDirection: "column",
+              fontSize: 84,
               lineHeight: 1.05,
               letterSpacing: -3,
             }}
           >
-            <span>Your&nbsp;</span>
-            <span style={{ color: LANTERN }}>.env files</span>
-            <span>,</span>
-            <span>on every machine.</span>
+            <span>Change a secret once.</span>
+            <div style={{ display: "flex" }}>
+              <span style={{ color: LANTERN }}>Every machine</span>
+              <span>&nbsp;has it.</span>
+            </div>
           </div>
           <div style={{ display: "flex", marginTop: 36, fontSize: 30, color: MUTED }}>
-            Free and MIT · self-hosted · end-to-end encrypted
+            Self-hosted Git for your .env files · end-to-end encrypted
           </div>
         </div>
         <div

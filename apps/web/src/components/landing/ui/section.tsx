@@ -13,6 +13,7 @@ interface ISection {
 const CONTEXT: Record<string, string> = {
   problem: "3 machines / 1 file",
   how: "plaintext → ciphertext → plaintext",
+  agents: "1 repo / n worktrees",
   features: "~/.envden/store",
   install: "macOS / Linux / Windows",
 };

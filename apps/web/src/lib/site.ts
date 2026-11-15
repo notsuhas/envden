@@ -6,9 +6,11 @@ export { SITE_URL };
 export const SITE_NAME = "envden";
 
 export const SITE_TAGLINE =
-  "Sync whole .env files across your own machines, end-to-end encrypted, through a server you host, over Tailscale.";
+  "Push, pull and merge your .env files across every machine you own, like Git. Encrypted on your device and stored on a server you run, which can't read them.";
 
 export const GITHUB_URL = "https://github.com/notsuhas/envden";
+
+export const ADAPTERS_GUIDE_URL = `${GITHUB_URL}/blob/main/docs/adapters.md`;
 
 export const ENVDEN_VERSION = version;
 

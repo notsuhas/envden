@@ -8,10 +8,10 @@ export function RoundTrip() {
       id="how"
       title={
         <>
-          <Accent>Encrypted</Accent> before it leaves your machine.
+          Push here, pull there. <Accent>Encrypted</Accent> in between.
         </>
       }
-      body="Push from one computer, pull on another. Your server stores the file but can't read it."
+      body="It works like Git: push from one machine, pull on another. The file is encrypted before it leaves, so your server stores bytes it can't read."
     >
       <DeferredDemo kind="trip" />
     </Section>

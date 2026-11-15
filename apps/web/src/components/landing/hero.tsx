@@ -19,28 +19,36 @@ export function Hero() {
       className="den-section den-cells lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]"
     >
       <div className="flex flex-col justify-center px-5 py-12 sm:px-8 sm:py-16 lg:min-h-[38rem] lg:py-20">
-        <h1 className="den-rise den-display text-[2.6rem] text-balance text-den-ink sm:text-6xl xl:text-[4.75rem]">
-          Your <Accent>.env files</Accent>, on every machine.
+        <p className="den-rise den-chip mb-6 self-start">
+          <span className="h-1.5 w-1.5 bg-den-lantern" aria-hidden="true" />
+          Self-hosted Git for your .env files
+        </p>
+        <h1
+          className="den-rise den-display text-[2.6rem] text-balance text-den-ink sm:text-6xl xl:text-[4.75rem]"
+          style={riseDelay(1)}
+        >
+          Change a secret once. <Accent>Every machine</Accent> has it.
         </h1>
         <p
           className="den-rise mt-6 max-w-xl text-base text-pretty text-den-muted sm:text-lg"
-          style={riseDelay(1)}
+          style={riseDelay(2)}
         >
-          envden keeps your env files in sync across your computers. Encrypted on your machine,
-          stored on a server you run. Free and open source.
+          Push and pull your .env files like Git, with per-key merges, conflicts and history. Files
+          are encrypted on your device and stored on a server you run, which can't read them. No
+          envden account, no hosted service.
         </p>
         <div
           className="den-rise mt-8 flex flex-wrap items-center gap-x-5 gap-y-3"
-          style={riseDelay(2)}
+          style={riseDelay(3)}
         >
           <ButtonLink href={GETTING_STARTED_ROUTE}>Get started</ButtonLink>
           <OutLink href={GITHUB_URL}>Star on GitHub</OutLink>
         </div>
-        <div className="den-rise mt-6" style={riseDelay(3)}>
+        <div className="den-rise mt-6" style={riseDelay(4)}>
           <CommandBox name="hero" />
         </div>
-        <p className="den-rise mt-6 font-mono text-xs text-den-muted" style={riseDelay(4)}>
-          MIT · self-hosted · end-to-end encrypted
+        <p className="den-rise mt-6 font-mono text-xs text-den-muted" style={riseDelay(5)}>
+          MIT · your server · end-to-end encrypted
         </p>
       </div>
       <div className="relative h-64 sm:h-80 lg:h-auto">

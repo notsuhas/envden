@@ -1,6 +1,6 @@
 const SAME = [
   "# shop",
-  "API_KEY=sk_test_example",
+  "API_KEY=sk_test_new",
   "DB_URL=postgres://shop",
   "PORT=3000",
   "REDIS_URL=redis://cache",
@@ -9,14 +9,20 @@ const SAME = [
 export const DRIFT_MACHINES = [
   {
     name: "laptop",
-    lines: SAME.map((same, row) => ({ same, drifted: row === 3 ? "PORT=3001" : same })),
+    state: "edited here",
+    current: true,
+    lines: SAME.map((same) => ({ same, drifted: same })),
   },
   {
-    name: "desktop",
-    lines: SAME.map((same, row) => ({ same, drifted: row === 4 ? "" : same })),
+    name: "remote dev box",
+    state: "stale",
+    current: false,
+    lines: SAME.map((same, row) => ({ same, drifted: row === 1 ? "API_KEY=sk_test_old" : same })),
   },
   {
-    name: "new worktree",
+    name: "agent worktree",
+    state: "empty",
+    current: false,
     lines: SAME.map((same, row) => ({ same, drifted: row === 0 ? "# no .env yet" : "" })),
   },
 ];
