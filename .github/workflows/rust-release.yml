@@ -1,6 +1,9 @@
 name: Rust release builds
 on:
   workflow_dispatch: {}
+  push:
+    branches: [port/rust]
+    paths: [.github/workflows/rust-release.yml]
 permissions:
   contents: read
 concurrency:
