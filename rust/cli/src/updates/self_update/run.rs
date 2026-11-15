@@ -16,11 +16,7 @@ use serde_json::{Value, json};
 use std::{path::Path, time::Duration};
 
 pub fn self_update(adapters: &IAdapters, fetcher: &dyn IFetcher) -> Result<Value> {
-    crate::state::lock::with_state_lock(
-        &adapters.home.join("state/update"),
-        (adapters.now)(),
-        || update(adapters, fetcher),
-    )
+    super::lock::with_update_lock(&adapters.home, &adapters.now, || update(adapters, fetcher))
 }
 
 fn update(adapters: &IAdapters, fetcher: &dyn IFetcher) -> Result<Value> {
