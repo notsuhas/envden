@@ -9,16 +9,12 @@ use super::{
 };
 use crate::{
     adapters::IAdapters,
-    links::checkout::placement::place_file,
     state::{
         lock::with_state_lock,
         repository::{load_state, save_state},
     },
 };
-use envden_core::{
-    adapters::{TPlacementMode, TPlacementState},
-    errors::{EnvdenError, ErrorCode, Result},
-};
+use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::{Value, json};
 use std::path::Path;
 
@@ -85,49 +81,38 @@ pub fn resolve_conflict(
         let mut state = load_state(&adapters.home)?.ok_or_else(|| {
             EnvdenError::new(ErrorCode::NotFound, "Local sync state is unavailable")
         })?;
+        let reports = std::cell::RefCell::new(Vec::<String>::new());
+        let report = |message: &str| reports.borrow_mut().push(message.to_owned());
+        let preserve_deleted = match &record.entry {
+            Some(entry) => {
+                envden_protocol::protocol::decode::<envden_protocol::protocol::IFileEntry>(
+                    &crate::client::binary(entry)?,
+                )?
+                .state
+                    == 1
+            }
+            None => read_bytes(Path::new(&record.remote))?.is_some(),
+        };
         for target in &record.targets {
-            let mode = if target.mode == "copy" {
-                TPlacementMode::Copy
-            } else {
-                TPlacementMode::Link
-            };
-            let placement = adapters.placement(mode, Path::new(&target.root));
-            let destination = Path::new(&target.root)
-                .join(&target.path)
-                .to_string_lossy()
-                .into_owned();
-            if bytes.is_some() {
-                if mode == TPlacementMode::Copy
-                    || placement.inspect(&record.store, &destination)? != TPlacementState::Linked
-                {
-                    place_file(
-                        adapters,
-                        placement.as_ref(),
-                        &target.root,
-                        &record.store,
-                        &destination,
-                        None,
-                    )?;
-                }
-                if !state["links"]
-                    .as_array()
-                    .into_iter()
-                    .flatten()
-                    .any(|l| l["root"] == target.root && l["path"] == target.path)
-                {
-                    state["links"]
-                        .as_array_mut()
-                        .unwrap()
-                        .push(serde_json::to_value(target).unwrap());
-                }
-            } else {
-                placement.remove(Some(&record.store), &destination)?;
+            if !super::local::reconciliation::placement::place_file_target(
+                &mut super::local::reconciliation::placement::IPlacementContext {
+                    adapters,
+                    state: &mut state,
+                    now,
+                    report: &report,
+                },
+                target,
+                bytes.as_deref(),
+                preserve_deleted,
+                None,
+            )? {
+                continue;
             }
             write_bytes(
                 &base_path(
                     &adapters.home,
                     &record.store,
-                    if mode == TPlacementMode::Copy {
+                    if target.mode == "copy" {
                         Some(&target.root)
                     } else {
                         None
@@ -151,7 +136,7 @@ pub fn resolve_conflict(
             write_bytes(Path::new(path), None, now)?;
         }
         Ok(
-            json!({"kind":"resolved","path":record.path,"preserved":preserved,"placementReports":[],"backups":adapters.home.join("conflicts/backups"),"savedBackups":backups}),
+            json!({"kind":"resolved","path":record.path,"preserved":preserved,"placementReports":reports.into_inner(),"backups":adapters.home.join("conflicts/backups"),"savedBackups":backups}),
         )
     })
 }

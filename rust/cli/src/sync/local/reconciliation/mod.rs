@@ -12,3 +12,5 @@ pub mod ancestry;
 
 #[cfg(test)]
 mod tests;
+
+pub mod placement;
