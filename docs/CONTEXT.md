@@ -21,7 +21,7 @@ One working tree of a repo on a device: a clone or a worktree.
 _Avoid_: repo (that's the Repo ID), workspace, project folder
 
 **Approved checkout**:
-A checkout the user has confirmed may receive env files. Each worktree is approved separately, with a shorter prompt.
+A checkout the user has confirmed may receive env files. A registered worktree of an approved clone is approved automatically unless `auto-approve-worktrees` is off.
 _Avoid_: trusted folder, enrolled checkout
 
 ## Devices and placement

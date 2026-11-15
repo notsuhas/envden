@@ -1,6 +1,6 @@
 # Writing an adapter
 
-An adapter answers one question for envden: how devices reach the server, which repo a checkout belongs to, where keys live. Adapters are compiled into the binary and added by PR or fork (ADR 0004). Encryption, the sync protocol and merging are not adapters.
+An adapter answers one question for envden: how devices reach the server, which repo a checkout belongs to, where keys live. Adapters are compiled into the binary and added by PR or fork (DESIGN § Decisions). Encryption, the sync protocol and merging are not adapters.
 
 Work through this list in order.
 

@@ -1,0 +1,37 @@
+---
+title: Local dashboard
+description: See this device's repos, conflicts, history and devices in a browser, and pull, push, resolve, restore or rename from there.
+---
+
+```sh
+envden ui
+```
+
+`envden ui` starts a small dashboard for the device you run it on and opens it in your browser. It shows:
+
+- the vault, server, this device's name and its unlock state: when it expires, that it never does, or that it's locked and needs `envden unlock` in a terminal
+- each repo, its checkouts and their env files, with status (in sync, local changes, remote changes, conflict, detached, local only, held back), link or copy placement, and which keys differ. A conflicted file links to its pane under Conflicts.
+- conflicts, with the keys that differ and buttons to keep yours or take the server's
+- the vault's devices
+
+Pull and Push work like `envden pull --all --yes` and `envden push --all --yes`: clean merges go through and anything that needs a choice becomes a conflict.
+
+**History** on a file lists its retained versions like `envden history`: version, time, device, the key names each version added, changed or removed, which one the checkout matches, and whether older versions were pruned. **Restore as local edit** asks once in the page, then writes that version to this device's file like `envden history <file> --restore <version>`, backing up the current one first. Nothing reaches the server until you press Push. Local-only, detached and conflicted files can't be restored, and neither can a version that deleted the file.
+
+**Rename** on this device's card renames it like `envden device rename`. Only this device can be renamed here. Adding or removing devices, the recovery kit and the master password stay in the terminal.
+
+Press Ctrl-C to stop it. Nothing keeps running afterwards.
+
+## Options
+
+| Flag            | What it does                                   |
+| --------------- | ---------------------------------------------- |
+| `--port <port>` | Listen on a fixed port instead of a random one |
+| `--no-open`     | Print the link without opening a browser       |
+
+## What it protects
+
+- It only starts from an interactive terminal, so an agent can't start it and drive sync around the terminal prompts.
+- It listens on `127.0.0.1` only. Each run prints a link with a new random token after `#`. The page sends that token with every request, and the browser never sends the part after `#` to a server.
+- Requests for any host other than `127.0.0.1` or `localhost` on its port are refused, which blocks DNS rebinding. Changes must come from the dashboard's own page.
+- Like `envden status` and `envden diff`, it shows key names, never values.

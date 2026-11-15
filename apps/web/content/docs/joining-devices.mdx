@@ -1,6 +1,6 @@
 ---
 title: Join and manage devices
-description: Pair a machine, unlock it or remove one you no longer use.
+description: Pair a machine, rename it or remove one you no longer use.
 ---
 
 ## Pair a new device
@@ -19,9 +19,9 @@ On the new device, run:
 envden join https://envden.your-tailnet.ts.net
 ```
 
-Use your server's address and enter the pairing code. On the existing device, confirm the new device's name. The new device verifies the server pin and inherits the approver's remaining unlock time.
+Use your server's address and enter the pairing code. envden suggests your hostname without its domain as the device name; edit it at the prompt or pass `--name`. Without a terminal it takes the suggestion. If another device already has that name, envden adds `-2`, `-3` and so on. On the existing device, confirm the new device's name. The new device verifies the server pin and inherits the approver's remaining unlock time.
 
-If the join was interrupted after approval, use `envden join <server> --resume` to fetch the committed approval message.
+If the join stops after the code was accepted, run `envden join <server> --resume` to finish it. The approval stays on the server for 24 hours. If there's nothing to resume, `--resume` stops at once; start again with a new code.
 
 ## Join with your recovery kit
 
@@ -35,28 +35,21 @@ Or use `--recovery` to enter the recovery secret key and vault ID yourself. Othe
 
 ## Approve checkouts on the new machine
 
-Every checkout needs approval on this machine, including worktrees. If a local env file differs from the vault, choose whether to keep yours, take the server version or merge.
+Every clone needs approval on this machine. A worktree of an approved clone is approved on its first sync; see [Placement](/docs/placement#track-a-checkout). If a local env file differs from the vault, choose whether to keep yours, take the server version or merge.
 
-If Windows can't create symlinks, envden asks for consent before using copies. See [Placement](/docs/placement).
+If Windows can't create symlinks, envden asks for consent before using copies.
 
 ## Unlock a device
 
-```sh
-envden unlock
-```
+A device needs your master password once per unlock period, 30 days by default. Run `envden unlock` when pushes and pulls stop. See [Manage the vault](/docs/vault#unlock-a-device) for the period and its limits.
 
-Enter your master password. A successful unlock prints `Unlocked`.
-
-The default unlock period is 30 days. To read or change the vault's period:
+## Rename this device
 
 ```sh
-envden config unlock-period
-envden config unlock-period 7d
+envden device rename work-laptop
 ```
 
-The accepted values are `1d`, `7d`, `30d` and `never`. Changing the period requires a fresh password login. The read command returns JSON with a `period` field in milliseconds, or `null` for never.
-
-Expiry stops pushes and pulls until you unlock again. It relies on the server enforcing it; see [Security](/docs/security).
+This renames the device you run it on; no other device can rename it. If another device already has the name, the command fails; pick another. It needs no password while the device is unlocked, and every device lists the new name.
 
 ## Remove a device
 
@@ -73,15 +66,4 @@ Rotate the exposed credentials at their providers. Removing a device cannot eras
 
 ## Manage vault keys and recovery
 
-```sh
-envden vault rotate
-envden vault kit replace
-envden vault password change
-envden vault password reset
-```
-
-`rotate` asks for your master password and starts a new epoch. It prints `Epoch rotated`; old files aren't re-encrypted.
-
-Use `kit replace` if you've lost the kit but still know the password. It replaces the recovery key and prints a new kit. Keep the replacement and discard the old one. For `kit replace` or `device rm --new-kit`, `--kit-out /path/to/kit.json` writes the new kit without printing it. If saving fails, the kit is printed so you can save it yourself.
-
-`password change` needs the old password and the recovery secret key. If you've forgotten the password, `password reset` needs an existing device and the recovery secret key. Both keep the current kit valid. If you've lost both the password and kit, create a new vault from a device's local store.
+Rotating keys, replacing the recovery kit and changing or resetting the master password are on [Manage the vault](/docs/vault).

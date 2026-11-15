@@ -96,9 +96,36 @@ To remove it:
 envden shell uninstall zsh
 ```
 
-## History and deletes
+## History and restore
 
-The server retains every version for 90 days and at least the last 20 versions of each file. Deletion records survive history pruning so a device returning from offline can't silently resurrect a deleted file.
+The server keeps every version for 90 days and at least the last 20 versions of each file. To see them:
+
+```sh
+envden history            # env files in this checkout
+envden history .env       # one file, including a deleted one
+envden history --all      # every tracked file
+```
+
+```
+github.com/you/app .env
+  v3  2026-11-14 18:02  laptop            changed TOKEN  <- current
+  v2  2026-11-12 09:40  desktop           added DB_URL
+  v1  2026-11-01 11:15  laptop            added TOKEN
+```
+
+Each version shows when it was pushed, which device pushed it ("removed device" if it has since left the vault) and the key names that changed since the version before. Values never appear. Deletions show as `deleted`, and server repairs as `restored` or `lost`. `<- current` marks the version this checkout matches. When the server has pruned older versions, the list ends with `older versions pruned`. `--json` prints the same data for scripts.
+
+To go back to an old version:
+
+```sh
+envden history .env --restore 1
+envden diff
+envden push
+```
+
+Restore writes that version into your file as an ordinary local edit, backs up the old content under `~/.envden/conflicts/backups`, and prints the key names it changed. Nothing reaches other devices until you push. In link mode it writes the store file the link points to, so every linked checkout of the repo sees it. Local-only, detached and conflicted files are refused. Restore asks first in a terminal; `--yes` skips the question. Without a terminal it needs `--yes` and `envden config agent-merge on`, so an agent can't restore on its own.
+
+Deletion records survive pruning, so a device returning from offline can't bring a deleted file back without an explicit restore.
 
 ## Delete an env file everywhere
 

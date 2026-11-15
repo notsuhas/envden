@@ -153,6 +153,7 @@ Entry (0x01) {
 | `4` replace-recovery | `recovery RecoveryRecord, change EpochChange` | a device |
 | `5` server-moved | `oldPin b32, newPin b32, newAddress str` | a device |
 | `6` repair-done | `repairId b32, restoredHead b32` | a device |
+| `7` rename-device | `device b16, name str` | the device renamed |
 
 **Vault ID** = `hash(genesis)`. `vaultNonce` is random, so two vaults never share an ID. Genesis has no epoch. Entry `seq 1` must be a new-epoch for epoch 1, signed by the genesis device. Both are created and stored locally before anything is uploaded.
 
@@ -176,6 +177,7 @@ Entry `e` is valid against state `S` only if:
      - the wrap recipients are exactly the members after the entry
    - **server-moved**: `oldPin = S.serverPin`. Applying it sets `S.serverPin = newPin`.
    - **repair-done**: `repairId` isn't in `S.repairIds`. Applying it adds `repairId` to `S.repairIds`.
+   - **rename-device**: the device is a member and is the signer. The name follows the `DeviceRecord` rules and is unique among devices, so it can't be the device's current name. Applying it changes only that device's name; the ID doesn't cover the name, and keys and epoch are unchanged.
 
 A recovery-signed add-device is a kit join. A device-signed one is a pairing. There's no separate field for this, so the signer can't lie about which it was.
 
@@ -232,6 +234,7 @@ Each swap is exactly one operation, named by `header.op`, so every reader knows 
 | 10 server moved | one server-moved | no | — | — | — | — | O: the move session; N: it extends N's imported head with N's pin (§ 13) |
 | 11 repair fix | none | only to states 3 and 4, and only for live entries whose blob the server lacks | — | — | — | — | repair token, restored mode only (§ 13) |
 | 12 repair done | one repair-done | no | — | — | — | when re-registering | repair token, restored mode only, committed together with the finishing login (§ 13) |
+| 13 rename | one rename-device signed by `header.signer` | no | — | — | — | — | unlocked |
 
 - **Unchanged parts.** Apart from what the operation changes, the header's `epoch`, `keyringHash` and `envelopeHash` are unchanged. "Files change: no" means `filesHash` is unchanged.
 - **Commit.** The server checks all of these, then commits everything in one database transaction:
@@ -316,7 +319,7 @@ skPub = public key of Ed25519 seed KDF(SK, vaultId, "sk-sign", empty)
 
 - **Salt.** The salt is fresh every time the envelope is sealed.
 - **Checkpoint.** `checkpoint` is the `expectedHead` of the swap that installs the envelope: the header it builds on, or zeros at vault creation. The swap's own header names the envelope by `envelopeHash`. That's how a kit-recovered device finds and verifies the envelope, and it avoids a circular hash.
-- **When it's sealed**: only in the swap operations that carry an envelope (§ 6): creation, remove + new kit, replace kit, change password and reset password. Devices never hold `SK`, so they can't reseal it at any other time. The checkpoint is therefore the rollback floor for a kit-recovered device (ADR 0003).
+- **When it's sealed**: only in the swap operations that carry an envelope (§ 6): creation, remove + new kit, replace kit, change password and reset password. Devices never hold `SK`, so they can't reseal it at any other time. The checkpoint is therefore the rollback floor for a kit-recovered device (DESIGN § Decisions).
 - **`skPub`.** The server stores only the public key, so nothing it holds, including backups, can produce an `SK` proof (§ 10). It's installed at creation and with a new kit, and a server move copies it.
 - **Secret key text**: `EK1-` ‖ `b32(SK ‖ first 2 bytes of H("sk-check", SK))`, in groups of five. The checksum catches typos before anything is sent.
 - **Recovery kit** prints:
@@ -429,7 +432,8 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `s
 The server stores the unlock period per vault (1d, 7d, 30d or never; default 30d), and `unlockedUntil` and `freshUntil` per device.
 
 - **Login.** A successful OPAQUE login sets `unlockedUntil = now + period` and `freshUntil = now + 10 min`.
-- **Unlocked.** Pull, push and blob endpoints require `now < unlockedUntil`, unless the period is never.
+- **Reading the window.** An unlocked member reads its own `unlockedUntil` (null when the period is never) and `freshUntil` from `GET /v1/unlock-window`. Devices record it after setup and every join.
+- **Unlocked.** Pull, push and blob endpoints, and the rename swap, require `now < unlockedUntil`, unless the period is never. A name is only a label, so renaming needs no fresh login.
 - **Fresh login** (`now < freshUntil`) is required for:
   - opening a pairing mailbox
   - the remove, rotate, replace-kit and change-password swaps
@@ -476,8 +480,8 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
    - `k_AB` is the same with label `pair/approver-to-joiner`
    - Each side stores the keys it needs in its keychain until pairing ends, then erases them along with `sessionKey`.
 9. **Messages.** Each message is `u8 1 ‖ random nonce(24) ‖ XChaCha20-Poly1305(key, nonce, plaintext, AD = empty)`. Each is encrypted once, stored, and resent byte-for-byte on retry of the same attempt. If A's pair swap loses the compare-and-swap, A rebuilds the add-device entry (with a new wrap if the epoch moved), the header and the `PairApprover`, with a fresh nonce.
-10. **B → A**: `PairJoiner (0x07) { type, version, device DeviceRecord }`. A recomputes the ID, and checks that the name is free and the keys are unused.
-11. **A** asks "Add *name*? [y/N]". On yes, before the exchange window ends, A makes the pair swap. On a rebuild after a lost compare-and-swap, A re-checks the name and the 64-device limit. It carries a device-signed add-device with B's wrap of the current epoch key.
+10. **B → A**: `PairJoiner (0x07) { type, version, device DeviceRecord }`. A recomputes the ID and checks that the keys are unused. If the name is taken, A appends `-2`, `-3`, … to the first free one, shortening the name to stay within 64 bytes. The ID doesn't cover the name, so the record stays valid.
+11. **A** asks "Add *name*? [y/N]" with that name. On yes, before the exchange window ends, A makes the pair swap. On a rebuild after a lost compare-and-swap, A picks the name again and re-checks the 64-device limit. It carries a device-signed add-device with B's wrap of the current epoch key.
 12. **A → B**: `PairApprover (0x08) { type, version, vaultId b32, serverPin b32, manifestHash b32 }`, naming the manifest that committed B. A can't know that hash before signing, so `manifestHash` is the hash of the swap's own header, which A computes before submitting. The encrypted message rides in the swap's `approver` field, so S stores it atomically with the commit, keyed by B's device ID, for 24 hours. A stores its swap and resubmits it unchanged if interrupted.
 13. **B** fetches it by its device ID, with `envden join --resume` if it was interrupted. Since B is now a member, ordinary signed requests work. B checks, in order:
     1. `serverPin` equals the pin from its hello, else it aborts.
@@ -487,7 +491,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
     5. It fetches that header's file list and checks it against `filesHash`, then fetches the earlier headers and entries (§ 6 Repair material).
     6. If B is rejoining, it classifies the chain (§ 6 No longer a member) and aborts on a rollback or fork.
 
-    That header becomes B's checkpoint. B never treats itself as a member without a valid `PairApprover`.
+    That header becomes B's checkpoint, and B takes its name from its committed add-device. B never treats itself as a member without a valid `PairApprover`.
 
 **Server rules.**
 - Mailbox messages are at most 4 KiB.
@@ -519,7 +523,7 @@ These rules hold only against an honest server (DESIGN § Unlock and expiry).
 5. B derives `envKey`, decrypts the envelope, and checks that its recovery keys match the list's current recovery record.
 6. The head must descend from the envelope's `checkpoint`. This is checked through headers only, because older file lists may be pruned.
 7. If B is rejoining, it classifies the chain (§ 6 No longer a member) and aborts on a rollback or fork.
-8. B unwraps recovery's wrap of the current epoch. Recovery signs add-device for B with a fresh wrap.
+8. B unwraps recovery's wrap of the current epoch. Recovery signs add-device for B with a fresh wrap, numbering B's name as in § 12 step 10 if it's taken.
 9. B makes the kit-join swap with the ticket. Then B erases the recovery keys.
 10. Every other device prints "*B* joined with the recovery kit" on its next command.
 
@@ -649,6 +653,7 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - wrap recipients ≠ members
   - a reused device or recovery ID
   - remove-device with `newRecovery`
+  - rename-device by another member, by a non-member or the recovery key, to a taken or unchanged name, and to an invalid name
 - **Manifest cases**:
   - descent over skipped manifests across epochs
   - a rollback

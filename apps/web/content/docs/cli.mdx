@@ -1,0 +1,524 @@
+---
+title: CLI reference
+description: Every envden command with its arguments and options.
+---
+
+This page is generated from the CLI's own help text; run `bun run docs:cli` in the repository to regenerate it. Every command also accepts `-h, --help`.
+
+## envden agent
+
+Install the envden agent skill.
+
+```sh
+envden agent [options] [command]
+```
+
+Subcommands: [`install`](#envden-agent-install).
+
+## envden agent install
+
+Install or refresh the agent skill.
+
+```sh
+envden agent install [options]
+```
+
+## envden alias
+
+Share another repo's env files, for example from a fork.
+
+```sh
+envden alias [options] <repo> <target>
+```
+
+| Argument   | Description                     |
+| ---------- | ------------------------------- |
+| `<repo>`   | Repo ID to alias                |
+| `<target>` | Repo ID whose env files it uses |
+
+## envden config
+
+Read or change settings.
+
+```sh
+envden config [options] [key] [values...]
+```
+
+| Argument      | Description                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| `[key]`       | telemetry, update-check, agent-merge, auto-approve-worktrees, unlock-period, placement or env-files |
+| `[values...]` | New value; placement takes a checkout path and link or copy                                         |
+
+## envden device
+
+Add, list, rename and remove devices.
+
+```sh
+envden device [options] [command]
+```
+
+Subcommands: [`add`](#envden-device-add), [`ls`](#envden-device-ls), [`rename`](#envden-device-rename), [`rm`](#envden-device-rm).
+
+## envden device add
+
+Show a pairing code for a new device.
+
+```sh
+envden device add [options]
+```
+
+## envden device ls
+
+List devices and the version each last used.
+
+```sh
+envden device ls [options]
+```
+
+## envden device rename
+
+Rename this device.
+
+```sh
+envden device rename [options] <name>
+```
+
+| Argument | Description                   |
+| -------- | ----------------------------- |
+| `<name>` | New name, unique in the vault |
+
+## envden device rm
+
+Remove a device and start a new encryption epoch.
+
+```sh
+envden device rm [options] <device>
+```
+
+| Argument   | Description       |
+| ---------- | ----------------- |
+| `<device>` | Device name or ID |
+
+| Option             | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `--kit-out <file>` | Write the new recovery kit to a private file |
+| `--new-kit`        | Replace the recovery kit in the same swap    |
+
+## envden diff
+
+Show changed key names without values.
+
+```sh
+envden diff [options]
+```
+
+| Option  | Description       |
+| ------- | ----------------- |
+| `--all` | Include all repos |
+
+## envden doctor
+
+Check the keychain, symlinks, updates, Tailscale, HTTPS and shell notices.
+
+```sh
+envden doctor [options]
+```
+
+| Option   | Description                      |
+| -------- | -------------------------------- |
+| `--json` | Print the report as compact JSON |
+
+## envden history
+
+List the versions the server keeps, or restore one as a local edit.
+
+```sh
+envden history [options] [file]
+```
+
+| Argument | Description   |
+| -------- | ------------- |
+| `[file]` | Env file path |
+
+| Option                | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `--all`               | Include every tracked file                           |
+| `--restore <version>` | Write that version into the checkout without pushing |
+| `--yes`               | Confirm the restore                                  |
+| `--json`              | Print the result as JSON                             |
+
+## envden join
+
+Join using a pairing code or recovery kit in your own terminal.
+
+```sh
+envden join [options] <server>
+```
+
+| Argument   | Description |
+| ---------- | ----------- |
+| `<server>` |             |
+
+| Option                    | Description                                       |
+| ------------------------- | ------------------------------------------------- |
+| `--recovery`              | Paste a recovery secret key and vault ID          |
+| `--recovery-kit <path>`   | Recovery kit path                                 |
+| `--name <name>`           | Device name                                       |
+| `--yes`                   | Use default preferences                           |
+| `--telemetry <choice>`    | Anonymous telemetry: on or off                    |
+| `--update-check <choice>` | Daily update check: on or off                     |
+| `--shell <shell>`         | Shell notice: zsh, bash, fish, powershell or none |
+| `--agent <choice>`        | Agent skill: on or off                            |
+| `--resume`                | Fetch the committed approver message              |
+
+## envden local-only
+
+Keep a managed file local to this checkout.
+
+```sh
+envden local-only [options] <file>
+```
+
+| Argument | Description                       |
+| -------- | --------------------------------- |
+| `<file>` | Managed env file in this checkout |
+
+## envden pull
+
+Fetch and merge changes from your other devices.
+
+```sh
+envden pull [options]
+```
+
+| Option   | Description              |
+| -------- | ------------------------ |
+| `--json` | Print the result as JSON |
+| `--all`  | Sync all repos           |
+| `--yes`  | Confirm clean changes    |
+
+## envden push
+
+Send your changes to the server.
+
+```sh
+envden push [options]
+```
+
+| Option   | Description              |
+| -------- | ------------------------ |
+| `--json` | Print the result as JSON |
+| `--all`  | Sync all repos           |
+| `--yes`  | Confirm clean changes    |
+
+## envden resolve
+
+Keep yours, take the server's, or finish an edited conflict.
+
+```sh
+envden resolve [options] [file]
+```
+
+| Argument | Description         |
+| -------- | ------------------- |
+| `[file]` | Conflicted env file |
+
+| Option          | Description               |
+| --------------- | ------------------------- |
+| `--json`        | Print the result as JSON  |
+| `--list`        | List unresolved conflicts |
+| `--repo <path>` | Select a checkout         |
+| `--keep-mine`   | Keep your version         |
+| `--take-server` | Take the server's version |
+
+## envden rm
+
+Remove an env file everywhere on the next push.
+
+```sh
+envden rm [options] <path>
+```
+
+| Argument | Description   |
+| -------- | ------------- |
+| `<path>` | Env file path |
+
+| Option   | Description                                           |
+| -------- | ----------------------------------------------------- |
+| `--yes`  | Confirm deletion, including local edits and conflicts |
+| `--json` | Print the result as JSON                              |
+
+## envden serve
+
+Run the server; ENVDEN_SETUP_TOKEN replaces the setup token.
+
+```sh
+envden serve [options]
+```
+
+| Option                   | Description                                 |
+| ------------------------ | ------------------------------------------- |
+| `--restored`             | Start a restored backup in repair-only mode |
+| `--min-client <version>` | Oldest client version to accept             |
+| `--data-dir <path>`      | Server data directory                       |
+| `--port <port>`          | Localhost port                              |
+
+## envden server
+
+Move, switch or repair the server.
+
+```sh
+envden server [options] [command]
+```
+
+Subcommands: [`move`](#envden-server-move), [`repair`](#envden-server-repair), [`switch`](#envden-server-switch).
+
+## envden server move
+
+Move the vault to a new server.
+
+```sh
+envden server move [options] [server]
+```
+
+| Argument   | Description                |
+| ---------- | -------------------------- |
+| `[server]` | Destination server address |
+
+| Option                  | Description                                                           |
+| ----------------------- | --------------------------------------------------------------------- |
+| `--setup-token <token>` | Setup token, visible to other processes; use the prompt in a terminal |
+| `--resume`              | Resume an interrupted move                                            |
+| `--abort`               | Abort an unfinished move                                              |
+
+## envden server repair
+
+Upload repair material to a restored server, or finish the repair.
+
+```sh
+envden server repair [options]
+```
+
+| Option                   | Description                                                        |
+| ------------------------ | ------------------------------------------------------------------ |
+| `--repair-token <token>` | Repair token; prefer stdin for upload, use a terminal for --finish |
+| `--finish`               | Verify every report and finish the repair                          |
+| `--without <device...>`  | Drop unavailable devices; they rejoin as new devices               |
+| `--accept-lost`          | Accept the newest verified older version of a missing file         |
+
+## envden server switch
+
+Follow a signed move when the old server is unreachable.
+
+```sh
+envden server switch [options] <server>
+```
+
+| Argument   | Description                |
+| ---------- | -------------------------- |
+| `<server>` | Destination server address |
+
+## envden setup
+
+Create a vault and configure this device.
+
+```sh
+envden setup [options]
+```
+
+| Option                     | Description                                                              |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `--yes`                    | Take defaults; secrets and checkout approval still require your terminal |
+| `--server <url>`           | Use this server                                                          |
+| `--kit-out <file>`         | Write recovery kit to a private file                                     |
+| `--name <name>`            | Device name                                                              |
+| `--host-server`            | Host a login service on this device                                      |
+| `--setup-token <token>`    | Setup token, visible to other processes; use the prompt in a terminal    |
+| `--telemetry <choice>`     | Anonymous telemetry (on, off)                                            |
+| `--update-check <choice>`  | Daily release check (on, off)                                            |
+| `--shell <shell>`          | Shell hook (zsh, bash, fish, powershell, none)                           |
+| `--agent <choice>`         | Install agent skill (on, off)                                            |
+| `--scan-root <path...>`    | Roots to scan for repos                                                  |
+| `--exclude-root <path...>` | Roots to skip                                                            |
+
+## envden shell
+
+Manage the shell notice.
+
+```sh
+envden shell [options] [command]
+```
+
+Subcommands: [`install`](#envden-shell-install), [`uninstall`](#envden-shell-uninstall).
+
+## envden shell install
+
+Add the out-of-sync notice to your shell config.
+
+```sh
+envden shell install [options] [shell]
+```
+
+| Argument  | Description                                    |
+| --------- | ---------------------------------------------- |
+| `[shell]` | zsh, bash, fish or powershell; asks if omitted |
+
+## envden shell uninstall
+
+Remove the out-of-sync notice from your shell config.
+
+```sh
+envden shell uninstall [options] [shell]
+```
+
+| Argument  | Description                                    |
+| --------- | ---------------------------------------------- |
+| `[shell]` | zsh, bash, fish or powershell; asks if omitted |
+
+## envden status
+
+Show what is out of sync, held back or in conflict.
+
+```sh
+envden status [options]
+```
+
+| Option   | Description             |
+| -------- | ----------------------- |
+| `--json` | Machine-readable status |
+
+## envden track
+
+Scan, approve and link checkout env files.
+
+```sh
+envden track [options] [path]
+```
+
+| Argument | Description           | Default           |
+| -------- | --------------------- | ----------------- |
+| `[path]` | Checkout or scan root | current directory |
+
+| Option   | Description                        |
+| -------- | ---------------------------------- |
+| `--copy` | Place real copies instead of links |
+
+## envden ui
+
+Open a local dashboard for this device.
+
+```sh
+envden ui [options]
+```
+
+| Option          | Description                              |
+| --------------- | ---------------------------------------- |
+| `--port <port>` | Port on 127.0.0.1 (default: random)      |
+| `--no-open`     | Print the link without opening a browser |
+
+## envden unlock
+
+Log in with your master password to restart the unlock period.
+
+```sh
+envden unlock [options]
+```
+
+## envden untrack
+
+Stop tracking a checkout and restore regular env files.
+
+```sh
+envden untrack [options] <path>
+```
+
+| Argument | Description   |
+| -------- | ------------- |
+| `<path>` | Checkout root |
+
+## envden update
+
+Update envden through the method it was installed with.
+
+```sh
+envden update [options]
+```
+
+| Option           | Description                            |
+| ---------------- | -------------------------------------- |
+| `--check`        | Check for a release without installing |
+| `--post-install` | Refresh installed integrations         |
+
+## envden vault
+
+Rotate keys, replace the recovery kit, or change or reset the password.
+
+```sh
+envden vault [options] [command]
+```
+
+Subcommands: [`kit`](#envden-vault-kit), [`password`](#envden-vault-password), [`rotate`](#envden-vault-rotate).
+
+## envden vault kit
+
+Manage the recovery kit.
+
+```sh
+envden vault kit [options] [command]
+```
+
+Subcommands: [`replace`](#envden-vault-kit-replace).
+
+## envden vault kit replace
+
+Replace a lost kit; needs the master password.
+
+```sh
+envden vault kit replace [options]
+```
+
+| Option             | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `--kit-out <file>` | Write the new recovery kit to a private file |
+
+## envden vault password
+
+Change or reset the master password.
+
+```sh
+envden vault password [options] [command]
+```
+
+Subcommands: [`change`](#envden-vault-password-change), [`reset`](#envden-vault-password-reset).
+
+## envden vault password change
+
+Change the password; needs the old one and the kit.
+
+```sh
+envden vault password change [options]
+```
+
+## envden vault password reset
+
+Reset a forgotten password with the kit.
+
+```sh
+envden vault password reset [options]
+```
+
+## envden vault rotate
+
+Start a new encryption epoch.
+
+```sh
+envden vault rotate [options]
+```
+
+## envden version
+
+Print the version.
+
+```sh
+envden version [options]
+```

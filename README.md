@@ -18,18 +18,7 @@ envden keeps the `.env` files in your repos the same on every machine you work o
 
 > **Alpha.** Commands and file formats may still change.
 
-## Why
-
-Secrets managers store keys, not files, so the layout and comments of a `.env` get lost. Hosted file-sync tools put your secrets on someone else's server. envden is for one person with several machines who wants their env files to just follow them, without trusting a third party.
-
-## How it works
-
-- **One store per device.** Your env files live in `~/.envden/store`. Each checkout gets a symlink to its file, so every clone and worktree of a repo shares one copy.
-- **Explicit sync.** `envden push` and `envden pull`. Nothing syncs in the background. Edits made on two machines are merged per key; real conflicts are left for you to resolve.
-- **A server you host.** One Docker container on a home server, or `envden serve` on a laptop. It only ever sees ciphertext and opaque IDs.
-- **End-to-end encryption.** Each device has its own keys. A master password and a printed recovery kit protect the vault, and devices stay unlocked for a period you choose.
-- **A heads-up in your shell.** An optional line in your shell config tells you when a repo you `cd` into is out of sync.
-- **Works with coding agents.** `envden agent install` adds a skill so agents can check status, while you stay the one typing passwords and approving checkouts.
+Docs: [envden.theclau.de/docs](https://envden.theclau.de/docs)
 
 ## Install
 
@@ -51,10 +40,6 @@ scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
 scoop install notsuhas/envden
 ```
 
-Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release.
-
-Bootstrap scripts check SHA256SUMS over HTTPS. Integrity rests on GitHub and TLS.
-
 The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
 
 ## Quick start
@@ -73,7 +58,7 @@ docker compose -f packaging/docker/compose.yml logs envden   # prints a one-time
 envden setup          # paste the setup token, choose a master password, print the recovery kit
 ```
 
-Setup finds your repos, asks which ones may receive env files, links them and pushes. No home server? `envden setup --host-server` runs the server on this laptop instead.
+No home server? `envden setup --host-server` runs the server on this laptop instead.
 
 **On every other device:**
 
@@ -82,40 +67,27 @@ envden device add     # on a device that's already set up: shows a pairing code
 envden join <server>  # on the new device: type the code
 ```
 
-You can also join with the recovery kit and master password instead of a pairing code.
-
 **Day to day:**
 
 ```sh
 envden status         # what's out of sync (key names only, never values)
 envden pull           # get changes from your other devices
 envden push           # send your changes
-envden resolve        # handle a conflict
+envden ui             # the same in a local browser dashboard
 ```
 
-## Commands
+Every command and flag is in the [CLI reference](https://envden.theclau.de/docs/cli).
 
-| Command | What it does |
-|---|---|
-| `setup` | Create a vault and set up this device |
-| `join <server>` | Add this device with a pairing code or the recovery kit |
-| `push` / `pull` | Send or fetch changes |
-| `status` / `diff` | Show what differs, by key name |
-| `resolve` | Keep yours, take the server's, or edit a conflict |
-| `track` / `untrack` | Start or stop managing a checkout's env files |
-| `local-only <file>` | Keep a file deliberately different in one checkout |
-| `device add / ls / rm` | Pair, list and remove devices |
-| `vault` | Rotate keys, replace the recovery kit, change or reset the password |
-| `server move / switch / repair` | Move to a new server, or repair one restored from a backup |
-| `serve` | Run the server |
-| `update` | Update envden |
-| `doctor` | Check keychain, symlinks, Tailscale and the shell line |
+## How it works
 
-Run `envden <command> --help` for flags.
+- Your env files live in `~/.envden/store`, and each checkout links to its file, so every clone and worktree shares one copy.
+- Nothing syncs in the background. `push` and `pull` merge edits per key and leave real conflicts for you.
+- The server stores only ciphertext and opaque IDs. A master password and a recovery kit protect the vault.
+- `envden agent install` lets coding agents check status while you keep the passwords and approvals.
 
 ## Security
 
-The server is not trusted with your data: it can't read your files or add devices on its own. It can refuse service or skip unlock expiry, and a lost device keeps whatever it already pulled. The full model, including what envden can't protect against, is in [DESIGN.md § Threat model](docs/DESIGN.md#threat-model), and the exact cryptography is in [PROTOCOL.md](docs/PROTOCOL.md). Crypto comes from audited libraries (`@noble/*`, `@serenity-kit/opaque`, `@hpke/*`, `hash-wasm`); nothing is hand-rolled.
+The server can't read your files or add devices on its own. It can refuse service or ignore unlock expiry, and a lost device keeps whatever it already pulled. See [Security](https://envden.theclau.de/docs/security) for the model, [DESIGN.md](docs/DESIGN.md#threat-model) for the threat model and [PROTOCOL.md](docs/PROTOCOL.md) for the cryptography. To report a vulnerability, see [SECURITY.md](docs/SECURITY.md).
 
 ## Building from source
 
@@ -126,7 +98,7 @@ bun install
 bun run --cwd apps/cli build   # writes apps/cli/dist/envden
 ```
 
-`envden serve` is the same binary. The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [packaging/README.md](packaging/README.md).
+The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [docs/releasing.md](docs/releasing.md).
 
 ## Repository layout
 
@@ -138,7 +110,7 @@ bun run --cwd apps/cli build   # writes apps/cli/dist/envden
 | `packages/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
 | `packages/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
 | `packages/testing` | Contract tests and fakes for adapters |
-| `docs/` | Design, protocol spec, decisions, adapter guide |
+| `docs/` | Design and decisions, protocol spec, terms, adapter guide, release runbook |
 
 ## Contributing
 
@@ -149,6 +121,8 @@ bun run check    # format, lint and type check (Vite+)
 bun test
 bun run fallow   # unused code, cycles, duplication, complexity
 ```
+
+After changing a command's help text, run `bun run docs:cli` to regenerate the CLI reference; a test fails while it's stale.
 
 Adding an adapter: see [docs/adapters.md](docs/adapters.md) or run `bun run new-adapter <kind> <impl>`.
 

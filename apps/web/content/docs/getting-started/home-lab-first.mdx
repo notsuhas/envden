@@ -28,7 +28,7 @@ Read the setup token:
 docker logs envden
 ```
 
-Keep the token for the next step. It includes the server key's fingerprint so your laptop can verify the server before creating a vault.
+Keep the token for the next step. It includes the server key's fingerprint so your laptop can verify the server before creating a vault. The server prints it only on first start, and it's used up when a vault is created.
 
 ## 2. Set up your first device
 
@@ -38,11 +38,13 @@ Keep the token for the next step. It includes the server key's fingerprint so yo
 envden setup --server https://envden.your-tailnet.ts.net
 ```
 
-Replace the example hostname with yours. In your terminal, enter the setup token (piping it cannot complete the secret prompts), name this device and choose a master password.
+Replace the example hostname with yours. In your terminal, enter the setup token (piping it cannot complete the secret prompts), accept or edit the device name (your hostname without its domain) and choose a master password.
 
-Setup prints a recovery kit. Store it somewhere you can recover without this laptop. You can write it directly to a private file with `--kit-out /path/to/kit.json`. A kit with the master password written on it gives full access to the vault.
+Setup prints a recovery kit before it creates the vault. Store it somewhere you can recover without this laptop. You can write it directly to a private file with `--kit-out /path/to/kit.json`. A kit with the master password written on it gives full access to the vault.
 
 Setup also asks about telemetry, update checks, the shell notice and the agent skill. It scans your home folder for repos, asks you to approve checkouts, places their env files and pushes them.
+
+If setup stops partway, run it again. It asks whether you still have the kit it printed; if you don't, it finishes creating the vault and prints a replacement kit.
 
 To scan a smaller folder:
 
@@ -50,7 +52,7 @@ To scan a smaller folder:
 envden setup --server https://envden.your-tailnet.ts.net --scan-root ~/Work
 ```
 
-Each checkout needs approval, including each worktree of a repo you've already approved. `--yes` doesn't skip approval. macOS may ask for folder access during the scan.
+Each clone needs approval, and `--yes` doesn't skip it. Worktrees you add later to an approved clone are approved on their first sync. macOS may ask for folder access during the scan.
 
 ## 3. Add another machine
 

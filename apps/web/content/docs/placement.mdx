@@ -11,7 +11,15 @@ envden track /path/to/checkout
 
 You can also pass a scan root to find several repos. Without a path, `track` starts in the current directory.
 
-Approve each checkout in your terminal before envden places files there. Every worktree needs its own approval, even if its repo is already approved. `--yes` on setup doesn't bypass this step. Approval is stored outside the checkout, and a changed remote doesn't silently change its repo identity.
+Approve each checkout in your terminal before envden places files there. `--yes` on setup doesn't bypass this step. Approval is stored outside the checkout, and a changed remote doesn't silently change its repo identity.
+
+A git worktree of an approved clone is approved on its first `pull`, `push` or `track` there, and envden prints `Approved worktree <path> (auto-approve-worktrees)`. This is on by default. Only worktrees registered in the clone's own `.git` count, since making one already needs write access to the clone. A separate clone, a checkout recreated at an approved path, or a worktree of an unapproved clone still asks. To ask for every worktree:
+
+```sh
+envden config auto-approve-worktrees off
+```
+
+Turning it back on needs your terminal. `envden untrack <path>` removes an approval.
 
 ## Link mode
 
@@ -23,7 +31,7 @@ By default, envden places a symlink into your device's store:
 
 Approved clones and worktrees of the same repo share that store file. In a monorepo, `apps/web/.env` keeps its path under the repo's store directory.
 
-Repo identity comes from the `origin` remote, or the only remote if there is no `origin`. envden asks when the choice is ambiguous. The Repo ID is encrypted before upload.
+Repo identity comes from the `origin` remote, or the only remote if there is no `origin`. envden asks when the choice is ambiguous. Your global `url.<base>.insteadOf` rewrites apply, SSH host aliases are resolved, and ports are ignored, so SSH and HTTPS clones of one repo share files. The Repo ID is encrypted before upload.
 
 Store directories use `0700` permissions and files use `0600`, with ACLs on Windows. Before placement, envden checks git's ignore rules and adds a missing exclusion to the checkout's git exclude file. It refuses tracked files.
 

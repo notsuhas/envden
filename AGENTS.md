@@ -2,7 +2,7 @@
 
 ## Where things are
 
-- **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour, and `docs/adr/` holds the decisions. Terms are in `CONTEXT.md`.
+- **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`.
 - **Packages:** `packages/core` holds the protocol, merge and adapter interfaces. Each adapter is its own package in `packages/adapters/<kind>/<impl>`. `apps/cli`, `apps/server` and `apps/web` are the apps.
 - **Packages are source-only** (`"exports": {".": "./src/index.ts"}`). Relative imports use the `.ts` extension.
 
@@ -83,6 +83,6 @@ Tests use `bun:test` and live in a `__tests__/` folder next to the code they tes
 ## Docs and work artifacts
 
 - Docs hold decisions and constraints the code can't show. Don't list files, fields or control flow.
-- When a decision changes, rewrite the affected text. A reversed ADR gets a new ADR that supersedes it.
-- Use the terms in `CONTEXT.md` in identifiers, messages and docs.
+- When a decision changes, rewrite the affected text and its entry under `docs/DESIGN.md` § Decisions, saying what it replaced.
+- Use the terms in `docs/CONTEXT.md` in identifiers, messages and docs.
 - Don't commit plans, research notes or scratch files.

@@ -13,7 +13,9 @@ A device remembers the last history checkpoint it accepted. It rejects rollback 
 
 ## Checkouts need your approval
 
-A folder doesn't receive secrets just because its git remote matches a repo. You approve each checkout in your terminal, including every new worktree. Approval lives outside the checkout, and `--yes` doesn't bypass it.
+A folder doesn't receive secrets just because its git remote matches a repo. You approve each clone in your terminal. Approval lives outside the checkout, and `--yes` doesn't bypass it.
+
+A worktree registered in an approved clone's own `.git` is approved without asking, since creating one already needs write access to that clone. Separate clones, recreated checkouts and worktrees of unapproved clones still ask. `envden config auto-approve-worktrees off` turns this off; turning it back on needs a terminal.
 
 Pulled paths are checked for traversal and symlinks escaping the checkout. Placement uses directory handles on macOS and Linux when FFI is available.
 
@@ -21,7 +23,7 @@ Pulled paths are checked for traversal and symlinks escaping the checkout. Place
 
 The master password and a random secret key protect the recovery envelope. Argon2id derives password material; the random secret key is printed in your kit and isn't saved on devices. Recovery requires both. Password login uses OPAQUE.
 
-Keep the kit somewhere safe and separate from your devices. Writing the password on it makes the kit sufficient to open the vault. See [device and recovery commands](/docs/joining-devices#manage-vault-keys-and-recovery).
+Keep the kit somewhere safe and separate from your devices. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
 
 Device keys use the OS keychain adapter, with a `0600` file fallback where needed. Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
 

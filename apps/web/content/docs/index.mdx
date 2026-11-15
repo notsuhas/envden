@@ -3,7 +3,7 @@ title: Introduction
 description: Keep whole env files in sync across your machines with a server you host.
 ---
 
-envden syncs your `.env` files across your own machines. It preserves comments, key order and blank lines. Files are encrypted on your device before they reach a server you run over Tailscale.
+envden works like Git for your `.env` files: you push and pull whole files between your own machines, edits merge per key, and conflicts wait for you. Files are encrypted on your device before they reach a server you run, which you reach over Tailscale. Comments, key order and blank lines come through as you wrote them.
 
 ## Start syncing
 
@@ -22,7 +22,7 @@ Sync happens when you push or pull. Your local files keep working while the serv
 
 ## How your files are stored
 
-Each device keeps a store in `~/.envden/store`. By default, approved checkouts link their env files to that store. Clones and worktrees of the same repo share a file after you approve each checkout. Choose [copy mode](/docs/placement#copy-mode) when your tools need regular files.
+Each device keeps a store in `~/.envden/store`. By default, approved checkouts link their env files to that store. Clones and worktrees of the same repo share one file. You approve each clone, and its worktrees come with it. Choose [copy mode](/docs/placement#copy-mode) when your tools need regular files.
 
 Your server holds encrypted files and signed history. It can host several vaults, each owned by one person. envden doesn't share a vault with a team.
 

@@ -1,0 +1,95 @@
+---
+title: Manage the vault
+description: Unlock devices, change or reset the master password, replace the recovery kit and rotate keys.
+---
+
+## What each step needs
+
+Two secrets protect the vault: your master password and the secret key in your recovery kit. No device stores the secret key. [Security](/docs/security) explains how they fit together.
+
+| Task                       | Command                                | Needs                                  |
+| -------------------------- | -------------------------------------- | -------------------------------------- |
+| Unlock a device            | `envden unlock`                        | Master password                        |
+| Change the unlock period   | `envden config unlock-period <period>` | Master password                        |
+| Change the master password | `envden vault password change`         | Old password and the kit secret key    |
+| Reset a forgotten password | `envden vault password reset`          | A member device and the kit secret key |
+| Replace a lost kit         | `envden vault kit replace`             | Master password                        |
+| Rotate keys                | `envden vault rotate`                  | Master password                        |
+
+Each of these prompts for secrets in your terminal. Run them yourself, not through an agent.
+
+Being unlocked isn't enough for sensitive changes. Changing the unlock period, the password or the kit, rotating keys, adding or removing a device and moving the server each need a fresh password login.
+
+## Unlock a device
+
+A device logs in with the master password at least once per unlock period. After the period ends, the server refuses its pushes and pulls until you unlock again:
+
+```sh
+envden unlock
+```
+
+A successful unlock prints `Unlocked`. Env files already on the device keep working while it's locked. A paired device inherits the approver's remaining time rather than a fresh period.
+
+### Change the unlock period
+
+The period applies to the whole vault. The default is 30 days.
+
+```sh
+envden config unlock-period
+envden config unlock-period 7d
+```
+
+The accepted values are `1d`, `7d`, `30d` and `never`. Reading returns JSON with a `period` field in milliseconds, or `null` for never. Expiry relies on the server enforcing it; see [what envden can't protect against](/docs/security#what-envden-cant-protect-against).
+
+## Change the master password
+
+```sh
+envden vault password change
+```
+
+Enter the old password, the new one twice, then the recovery secret key from your kit. The password and secret key seal the recovery envelope together, so changing one needs the other. Success prints `Password changed; the kit stays valid`. Other devices use the new password the next time they unlock.
+
+## Reset a forgotten password
+
+On a device that's still in the vault:
+
+```sh
+envden vault password reset
+```
+
+Enter a new password twice, then the recovery secret key. The reset replaces the recovery keys inside the envelope and starts a new encryption epoch. Your kit stays valid. Success prints `Password reset; the kit stays valid`.
+
+Joining with the kit also needs the password, so a reset needs a device that's already a member. If you've lost both the password and the kit, create a new vault from a device's local store.
+
+## Replace a lost kit
+
+If you still know the password:
+
+```sh
+envden vault kit replace
+```
+
+Enter your master password. envden makes new recovery keys and a new secret key, starts a new epoch and prints the new kit. Store it somewhere safe and separate from your devices. Success prints `Recovery kit replaced; the old kit no longer works`.
+
+To write the kit to a file instead of printing it, pass `--kit-out /path/to/kit.json`. The path must be new and in an existing folder; the file gets owner-only permissions. If saving fails, envden prints the kit so you can save it yourself.
+
+`envden device rm --new-kit` replaces the kit in the same step as a removal. envden offers this when the removed device ever held the recovery keys.
+
+### If a replacement is interrupted
+
+envden shows the new kit before it sends the change, and keeps the pending change on this device. If the command fails after showing the kit, it tells you the new kit isn't confirmed yet. Keep both kits and run the same command again:
+
+- If the change reached the server, the rerun finishes it and prints `Finished an interrupted kit replacement; the kit it showed is now active`. Discard the old kit.
+- If it didn't, the kit you were shown never took effect. The rerun makes and prints a fresh one; save that and discard the other two.
+
+An interrupted `device rm --new-kit` works the same way. Its rerun prints `Finished an interrupted removal; the recovery kit it showed is now active`.
+
+## Rotate keys
+
+```sh
+envden vault rotate
+```
+
+Enter your master password. envden starts a new encryption epoch, so new writes use a new key. Existing files aren't re-encrypted. Success prints `Epoch rotated`. Offline devices pick up the new epoch on their next pull.
+
+Removing a device already rotates. See [remove a device](/docs/joining-devices#remove-a-device).

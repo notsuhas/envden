@@ -11,7 +11,15 @@ Use the [Docker setup](/docs/getting-started/home-lab-first) or let [laptop setu
 envden serve --data-dir /path/to/data
 ```
 
-The server listens on localhost behind `tailscale serve`. Its first-start output includes a setup token. Devices use the token's fingerprint to pin the server key before creating a vault. Store files on your devices keep working if the server goes offline.
+Without flags it keeps data in `~/.envden/server` and listens on `127.0.0.1:4280`, behind `tailscale serve`. Its first-start output includes a setup token. Devices use the token's fingerprint to pin the server key before creating a vault. The token is used up when a vault is created on it. Store files on your devices keep working if the server goes offline.
+
+To replace the active setup token, start the server with `ENVDEN_SETUP_TOKEN` set to a token for this server. `serve` has no token flag, since flags show up in `ps`.
+
+## Status page
+
+Open the server's address in a browser, for example `https://envden.your-tailnet.ts.net`, to see its version, uptime, mode (normal, restored or moved), vault count, storage used, how close the fullest vault is to its quota and when history was last pruned. The page needs no device keys, so it shows nothing about any one vault; per-vault details are only in `envden ui` on a member device. `/v1/status` returns the same as JSON.
+
+To turn it off, set `ENVDEN_STATUS_PAGE=off` in the server's environment. Both addresses then return 404.
 
 ## Moving the server
 
@@ -21,7 +29,7 @@ Start the destination server and read its setup token. From an existing member d
 envden server move https://new-envden.your-tailnet.ts.net
 ```
 
-Enter the destination setup token and master password when prompted. This requires a terminal; piping the token cannot complete the secret prompts. You can pass the token with `--setup-token <token>`.
+Enter the destination setup token and master password when prompted. This requires a terminal; piping the token cannot complete the secret prompts. `--setup-token <token>` also works, but other processes can see it.
 
 The move freezes the old server, copies and verifies the vault, registers your password on the destination, and records a signed move. The old server becomes read-only. Success prints `Move complete`.
 
@@ -48,7 +56,11 @@ Back up the server data volume. It contains ciphertext and the server's password
 
 Keep device checkpoint state separate from store backups. Rolling back a device's checkpoints would remove its record of accepted history.
 
-The server retains every file version for 90 days and at least 20 versions per file. Deletion records survive pruning.
+## History and storage
+
+The server keeps every file version for 90 days, and at least the last 20 versions of each file. Pruning runs hourly and frees old versions file by file. Deletion records survive pruning.
+
+Each vault has a 1 GiB storage quota. A push that would go over it fails. A push that adds no file content and doesn't grow the file list, such as a delete, still goes through, so you can always free space.
 
 ## Restore a backup
 
@@ -58,7 +70,7 @@ Stop the normal server before starting the restored data. Run restored mode once
 envden serve --data-dir /path/to/restored-data --restored
 ```
 
-It prints a repair token for each vault and accepts repair operations only. A vault backed up mid-move is unfrozen, which cancels that move. An unfinished move destination or a vault that moved away gets no token; resume or abort the move instead. With the Docker image, arguments after the image name are passed to `envden serve`.
+It prints a repair token for each vault and accepts repair operations only. A vault backed up mid-move is unfrozen, which cancels that move. An unfinished move destination or a vault that moved away gets no token and is listed as not restored; resume or abort the move instead. With the Docker image, arguments after the image name are passed to `envden serve`.
 
 Don't add `--restored` to a service definition. Running it again creates new tokens and invalidates reports uploaded with the old ones.
 
