@@ -42,7 +42,7 @@ Replace the example hostname with yours. In your terminal, enter the setup token
 
 Before it creates the vault, setup saves your recovery kit as a PDF in `~/Downloads` (or your home folder if there's no Downloads folder) and offers to open it. Print it or store it somewhere you can recover without this laptop, then delete the file. For scripts, `--kit-out /path/to/kit.json` writes the kit as JSON to a private file instead. Never write your master password on the kit; with the password, it gives full access to the vault.
 
-Setup also asks about telemetry, update checks, the shell notice (a line in your terminal when you `cd` into a checkout that needs a push or pull) and the agent skill (instructions that let AI coding agents run envden safely).
+Setup also asks about telemetry, update checks, the shell notice (a line in your terminal when you `cd` into a checkout that needs a push or pull) and the agent skill (instructions that let AI coding agents run envden safely). Each has a default you can take with Enter; pick No for anything you don't want.
 
 Then it scans your home folder for repos and lists each checkout with the env files it found, all selected. Press Enter to sync them, or Space to leave one out. Setup places their env files, pushes them and ends with a summary of the vault, this device and what it tracks. If you leave everything out, add checkouts later with `envden track`.
 
@@ -55,6 +55,8 @@ envden setup --server https://envden.your-tailnet.ts.net --scan-root ~/Work
 ```
 
 Each clone needs approval, and `--yes` doesn't skip it. Worktrees you add later to an approved clone are approved on their first sync. macOS may ask for folder access during the scan.
+
+The scan skips hidden and dependency folders, and prints one line for repos it skipped; `--verbose` lists them. See [what the scan looks at](/docs/placement#track-a-checkout).
 
 ## 3. Add another machine
 

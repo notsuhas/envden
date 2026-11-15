@@ -10,6 +10,8 @@ export const SITE_TAGLINE =
 
 export const GITHUB_URL = "https://github.com/notsuhas/envden";
 
+export const AUTHOR = { name: "Suhas Siriprole", shortName: "Suhas", url: "https://notsuhas.dev" };
+
 export const ADAPTERS_GUIDE_URL = `${GITHUB_URL}/blob/main/docs/adapters.md`;
 
 export const ENVDEN_VERSION = version;

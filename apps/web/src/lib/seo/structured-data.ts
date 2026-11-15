@@ -1,4 +1,11 @@
-import { ENVDEN_VERSION, GITHUB_URL, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site.ts";
+import {
+  AUTHOR,
+  ENVDEN_VERSION,
+  GITHUB_URL,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site.ts";
 
 export function softwareApplication() {
   return {
@@ -12,6 +19,7 @@ export function softwareApplication() {
     softwareVersion: ENVDEN_VERSION,
     license: `${GITHUB_URL}/blob/main/LICENSE`,
     codeRepository: GITHUB_URL,
+    author: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.url },
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   };
 }

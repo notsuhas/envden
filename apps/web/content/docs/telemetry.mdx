@@ -5,7 +5,7 @@ description: Choose whether the CLI sends usage events and see what they contain
 
 ## Turn telemetry on or off
 
-Telemetry is off by default. Interactive setup asks whether you want to enable it. Setup with `--yes` or without a terminal leaves it off unless you explicitly choose `--telemetry on`.
+envden only sends telemetry after you say yes. Interactive setup asks once, with Yes selected; pick No to keep it off. Setup with `--yes` or without a terminal never turns it on unless you pass `--telemetry on`, so scripts and coding agents can't enable it for you.
 
 Change the preference at any time:
 
@@ -32,7 +32,15 @@ They exclude raw errors, stack traces, Repo IDs, file names, key names, values, 
 
 ## Where events go
 
-The CLI sends events to PostHog using `fetch`. The PostHog project is configured to discard IP addresses and skip GeoIP, but PostHog still sees the connection's IP address.
+Each event goes to PostHog (US) as a single HTTPS request. Every event sets `$ip` to null and turns GeoIP off, so PostHog stores no IP address or location for it, though it still sees the connection's IP while receiving it. The event is sent by a short background process after the command finishes, so a command never waits on the network.
+
+PostHog is also set to drop the IP address from every event it receives, so no IP is stored even if one arrives.
+
+## This website
+
+The envden website uses PostHog. Until you choose, it counts page views without cookies: nothing is stored in your browser, and you're counted with an anonymous ID that PostHog derives each day and can't link across days.
+
+A banner asks once whether you allow cookies. If you allow them, the site also records clicks, session replays and heatmaps, so I can see where the docs confuse people. Text you type into inputs is always masked in replays. If you decline, it stays at cookieless page views. Requests go through the site's own `/ingest` path, and IP addresses are dropped as they are for the CLI. To change your choice, clear this site's data in your browser and the banner returns.
 
 The [daily update check](/docs/updates#control-automatic-checks) is separate. It checks the latest stable GitHub release and has its own setting.
 

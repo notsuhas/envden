@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { WordmarkCanvas } from "@/components/landing/chrome/wordmark/canvas.tsx";
 import { DOCS_ROUTE } from "@/lib/routes.ts";
-import { ENVDEN_VERSION, GITHUB_URL } from "@/lib/site.ts";
+import { AUTHOR, ENVDEN_VERSION, GITHUB_URL } from "@/lib/site.ts";
 
 const LINKS = [
   { href: DOCS_ROUTE, label: "Docs" },
@@ -31,7 +31,13 @@ export function Footer() {
             ))}
           </ul>
         </nav>
-        <p className="den-label">v{ENVDEN_VERSION} alpha</p>
+        <p className="den-label flex items-center gap-3">
+          <span>v{ENVDEN_VERSION} alpha</span>
+          <span aria-hidden="true">·</span>
+          <a href={AUTHOR.url} rel="author" className="den-link">
+            Made by {AUTHOR.shortName}
+          </a>
+        </p>
       </div>
     </footer>
   );

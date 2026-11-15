@@ -346,6 +346,7 @@ envden setup [options]
 | `--agent <choice>`         | Install the agent skill (on, off)                                        |
 | `--scan-root <path...>`    | Roots to scan for repos                                                  |
 | `--exclude-root <path...>` | Roots to skip                                                            |
+| `--verbose`                | List each repo and env file the scan skipped                             |
 
 ## envden shell
 
@@ -405,9 +406,10 @@ envden track [options] [path]
 | -------- | --------------------- | ----------------- |
 | `[path]` | Checkout or scan root | current directory |
 
-| Option   | Description                        |
-| -------- | ---------------------------------- |
-| `--copy` | Place real copies instead of links |
+| Option      | Description                                  |
+| ----------- | -------------------------------------------- |
+| `--copy`    | Place real copies instead of links           |
+| `--verbose` | List each repo and env file the scan skipped |
 
 ## envden ui
 

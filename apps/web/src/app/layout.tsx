@@ -2,6 +2,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AlphaBanner } from "@/components/site/alpha-banner.tsx";
+import { ConsentBanner } from "@/components/site/consent-banner.tsx";
 import { bodyFont, displayFont, monoFont } from "@/lib/fonts.ts";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site.ts";
 import "./global.css";
@@ -50,6 +51,7 @@ export default function RootLayout(props: IRootLayout) {
         <RootProvider theme={{ enabled: false }}>
           <AlphaBanner />
           {children}
+          <ConsentBanner />
         </RootProvider>
       </body>
     </html>

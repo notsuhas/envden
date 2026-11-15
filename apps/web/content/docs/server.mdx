@@ -21,7 +21,7 @@ Then give `envden setup` the HTTPS address, `https://<machine>.<tailnet>.ts.net:
 
 On first start the server prints a setup token, a single word under the `Setup token` line. It lets your first device check that it reached this server before creating a vault, and it's used up once a vault exists. Env files on your devices keep working if the server goes offline.
 
-To run the server on the same machine as your first device, skip all this and run `envden setup --host-server`. It installs the server, publishes it with Tailscale Serve at `https://<machine>.<tailnet>.ts.net:4783` and reads the setup token itself, so there's nothing to paste. If another app already uses port 4783 on this machine, it picks a free port instead, and it never replaces anything Tailscale Serve already publishes.
+To run the server on the same machine as your first device, skip all this and run `envden setup --host-server`. It installs the server, publishes it with Tailscale Serve at `https://<machine>.<tailnet>.ts.net:4783` and reads the setup token itself, so there's nothing to paste. If another app already uses port 4783 on this machine, it picks a free port instead, and it never replaces anything Tailscale Serve already publishes. Running it again keeps the port the server already uses.
 
 To replace the active setup token, start the server with `ENVDEN_SETUP_TOKEN` set to a token for this server. `serve` has no token flag, since flags show up in `ps`.
 
