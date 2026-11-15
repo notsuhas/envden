@@ -73,23 +73,8 @@ pub fn manager_update(command: &[String], binary: &str, now: u64) -> Result<Valu
         .unwrap()
         .to_string_lossy()
         .into_owned();
-    let mut absolute = if command[0] == "npm" {
-        let windows = manager.as_bytes().get(1) == Some(&b':');
-        let node = format!(
-            "{manager_bin}/{}",
-            if windows { "node.exe" } else { "node" }
-        );
-        let cli = if windows {
-            format!("{manager_bin}/node_modules/npm/bin/npm-cli.js")
-        } else {
-            format!("{manager_bin}/../lib/node_modules/npm/bin/npm-cli.js")
-        };
-        if !Path::new(&node).is_file() || !Path::new(&cli).is_file() {
-            return manual(command);
-        }
-        vec![node, cli]
-    } else {
-        vec![manager]
+    let Some(mut absolute) = installer_command(&command[0], &manager) else {
+        return manual(command);
     };
     absolute.extend_from_slice(&command[1..]);
     if !consent(&format!("Run {}?", absolute.join(" ")), false)? {
@@ -117,4 +102,88 @@ fn manual(command: &[String]) -> Result<Value> {
         command.join(" ")
     );
     Ok(json!({"kind":"manual"}))
+}
+
+fn installer_command(manager: &str, path: &str) -> Option<Vec<String>> {
+    let manager_bin = Path::new(path).parent()?.to_string_lossy();
+    if manager == "npm" {
+        let windows = path.as_bytes().get(1) == Some(&b':');
+        let node = format!(
+            "{manager_bin}/{}",
+            if windows { "node.exe" } else { "node" }
+        );
+        let cli = if windows {
+            format!("{manager_bin}/node_modules/npm/bin/npm-cli.js")
+        } else {
+            format!("{manager_bin}/../lib/node_modules/npm/bin/npm-cli.js")
+        };
+        if !accessible(&node, true) || !accessible(&cli, false) {
+            return None;
+        }
+        Some(vec![node, normalize_cli(&cli)])
+    } else {
+        Some(vec![path.into()])
+    }
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn npm_requires_node_execution_and_cli_read_access() {
+        let root = tempfile::tempdir().unwrap();
+        let bin = root.path().join("bin");
+        let cli = root.path().join("lib/node_modules/npm/bin/npm-cli.js");
+        fs::create_dir_all(&bin).unwrap();
+        fs::create_dir_all(cli.parent().unwrap()).unwrap();
+        let node = bin.join("node");
+        fs::write(&node, b"node").unwrap();
+        fs::write(&cli, b"cli").unwrap();
+        let npm = bin.join("npm").to_string_lossy().into_owned();
+        fs::set_permissions(&node, fs::Permissions::from_mode(0o644)).unwrap();
+        assert!(installer_command("npm", &npm).is_none());
+        fs::set_permissions(&node, fs::Permissions::from_mode(0o755)).unwrap();
+        let command = installer_command("npm", &npm).unwrap();
+        assert_eq!(command, vec![node.to_string_lossy(), cli.to_string_lossy()]);
+        fs::set_permissions(&cli, fs::Permissions::from_mode(0o000)).unwrap();
+        if fs::File::open(&cli).is_err() {
+            assert!(installer_command("npm", &npm).is_none());
+        }
+    }
+}
+
+fn accessible(path: &str, executable: bool) -> bool {
+    #[cfg(unix)]
+    {
+        use nix::unistd::{AccessFlags, access};
+        access(
+            path,
+            if executable {
+                AccessFlags::X_OK
+            } else {
+                AccessFlags::R_OK
+            },
+        )
+        .is_ok()
+    }
+    #[cfg(windows)]
+    {
+        let _ = executable;
+        fs::metadata(path).is_ok()
+    }
+}
+
+fn normalize_cli(path: &str) -> String {
+    let mut parts = Vec::new();
+    for part in path.split('/') {
+        if part == ".." {
+            parts.pop();
+        } else if part != "." {
+            parts.push(part);
+        }
+    }
+
+    parts.join("/")
 }
