@@ -120,3 +120,42 @@ test("confirmed rm discards an existing conflict without recreating it on push",
   await pull(f.first, f.opts);
   expect(await readBytes(f.aStore)).toBeUndefined();
 });
+
+test("rm of an unpublished file keeps other checkouts' local-only links", async () => {
+  const { linkFile } = await import("../../links/file.ts");
+  const { atomicWrite } = await import("../../state/store/files.ts");
+  const { loadState, saveState } = await import("../../state/store/repository.ts");
+  const f = await fixture();
+  const [shared, separate] = await approveLayout(f, ["link", "link"]);
+  const state = (await loadState(f.second.home))!;
+
+  for (const [target, content, choice] of [
+    [shared!, "A=shared\n", "store"],
+    [separate!, "PORT=2\n", "separate"],
+  ] as const) {
+    await atomicWrite(join(target.root, ".env.dev"), content, fixtureClock);
+    const checkout = (await f.second.repo.checkoutAt(target.root))!;
+    const placement = f.second.placement("link", target.root);
+    await linkFile(f.second, state, checkout, placement, ".env.dev", async () => choice);
+  }
+
+  await saveState(f.second.home, state, fixtureClock);
+  const store = state.links.find((link) => link.path === ".env.dev")!.store;
+
+  const result = await removeFile(f.second, join(shared!.root, ".env.dev"), {
+    yes: true,
+    now: f.now,
+  });
+
+  expect(result.publish).toBe("none");
+  const after = (await loadState(f.second.home))!;
+  const checkout = (await f.second.repo.checkoutAt(separate!.root))!;
+  await linkFile(f.second, after, checkout, f.second.placement("link", separate!.root), ".env.dev");
+
+  expect(after.links.filter((link) => link.store === store)).toEqual([
+    { root: separate!.root, path: ".env.dev", store, mode: "copy", localOnly: true },
+  ]);
+
+  expect(await readBytes(store)).toBeUndefined();
+  expect(await Bun.file(join(separate!.root, ".env.dev")).text()).toBe("PORT=2\n");
+});

@@ -87,7 +87,7 @@ export function removeFile(
     const published = await deletionRequested(adapters.home, selected.store, adapters.now);
 
     if (!published) {
-      state!.links = state!.links.filter((link) => link.store !== selected.store);
+      state!.links = state!.links.filter((link) => link.store !== selected.store || link.localOnly);
       await saveState(adapters.home, state!, adapters.now);
     }
 
