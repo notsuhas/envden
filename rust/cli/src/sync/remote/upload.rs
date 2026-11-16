@@ -86,6 +86,7 @@ pub fn upload_changes(
             } else {
                 None
             },
+            bytes.is_none(),
         );
         if !seen.insert(id) {
             continue;
@@ -142,18 +143,10 @@ pub fn upload_changes(
     context.checkpoint.files = files;
     context.headers.push(header);
     super::attempt::record::acknowledge(context)?;
-    let removed = uploaded
-        .iter()
-        .filter(|e| matches!(e.state, 2 | 4))
-        .map(|e| {
-            super::content::entry_name(context, e)
-                .and_then(|n| crate::store::store_path(&context.adapters.home, &n.repo_id, &n.path))
-        })
-        .collect::<Result<Vec<_>>>()?;
     context.state["links"]
         .as_array_mut()
         .unwrap()
-        .retain(|link| retention::keep_link(link, &removed, &places, &context.adapters.home));
+        .retain(|link| retention::keep_link(link, &places, &context.adapters.home));
     Ok(changed)
 }
 
