@@ -40,7 +40,8 @@ impl TailscaleAdapter {
         let result = (self.runner)(args)
             .map_err(|e| EnvdenError::with_source(ErrorCode::Internal, summary, e))?;
         if result.exit_code != 0 {
-            let detail: String = js_trim(&result.stderr).chars().take(500).collect();
+            let units: Vec<_> = js_trim(&result.stderr).encode_utf16().take(500).collect();
+            let detail = String::from_utf16_lossy(&units);
             return Err(EnvdenError::new(
                 ErrorCode::Internal,
                 if detail.is_empty() {
@@ -137,5 +138,25 @@ mod tests {
                 format!("failed: {detail}")
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod stderr_tests {
+    use super::*;
+
+    #[test]
+    fn stderr_limit_counts_utf16_units() {
+        let adapter = create_tailscale_network_adapter(Some(Box::new(|_| {
+            Ok(ICommandResult {
+                exit_code: 1,
+                stdout: String::new(),
+                stderr: "😀".repeat(300),
+            })
+        })));
+        assert_eq!(
+            adapter.command(&[], "failed").unwrap_err().message,
+            format!("failed: {}", "😀".repeat(250))
+        );
     }
 }
