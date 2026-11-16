@@ -9,8 +9,8 @@ pub(super) fn exit_at(stage: &str, file: &mut fs::File) {
     if STAGE.get() == Some(stage) {
         if stage == "partial" {
             file.write_all(&[3]).unwrap();
+            file.sync_all().unwrap();
         }
-        file.sync_all().unwrap();
         std::process::exit(77);
     }
 }

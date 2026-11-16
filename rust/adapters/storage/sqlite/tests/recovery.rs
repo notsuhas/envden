@@ -133,9 +133,7 @@ fn live_maintenance_prunes_expired_secrets_and_backups() {
     inspect
         .execute_batch("INSERT INTO approvers VALUES(x'01',x'01',x'02',100)")
         .unwrap();
-    fs::File::open(dir.path().join("pre-1"))
-        .unwrap()
-        .set_times(fs::FileTimes::new().set_modified(std::time::UNIX_EPOCH))
+    envden_testing::fixtures::set_modified(&dir.path().join("pre-1"), std::time::UNIX_EPOCH)
         .unwrap();
     db.remember_nonce(&[1], &[2], 30 * 86400000).unwrap();
     for table in ["sessions", "approvers"] {

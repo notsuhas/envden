@@ -17,7 +17,12 @@ fn child_write() {
         "02"
     };
     fs::write(path.join(file), [9]).unwrap();
-    fs::File::open(path.join(file)).unwrap().sync_all().unwrap();
+    fs::OpenOptions::new()
+        .write(true)
+        .open(path.join(file))
+        .unwrap()
+        .sync_all()
+        .unwrap();
     std::process::exit(77);
 }
 #[test]

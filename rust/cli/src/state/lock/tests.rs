@@ -40,14 +40,8 @@ fn expired_reclaim_guard_does_not_block_recovery() {
     fs::create_dir(&path).unwrap();
     fs::create_dir(path.join("reclaim")).unwrap();
     let old = std::time::UNIX_EPOCH + std::time::Duration::from_millis(1);
-    fs::File::open(path.join("reclaim"))
-        .unwrap()
-        .set_times(fs::FileTimes::new().set_modified(old))
-        .unwrap();
-    fs::File::open(&path)
-        .unwrap()
-        .set_times(fs::FileTimes::new().set_modified(old))
-        .unwrap();
+    envden_testing::fixtures::set_modified(&path.join("reclaim"), old).unwrap();
+    envden_testing::fixtures::set_modified(&path, old).unwrap();
     try_reclaim(&path, 100_000).unwrap();
     assert!(!path.exists());
 }

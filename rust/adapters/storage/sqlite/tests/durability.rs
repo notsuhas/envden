@@ -34,9 +34,7 @@ fn migrates_with_consistent_wal_backup() {
     drop(backup);
     drop(db);
     storage.close().unwrap();
-    fs::File::open(dir.path().join("pre-1"))
-        .unwrap()
-        .set_times(fs::FileTimes::new().set_modified(std::time::UNIX_EPOCH))
+    envden_testing::fixtures::set_modified(&dir.path().join("pre-1"), std::time::UNIX_EPOCH)
         .unwrap();
     let storage = create_sqlite_storage_adapter(dir.path(), 30 * 86400000).unwrap();
     assert!(!dir.path().join("pre-1").exists());
