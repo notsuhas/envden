@@ -36,7 +36,7 @@ Agents can implement the domain leaves in parallel against agreed interfaces. W1
 
 `contracts.Adapters` carries clocks, network, keychain, repo, placement/shell factories and service hooks. `lock.WithStateLock(ctx, home, timing, fn)` propagates reentrancy through `context.Context`; callers must forward the supplied context into nested state operations. The filesystem owner-root set is synchronized inside `state/files`. Trusted execution roots remain in `core/process`, initialized once per command from approved state at the program pre-action boundary.
 
-`process.exitCode` becomes the return/error from a command, mapped once by the main entry point. Writers are injected on Commander and output sinks; Go does not replace global console functions. `model.State.Order` preserves loaded JSON field insertion order. Call `State.Touch("field")` when assigning new optional fields to append them to that order, so saves preserve TS mutation order. `VerifiedState` retains the TS tagged JSON representation as raw JSON until a domain needs to inspect it.
+`process.exitCode` becomes the return/error from a command, mapped once by the main entry point. Writers are injected on the cobra commands and output sinks; Go does not replace global console functions. `model.State.Order` preserves loaded JSON field insertion order. Call `State.Touch("field")` when assigning new optional fields to append them to that order, so saves preserve TS mutation order. `VerifiedState` retains the TS tagged JSON representation as raw JSON until a domain needs to inspect it.
 
 The checked package DAG can be reproduced with `python3 scripts/ports/check-cli-layout.py --layers`. Browser assets are excluded from Go imports.
 
@@ -54,7 +54,7 @@ The checked package DAG can be reproduced with `python3 scripts/ports/check-cli-
 
 ## Validation and remaining integration
 
-`go test ./cli/...` includes 43 TS-binary help/version goldens, exact TS state/config fixtures, authenticated history fixtures, signed HTTP/retry cases, OPAQUE sessions and private persistence. `python3 scripts/ports/check-cli-help.py` compares both built binaries directly. `go vet ./cli/... ./cmd/envden` checks the foundation.
+`go test ./cli/...` includes exact TS state/config fixtures, authenticated history fixtures, signed HTTP/retry cases, OPAQUE sessions and private persistence. Help is compared by its command and option sets in the parity suite. `go vet ./cli/... ./cmd/envden` checks the foundation.
 
 Command actions intentionally return `NOT_IMPLEMENTED`. W5 still owns notice/update/telemetry/report lifecycle integration. Pass `Adapters.HelloCache` as `client.Options.HelloCache` to share TS’s per-fetch hello cache across clients. `ForVault` retains the cache. Allocate a separate cache when changing fetchers. Raw filesystem errno messages use Go wording (see [go-parity.md](go-parity.md)). Native Windows lock calls compile by platform but have not been run on Windows.
 

@@ -2,21 +2,41 @@
 
 The Go port lives in `go/` as one module, `github.com/notsuhas/envden/go`. It implements core, adapters, CLI and server; the site stays TypeScript. TypeScript at `v0.3.8` is the reference.
 
-## Why exact parity
+## Why functional parity
 
-Devices running different implementations share one vault and one server, so they must agree on every byte. Every implementation must produce the same stdout, stderr, exit codes, files and permissions, server database rows and wire bytes as TypeScript, bugs included. A port that behaves "better" still fails. Rejected: letting implementations differ in "harmless" output such as wording or JSON key order, since scripts and agents parse both.
+Devices running different implementations share one vault and one server, so they must agree on everything that is stored, sent or decided. TypeScript at `v0.3.8` is the reference and its behaviour never changes for the port. Go must be functionally identical to it.
 
-A fix or improvement found while porting goes in [go-parity.md](go-parity.md) and lands in every implementation in the same PR, never in Go alone. The same goes for any behaviour change.
+These must match TypeScript exactly, bugs included:
 
-`parity/` checks this as a black box (see [parity.md](parity.md)): it runs each scenario against two binaries in throwaway homes and diffs everything they produce, with random values mapped to placeholders. CI runs it on every push to `port/go`, plus mixed setups (a TS device and a Go device in one vault, each CLI against the other's server) and `apps/cli/scripts/e2e.ts` unchanged against the Go binary. Byte-level vectors in `packages/core/src/protocol/__tests__/vectors` gate the crypto.
+- wire bytes, crypto and the protocol
+- server database state
+- files written: names, contents and modes, including state and config files
+- exit codes and error codes
+- which flags and arguments are accepted or rejected
+- which prompts are asked, in what order, with which choices
+- every decision and outcome
+- `--json` output, after random values are normalized
+
+These are native Go and compare by meaning:
+
+- terminal styling, spinners, prompt rendering and help layout
+- the wording of errors and notices, which must keep the same meaning and facts (paths, names, counts, codes)
+- the PDF's internal bytes, which must keep the same extracted text and Info fields
+
+Rejected: byte-for-byte terminal output. It forced in-tree ports of npm libraries (commander, clack, date-fns, pako) to reproduce their exact bytes, while the vault, the server and scripts depend only on the things listed above. A port that behaves "better" in any of those still fails.
+
+A fix or improvement found while porting goes in [go-parity.md](go-parity.md), as does every presentation difference. A behaviour change lands in every implementation in the same PR, never in Go alone. Nothing a user sees (help, errors, prompts, README) mentions the port, TypeScript or parity.
+
+`parity/` checks this as a black box (see [parity.md](parity.md)): it runs each scenario against two binaries in throwaway homes and compares everything they produce, with random values mapped to placeholders. CI runs it on every push to `port/go`, plus mixed setups (a TS device and a Go device in one vault, each CLI against the other's server) and `apps/cli/scripts/e2e.ts` unchanged against the Go binary. Byte-level vectors in `packages/core/src/protocol/__tests__/vectors` gate the crypto.
 
 ## Rules
 
-The code style, error, test and adapter rules in `AGENTS.md` apply, in Go idiom:
+The code style, error, test and adapter rules in `CLAUDE.md` apply, in Go idiom:
 
 - Tests are `*_test.go` files in the package they test, as Go requires, instead of a `__tests__/` folder.
-- Errors are returned, not thrown: `errors.Wrap(code, message, cause)` from `go/core/errors`, with the TS message text.
+- Errors are returned, not thrown: `errors.Wrap(code, message, cause)` from `go/core/errors`. The code matches TS; the message keeps the TS meaning and facts.
 - Times are `int64` milliseconds passed in, never `time.Now()` in logic.
+- Use maintained Go libraries for parsing, prompts, compression and the like. Never port an npm library by hand, and never hand-roll crypto.
 - Go forbids import cycles, so a CLI file goes where [go-cli-layout.md](go-cli-layout.md) puts it, even when its TS folder differs. `python3 scripts/ports/check-cli-layout.py --layers` checks the layering.
 
 ## Building and checks
@@ -58,9 +78,8 @@ The dashboard embeds gzipped compiled assets and decompresses them for serving; 
 | `server/...` | `apps/server/src` |
 | `cli/...` | `apps/cli/src`, mapped file by file in [go-cli-layout.md](go-cli-layout.md) |
 | `cmd/envden` | `apps/cli/src/main.ts` |
-| `lib/...` | npm libraries whose output reaches the user (see below) |
 
-A TS folder becomes a Go package with the same name, unless the name is a Go keyword or clashes, in which case add a suffix. Folder size and file rules from `AGENTS.md` apply: one thing per file, about 200 lines max, about 8 files per folder.
+A TS folder becomes a Go package with the same name, unless the name is a Go keyword or clashes, in which case add a suffix. Folder size and file rules from `CLAUDE.md` apply: one thing per file, about 200 lines max, about 8 files per folder.
 
 ## Adapters
 
@@ -77,11 +96,11 @@ Port the TypeScript contract cases as they are. A new case goes into both suites
 
 - **Types.** `Uint8Array` is `[]byte`. `bigint` is `uint64`. Times are `int64` Unix milliseconds. `number` counts are `int`. Optional fields are pointers, or `nil` slices for bytes and lists.
 - **Async.** Promises become plain calls returning `(T, error)`. Only use goroutines where TS runs work concurrently and the order is observable (`p-limit` scans).
-- **Errors.** `throw new EnvdenError(code, msg, {cause})` is `return errors.Wrap(code, msg, cause)` from `core/errors`. Keep the TS message text exactly; it reaches the user. Never wrap an `*errors.Error` in `fmt.Errorf`, since the CLI only inspects the top error, like TS's `isEnvdenError`.
-- **Non-Envden throws.** Where TS lets a plain `Error` escape to the user (for example `requireValue` messages, Node fs errors), reproduce the exact message text. Where that's impossible (Node's errno text), match it as closely as possible and record the gap in [go-parity.md](go-parity.md).
+- **Errors.** `throw new EnvdenError(code, msg, {cause})` is `return errors.Wrap(code, msg, cause)` from `core/errors`. Keep the code exactly and the message's meaning and facts. Never wrap an `*errors.Error` in `fmt.Errorf`, since the CLI only inspects the top error, like TS's `isEnvdenError`.
+- **Non-Envden throws.** Where TS lets a plain `Error` escape to the user (for example `requireValue` messages, Node fs errors), keep its meaning, facts and exit code, and record wording gaps in [go-parity.md](go-parity.md).
 - **Discriminated unions.** A struct with a `Kind string` and optional fields, falsy fields omitted.
 - **Zod.** One Go struct per schema plus a decode function that rejects exactly what the Zod schema rejects (`strict()` objects reject unknown keys). Keep the schema in `core/protocol` when TS keeps it there.
-- **JSON output.** Must match `JSON.stringify` byte for byte: key order is TS insertion order (use ordered structs, not maps), `undefined` fields are omitted, numbers print like JS (`1e21` and above use exponent form, integers have no `.0`), strings escape like JS (no HTML escaping: use an encoder with `SetEscapeHTML(false)`). Pretty output uses 2-space indent.
+- **JSON output.** `--json` output, state files and wire JSON must match `JSON.stringify` byte for byte: key order is TS insertion order (use ordered structs, not maps), `undefined` fields are omitted, numbers print like JS (`1e21` and above use exponent form, integers have no `.0`), strings escape like JS (no HTML escaping: use an encoder with `SetEscapeHTML(false)`). Pretty output uses 2-space indent.
 - **Time.** No `time.Now()` in logic; take `now int64` or `now func() int64` as TS does.
 - **Randomness.** Functions that take `rng` in TS take `rng func(n int) []byte` in Go, defaulting to `crypto/rand`.
 - **Unicode.** NFC/NFKC via `golang.org/x/text/unicode/norm`. JS string length is UTF-16 code units; use `utf16` counting wherever TS uses `.length` on text.
@@ -98,20 +117,14 @@ Port the TypeScript contract cases as they are. A new case goes into both suites
 | Unicode normalization and case | `golang.org/x/text` | its tables are Unicode 15, Bun's ICU is newer; the gaps are in [go-parity.md](go-parity.md) |
 | SQLite | `modernc.org/sqlite` | pure Go, so every platform cross-compiles without cgo. On darwin it turns on persistent WAL and truncates the WAL on close, because Bun links Apple's SQLite there, which keeps empty `-wal` and `-shm` files after shutdown |
 | URL parsing | `github.com/nlnwa/whatwg-url` | TS uses the WHATWG `URL`; `net/url` normalizes differently |
-| Terminal width | `github.com/charmbracelet/x/ansi` | string widths for the line editor and history columns |
+| Commands, flags, help | `github.com/spf13/cobra` | the standard Go CLI library; envden normalizes argv first so the same flags and operands are accepted or rejected |
+| Prompts, spinners | `github.com/charmbracelet/huh`, `bubbletea`, `bubbles` | maintained terminal prompts; the questions, their order and choices follow TS |
+| PDF streams | `compress/zlib` | the recovery kit's FlateDecode streams; the PDF is compared by its text and Info fields |
+| Byte sizes | `github.com/dustin/go-humanize` | the server status page |
+| Terminal width | `github.com/charmbracelet/x/ansi` | string widths for history columns |
 | UUIDs | `github.com/google/uuid` | identity keys, lock tokens and state records |
 | Platform calls, terminals | `golang.org/x/sys`, `golang.org/x/term` | directory-relative symlink swaps (`*at` calls), process and OS checks, raw mode and terminal size, which the standard library lacks |
-| PTY (tests only) | `github.com/creack/pty` | drives clack under a real terminal |
-
-### In-tree ports of npm libraries
-
-`go/lib` holds ports of the npm libraries whose output the user sees. No Go library produces the same bytes, so each is ported from its JS source, keeps its license, and is tested against fixtures captured from the JS library:
-
-- `commander`: parsing, help text, errors and suggestions.
-- `clack`: prompts, spinners, logs and frames, including `block()`, which stops typed input from echoing while a spinner runs.
-- `datefns`: the `date-fns` formatting and durations envden uses.
-- `prettybytes`: byte sizes.
-- `pako`: the deflater `pdf-lib` uses, so recovery kit PDFs match byte for byte.
+| PTY (tests only) | `github.com/creack/pty` | drives the prompts under a real terminal |
 
 ## Reference fixtures
 
@@ -123,7 +136,7 @@ ENVDEN_TS_PARITY=1 go test ./... -run 'TestRegenerate' -count=1
 ENVDEN_TS_PARITY=1 go test -count=1 -run 'Bun|TypeScriptParity|PDFLibLive' ./server ./cli/vault/recovery/pdf
 ```
 
-Most packages name the test `TestRegenerateReference`; `lib/commander` adds `TestRegenerateDispatchReference` and `lib/clack` `TestRegenerateSpinnerPTYReference`. The second line compares against a running Bun server and pdf-lib, as CI does. See [go-server-parity.md](go-server-parity.md) for the server request corpus.
+Each package names the test `TestRegenerateReference`. The second line compares against a running Bun server and pdf-lib, as CI does. See [go-server-parity.md](go-server-parity.md) for the server request corpus.
 
 ### OPAQUE state formats
 
