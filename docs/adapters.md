@@ -2,7 +2,7 @@
 
 An adapter answers one question for envden: how devices reach the server, which repo a checkout belongs to, where keys live. Adapters are compiled into the binary and added by PR or fork (DESIGN § Decisions). Encryption, the sync protocol and merging are not adapters.
 
-Every adapter exists in each implementation: TypeScript under `packages/adapters/<kind>/<impl>`, Rust under `rust/adapters/<kind>/<impl>` (see [ports/rust.md](ports/rust.md)). Write the TypeScript one first, then port it; the parity suite must stay green. Work through this list in order.
+Work through this list in order.
 
 ## 1. Choose the kind
 
@@ -102,25 +102,12 @@ A new capability is an interface change, so it also needs a contract case and a 
 
 For an adapter that wraps a command-line tool, read `packages/adapters/network/tailscale`. Its runner is an argument, so the contract test drives every scenario without Tailscale installed.
 
-## 11. The Rust port
-
-Mirror the TypeScript adapter in `rust/adapters/<kind>/<impl>`, crate `envden-adapter-<kind>-<impl>`:
-
-- [ ] A new kind adds its trait `I<Kind>Adapter` to `rust/core/src/adapters`, and its contract suite and fake to `rust/testing`.
-- [ ] `src/adapter.rs` exports `create_<impl>_<kind>_adapter`, returning the core trait. The traits are synchronous.
-- [ ] `tests/contract.rs` runs the kind's contract suite from `envden-testing`.
-- [ ] Wire it in `rust/cli/src/adapters.rs` or `rust/server/src/adapters.rs`, and add the crate to the root `Cargo.toml` members.
-- [ ] Every TypeScript test case has a Rust equivalent with the same inputs and outcome.
-
 ## Before the PR
 
 ```sh
 ./node_modules/.bin/vp check --fix
 bun test
 ./node_modules/.bin/fallow
-cargo fmt --all --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
 ```
 
 The commit scope is the package name without `@envden/`, for example `feat(adapter-keychain-one-password): ...`.

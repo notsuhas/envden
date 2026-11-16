@@ -108,9 +108,9 @@ bun run --cwd apps/cli build   # writes apps/cli/dist/envden
 
 The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [docs/releasing.md](docs/releasing.md).
 
-### Rust port
+### With Cargo
 
-A second implementation in Rust lives in `rust/` and behaves the same as the TypeScript one, down to output, files and wire bytes. It needs the toolchain pinned in [rust-toolchain.toml](rust-toolchain.toml); `rustup` picks it up on its own.
+The `rust/` workspace builds `envden` with Cargo, using the toolchain pinned in [rust-toolchain.toml](rust-toolchain.toml); `rustup` picks it up on its own.
 
 ```sh
 cargo build --release -p envden-cli   # writes target/release/envden
@@ -118,16 +118,6 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
-
-The parity suite runs the same scenarios against both binaries and diffs stdout, stderr, exit codes, files, permissions and the server database. Build the TypeScript binary first.
-
-```sh
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden --mix   # mixed servers and devices
-bun apps/cli/scripts/e2e.ts target/release/envden
-```
-
-See [docs/ports/rust.md](docs/ports/rust.md) for the crate layout and [parity/README.md](parity/README.md) for writing scenarios.
 
 ## Repository layout
 
@@ -139,8 +129,7 @@ See [docs/ports/rust.md](docs/ports/rust.md) for the crate layout and [parity/RE
 | `packages/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
 | `packages/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
 | `packages/testing` | Contract tests and fakes for adapters |
-| `rust/` | The Rust port: the same packages and apps as crates |
-| `parity/` | Black-box parity suite shared by every implementation |
+| `rust/` | The CLI, server, protocol and adapters as a Cargo workspace |
 | `docs/` | Design and decisions, protocol spec, terms, adapter guide, release runbook |
 
 ## Contributing

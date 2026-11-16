@@ -1,6 +1,6 @@
 # Rust port
 
-The Rust port is a second implementation of envden, in behavioural parity with the TypeScript one. TypeScript at `v0.3.8` is the reference: where they differ, Rust is wrong, even when its behaviour looks better. Differences we'd like to fix go in `PARITY-NOTES.md`, and the fix lands in every implementation together.
+The Rust port is a second implementation of envden, in behavioural parity with the TypeScript one. TypeScript at `v0.3.8` is the reference: where they differ, Rust is wrong, even when its behaviour looks better. Differences we'd like to fix go in [rust-parity.md](rust-parity.md), and the fix lands in every implementation together.
 
 ## Layout
 
@@ -84,3 +84,34 @@ Each TS folder has a Rust module at the same relative path, so `apps/cli/src/syn
 - `adapters.now` is the injected millisecond clock; `main` owns the system clock.
 - `settings` handles config validation, persistence and rendering; `store::store_path` names files.
 - `ENVDEN_CAPTURE_HELP=1 cargo test -p envden-cli --test help` refreshes fixtures from the TS binary.
+
+## Decision: held to parity
+
+TypeScript is the reference. A Rust port lives beside it, and a third language may follow. A port must be indistinguishable from the reference: the same output, exit codes, files, permissions, database state and wire bytes, bugs included. A port that behaves "better" splits users by binary, and a mixed vault (a TypeScript server with Rust devices, or the reverse) has to keep working. The parity suite (`parity/`, [parity.md](parity.md)) checks this as a black box: it runs every scenario against each binary in its own sandbox and diffs the results, and `--mix` swaps implementations per role. Protocol vectors stay in `packages/core/src/protocol/__tests__/vectors/`, and every implementation reads them in place. A bug found in one implementation is recorded in `docs/ports/rust-parity.md` and fixed in all of them together, never in one alone. Separate ports with no parity gate were rejected: they drift silently, and the protocol is only as safe as the weakest client.
+
+## Working rules
+
+- A change to behaviour lands in every implementation in the same PR, and the parity suite stays green. Add a scenario under `parity/scenarios/` for any behaviour it doesn't cover yet.
+- Never make one implementation "better" alone. Record the idea, or a bug found in TS, in [rust-parity.md](rust-parity.md), and fix it everywhere at once.
+- Commit scopes: Rust crates use `rust-` scopes (`rust-cli`, `rust-protocol`); the parity suite uses `parity`.
+
+## Checks
+
+```sh
+cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
+bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden
+bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden --mix   # mixed servers and devices
+bun apps/cli/scripts/e2e.ts target/release/envden
+```
+
+Build the TypeScript binary first (`bun run --cwd apps/cli build`). The server's own verification steps are in [rust-server.md](rust-server.md).
+
+## Adding an adapter
+
+Mirror the TypeScript adapter in `rust/adapters/<kind>/<impl>`, crate `envden-adapter-<kind>-<impl>`:
+
+- [ ] A new kind adds its trait `I<Kind>Adapter` to `rust/core/src/adapters`, and its contract suite and fake to `rust/testing`.
+- [ ] `src/adapter.rs` exports `create_<impl>_<kind>_adapter`, returning the core trait. The traits are synchronous.
+- [ ] `tests/contract.rs` runs the kind's contract suite from `envden-testing`.
+- [ ] Wire it in `rust/cli/src/adapters.rs` or `rust/server/src/adapters.rs`, and add the crate to the root `Cargo.toml` members.
+- [ ] Every TypeScript test case has a Rust equivalent with the same inputs and outcome.

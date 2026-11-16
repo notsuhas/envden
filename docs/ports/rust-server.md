@@ -47,4 +47,4 @@ matching Bun's checkpoint and persistent WAL/SHM behavior at shutdown.
 
 `create_app_with_budget` permits shared body budgets in concurrency tests.
 Body deadlines use `read_body_with` with an injected clock and scheduler; tests
-expire jobs directly. The preserved HEAD and uptime quirks are in `PARITY-NOTES.md`.
+expire jobs directly. The preserved HEAD and uptime quirks are in `docs/ports/rust-parity.md`.

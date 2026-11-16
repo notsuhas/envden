@@ -18,13 +18,13 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 
 - **Server**: one Docker container, or `envden serve` on one of the user's devices (launchd / systemd / Windows login service). Stores ciphertext and opaque IDs only. One server per vault, no peer-to-peer (see Decisions). Many vaults per server, one owner each.
 - **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
-- **Stack**: TypeScript monorepo on Bun (see Decisions), with a Rust port in `rust/` kept in parity (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
+- **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
   - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
   - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
   - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
   - Releases: GitHub Actions builds every platform binary and the Docker image, uploads the binaries and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
-- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The Rust port uses RustCrypto, `ed25519-dalek`, `x25519-dalek`, `hpke` and `opaque-ke` with the same parameters (`docs/ports/rust.md`); `@serenity-kit/opaque` is itself a build of `opaque-ke`. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
+- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
 
 ## Adapters
 
@@ -246,9 +246,6 @@ Each vault has exactly one authoritative server at a time; devices push and pull
 Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
 
 
-### Several implementations, held to parity
-
-TypeScript is the reference. A Rust port lives beside it, and a third language may follow. A port must be indistinguishable from the reference: the same output, exit codes, files, permissions, database state and wire bytes, bugs included. A port that behaves "better" splits users by binary, and a mixed vault (a TypeScript server with Rust devices, or the reverse) has to keep working. `parity/` checks this as a black box: it runs every scenario against each binary in its own sandbox and diffs the results, and `--mix` swaps implementations per role. Protocol vectors stay in `packages/core/src/protocol/__tests__/vectors/`, and every implementation reads them in place. A bug found in one implementation is recorded in `PARITY-NOTES.md` and fixed in all of them together, never in one alone. Separate ports with no parity gate were rejected: they drift silently, and the protocol is only as safe as the weakest client.
 ### Built-in adapters; crypto, sync and merge are not pluggable
 
 Adapters are compiled into the binary and added by fork or PR. Runtime-loaded plugins are deferred because a plugin in a secrets tool can read every plaintext env file. Encryption, the sync protocol and merging are not adapters, since a swappable crypto layer is how secrets tools get broken.

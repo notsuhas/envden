@@ -4,7 +4,7 @@
 
 - **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`.
 - **Packages:** `packages/core` holds the protocol, merge and adapter interfaces. Each adapter is its own package in `packages/adapters/<kind>/<impl>`. `apps/cli`, `apps/server` and `apps/web` are the apps.
-- **Rust port:** `rust/` holds a second implementation, crate for crate (`docs/ports/rust.md`). TypeScript is the reference. `parity/` is the black-box suite every implementation must pass, and `PARITY-NOTES.md` lists deliberate copies of TS bugs.
+- **Ports:** read `docs/ports/` before changing behaviour.
 - **Packages are source-only** (`"exports": {".": "./src/index.ts"}`). Relative imports use the `.ts` extension.
 
 ## Checks
@@ -13,8 +13,6 @@
 ./node_modules/.bin/vp check --fix   # format (Oxfmt), lint (Oxlint), type check (tsgolint)
 bun test
 ./node_modules/.bin/fallow           # unused code, cycles, duplication, complexity
-cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden
 ```
 
 Tests use `bun:test` and live in a `__tests__/` folder next to the code they test, for example `src/protocol/__tests__/encoding.test.ts` for `src/protocol/encoding.ts`. Never put a test file directly beside source files or at a folder's top level. Fixtures and vectors used only by tests go in that `__tests__/` folder too.
@@ -34,15 +32,9 @@ Tests use `bun:test` and live in a `__tests__/` folder next to the code they tes
 - **Crypto:** never hand-roll primitives. Use the pinned libraries in `packages/core`.
 - **React:** components take one `props` parameter and destructure it inside the body. Colours are `rgba()`, never hex.
 
-## Parity between implementations
-
-- A change to behaviour lands in every implementation in the same PR, and the parity suite stays green. Add a scenario under `parity/scenarios/` for any behaviour it doesn't cover yet.
-- Never make one implementation "better" alone. Record the idea, or a bug found in TS, in `PARITY-NOTES.md`, and fix it everywhere at once.
-- The rules above apply in every language. In Rust, interfaces become traits named `I<Name>`, errors are `EnvdenError` with a code and `source`, and there is no `unsafe` without a one-line reason.
-
 ## Commits and reviews
 
-- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, `testing`, `tools`, or an adapter such as `adapter-storage-sqlite`. Rust crates use `rust-` scopes (`rust-cli`, `rust-protocol`), and the parity suite uses `parity`. Use `adapters` for a change spanning several adapters. Mark breaking changes with `!`.
+- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, `testing`, `tools`, or an adapter such as `adapter-storage-sqlite`. Use `adapters` for a change spanning several adapters. Mark breaking changes with `!`.
 - **Changesets:** add one with `bunx changeset` for any change a user would notice, naming `@envden/cli`. Releases run `bun run release:version`.
 - **Review comments follow [Conventional Comments](https://conventionalcomments.org):** `label (decorations): subject`, using labels such as `issue`, `suggestion`, `nitpick`, `question` and `praise`, and decorations such as `(blocking)` or `(non-blocking)`.
 
