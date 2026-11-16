@@ -1,5 +1,5 @@
-import { millisecondsInSecond } from "date-fns/constants";
-import { format, formatDistanceStrict, formatDuration, intervalToDuration } from "date-fns";
+import { secondsInDay, secondsInHour, secondsInMinute } from "date-fns/constants";
+import { format, formatDistanceStrict, formatDuration } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 import prettyBytes from "pretty-bytes";
 
@@ -7,15 +7,13 @@ export function formatBytes(bytes: number): string {
   return prettyBytes(bytes, { binary: true });
 }
 
+// Total days, never calendar months or years, so a long uptime isn't shown short.
 export function formatUptime(seconds: number): string {
-  const units = ["days", "hours", "minutes"] as const;
-
-  const text = formatDuration(
-    intervalToDuration({ start: 0, end: seconds * millisecondsInSecond }),
-    {
-      format: [...units],
-    },
-  );
+  const text = formatDuration({
+    days: Math.floor(seconds / secondsInDay),
+    hours: Math.floor((seconds % secondsInDay) / secondsInHour),
+    minutes: Math.floor((seconds % secondsInHour) / secondsInMinute),
+  });
 
   return text || "under a minute";
 }
