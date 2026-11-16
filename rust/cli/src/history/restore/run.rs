@@ -110,14 +110,7 @@ pub fn restore(
             return Ok(result);
         }
         if gate == TRestoreGate::Confirm
-            && !crate::output::prompts::consent(
-                &format!(
-                    "Restore {} to version {version}? {}",
-                    path.display(),
-                    crate::history::list::render::changes_text(&changes)
-                ),
-                false,
-            )?
+            && !confirm_restore(&path, version, &changes, crate::output::prompts::consent)?
         {
             result["kind"] = "cancelled".into();
             return Ok(result);
@@ -130,4 +123,36 @@ pub fn restore(
         }
         Ok(result)
     })
+}
+
+fn confirm_restore(
+    path: &Path,
+    version: u64,
+    changes: &Value,
+    confirm: impl FnOnce(&str, bool) -> Result<bool>,
+) -> Result<bool> {
+    confirm(
+        &format!(
+            "Restore {} to version {version}? {}",
+            path.display(),
+            crate::history::list::render::changes_text(changes)
+        ),
+        false,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn restore_confirmation_defaults_to_declining() {
+        let confirmed = confirm_restore(Path::new(".env"), 3, &json!({}), |message, initial| {
+            assert!(message.starts_with("Restore .env to version 3?"));
+            assert!(!initial);
+            Ok(initial)
+        })
+        .unwrap();
+        assert!(!confirmed);
+    }
 }
