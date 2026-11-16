@@ -1,7 +1,7 @@
 import { writeFile, symlink } from "node:fs/promises";
 import { join } from "node:path";
-import { setup } from "../harness/onboarding.ts";
-import type { IScenario } from "../harness/types.ts";
+import { setup } from "../../harness/onboarding.ts";
+import type { IScenario } from "../../harness/types.ts";
 
 export default {
   name: "checkouts",

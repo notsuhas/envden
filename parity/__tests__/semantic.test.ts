@@ -78,9 +78,10 @@ test("capture keeps exit codes and prompt order exact; strict output retains pro
   const c = new Context("/tmp/parity-unit", {});
   c.results.push({ label: "notice", stdout: "✓ Pushed 2 files", stderr: "", code: 0 });
   const baseline = await capture(c, false);
+  const strict = await capture(c, false, true);
   c.results[0]!.stdout = "└ Pushed   2 files";
   expect(await capture(c, false)).toBe(baseline);
-  expect(await capture(c, false, true)).not.toBe(baseline);
+  expect(await capture(c, false, true)).not.toBe(strict);
   const p = promptRecord("◆ Select file\n● .env\n○ .env.prod", "Select file", "\r");
   const q = promptRecord("◆ Master password", "Master password", "secret\r");
   c.results[0]!.prompts = [p, q];

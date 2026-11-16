@@ -13,7 +13,7 @@ import userFlow from "./scenarios/onboarding/user-flow.ts";
 import maintenance from "./scenarios/maintenance/run.ts";
 import locked from "./scenarios/onboarding/locked-session.ts";
 import secret from "./scenarios/onboarding/pairing-secret.ts";
-import scenario0 from "./scenarios/checkouts.ts";
+import scenario0 from "./scenarios/files/checkouts.ts";
 import scenario1 from "./scenarios/command-surface.ts";
 import scenario2 from "./scenarios/credentials.ts";
 import scenario3 from "./scenarios/invalid-input.ts";
