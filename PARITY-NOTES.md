@@ -57,3 +57,10 @@ Differences between implementations that we keep on purpose, and TS bugs to fix 
 - TS behaviour: the unchecked map lookup reaches the fixed-byte codec and throws `undefined is not an object (evaluating 'v.length')` in Bun. Rust returns an error with that message instead of panicking.
 - Possible improvement: validate key availability and return a deliberate protocol error.
 - Why: changing the TS failure requires a coordinated fix. BUG: fix in all implementations.
+
+## Nested parser errors preserve terminal controls
+
+- Scenario: pass an unknown option containing ESC bytes to a subcommand, such as `device ls`.
+- TS behaviour: Commander writes those bytes directly to stderr; the root error sanitizer does not cover subcommands. Rust preserves those bytes.
+- Possible improvement: sanitize user-controlled parser values while preserving diagnostic line breaks.
+- Why: terminal escape sequences in arguments can alter the terminal display. BUG: fix in all implementations.
