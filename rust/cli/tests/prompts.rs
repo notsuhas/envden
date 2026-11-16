@@ -1,6 +1,5 @@
 use envden_cli::output::prompts::{choose, choose_many, consent, input, secret};
 use envden_core::errors::Result;
-#[cfg(unix)]
 use std::process::Command;
 
 #[test]
@@ -27,6 +26,7 @@ fn prompt_fixture() {
         "validation" => input("Fixture prompt", true, None, |s| {
             (s != "ok").then(|| "Try again".into())
         }),
+        "password-edit" => secret("Fixture prompt", |_| None),
         "password" => secret("Fixture prompt", |_| None).map(|s| s.len().to_string()),
         "yes" | "no" | "toggle" | "cancel" | "escape" => {
             consent("Fixture prompt", case != "no").map(|v| v.to_string())
@@ -89,6 +89,10 @@ cases = [
  ('empty', b'\r', 'ANSWER::END'),
  ('empty', b'\x03', 'ERROR:InvalidInput:2:END'),
  ('empty', b'\x1b[A\x1b[Bai\r', 'ANSWER::END'),
+ ('password-edit', b'one two\x17!\r', 'ANSWER:one two\x17!:END'),
+ ('password-edit', b'one two\x1bb!\r', 'ANSWER:one two!:END'),
+ ('password-edit', b'one two\x1b[1;5D!\r', 'ANSWER:one two!:END'),
+ ('password-edit', b'one two\x1b[1;3D!\r', 'ANSWER:one two!:END'),
  ('nochoices', b'', 'ERROR:InvalidInput:2:END'),
  ('none', b'a\r', 'ANSWER::END'),
  ('all', b'a a\r', 'ANSWER:a,b:END'),

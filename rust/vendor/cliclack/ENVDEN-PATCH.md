@@ -8,7 +8,9 @@ The local changes preserve existing keyboard decisions:
 - `Input::initial_input` sets editable text, rather than a placeholder default.
 - Space toggles confirms; list navigation wraps; `a` toggles all checkboxes.
 - Multiselect retains selection order, `i` inverts, and full-width space toggles.
-- Text and password inputs retain Ctrl-B/F/K/U/W editing.
+- Text inputs retain Ctrl-B/F/K/U/W editing.
+- Passwords ignore Alt/Ctrl word jumps and retain literal Ctrl-W, matching
+  Clack 1.9.0 PTY results under Bun and Node; other cursor editing stays enabled.
 - Empty optional multiselects wait for Enter or cancellation; empty filtered
   lists ignore navigation rather than wrapping modulo zero.
 - Terminal eligibility and key reading follow stdin, including redirected output.

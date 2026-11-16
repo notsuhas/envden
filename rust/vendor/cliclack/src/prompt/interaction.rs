@@ -1,5 +1,5 @@
 use console::{Key, Term};
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 
 use super::cursor::StringCursor;
 
@@ -77,13 +77,13 @@ pub trait PromptInteraction<T> {
     /// This is a common boilerplate code.
     fn interact_on_prepared(&mut self, term: &mut Term) -> io::Result<T> {
         #[cfg(unix)]
-        let mut input = {
+        let input = {
             use std::os::fd::AsFd;
             let descriptor = io::stdin().as_fd().try_clone_to_owned()?;
             Term::read_write_pair(io::stdin(), std::fs::File::from(descriptor))
         };
         #[cfg(not(unix))]
-        let mut input = term.clone();
+        let input = term.clone();
 
         let mut state = State::Active;
         let mut prev_frame = String::new();
@@ -153,25 +153,28 @@ pub trait PromptInteraction<T> {
                             Key::Char('\u{17}') if word_editing => cursor.delete_word_to_the_left(),
 
                             // Alt/Ctrl
-                            Key::UnknownEscSeq(ref chars) if word_editing => {
+                            Key::UnknownEscSeq(ref chars) => {
                                 match chars.as_slice() {
                                     // Alt | Ctrl-Backspace
-                                    ['\u{7f}'] => cursor.delete_word_to_the_left(),
+                                    ['\u{7f}'] if word_editing => cursor.delete_word_to_the_left(),
                                     // Alt-ArrowLeft | Alt-b
-                                    ['b'] => cursor.move_left_by_word(),
+                                    ['b'] if word_editing => cursor.move_left_by_word(),
                                     // Alt-ArrowRight | Alt-f
-                                    ['f'] => cursor.move_right_by_word(),
+                                    ['f'] if word_editing => cursor.move_right_by_word(),
                                     // Alt | Ctrl
                                     ['[', '1', ';'] => {
-                                        let mut two_chars = [0; 2];
-                                        input.read_exact(&mut two_chars)?;
-                                        match two_chars {
+                                        let suffix = [input.read_key_raw()?, input.read_key_raw()?];
+                                        match suffix {
                                             // Alt | Ctrl-ArrowLeft
-                                            [b'3', b'D'] | [b'5', b'D'] => {
+                                            [Key::Char('3' | '5'), Key::Char('D')]
+                                                if word_editing =>
+                                            {
                                                 cursor.move_left_by_word()
                                             }
                                             // Alt | Ctrl-ArrowRight
-                                            [b'3', b'C'] | [b'5', b'C'] => {
+                                            [Key::Char('3' | '5'), Key::Char('C')]
+                                                if word_editing =>
+                                            {
                                                 cursor.move_right_by_word()
                                             }
                                             _ => {}
