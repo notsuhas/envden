@@ -21,8 +21,10 @@ pub fn vault_id_problem(text: &str) -> Option<&'static str> {
 }
 
 pub fn parse_kit(text: &str) -> Result<IRecoveryKitInput> {
+    let value: Value = serde_json::from_str(text).map_err(|cause| {
+        EnvdenError::with_source(ErrorCode::InvalidInput, "Not a recovery kit file", cause)
+    })?;
     let parse = || -> Option<IRecoveryKitInput> {
-        let value: Value = serde_json::from_str(text).ok()?;
         let vault_id = value.get("vaultId")?.as_str()?;
         let secret_key = value.get("secretKey")?.as_str()?;
         if secret_key_problem(secret_key).is_some() || vault_id_problem(vault_id).is_some() {
@@ -33,7 +35,13 @@ pub fn parse_kit(text: &str) -> Result<IRecoveryKitInput> {
             secret_key: js_trim(secret_key).into(),
         })
     };
-    parse().ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Not a recovery kit file"))
+    parse().ok_or_else(|| {
+        EnvdenError::with_source(
+            ErrorCode::InvalidInput,
+            "Not a recovery kit file",
+            EnvdenError::new(ErrorCode::InvalidInput, "Invalid recovery kit fields"),
+        )
+    })
 }
 
 #[cfg(test)]
