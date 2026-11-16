@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/notsuhas/envden/go/cli/client"
@@ -18,6 +17,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/content"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/placement"
 	sm "github.com/notsuhas/envden/go/cli/sync/model"
+	"github.com/notsuhas/envden/go/cli/sync/presentation"
 	"github.com/notsuhas/envden/go/core/merge"
 	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
 	b "github.com/notsuhas/envden/go/core/protocol/encoding"
@@ -143,25 +143,11 @@ func RecordConflict(context *sm.Context, target cm.Record, mine []byte, theirs c
 		return err
 	}
 	path := placement.CheckoutPath(context.Options.Cwd, target.Root, target.Path)
-	where := device
-	if where == "" {
-		where = "the server"
+	mineKind := "live"
+	if mine == nil {
+		mineKind = "deleted"
 	}
-	cause := "changed here and on " + where
-	if theirs.Kind == "absent" {
-		cause = "this device has two different versions"
-	} else if theirs.Kind == "tombstone" {
-		cause = "deleted on " + where + " and changed here"
-	} else if mine == nil {
-		cause = "deleted here and changed on " + where
-	} else if len(marked.Keys) > 0 {
-		cause = strings.Join(marked.Keys, ", ") + " changed here and on " + where
-	}
-	next := "Run envden resolve " + path + " with --keep-mine or --take-server, or edit " + file + " first"
-	if mine != nil && server != nil {
-		next = "Edit " + file + ", then run envden resolve " + path
-	}
-	context.Report(output.SanitizeTerminal("Conflict in " + path + ": " + cause + ". " + next))
+	context.Report(output.SanitizeTerminal(presentation.ConflictNotice(presentation.Notice{Path: path, File: file, Device: device, Keys: marked.Keys, Marked: mine != nil && server != nil, Mine: mineKind, Theirs: theirs.Kind})))
 
 	return nil
 }

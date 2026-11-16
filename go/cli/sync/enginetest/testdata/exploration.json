@@ -1,0 +1,1948 @@
+[
+  {
+    "Label": "interrupted-receipt",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Btmp",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "untrack-removal",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bv1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "observed-detached",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bl",
+      "Bd=zz",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "plain-target-delete",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bdel",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "plain-store-delete",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bstore",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "unsent-swap",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bn",
+      "Ae",
+      "As",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "placement-write-kill",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bq",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "corrupt-receipt",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bcorrupt",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "non-init-revert",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be=first",
+      "Bs",
+      "Be=second",
+      "Bs",
+      "Br=first",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-then-other",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-then-other-link",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-revert-fail",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ar",
+      "As",
+      "Bf",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-revert-fail-cc",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ar",
+      "As",
+      "Bf",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "fail-edit-unplaced",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Be1",
+      "Ar",
+      "As",
+      "Bl",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "fail-edit-unplaced-cl",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf0",
+      "Be0",
+      "Ar",
+      "As",
+      "Bl",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-lost-other",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bx",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-lost-other-pull",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-both",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Am",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-both-2",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Am",
+      "Bs",
+      "As"
+    ]
+  },
+  {
+    "Label": "edit-lost-rm",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bm",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "edit-lost-rm-link",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bm",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-twice",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "As",
+      "Be",
+      "Bx",
+      "Al",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-twice-edit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Be",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "dup-history-1",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "As",
+      "Ar",
+      "As",
+      "Bl",
+      "Ae=2",
+      "As",
+      "Ar",
+      "As",
+      "Ae=2",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "dup-history-2",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "As",
+      "Bl",
+      "Ar",
+      "As",
+      "Ae=2",
+      "As",
+      "Bs",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "dup-history-3",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "As",
+      "Bl",
+      "Ar",
+      "As",
+      "Br",
+      "Ae=2",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "dup-history-4",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "As",
+      "Bf",
+      "Ar",
+      "As",
+      "Ae=2",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "dup-history-5",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "As",
+      "Bl",
+      "Ar",
+      "As",
+      "Bf",
+      "Ae=2",
+      "As",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-single",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-single-link",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-during-pending",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Br0",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-during-attempt",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-during-attempt-link",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "revert-one-copy-other-stale",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Br1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "stale-must-not-push",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "stale-retrack",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bu",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "fail-retrack",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Bu",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "fail-retrack-other",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Bu",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-retrack",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bu",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-retrack-revert",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bu",
+      "Al",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-A-revert",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-A-revert-cc",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "lost-A-revert-cl",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Al",
+      "Ar",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "conflict-resolve-stale",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Be",
+      "Bl",
+      "Ae",
+      "As",
+      "Bt",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "conflict-keep-then-other",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Be",
+      "Bl",
+      "Ae",
+      "As",
+      "Bk",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-conflict-take",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Ae",
+      "As",
+      "Bs",
+      "Bt",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-conflict-keep",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Ae",
+      "As",
+      "Bs",
+      "Bk",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-then-edit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-lost-edit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bx",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-lost-A-pull-edit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bx",
+      "Al",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "rm-fail",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Bm",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "A-rm-B-edit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Am",
+      "As",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "A-rm-B-fail",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Am",
+      "As",
+      "Bf",
+      "Be0",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "two-copies-edit",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be0",
+      "Be1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "copy-link-edit",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Be0",
+      "Be1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "cc-lost-edit-other",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be0",
+      "Bx",
+      "Be1",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "cc-fail-lost",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Be0",
+      "Bx",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "skip-lost",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Be0",
+      "Bx",
+      "By1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "skip-ok-control",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Be0",
+      "Bs",
+      "By1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "skip-lost-pull",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Be0",
+      "Bx",
+      "By1",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "skip-lost-A",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Be0",
+      "Bx",
+      "By1",
+      "Al",
+      "Ae",
+      "As",
+      "Bl",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "link-revert-pending",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf1",
+      "Br0",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "link-revert-pending-pull",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf1",
+      "Br0",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "cc-revert-pending-pull",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bf",
+      "Br0",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "lost-rm-pull",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bm",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "lost-rm-A",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bx",
+      "Bm",
+      "Al",
+      "Ae",
+      "As",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "plain-lost-rm-noedit",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bl",
+      "Be",
+      "Bx",
+      "Bm",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "detached-revert",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Bd",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "detached-revert-pull",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Bd",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "detached-new",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Bd=zz",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "detached-revert-A",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Bl",
+      "Bd",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "A-detached-revert",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Ad",
+      "As"
+    ]
+  },
+  {
+    "Label": "Be Bf Br Bs",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bf",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Be Bf Br Bl",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bf",
+      "Br",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "Be0 Bf1 Br0 Bs",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be0",
+      "Bf1",
+      "Br0",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Be0 Bf0 Br0 Bs",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be0",
+      "Bf0",
+      "Br0",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Be Bl Br Bs",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bl",
+      "Br",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Be Bf Be Bs",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bf",
+      "Be",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Be Bd Bs",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bd",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "Ae As Ad As",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Ae",
+      "As",
+      "Ad",
+      "As"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bs",
+      "Bf",
+      "Be",
+      "As",
+      "a",
+      "Bx",
+      "Al",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bl",
+      "Br",
+      "a",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Am",
+      "Be",
+      "a",
+      "Bm",
+      "Bz1",
+      "Be1",
+      "At"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "As",
+      "Ak",
+      "Br1",
+      "Be",
+      "Br",
+      "Be1",
+      "Bx"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bt",
+      "Bs",
+      "Bu",
+      "Br1",
+      "By1",
+      "a",
+      "Ae=2",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be1",
+      "Ae",
+      "Bs",
+      "Be1",
+      "Bz1",
+      "Br1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "Am",
+      "r",
+      "Ae",
+      "Ar",
+      "Be1",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Bt",
+      "Ak",
+      "By1",
+      "Bz1",
+      "Ae",
+      "Bm",
+      "Be"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bl",
+      "Bz1",
+      "Bs",
+      "Am",
+      "Be1",
+      "r"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bk",
+      "Bd=zz",
+      "Bz1",
+      "Bx",
+      "Be1",
+      "Ae"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "a",
+      "Be1",
+      "Ak",
+      "Bz1",
+      "r"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Am",
+      "Ae",
+      "Bk",
+      "r",
+      "Be1",
+      "Bz1",
+      "Bm",
+      "Bf0"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Am",
+      "Be",
+      "Bs",
+      "Ar"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bs",
+      "Be1",
+      "Bl",
+      "At",
+      "Ae",
+      "Ar",
+      "Bx",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bd",
+      "Am",
+      "Bk",
+      "Bd",
+      "Bu",
+      "As",
+      "As",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "r",
+      "Ae",
+      "Bz1",
+      "Bz1",
+      "Ae",
+      "Bs",
+      "Be1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Am",
+      "Bs",
+      "Ax",
+      "Bd",
+      "Bx"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bd",
+      "Be",
+      "Am",
+      "Bk",
+      "Am",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Be1",
+      "a",
+      "Ax",
+      "Bs",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Ae",
+      "Bt",
+      "Bt",
+      "Bm",
+      "Br",
+      "a"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bd",
+      "As",
+      "Al",
+      "Bk",
+      "a",
+      "At"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "Bm",
+      "Ar",
+      "Be",
+      "Bu",
+      "Bx",
+      "a"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bl",
+      "Bz1",
+      "Bf",
+      "Bd",
+      "Ar",
+      "Bf0",
+      "Be"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bd=zz",
+      "Bz1",
+      "Ar",
+      "Al",
+      "Bf0",
+      "a",
+      "Be"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "At",
+      "Bk",
+      "Ae",
+      "Be1",
+      "Bf",
+      "Br",
+      "As"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "As",
+      "Bd=zz",
+      "Bd",
+      "Bf0",
+      "a",
+      "Bs",
+      "Bd"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bf0",
+      "a",
+      "Bs",
+      "Bx",
+      "a",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Bl",
+      "Be",
+      "Bf0",
+      "Be",
+      "Ak",
+      "As",
+      "Ar"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bz1",
+      "Br",
+      "Bl",
+      "Ae",
+      "Be1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Ae",
+      "Bk",
+      "Bs",
+      "Bu",
+      "Be",
+      "Bx",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bf",
+      "As",
+      "Bf",
+      "Ae",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Br",
+      "Ae",
+      "Ae",
+      "Be",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Bx",
+      "a",
+      "Ar",
+      "r",
+      "Be",
+      "Am",
+      "Br",
+      "Ak"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Al",
+      "r",
+      "Bf0",
+      "r",
+      "a",
+      "Bf",
+      "a",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Be",
+      "Bs",
+      "Be",
+      "Bm",
+      "Am",
+      "r",
+      "a"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Ar",
+      "Bx",
+      "r",
+      "Be",
+      "Bz1",
+      "At",
+      "Bf",
+      "Bs"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bf",
+      "Ae",
+      "Am",
+      "Ae",
+      "Bd"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bm",
+      "Bs",
+      "Am",
+      "Bl",
+      "Ar",
+      "Bm"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "Bf",
+      "Ae",
+      "Br",
+      "As"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "r",
+      "Bt",
+      "Ae",
+      "Be1",
+      "r",
+      "Ae=2",
+      "Bk",
+      "Br1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Be",
+      "As",
+      "Ae",
+      "Bz1",
+      "r",
+      "Bu",
+      "Bf0"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bf",
+      "Ar",
+      "Bz1",
+      "Bm",
+      "Bx"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Bf0",
+      "Ar",
+      "Bz1",
+      "r",
+      "Am",
+      "Bx"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Bd=zz",
+      "Bd",
+      "Al",
+      "Bk",
+      "Bf",
+      "a"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "At",
+      "Bz1",
+      "Bf0",
+      "a",
+      "Ae=2",
+      "Bz1"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "a",
+      "Ae",
+      "Bm",
+      "Ae",
+      "Bm",
+      "Br",
+      "Br"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy"
+    ],
+    "Tokens": [
+      "Bt",
+      "Be",
+      "At",
+      "Br",
+      "r",
+      "Ae",
+      "Al",
+      "Bf"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "link"
+    ],
+    "Tokens": [
+      "Al",
+      "Bu",
+      "Be",
+      "At",
+      "Bz1",
+      "Bf",
+      "As"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Be1",
+      "Bm",
+      "By1",
+      "Be",
+      "Ar",
+      "Bz1",
+      "Ax"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Be1",
+      "Bm",
+      "Bz1",
+      "Bd",
+      "Bd=zz"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "copy",
+      "copy"
+    ],
+    "Tokens": [
+      "Al",
+      "Be",
+      "Bz1",
+      "Bk",
+      "Bl"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link"
+    ],
+    "Tokens": [
+      "Br",
+      "Bd",
+      "Am",
+      "a",
+      "Bs",
+      "Bx"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Bs",
+      "As",
+      "Bd=zz",
+      "Bm",
+      "Be",
+      "At",
+      "Bz1",
+      "At"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Br",
+      "Bs",
+      "Be1",
+      "Be",
+      "Bf",
+      "Br",
+      "Bx",
+      "Al"
+    ]
+  },
+  {
+    "Label": "discovered",
+    "Layout": [
+      "link",
+      "copy"
+    ],
+    "Tokens": [
+      "Ae=2",
+      "Bd",
+      "a",
+      "Bs",
+      "Bf",
+      "Al"
+    ]
+  }
+]

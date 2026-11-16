@@ -115,10 +115,10 @@ func Reconcile(context *sm.Context, repos, noFastForward map[string]bool, choose
 		if result.Conflicts == before {
 			applied.Set(b.Base32(entry.FileId), client.Text(m.FileEntryCodec.Write(entry)))
 		}
-		if err = local.SaveAppliedFiles(context.Adapters.Home, applied, context.Options.Now); err != nil {
+		if err = local.SaveAppliedFiles(context.Adapters.Home, applied, context.Options.Now, context.AtomicWrite); err != nil {
 			return result, err
 		}
 	}
 
-	return result, local.SaveAppliedFiles(context.Adapters.Home, applied, context.Options.Now)
+	return result, local.SaveAppliedFiles(context.Adapters.Home, applied, context.Options.Now, context.AtomicWrite)
 }

@@ -12,6 +12,8 @@ func TestPathCollisions(t *testing.T) {
 		want        map[int]bool
 	}{
 		{[]string{".env", ".ENV"}, false, map[int]bool{}},
+		{[]string{".env", ".ENV", "é/.env", "e\u0301/.env", "Dir/.env", "dir/.env.local"}, false, map[int]bool{3: true}},
+		{[]string{".env", ".ENV", "é/.env", "e\u0301/.env", "Dir/.env", "dir/.env.local"}, true, map[int]bool{1: true, 3: true, 5: true}},
 		{[]string{".env", ".ENV"}, true, map[int]bool{1: true}},
 		{[]string{"Config/.env", "config/.env.local"}, true, map[int]bool{1: true}},
 		{[]string{"cafe\u0301/.env", "café/.env.local"}, false, map[int]bool{1: true}},

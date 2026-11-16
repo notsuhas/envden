@@ -13,8 +13,8 @@ func TestTargetSkip(t *testing.T) {
 		links    []model.Link
 		want     string
 	}{
-		{false, nil, "unapproved"}, {true, nil, ""}, {true, []model.Link{target}, ""},
-		{true, []model.Link{{Root: "r", Path: ".env", Store: "s", Mode: "link", LocalOnly: true}}, "local-only"},
+		{false, nil, "unapproved"}, {false, []model.Link{target}, "unapproved"}, {true, nil, ""}, {true, []model.Link{target}, ""},
+		{true, []model.Link{{Root: "r", Path: ".env", Store: "s", Mode: "copy", LocalOnly: true}}, "local-only"},
 		{true, []model.Link{{Root: "r", Path: ".env", Store: "other", Mode: "link"}}, "changed"},
 		{true, []model.Link{{Root: "r", Path: ".env", Store: "s", Mode: "copy"}}, "changed"},
 	} {

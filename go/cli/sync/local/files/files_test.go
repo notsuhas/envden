@@ -3,6 +3,7 @@ package files
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	e "github.com/notsuhas/envden/go/core/errors"
@@ -35,6 +36,15 @@ func TestSafeSyncFiles(t *testing.T) {
 	}
 	if _, err := ReadBytes(home); !e.Is(err, e.InvalidData) {
 		t.Fatal(err)
+	}
+	if len(filepath.Base(BasePath(home, filepath.Join(home, "store", strings.Repeat("long", 100))))) >= 100 {
+		t.Fatal("base filename too long")
+	}
+	if BasePath(home, path, "a") == BasePath(home, path, "b") {
+		t.Fatal("copy bases collide")
+	}
+	if Same(nil, []byte{}) || !Same([]byte("x"), []byte("x")) {
+		t.Fatal("content equality")
 	}
 	if BasePath(home, path) == BasePath(home, path, "root") || BasePath(home, path) != BasePath(home, path, "") {
 		t.Fatal("base identity")

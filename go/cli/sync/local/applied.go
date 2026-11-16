@@ -46,7 +46,7 @@ func AppliedFiles(home string) (jsonvalue.Object, error) {
 	return *value, err
 }
 
-func SaveAppliedFiles(home string, value jsonvalue.Object, now func() int64) error {
+func SaveAppliedFiles(home string, value jsonvalue.Object, now func() int64, writes ...func(string, []byte) error) error {
 	path := filepath.Join(home, "state", "applied-files.json")
 	raw, err := jsonvalue.Marshal(value)
 	if err != nil {
@@ -60,6 +60,10 @@ func SaveAppliedFiles(home string, value jsonvalue.Object, now func() int64) err
 		return nil
 	}
 
+	if len(writes) > 0 && writes[0] != nil {
+		return writes[0](path, raw)
+	}
+
 	return sf.AtomicWrite(path, raw, now)
 }
 
@@ -67,7 +71,7 @@ func HasAppliedEntry(entry m.FileEntry, applied jsonvalue.Object) bool {
 	return applied.Get(b.Base32(entry.FileId)) == base64.RawURLEncoding.EncodeToString(m.FileEntryCodec.Write(entry))
 }
 
-func MarkAppliedEntry(home, encoded, store string, now func() int64) error {
+func MarkAppliedEntry(home, encoded, store string, now func() int64, writes ...func(string, []byte) error) error {
 	if store != "" {
 		if err := sf.AtomicWrite(f.BasePath(home, store)+".entry", []byte(encoded), now); err != nil {
 			return err
@@ -87,5 +91,5 @@ func MarkAppliedEntry(home, encoded, store string, now func() int64) error {
 	}
 	applied.Set(b.Base32(entry.FileId), encoded)
 
-	return SaveAppliedFiles(home, applied, now)
+	return SaveAppliedFiles(home, applied, now, writes...)
 }

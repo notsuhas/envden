@@ -41,3 +41,11 @@ func TestContentResolution(t *testing.T) {
 		t.Fatal(result, err)
 	}
 }
+
+func TestTakeServerKeepsUnchangedServerDefault(t *testing.T) {
+	previous, mine := []byte("A=1\nB=1\n"), []byte("A=2\nB=1\n")
+	r, err := ResolveContent(sm.Options{}, ".env", mine, previous, previous, func(string) (string, error) { return "take-server", nil }, mine)
+	if err != nil || r.Kind != "write" || !same(r.Next, mine) {
+		t.Fatal(r, err)
+	}
+}

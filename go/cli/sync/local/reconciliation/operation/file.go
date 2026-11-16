@@ -2,7 +2,6 @@ package operation
 
 import (
 	"github.com/notsuhas/envden/go/cli/client"
-	sf "github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/journal"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync/local"
@@ -44,7 +43,7 @@ func ResumeFile(context *sm.Context, store string) error {
 		return err
 	}
 	if operation.Entry != nil {
-		if err = local.MarkAppliedEntry(context.Adapters.Home, *operation.Entry, "", context.Options.Now); err != nil {
+		if err = local.MarkAppliedEntry(context.Adapters.Home, *operation.Entry, "", context.Options.Now, context.AtomicWrite); err != nil {
 			return err
 		}
 	}
@@ -103,7 +102,12 @@ func finishFile(context *sm.Context, store string, targets []state.Link, next, s
 		if err = target.KeepUnsynced(context, store, first, synced); err != nil {
 			return err
 		}
-		if err = f.WriteBytes(store, next, now); err != nil {
+		if next != nil && context.Options.AtomicWrite != nil {
+			err = context.AtomicWrite(store, next)
+		} else {
+			err = f.WriteBytes(store, next, now)
+		}
+		if err != nil {
 			return err
 		}
 	} else if next != nil {
@@ -112,7 +116,7 @@ func finishFile(context *sm.Context, store string, targets []state.Link, next, s
 			return err
 		}
 		if !f.Same(recorded, next) {
-			if err = sf.AtomicWrite(store, next, now); err != nil {
+			if err = context.AtomicWrite(store, next); err != nil {
 				return err
 			}
 		}
@@ -123,11 +127,11 @@ func finishFile(context *sm.Context, store string, targets []state.Link, next, s
 		}
 	}
 	if entry != nil {
-		if err = sf.AtomicWrite(f.BasePath(home, store)+".entry", []byte(*entry), now); err != nil {
+		if err = context.AtomicWrite(f.BasePath(home, store)+".entry", []byte(*entry)); err != nil {
 			return err
 		}
 	}
-	if err = history.SaveBase(f.BasePath(home, store), next, now); err != nil {
+	if err = history.SaveBase(f.BasePath(home, store), next, now, context.AtomicWrite); err != nil {
 		return err
 	}
 	deleting, err := DeletionRequested(home, store, now)
@@ -148,7 +152,7 @@ func finishFile(context *sm.Context, store string, targets []state.Link, next, s
 			}
 		}
 		if item.Mode == "copy" {
-			if err = history.SaveBase(f.BasePath(home, store, item.Root), next, now); err != nil {
+			if err = history.SaveBase(f.BasePath(home, store, item.Root), next, now, context.AtomicWrite); err != nil {
 				return err
 			}
 		}

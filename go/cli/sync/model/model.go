@@ -16,6 +16,7 @@ import (
 )
 
 type Options struct {
+	AtomicWrite func(string, []byte) error
 	Now         func() int64
 	Fetcher     client.Fetch
 	Cwd         string

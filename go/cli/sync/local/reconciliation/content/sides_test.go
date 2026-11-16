@@ -31,6 +31,7 @@ func TestReachableCopyStates(t *testing.T) {
 									remote = Server{Kind: "live", Bytes: value(server)}
 								}
 								result := DeriveFileSides(SidesInput{StoreBeforeRestore: value(store), Recorded: value(recorded), Previous: value(previous), Server: remote, PendingRemoval: pending, Copies: []Copy{{Bytes: value(copy), Base: value(base), Tracked: true, Mode: "copy", Historical: base == "" && copy != "" && copy == previous}}})
+								verifyRetainedSides(t, result, store, recorded, previous, copy, base, remote)
 								expected := reference(store, recorded, previous, copy, base, server, pending)
 								if !same(result.Mine, value(expected)) {
 									t.Fatal(fmt.Sprintf("store=%q recorded=%q previous=%q copy=%q base=%q server=%q pending=%v: mine=%q want=%q", store, recorded, previous, copy, base, server, pending, result.Mine, expected))

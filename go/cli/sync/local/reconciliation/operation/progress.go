@@ -34,7 +34,7 @@ func saveOperation(context *sm.Context, store string, operation *Operation) erro
 		return err
 	}
 
-	return sf.AtomicWrite(f.BasePath(context.Adapters.Home, store)+".pending", raw, context.Options.Now)
+	return context.AtomicWrite(f.BasePath(context.Adapters.Home, store)+".pending", raw)
 }
 
 func markWritten(context *sm.Context, store string, operation *Operation, index int) error {
