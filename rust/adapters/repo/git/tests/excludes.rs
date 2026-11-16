@@ -10,7 +10,12 @@ fn git(root: &Path, args: &[&str]) {
             .arg(root)
             .args(args)
             .env_clear()
-            .env("PATH", "/usr/bin:/bin")
+            .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+            .envs(
+                ["SYSTEMROOT", "COMSPEC", "TEMP", "TMP"]
+                    .into_iter()
+                    .filter_map(|key| std::env::var_os(key).map(|value| (key, value)))
+            )
             .env("HOME", root)
             .env("GIT_CONFIG_NOSYSTEM", "1")
             .output()

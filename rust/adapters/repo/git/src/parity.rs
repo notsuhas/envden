@@ -9,7 +9,12 @@ pub(super) fn git(root: &Path, args: &[&str]) {
             .arg(root)
             .args(args)
             .env_clear()
-            .env("PATH", "/usr/bin:/bin")
+            .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+            .envs(
+                ["SYSTEMROOT", "COMSPEC", "TEMP", "TMP"]
+                    .into_iter()
+                    .filter_map(|key| std::env::var_os(key).map(|value| (key, value)))
+            )
             .env("HOME", root)
             .env("GIT_CONFIG_NOSYSTEM", "1")
             .output()
@@ -121,7 +126,11 @@ fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     fs::remove_dir_all(root.join("gone")).unwrap();
     let run = |args: &[&str]| exec::git(root.to_str().unwrap(), args, None, false, root.to_str());
     let listed = worktrees_with(run).unwrap();
-    assert!(listed.contains(&root.join("kept").to_string_lossy().into_owned()));
+    assert!(
+        listed
+            .iter()
+            .any(|path| fs::canonicalize(path).unwrap() == root.join("kept"))
+    );
     assert!(!listed.iter().any(|p| p.ends_with("gone")));
     let listed = worktrees_with(|args| {
         if args.contains(&"-z") {
@@ -132,11 +141,11 @@ fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     })
     .unwrap();
     assert_eq!(
-        listed,
-        [
-            root.to_string_lossy().into_owned(),
-            root.join("kept").to_string_lossy().into_owned()
-        ]
+        listed
+            .iter()
+            .map(|path| fs::canonicalize(path).unwrap())
+            .collect::<Vec<_>>(),
+        [root.clone(), root.join("kept")]
     );
 }
 
