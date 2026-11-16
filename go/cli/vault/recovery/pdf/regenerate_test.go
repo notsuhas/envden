@@ -11,8 +11,19 @@ func TestRegenerateReference(t *testing.T) {
 		return
 	}
 
+	writeReferenceScript(t)
+	cmd := exec.Command("bun", "testdata/reference.mjs")
+	cmd.Env = append(os.Environ(), "TZ=UTC")
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("reference: %v\n%s", err, output)
+	}
+}
+
+func writeReferenceScript(t *testing.T) {
+	t.Helper()
 	if err := os.WriteFile("testdata/reference.mjs", []byte(`import { renderKit } from '../../../../../../apps/cli/src/vault/recovery/pdf/layout.ts';
 import { kitDocument } from '../../../../../../apps/cli/src/vault/recovery/pdf/model.ts';
+import { pdfText } from '../../../../../../apps/cli/src/vault/recovery/pdf/__tests__/text.ts';
 import { writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 const NativeDate=Date;
@@ -28,7 +39,7 @@ for(const kit of kits) {
  const document=kitDocument(kit,new Date(kit.date),kit.device);
  const pdf=Buffer.from(await renderKit(document));
  const start=pdf.indexOf('stream\n')+7,end=pdf.indexOf('\nendstream');
- result.push({kit,document,metadataTime:now,pdf:pdf.toString('base64'),content:inflateSync(pdf.subarray(start,end)).toString('base64'),compressed:pdf.subarray(start,end).toString('base64')});
+ result.push({kit,document,metadataTime:now,text:await pdfText(pdf),pdf:pdf.toString('base64'),content:inflateSync(pdf.subarray(start,end)).toString('base64')});
 }
 const json=JSON.stringify(result,null,2)+'\n';
 if(process.argv.includes('--stdout')) process.stdout.write(json);
@@ -37,10 +48,4 @@ else writeFileSync(new URL('./reference.json',import.meta.url),json);
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = os.Remove("testdata/reference.mjs") })
-
-	cmd0 := exec.Command("bun", "testdata/reference.mjs")
-	cmd0.Env = append(os.Environ(), "TZ=UTC")
-	if output, err := cmd0.CombinedOutput(); err != nil {
-		t.Fatalf("reference: %v\n%s", err, output)
-	}
 }

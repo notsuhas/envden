@@ -2,12 +2,11 @@ package pdf
 
 import (
 	"bytes"
+	"compress/zlib"
 	"fmt"
 	"strings"
 	"time"
 	"unicode/utf16"
-
-	"github.com/notsuhas/envden/go/lib/pako"
 )
 
 func hexString(value string) string {
@@ -23,7 +22,17 @@ func hexString(value string) string {
 }
 
 func serialize(title, resources string, content []byte, metadataTime int64) ([]byte, error) {
-	stream := pako.Deflate(content)
+	var compressed bytes.Buffer
+	writer := zlib.NewWriter(&compressed)
+	if _, err := writer.Write(content); err != nil {
+		return nil, err
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+
+	stream := compressed.Bytes()
 	producer := hexString("pdf-lib (https://github.com/Hopding/pdf-lib)")
 	date := time.UnixMilli(metadataTime).UTC().Format("20060102150405")
 	objects := []string{"<<\n/Type /Pages\n/Kids [ 4 0 R ]\n/Count 1\n>>", "<<\n/Type /Catalog\n/Pages 1 0 R\n>>", fmt.Sprintf("<<\n/Producer %s\n/ModDate (D:%sZ)\n/Creator %s\n/CreationDate (D:%sZ)\n/Title %s\n>>", producer, date, producer, date, hexString(title)), "<<\n/Type /Page\n/Parent 1 0 R\n/Resources <<\n/Font <<\n" + resources + ">>\n/XObject <<\n>>\n/ExtGState <<\n>>\n>>\n/MediaBox [ 0 0 595.28 841.89 ]\n/Annots [ ]\n/Contents [ 8 0 R ]\n>>"}

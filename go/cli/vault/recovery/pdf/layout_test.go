@@ -5,6 +5,7 @@ import (
 	"compress/zlib"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -61,7 +62,7 @@ func TestSavePreservesExistingKit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if first == second || !strings.HasSuffix(second, " (2).pdf") {
+	if first != filepath.Join(dir, "envden Recovery Kit ABCDEF.pdf") || second != filepath.Join(dir, "envden Recovery Kit ABCDEF (2).pdf") {
 		t.Fatal(first, second)
 	}
 
@@ -70,8 +71,10 @@ func TestSavePreservesExistingKit(t *testing.T) {
 		t.Fatal(string(raw), err)
 	}
 
-	stat, err := os.Stat(second)
-	if err != nil || stat.Mode().Perm() != 0600 {
-		t.Fatal(stat, err)
+	for _, path := range []string{first, second} {
+		stat, err := os.Stat(path)
+		if err != nil || stat.Mode().Perm() != 0600 {
+			t.Fatal(stat, err)
+		}
 	}
 }
