@@ -50,7 +50,7 @@ pub(super) fn resume(
                     .expect("state")
                     .shift_remove("creationPending");
                 record_unlock_window(&client, &mut pending)?;
-                save_state(&adapters.home, &pending, (adapters.now)())?;
+                save_state(&adapters.home, &pending, &adapters.now)?;
                 return if kit.is_some() {
                     Ok(Some(pending))
                 } else {

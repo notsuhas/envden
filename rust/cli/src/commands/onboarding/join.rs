@@ -34,7 +34,7 @@ mod tests {
         let mut state = empty_state("test");
         state["vaultId"] = "vault".into();
         state["checkpoint"] = "floor".into();
-        save_state(&adapters.home, &state, 42).unwrap();
+        save_state(&adapters.home, &state, &|| 42).unwrap();
         let error = crate::onboarding::run_join(
             &adapters,
             "https://server.test",

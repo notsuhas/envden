@@ -36,7 +36,7 @@ pub(super) fn preferences(adapters: &IAdapters, options: &Value, existing: bool)
             key,
             if value { "on" } else { "off" },
             &adapters.home,
-            (adapters.now)(),
+            &adapters.now,
             io::stdin().is_terminal(),
         )?;
     }

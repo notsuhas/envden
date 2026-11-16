@@ -72,7 +72,7 @@ fn resolution_skips_changed_checkout_local_only_and_changed_placement() {
             #[cfg(unix)]
             std::os::unix::fs::symlink(&store, root.join(".env")).unwrap();
         }
-        save_state(&home, &state, 100).unwrap();
+        save_state(&home, &state, &|| 100).unwrap();
         let record = IConflictRecord {
             remote: file.with_extension("remote").to_string_lossy().into(),
             alternatives: vec![],

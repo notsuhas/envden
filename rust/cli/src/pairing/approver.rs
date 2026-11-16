@@ -37,7 +37,7 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
         with_state_lock(&adapters.home, &adapters.now, || {
             state = require_configured(load_state(&adapters.home)?)?;
             state["session"] = serde_json::to_value(session).expect("window");
-            save_state(&adapters.home, &state, (adapters.now)())
+            save_state(&adapters.home, &state, &adapters.now)
         })?;
     }
     if with_state_lock(&adapters.home, &adapters.now, || {

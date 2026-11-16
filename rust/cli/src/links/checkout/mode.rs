@@ -69,7 +69,7 @@ fn save_mode(
         "placement",
         &serde_json::Value::Object(placement).to_string(),
         &adapters.home,
-        (adapters.now)(),
+        &adapters.now,
         io::stdin().is_terminal(),
     )?;
     Ok(if mode == "copy" {

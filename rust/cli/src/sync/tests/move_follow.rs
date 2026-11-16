@@ -12,7 +12,7 @@ fn pull_follows_signed_move_before_reconciliation() {
         &adapters.home,
         "laptop",
         false,
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     let destination = p::generate_device_keys(p::random_bytes);

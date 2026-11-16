@@ -110,9 +110,14 @@ mod tests {
         let (client, transport) = super::super::tests::client(vec![]);
         crate::state::files::atomic_write(&adapters.home.join("state/pair-expiry"), b"100", 42)
             .unwrap();
-        let identity =
-            crate::identity::device_identity(&*adapters.keychain, &adapters.home, "test", true, 42)
-                .unwrap();
+        let identity = crate::identity::device_identity(
+            &*adapters.keychain,
+            &adapters.home,
+            "test",
+            true,
+            &|| 42,
+        )
+        .unwrap();
         let error = finish(&adapters, &client, &identity, false).unwrap_err();
         assert_eq!(error.code, ErrorCode::Internal);
         assert_eq!(crate::output::error_exit_code(error.code), 1);

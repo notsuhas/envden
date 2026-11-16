@@ -29,8 +29,10 @@ const KEYS: &[&str] = &[
     "updateCheck",
 ];
 
-pub fn save_state(home: &Path, state: &TLocalState, now: u64) -> Result<()> {
-    with_state_lock(home, &|| now, || {
+pub fn save_state(home: &Path, state: &TLocalState, clock: &dyn Fn() -> u64) -> Result<()> {
+    let now = clock();
+
+    with_state_lock(home, clock, || {
         private_directory(home)?;
         let mut record = state.as_object().cloned().ok_or_else(unreadable)?;
         let headers = record

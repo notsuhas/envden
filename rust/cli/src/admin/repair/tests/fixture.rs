@@ -22,7 +22,7 @@ pub(super) fn fixture() -> (tempfile::TempDir, IAdapters, Rc<Server>, String) {
         &adapters.home,
         "laptop",
         false,
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     let keys = p::generate_device_keys(p::random_bytes);
@@ -87,6 +87,6 @@ pub(super) fn fixture() -> (tempfile::TempDir, IAdapters, Rc<Server>, String) {
             &material.id_key,
         )
         .unwrap();
-    save_state(&adapters.home, &local, (adapters.now)()).unwrap();
+    save_state(&adapters.home, &local, &adapters.now).unwrap();
     (dir, adapters, server, token)
 }

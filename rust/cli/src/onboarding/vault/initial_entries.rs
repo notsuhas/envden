@@ -157,7 +157,7 @@ mod tests {
         let adapters =
             crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
         let identity =
-            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
+            device_identity(&*adapters.keychain, &adapters.home, "test", false, &|| 42).unwrap();
         let store = dir.path().join("env");
         let keys = p::generate_device_keys(p::random_bytes);
         let pin = p::server_pin(&keys.recovery.obj_pub).unwrap();

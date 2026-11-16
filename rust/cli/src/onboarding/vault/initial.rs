@@ -97,7 +97,7 @@ fn attempt(
         .push(json!(text(&p::encode(&header)?)));
     state["files"] = json!(text(&p::encode(&files)?));
     state["checkpoint"] = json!(text(&p::object_hash(&header, "manifest")?));
-    save_state(&adapters.home, state, (adapters.now)())?;
+    save_state(&adapters.home, state, &adapters.now)?;
     let mut applied = applied_files(&adapters.home)?;
     for entry in files.entries {
         applied.insert(p::base32(&entry.file_id), json!(text(&p::encode(&entry)?)));

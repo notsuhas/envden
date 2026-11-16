@@ -67,7 +67,7 @@ pub(in crate::onboarding) fn rehost(adapters: &IAdapters, state: &mut Value) -> 
                 .and_then(|v| v.host_str().map(str::to_owned))
     {
         state["server"]["address"] = exposed.into();
-        save_state(&adapters.home, state, (adapters.now)())?;
+        save_state(&adapters.home, state, &adapters.now)?;
     }
     Ok(())
 }

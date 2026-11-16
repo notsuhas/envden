@@ -37,6 +37,6 @@ pub fn persist_checkpoint(context: &mut ISyncContext<'_>) -> Result<()> {
     save_state(
         &context.adapters.home,
         &context.state,
-        (context.options.now)(),
+        &*context.options.now,
     )
 }

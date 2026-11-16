@@ -62,7 +62,7 @@ pub fn local_status(
             &adapters.home,
             &state,
             |r| adapters.repo.case_insensitive(r, true),
-            (adapters.now)(),
+            &adapters.now,
         )?;
     }
     result["links"] = links.into();

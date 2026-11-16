@@ -73,7 +73,7 @@ mod tests {
         let mut state = crate::state::empty_state("test");
         state["vaultId"] = serde_json::json!("vault");
         state["server"] = serde_json::json!({"address":"http://server.test"});
-        crate::state::repository::save_state(&adapters.home, &state, 42).unwrap();
+        crate::state::repository::save_state(&adapters.home, &state, &|| 42).unwrap();
         std::fs::create_dir(adapters.home.join("state/approved-checkouts")).unwrap();
         assert_eq!(
             first_run_with(&adapters, |_| Ok(state.clone())).unwrap(),

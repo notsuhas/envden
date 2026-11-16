@@ -79,7 +79,8 @@ impl ITransport for ITransportFixture {
 fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
     let dir = tempfile::tempdir().unwrap();
     let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
-    let identity = device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
+    let identity =
+        device_identity(&*adapters.keychain, &adapters.home, "test", false, &|| 42).unwrap();
     let keys = p::generate_device_keys(p::random_bytes);
     let pin = p::server_pin(&keys.recovery.obj_pub).unwrap();
     let material = create_genesis(&identity, pin, 42).unwrap();
@@ -130,7 +131,7 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
     let mut other = crate::state::empty_state("old");
     other["vaultId"] = json!(p::base32(&[9; 32]));
     other["aliases"] = json!({"old":"kept"});
-    crate::state::repository::save_state(&adapters.home, &other, 42).unwrap();
+    crate::state::repository::save_state(&adapters.home, &other, &|| 42).unwrap();
     assert_eq!(
         accept(&adapters, &client, &identity, &history, &hash)
             .unwrap_err()
@@ -138,7 +139,7 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
         ErrorCode::Conflict
     );
     other["creationPending"] = json!("pending");
-    crate::state::repository::save_state(&adapters.home, &other, 42).unwrap();
+    crate::state::repository::save_state(&adapters.home, &other, &|| 42).unwrap();
     let local = accept(&adapters, &client, &identity, &history, &hash).unwrap();
     assert_eq!(local["aliases"], json!({}));
     assert!(local.get("creationPending").is_none());

@@ -63,7 +63,7 @@ fn setup(
         &adapters.home,
         name,
         false,
-        (adapters.now)(),
+        &adapters.now,
     )?;
     if let Some(state) = super::resume_creation::resume(
         adapters,
@@ -109,14 +109,14 @@ fn setup(
         &format!("envden/{}/id-key", adapters.home.display()),
         &material.id_key,
     )?;
-    save_state(&adapters.home, &state, (adapters.now)())?;
+    save_state(&adapters.home, &state, &adapters.now)?;
     client.request_bytes("/v1/vault", "POST", &bytes)?;
     state
         .as_object_mut()
         .expect("state")
         .shift_remove("creationPending");
     record_unlock_window(&client, &mut state)?;
-    save_state(&adapters.home, &state, (adapters.now)())?;
+    save_state(&adapters.home, &state, &adapters.now)?;
     Ok(state)
 }
 
@@ -134,7 +134,7 @@ mod tests {
             crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
         let mut state = empty_state("test");
         state["vaultId"] = json!(p::base32(&[1; 32]));
-        save_state(&adapters.home, &state, 42).unwrap();
+        save_state(&adapters.home, &state, &|| 42).unwrap();
         assert_eq!(
             setup(
                 &adapters,

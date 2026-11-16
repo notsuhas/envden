@@ -67,7 +67,7 @@ fn reused_token_refused_before_network() {
         &adapters.home,
         "laptop",
         false,
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     let entry = p::sign_object(
@@ -89,7 +89,7 @@ fn reused_token_refused_before_network() {
         .as_array_mut()
         .unwrap()
         .push(text(&p::encode(&entry).unwrap()).into());
-    save_state(&adapters.home, &local, (adapters.now)()).unwrap();
+    save_state(&adapters.home, &local, &adapters.now).unwrap();
     assert_eq!(
         repair_context(&adapters, &token, server.clone())
             .err()
@@ -118,11 +118,11 @@ fn cached_blob_corruption_is_refused_before_upload() {
         }],
     };
     local["files"] = text(&p::encode(&files).unwrap()).into();
-    save_state(&adapters.home, &local, (adapters.now)()).unwrap();
+    save_state(&adapters.home, &local, &adapters.now).unwrap();
     crate::state::files::atomic_write(
         &adapters.home.join("state/blobs").join(text(&hash)),
         b"corrupt",
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     assert_eq!(

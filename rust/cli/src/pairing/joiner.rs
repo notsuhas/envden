@@ -64,7 +64,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             &namespace,
             name.as_deref().expect("new join"),
             !load_state(&adapters.home)?.is_some_and(|s| s.get("checkpoint").is_some()),
-            (adapters.now)(),
+            &adapters.now,
         )?
     };
     let client = connection(adapters, address, server.pin, [0; 32], &identity);
@@ -73,7 +73,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             atomic_write(
                 &adapters.home.join("state/pair-pin"),
                 text(&server.pin).as_bytes(),
-                (adapters.now)(),
+                &adapters.now,
             )
         })?;
         let code = input("Pairing code", true, None, |v| {
@@ -92,7 +92,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
                 atomic_write(
                     &adapters.home.join("state/pair-expiry"),
                     expires.to_string().as_bytes(),
-                    (adapters.now)(),
+                    &adapters.now,
                 )
             })?;
             let response = wait_slot(
@@ -135,7 +135,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
                     json!({"mailbox":mailbox,"ke3":finish.finish_login_request,"message":message})
                         .to_string()
                         .as_bytes(),
-                    (adapters.now)(),
+                    &adapters.now,
                 )
             })?;
             put(&client, mailbox, "KE3", &finish.finish_login_request)?;

@@ -8,7 +8,7 @@ fn close_from_another_repair_is_discarded_without_network() {
         &adapters.home,
         "laptop",
         false,
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     let history = crate::vault::history::IVaultHistory {
@@ -27,7 +27,7 @@ fn close_from_another_repair_is_discarded_without_network() {
     crate::state::files::atomic_write(
         &path,
         text(&p::encode(&swap).unwrap()).as_bytes(),
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     assert!(
@@ -53,17 +53,11 @@ fn pre_command_remote_refresh_writes_notice_cache() {
         }
     }
     let (_dir, adapters, server, _token) = fixture();
-    crate::settings::set_config(
-        "update-check",
-        "off",
-        &adapters.home,
-        (adapters.now)(),
-        false,
-    )
-    .unwrap();
+    crate::settings::set_config("update-check", "off", &adapters.home, &adapters.now, false)
+        .unwrap();
     let result = crate::notice::command::command_notice_with_transport(
         &adapters,
-        (adapters.now)(),
+        &adapters.now,
         &NoUpdates,
         false,
         None,

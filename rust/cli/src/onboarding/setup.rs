@@ -25,7 +25,7 @@ pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
             super::host::rehost(adapters, &mut state)?;
         }
         preferences(adapters, options, configured)?;
-        save_state(&adapters.home, &state, (adapters.now)())?;
+        save_state(&adapters.home, &state, &adapters.now)?;
         setup_checkouts(
             adapters,
             &mut state,
@@ -46,7 +46,7 @@ pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
             &adapters.home,
             &state,
             |root| adapters.repo.case_insensitive(root, true),
-            (adapters.now)(),
+            &adapters.now,
         )?;
         Ok(state)
     })

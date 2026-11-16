@@ -51,7 +51,7 @@ mod tests {
         state["server"] =
             serde_json::json!({"address":"https://server.test","pin":text(&[2;32]),"protocol":1});
         state["creationPending"] = "pending".into();
-        save_state(&adapters.home, &state, 42).unwrap();
+        save_state(&adapters.home, &state, &|| 42).unwrap();
         assert!(admin_context(&adapters, Rc::new(UreqTransport)).is_ok());
     }
 }

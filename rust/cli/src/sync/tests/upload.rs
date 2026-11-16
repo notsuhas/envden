@@ -18,7 +18,7 @@ fn push_reports_files_held_for_approval_even_outside_selection() {
     fs::create_dir_all(store.parent().unwrap()).unwrap();
     fs::write(&store, b"TOKEN=local\n").unwrap();
     c.state["links"] = json!([{"root":root,"path":".env","store":store,"mode":"copy"}]);
-    crate::state::repository::save_state(&a.home, &c.state, (a.now)()).unwrap();
+    crate::state::repository::save_state(&a.home, &c.state, &a.now).unwrap();
     let reports = Rc::new(RefCell::new(Vec::new()));
     let captured = reports.clone();
     c.options.report = Some(Rc::new(move |message| {
@@ -68,7 +68,7 @@ fn held_back_reporting_propagates_record_read_failures() {
     fs::create_dir_all(store.parent().unwrap()).unwrap();
     fs::write(&store, b"TOKEN=local\n").unwrap();
     c.state["links"] = json!([{"root":root,"path":".env","store":store,"mode":"copy"}]);
-    crate::state::repository::save_state(&a.home, &c.state, (a.now)()).unwrap();
+    crate::state::repository::save_state(&a.home, &c.state, &a.now).unwrap();
     fs::write(a.home.join("base"), b"not a directory").unwrap();
     let error = upload_changes(&mut c, &HashSet::new(), &HashSet::new()).unwrap_err();
     assert_eq!(error.code, envden_core::errors::ErrorCode::Internal);

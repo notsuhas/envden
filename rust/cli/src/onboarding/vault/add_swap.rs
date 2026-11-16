@@ -82,8 +82,14 @@ mod tests {
     fn retries_number_names_against_the_latest_list() {
         let root = tempfile::tempdir().unwrap();
         let adapters = create_adapters(Some(root.path().join("home")), root.path().into(), || 42);
-        let identity =
-            device_identity(&*adapters.keychain, &adapters.home, "mainbook", false, 42).unwrap();
+        let identity = device_identity(
+            &*adapters.keychain,
+            &adapters.home,
+            "mainbook",
+            false,
+            &|| 42,
+        )
+        .unwrap();
         let genesis = create_genesis(&identity, [0; 32], 0).unwrap();
         let creation = create_vault_swap(
             &genesis,
@@ -105,7 +111,7 @@ mod tests {
         };
         let other = create_adapters(Some(root.path().join("other")), root.path().into(), || 42);
         let candidate =
-            device_identity(&*other.keychain, &other.home, "mainbook", false, 42).unwrap();
+            device_identity(&*other.keychain, &other.home, "mainbook", false, &|| 42).unwrap();
         let proposed = crate::pairing::approval::named_for_list(candidate.record.clone(), &history);
         assert_eq!(proposed.name, "mainbook-2");
         let mut names = Vec::new();

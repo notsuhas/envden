@@ -8,7 +8,7 @@ fn repair_context_only_decodes_local_entries() {
         .unwrap()
         .unwrap();
     state["headers"] = serde_json::json!(["!"]);
-    crate::state::repository::save_state(&adapters.home, &state, (adapters.now)()).unwrap();
+    crate::state::repository::save_state(&adapters.home, &state, &adapters.now).unwrap();
     assert!(repair_context(&adapters, &token, server.clone()).is_ok());
     assert!(server.requests.borrow().is_empty());
 }

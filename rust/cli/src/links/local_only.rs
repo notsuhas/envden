@@ -45,6 +45,6 @@ pub fn mark_local_only(
         }
         link["mode"] = "copy".into();
         link["localOnly"] = true.into();
-        save_state(&adapters.home, state, (adapters.now)())
+        save_state(&adapters.home, state, &adapters.now)
     })
 }

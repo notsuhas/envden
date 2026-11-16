@@ -47,7 +47,7 @@ pub fn alias_repo(adapters: &IAdapters, source: &str, target: &str) -> Result<()
         if source != "__proto__" || state["aliases"].get(source).is_some() {
             state["aliases"][source] = target.into();
         }
-        save_state(&adapters.home, &state, (adapters.now)())
+        save_state(&adapters.home, &state, &adapters.now)
     })
 }
 
@@ -106,7 +106,7 @@ mod persistence_tests {
         let adapters = create_adapters(Some(dir.path().to_owned()), dir.path().to_owned(), || 42);
         let mut state = empty_state("test");
         state["aliases"] = serde_json::from_str(r#"{"__proto__":"old"}"#).unwrap();
-        save_state(dir.path(), &state, (adapters.now)()).unwrap();
+        save_state(dir.path(), &state, &adapters.now).unwrap();
         alias_repo(&adapters, "__proto__", "new").unwrap();
         assert_eq!(
             load_state(dir.path()).unwrap().unwrap()["aliases"]["__proto__"],
@@ -126,7 +126,7 @@ mod persistence_tests {
         );
         let mut state = empty_state("test");
         state["aliases"] = serde_json::json!({"old":"canonical"});
-        save_state(dir.path(), &state, (adapters.now)()).unwrap();
+        save_state(dir.path(), &state, &adapters.now).unwrap();
         alias_repo(&adapters, "__proto__", "ignored").unwrap();
         assert_eq!(
             load_state(dir.path()).unwrap().unwrap()["aliases"],

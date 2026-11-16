@@ -71,7 +71,7 @@ fn unlock_actions_validate_before_network() {
             .code,
         ErrorCode::NotFound
     );
-    save_state(&adapters.home, &crate::state::empty_state("test"), 1).unwrap();
+    save_state(&adapters.home, &crate::state::empty_state("test"), &|| 1).unwrap();
     assert_eq!(
         set_unlock_period(&adapters, "never", "unused", Rc::new(Never))
             .unwrap_err()

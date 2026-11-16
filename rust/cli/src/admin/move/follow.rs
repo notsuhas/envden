@@ -85,6 +85,6 @@ pub fn follow_server_move(
     }
     local["server"] =
         json!({"address":target.new_address,"pin":text(&target.new_pin),"protocol":1});
-    save_state(&adapters.home, local, (client.options.now)())?;
+    save_state(&adapters.home, local, &*client.options.now)?;
     Ok(Some(destination))
 }

@@ -37,7 +37,7 @@ pub fn apply_setting(arguments: &[String], adapters: &IAdapters) -> Result<Strin
                 key,
                 value,
                 &adapters.home,
-                (adapters.now)(),
+                &adapters.now,
                 io::stdin().is_terminal(),
             )?,
         )),
@@ -71,7 +71,7 @@ pub fn set_checkout_placement(
             "placement",
             &serde_json::to_string(&placement).expect("placement JSON"),
             &adapters.home,
-            (adapters.now)(),
+            &adapters.now,
             false,
         )
     })

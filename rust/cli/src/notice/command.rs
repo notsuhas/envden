@@ -89,7 +89,7 @@ pub fn command_notice_with_transport(
                 &adapters.home,
                 &state,
                 |root| adapters.repo.case_insensitive(root, true),
-                (adapters.now)(),
+                &adapters.now,
             )?;
             let update = update_status(&adapters.home)?;
             cache_offers(adapters, &state, cwd, &update, now)?;

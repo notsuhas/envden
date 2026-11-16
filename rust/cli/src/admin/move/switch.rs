@@ -41,6 +41,6 @@ pub fn switch_server(
         }
         context.local["server"] =
             serde_json::json!({"address":address,"pin":text(&server.pin),"protocol":1});
-        save_state(&adapters.home, &context.local, (adapters.now)())
+        save_state(&adapters.home, &context.local, &adapters.now)
     })
 }

@@ -46,7 +46,7 @@ mod tests {
             &adapters.home,
             "test",
             false,
-            42,
+            &|| 42,
         )
         .unwrap();
         let material = crate::vault::create_genesis(&identity, [2; 32], 42).unwrap();
@@ -55,7 +55,7 @@ mod tests {
             &identity,
             "password",
             &crate::client::text(&[0; 192]),
-            42,
+            &|| 42,
         )
         .unwrap();
         struct Offline;

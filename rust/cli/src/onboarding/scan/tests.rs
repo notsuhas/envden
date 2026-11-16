@@ -113,7 +113,7 @@ fn checkout_setup_reloads_other_writers_state() {
     let mut stale = empty_state("test");
     let mut current = stale.clone();
     current["aliases"] = serde_json::json!({"host/new":"host/canonical"});
-    save_state(&adapters.home, &current, (adapters.now)()).unwrap();
+    save_state(&adapters.home, &current, &adapters.now).unwrap();
     setup_checkouts(
         &adapters,
         &mut stale,

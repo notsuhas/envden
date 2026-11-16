@@ -25,7 +25,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
         let identity =
-            device_identity(&*adapters.keychain, &adapters.home, "test", false, 42).unwrap();
+            device_identity(&*adapters.keychain, &adapters.home, "test", false, &|| 42).unwrap();
         let material = create_genesis(&identity, [2; 32], 42).unwrap();
         let creation = create_vault_swap(
             &material,

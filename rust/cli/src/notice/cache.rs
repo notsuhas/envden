@@ -53,9 +53,11 @@ pub fn refresh_notice(
     home: &Path,
     state: &Value,
     case_insensitive: impl Fn(&str) -> Result<bool>,
-    now: u64,
+    clock: &dyn Fn() -> u64,
 ) -> Result<()> {
-    with_state_lock(home, &|| now, || {
+    let now = clock();
+
+    with_state_lock(home, clock, || {
         let roots: Vec<_> = state["approved"]
             .as_array()
             .into_iter()
@@ -128,7 +130,7 @@ mod tests {
             1,
         )
         .unwrap();
-        refresh_notice(home, &state, |_| Ok(false), 1).unwrap();
+        refresh_notice(home, &state, |_| Ok(false), &|| 1).unwrap();
         assert_eq!(
             cached_notice(home).unwrap(),
             "envden: host/repo out of sync\nenvden: remote/repo out of sync\n"

@@ -38,7 +38,7 @@ fn removal_cleans_shared_bases() {
     let mut s = empty_state("test");
     s["approved"] = json!([checkout_value(&checkout)]);
     s["links"] = json!([{"root":root,"path":".env","store":store,"mode":"copy"}]);
-    save_state(&home, &s, (a.now)()).unwrap();
+    save_state(&home, &s, &a.now).unwrap();
     fs::create_dir_all(home.join("store")).unwrap();
     fs::create_dir_all(home.join("base")).unwrap();
     for p in [

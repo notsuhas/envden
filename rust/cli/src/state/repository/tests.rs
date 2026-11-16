@@ -7,7 +7,7 @@ mod cases {
         let temp = tempfile::tempdir().unwrap();
         let mut state = super::super::super::empty_state("test");
         state["latest"] = "0.0.1".into();
-        save_state(temp.path(), &state, 42).unwrap();
+        save_state(temp.path(), &state, &|| 42).unwrap();
         crate::updates::cache::save_update_cache(
             temp.path(),
             &crate::updates::cache::IUpdateCache {
@@ -30,7 +30,7 @@ mod cases {
         let temp = tempfile::tempdir().unwrap();
         let mut state = super::super::super::empty_state("test");
         state["headers"] = serde_json::json!(["one", "two", "one"]);
-        save_state(temp.path(), &state, 123).unwrap();
+        save_state(temp.path(), &state, &|| 123).unwrap();
         assert_eq!(load_state(temp.path()).unwrap(), Some(state));
         let hash = format!("{:x}", Sha256::digest(b"one"));
         std::fs::write(temp.path().join("state/headers").join(hash), "changed").unwrap();
@@ -47,7 +47,7 @@ mod cases {
         assert!(load_state(temp.path()).is_err());
         let mut state = super::super::super::empty_state("test");
         state["format"] = serde_json::json!(1.0);
-        save_state(temp.path(), &state, 42).unwrap();
+        save_state(temp.path(), &state, &|| 42).unwrap();
         assert!(load_state(temp.path()).unwrap().is_some());
     }
 }
@@ -64,7 +64,12 @@ mod header_error_tests {
             ("0".repeat(64), "Missing stored header"),
         ] {
             let dir = tempfile::tempdir().unwrap();
-            save_state(dir.path(), &super::super::super::empty_state("test"), 42).unwrap();
+            save_state(
+                dir.path(),
+                &super::super::super::empty_state("test"),
+                &|| 42,
+            )
+            .unwrap();
             let path = dir.path().join("state/device.json");
             let mut record: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
             record["headerRefs"] = serde_json::json!([reference]);
@@ -82,7 +87,12 @@ mod collection_tests {
     #[test]
     fn load_revives_collections_before_validating_state() {
         let dir = tempfile::tempdir().unwrap();
-        save_state(dir.path(), &super::super::super::empty_state("test"), 42).unwrap();
+        save_state(
+            dir.path(),
+            &super::super::super::empty_state("test"),
+            &|| 42,
+        )
+        .unwrap();
         let path = dir.path().join("state/device.json");
         let original: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         for tag in [

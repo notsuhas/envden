@@ -10,9 +10,11 @@ pub fn prune_missing_checkouts(
     home: &Path,
     state: &mut Value,
     notice: &dyn Fn(&str),
-    now: u64,
+    clock: &dyn Fn() -> u64,
 ) -> Result<()> {
-    with_state_lock(home, &|| now, || {
+    let now = clock();
+
+    with_state_lock(home, clock, || {
         let approved = state["approved"].as_array().cloned().unwrap_or_default();
         for approval in approved {
             let root = approval["root"].as_str().unwrap_or_default();
@@ -52,7 +54,7 @@ pub fn prune_missing_checkouts(
             state["links"] = remaining.into();
             notice(&format!("Missing checkout removed: {root}"));
         }
-        save_state(home, state, now)
+        save_state(home, state, &|| now)
     })
 }
 
@@ -73,7 +75,7 @@ mod tests {
         };
         let mut state = crate::state::empty_state("test");
         state["approved"] = serde_json::json!([crate::links::approval::checkout_value(&checkout)]);
-        prune_missing_checkouts(&temp.path().join("home"), &mut state, &|_| {}, 42).unwrap();
+        prune_missing_checkouts(&temp.path().join("home"), &mut state, &|_| {}, &|| 42).unwrap();
         assert!(state["approved"].as_array().unwrap().is_empty());
     }
 }

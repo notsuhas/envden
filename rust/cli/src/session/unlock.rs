@@ -25,7 +25,7 @@ pub fn unlock_device(
         &adapters.home,
         state["deviceName"].as_str().unwrap_or_default(),
         false,
-        (adapters.now)(),
+        &adapters.now,
     )?;
     let read = |value: &serde_json::Value| {
         value
@@ -53,6 +53,6 @@ pub fn unlock_device(
     with_state_lock(&adapters.home, &adapters.now, || {
         let mut current = require_configured(load_state(&adapters.home)?)?;
         current["session"] = serde_json::to_value(session).expect("serializable window");
-        save_state(&adapters.home, &current, (adapters.now)())
+        save_state(&adapters.home, &current, &adapters.now)
     })
 }

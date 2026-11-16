@@ -90,7 +90,7 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
             &stored_repos,
             options.alias.unwrap_or(&alias),
         )?;
-        save_state(&adapters.home, state, (adapters.now)())?;
+        save_state(&adapters.home, state, &adapters.now)?;
         own_links.extend(link_checkout(
             adapters,
             state,
@@ -99,10 +99,10 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
             options.copy,
             &|message| println!("{message}"),
         )?);
-        save_state(&adapters.home, state, (adapters.now)())?;
+        save_state(&adapters.home, state, &adapters.now)?;
     }
     let left = offer_takeover(adapters, state, own_links, options.copy, options.take_over)?;
-    save_state(&adapters.home, state, (adapters.now)())?;
+    save_state(&adapters.home, state, &adapters.now)?;
     report_own_links(&left, &home, options.verbose, &command);
     Ok(())
 }

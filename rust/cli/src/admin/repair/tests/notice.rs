@@ -18,20 +18,14 @@ impl crate::updates::fetch::IFetcher for NoUpdates {
 #[test]
 fn pre_command_discovers_and_marks_recovery_join_once() {
     let (_dir, adapters, mut server, _token) = fixture();
-    crate::settings::set_config(
-        "update-check",
-        "off",
-        &adapters.home,
-        (adapters.now)(),
-        false,
-    )
-    .unwrap();
+    crate::settings::set_config("update-check", "off", &adapters.home, &adapters.now, false)
+        .unwrap();
     let _own = device_identity(
         &*adapters.keychain,
         &adapters.home,
         "laptop",
         false,
-        (adapters.now)(),
+        &adapters.now,
     )
     .unwrap();
     let beta = p::generate_device_keys(p::random_bytes);
@@ -92,7 +86,7 @@ fn pre_command_discovers_and_marks_recovery_join_once() {
     current.entries.push(entry);
     let result = crate::notice::command::command_notice_with_transport(
         &adapters,
-        (adapters.now)(),
+        &adapters.now,
         &NoUpdates,
         false,
         None,
@@ -116,14 +110,8 @@ fn pre_command_discovers_and_marks_recovery_join_once() {
 #[test]
 fn notice_deadline_starts_at_invocation_time() {
     let (_dir, adapters, server, _token) = fixture();
-    crate::settings::set_config(
-        "update-check",
-        "off",
-        &adapters.home,
-        (adapters.now)(),
-        false,
-    )
-    .unwrap();
+    crate::settings::set_config("update-check", "off", &adapters.home, &adapters.now, false)
+        .unwrap();
     crate::notice::command::command_notice_with_transport(
         &adapters,
         0,

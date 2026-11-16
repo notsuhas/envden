@@ -94,7 +94,7 @@ pub fn set_config(
     key: &str,
     value: &str,
     home: &Path,
-    now: u64,
+    clock: &dyn Fn() -> u64,
     interactive: bool,
 ) -> Result<Value> {
     if matches!(key, "agent-merge" | "auto-approve-worktrees") && value == "on" && !interactive {
@@ -103,7 +103,9 @@ pub fn set_config(
             format!("Turning on {key} requires a terminal"),
         ));
     }
-    with_state_lock(home, &|| now, || {
+    let now = clock();
+
+    with_state_lock(home, clock, || {
         let mut config = read_config(home)?;
         config[key] = if matches!(key, "placement" | "env-files") {
             serde_json::from_str(value).map_err(|e| {
@@ -170,9 +172,9 @@ mod tests {
                 .unwrap()
         );
         assert!(parse_config(json!({"unknown":true})).is_err());
-        set_config("telemetry", "on", temp.path(), 1, false).unwrap();
+        set_config("telemetry", "on", temp.path(), &|| 1, false).unwrap();
         assert_eq!(read_config(temp.path()).unwrap()["telemetry"], true);
-        assert!(set_config("agent-merge", "on", temp.path(), 1, false).is_err());
+        assert!(set_config("agent-merge", "on", temp.path(), &|| 1, false).is_err());
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;

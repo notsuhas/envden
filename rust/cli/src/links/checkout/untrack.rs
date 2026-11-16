@@ -65,7 +65,7 @@ pub fn untrack(adapters: &IAdapters, path: &str) -> Result<Vec<String>> {
                             .cloned()
                             .collect(),
                     ),
-                    (adapters.now)(),
+                    &adapters.now,
                 )?;
                 if !keep {
                     cancelled.extend(intent.targets);
@@ -73,23 +73,18 @@ pub fn untrack(adapters: &IAdapters, path: &str) -> Result<Vec<String>> {
             }
             detach_file(adapters, link)?;
         }
-        super::bases::remove_checkout_bases(
-            &adapters.home,
-            &removed,
-            &remaining,
-            (adapters.now)(),
-        )?;
+        super::bases::remove_checkout_bases(&adapters.home, &removed, &remaining, &adapters.now)?;
         remove_conflict_targets(&adapters.home, &root, (adapters.now)())?;
         state["links"] = remaining.into();
         if let Some(approved) = state["approved"].as_array_mut() {
             approved.retain(|a| a["root"] != root);
         }
-        save_state(&adapters.home, &state, (adapters.now)())?;
+        save_state(&adapters.home, &state, &adapters.now)?;
         crate::notice::cache::refresh_notice(
             &adapters.home,
             &state,
             |r| adapters.repo.case_insensitive(r, true),
-            (adapters.now)(),
+            &adapters.now,
         )?;
         Ok(cancelled)
     })

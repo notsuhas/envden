@@ -177,7 +177,7 @@ fn locked_accept(
         &format!("envden/{}/id-key", adapters.home.display()),
         &ring.id_key,
     )?;
-    save_state(&adapters.home, &local, (adapters.now)())?;
+    save_state(&adapters.home, &local, &adapters.now)?;
     Ok(local)
 }
 

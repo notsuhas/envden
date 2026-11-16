@@ -17,7 +17,7 @@ pub fn selected_repos(
     skipped_roots: &mut HashSet<String>,
     report: &dyn Fn(&str),
 ) -> Result<HashSet<String>> {
-    prune_missing_checkouts(&adapters.home, state, report, (adapters.now)())?;
+    prune_missing_checkouts(&adapters.home, state, report, &adapters.now)?;
     let mut repos = HashSet::new();
     for approved in state["approved"].as_array().into_iter().flatten() {
         let root = approved["root"].as_str().unwrap_or_default();

@@ -152,7 +152,7 @@ fn takeover_and_untrack_restore_the_original_foreign_link() {
             .unwrap(),
         envden_core::adapters::TPlacementState::Linked
     );
-    save_state(&adapters.home, &state, (adapters.now)()).unwrap();
+    save_state(&adapters.home, &state, &adapters.now).unwrap();
     super::untrack::untrack(&adapters, &checkout.root).unwrap();
     assert_eq!(
         fs::read_link(root.join(".env")).unwrap(),

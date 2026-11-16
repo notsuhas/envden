@@ -162,7 +162,7 @@ pub fn remove_file(
                 .as_array_mut()
                 .unwrap()
                 .retain(|l| l["store"] != store || l["localOnly"] == true);
-            save_state(&adapters.home, &state, now)?;
+            save_state(&adapters.home, &state, &|| now)?;
         }
         for record in records.iter().filter(|r| r.store == store) {
             if let Some(entry) = &record.entry {

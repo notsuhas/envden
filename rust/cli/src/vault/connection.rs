@@ -32,7 +32,7 @@ pub fn vault_connection(
         &adapters.home,
         &read(&state["deviceName"])?,
         false,
-        (adapters.now)(),
+        &adapters.now,
     )?;
     let vault_id = p::fixed(&p::unbase32(&read(&state["vaultId"])?)?)?;
     let client = create_client(IClientOptions {

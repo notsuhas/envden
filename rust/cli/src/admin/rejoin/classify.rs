@@ -17,7 +17,7 @@ pub(crate) fn check(
         &adapters.home,
         local["deviceName"].as_str().unwrap_or_default(),
         false,
-        (adapters.now)(),
+        &adapters.now,
     )?;
     let decode = |key: &str| -> Result<Vec<Vec<u8>>> {
         local[key]

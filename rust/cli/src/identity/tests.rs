@@ -36,7 +36,7 @@ fn independent_keys_survive_reload_in_their_namespace() {
         &root.path().join("first"),
         "laptop",
         false,
-        1800000000000,
+        &|| 1800000000000,
     )
     .unwrap();
     assert_eq!(
@@ -45,7 +45,7 @@ fn independent_keys_survive_reload_in_their_namespace() {
             &root.path().join("first"),
             "ignored rename",
             false,
-            1800000000000
+            &|| 1800000000000
         )
         .unwrap(),
         first
@@ -58,7 +58,7 @@ fn independent_keys_survive_reload_in_their_namespace() {
             &root.path().join("second"),
             "other",
             false,
-            1800000000000
+            &|| 1800000000000
         )
         .unwrap()
         .record
@@ -71,8 +71,8 @@ fn independent_keys_survive_reload_in_their_namespace() {
 fn fresh_join_replaces_orphan_keys_and_name() {
     let root = tempfile::tempdir().unwrap();
     let keychain = Keychain::default();
-    let old = device_identity(&keychain, root.path(), "old", false, 1800000000000).unwrap();
-    let next = device_identity(&keychain, root.path(), "new", true, 1800000000000).unwrap();
+    let old = device_identity(&keychain, root.path(), "old", false, &|| 1800000000000).unwrap();
+    let next = device_identity(&keychain, root.path(), "new", true, &|| 1800000000000).unwrap();
     assert_ne!(old.record.id, next.record.id);
     assert_eq!(next.record.name, "new");
 }
@@ -83,11 +83,13 @@ fn configured_state_refuses_missing_identity() {
     let keychain = Keychain::default();
     let mut state = empty_state("joined");
     state["vaultId"] = "configured".into();
-    save_state(root.path(), &state, 1800000000000).unwrap();
+    save_state(root.path(), &state, &|| 1800000000000).unwrap();
     assert_eq!(
-        device_identity(&keychain, root.path(), "replacement", false, 1800000000000)
-            .unwrap_err()
-            .code,
+        device_identity(&keychain, root.path(), "replacement", false, &|| {
+            1800000000000
+        })
+        .unwrap_err()
+        .code,
         ErrorCode::Locked
     );
 }
@@ -96,7 +98,8 @@ fn configured_state_refuses_missing_identity() {
 fn stored_identity_authenticates_secrets_and_record() {
     let root = tempfile::tempdir().unwrap();
     let keychain = Keychain::default();
-    let identity = device_identity(&keychain, root.path(), "laptop", false, 1800000000000).unwrap();
+    let identity =
+        device_identity(&keychain, root.path(), "laptop", false, &|| 1800000000000).unwrap();
     let mut bytes = identity_bytes(&identity.keys, &identity.record).unwrap();
     bytes[32] ^= 1;
     assert_eq!(
@@ -111,7 +114,7 @@ fn stored_identity_authenticates_secrets_and_record() {
     committed.name = "renamed".into();
     adopt_committed_name(&keychain, root.path(), &committed).unwrap();
     assert_eq!(
-        device_identity(&keychain, root.path(), "ignored", false, 1800000000000)
+        device_identity(&keychain, root.path(), "ignored", false, &|| 1800000000000)
             .unwrap()
             .record
             .name,
