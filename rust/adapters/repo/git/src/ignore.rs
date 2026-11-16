@@ -142,8 +142,9 @@ pub(crate) fn ensure(adapter: &GitRepoAdapter, checkout: &ICheckout, path: &str)
             ));
         }
     }
-    let mut original = String::new();
-    file.read_to_string(&mut original).map_err(exec::failure)?;
+    let mut bytes = Vec::new();
+    file.read_to_end(&mut bytes).map_err(exec::failure)?;
+    let original = String::from_utf8_lossy(&bytes);
     let line = format!("/{escaped}");
     let added = !original.split('\n').any(|s| s == line);
     let suffix = format!("\n{line}\n");

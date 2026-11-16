@@ -114,3 +114,26 @@ fn ignore_failure_preserves_original_git_exclude_bytes() {
     assert!(adapter.ensure_ignored(&checkout, ".env.keep").is_err());
     assert_eq!(fs::read(exclude).unwrap(), before);
 }
+
+#[test]
+fn invalid_utf8_exclude_bytes_are_preserved_when_appending() {
+    let home = tempfile::tempdir().unwrap();
+    let root = home.path();
+    git(root, &["init", "-q"]);
+    git(
+        root,
+        &["remote", "add", "origin", "https://github.com/team/repo"],
+    );
+    let adapter = create_git_repo_adapter(IGitRepoOptions {
+        home: Some(root.to_string_lossy().into()),
+        ..Default::default()
+    });
+    let checkout = adapter
+        .checkout_at(root.to_str().unwrap())
+        .unwrap()
+        .unwrap();
+    let exclude = Path::new(&checkout.git_dir).join("info/exclude");
+    fs::write(&exclude, b"# user\xff\n").unwrap();
+    adapter.ensure_ignored(&checkout, ".env").unwrap();
+    assert_eq!(fs::read(exclude).unwrap(), b"# user\xff\n\n/.env\n");
+}
