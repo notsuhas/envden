@@ -188,7 +188,9 @@ pub fn discover_repos(
             }
         }
     }
-    found.into_values().collect()
+    let mut results: Vec<_> = found.into_values().collect();
+    results.sort_by(|a, b| crate::output::locale_compare(&a.root, &b.root));
+    results
 }
 
 fn real_or_resolved(path: &Path) -> PathBuf {

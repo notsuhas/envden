@@ -91,7 +91,12 @@ pub fn group_repos(rows: &[Value]) -> Vec<Value> {
             .unwrap()
             .push(row["file"].clone());
     }
-    repos.sort_by(|a, b| a["repoId"].as_str().cmp(&b["repoId"].as_str()));
+    repos.sort_by(|a, b| {
+        crate::output::locale_compare(
+            a["repoId"].as_str().unwrap_or_default(),
+            b["repoId"].as_str().unwrap_or_default(),
+        )
+    });
     repos
 }
 
@@ -133,5 +138,21 @@ mod tests {
             sync_summary("pull", 0, 0),
             "Pulled: 0 changed, 0 conflicts."
         );
+    }
+}
+
+#[cfg(test)]
+mod ordering_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn repo_groups_follow_reference_locale_order() {
+        let rows: Vec<_> = ["Z", "a", "ä", "A", "_", "-", "é", "e", "10", "2"].into_iter().map(|id| json!({"repoId":id,"root":"/checkout","approval":"approved","file":{"status":"in-sync"}})).collect();
+        let sorted: Vec<_> = group_repos(&rows)
+            .into_iter()
+            .map(|r| r["repoId"].as_str().unwrap().to_owned())
+            .collect();
+        assert_eq!(sorted, ["_", "-", "10", "2", "a", "A", "ä", "e", "é", "Z"]);
     }
 }

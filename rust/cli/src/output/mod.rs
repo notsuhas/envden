@@ -8,3 +8,6 @@ pub use sanitize::{sanitize_console, sanitize_terminal, terminal_json};
 pub mod counts;
 pub mod progress;
 pub mod render;
+
+mod collation;
+pub(crate) use collation::locale_compare;

@@ -39,6 +39,7 @@ unicode-normalization = "0.1"
 flate2 = { version = "1", default-features = false, features = ["zlib"] }
 libz-sys = { version = "1", features = ["static"] }
 unicode-width = "0.2.2"
+icu_collator = "2.1"
 
 [dev-dependencies]
 envden-testing = { path = "../testing" }

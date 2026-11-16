@@ -1,6 +1,7 @@
 use super::super::file::IOwnLink;
 use crate::output::home_path;
-use std::{collections::BTreeMap, path::Path};
+use crate::output::locale_compare;
+use std::path::Path;
 
 pub struct IOwnLinkGroup {
     pub target: String,
@@ -8,22 +9,31 @@ pub struct IOwnLinkGroup {
 }
 
 pub fn group_own_links(links: Vec<IOwnLink>) -> Vec<IOwnLinkGroup> {
-    let mut groups: BTreeMap<String, Vec<IOwnLink>> = BTreeMap::new();
+    let mut groups: Vec<IOwnLinkGroup> = Vec::new();
     for link in links {
-        groups.entry(link.target.clone()).or_default().push(link);
+        if let Some(group) = groups.iter_mut().find(|group| group.target == link.target) {
+            group.links.push(link);
+        } else {
+            groups.push(IOwnLinkGroup {
+                target: link.target.clone(),
+                links: vec![link],
+            });
+        }
+    }
+    groups.sort_by(|a, b| locale_compare(&a.target, &b.target));
+    for group in &mut groups {
+        group.links.sort_by(|a, b| {
+            (a.checkout.registered_worktree == Some(true))
+                .cmp(&(b.checkout.registered_worktree == Some(true)))
+                .then_with(|| {
+                    locale_compare(
+                        &Path::new(&a.checkout.root).join(&a.path).to_string_lossy(),
+                        &Path::new(&b.checkout.root).join(&b.path).to_string_lossy(),
+                    )
+                })
+        });
     }
     groups
-        .into_iter()
-        .map(|(target, mut links)| {
-            links.sort_by_key(|l| {
-                (
-                    l.checkout.registered_worktree == Some(true),
-                    Path::new(&l.checkout.root).join(&l.path),
-                )
-            });
-            IOwnLinkGroup { target, links }
-        })
-        .collect()
 }
 
 pub fn takeover_question(group: &IOwnLinkGroup, home: &Path) -> String {
