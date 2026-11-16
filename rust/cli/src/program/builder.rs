@@ -77,7 +77,7 @@ fn option_arg(option: &IOption) -> Arg {
             })
             .allow_hyphen_values(!option.variadic);
         if option.variadic {
-            arg = arg.num_args(1..);
+            arg = arg.num_args(1);
         }
         if option.optional {
             arg = arg.num_args(0..=1);

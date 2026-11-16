@@ -53,3 +53,20 @@ fn dashboard_ports_use_javascript_number_prefixes() {
         );
     }
 }
+
+#[test]
+fn unknown_help_targets_print_parent_help_to_stderr() {
+    for (argv, usage) in [
+        (vec!["device", "help", "foo"], "Usage: envden device"),
+        (vec!["help", "help"], "Usage: envden"),
+        (vec!["device", "help", "help"], "Usage: envden device"),
+    ] {
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_envden"))
+            .args(argv)
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(1));
+        assert!(output.stdout.is_empty());
+        assert!(String::from_utf8_lossy(&output.stderr).contains(usage));
+    }
+}

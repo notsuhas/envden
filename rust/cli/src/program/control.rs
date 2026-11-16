@@ -16,10 +16,23 @@ pub(super) fn control<'a>(
     let mut help = false;
     let mut short_error = None;
     let mut positional = false;
+    let mut operands_only = false;
     let mut index = 0;
     while let Some(token) = args.get(index) {
         index += 1;
-        if token == "--" {
+        if token == "--" && !operands_only {
+            operands_only = true;
+            continue;
+        }
+        if operands_only
+            && (positional
+                || !command
+                    .commands
+                    .iter()
+                    .any(|c| c.name == *token || c.aliases.contains(token)))
+            && token != "help"
+        {
+            normalized.push("--".into());
             normalized.extend_from_slice(&args[index - 1..]);
             break;
         }
@@ -30,6 +43,7 @@ pub(super) fn control<'a>(
             .options
             .iter()
             .find(|o| o.long.as_deref() == Some(flag) || o.short.as_deref() == Some(flag))
+            && !operands_only
             && (option.required || option.optional)
         {
             let value = inline.or_else(|| args.get(index).map(String::as_str));
@@ -60,8 +74,8 @@ pub(super) fn control<'a>(
                 if inline.is_none() {
                     index += 1;
                 }
-                if option.variadic {
-                    while let Some(value) = args.get(index).filter(|v| !v.starts_with('-')) {
+                if option.variadic && inline.is_none() {
+                    while let Some(value) = args.get(index).filter(|v| !maybe_option(v)) {
                         normalized.push(format!("{flag}={value}"));
                         index += 1;
                     }
@@ -76,34 +90,27 @@ pub(super) fn control<'a>(
                 ))),
             );
         }
-        if token == "--help" || token == "-h" {
+        if !operands_only && (token == "--help" || token == "-h") {
             help = true;
             continue;
         }
         if token.starts_with("-h") {
             short_error = Some(token);
         }
-        if !positional && !token.starts_with('-') {
+        if !help && !positional && !maybe_option(token) {
             if token == "help" && !command.commands.is_empty() {
-                let target = match args.get(index) {
-                    None => command,
-                    Some(name) => match command
+                let name = args.get(index).filter(|name| !maybe_option(name));
+                let target = name.and_then(|name| {
+                    command
                         .commands
                         .iter()
                         .find(|c| c.name == *name || c.aliases.contains(name))
-                    {
-                        Some(child) => child,
-                        None => {
-                            return (
-                                normalized,
-                                Some(TParseResult::Error(format!(
-                                    "error: unknown command '{name}'"
-                                ))),
-                            );
-                        }
-                    },
-                };
-                return (normalized, Some(TParseResult::Help(target, false)));
+                });
+                let stderr = name.is_some() && target.is_none();
+                return (
+                    normalized,
+                    Some(TParseResult::Help(target.unwrap_or(command), stderr)),
+                );
             }
             if let Some(child) = command
                 .commands
@@ -123,4 +130,8 @@ pub(super) fn control<'a>(
         short_error.map(|token| TParseResult::Error(format!("error: unknown option '{token}'")))
     };
     (normalized, result)
+}
+
+fn maybe_option(value: &str) -> bool {
+    value.len() > 1 && value.starts_with('-')
 }
