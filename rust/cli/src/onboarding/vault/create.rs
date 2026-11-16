@@ -63,88 +63,55 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
     })?;
     let name = crate::onboarding::setup::device_name(options)?;
     let password = confirmed_password(|label| secret(label, |_| None), 3, |v| eprintln!("{v}"))?;
-    let token = p::decode_token(p::TTokenKind::Setup, &token)?;
-    hello(&address, Some(&token.1), &UreqTransport, MIN_SERVER)?;
+    setup(adapters, options, &address, &token, &name, &password)
+}
+
+fn setup(
+    adapters: &IAdapters,
+    options: &Value,
+    address: &str,
+    token: &str,
+    name: &str,
+    password: &str,
+) -> Result<Value> {
+    let existing = load_state(&adapters.home)?;
+    if let Some(state) = existing.as_ref()
+        && state["vaultId"].as_str().is_some_and(|v| !v.is_empty())
+        && state["creationPending"].as_str().is_none_or(str::is_empty)
+    {
+        return Ok(state.clone());
+    }
+    let token = p::decode_token(p::TTokenKind::Setup, token)?;
+    hello(address, Some(&token.1), &UreqTransport, MIN_SERVER)?;
     let identity = device_identity(
         &*adapters.keychain,
         &adapters.home,
-        &name,
+        name,
         false,
         (adapters.now)(),
     )?;
-    if let Some(mut pending) = load_state(&adapters.home)?
-        && let Some(encoded) = pending["creationPending"].as_str()
-    {
-        let bytes = crate::client::binary(encoded)?;
-        let swap: p::ISwap = p::decode(&bytes)?;
-        let vault_id = p::fixed(&p::unbase32(
-            pending["vaultId"].as_str().unwrap_or_default(),
-        )?)?;
-        let mut client = connection(
-            adapters,
-            pending["server"]["address"].as_str().unwrap_or(&address),
-            token.1,
-            vault_id,
-            &identity,
-        );
-        let key = p::token_key(p::TTokenKind::Setup, &token.0);
-        client.options.proof = Some(Rc::new(move |request| {
-            p::token_proof(p::TTokenKind::Setup, &key, request).map(|v| v.to_vec())
-        }));
-        let epoch = adapters.keychain.get(
-            &format!("envden/{}/epoch/1", adapters.home.display()),
-            false,
-        )?;
-        let id = adapters
-            .keychain
-            .get(&format!("envden/{}/id-key", adapters.home.display()), false)?;
-        if super::pending::matches_pending(
-            &swap,
-            &vault_id,
-            epoch.as_deref(),
-            id.as_deref(),
-            &identity.record.id,
-        ) {
-            let kit = super::pending_kit::resume_secret(options)?
-                .map(|secret| {
-                    super::pending_kit::resumed_kit(
-                        &swap,
-                        pending["vaultId"].as_str().unwrap_or_default(),
-                        &address,
-                        &secret,
-                    )
-                })
-                .transpose()?;
-            match client.request_bytes("/v1/vault", "POST", &bytes) {
-                Ok(_) => {
-                    pending
-                        .as_object_mut()
-                        .expect("state")
-                        .shift_remove("creationPending");
-                    record_unlock_window(&client, &mut pending)?;
-                    save_state(&adapters.home, &pending, (adapters.now)())?;
-                    return if kit.is_some() {
-                        Ok(pending)
-                    } else {
-                        super::pending_kit::replace_lost(adapters, options, &name, &password)
-                    };
-                }
-                Err(error) if error.code == ErrorCode::Unauthorized => {}
-                Err(error) => return Err(error),
-            }
-        }
+    if let Some(state) = super::resume_creation::resume(
+        adapters,
+        options,
+        address,
+        &token,
+        &identity,
+        (name, password),
+        existing,
+    )? {
+        return Ok(state);
     }
     let material = create_genesis(&identity, token.1, (adapters.now)())?;
-    let mut client = connection(adapters, &address, token.1, material.vault_id, &identity);
+    let mut client = connection(adapters, address, token.1, material.vault_id, &identity);
     let key = p::token_key(p::TTokenKind::Setup, &token.0);
     client.options.proof = Some(Rc::new(move |request| {
         p::token_proof(p::TTokenKind::Setup, &key, request).map(|v| v.to_vec())
     }));
-    let record = register_password(&client, &material.vault_id, &password)?;
-    let creation = create_vault_swap(&material, &identity, &password, &record, (adapters.now)())?;
-    let kit = setup_kit(&creation.secret_key, &creation.vault_id, &address);
-    super::pending_kit::report(adapters, options, &name, &kit)?;
-    let mut state = empty_state(&name);
+    let record = register_password(&client, &material.vault_id, password)?;
+    let creation = create_vault_swap(&material, &identity, password, &record, (adapters.now)())?;
+    let kit = setup_kit(&creation.secret_key, &creation.vault_id, address);
+    super::pending_kit::report(adapters, options, name, &kit)?;
+    let mut state = empty_state(name);
     state["vaultId"] = json!(creation.vault_id);
     state["server"] = json!({"address":address,"pin":text(&token.1),"protocol":1});
     state["entries"] = json!([
@@ -185,6 +152,28 @@ fn setup_kit(secret: &str, vault: &str, address: &str) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn already_created_returns_without_server_or_prompts() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let mut state = empty_state("test");
+        state["vaultId"] = json!(p::base32(&[1; 32]));
+        save_state(&adapters.home, &state, 42).unwrap();
+        assert_eq!(
+            setup(
+                &adapters,
+                &json!({}),
+                "invalid",
+                "invalid",
+                "test",
+                "password"
+            )
+            .unwrap(),
+            state
+        );
+    }
+
     #[test]
     fn kit_serializes_in_reference_order() {
         let kit = setup_kit("secret", "vault", "server");

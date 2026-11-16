@@ -25,6 +25,40 @@ pub(super) fn matches_pending(
             .unwrap_or(false)
 }
 
+type TPending = (p::ISwap, Vec<u8>, [u8; 32]);
+
+pub(super) fn resumable(
+    adapters: &crate::adapters::IAdapters,
+    pending: &serde_json::Value,
+    device: &[u8; 16],
+) -> envden_core::errors::Result<Option<TPending>> {
+    if pending["vaultId"].as_str().is_none_or(str::is_empty) || !pending["server"].is_object() {
+        return Ok(None);
+    }
+    let Some(encoded) = pending["creationPending"].as_str() else {
+        return Ok(None);
+    };
+    let epoch = adapters.keychain.get(
+        &format!("envden/{}/epoch/1", adapters.home.display()),
+        false,
+    )?;
+    let id = adapters
+        .keychain
+        .get(&format!("envden/{}/id-key", adapters.home.display()), false)?;
+    if epoch.is_none() || id.is_none() {
+        return Ok(None);
+    }
+    let bytes = crate::client::binary(encoded)?;
+    let swap: p::ISwap = p::decode(&bytes)?;
+    let vault_id = p::fixed(&p::unbase32(
+        pending["vaultId"].as_str().unwrap_or_default(),
+    )?)?;
+    if !matches_pending(&swap, &vault_id, epoch.as_deref(), id.as_deref(), device) {
+        return Ok(None);
+    }
+    Ok(Some((swap, bytes, vault_id)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -33,6 +67,15 @@ mod tests {
         identity::device_identity,
         vault::{create_genesis, create_vault_swap},
     };
+
+    #[test]
+    fn missing_keys_skip_malformed_pending_creation() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        let state =
+            serde_json::json!({"creationPending":"bad", "vaultId":p::base32(&[1;32]),"server":{}});
+        assert!(resumable(&adapters, &state, &[0; 16]).unwrap().is_none());
+    }
 
     #[test]
     fn pending_requires_both_keys_and_matching_commit() {
