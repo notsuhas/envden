@@ -2,11 +2,12 @@ package enginetest
 
 import (
 	"encoding/json"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/cli/sync/local"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/cli/sync/local"
 )
 
 func TestSyncConflict(t *testing.T) {
@@ -20,14 +21,18 @@ func TestSyncConflict(t *testing.T) {
 	must(t, err)
 	data, err := json.Marshal(d)
 	must(t, err)
+
 	if strings.Contains(string(data), "local-test-value") {
 		t.Fatal("diff leaked value")
 	}
+
 	f.push(f.first)
 	equal(t, f.pull(f.second).Conflicts, 1)
+
 	if !strings.Contains(f.read(b), "A=mine") {
 		t.Fatal("lost mine")
 	}
+
 	records, err := local.ConflictRecords(f.second.Home)
 	must(t, err)
 	equal(t, len(records), 1)
@@ -36,7 +41,9 @@ func TestSyncConflict(t *testing.T) {
 	if err == nil || !strings.HasPrefix(err.Error(), "Conflict markers are still in") {
 		t.Fatal(err)
 	}
+
 	f.resolve(f.second, ".env", "take-server")
+
 	if !strings.Contains(f.read(b), "A=remote") {
 		t.Fatal("resolution missing remote")
 	}
@@ -57,14 +64,17 @@ func TestUnpublishedDetachedConflict(t *testing.T) {
 	equal(t, len(records), 1)
 	equal(t, f.read(records[0].Mine), "KEY=original\n")
 	found := false
+
 	for _, p := range records[0].Alternatives {
 		if f.read(p) == "KEY=detached\n" {
 			found = true
 		}
 	}
+
 	if !found {
 		t.Fatal("missing detached alternative")
 	}
+
 	f.resolve(f.first, ".env.local", "keep-mine")
 	equal(t, f.push(f.first).Conflicts, 0)
 	f.pull(f.second)

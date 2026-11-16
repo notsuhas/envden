@@ -6,11 +6,11 @@ import (
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	"github.com/notsuhas/envden/go/cli/links/place"
 	state "github.com/notsuhas/envden/go/cli/state/model"
-	sm "github.com/notsuhas/envden/go/cli/sync/model"
+	syncmodel "github.com/notsuhas/envden/go/cli/sync/model"
 )
 
-func syncLinks(f *fixture) sm.Links {
-	return sm.Links{ApprovedCheckout: links.ApprovedCheckout, CheckoutApproval: links.CheckoutApproval,
+func syncLinks(f *fixture) syncmodel.Links {
+	return syncmodel.Links{ApprovedCheckout: links.ApprovedCheckout, CheckoutApproval: links.CheckoutApproval,
 		PruneMissingCheckouts: func(home string, s *state.State, report func(string), now func() int64) error {
 			return place.PruneMissingCheckouts(f.ctx, home, s, report, f.first.Timing)
 		},
@@ -19,6 +19,7 @@ func syncLinks(f *fixture) sm.Links {
 			if err != nil {
 				return "", err
 			}
+
 			return string(p.Mode()), nil
 		},
 		AliasRepo: nil,

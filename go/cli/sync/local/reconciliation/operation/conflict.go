@@ -1,7 +1,7 @@
 package operation
 
 import (
-	cm "github.com/notsuhas/envden/go/cli/model/conflicts"
+	conflictmodel "github.com/notsuhas/envden/go/cli/model/conflicts"
 	"github.com/notsuhas/envden/go/cli/sync/local"
 )
 
@@ -10,8 +10,10 @@ func BlocksFile(home, store string, writable bool, now func() int64) (bool, erro
 	if err != nil {
 		return false, err
 	}
+
 	found := false
-	kept := []cm.Record{}
+	kept := []conflictmodel.Record{}
+
 	for _, record := range records {
 		if record.Store == store {
 			found = true
@@ -19,9 +21,11 @@ func BlocksFile(home, store string, writable bool, now func() int64) (bool, erro
 			kept = append(kept, record)
 		}
 	}
+
 	if !found {
 		return false, nil
 	}
+
 	if !writable {
 		return true, nil
 	}

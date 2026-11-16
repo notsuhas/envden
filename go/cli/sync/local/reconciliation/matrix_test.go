@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/notsuhas/envden/go/cli/sync/local"
-	f "github.com/notsuhas/envden/go/cli/sync/local/files"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	localfiles "github.com/notsuhas/envden/go/cli/sync/local/files"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 func TestPlacementReconciliationMatrix(t *testing.T) {
 	layouts := [][]string{{"link"}, {"copy"}, {"link", "copy"}, {"copy", "copy"}, {"link", "link"}, {"link", "copy", "copy"}}
+
 	for _, layout := range layouts {
 		for _, scenario := range []string{"unchanged", "remote edit", "store edit", "missing store", "missing target", "deleted remotely", "local edit versus deletion", "repair conflict"} {
 			t.Run(strings.Join(layout, "+")+"/"+scenario, func(t *testing.T) {
@@ -21,13 +22,14 @@ func TestPlacementReconciliationMatrix(t *testing.T) {
 				server := []byte("TOKEN=A\n")
 				want := string(server)
 				conflict := false
+
 				switch scenario {
 				case "remote edit":
 					server = []byte("TOKEN=B\n")
 					want = string(server)
 				case "store edit":
 					want = "TOKEN=C\n"
-					if err := f.WriteBytes(fixture.store, []byte(want), sc.Options.Now); err != nil {
+					if err := localfiles.WriteBytes(fixture.store, []byte(want), sc.Options.Now); err != nil {
 						t.Fatal(err)
 					}
 				case "missing store":
@@ -45,45 +47,57 @@ func TestPlacementReconciliationMatrix(t *testing.T) {
 					server = nil
 					want = "TOKEN=C\n"
 					conflict = true
-					if err := f.WriteBytes(fixture.store, []byte(want), sc.Options.Now); err != nil {
+					if err := localfiles.WriteBytes(fixture.store, []byte(want), sc.Options.Now); err != nil {
 						t.Fatal(err)
 					}
 				case "repair conflict":
 					conflict = true
 				}
+
 				entry := fixture.seal(t, 2, server)
 				repairs := map[string]bool{}
+
 				if scenario == "repair conflict" {
-					repairs[b.Base32(entry.FileId)] = true
+					repairs[encoding.Base32(entry.FileId)] = true
 				}
+
 				result, err := ReconcileFile(sc, fixture.targets, fixture.store, &entry, repairs, nil)
 				if err != nil {
 					t.Fatal(err)
 				}
+
 				expectedConflicts := 0
+
 				if conflict {
 					expectedConflicts = 1
 				}
+
 				if result.Conflicts != expectedConflicts {
 					t.Fatal(result)
 				}
-				stored, err := f.ReadBytes(fixture.store)
+
+				stored, err := localfiles.ReadBytes(fixture.store)
 				if err != nil || string(stored) != want {
 					t.Fatal(string(stored), want, err)
 				}
+
 				if conflict {
 					records, err := local.ConflictRecords(sc.Adapters.Home)
 					if err != nil || len(records) != 1 {
 						t.Fatal(records, err)
 					}
+
 					return
 				}
+
 				for _, target := range fixture.targets {
 					value, err := os.ReadFile(filepath.Join(target.Root, target.Path))
+
 					if server == nil {
 						if !os.IsNotExist(err) {
 							t.Fatal(err)
 						}
+
 						continue
 					}
 					if err != nil || string(value) != want {

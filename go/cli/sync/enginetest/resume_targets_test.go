@@ -1,14 +1,15 @@
 package enginetest
 
 import (
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync/local/files"
 	"github.com/notsuhas/envden/go/core/adapters"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestResumeSkipsRecreatedCheckout(t *testing.T) {
@@ -28,6 +29,7 @@ func TestResumeSkipsRecreatedCheckout(t *testing.T) {
 				return &adapters.Checkout{Root: item.Root, GitDir: item.GitDir, RepoID: item.RepoID, Identity: item.Identity}, nil
 			}
 		}
+
 		return nil, nil
 	}, CaseInsensitive: func(string, bool) (bool, error) { return false, nil }, EnsureIgnored: func(c adapters.Checkout, _ string) error { ignored = append(ignored, c.Root); return nil }})
 	f.write(f.aStore, "TOKEN=remote\n")
@@ -43,10 +45,12 @@ func TestResumeSkipsRecreatedCheckout(t *testing.T) {
 	ignored = nil
 	f.pull(f.second)
 	equal(t, readValue(filepath.Join(recreated.Root, ".env")).present, false)
+
 	for _, root := range ignored {
 		if root == recreated.Root {
 			t.Fatal("recreated checkout was prepared")
 		}
 	}
+
 	equal(t, f.read(filepath.Join(targets[0].Root, ".env")), "TOKEN=remote\n")
 }

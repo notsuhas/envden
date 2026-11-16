@@ -64,7 +64,9 @@ func TestPakoGoldens(t *testing.T) {
 				t.Fatal(err)
 			}
 			decoded, err := io.ReadAll(reader)
-			reader.Close()
+			if closeErr := reader.Close(); closeErr != nil {
+				t.Fatal(closeErr)
+			}
 			if err != nil || !bytes.Equal(decoded, input) {
 				t.Fatal("round trip differs", err)
 			}

@@ -1,16 +1,17 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/links/checkout"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/server"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/links/checkout"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/core/adapters"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/server"
 )
 
 func cloneTree(t *testing.T, from, to string) {
@@ -19,32 +20,40 @@ func cloneTree(t *testing.T, from, to string) {
 		if err != nil {
 			return err
 		}
+
 		rel, err := filepath.Rel(from, path)
 		if err != nil {
 			return err
 		}
+
 		dest := filepath.Join(to, rel)
 		info, err := entry.Info()
 		if err != nil {
 			return err
 		}
+
 		if info.IsDir() {
 			return os.MkdirAll(dest, info.Mode().Perm())
 		}
+
 		if info.Mode()&os.ModeSymlink != 0 {
 			target, err := os.Readlink(path)
 			if err != nil {
 				return err
 			}
-			return os.Symlink(target, dest)
+
+			return os.Symlink(target, dest) //nolint:gosec // Paths belong to a private temporary fixture tree with no concurrent writers.
 		}
-		raw, err := os.ReadFile(path)
+
+		raw, err := os.ReadFile(path) //nolint:gosec // Paths belong to a private temporary fixture tree with no concurrent writers.
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(dest, raw, info.Mode().Perm())
+
+		return os.WriteFile(dest, raw, info.Mode().Perm()) //nolint:gosec // Paths belong to a private temporary fixture tree with no concurrent writers.
 	}))
 }
+
 func TestSyncRollback(t *testing.T) {
 	f := newFixture(t)
 	snapshot := filepath.Join(f.root, "snapshot")
@@ -60,12 +69,15 @@ func TestSyncRollback(t *testing.T) {
 	s.Server.Address = old.URL
 	f.save(f.first, s)
 	_, err = syncer.Pull(f.ctx, f.first, f.opts)
-	if !e.Is(err, e.Rollback) {
+
+	if !envdenerrors.Is(err, envdenerrors.Rollback) {
 		t.Fatal(err)
 	}
+
 	s.Server.Address = address
 	f.save(f.first, s)
 }
+
 func TestInterruptedPlacementKeepsRollbackFloor(t *testing.T) {
 	f := newFixture(t)
 	snapshot := filepath.Join(f.root, "snapshot")
@@ -92,9 +104,11 @@ func TestInterruptedPlacementKeepsRollbackFloor(t *testing.T) {
 	stored.Server.Address = old.URL
 	f.save(f.second, stored)
 	_, err = syncer.Pull(f.ctx, f.second, f.opts)
-	if !e.Is(err, e.Rollback) {
+
+	if !envdenerrors.Is(err, envdenerrors.Rollback) {
 		t.Fatal(err)
 	}
+
 	equal(t, f.read(filepath.Join(f.checkoutB.Root, ".env")), "TOKEN=new-version\n")
 	stored.Server.Address = address
 	f.save(f.second, stored)

@@ -2,12 +2,13 @@ package presentation
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/model/conflicts"
-	"github.com/notsuhas/envden/go/cli/output"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/model/conflicts"
+	"github.com/notsuhas/envden/go/cli/output"
 )
 
 var variantPattern = regexp.MustCompile(`\.variant-(\d+)$`)
@@ -18,8 +19,10 @@ func ConflictsText(records []conflicts.Record) string {
 	}
 
 	lines := []string{"Conflicts:"}
+
 	for _, record := range records {
 		note := ""
+
 		if record.Deleted {
 			note = " (deleted on the server)"
 		} else if record.MineDeleted {
@@ -27,11 +30,14 @@ func ConflictsText(records []conflicts.Record) string {
 		}
 
 		lines = append(lines, "  "+filepath.Join(record.Root, record.Path)+note, "    edit "+record.File)
+
 		for _, path := range record.Alternatives {
 			source := "copy"
 			match := variantPattern.FindStringSubmatch(path)
+
 			if len(match) > 0 {
 				index, _ := strconv.Atoi(match[1])
+
 				if index == 0 {
 					source = "this device"
 				} else if index == 1 {
@@ -52,8 +58,10 @@ func ConflictsText(records []conflicts.Record) string {
 
 func ResolvedText(result conflicts.Resolved) string {
 	lines := append([]string{"Resolved " + result.Path}, result.PlacementReports...)
+
 	if len(result.Preserved) > 0 {
 		lines = append(lines, "Backups saved in "+result.Backups)
 	}
+
 	return output.SanitizeConsole(strings.Join(lines, "\n"))
 }

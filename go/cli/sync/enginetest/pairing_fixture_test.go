@@ -48,27 +48,34 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 			if _, err := os.Lstat(filepath.Join(f.first.Home, "state", "write.lock")); !os.IsNotExist(err) {
 				return fmt.Errorf("approval wait holds state lock: %w", err)
 			}
+
 			if slot == "KE1" {
 				<-ke1
 			} else {
 				if slot == "KE3" {
 					close(ke2)
 				}
+
 				<-ke3
 			}
+
 			return nil
 		}, func(string) (bool, error) { return true, nil })
+
 		if e == nil && result != "paired" {
 			e = fmt.Errorf("unexpected pairing result %s", result)
 		}
+
 		approved <- e
 	}()
 	err = pairing.ExchangeJoiner(f.ctx, f.second, joiner, other, pin, attempt.Code, func(int64) error {
 		if _, err := os.Lstat(filepath.Join(f.second.Home, "state", "write.lock")); !os.IsNotExist(err) {
 			return fmt.Errorf("joiner wait holds state lock: %w", err)
 		}
+
 		close(ke1)
 		<-ke2
+
 		return nil
 	})
 	close(ke3)
@@ -77,9 +84,11 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 	listed, err := devices.ListDevices(f.ctx, f.first, clock, nil)
 	must(t, err)
 	assertPairingDevice(t, listed, encoding.Base32(other.Record.Id), true)
+
 	if beforeResume != nil {
 		beforeResume(f)
 	}
+
 	joined, err := pairing.ResumeJoiner(f.ctx, f.second, joiner, other, f.kit.Server, pin)
 	must(t, err)
 	equal(t, joined.VaultID, f.kit.VaultID)
@@ -87,5 +96,6 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 	must(t, err)
 	assertPairingDevice(t, listed, encoding.Base32(other.Record.Id), false)
 	f.repo(&f.second, nil)
+
 	return f
 }

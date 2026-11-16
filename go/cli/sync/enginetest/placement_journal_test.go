@@ -2,17 +2,18 @@ package enginetest
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation"
 	"github.com/notsuhas/envden/go/cli/sync/remote"
 	"github.com/notsuhas/envden/go/core/adapters"
-	pf "github.com/notsuhas/envden/go/core/protocol/files"
+	protocolfiles "github.com/notsuhas/envden/go/core/protocol/files"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestEachPlacedFileSurvivesInterruptedPull(t *testing.T) {
@@ -27,9 +28,11 @@ func TestEachPlacedFileSurvivesInterruptedPull(t *testing.T) {
 	repo := f.first.Repo
 	f.first.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: repo.CheckoutAt, CaseInsensitive: repo.CaseInsensitive, EnsureIgnored: func(adapters.Checkout, string) error {
 		placements++
+
 		if placements == 2 {
 			return errors.New("interrupted pull")
 		}
+
 		return nil
 	}})
 	context, err := remote.SyncContext(f.ctx, f.first, f.opts, syncLinks(f))
@@ -37,19 +40,22 @@ func TestEachPlacedFileSurvivesInterruptedPull(t *testing.T) {
 	context.State.Approved = []state.Checkout{checkout.ApprovalRecord(c)}
 	context.State.Links = []state.Link{}
 	f.save(f.first, context.State)
+
 	for _, path := range []string{".env", ".env.local"} {
 		store := filepath.Join(f.first.Home, "store", "repo", path)
-		id, err := pf.FileID(context.Checkpoint.IdKey, c.RepoID, path)
+		id, err := protocolfiles.FileID(context.Checkpoint.IdKey, c.RepoID, path)
 		must(t, err)
 		entry, err := remote.SealUpload(context, c.RepoID, path, id, nil, []byte("KEY=remote\n"))
 		must(t, err)
 		_, err = reconciliation.ReconcileFile(context, []state.Link{{Root: c.Root, Path: path, Store: store, Mode: "link"}}, store, &entry, nil, nil)
+
 		if path == ".env" {
 			must(t, err)
 		} else if err == nil || !strings.Contains(err.Error(), "interrupted pull") {
 			t.Fatal(err)
 		}
 	}
+
 	saved := f.state(f.first)
 	equal(t, len(saved.Links), 1)
 	equal(t, saved.Links[0].Path, ".env")

@@ -3,32 +3,40 @@ package enginetest
 import (
 	"context"
 	"encoding/json"
-	"github.com/notsuhas/envden/go/cli/contracts"
-	state "github.com/notsuhas/envden/go/cli/state/model"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/contracts"
+	state "github.com/notsuhas/envden/go/cli/state/model"
 )
 
 type traceCase struct {
 	Label          string
 	Layout, Tokens []string
 }
+
 type explorationWorld struct {
 	f        *fixture
 	targets  []state.Link
 	snapshot *snapshot
 	devices  [2]contracts.Adapters
 }
+
 type fixtureLifetime struct{ current, owner testContext }
 
-func (o fixtureLifetime) Helper()                        { o.current.Helper() }
-func (o fixtureLifetime) Fatal(v ...any)                 { o.current.Fatal(v...) }
+func (o fixtureLifetime) Helper() { o.current.Helper() }
+
+func (o fixtureLifetime) Fatal(v ...any) { o.current.Fatal(v...) }
+
 func (o fixtureLifetime) Fatalf(format string, v ...any) { o.current.Fatalf(format, v...) }
-func (o fixtureLifetime) TempDir() string                { return o.owner.TempDir() }
-func (o fixtureLifetime) Cleanup(fn func())              { o.owner.Cleanup(fn) }
+
+func (o fixtureLifetime) TempDir() string { return o.owner.TempDir() }
+
+func (o fixtureLifetime) Cleanup(fn func()) { o.owner.Cleanup(fn) }
+
 func TestExploration(t *testing.T) {
 	cases := generatedTraces()
 	raw, err := os.ReadFile(filepath.Join("testdata", "exploration.json"))
@@ -44,10 +52,12 @@ func TestExploration(t *testing.T) {
 	t.Cleanup(func() { must(t, pool.stop()) })
 	owner := t
 	var workers sync.WaitGroup
+
 	for slot := 0; slot < explorationWorkerCount; slot++ {
 		workers.Add(1)
 		go func(slot int) {
 			defer workers.Done()
+
 			for index := slot; index < len(cases); index += explorationWorkerCount {
 				tc := cases[index]
 				name := tc.Label + " " + strings.Join(tc.Layout, "+") + " " + strings.Join(tc.Tokens, " ")
@@ -60,24 +70,32 @@ func TestExploration(t *testing.T) {
 						w.f.first = w.devices[0]
 						w.f.second = w.devices[1]
 						m := newExploration(w.f, w.targets)
+
 						for _, token := range tc.Tokens {
 							expanded := []string{token}
-							if token == "a" {
+
+							switch token {
+							case "a":
 								expanded = []string{"Al", "Ae", "As"}
-							} else if token == "r" {
+							case "r":
 								expanded = []string{"Al", "Ar", "As"}
 							}
+
 							for _, op := range expanded {
 								m.apply(op)
 								m.survive()
 							}
+
 							m.step++
 						}
+
 						m.close()
+
 						return traceResult{m.violations, m.notes, m.trace}, nil
 					}
 					result, err := pool.run(context.Background(), index%explorationWorkerCount, tc, execute)
 					must(t, err)
+
 					if len(result.violations) > 0 || len(result.notes) > 0 {
 						t.Fatalf("violations: %v\nnotes: %v\ntrace: %v", result.violations, result.notes, result.trace)
 					}
@@ -85,5 +103,6 @@ func TestExploration(t *testing.T) {
 			}
 		}(slot)
 	}
+
 	workers.Wait()
 }

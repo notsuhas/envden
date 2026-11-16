@@ -13,25 +13,32 @@ type Action struct {
 }
 
 func same(a, b []byte) bool { return (a == nil) == (b == nil) && bytes.Equal(a, b) }
+
 func DeriveContentAction(input ContentInput) Action {
 	if (input.Recorded != nil || input.Reappeared) && !same(input.Mine, input.Recorded) && same(input.Mine, input.Previous) && !same(input.Server, input.Previous) {
 		return Action{Kind: "conflict"}
 	}
+
 	if input.Detached {
 		return Action{Kind: "detached"}
 	}
+
 	if DeriveUntrackedConflict(input) == "conflict" {
 		return Action{Kind: "conflict"}
 	}
+
 	if input.Repair && input.Mine != nil {
 		return Action{Kind: "repair-conflict"}
 	}
+
 	if input.Tombstone && !input.Applied && input.Previous == nil && input.Mine != nil {
 		return Action{Kind: "choose"}
 	}
+
 	if input.Choosing && input.Mine != nil && !same(input.Mine, input.Server) {
 		return Action{Kind: "choose"}
 	}
+
 	if (input.Linked || input.Mine != nil) && !same(input.Server, input.Previous) && !same(input.Mine, input.Previous) && !same(input.Mine, input.Server) {
 		return Action{Kind: "choose"}
 	}

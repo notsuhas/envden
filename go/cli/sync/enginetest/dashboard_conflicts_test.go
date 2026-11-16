@@ -37,8 +37,10 @@ func dashboardConflict(t *testing.T, f *fixture, c *dashboardClient) {
 	resolved := c.object(r)
 	equal(t, resolved["kind"], any("resolved"))
 	equal(t, resolved["path"], any(".env"))
+
 	if !strings.Contains(f.read(store), "A=server-only-secret") {
 		t.Fatal("missing resolved server bytes")
 	}
+
 	equal(t, len(array(c.get(f.second, "/api/status")["conflicts"])), 0)
 }

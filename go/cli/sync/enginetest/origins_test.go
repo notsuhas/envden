@@ -1,13 +1,14 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/links"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/cli/sync/local"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/links"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/cli/sync/local"
 )
 
 func TestRestorePreservesCopyMineAndRealServer(t *testing.T) {
@@ -27,6 +28,7 @@ func TestRestorePreservesCopyMineAndRealServer(t *testing.T) {
 	f.resolve(f.second, ".env", "keep-mine")
 	equal(t, f.read(path), "TOKEN=copy-edit\n")
 }
+
 func TestUnpublishedConflictCannotTakeNonexistentServer(t *testing.T) {
 	f := newFixture(t)
 	target := f.layout("copy")[0]
@@ -37,11 +39,13 @@ func TestUnpublishedConflictCannotTakeNonexistentServer(t *testing.T) {
 	f.track(&f.second, c, true, ".env.new")
 	f.pull(f.second)
 	store := ""
+
 	for _, link := range f.state(f.second).Links {
 		if link.Path == ".env.new" {
 			store = link.Store
 		}
 	}
+
 	f.write(store, "A=store\n")
 	f.write(path, "A=copy\n")
 	equal(t, f.pull(f.second).Conflicts, 1)
@@ -53,9 +57,11 @@ func TestUnpublishedConflictCannotTakeNonexistentServer(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "No server entry") {
 		t.Fatal(err)
 	}
+
 	equal(t, f.read(store), "A=store\n")
 	equal(t, f.read(path), "A=copy\n")
 }
+
 func TestResolveLeavesLaterLocalOnlyTarget(t *testing.T) {
 	f := newFixture(t)
 	targets := f.layout("link", "link")

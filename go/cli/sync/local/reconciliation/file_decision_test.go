@@ -1,13 +1,15 @@
 package reconciliation
 
 import (
-	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/content"
 	"reflect"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/content"
 )
 
 func TestFileDecisionCopyCases(t *testing.T) {
 	a, b, c := []byte{1}, []byte{2}, []byte{3}
+
 	for _, tc := range []struct {
 		name        string
 		value, base []byte
@@ -28,14 +30,17 @@ func TestFileDecisionCopyCases(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Previous: a, Recorded: b, Server: b}, StoreBeforeRestore: b, Store: b, Tracked: true, Published: true, Copies: []content.Copy{{Bytes: tc.value, Base: tc.base, Tracked: tc.tracked, Mode: tc.mode}}})
+
 			if !reflect.DeepEqual(result.Local, tc.want) {
 				t.Fatalf("%+v != %+v", result.Local, tc.want)
 			}
 		})
 	}
 }
+
 func TestFileDecisionConflictOwnership(t *testing.T) {
 	a, b, c := []byte{1}, []byte{2}, []byte{3}
+
 	for _, tc := range []struct {
 		name                              string
 		store, recorded, previous, server []byte
@@ -49,22 +54,27 @@ func TestFileDecisionConflictOwnership(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Recorded: tc.recorded, Previous: tc.previous, Server: tc.server}, StoreBeforeRestore: tc.store, Store: tc.store, Tracked: true, Published: true, Deleting: tc.deleting, Copies: []content.Copy{{Bytes: c, Base: a, Tracked: true, Mode: "copy"}}})
 			want := content.Local{Kind: "conflict", Variants: [][]byte{tc.mine, tc.theirs}}
+
 			if !reflect.DeepEqual(result.Local, want) {
 				t.Fatalf("%+v != %+v", result.Local, want)
 			}
 		})
 	}
 }
+
 func TestFileDecisionCopyAlreadyAtServer(t *testing.T) {
 	a, b, c := []byte{1}, []byte{2}, []byte{3}
 	result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Previous: a, Recorded: a, Server: b}, StoreBeforeRestore: a, Store: a, Tracked: true, Published: true, Copies: []content.Copy{{Bytes: b, Base: c, Tracked: true, Mode: "copy"}}})
+
 	if result.Action.Kind != "write" || !same(result.Action.Next, b) {
 		t.Fatal(result)
 	}
 }
+
 func TestFileDecisionRestoredStoreKeepsCopyMine(t *testing.T) {
 	a, b, c := []byte{1}, []byte{2}, []byte{3}
 	result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Recorded: a, Previous: a, Server: b}, Store: b, Tracked: true, Published: true, Copies: []content.Copy{{Bytes: c, Base: a, Tracked: true, Mode: "copy"}}})
+
 	if !same(result.Mine, c) {
 		t.Fatal(result)
 	}

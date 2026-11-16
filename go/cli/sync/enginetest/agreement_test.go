@@ -2,11 +2,12 @@ package enginetest
 
 import (
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/sync/local/files"
-	"github.com/notsuhas/envden/go/core/adapters"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/sync/local/files"
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func TestUnpublishedCopyAgreement(t *testing.T) {
@@ -37,35 +38,45 @@ func TestUnpublishedCopyAgreement(t *testing.T) {
 			f.track(&f.first, copy, true, ".env.new")
 			f.repo(&f.first, []adapters.Checkout{f.checkout, copy}, ".env.new")
 			store := ""
+
 			for _, link := range f.state(f.first).Links {
 				if link.Path == ".env.new" {
 					store = link.Store
 					break
 				}
 			}
+
 			if !tc.base {
 				must(t, os.Remove(files.BasePath(f.first.Home, store, copy.Root)))
 			}
+
 			if tc.stored.present {
 				f.write(store, "PORT="+tc.stored.text+"\n")
 			} else {
 				must(t, files.WriteBytes(store, nil, clock))
 			}
+
 			f.write(path, "PORT="+tc.copied.text+"\n")
 			r := f.pull(f.first)
+
 			if tc.base && !tc.stored.present {
 				equal(t, r.Conflicts, 1)
 				equal(t, readValue(store), value{})
 				equal(t, f.read(path), "PORT="+tc.copied.text+"\n")
+
 				return
 			}
+
 			equal(t, r.Conflicts > 0, !tc.agreed.present)
 			stored, copied := tc.stored, tc.copied
+
 			if tc.agreed.present {
 				stored, copied = tc.agreed, tc.agreed
 			}
+
 			equal(t, f.read(store), "PORT="+stored.text+"\n")
 			equal(t, f.read(path), "PORT="+copied.text+"\n")
+
 			if r.Conflicts > 0 {
 				f.resolve(f.first, ".env.new", "keep-mine")
 				f.write(path, "PORT=resolved\n")

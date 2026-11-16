@@ -1,13 +1,14 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/links/checkout"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/cli/sync/local/files"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/links/checkout"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/cli/sync/local/files"
 )
 
 func TestSupersededAcceptedAttemptIsStale(t *testing.T) {
@@ -22,6 +23,7 @@ func TestSupersededAcceptedAttemptIsStale(t *testing.T) {
 	equal(t, f.push(f.second).Changed, 0)
 	equal(t, f.read(store), original)
 }
+
 func TestPartiallyPlacedVersionSuperseded(t *testing.T) {
 	for _, lost := range []bool{false, true} {
 		t.Run(map[bool]string{false: "base", true: "lost-base"}[lost], func(t *testing.T) {
@@ -32,20 +34,24 @@ func TestPartiallyPlacedVersionSuperseded(t *testing.T) {
 			restore := failIgnored(f, targets[1].Root)
 			equal(t, f.pull(f.second).Conflicts, 1)
 			restore()
+
 			if lost {
 				must(t, os.Remove(files.BasePath(f.second.Home, targets[0].Store)+".entry"))
 				_, err := checkout.Untrack(f.ctx, f.second, targets[1].Root)
 				must(t, err)
 			}
+
 			f.write(f.aStore, original)
 			f.push(f.first)
 			equal(t, f.push(f.second).Changed, 0)
+
 			for _, target := range targets {
 				equal(t, f.read(filepath.Join(target.Root, target.Path)), original)
 			}
 		})
 	}
 }
+
 func TestRestoringBytesCancelsRemoval(t *testing.T) {
 	for _, mode := range []string{"copy", "link"} {
 		t.Run(mode, func(t *testing.T) {
@@ -57,14 +63,17 @@ func TestRestoringBytesCancelsRemoval(t *testing.T) {
 			f.write(path, original)
 			r := f.push(f.second)
 			equal(t, r.Conflicts, 0)
+
 			if !strings.Contains(strings.Join(r.Reports, "\n"), "Cancelled removal") {
 				t.Fatal("cancellation not reported")
 			}
+
 			f.pull(f.first)
 			equal(t, f.read(f.aStore), original)
 		})
 	}
 }
+
 func TestLiveResolutionClearsDeletionIntent(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -79,6 +88,7 @@ func TestLiveResolutionClearsDeletionIntent(t *testing.T) {
 	f.pull(f.first)
 	equal(t, f.read(f.aStore), "TOKEN=remote\n")
 }
+
 func TestLostUnpublishedLinkRemainsTracked(t *testing.T) {
 	f := newFixture(t)
 	path := filepath.Join(f.checkoutB.Root, ".env.new")
@@ -88,17 +98,22 @@ func TestLostUnpublishedLinkRemainsTracked(t *testing.T) {
 	must(t, os.Remove(store))
 	r := f.push(f.second)
 	equal(t, r.Conflicts, 1)
+
 	if !strings.Contains(strings.Join(r.Reports, "\n"), ".env.new: content was lost outside envden") {
 		t.Fatal("loss not reported")
 	}
+
 	found := false
+
 	for _, link := range f.state(f.second).Links {
 		if link.Path == ".env.new" {
 			found = true
 		}
 	}
+
 	equal(t, found, true)
 }
+
 func TestRemovingUnpublishedOnlyUntracksLocally(t *testing.T) {
 	f := newFixture(t)
 	path := filepath.Join(f.checkoutB.Root, ".env.new")
@@ -108,6 +123,7 @@ func TestRemovingUnpublishedOnlyUntracksLocally(t *testing.T) {
 	must(t, err)
 	equal(t, r.Publish, "none")
 	equal(t, f.push(f.second).Changed, 0)
+
 	for _, link := range f.state(f.second).Links {
 		if link.Path == ".env.new" {
 			t.Fatal("still tracked")

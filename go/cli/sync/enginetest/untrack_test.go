@@ -1,11 +1,12 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/links/checkout"
-	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/operation"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/links/checkout"
+	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/operation"
 )
 
 func TestUntrackingOneCopyPreservesRemoval(t *testing.T) {
@@ -18,15 +19,18 @@ func TestUntrackingOneCopyPreservesRemoval(t *testing.T) {
 	equal(t, len(cancelled), 0)
 	intent, err := operation.ReadDeletion(f.second.Home, targets[0].Store, clock)
 	must(t, err)
+
 	if intent == nil {
 		t.Fatal("missing deletion")
 	}
+
 	equal(t, len(intent.Targets), 1)
 	equal(t, intent.Targets[0], path)
 	equal(t, f.push(f.second).Changed, 1)
 	f.pull(f.first)
 	equal(t, readValue(f.aStore), value{})
 }
+
 func TestUntrackDanglingOwnedLink(t *testing.T) {
 	f := newFixture(t)
 	targets := f.layout("copy", "link")
@@ -35,10 +39,12 @@ func TestUntrackDanglingOwnedLink(t *testing.T) {
 	must(t, err)
 	equal(t, len(cancelled), 0)
 	_, err = os.Lstat(filepath.Join(targets[1].Root, ".env"))
+
 	if !os.IsNotExist(err) {
 		t.Fatal(err)
 	}
 }
+
 func TestTakeServerAfterSkippedRemoval(t *testing.T) {
 	f := newFixture(t)
 	targets := f.layout("copy", "copy")

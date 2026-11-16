@@ -3,6 +3,7 @@ package operation
 import "testing"
 
 func hash(v string) *string { return &v }
+
 func TestCanResume(t *testing.T) {
 	for _, tc := range []struct {
 		before, current []*string
@@ -21,6 +22,7 @@ func TestCanResume(t *testing.T) {
 			t.Fatal(tc, got)
 		}
 	}
+
 	if ContentHash(nil) != nil || ContentHash([]byte{}) == nil {
 		t.Fatal("absence must have a distinct hash")
 	}

@@ -3,51 +3,59 @@ package enginetest
 import (
 	"errors"
 	"fmt"
-	"github.com/notsuhas/envden/go/cli/links/checkout"
-	sf "github.com/notsuhas/envden/go/cli/state/files"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/core/adapters"
-	"reflect"
-
-	fakerepo "github.com/notsuhas/envden/go/testing/repo"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/notsuhas/envden/go/cli/links/checkout"
+	statefiles "github.com/notsuhas/envden/go/cli/state/files"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/core/adapters"
+	fakerepo "github.com/notsuhas/envden/go/testing/repo"
 )
 
 func (m *exploration) apply(raw string) {
 	m.token = raw
 	m.trace = append(m.trace, raw)
 	d := 0
+
 	if raw[0] != 'A' {
 		d = 1
 	}
+
 	parts := strings.SplitN(raw, "=", 2)
 	head := parts[0]
 	op := head[1:]
 	index := 0
+
 	if c := head[len(head)-1]; c >= '0' && c <= '9' {
 		index = int(c - '0')
 		op = op[:len(op)-1]
 	}
+
 	if op == "f" && len(head) == 2 {
 		index = len(m.targets[d]) - 1
 	}
+
 	target := m.targets[d][index]
 	path := filepath.Join(target.Root, target.Path)
 	home := m.devices[d].Home
+
 	switch op {
 	case "e", "r":
 		text := original
 		if op != "r" || len(parts) > 1 {
 			v := ""
+
 			if len(parts) > 1 {
 				v = parts[1]
 			} else {
 				v = "u" + strconv.Itoa(m.unique)
 				m.unique++
 			}
+
 			text = "TOKEN=" + v + "\n"
 		}
 		m.write(d, index, value{text, true})
@@ -93,6 +101,7 @@ func (m *exploration) apply(raw string) {
 			if root == target.Root {
 				return nil, nil
 			}
+
 			return original.CheckoutAt(root)
 		}, CaseInsensitive: original.CaseInsensitive, EnsureIgnored: original.EnsureIgnored})
 	case "y":
@@ -138,6 +147,7 @@ func (m *exploration) apply(raw string) {
 		m.f.t.Fatal(fmt.Sprintf("unknown operation %s", raw))
 	}
 }
+
 func (m *exploration) killPull(d int) {
 	opts := m.f.opts
 	reports := []string{}
@@ -148,24 +158,31 @@ func (m *exploration) killPull(d int) {
 		if strings.HasSuffix(path, ".pending") {
 			writes++
 		}
+
 		if strings.HasSuffix(path, ".pending") && writes == 2 {
 			killed = true
+
 			return errors.New("Killed before written mark")
 		}
-		return sf.AtomicWrite(path, data, clock)
+
+		return statefiles.AtomicWrite(path, data, clock)
 	}
 	result, err := syncer.Pull(m.f.ctx, *m.devices[d], opts)
+
 	if !killed {
 		m.note(err, "pull")
 	}
+
 	m.checkCorrupt(d, reports)
 	m.absorb(reports)
 	m.observe(d)
 	if err == nil {
 		m.seen[d] = len(m.commits) - 1
 	}
+
 	if !killed && err == nil {
 		m.checkPull(d, result, m.conflictCount(d), m.places(d, true))
+
 		if m.step != 99 {
 			before := m.places(d, false)
 			opts.AtomicWrite = nil

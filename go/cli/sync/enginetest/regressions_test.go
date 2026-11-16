@@ -1,13 +1,14 @@
 package enginetest
 
 import (
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	"github.com/notsuhas/envden/go/cli/vault/initial"
 	"github.com/notsuhas/envden/go/cli/vault/setup"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestCopyPushPreservesEdits(t *testing.T) {
@@ -18,14 +19,16 @@ func TestCopyPushPreservesEdits(t *testing.T) {
 			c := f.checkoutB
 			c.Root = target.Root
 			path := filepath.Join(c.Root, ".env")
-			if scenario == "unpublished" {
+
+			switch scenario {
+			case "unpublished":
 				path = filepath.Join(c.Root, ".env.new")
 				f.write(path, "A=1\n")
 				f.track(&f.second, c, true, ".env.new")
-			} else if scenario == "revert" {
+			case "revert":
 				f.write(path, "A=1\n")
 				f.push(f.second)
-			} else {
+			default:
 				copy := c
 				copy.Root = filepath.Join(f.root, "copy-two")
 				f.write(filepath.Join(copy.Root, ".env"), f.read(path))
@@ -36,8 +39,10 @@ func TestCopyPushPreservesEdits(t *testing.T) {
 				equal(t, f.push(f.second).Kind, "pushed")
 				return
 			}
+
 			f.write(path, "A=2\n")
 			equal(t, f.push(f.second).Kind, "pushed")
+
 			if scenario == "revert" {
 				f.write(path, "A=1\n")
 				equal(t, f.push(f.second).Kind, "pushed")
@@ -46,6 +51,7 @@ func TestCopyPushPreservesEdits(t *testing.T) {
 		})
 	}
 }
+
 func TestSetupPushLeavesRemoteEdits(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -61,6 +67,7 @@ func TestSetupPushLeavesRemoteEdits(t *testing.T) {
 	f.pull(f.second)
 	equal(t, f.read(b), "TOKEN=remote-new\n")
 }
+
 func TestNewCopyCannotResurrectTombstone(t *testing.T) {
 	f := newFixture(t)
 	f.remove(f.first, filepath.Join(f.checkout.Root, ".env"))
@@ -71,6 +78,7 @@ func TestNewCopyCannotResurrectTombstone(t *testing.T) {
 	equal(t, f.push(f.second).Kind, "conflict")
 	equal(t, f.read(path), "TOKEN=stale\n")
 }
+
 func TestAllSkipsRecreatedCheckout(t *testing.T) {
 	f := newFixture(t)
 	s := f.state(f.second)

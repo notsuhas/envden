@@ -12,11 +12,14 @@ import (
 
 func assertPairingDevice(t *testing.T, list []devices.Device, id string, unconfirmed bool) {
 	t.Helper()
+
 	for _, d := range list {
 		if d.ID != id {
 			continue
 		}
+
 		equal(t, d.Unconfirmed, unconfirmed)
+
 		if unconfirmed {
 			if d.ClientVersion != nil {
 				t.Fatal("unconfirmed device has a client version")
@@ -25,10 +28,13 @@ func assertPairingDevice(t *testing.T, list []devices.Device, id string, unconfi
 			if d.ClientVersion == nil {
 				t.Fatal("confirmed device has no client version")
 			}
+
 			equal(t, *d.ClientVersion, "0.0.0")
 		}
+
 		return
 	}
+
 	t.Fatal("paired device missing")
 }
 

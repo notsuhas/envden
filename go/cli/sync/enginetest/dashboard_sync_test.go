@@ -13,15 +13,18 @@ func TestDashboardPushPullCallThrough(t *testing.T) {
 	f.write(f.aStore, original+"NEW=mine-only-secret\n")
 	dashboardPushPull(t, f, &c)
 }
+
 func dashboardPushPull(t *testing.T, f *fixture, c *dashboardClient) {
 	r := c.send(f.first, "/api/push", nil, map[string]any{})
 	equal(t, r.Code, 200)
 	pushed := c.object(r)
 	equal(t, pushed["kind"], any("pushed"))
 	equal(t, pushed["conflicts"], any(float64(0)))
+
 	if pushed["changed"].(float64) <= 0 {
 		t.Fatal(pushed)
 	}
+
 	status := c.get(f.first, "/api/status")
 	equal(t, object(status["overview"])["pending"], any(float64(0)))
 	file := dashboardFile(status)
@@ -39,12 +42,15 @@ func dashboardPushPull(t *testing.T, f *fixture, c *dashboardClient) {
 	must(t, json.Unmarshal(listed.Body.Bytes(), &devices))
 	names := []string{}
 	current := ""
+
 	for _, d := range devices {
 		names = append(names, d["name"].(string))
+
 		if d["current"] == true {
 			current = d["name"].(string)
 		}
 	}
+
 	sort.Strings(names)
 	equal(t, strings.Join(names, ","), "first,second,third")
 	equal(t, current, "second")

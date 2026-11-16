@@ -24,16 +24,20 @@ func TestDashboardRenameInputs(t *testing.T) {
 		})
 	}
 }
+
 func TestDashboardDeviceRename(t *testing.T) {
 	f := newFixture(t)
 	c := dashboardClient{f: f}
+
 	for _, tc := range []struct{ name, message string }{{"second", "name"}, {"bad\u200bname", "invisible"}} {
 		r := c.send(f.first, "/api/devices/rename", nil, map[string]any{"name": tc.name})
 		equal(t, r.Code, 400)
+
 		if !strings.Contains(c.object(r)["message"].(string), tc.message) {
 			t.Fatal(r.Body.String())
 		}
 	}
+
 	for _, tc := range []struct{ name, kind string }{{"first", "unchanged"}, {"laptop", "renamed"}} {
 		r := c.send(f.first, "/api/devices/rename", nil, map[string]any{"name": tc.name})
 		equal(t, r.Code, 200)
@@ -41,6 +45,7 @@ func TestDashboardDeviceRename(t *testing.T) {
 		equal(t, len(result), 1)
 		equal(t, result["kind"], any(tc.kind))
 	}
+
 	status := c.get(f.first, "/api/status")
 	equal(t, object(status["overview"])["deviceName"], any("laptop"))
 	r := c.send(f.first, "/api/devices", nil, nil)
@@ -49,12 +54,15 @@ func TestDashboardDeviceRename(t *testing.T) {
 	must(t, json.Unmarshal(r.Body.Bytes(), &ds))
 	names := []string{}
 	own := ""
+
 	for _, d := range ds {
 		names = append(names, d["name"].(string))
+
 		if d["current"] == true {
 			own = d["name"].(string)
 		}
 	}
+
 	sort.Strings(names)
 	equal(t, strings.Join(names, ","), "laptop,second,third")
 	equal(t, own, "laptop")

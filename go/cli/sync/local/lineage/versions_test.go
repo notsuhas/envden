@@ -4,6 +4,7 @@ import "testing"
 
 func TestPlaceVersions(t *testing.T) {
 	a, b := "a", "b"
+
 	for _, tc := range []struct {
 		current, recorded *string
 		accepted          bool

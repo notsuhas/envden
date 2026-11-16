@@ -1,13 +1,14 @@
 package enginetest
 
 import (
+	"os"
+	"path/filepath"
+	"testing"
+
 	syncer "github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/operation"
 	"github.com/notsuhas/envden/go/core/adapters"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestFailedRemovalNeverRecordsIntent(t *testing.T) {
@@ -22,22 +23,26 @@ func TestFailedRemovalNeverRecordsIntent(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected unsafe target failure")
 	}
+
 	requested, err := operation.DeletionRequested(f.second.Home, targets[0].Store, clock)
 	must(t, err)
 	equal(t, requested, false)
 	equal(t, f.read(targets[0].Store), original)
 	equal(t, f.read(unrelated), "TOKEN=unrelated\n")
 }
+
 func TestRemovalSkipsUnapprovedCopies(t *testing.T) {
 	f := newFixture(t)
 	targets := f.layout("copy", "copy")
 	repo := f.second.Repo
 	f.second.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: func(root string) (*adapters.Checkout, error) {
 		c, err := repo.CheckoutAt(root)
+
 		if root == targets[1].Root && c != nil {
 			id := "changed"
 			c.Identity = &id
 		}
+
 		return c, err
 	}, CaseInsensitive: repo.CaseInsensitive, EnsureIgnored: repo.EnsureIgnored})
 	path := filepath.Join(targets[1].Root, ".env")

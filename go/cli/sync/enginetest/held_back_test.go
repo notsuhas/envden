@@ -1,12 +1,13 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/settings"
-	"github.com/notsuhas/envden/go/cli/sync/local/lineage"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/settings"
+	"github.com/notsuhas/envden/go/cli/sync/local/lineage"
 )
 
 func TestPushAndStatusHeldBackReasons(t *testing.T) {
@@ -15,30 +16,37 @@ func TestPushAndStatusHeldBackReasons(t *testing.T) {
 			f := newFixture(t)
 			targets := f.layout("copy", "copy")
 			path := filepath.Join(targets[0].Root, ".env")
-			if failure == "conflict" {
+
+			switch failure {
+			case "conflict":
 				f.write(path, "TOKEN=mine\n")
-			} else if failure == "inspection" {
+			case "inspection":
 				must(t, os.Remove(path))
 				must(t, os.Mkdir(path, 0700))
-			} else {
+			default:
 				failIgnored(f, targets[1].Root)
 			}
+
 			f.write(f.aStore, "TOKEN=server\n")
 			f.push(f.first)
 			r := f.push(f.second)
 			held, err := lineage.HeldBackFiles(f.second, syncLinks(f))
 			must(t, err)
+
 			if len(held) == 0 {
 				t.Fatal("missing notice")
 			}
+
 			for _, notice := range held {
 				want := "Held back " + notice.Path + ": " + notice.Reason
 				found := false
+
 				for _, report := range r.Reports {
 					if report == want {
 						found = true
 					}
 				}
+
 				if !found {
 					t.Fatal(want, r.Reports)
 				}
@@ -46,6 +54,7 @@ func TestPushAndStatusHeldBackReasons(t *testing.T) {
 		})
 	}
 }
+
 func TestExcludedLocalEditHeldBack(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -58,21 +67,26 @@ func TestExcludedLocalEditHeldBack(t *testing.T) {
 	held, err := lineage.HeldBackFiles(f.second, syncLinks(f))
 	must(t, err)
 	found := false
+
 	for _, notice := range held {
 		if strings.Contains(notice.Reason, "env-files") {
 			found = true
 		}
 	}
+
 	equal(t, found, true)
 	reports := strings.Join(r.Reports, "\n")
+
 	if !strings.Contains(reports, "Held back") || !strings.Contains(reports, "env-files") {
 		t.Fatal(r.Reports)
 	}
+
 	f.pull(f.first)
 	equal(t, f.read(f.aStore), original)
 	_, err = settings.SetConfig(f.ctx, "env-files", `{"include":[".env",".env.*"],"exclude":[],"extraSkipped":[]}`, f.second.Home, f.second.Timing, false)
 	must(t, err)
 }
+
 func TestSkippedRemoteContentCannotOverwrite(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)

@@ -1,12 +1,13 @@
 package enginetest
 
 import (
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	syncer "github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"path/filepath"
-	"testing"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestSyncFirstRun(t *testing.T) {
@@ -26,6 +27,7 @@ func TestSyncFirstRun(t *testing.T) {
 	equal(t, choices, 1)
 	equal(t, f.read(path), original)
 	store := f.state(f.third).Links[0].Store
+
 	for _, choice := range []string{"keep-mine", "merge"} {
 		f.write(store, "TOKEN=third-local\n")
 		_, err = syncer.FirstRun(f.ctx, f.third, f.opts, func(string) (string, error) { return choice, nil })
@@ -33,6 +35,7 @@ func TestSyncFirstRun(t *testing.T) {
 		equal(t, f.read(store), "TOKEN=third-local\n")
 	}
 }
+
 func TestTrackingAfterJoinHasNoInventedBase(t *testing.T) {
 	f := newFixture(t)
 	path := filepath.Join(f.checkoutB.Root, ".env")
@@ -40,6 +43,7 @@ func TestTrackingAfterJoinHasNoInventedBase(t *testing.T) {
 	f.track(&f.second, f.checkoutB, false, ".env")
 	equal(t, f.pull(f.second).Conflicts, 1)
 }
+
 func TestInvalidFirstRunContinuesOtherFiles(t *testing.T) {
 	f := newFixture(t)
 	f.write(filepath.Join(f.checkout.Root, ".env.good"), "GOOD=remote\n")
@@ -50,7 +54,9 @@ func TestInvalidFirstRunContinuesOtherFiles(t *testing.T) {
 	opts := f.opts
 	yes := true
 	opts.Interactive = &yes
-	r, err := syncer.FirstRun(f.ctx, f.second, opts, func(string) (string, error) { return "", e.New(e.InvalidInput, "Unknown first-run choice") })
+	r, err := syncer.FirstRun(f.ctx, f.second, opts, func(string) (string, error) {
+		return "", envdenerrors.New(envdenerrors.InvalidInput, "Unknown first-run choice")
+	})
 	must(t, err)
 	equal(t, r.Conflicts, 1)
 	equal(t, f.read(path), "TOKEN=mine\n")

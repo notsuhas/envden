@@ -2,14 +2,15 @@ package enginetest
 
 import (
 	"encoding/json"
-	placementfs "github.com/notsuhas/envden/go/adapters/placement/fs"
-	"github.com/notsuhas/envden/go/cli/settings"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/core/adapters"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	placementfs "github.com/notsuhas/envden/go/adapters/placement/fs"
+	"github.com/notsuhas/envden/go/cli/settings"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/core/adapters"
 )
 
 func TestCopyPreferenceAndBackupPruning(t *testing.T) {
@@ -23,6 +24,7 @@ func TestCopyPreferenceAndBackupPruning(t *testing.T) {
 	calls := []int64{}
 	f.second.PrunePlacementBackups = func(at int64) error {
 		calls = append(calls, at)
+
 		return placementfs.PruneBackups(filepath.Join(f.second.Home, "conflicts"), at, 30)
 	}
 	f.pull(f.second)
@@ -34,6 +36,7 @@ func TestCopyPreferenceAndBackupPruning(t *testing.T) {
 	equal(t, info.Mode()&os.ModeSymlink != 0, false)
 	equal(t, readValue(path).present, false)
 }
+
 func TestWorktreePlacementHonorsSetting(t *testing.T) {
 	f := newFixture(t)
 	worktree := f.checkoutB
@@ -53,20 +56,25 @@ func TestWorktreePlacementHonorsSetting(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "approved checkout") {
 		t.Fatal(err)
 	}
+
 	equal(t, readValue(filepath.Join(worktree.Root, ".env")).present, false)
 	_, err = settings.SetConfig(f.ctx, "auto-approve-worktrees", "on", f.second.Home, f.second.Timing, true)
 	must(t, err)
 	_, err = syncer.Pull(f.ctx, f.second, opts)
 	must(t, err)
+
 	if !strings.Contains(strings.Join(reports, "\n"), worktree.Root) {
 		t.Fatal(reports)
 	}
+
 	equal(t, f.read(filepath.Join(worktree.Root, ".env")), original)
 	found := false
+
 	for _, c := range f.state(f.second).Approved {
 		if c.Root == worktree.Root {
 			found = true
 		}
 	}
+
 	equal(t, found, true)
 }

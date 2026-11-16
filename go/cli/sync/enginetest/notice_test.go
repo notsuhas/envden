@@ -2,14 +2,15 @@ package enginetest
 
 import (
 	"context"
+	"net/http"
+	"path/filepath"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/notice"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	state "github.com/notsuhas/envden/go/cli/state/model"
-	"net/http"
-	"path/filepath"
-	"testing"
 )
 
 func TestLocalOnlyFilesAbsentFromRemoteNotices(t *testing.T) {
@@ -23,6 +24,7 @@ func TestLocalOnlyFilesAbsentFromRemoteNotices(t *testing.T) {
 	f.pull(f.second)
 	equal(t, len(notice.ReadRemoteNotice(f.second.Home).Repos), 0)
 }
+
 func TestInitialPushAndPullSettleNotices(t *testing.T) {
 	f := newFixture(t)
 	r, err := notice.RemoteNotice(f.ctx, f.first, f.opts)
@@ -38,6 +40,7 @@ func TestInitialPushAndPullSettleNotices(t *testing.T) {
 	f.pull(f.second)
 	equal(t, len(notice.ReadRemoteNotice(f.second.Home).Repos), 0)
 }
+
 func TestBackgroundRefreshDoesNotHoldStateLock(t *testing.T) {
 	f := newFixture(t)
 	ready, release, done := make(chan struct{}), make(chan struct{}), make(chan struct{})
@@ -49,6 +52,7 @@ func TestBackgroundRefreshDoesNotHoldStateLock(t *testing.T) {
 			close(ready)
 			<-release
 		}
+
 		return client.DefaultFetch(req)
 	}
 	go func() {
@@ -57,6 +61,7 @@ func TestBackgroundRefreshDoesNotHoldStateLock(t *testing.T) {
 			opts := f.opts
 			opts.Fetcher = a.Fetcher
 			_, err := notice.RemoteNotice(ctx, a, opts)
+
 			return err
 		}})
 	}()
@@ -66,11 +71,14 @@ func TestBackgroundRefreshDoesNotHoldStateLock(t *testing.T) {
 	<-done
 	must(t, err)
 	remote := notice.ReadRemoteNotice(a.Home)
+
 	if remote == nil {
 		t.Fatal("missing notice")
 	}
+
 	equal(t, remote.CheckedAt, clock())
 }
+
 func TestForegroundInspectsFreshRemoteHistory(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -81,17 +89,21 @@ func TestForegroundInspectsFreshRemoteHistory(t *testing.T) {
 		opts := f.opts
 		opts.Fetcher = a.Fetcher
 		_, err := notice.RemoteNotice(ctx, a, opts)
+
 		return err
 	}}
 	env := map[string]string{"ENVDEN_NO_UPDATE_CHECK": "1"}
 	notice.CommandNotice(f.ctx, a, clock(), true, "", false, env, hooks)
 	equal(t, requests, 0)
 	notice.CommandNotice(f.ctx, a, clock(), false, "", false, env, hooks)
+
 	if requests == 0 {
 		t.Fatal("no foreground requests")
 	}
+
 	before := requests
 	notice.CommandNotice(f.ctx, a, clock(), false, "", false, env, hooks)
+
 	if requests <= before {
 		t.Fatal("second foreground skipped history")
 	}

@@ -1,14 +1,16 @@
 package enginetest
 
 import (
-	state "github.com/notsuhas/envden/go/cli/state/model"
 	"strings"
 	"testing"
+
+	state "github.com/notsuhas/envden/go/cli/state/model"
 )
 
 func TestDashboardServerSyncFlows(t *testing.T) {
 	f := newFixture(t)
 	c := dashboardClient{f: f}
+
 	for _, tc := range []struct {
 		name, path string
 		headers    map[string]string
@@ -31,20 +33,25 @@ func TestDashboardServerSyncFlows(t *testing.T) {
 		t.Run(tc.name+" is refused", func(t *testing.T) {
 			r := c.send(f.first, tc.path, tc.headers, tc.body)
 			equal(t, r.Code, tc.status)
+
 			if !strings.Contains(r.Header().Get("Content-Security-Policy"), "frame-ancestors 'none'") {
 				t.Fatal("missing CSP")
 			}
+
 			equal(t, r.Header().Get("X-Content-Type-Options"), "nosniff")
 			equal(t, r.Header().Get("Access-Control-Allow-Origin"), "")
 		})
 	}
+
 	t.Run("the page is served with strict headers and no token", func(t *testing.T) {
 		r := c.send(f.first, "/", map[string]string{"Authorization": ""}, nil)
 		equal(t, r.Code, 200)
 		equal(t, r.Body.String(), "<p>page</p>")
+
 		if !strings.Contains(r.Header().Get("Content-Security-Policy"), "script-src 'self'") {
 			t.Fatal("missing script CSP")
 		}
+
 		equal(t, r.Header().Get("Referrer-Policy"), "no-referrer")
 	})
 	t.Run("status names changed keys never values", func(t *testing.T) {
@@ -87,6 +94,7 @@ func TestDashboardServerSyncFlows(t *testing.T) {
 		if len(c.bodies) <= 15 {
 			t.Fatal("missing response coverage")
 		}
+
 		c.noValues("local-test-value", "server-only-secret", "mine-only-secret")
 	})
 }

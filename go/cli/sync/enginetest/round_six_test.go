@@ -1,13 +1,14 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/links/checkout"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/cli/sync/local"
-	e "github.com/notsuhas/envden/go/core/errors"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/links/checkout"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/cli/sync/local"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestMissingStoreRestoresPublishedBytes(t *testing.T) {
@@ -23,15 +24,18 @@ func TestMissingStoreRestoresPublishedBytes(t *testing.T) {
 		})
 	}
 }
+
 func TestLostResponseAcknowledgesOwnEntry(t *testing.T) {
 	for _, mode := range []string{"link", "copy"} {
 		t.Run(mode, func(t *testing.T) {
 			f := newFixture(t)
 			target := f.layout(mode)[0]
 			path := target.Store
+
 			if mode == "copy" {
 				path = filepath.Join(target.Root, ".env")
 			}
+
 			f.write(path, "TOKEN=e1\n")
 			opts := f.opts
 			opts.Fetcher = lostFetch
@@ -39,6 +43,7 @@ func TestLostResponseAcknowledgesOwnEntry(t *testing.T) {
 			if err == nil {
 				t.Fatal("expected lost response")
 			}
+
 			f.write(path, "TOKEN=e2\n")
 			equal(t, f.push(f.second).Conflicts, 0)
 			f.pull(f.first)
@@ -46,6 +51,7 @@ func TestLostResponseAcknowledgesOwnEntry(t *testing.T) {
 		})
 	}
 }
+
 func TestUntrackingConflictingCheckout(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -60,6 +66,7 @@ func TestUntrackingConflictingCheckout(t *testing.T) {
 	must(t, err)
 	equal(t, len(records), 0)
 }
+
 func TestDetachedOldContentAdopted(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -72,6 +79,7 @@ func TestDetachedOldContentAdopted(t *testing.T) {
 	equal(t, f.pull(f.second).Conflicts, 0)
 	equal(t, f.read(path), original)
 }
+
 func TestUntrackingDivergentCopy(t *testing.T) {
 	f := newFixture(t)
 	targets := f.layout("copy", "link")
@@ -86,6 +94,7 @@ func TestUntrackingDivergentCopy(t *testing.T) {
 	equal(t, f.read(targets[1].Store), "TOKEN=theirs\n")
 	equal(t, f.read(path), "TOKEN=mine\n")
 }
+
 func TestMissingStoreWithConflictingCopy(t *testing.T) {
 	f := newFixture(t)
 	target := f.layout("copy")[0]
@@ -98,6 +107,7 @@ func TestMissingStoreWithConflictingCopy(t *testing.T) {
 	equal(t, f.read(target.Store), "TOKEN=remote\n")
 	equal(t, f.read(path), "TOKEN=mine\n")
 }
+
 func TestRevertAfterConflict(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -110,6 +120,7 @@ func TestRevertAfterConflict(t *testing.T) {
 	equal(t, f.pull(f.second).Conflicts, 1)
 	equal(t, f.read(b), original)
 }
+
 func TestMissingConflictFileCannotDelete(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -123,11 +134,14 @@ func TestMissingConflictFileCannotDelete(t *testing.T) {
 	equal(t, len(records), 1)
 	must(t, os.Remove(records[0].File))
 	_, err = syncer.ResolveConflict(f.ctx, f.second, syncer.ResolveOptions{File: ".env", Choice: "edit", Now: clock})
-	if !e.Is(err, e.InvalidInput) {
+
+	if !envdenerrors.Is(err, envdenerrors.InvalidInput) {
 		t.Fatal(err)
 	}
+
 	equal(t, f.read(b), "TOKEN=mine\n")
 }
+
 func TestMissingUnpublishedStoreKeepsCopy(t *testing.T) {
 	f := newFixture(t)
 	path := filepath.Join(f.checkoutB.Root, ".env.new")

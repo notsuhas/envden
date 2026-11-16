@@ -8,12 +8,12 @@ import (
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	"github.com/notsuhas/envden/go/cli/links/place"
 	state "github.com/notsuhas/envden/go/cli/state/model"
-	sm "github.com/notsuhas/envden/go/cli/sync/model"
+	syncmodel "github.com/notsuhas/envden/go/cli/sync/model"
 	"github.com/notsuhas/envden/go/core/adapters"
 )
 
-func linkAPI(ctx context.Context, a contracts.Adapters) sm.Links {
-	return sm.Links{
+func linkAPI(ctx context.Context, a contracts.Adapters) syncmodel.Links {
+	return syncmodel.Links{
 		ApprovedCheckout: func(repo adapters.Repo, state *state.State, root string) (*adapters.Checkout, error) {
 			return links.ApprovedCheckout(repo, state, root)
 		},

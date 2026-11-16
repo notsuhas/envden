@@ -1,9 +1,10 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/contracts"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/contracts"
 )
 
 type explorationCache struct {
@@ -22,7 +23,9 @@ func (c *explorationCache) world(t, owner *testing.T, layout []string) *explorat
 		c.layouts = map[string]*explorationWorld{}
 		lifetime.current = owner
 	}
+
 	key := strings.Join(layout, "+")
+
 	if c.layouts[key] == nil {
 		c.initial.restore(t)
 		f := c.fixture
@@ -33,5 +36,6 @@ func (c *explorationCache) world(t, owner *testing.T, layout []string) *explorat
 		c.layouts[key] = &explorationWorld{f, targets, takeSnapshot(lifetime, f.root), [2]contracts.Adapters{f.first, f.second}}
 		lifetime.current = owner
 	}
+
 	return c.layouts[key]
 }

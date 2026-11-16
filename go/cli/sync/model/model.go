@@ -9,10 +9,10 @@ import (
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/core/adapters"
 	chain "github.com/notsuhas/envden/go/core/chain/manifests"
-	e "github.com/notsuhas/envden/go/core/errors"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type Options struct {
@@ -46,8 +46,8 @@ type Context struct {
 	VaultID      []byte
 	Client       *client.Client
 	Checkpoint   chain.Checkpoint
-	Headers      []b.Signed[m.ManifestHeader]
-	Entries      []b.Signed[c.Entry]
+	Headers      []encoding.Signed[manifests.ManifestHeader]
+	Entries      []encoding.Signed[codecs.Entry]
 	Keys         map[int][]byte
 	Links        Links
 }
@@ -69,7 +69,7 @@ func Alias(state *state.State, id string) string {
 func (o Options) NonInteractive() bool { return o.Interactive != nil && !*o.Interactive }
 
 func IsCancelled(err error) bool {
-	value, ok := e.As(err)
+	value, ok := envdenerrors.As(err)
 
-	return ok && value.Code == e.InvalidInput && value.Message == "Cancelled"
+	return ok && value.Code == envdenerrors.InvalidInput && value.Message == "Cancelled"
 }

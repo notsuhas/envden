@@ -4,6 +4,7 @@ import "testing"
 
 func TestContentDecisions(t *testing.T) {
 	mine, server, previous := []byte{1}, []byte{2}, []byte{3}
+
 	for _, tc := range []struct {
 		name, want string
 		change     func(*ContentInput)
@@ -23,19 +24,23 @@ func TestContentDecisions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			input := ContentInput{Linked: true, UseStore: true, Mine: mine, Server: server, Previous: previous}
 			tc.change(&input)
+
 			if got := DeriveContentAction(input).Kind; got != tc.want {
 				t.Fatalf("%s != %s", got, tc.want)
 			}
 		})
 	}
+
 	for _, mine := range [][]byte{nil, {}, mine} {
 		if !same(DeriveDefaultContent(ContentInput{Linked: true, UseStore: true, Mine: mine, Server: server, Previous: server}), mine) {
 			t.Fatal("local content not retained")
 		}
 	}
+
 	if !same(DeriveDefaultContent(ContentInput{Linked: true, UseStore: true, Mine: mine, Server: server, Previous: previous}), server) {
 		t.Fatal("default content")
 	}
+
 	if DeriveUntrackedConflict(ContentInput{Mine: mine, Server: server}) != "conflict" {
 		t.Fatal("untracked content")
 	}
@@ -65,16 +70,21 @@ func TestConflictRequirements(t *testing.T) {
 
 func TestFileDecisions(t *testing.T) {
 	a, b, c := []byte{1}, []byte{2}, []byte{3}
+
 	for _, tc := range []struct{ store, previous, server, next []byte }{{a, a, a, a}, {a, a, b, b}, {a, b, b, a}, {b, a, b, b}} {
 		result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Previous: tc.previous, Server: tc.server}, Store: tc.store, StoreBeforeRestore: tc.store, Tracked: true, Published: true})
+
 		if result.Local.Kind != "content" || !same(result.Local.Bytes, tc.store) || !same(result.Mine, tc.store) || result.Theirs.Kind != "live" || !same(result.Theirs.Bytes, tc.server) {
 			t.Fatal(result)
 		}
+
 		if result.Action.Kind != "write" || !same(result.Action.Next, tc.next) {
 			t.Fatal(tc, result)
 		}
 	}
+
 	result := DeriveFileDecision(FileInput{ContentInput: ContentInput{Previous: b, Server: c}, Store: a, StoreBeforeRestore: a, Tracked: true, Published: true})
+
 	if result.Action.Kind != "choose" {
 		t.Fatal(result)
 	}
@@ -82,11 +92,13 @@ func TestFileDecisions(t *testing.T) {
 
 func TestObservedRevertCases(t *testing.T) {
 	mine, previous, server := []byte{1}, []byte{3}, []byte{2}
+
 	for _, tc := range []struct {
 		recorded, remote []byte
 		kind             string
 	}{{mine, server, "conflict"}, {previous, server, "write"}, {mine, previous, "write"}} {
 		got := DeriveContentAction(ContentInput{Linked: true, UseStore: true, Mine: previous, Previous: previous, Server: tc.remote, Recorded: tc.recorded})
+
 		if got.Kind != tc.kind {
 			t.Fatal(got, tc)
 		}

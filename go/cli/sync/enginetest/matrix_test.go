@@ -8,6 +8,7 @@ import (
 
 func TestFullEngineMatrix(t *testing.T) {
 	a, b, c := original, "TOKEN=new\n", "TOKEN=other\n"
+
 	for _, modes := range layouts {
 		for _, tc := range []struct {
 			name, store, remote, want string
@@ -23,22 +24,28 @@ func TestFullEngineMatrix(t *testing.T) {
 				f.push(f.first)
 				r := f.pull(f.second)
 				equal(t, r.Conflicts, tc.conflicts)
+
 				if tc.name == "remote edit" {
 					equal(t, r.Changed, 1)
 				}
+
 				equal(t, f.read(targets[0].Store), tc.want)
+
 				if tc.conflicts == 0 {
 					for _, target := range targets {
 						equal(t, f.read(filepath.Join(target.Root, target.Path)), tc.want)
 					}
+
 					equal(t, f.pull(f.second).Changed, 0)
 				}
 			})
 		}
 	}
 }
+
 func TestFullEngineCopyMatrix(t *testing.T) {
 	a, b, c := original, "TOKEN=new\n", "TOKEN=other\n"
+
 	for _, tc := range []struct {
 		name, store, copied, remote, want string
 		conflicts                         int

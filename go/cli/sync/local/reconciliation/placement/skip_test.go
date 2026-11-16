@@ -8,6 +8,7 @@ import (
 
 func TestTargetSkip(t *testing.T) {
 	target := model.Link{Root: "r", Path: ".env", Store: "s", Mode: "link"}
+
 	for _, tc := range []struct {
 		approved bool
 		links    []model.Link

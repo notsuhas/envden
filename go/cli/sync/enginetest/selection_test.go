@@ -1,17 +1,18 @@
 package enginetest
 
 import (
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync/local"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconcile"
-	sm "github.com/notsuhas/envden/go/cli/sync/model"
+	syncmodel "github.com/notsuhas/envden/go/cli/sync/model"
 	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestSelectionRefusesChangedRemotesAndPrefixSiblings(t *testing.T) {
@@ -20,7 +21,8 @@ func TestSelectionRefusesChangedRemotesAndPrefixSiblings(t *testing.T) {
 	s := state.EmptyState("test")
 	s.Approved = append(s.Approved, checkout.ApprovalRecord(c))
 	f.first.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: func(string) (*adapters.Checkout, error) { return &c, nil }, CaseInsensitive: func(string, bool) (bool, error) { return false, nil }})
-	opts := sm.Options{Now: clock, Cwd: filepath.Join(c.Root, "nested")}
+	opts := syncmodel.Options{Now: clock, Cwd: filepath.Join(c.Root, "nested")}
+
 	for _, path := range []string{opts.Cwd, filepath.Join(c.Root, "..nested")} {
 		opts.Cwd = path
 		repos, err := reconcile.SelectedRepos(f.first, s, opts, syncLinks(f), nil)
@@ -28,20 +30,25 @@ func TestSelectionRefusesChangedRemotesAndPrefixSiblings(t *testing.T) {
 		equal(t, len(repos), 1)
 		equal(t, repos[c.RepoID], true)
 	}
+
 	opts.Cwd = c.Root + "-other"
 	_, err := reconcile.SelectedRepos(f.first, s, opts, syncLinks(f), nil)
-	if !e.Is(err, e.Unauthorized) {
+
+	if !envdenerrors.Is(err, envdenerrors.Unauthorized) {
 		t.Fatal(err)
 	}
+
 	changed := c
 	changed.RepoID = "changed"
 	f.first.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: func(string) (*adapters.Checkout, error) { return &changed, nil }, CaseInsensitive: func(string, bool) (bool, error) { return false, nil }})
 	opts.All = true
 	_, err = reconcile.SelectedRepos(f.first, s, opts, syncLinks(f), nil)
-	if !e.Is(err, e.Conflict) {
+
+	if !envdenerrors.Is(err, envdenerrors.Conflict) {
 		t.Fatal(err)
 	}
 }
+
 func TestAllSkipsRecreatedCheckoutWithNotice(t *testing.T) {
 	f := localFixture(t)
 	c := f.checkout
@@ -52,13 +59,15 @@ func TestAllSkipsRecreatedCheckoutWithNotice(t *testing.T) {
 	c.Identity = &current
 	f.first.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: func(string) (*adapters.Checkout, error) { return &c, nil }})
 	reports := []string{}
-	repos, err := reconcile.SelectedRepos(f.first, s, sm.Options{All: true, Report: func(v string) { reports = append(reports, v) }}, syncLinks(f), nil)
+	repos, err := reconcile.SelectedRepos(f.first, s, syncmodel.Options{All: true, Report: func(v string) { reports = append(reports, v) }}, syncLinks(f), nil)
 	must(t, err)
 	equal(t, len(repos), 0)
+
 	if !strings.Contains(strings.Join(reports, " "), "envden track") {
 		t.Fatal(reports)
 	}
 }
+
 func TestBackupRetentionRecognizesNamesOnly(t *testing.T) {
 	f := localFixture(t)
 	directory := filepath.Join(f.first.Home, "conflicts", "backups")

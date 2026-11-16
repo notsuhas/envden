@@ -2,17 +2,18 @@ package enginetest
 
 import (
 	"bytes"
-	"github.com/notsuhas/envden/go/cli/client"
-	"github.com/notsuhas/envden/go/cli/sync/remote"
-	"github.com/notsuhas/envden/go/cli/vault"
-	"github.com/notsuhas/envden/go/cli/vault/join/material"
-	c "github.com/notsuhas/envden/go/core/protocol/codecs"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/client"
+	"github.com/notsuhas/envden/go/cli/sync/remote"
+	"github.com/notsuhas/envden/go/cli/vault"
+	"github.com/notsuhas/envden/go/cli/vault/join/material"
+	"github.com/notsuhas/envden/go/core/protocol/codecs"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 func TestHistoryRequestsAfterCheckpoint(t *testing.T) {
@@ -21,11 +22,11 @@ func TestHistoryRequestsAfterCheckpoint(t *testing.T) {
 	s := f.state(f.second)
 	raw, err := client.Binary(s.Headers[len(s.Headers)-1])
 	must(t, err)
-	header, err := b.Decode(b.SignedCodec(m.ManifestHeaderCodec), raw)
+	header, err := encoding.Decode(encoding.SignedCodec(manifests.ManifestHeaderCodec), raw)
 	must(t, err)
 	raw, err = client.Binary(s.Entries[len(s.Entries)-1])
 	must(t, err)
-	entry, err := b.Decode(b.SignedCodec(c.EntryCodec), raw)
+	entry, err := encoding.Decode(encoding.SignedCodec(codecs.EntryCodec), raw)
 	must(t, err)
 	f.write(f.aStore, "TOKEN=next\n")
 	f.push(f.first)
@@ -35,6 +36,7 @@ func TestHistoryRequestsAfterCheckpoint(t *testing.T) {
 		if req.URL.Path == "/v1/entries" || req.URL.Path == "/v1/headers" {
 			requests = append(requests, req.URL.RequestURI())
 		}
+
 		return client.DefaultFetch(req)
 	}
 	context, err := remote.SyncContext(f.ctx, f.second, opts, syncLinks(f))

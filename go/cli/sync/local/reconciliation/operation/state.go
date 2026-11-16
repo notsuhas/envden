@@ -5,16 +5,16 @@ import (
 	"slices"
 
 	"github.com/notsuhas/envden/go/cli/client"
-	sf "github.com/notsuhas/envden/go/cli/state/files"
+	statefiles "github.com/notsuhas/envden/go/cli/state/files"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/records"
 	"github.com/notsuhas/envden/go/cli/sync/local"
-	f "github.com/notsuhas/envden/go/cli/sync/local/files"
+	localfiles "github.com/notsuhas/envden/go/cli/sync/local/files"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconciliation/history"
-	sm "github.com/notsuhas/envden/go/cli/sync/model"
+	syncmodel "github.com/notsuhas/envden/go/cli/sync/model"
 	"github.com/notsuhas/envden/go/cli/sync/remote"
-	m "github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
-	b "github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/protocol/codecs/manifests"
+	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
 type FileState struct {
@@ -25,76 +25,93 @@ type FileState struct {
 	Corrupt, Reappeared, Restored, Deleting, DeletionInvalid bool
 }
 
-func ReadFileState(context *sm.Context, targets []state.Link, store string, entry *m.FileEntry) (FileState, error) {
+func ReadFileState(context *syncmodel.Context, targets []state.Link, store string, entry *manifests.FileEntry) (FileState, error) {
 	home := context.Adapters.Home
 	now := context.Options.Now
-	base := f.BasePath(home, store)
+	base := localfiles.BasePath(home, store)
 	result := FileState{Base: base}
 	ancestor, err := records.RecoverSyncRecord(base+".entry", base+".corrupt", func(saved string) (string, error) { _, err := DecodeEntry(saved); return saved, err }, now(), context.Options.Report)
 	if err != nil {
 		return result, err
 	}
+
 	if _, err = DeletionRequested(home, store, now); err != nil {
 		return result, err
 	}
-	marker, err := sf.OptionalRead(base + ".corrupt")
+
+	marker, err := statefiles.OptionalRead(base + ".corrupt")
 	if err != nil {
 		return result, err
 	}
+
 	result.Corrupt = marker != nil
+
 	if !result.Corrupt {
 		result.Encoded = ancestor
+
 		if ancestor == nil && entry != nil {
 			applied, err := local.AppliedFiles(home)
 			if err != nil {
 				return result, err
 			}
-			if value, ok := applied.Get(b.Base32(entry.FileId)).(string); ok {
+
+			if value, ok := applied.Get(encoding.Base32(entry.FileId)).(string); ok {
 				result.Encoded = &value
 			}
 		}
 	}
+
 	if result.Encoded != nil {
 		prior, err := DecodeEntry(*result.Encoded)
 		if err != nil {
 			return result, err
 		}
+
 		result.Previous, err = remote.EntryContent(context, prior)
 		if err != nil {
 			return result, err
 		}
 	}
+
 	if entry != nil {
 		result.Server, err = remote.EntryContent(context, *entry)
 		if err != nil {
 			return result, err
 		}
 	}
+
 	var reappeared []byte
+
 	if !result.Corrupt {
 		intent, err := ReadDeletion(home, store, now)
 		if err != nil {
 			return result, err
 		}
+
 		if intent != nil {
 			paths := []string{store}
+
 			for _, target := range targets {
 				path := filepath.Join(target.Root, target.Path)
+
 				if slices.Contains(intent.Targets, path) {
 					paths = append(paths, path)
 				}
 			}
+
 			for _, path := range paths {
-				value, err := f.ReadBytes(path)
+				value, err := localfiles.ReadBytes(path)
 				if err != nil {
 					return result, err
 				}
+
 				if value == nil {
 					continue
 				}
 				if err = RequestDeletion(home, store, false, nil, nil, now); err != nil {
 					return result, err
 				}
+
 				context.Report("Cancelled removal; restored env file: " + path)
 				reappeared = value
 				result.Reappeared = true
@@ -102,11 +119,14 @@ func ReadFileState(context *sm.Context, targets []state.Link, store string, entr
 			}
 		}
 	}
-	before, err := f.ReadBytes(store)
+
+	before, err := localfiles.ReadBytes(store)
 	if err != nil {
 		return result, err
 	}
+
 	result.StoreBeforeRestore = before
+
 	if before == nil && reappeared != nil {
 		result.Stored = reappeared
 		result.StoreBeforeRestore = reappeared
@@ -119,30 +139,38 @@ func ReadFileState(context *sm.Context, targets []state.Link, store string, entr
 		if err != nil {
 			return result, err
 		}
+
 		result.Restored = before == nil && result.Server != nil && !result.Deleting && !result.Corrupt
 		result.Stored = before
+
 		if result.Restored {
-			if err = f.WriteBytes(store, result.Server, now); err != nil {
+			if err = localfiles.WriteBytes(store, result.Server, now); err != nil {
 				return result, err
 			}
+
 			result.Stored = result.Server
 		}
 	}
+
 	for _, target := range targets {
 		snapshot, err := history.FileSnapshot(context, target, result.Stored, result.Previous)
 		if err != nil {
 			return result, err
 		}
+
 		result.Snapshots = append(result.Snapshots, snapshot)
 	}
+
 	intent, err := ReadDeletion(home, store, now)
 	if err != nil {
 		return result, err
 	}
+
 	if result.Deleting && entry != nil {
-		result.DeletionInvalid = intent == nil || intent.Entry != client.Text(m.FileEntryCodec.Write(*entry))
+		result.DeletionInvalid = intent == nil || intent.Entry != client.Text(manifests.FileEntryCodec.Write(*entry))
 	}
-	result.Recorded, err = f.ReadBytes(base)
+
+	result.Recorded, err = localfiles.ReadBytes(base)
 
 	return result, err
 }

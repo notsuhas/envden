@@ -1,10 +1,10 @@
 package pako
 
 func (s *state) send(value, length int) {
-	s.bits |= uint64(value) << s.valid
+	s.bits |= uint64(value) << s.valid //nolint:gosec // Huffman codes and extra bits are nonnegative.
 	s.valid += length
 	for s.valid >= 8 {
-		s.output = append(s.output, byte(s.bits))
+		s.output = append(s.output, byte(s.bits)) //nolint:gosec // Bit packing intentionally emits only the low byte.
 		s.bits >>= 8
 		s.valid -= 8
 	}
@@ -14,7 +14,7 @@ func (s *state) code(code int, tree []int) { s.send(tree[code*2], tree[code*2+1]
 
 func (s *state) align() {
 	if s.valid > 0 {
-		s.output = append(s.output, byte(s.bits))
+		s.output = append(s.output, byte(s.bits)) //nolint:gosec // Bit packing intentionally emits only the low byte.
 	}
 	s.bits = 0
 	s.valid = 0
@@ -86,7 +86,7 @@ func (s *state) flush(last bool) {
 	if stored+4 <= optimal && s.blockStart >= 0 {
 		s.send(final, 3)
 		s.align()
-		s.output = append(s.output, byte(stored), byte(stored>>8), byte(^stored), byte(^stored>>8))
+		s.output = append(s.output, byte(stored), byte(stored>>8), byte(^stored), byte(^stored>>8)) //nolint:gosec // DEFLATE stores the low 16 bits and their complement.
 		s.output = append(s.output, s.window[s.blockStart:s.position]...)
 	} else if fixed == optimal {
 		s.send(2+final, 3)

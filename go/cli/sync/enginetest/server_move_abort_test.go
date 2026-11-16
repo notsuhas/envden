@@ -22,20 +22,25 @@ func TestPreparedMoveAbortAllowsFreshMove(t *testing.T) {
 	fetch := func(req *http.Request) (*http.Response, error) {
 		if strings.HasPrefix(req.URL.String(), f.kit.Server) && req.URL.Path == "/v1/swap" {
 			stopped = true
+
 			return nil, fmt.Errorf("crash before source commit")
 		}
+
 		return client.DefaultFetch(req)
 	}
 	err := move.MoveServer(f.ctx, f.first, move.Options{Address: destination.URL, Token: token, Password: "old password", Now: clock, Fetcher: fetch})
 	if err == nil || !stopped {
 		t.Fatal("move must stop before source commit", err, stopped)
 	}
+
 	must(t, move.MoveServer(f.ctx, f.first, move.Options{Abort: true, Password: "old password", Now: clock, Fetcher: client.DefaultFetch}))
 	setup, err := destination.Storage.SetupToken()
 	must(t, err)
+
 	if setup != nil {
 		t.Fatal("destination setup token must be discarded")
 	}
+
 	decoded, err := proofs.DecodeToken("setup", token)
 	must(t, err)
 	key, err := proofs.TokenKey("setup", decoded.Secret)
@@ -44,6 +49,7 @@ func TestPreparedMoveAbortAllowsFreshMove(t *testing.T) {
 	must(t, move.MoveServer(f.ctx, f.first, move.Options{Address: destination.URL, Token: token, Password: "old password", Now: clock, Fetcher: client.DefaultFetch}))
 	equal(t, f.state(f.first).Server.Address, destination.URL)
 	_, err = os.Stat(filepath.Join(f.first.Home, "state", "move-pin"))
+
 	if !os.IsNotExist(err) {
 		t.Fatal("move pin must be cleared", err)
 	}
@@ -61,9 +67,11 @@ func TestStaleKitRefusesMoveWithoutConsumingToken(t *testing.T) {
 	before, err := destination.Storage.SetupToken()
 	must(t, err)
 	err = move.MoveServer(f.ctx, f.first, move.Options{Address: destination.URL, Token: token, Password: "old password", Now: clock, Fetcher: client.DefaultFetch})
+
 	if !errors.Is(err, errors.RecoveryKitRequired) {
 		t.Fatal(err)
 	}
+
 	after, err := destination.Storage.SetupToken()
 	must(t, err)
 	equal(t, bytes.Equal(after, before), true)

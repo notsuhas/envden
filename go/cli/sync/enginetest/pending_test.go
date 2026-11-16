@@ -1,11 +1,12 @@
 package enginetest
 
 import (
-	"github.com/notsuhas/envden/go/cli/sync/local"
-	"github.com/notsuhas/envden/go/cli/sync/local/files"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/cli/sync/local"
+	"github.com/notsuhas/envden/go/cli/sync/local/files"
 )
 
 func TestFailedPlacementResumesNewerContent(t *testing.T) {
@@ -21,14 +22,18 @@ func TestFailedPlacementResumesNewerContent(t *testing.T) {
 			_, err := os.Stat(files.BasePath(f.second.Home, store) + ".pending")
 			must(t, err)
 			path := filepath.Join(targets[0].Root, ".env")
+
 			if edit == "store" {
 				path = store
 			}
+
 			if edit != "none" {
 				f.write(path, "TOKEN=later\n")
 			}
+
 			restore()
 			f.pull(f.second)
+
 			if edit == "none" {
 				equal(t, f.read(store), "TOKEN=remote\n")
 				records, err := local.ConflictRecords(f.second.Home)
@@ -38,11 +43,14 @@ func TestFailedPlacementResumesNewerContent(t *testing.T) {
 				equal(t, f.read(path), "TOKEN=later\n")
 				records, err := local.ConflictRecords(f.second.Home)
 				must(t, err)
+
 				if len(records) > 0 {
 					equal(t, f.read(records[0].Mine), "TOKEN=later\n")
 				}
 			}
+
 			f.pull(f.second)
+
 			if edit != "none" {
 				equal(t, f.read(path), "TOKEN=later\n")
 			}

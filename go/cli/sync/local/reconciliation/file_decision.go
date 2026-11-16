@@ -18,10 +18,13 @@ type FileDecision struct {
 
 func DeriveFileDecision(input FileInput) FileDecision {
 	store := input.Store
+
 	if store == nil && input.Published && !input.Deleting {
 		store = input.Server
 	}
+
 	remote := content.Server{Kind: "absent"}
+
 	if input.Published {
 		if input.Tombstone {
 			remote.Kind = "tombstone"
@@ -29,15 +32,19 @@ func DeriveFileDecision(input FileInput) FileDecision {
 			remote = content.Server{Kind: "live", Bytes: input.Server}
 		}
 	}
+
 	sides := content.DeriveFileSides(content.SidesInput{StoreBeforeRestore: input.StoreBeforeRestore, Recorded: input.Recorded, Previous: input.Previous, Server: remote, Copies: input.Copies, PendingRemoval: input.Deleting})
 	ci := input.ContentInput
 	ci.Linked = input.Tracked || store != nil
 	ci.UseStore = true
 	ci.Mine = sides.Mine
+
 	if !input.Published {
 		ci.Server = sides.Mine
 	}
+
 	action := DeriveContentAction(ci)
+
 	if sides.Local.Kind == "conflict" {
 		action = Action{Kind: "conflict"}
 	}

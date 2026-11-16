@@ -3,16 +3,18 @@ package enginetest
 import (
 	"context"
 	"errors"
+	"io"
+	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/client"
 	syncer "github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/sync/remote"
 	"github.com/notsuhas/envden/go/cli/vault"
-	e "github.com/notsuhas/envden/go/core/errors"
-	"io"
-	"net/http"
-	"path/filepath"
-	"strings"
-	"testing"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func TestSyncRace(t *testing.T) {
@@ -23,9 +25,11 @@ func TestSyncRace(t *testing.T) {
 	f.write(f.aStore, original+"A=one\n")
 	equal(t, f.push(f.first).Kind, "pushed")
 	f.pull(f.second)
+
 	if !strings.Contains(f.read(b), "A=one") {
 		t.Fatal("missing first edit")
 	}
+
 	f.write(f.aStore, original+"A=two\n")
 	f.write(b, original+"A=one\nB=one\n")
 	raced := false
@@ -35,6 +39,7 @@ func TestSyncRace(t *testing.T) {
 			raced = true
 			f.push(f.first)
 		}
+
 		return client.DefaultFetch(req)
 	}
 	r, err := syncer.Push(f.ctx, f.second, opts)
@@ -47,17 +52,20 @@ func TestSyncRace(t *testing.T) {
 	opts.Fetcher = func(req *http.Request) (*http.Response, error) {
 		if req.URL.Path == "/v1/swap" {
 			round++
-			f.write(f.aStore, original+"A=two\nB=one\nC="+string(rune('0'+round))+"\n")
+			f.write(f.aStore, original+"A=two\nB=one\nC="+strconv.Itoa(round)+"\n")
 			f.push(f.first)
 		}
+
 		return client.DefaultFetch(req)
 	}
 	f.write(b, original+"A=two\nB=two\n")
 	_, err = syncer.Push(f.ctx, f.second, opts)
-	if !e.Is(err, e.HeadMoved) {
+
+	if !envdenerrors.Is(err, envdenerrors.HeadMoved) {
 		t.Fatal(err)
 	}
 }
+
 func TestAcceptRefreshesNewerHistory(t *testing.T) {
 	f := newFixture(t)
 	c, err := remote.SyncContext(f.ctx, f.second, f.opts, syncLinks(f))
@@ -73,6 +81,7 @@ func TestAcceptRefreshesNewerHistory(t *testing.T) {
 	must(t, err)
 	equal(t, c.Checkpoint.Header.Body.Seq, seq+2)
 }
+
 func TestExpiredUnlock(t *testing.T) {
 	f := newFixture(t)
 	locked := true
@@ -82,14 +91,17 @@ func TestExpiredUnlock(t *testing.T) {
 		if locked && req.URL.Path != "/v1/hello" {
 			return &http.Response{StatusCode: 403, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader("{\"error\":\"LOCKED\"}"))}, nil
 		}
+
 		return client.DefaultFetch(req)
 	}
 	no, yes := false, true
 	opts.Interactive = &no
 	_, err := syncer.Pull(f.ctx, f.second, opts)
-	if !e.Is(err, e.Locked) || !strings.Contains(err.Error(), "envden unlock") {
+
+	if !envdenerrors.Is(err, envdenerrors.Locked) || !strings.Contains(err.Error(), "envden unlock") {
 		t.Fatal(err)
 	}
+
 	opts.Interactive = &yes
 	opts.Unlock = func(_ context.Context, _ *client.Client, _ []byte) error { prompts++; locked = false; return nil }
 	r, err := syncer.Pull(f.ctx, f.second, opts)
@@ -97,11 +109,14 @@ func TestExpiredUnlock(t *testing.T) {
 	equal(t, r.Kind, "pulled")
 	equal(t, prompts, 1)
 }
+
 func lostFetch(req *http.Request) (*http.Response, error) {
 	response, err := client.DefaultFetch(req)
 	if err == nil && req.URL.Path == "/v1/swap" {
-		response.Body.Close()
+		_ = response.Body.Close() // Best-effort cleanup preserves the original operation result.
+
 		return nil, errors.New("Lost response")
 	}
+
 	return response, err
 }

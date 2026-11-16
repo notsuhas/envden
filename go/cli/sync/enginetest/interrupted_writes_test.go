@@ -2,15 +2,16 @@ package enginetest
 
 import (
 	"errors"
-	sf "github.com/notsuhas/envden/go/cli/state/files"
-	syncer "github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/cli/sync/local/files"
-	"github.com/notsuhas/envden/go/core/adapters"
-	fakeplace "github.com/notsuhas/envden/go/testing/placement"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
+
+	statefiles "github.com/notsuhas/envden/go/cli/state/files"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
+	"github.com/notsuhas/envden/go/cli/sync/local/files"
+	"github.com/notsuhas/envden/go/core/adapters"
+	fakeplace "github.com/notsuhas/envden/go/testing/placement"
 )
 
 func TestInterruptedWritesConverge(t *testing.T) {
@@ -27,36 +28,45 @@ func TestInterruptedWritesConverge(t *testing.T) {
 			opts.AtomicWrite = func(path string, data []byte) error {
 				if !strings.HasPrefix(step, "copy") && path == paths[step] {
 					failures++
+
 					if failures == 1 {
 						return errors.New("injected write failure")
 					}
 				}
-				return sf.AtomicWrite(path, data, clock)
+
+				return statefiles.AtomicWrite(path, data, clock)
 			}
 			original := f.second.Placement
 			f.second.Placement = func(mode adapters.PlacementMode, root string) adapters.Placement {
 				p := original(mode, root)
+
 				return fakeplace.CreateFakePlacementAdapter(fakeplace.Operations{Mode: mode, Supported: p.Supported, Inspect: p.Inspect, Remove: p.Remove, Place: func(store, dest string, prepare func(string) error, replacing *string) error {
 					if strings.HasPrefix(step, "copy") {
 						index, err := strconv.Atoi(step[len(step)-1:])
 						must(t, err)
+
 						if root == targets[index].Root {
 							failures++
+
 							if failures == 1 {
 								return errors.New("injected write failure")
 							}
 						}
 					}
+
 					return p.Place(store, dest, prepare, replacing)
 				}})
 			}
 			_, _ = syncer.Pull(f.ctx, f.second, opts)
 			f.second.Placement = original
+
 			if failures == 0 {
 				t.Fatal("fault was not exercised")
 			}
+
 			equal(t, f.pull(f.second).Conflicts, 0)
 			equal(t, f.read(store), "TOKEN=remote\n")
+
 			for _, target := range targets {
 				equal(t, f.read(filepath.Join(target.Root, target.Path)), "TOKEN=remote\n")
 			}

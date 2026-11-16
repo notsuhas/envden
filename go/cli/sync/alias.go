@@ -7,7 +7,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/links"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/store"
-	e "github.com/notsuhas/envden/go/core/errors"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 )
 
 func AliasUnlinkedRepo(ctx context.Context, a contracts.Adapters, source, target string) error {
@@ -16,16 +16,19 @@ func AliasUnlinkedRepo(ctx context.Context, a contracts.Adapters, source, target
 		if err != nil {
 			return err
 		}
+
 		if state != nil {
 			roots := map[string]bool{}
+
 			for _, approved := range state.Approved {
 				if approved.RepoID == source {
 					roots[approved.Root] = true
 				}
 			}
+
 			for _, link := range state.Links {
 				if roots[link.Root] {
-					return e.New(e.Conflict, "Cannot alias a repo with placed files; run envden untrack <path> first")
+					return envdenerrors.New(envdenerrors.Conflict, "Cannot alias a repo with placed files; run envden untrack <path> first")
 				}
 			}
 		}

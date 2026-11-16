@@ -21,6 +21,7 @@ func CommandOptions(a contracts.Adapters, values map[string]any, interactive boo
 		Unlock: func(ctx context.Context, cl *client.Client, id []byte) error {
 			_, err := session.Login(ctx, cl, id, session.Password{Prompt: func(retry bool) (string, error) {
 				message := "Master password"
+
 				if retry {
 					message = "Wrong master password. Try again"
 				}

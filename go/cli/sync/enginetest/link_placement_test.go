@@ -3,6 +3,10 @@ package enginetest
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+	"testing"
+
 	placementfs "github.com/notsuhas/envden/go/adapters/placement/fs"
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/links"
@@ -13,9 +17,6 @@ import (
 	storepath "github.com/notsuhas/envden/go/cli/store"
 	"github.com/notsuhas/envden/go/core/adapters"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func localFixture(t *testing.T) *fixture {
@@ -30,8 +31,10 @@ func localFixture(t *testing.T) *fixture {
 	f.checkout = adapters.Checkout{Root: filepath.Join(root, "checkout"), GitDir: filepath.Join(root, "checkout", ".git"), RepoID: "host/repo"}
 	must(t, os.MkdirAll(f.checkout.Root, 0700))
 	f.repo(&f.first, []adapters.Checkout{f.checkout}, ".env")
+
 	return f
 }
+
 func TestPlacementApprovalAndDetachedFiles(t *testing.T) {
 	f := localFixture(t)
 	a := f.first
@@ -67,6 +70,7 @@ func TestPlacementApprovalAndDetachedFiles(t *testing.T) {
 	equal(t, s.Links[0].LocalOnly, true)
 	equal(t, f.read(path), "PORT=4000\n")
 }
+
 func TestLinkIntoDeletedStoreIsRemoved(t *testing.T) {
 	f := localFixture(t)
 	path := filepath.Join(f.checkout.Root, ".env")
@@ -79,20 +83,24 @@ func TestLinkIntoDeletedStoreIsRemoved(t *testing.T) {
 	must(t, err)
 	equal(t, len(s.Links), 0)
 	_, err = os.Lstat(path)
+
 	if !os.IsNotExist(err) {
 		t.Fatal(err)
 	}
 }
+
 func TestContainerOfferOncePerCheckout(t *testing.T) {
 	f := localFixture(t)
 	f.write(filepath.Join(f.checkout.Root, ".env"), "A=1")
 	f.write(filepath.Join(f.checkout.Root, "Dockerfile"), "FROM scratch")
 	offered := 0
 	ask := func(string) (bool, error) { offered++; return false, nil }
+
 	for range 2 {
 		mode, err := checkout.CheckoutPlacement(f.ctx, f.first, f.checkout.Root, false, ask, true)
 		must(t, err)
 		equal(t, mode, adapters.PlacementLink)
 	}
+
 	equal(t, offered, 1)
 }

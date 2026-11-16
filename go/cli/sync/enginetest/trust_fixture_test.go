@@ -1,15 +1,17 @@
 package enginetest
 
 import (
-	state "github.com/notsuhas/envden/go/cli/state/model"
-	"github.com/notsuhas/envden/go/cli/sync/local/files"
 	"os"
 	"path/filepath"
 	"strings"
+
+	state "github.com/notsuhas/envden/go/cli/state/model"
+	"github.com/notsuhas/envden/go/cli/sync/local/files"
 )
 
 func seedTrust(f *fixture, scenario string, s *state.State, target state.Link, path, edited string) bool {
 	t := f.t
+
 	switch {
 	case scenario == "untracked-applied":
 		s.Links = nil
@@ -58,5 +60,6 @@ func seedTrust(f *fixture, scenario string, s *state.State, target state.Link, p
 			f.write(target.Store, "TOKEN=store-edit\n")
 		}
 	}
+
 	return false
 }

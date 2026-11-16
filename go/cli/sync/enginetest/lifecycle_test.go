@@ -2,11 +2,12 @@ package enginetest
 
 import (
 	"errors"
-	"github.com/notsuhas/envden/go/core/adapters"
-	fakerepo "github.com/notsuhas/envden/go/testing/repo"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/notsuhas/envden/go/core/adapters"
+	fakerepo "github.com/notsuhas/envden/go/testing/repo"
 )
 
 func TestTombstonesRemoveLinks(t *testing.T) {
@@ -18,6 +19,7 @@ func TestTombstonesRemoveLinks(t *testing.T) {
 	equal(t, f.pull(f.second).Conflicts, 0)
 	equal(t, len(f.state(f.second).Links), 0)
 }
+
 func TestAdoptsUnjournaledStoreLink(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
@@ -29,6 +31,7 @@ func TestAdoptsUnjournaledStoreLink(t *testing.T) {
 	equal(t, f.pull(f.second).Conflicts, 0)
 	equal(t, len(f.state(f.second).Links), 1)
 }
+
 func TestNoticeFailureDoesNotFailCommittedPush(t *testing.T) {
 	f := newFixture(t)
 	f.write(f.aStore, "TOKEN=changed\n")

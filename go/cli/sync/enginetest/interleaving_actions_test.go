@@ -2,22 +2,24 @@ package enginetest
 
 import (
 	"errors"
+	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
 	"github.com/notsuhas/envden/go/cli/links"
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	syncer "github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/sync/remote"
 	"github.com/notsuhas/envden/go/cli/vault"
 	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"net/http"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
 )
 
 var osRead = os.ReadFile
+
 var savedReport = regexp.MustCompile("^(?:Saved .*: |Kept your previous .* at )(.+)$")
 
 func (f *fixture) serverValue() value {
@@ -27,21 +29,27 @@ func (f *fixture) serverValue() value {
 	must(f.t, err)
 	_, err = remote.AcceptHead(c, &h, false)
 	must(f.t, err)
+
 	for _, entry := range c.Checkpoint.Files.Entries {
 		name, err := remote.EntryName(c, entry)
 		must(f.t, err)
+
 		if name.RepoId == f.checkout.RepoID && name.Path == ".env" {
 			b, err := remote.EntryContent(c, entry)
 			must(f.t, err)
+
 			return value{string(b), b != nil}
 		}
 	}
+
 	return value{}
 }
+
 func (r *interleaving) apply(d, op int, edit string) {
 	f := r.f
 	a := r.devices[d]
 	path := filepath.Join(r.roots[d], ".env")
+
 	switch op {
 	case 0, 1:
 		if op == 1 {
@@ -59,7 +67,7 @@ func (r *interleaving) apply(d, op int, edit string) {
 	case 6:
 		r.user(d, value{})
 		result, err := syncer.RemoveFile(f.ctx, a, path, syncer.RemoveOptions{Yes: true, Now: clock})
-		if err != nil && !e.Is(err, e.NotFound) {
+		if err != nil && !envdenerrors.Is(err, envdenerrors.NotFound) {
 			must(f.t, err)
 		}
 		r.saved = append(r.saved, result.Preserved...)
@@ -70,7 +78,7 @@ func (r *interleaving) apply(d, op int, edit string) {
 		}
 		result, err := syncer.ResolveConflict(f.ctx, a, syncer.ResolveOptions{File: ".env", Choice: choice, Now: clock})
 		if err != nil {
-			if !e.Is(err, e.InvalidInput) {
+			if !envdenerrors.Is(err, envdenerrors.InvalidInput) {
 				must(f.t, err)
 			}
 		} else {
@@ -96,44 +104,57 @@ func (r *interleaving) apply(d, op int, edit string) {
 		f.save(a, next)
 	}
 }
+
 func (r *interleaving) receive(d int, fail bool) syncer.Result {
 	a := r.devices[d]
 	original := a.Repo
+
 	if fail {
 		a.Repo = fakerepo.CreateFakeRepoAdapter(fakerepo.Operations{CheckoutAt: original.CheckoutAt, CaseInsensitive: original.CaseInsensitive, EnsureIgnored: func(adapters.Checkout, string) error { return errors.New("Placement failure") }})
 	}
+
 	result, err := syncer.Pull(r.f.ctx, a, r.options())
 	must(r.f.t, err)
 	a.Repo = original
+
 	if result.Conflicts == 0 {
 		r.observe(d)
 		again, err := syncer.Pull(r.f.ctx, a, r.options())
 		must(r.f.t, err)
 		equal(r.f.t, again.Changed, 0)
 	}
+
 	return result
 }
+
 func (r *interleaving) send(d int, lost bool) {
 	opts := r.options()
+
 	if lost {
 		opts.Fetcher = func(req *http.Request) (*http.Response, error) {
 			response, err := r.devices[d].Fetcher(req)
 			if err == nil && req.URL.Path == "/v1/swap" {
-				response.Body.Close()
+				_ = response.Body.Close() // Best-effort cleanup preserves the original operation result.
+
 				return nil, errors.New("Lost response")
 			}
+
 			return response, err
 		}
 	}
+
 	_, err := syncer.Push(r.f.ctx, r.devices[d], opts)
 	if err != nil && (!lost || !strings.Contains(err.Error()+causeText(err), "Lost response")) {
 		must(r.f.t, err)
 	}
+
 	r.commit(d)
 }
+
 func causeText(err error) string {
 	if cause := errors.Unwrap(err); cause != nil {
 		return cause.Error()
 	}
+
 	return ""
 }

@@ -2,19 +2,20 @@ package enginetest
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	"github.com/notsuhas/envden/go/cli/links/place"
 	"github.com/notsuhas/envden/go/cli/settings"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync/local/files"
 	"github.com/notsuhas/envden/go/core/adapters"
-	e "github.com/notsuhas/envden/go/core/errors"
+	envdenerrors "github.com/notsuhas/envden/go/core/errors"
 	fakeplace "github.com/notsuhas/envden/go/testing/placement"
 	fakerepo "github.com/notsuhas/envden/go/testing/repo"
-	"os"
-	"path/filepath"
-	"reflect"
-	"testing"
 )
 
 func TestModeSwitchesPreserveBases(t *testing.T) {
@@ -33,6 +34,7 @@ func TestModeSwitchesPreserveBases(t *testing.T) {
 		if options == nil || !reflect.DeepEqual(*options, rules) {
 			t.Fatal(options, rules)
 		}
+
 		return []string{".env"}, nil
 	}})
 	s := state.EmptyState("test")
@@ -67,6 +69,7 @@ func TestModeSwitchesPreserveBases(t *testing.T) {
 	must(t, err)
 	equal(t, info.Mode()&os.ModeSymlink != 0, true)
 }
+
 func TestUnavailableLinksNeedExplicitCopyConsent(t *testing.T) {
 	for _, interactive := range []bool{false, true} {
 		t.Run(map[bool]string{false: "noninteractive", true: "interactive"}[interactive], func(t *testing.T) {
@@ -75,15 +78,19 @@ func TestUnavailableLinksNeedExplicitCopyConsent(t *testing.T) {
 			original := a.Placement
 			a.Placement = func(mode adapters.PlacementMode, root string) adapters.Placement {
 				p := original(mode, root)
+
 				return fakeplace.CreateFakePlacementAdapter(fakeplace.Operations{Mode: mode, Inspect: p.Inspect, Place: p.Place, Remove: p.Remove, Supported: func(string) (bool, error) { return false, nil }})
 			}
 			_, err := checkout.SupportedPlacement(f.ctx, a, f.root, false, func(string) (bool, error) { return false, nil }, interactive)
-			if !e.Is(err, e.InvalidInput) {
+
+			if !envdenerrors.Is(err, envdenerrors.InvalidInput) {
 				t.Fatal(err)
 			}
+
 			config, err := settings.ReadConfig(a.Home)
 			must(t, err)
 			equal(t, placementSetting(config, f.root), "")
+
 			if interactive {
 				p, err := checkout.SupportedPlacement(f.ctx, a, f.root, false, func(string) (bool, error) { return true, nil }, true)
 				must(t, err)
@@ -95,15 +102,18 @@ func TestUnavailableLinksNeedExplicitCopyConsent(t *testing.T) {
 		})
 	}
 }
+
 func TestPrunePreservesUnavailableVolumesAndBases(t *testing.T) {
 	for _, unavailable := range []bool{true, false} {
 		t.Run(map[bool]string{true: "unavailable", false: "removed"}[unavailable], func(t *testing.T) {
 			f := localFixture(t)
 			s := state.EmptyState("test")
 			root := filepath.Join(f.root, "removed")
+
 			if unavailable {
 				root = filepath.Join(f.root, "unmounted", "repo")
 			}
+
 			store := filepath.Join(f.root, "store")
 			s.Approved = []state.Checkout{{Root: root, RepoID: "host/repo", GitDir: filepath.Join(root, ".git")}}
 			s.Links = []state.Link{{Root: root, Path: ".env", Store: store, Mode: "copy"}}
@@ -111,12 +121,15 @@ func TestPrunePreservesUnavailableVolumesAndBases(t *testing.T) {
 			f.write(base, string([]byte{1}))
 			must(t, place.PruneMissingCheckouts(f.ctx, f.first.Home, s, func(string) {}, f.first.Timing))
 			count := 0
+
 			if unavailable {
 				count = 1
 			}
+
 			equal(t, len(s.Approved), count)
 			equal(t, len(s.Links), count)
 			equal(t, readValue(base).present, unavailable)
+
 			if unavailable {
 				equal(t, f.read(base), string([]byte{1}))
 			}
@@ -128,6 +141,8 @@ func placementSetting(c settings.Config, root string) string {
 	if c.Placement == nil {
 		return ""
 	}
+
 	v, _ := c.Placement.Get(root).(string)
+
 	return v
 }

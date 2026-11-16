@@ -1,6 +1,11 @@
 package enginetest
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/notsuhas/envden/go/cli/admin/repair"
 	"github.com/notsuhas/envden/go/cli/admin/repair/finish"
 	"github.com/notsuhas/envden/go/cli/contracts"
@@ -9,10 +14,6 @@ import (
 	"github.com/notsuhas/envden/go/cli/vault/initial"
 	recoveryjoin "github.com/notsuhas/envden/go/cli/vault/recovery"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestRepairAcceptLostAndOfflinePull(t *testing.T) {
@@ -48,13 +49,17 @@ func TestRepairAcceptLostAndOfflinePull(t *testing.T) {
 			f.write(store, "VALUE=newest\n")
 			f.push(f.first)
 			must(t, os.RemoveAll(filepath.Join(f.first.Home, "state", "blobs")))
+
 			if !recovered {
 				must(t, os.RemoveAll(filepath.Join(second.Home, "state", "blobs")))
 			}
+
 			must(t, current.Shutdown())
+
 			if !recovered {
 				must(t, os.RemoveAll(filepath.Join(f.root, "backup", "blobs")))
 			}
+
 			var token string
 			current, token = f.serve(filepath.Join(f.root, "backup"), true)
 			point(f.first)
@@ -67,12 +72,15 @@ func TestRepairAcceptLostAndOfflinePull(t *testing.T) {
 			must(t, err)
 			equal(t, result.Kind, "finished")
 			want := "lost;"
+
 			if recovered {
 				want = "recovered from"
 			}
+
 			if result.Report == nil || !strings.Contains(*result.Report, want) {
 				t.Fatal(result.Report)
 			}
+
 			f.write(store, "VALUE=after-repair\n")
 			f.push(f.first)
 			reports := []string{}
@@ -82,9 +90,11 @@ func TestRepairAcceptLostAndOfflinePull(t *testing.T) {
 			must(t, err)
 			equal(t, pulled.Conflicts, 1)
 			equal(t, f.read(bStore), "VALUE=older\n")
+
 			if !strings.Contains(strings.Join(reports, "\n"), "Repair changed file") {
 				t.Fatal(reports)
 			}
+
 			must(t, current.Shutdown())
 		})
 	}
