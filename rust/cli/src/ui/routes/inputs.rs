@@ -25,10 +25,11 @@ pub fn parse<'a>(
             return Err(invalid());
         }
     }
-    if keys.contains(&"root")
-        && !std::path::Path::new(object["root"].as_str().unwrap()).is_absolute()
-    {
-        return Err(invalid());
+    if keys.contains(&"root") {
+        let root = std::path::Path::new(object["root"].as_str().unwrap());
+        if !(root.is_absolute() || cfg!(windows) && root.has_root()) {
+            return Err(invalid());
+        }
     }
     if keys.contains(&"choice")
         && !matches!(object["choice"].as_str(), Some("keep-mine" | "take-server"))
@@ -46,7 +47,7 @@ mod tests {
     fn restore_accepts_integer_json_numbers() {
         assert!(
             parse(
-                &json!({"root":std::env::temp_dir(), "path":".env", "version":1.0}),
+                &json!({"root":"/a", "path":".env", "version":1.0}),
                 &["root", "path", "version"],
                 "version",
             )
