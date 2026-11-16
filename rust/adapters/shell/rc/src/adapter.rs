@@ -115,27 +115,28 @@ impl IShellAdapter for RcShellAdapter {
         Ok(strip(&value) != value)
     }
     fn install(&self, binary: &str) -> Result<()> {
-        let snippet = self.hook_snippet(binary)?;
-        edit::edit(
+        edit::edit_fallible(
             Path::new(&self.rc_path()?),
             self.backup.as_deref(),
             |value| {
                 let current = strip(value);
                 let newline = if value.contains("\r\n") { "\r\n" } else { "\n" };
-                let snippet: String = snippet
+                let snippet: String = self
+                    .hook_snippet(binary)?
                     .replace('\n', newline)
                     .bytes()
                     .map(char::from)
                     .collect();
-                format!(
+                Ok(format!(
                     "{current}{}{snippet}",
                     if !current.is_empty() && !current.ends_with('\n') {
                         newline
                     } else {
                         ""
                     }
-                )
+                ))
             },
+            |_| {},
         )
     }
     fn uninstall(&self) -> Result<()> {

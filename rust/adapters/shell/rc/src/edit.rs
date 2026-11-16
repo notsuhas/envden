@@ -55,6 +55,15 @@ pub(crate) fn edit_with_hooks(
     transform: impl Fn(&str) -> String,
     hook: impl Fn(&str),
 ) -> Result<()> {
+    edit_fallible(path, backup, |value| Ok(transform(value)), hook)
+}
+
+pub(crate) fn edit_fallible(
+    path: &Path,
+    backup: Option<&Path>,
+    transform: impl Fn(&str) -> Result<String>,
+    hook: impl Fn(&str),
+) -> Result<()> {
     let mut resolved = path.to_owned();
     let mut exists = false;
     for _ in 0..40 {
@@ -80,7 +89,7 @@ pub(crate) fn edit_with_hooks(
             Err(e) => return Err(failure(e)),
         }
     }
-    if !exists && transform("").is_empty() {
+    if !exists && transform("")?.is_empty() {
         return Ok(());
     }
     if !exists {
@@ -119,7 +128,7 @@ pub(crate) fn edit_with_hooks(
     file.read_to_end(&mut original).map_err(failure)?;
     hook("read");
     let current: String = original.iter().copied().map(char::from).collect();
-    let next = transform(&current);
+    let next = transform(&current)?;
     if current == next {
         return Ok(());
     }

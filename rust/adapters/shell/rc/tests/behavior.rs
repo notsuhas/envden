@@ -82,3 +82,21 @@ fn bash_selects_login_profiles_and_respects_bashrc_sourcing() {
         );
     }
 }
+
+#[test]
+fn install_validates_existing_rc_before_rendering_hook() {
+    use envden_core::adapters::IShellAdapter;
+    let home = tempfile::tempdir().unwrap();
+    std::fs::create_dir(home.path().join(".zshrc")).unwrap();
+    let adapter = envden_adapter_shell_rc::create_rc_shell_adapter(
+        envden_adapter_shell_rc::TShell::Zsh,
+        home.path(),
+        None,
+        None,
+        None,
+    );
+    assert_eq!(
+        adapter.install("relative").unwrap_err().message,
+        "Unsafe shell configuration file"
+    );
+}
