@@ -12,6 +12,8 @@ struct ICase {
     exit: i32,
     #[serde(rename = "errorCode")]
     error_code: Option<String>,
+    offending: Option<String>,
+    suggestions: Option<Vec<String>>,
     path: Option<Vec<String>>,
     arguments: Option<Vec<String>>,
     options: Option<Value>,
@@ -63,7 +65,31 @@ fn assert_parser_cases(cases: Vec<ICase>) {
             TParseResult::Failure(error) => Some(error.code.as_str()),
             _ => None,
         };
-        if exit != case.exit || !matches || error_code != case.error_code.as_deref() {
+        let error_facts_match = case.offending.as_ref().is_none_or(|offending| {
+            let TParseResult::Error(message) = &result else {
+                return false;
+            };
+            let suggestions = case.suggestions.as_deref().unwrap_or_default();
+            let suffix = match suggestions {
+                [] => String::new(),
+                [name] => format!("(Did you mean {name}?)"),
+                names => format!("(Did you mean one of {}?)", names.join(", ")),
+            };
+
+            message.contains(&format!("'{offending}'"))
+                && !message.contains("Usage:")
+                && !message.contains("tip:")
+                && if suffix.is_empty() {
+                    !message.contains("Did you mean")
+                } else {
+                    message.trim_end().ends_with(&suffix)
+                }
+        });
+        if exit != case.exit
+            || !matches
+            || !error_facts_match
+            || error_code != case.error_code.as_deref()
+        {
             failures.push(format!(
                 "{:?}: expected {} / {}, got {result:?}",
                 case.argv, case.kind, case.exit
@@ -168,6 +194,26 @@ fn binary_retains_control_and_parser_exit_codes() {
 #[test]
 fn reviewer_edge_argv_table() {
     let cases = serde_json::from_str(r#"[
+{"argv":["status","--jsno=1"],"kind":"error","exit":1,"offending":"--jsno=1","suggestions":["--json"]},
+{"argv":["status","--jsno=longlong"],"kind":"error","exit":1,"offending":"--jsno=longlong","suggestions":[]},
+{"argv":["status","--json=x"],"kind":"error","exit":1,"offending":"--json=x","suggestions":["--json"]},
+{"argv":["setup","-xyz"],"kind":"error","exit":1,"offending":"-xyz","suggestions":[]},
+{"argv":["not-a-command"],"kind":"error","exit":1,"offending":"not-a-command","suggestions":[]},
+{"argv":["status","--unknown-option"],"kind":"error","exit":1,"offending":"--unknown-option","suggestions":[]},
+{"argv":["statu"],"kind":"error","exit":1,"offending":"statu","suggestions":["status"]},
+{"argv":["STATUS"],"kind":"error","exit":1,"offending":"STATUS","suggestions":[]},
+{"argv":["hell"],"kind":"error","exit":1,"offending":"hell","suggestions":["help","shell"]},
+{"argv":["device","lss"],"kind":"error","exit":1,"offending":"lss","suggestions":["ls"]},
+{"argv":["device","r"],"kind":"error","exit":1,"offending":"r","suggestions":["rm"]},
+{"argv":["status","--jsno"],"kind":"error","exit":1,"offending":"--jsno","suggestions":["--json"]},
+{"argv":["status","--j"],"kind":"error","exit":1,"offending":"--j","suggestions":[]},
+{"argv":["status","--refesh-cache"],"kind":"error","exit":1,"offending":"--refesh-cache","suggestions":[]},
+{"argv":["setup","--post-install"],"kind":"error","exit":1,"offending":"--post-install","suggestions":[]},
+{"argv":["setup","--telemetri"],"kind":"error","exit":1,"offending":"--telemetri","suggestions":["--telemetry"]},
+{"argv":["setup","-Y"],"kind":"error","exit":1,"offending":"-Y","suggestions":[]},
+{"argv":["ui","--open"],"kind":"error","exit":1,"offending":"--open","suggestions":["--no-open"]},
+{"argv":["server","mov"],"kind":"error","exit":1,"offending":"mov","suggestions":["move"]},
+{"argv":["helpme"],"kind":"error","exit":1,"offending":"helpme","suggestions":["help"]},
 {"argv":["--help","device"],"kind":"help","exit":0,"path":[]},
 {"argv":["device","--help","ls"],"kind":"help","exit":0,"path":["device"]},
 {"argv":["--help","device","ls"],"kind":"help","exit":0,"path":[]},

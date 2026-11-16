@@ -12,7 +12,7 @@ pub fn parse<'a>(root: &'a ICommand, args: &[String]) -> TParseResult<'a> {
         .try_get_matches_from(std::iter::once("envden".to_string()).chain(args.iter().cloned()))
     {
         Ok(matches) => matches,
-        Err(error) => return TParseResult::Error(error.to_string()),
+        Err(error) => return TParseResult::Error(super::errors::render(root, &args, &error)),
     };
     invocation(root, &matches)
 }
