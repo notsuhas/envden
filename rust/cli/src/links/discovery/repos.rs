@@ -130,8 +130,22 @@ pub fn discover_repos(
                     let path = super::super::takeover::sibling::normalize(
                         &Path::new(&checkout.root).join(submodule),
                     );
-                    if path != Path::new(&checkout.root) && path.starts_with(&checkout.root) {
-                        queue.push_back((path, false));
+                    if path != Path::new(&checkout.root)
+                        && path.starts_with(&checkout.root)
+                        && let Ok(real) = path.canonicalize()
+                        && !excluded(&real, &excludes)
+                        && !visited.contains(&real)
+                    {
+                        let checkout = fs::read_dir(&real).is_ok_and(|entries| {
+                            entries
+                                .filter_map(std::result::Result::ok)
+                                .any(|entry| entry.file_name() == ".git")
+                        });
+                        if checkout {
+                            queue.push_back((real, false));
+                        } else {
+                            visited.insert(real);
+                        }
                     }
                 }
                 found.insert(checkout.root.clone(), checkout);

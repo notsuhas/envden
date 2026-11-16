@@ -97,3 +97,32 @@ fn discovers_hidden_registered_worktrees_and_skips_vendor_clones() {
     assert_eq!(result.len(), 1);
     assert_eq!(Path::new(&result[0].root), second);
 }
+
+#[test]
+fn does_not_walk_noncheckout_submodule_directories() {
+    let temp = tempfile::tempdir().unwrap();
+    let home = temp.path().canonicalize().unwrap();
+    let root = home.join("main");
+    clone_at(&root);
+    fs::write(
+        root.join(".gitmodules"),
+        "[submodule \"missing\"]\npath = .hidden/module\nurl = https://example.com/sub\n",
+    )
+    .unwrap();
+    clone_at(&root.join(".hidden/module/nested"));
+    let adapters = create_adapters(Some(home.join("config")), home.clone(), || 42);
+    let result = discover_repos(
+        &*adapters.repo,
+        &IDiscoveryScope {
+            roots: vec![home.clone()],
+            excluded: vec![],
+            home: Some(home),
+        },
+        &|_| {},
+        &|_| {},
+    );
+    assert_eq!(
+        result.iter().map(|c| c.root.as_str()).collect::<Vec<_>>(),
+        vec![root.to_str().unwrap()]
+    );
+}
