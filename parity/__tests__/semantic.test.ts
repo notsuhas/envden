@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { facts, semanticOutput } from "../harness/terminal/semantic.ts";
-import { promptRecord } from "../harness/terminal/prompts.ts";
+import { nextPrompt, promptRecord } from "../harness/terminal/prompts.ts";
 import { capture } from "../harness/snapshot.ts";
 import { Context } from "../harness/context.ts";
 
@@ -119,4 +119,17 @@ test("JSON identity normalization is independent of object key order", async () 
   expect(await snapshot(JSON.stringify({ a, b: a }))).not.toBe(
     await snapshot(JSON.stringify({ a: c, b: d })),
   );
+});
+
+test("repeated questions wait for the active prompt rather than its submitted repaint", () => {
+  const submitted = "◇ Wrong master password. Try again\n│ *****\n";
+  const pattern = /Wrong master password\. Try again/;
+  expect(nextPrompt(submitted, pattern, true)).toBeNull();
+
+  expect(
+    nextPrompt(submitted + "◆ Wrong master password. Try again\n│ _\n└", pattern, true)?.index,
+  ).toBe(submitted.length + 2);
+
+  expect(nextPrompt("✓ Wrong master password. Try again", pattern, true)).toBeNull();
+  expect(nextPrompt("Plain prompt:", /Plain prompt:/, true)?.[0]).toBe("Plain prompt:");
 });

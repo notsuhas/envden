@@ -1,4 +1,4 @@
-import { promptRecord } from "./terminal/prompts.ts";
+import { nextPrompt, promptRecord } from "./terminal/prompts.ts";
 import type { IPrompt } from "./terminal/prompts.ts";
 import { terminalScreen } from "./terminal/screen.ts";
 import { stripVTControlCharacters } from "node:util";
@@ -76,7 +76,7 @@ export class Terminal {
     const regex = typeof pattern === "string" ? new RegExp(RegExp.escape(pattern)) : pattern;
 
     for (;;) {
-      const match = regex.exec(this.output().slice(this.cursor));
+      const match = nextPrompt(this.output().slice(this.cursor), regex, send !== undefined);
 
       if (match) {
         this.cursor += match.index + match[0].length;
