@@ -74,7 +74,7 @@ async function lockedapprovePairing(
       return { kind: "declined" as const };
     }
 
-    await withStateLock(adapters.home, () =>
+    const name = await withStateLock(adapters.home, () =>
       retryHead(async () => {
         const history = await readHistory(client, vaultId);
 
@@ -89,9 +89,11 @@ async function lockedapprovePairing(
 
         requireWindow(expiresAt, now());
 
+        const committed = namedForList(candidate, history);
+
         const swap = await addDeviceSwap(
           history,
-          namedForList(candidate, history),
+          committed,
           identity.record.id,
           identity.keys.objSk,
           epochKey,
@@ -112,10 +114,12 @@ async function lockedapprovePairing(
         const bytes = p.encode(p.SwapCodec, swap);
         await saveApproval(adapters, number, bytes);
         await submitApproval(adapters, client, vaultId);
+
+        return committed.name;
       }),
     );
 
-    return { kind: "paired" as const };
+    return { kind: "paired" as const, name };
   } finally {
     keys.approverToJoiner.fill(0);
     keys.joinerToApprover.fill(0);

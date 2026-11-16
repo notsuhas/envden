@@ -42,15 +42,13 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
   }
 
   if (await withStateLock(adapters.home, () => resumeApproval(adapters, client, vaultId))) {
-    console.log(pairedText("paired"));
+    console.log(pairedText({ kind: "paired" }));
 
     return;
   }
 
   const attempt = await openPairing(client, pin);
   console.log(pairingText(state.server.address, attempt.code));
-
-  let name: string | undefined;
 
   const result = await approvePairing(
     adapters,
@@ -68,14 +66,10 @@ async function lockedrunDeviceAdd(adapters: TAdapters, now: () => number): Promi
         attempt.expiresAt,
       );
     },
-    (proposed) => {
-      name = proposed;
-
-      return consent(`Add ${proposed}?`);
-    },
+    (proposed) => consent(`Add ${proposed}?`),
   );
 
-  console.log(pairedText(result.kind, name));
+  console.log(pairedText(result));
 }
 
 export function runDeviceAdd(...args: Parameters<typeof lockedrunDeviceAdd>) {

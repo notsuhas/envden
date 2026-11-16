@@ -18,6 +18,7 @@ test("pairing tells the new device what to run", () => {
 
   expect(pairing).toContain("envden join https://envden.example");
   expect(pairing).toContain("1-ABCD-EFGH");
-  expect(pairedText("paired", "laptop")).toContain("laptop");
-  expect(pairedText("declined", "laptop")).not.toContain("laptop");
+  expect(pairedText({ kind: "paired", name: "laptop" })).toBe("Device laptop added");
+  expect(pairedText({ kind: "paired" })).toBe("Device added");
+  expect(pairedText({ kind: "declined" })).toBe("Declined");
 });
