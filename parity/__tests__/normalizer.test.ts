@@ -130,3 +130,12 @@ test("recovery kit PDF suffixes keep identity but not their random letters", () 
     new Normalizer().text(kit("6T5692", "6T5692")),
   );
 });
+
+test("tagged state bytes normalize even without mixed case", () => {
+  const n = new Normalizer();
+  const id = "p4t-pxeqw1l1p7ummqn2rg";
+
+  expect(n.text(`{"id":{"$bytes":"${id}"},"other":"${id}"}`)).toBe(
+    `{"id":{"$bytes":"${n.bytes(Buffer.from(id, "base64url"))}"},"other":"${id}"}`,
+  );
+});

@@ -77,6 +77,13 @@ export class Normalizer {
         `${prefix}${this.symbol("FSID", identity)}${suffix}`,
     );
 
+    // Tagged state bytes are random however few letters they show, such as a 16-byte ID in lowercase.
+    text = text.replace(
+      /("\$bytes"\s*:\s*")([A-Za-z0-9_-]+)(")/g,
+      (_, prefix: string, value: string, suffix: string) =>
+        `${prefix}${this.bytes(Buffer.from(value, "base64url"))}${suffix}`,
+    );
+
     text = text.replace(/https?:\/\/(?:localhost|127\.0\.0\.1):\d+/g, (s) => this.symbol("URL", s));
 
     text = text.replace(/(?<=envden Recovery Kit )[0-9A-Z]{6}(?=\.pdf)/g, (s) =>
