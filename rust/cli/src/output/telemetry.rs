@@ -40,7 +40,9 @@ pub fn child_environment(
         "NODE_EXTRA_CA_CERTS",
     ];
     for name in names {
-        for key in [name.to_string(), name.to_lowercase()] {
+        for key in std::iter::once(name.to_string())
+            .chain((name != "ENVDEN_HOME").then(|| name.to_lowercase()))
+        {
             if let Some(value) = inherited.get(&key).filter(|v| !v.is_empty()) {
                 result.insert(key, value.clone());
             }
@@ -115,4 +117,22 @@ pub fn report_telemetry(adapters: &crate::adapters::IAdapters, event: &IEvent<'_
         Ok(())
     };
     let _ = report();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn child_environment_keeps_only_named_home_and_network_settings() {
+        let inherited = std::collections::BTreeMap::from([
+            ("envden_home".into(), "private".into()),
+            ("ENVDEN_HOME".into(), "/config".into()),
+            ("https_proxy".into(), "proxy".into()),
+        ]);
+        let result = child_environment("body", &inherited);
+        assert!(!result.contains_key("envden_home"));
+        assert_eq!(result["ENVDEN_HOME"], "/config");
+        assert_eq!(result["https_proxy"], "proxy");
+    }
 }
