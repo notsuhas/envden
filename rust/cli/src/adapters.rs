@@ -9,6 +9,7 @@ pub struct IAdapters {
     pub home: PathBuf,
     pub user_home: PathBuf,
     pub executable: PathBuf,
+    pub hostname: String,
     pub now: TClock,
     pub keychain: Box<dyn IKeychainAdapter>,
     pub repo: Box<dyn IRepoAdapter>,
@@ -21,6 +22,9 @@ pub fn create_adapters(home: Option<PathBuf>, user_home: PathBuf, now: TClock) -
         .unwrap_or_else(|| user_home.join(".envden"));
     let home = real_location(&home);
     IAdapters {
+        hostname: hostname::get()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default(),
         keychain: Box::new(envden_adapter_keychain_file::create_file_keychain_adapter(
             &home,
         )),

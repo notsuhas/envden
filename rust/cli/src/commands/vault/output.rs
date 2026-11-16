@@ -23,7 +23,7 @@ pub fn replacement_output<'a>(
 ) -> IReplacementOutput<'a> {
     IReplacementOutput {
         adapters,
-        path,
+        path: path.filter(|value| !value.is_empty()),
         shown: false,
     }
 }
@@ -39,10 +39,7 @@ impl IReplacementOutput<'_> {
             }
         } else {
             let state = load_state(&self.adapters.home)?;
-            let device = state
-                .as_ref()
-                .and_then(|s| s["deviceName"].as_str())
-                .unwrap_or("device");
+            let device = device_name(state.as_ref(), &self.adapters.hostname);
             report_kit(kit, &self.adapters.user_home, device, (self.adapters.now)())?;
         }
         self.shown = true;
@@ -54,5 +51,33 @@ impl IReplacementOutput<'_> {
                 "envden: The new recovery kit is not confirmed yet. Keep the old kit too, and rerun this command to finish."
             );
         }
+    }
+}
+
+fn device_name<'a>(state: Option<&'a Value>, hostname: &'a str) -> &'a str {
+    state
+        .and_then(|s| s["deviceName"].as_str())
+        .unwrap_or(hostname)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_state_uses_hostname_for_the_replacement_kit() {
+        assert_eq!(device_name(None, "laptop"), "laptop");
+        assert_eq!(
+            device_name(Some(&serde_json::json!({"deviceName":""})), "laptop"),
+            ""
+        );
+    }
+
+    #[test]
+    fn empty_output_path_uses_pdf_reporting() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        assert!(replacement_output(&adapters, Some("")).path.is_none());
     }
 }
