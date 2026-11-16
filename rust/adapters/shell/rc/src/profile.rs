@@ -132,3 +132,30 @@ pub(crate) fn powershell_default(home: &Path) -> PathBuf {
         ".config/powershell/Microsoft.PowerShell_profile.ps1"
     })
 }
+
+pub(crate) fn default_home(
+    home: Option<std::ffi::OsString>,
+    profile: Option<std::ffi::OsString>,
+    windows: bool,
+) -> Option<PathBuf> {
+    if windows { profile } else { home }.map(PathBuf::from)
+}
+
+#[cfg(test)]
+mod home_tests {
+    #[test]
+    fn windows_profile_home_uses_userprofile() {
+        assert_eq!(
+            super::default_home(Some("other".into()), Some("user".into()), true),
+            Some("user".into())
+        );
+        assert_eq!(
+            super::default_home(None, Some("user".into()), true),
+            Some("user".into())
+        );
+        assert_eq!(
+            super::default_home(Some("home".into()), None, false),
+            Some("home".into())
+        );
+    }
+}

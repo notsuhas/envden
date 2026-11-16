@@ -90,7 +90,13 @@ impl IShellAdapter for RcShellAdapter {
                 .get_or_init(|| {
                     let detected = if let Some(resolve) = &self.resolve_profile {
                         resolve()
-                    } else if std::env::var_os("HOME").is_some_and(|p| Path::new(&p) == self.home) {
+                    } else if profile::default_home(
+                        std::env::var_os("HOME"),
+                        std::env::var_os("USERPROFILE"),
+                        cfg!(windows),
+                    )
+                    .is_some_and(|p| p == self.home)
+                    {
                         profile::powershell(&self.home)
                     } else {
                         None
