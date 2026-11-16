@@ -25,6 +25,7 @@ fn scan(pattern: &str) -> Option<IScan> {
     let mut alternatives = 1usize;
     let mut byte_sensitive = false;
     let mut partial_globstar = false;
+    let negations = chars.iter().take_while(|c| **c == '!').count();
     let mut index = 0;
 
     while let Some(&current) = chars.get(index) {
@@ -49,7 +50,7 @@ fn scan(pattern: &str) -> Option<IScan> {
                     .iter()
                     .position(|c| *c != '*')
                     .map_or(chars.len(), |offset| index + offset);
-                let segment = (index == 0 || chars[index - 1] == '/')
+                let segment = (index == negations || chars[index - 1] == '/')
                     && chars.get(end).is_none_or(|c| *c == '/');
 
                 if !groups.is_empty() {
@@ -100,7 +101,10 @@ impl IClass<'_> {
 
         (self.negated && path_mode)
             || spans_separator
-            || self.members.iter().any(|c| *c == '/' || !c.is_ascii())
+            || self
+                .members
+                .iter()
+                .any(|c| matches!(c, '/' | '\\') || !c.is_ascii())
     }
 }
 
@@ -149,6 +153,9 @@ mod tests {
             ".env.{local,development}",
             "{apps,packages}/**/.env",
             "{apps,packages}/**",
+            "!**/.env",
+            "!!**/.env",
+            "!**/.env.example",
             "**/.env.{local,dev}",
             ".env.[a-z]*",
             ".env.[!e]*",
