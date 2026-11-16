@@ -2,9 +2,6 @@ use console::{Key, Term};
 use std::io::{self, Write};
 
 use super::cursor::StringCursor;
-use super::keypress::{Keypress, Name};
-use super::reader::KeyReader;
-use super::readline::Readline;
 
 pub enum State<T> {
     Active,
@@ -53,6 +50,12 @@ pub trait PromptInteraction<T> {
         None
     }
 
+    /// Whether features like Alt-Backspace and Alt-ArrowLeft/Right are allowed.
+    /// Word editing is disabled for password prompts, for example.
+    fn allow_word_editing(&self) -> bool {
+        true
+    }
+
     /// Starts the interaction with the user via stderr.
     fn interact(&mut self) -> io::Result<T> {
         self.interact_on(&mut Term::stderr())
@@ -71,15 +74,17 @@ pub trait PromptInteraction<T> {
     }
 
     /// Starts the interaction with the user via the prepared terminal.
-    /// Keys are decoded and edited as readline does under Clack; `term` only renders.
+    /// This is a common boilerplate code.
     fn interact_on_prepared(&mut self, term: &mut Term) -> io::Result<T> {
-        let mut reader = KeyReader::open()?;
-        let mut hidden = StringCursor::default();
-        let mut readline = match self.input() {
-            Some(line) => Readline::new(line),
-            None => Readline::new(&mut hidden),
+        #[cfg(unix)]
+        let input = {
+            use std::os::fd::AsFd;
+            let descriptor = io::stdin().as_fd().try_clone_to_owned()?;
+            Term::read_write_pair(io::stdin(), std::fs::File::from(descriptor))
         };
-        let mut detached = false;
+        #[cfg(not(unix))]
+        let input = term.clone();
+
         let mut state = State::Active;
         let mut prev_frame = String::new();
 
@@ -108,142 +113,96 @@ pub trait PromptInteraction<T> {
                 _ => {}
             }
 
-            let key = match reader.read() {
-                Ok(key) => key,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {
+            match input.read_key_raw() {
+                Ok(Key::Escape) => {
                     state = State::Cancel;
-                    continue;
+
+                    // WORKAROUND: for the `Esc` key, `Cancel` means "cancellation of cancellation".
+                    if let State::Cancel = self.on(&Event::Key(Key::Escape)) {
+                        state = State::Active;
+                    }
                 }
-                Err(e) => return Err(e),
-            };
 
-            // After Ctrl-D closes readline, Clack only sees the rest of that read; then Ctrl-C ends it.
-            if detached {
-                if key.text == Some('\x03') {
-                    state = State::Cancel;
-                }
-                continue;
-            }
+                Ok(Key::CtrlC) => state = State::Cancel,
 
-            if key.text == Some('\x03') {
-                state = State::Cancel;
-            } else if key.is("escape") {
-                state = State::Cancel;
-
-                // WORKAROUND: for the `Esc` key, `Cancel` means "cancellation of cancellation".
-                if let State::Cancel = self.on(&Event::Key(Key::Escape)) {
-                    state = State::Active;
-                }
-            } else if key.is("return") {
-                state = self.on(&Event::Key(Key::Enter));
-
-                if !matches!(state, State::Submit(_)) {
-                    let (line, tracked) = match self.input() {
-                        Some(line) => (line, true),
-                        None => (&mut hidden, false),
+                Ok(key) => {
+                    // Emacs-style keybindings.
+                    let key = match key {
+                        Key::Char('\x01') => Key::Home,      // Ctrl-A
+                        Key::Char('\x05') => Key::End,       // Ctrl-E
+                        Key::Char('\x10') => Key::ArrowUp,   // Ctrl-P
+                        Key::Char('\x0e') => Key::ArrowDown, // Ctrl-N
+                        _ => key,
                     };
-                    let answer = StringCursor::clone(line);
+                    let word_editing = self.allow_word_editing();
+                    if let Some(cursor) = self.input() {
+                        match key {
+                            Key::Char(chr) if !chr.is_ascii_control() => cursor.insert(chr),
+                            Key::Char('\x02') => cursor.move_left(),
+                            Key::Char('\x06') => cursor.move_right(),
+                            Key::Char('\x0b') => {
+                                while cursor.current().is_some() {
+                                    cursor.delete_right();
+                                }
+                            }
+                            Key::Char('\x15') => cursor.clear(),
+                            Key::Backspace => cursor.delete_left(),
+                            Key::Del => cursor.delete_right(),
+                            Key::ArrowLeft => cursor.move_left(),
+                            Key::ArrowRight => cursor.move_right(),
+                            Key::ArrowUp => cursor.move_up(),
+                            Key::ArrowDown => cursor.move_down(),
+                            Key::Home => cursor.move_home(),
+                            Key::End => cursor.move_end(),
 
-                    readline.apply(line, &key);
-                    readline.write(line, if tracked { answer.chars() } else { &[] });
-                }
-            } else {
-                let tracked = match self.input() {
-                    Some(line) => {
-                        readline.apply(line, &key);
+                            // Alt-Backspace
+                            Key::Char('\u{17}') if word_editing => cursor.delete_word_to_the_left(),
 
-                        // Clack erases the tab readline inserted.
-                        if key.text == Some('\t') {
-                            readline.apply(line, &BACKSPACE);
+                            // Alt/Ctrl
+                            Key::UnknownEscSeq(ref chars) => {
+                                match chars.as_slice() {
+                                    // Alt | Ctrl-Backspace
+                                    ['\u{7f}'] if word_editing => cursor.delete_word_to_the_left(),
+                                    // Alt-ArrowLeft | Alt-b
+                                    ['b'] if word_editing => cursor.move_left_by_word(),
+                                    // Alt-ArrowRight | Alt-f
+                                    ['f'] if word_editing => cursor.move_right_by_word(),
+                                    // Alt | Ctrl
+                                    ['[', '1', ';'] => {
+                                        let suffix = [input.read_key_raw()?, input.read_key_raw()?];
+                                        match suffix {
+                                            // Alt | Ctrl-ArrowLeft
+                                            [Key::Char('3' | '5'), Key::Char('D')]
+                                                if word_editing =>
+                                            {
+                                                cursor.move_left_by_word()
+                                            }
+                                            // Alt | Ctrl-ArrowRight
+                                            [Key::Char('3' | '5'), Key::Char('C')]
+                                                if word_editing =>
+                                            {
+                                                cursor.move_right_by_word()
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            _ => {}
                         }
-
-                        true
                     }
-                    None => {
-                        readline.apply(&mut hidden, &key);
-                        false
-                    }
-                };
 
-                state = self.on(&Event::Key(prompt_key(&key, tracked)));
+                    state = self.on(&Event::Key(key));
+                }
+
+                // Legacy handling of Ctrl-C as a cancel event. Might not be needed, but keeping it to be safe.
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => state = State::Cancel,
+
+                // Don't handle other errors, just break the loop and propagate
+                // them.
+                Err(e) => return Err(e),
             }
-
-            detached = readline.closed() && reader.chunk_done();
-        }
-    }
-}
-
-const BACKSPACE: Keypress = Keypress {
-    name: Some(Name::Char('h')),
-    ctrl: true,
-    meta: false,
-    shift: false,
-    text: None,
-};
-
-/// The key a prompt sees, following Clack's aliases and actions.
-fn prompt_key(key: &Keypress, tracked: bool) -> Key {
-    let arrow = [
-        ("up", "k", Key::ArrowUp),
-        ("down", "j", Key::ArrowDown),
-        ("left", "h", Key::ArrowLeft),
-        ("right", "l", Key::ArrowRight),
-    ]
-    .into_iter()
-    .find(|(action, alias, _)| key.is(action) || (!tracked && key.is(alias)));
-
-    if let Some((_, _, arrow)) = arrow {
-        return arrow;
-    }
-
-    if tracked {
-        return Key::Unknown;
-    }
-
-    let answer = key.text.map(|c| c.to_ascii_lowercase());
-
-    match key.name {
-        Some(Name::Key("space")) => Key::Char(' '),
-        Some(Name::Key("enter")) => Key::Char('\n'),
-        Some(Name::Char(c @ ('a' | 'i'))) => Key::Char(c),
-        None if key.text == Some('\u{3000}') => Key::Char('\u{3000}'),
-        _ if matches!(answer, Some('y' | 'n')) => Key::Char(answer.unwrap_or_default()),
-        _ => Key::Unknown,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::prompt::keypress::parse;
-
-    fn key(input: &str) -> Keypress {
-        let mut chars = input.chars();
-
-        parse(&mut |_| Ok(chars.next())).unwrap()
-    }
-
-    #[test]
-    fn prompt_keys_follow_clack_aliases() {
-        let cases = [
-            ("\x10", false, Key::Unknown),
-            ("\x0e", false, Key::Unknown),
-            ("\x0b", false, Key::ArrowUp),
-            ("\x0c", false, Key::ArrowRight),
-            ("K", false, Key::ArrowUp),
-            ("\x1b[1;5A", false, Key::ArrowUp),
-            ("\x1bOB", false, Key::ArrowDown),
-            ("\n", false, Key::Char('\n')),
-            ("\x01", false, Key::Char('a')),
-            ("\x1bi", false, Key::Char('i')),
-            ("Y", false, Key::Char('y')),
-            ("\x19", false, Key::Unknown),
-            ("k", true, Key::Unknown),
-            ("\x1b[A", true, Key::ArrowUp),
-        ];
-
-        for (input, tracked, expected) in cases {
-            assert_eq!(prompt_key(&key(input), tracked), expected, "{input:?}");
         }
     }
 }

@@ -465,9 +465,7 @@ name = "cliclack"
 version = "0.5.7"
 dependencies = [
  "console",
- "crossterm",
  "indicatif",
- "nix",
  "once_cell",
  "strsim",
  "textwrap",
