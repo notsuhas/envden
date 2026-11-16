@@ -119,7 +119,8 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - Scenario: enter text or passwords, confirm choices, select checkouts, or display an intro, outro, note, log or cancellation notice.
 - TS behaviour: @clack/prompts renders its own frames, masked characters, spacing and colours on stdout.
 - Rust behaviour: CliClack 0.5.7 renders its native frames and notices on stderr, including its password mask and validation layout. Prompt labels, choices, defaults, validation, keyboard decisions and cancellation outcomes stay unchanged.
-- Why: a maintained prompt crate owns rendering and input. A small documented patch preserves editable defaults, existing selection keys and text editing; the CLI holds raw mode before rendering to prevent password echo.
+- Why: a maintained prompt crate owns rendering. The documented patch replaces its key loop with readline's key decoding and line editing, because neither CliClack nor rustyline edits the same way (CliClack's Ctrl-U clears the whole line; readline deletes only before the cursor). The CLI holds raw mode before rendering to prevent password echo.
+- Open difference: Ctrl-Z suspends the process under Bun's readline; Rust ignores it. No submitted value changes.
 
 ## presentation: repository scan spinner
 
