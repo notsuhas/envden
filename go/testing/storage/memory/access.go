@@ -113,7 +113,7 @@ func (m *memory) refund(receipt string, now int64) bool {
 	delete(m.data.Charges, receipt)
 	b, ok := m.data.Buckets[c.Key]
 	if ok {
-		b.Until = 0
+		b.Until, b.Strikes = 0, 0
 		m.data.Buckets[c.Key] = b
 	}
 

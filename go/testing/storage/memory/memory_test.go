@@ -47,27 +47,4 @@ func TestMemorySpecificSemantics(t *testing.T) {
 	if b, err := db.Session(v, key, 0); err != nil || b != nil {
 		t.Fatal("memory consumes expired sessions", b, err)
 	}
-	var receipt string
-	for i := 0; i < 5; i++ {
-		r, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-		receipt = r.Receipt
-	}
-	if receipt != "5" {
-		t.Fatal(receipt)
-	}
-	if _, err := db.Refund(receipt, 1); err != nil {
-		t.Fatal(err)
-	}
-	for i := 0; i < 5; i++ {
-		if _, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 900001); err != nil {
-			t.Fatal(err)
-		}
-	}
-	r, err := db.Charge(v, adapters.RateBucket{Kind: "non-member"}, 900002)
-	if err != nil || r.Until != 2700001 {
-		t.Fatal("memory preserves strikes on refund", r, err)
-	}
 }

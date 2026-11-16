@@ -51,6 +51,18 @@ func accessContract(t *testing.T, check func(string, func(*testing.T, adapters.S
 		equal(t, value(db.Refund(charge.Receipt, 1)), true)
 		equal(t, value(db.Refund(charge.Receipt, 1)), false)
 	})
+	check("a refund resets the lock and its strikes", func(t *testing.T, db adapters.Storage, _ Fixture) {
+		bucket := adapters.RateBucket{Kind: "non-member"}
+		receipt := ""
+		for i := 0; i < 5; i++ {
+			receipt = value(db.Charge(b(1), bucket, 0)).Receipt
+		}
+		equal(t, value(db.Refund(receipt, 1)), true)
+		for i := 0; i < 5; i++ {
+			value(db.Charge(b(1), bucket, 900001))
+		}
+		equal(t, value(db.Charge(b(1), bucket, 900002)), adapters.RateCharge{Kind: "locked", Until: 1800001})
+	})
 	check("mailbox numbers and write-once slots", func(t *testing.T, db adapters.Storage, _ Fixture) {
 		equal(t, value(db.OpenMailbox(b(1), b(2), 0)).Number, 1)
 		equal(t, value(db.OpenMailbox(b(2), b(2), 0)).Number, 2)
