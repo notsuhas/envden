@@ -4446,5 +4446,9 @@
     "options": { "port": 65535 },
     "exit": 0
   },
-  { "argv": ["serve", "--port", "65536"], "kind": "error", "exit": 1 }
+  { "argv": ["serve", "--port", "65536"], "kind": "error", "exit": 1 },
+  { "argv": ["--bogus", "status"], "kind": "error", "exit": 1 },
+  { "argv": ["device", "--bogus", "ls"], "kind": "error", "exit": 1 },
+  { "argv": ["--dry-run", "rm", "--yes", ".env"], "kind": "error", "exit": 1 },
+  { "argv": ["-Vx"], "kind": "version", "exit": 0 }
 ]
