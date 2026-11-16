@@ -52,7 +52,7 @@ export function createAccess(context: IMemoryContext) {
         [...data.charges.values()].filter((charge) => charge.key === key).length >=
         (bucket.kind === "mailbox" ? 20 : 5)
       ) {
-        const strikes = (prior?.strikes ?? 0) + 1;
+        const strikes = (prior && now - prior.until < 86400000 ? prior.strikes : 0) + 1;
 
         data.buckets.set(key, {
           strikes,

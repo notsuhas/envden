@@ -53,3 +53,44 @@ test("the dashboard closes idle connections after 10 seconds", async () => {
     await rm(home, { recursive: true, force: true });
   }
 });
+
+test("a stop signal at the URL line closes the dashboard", async () => {
+  const home = await mkdtemp(join(tmpdir(), "envden-ui-"));
+  const signals = new EventTarget();
+
+  const stopped = new Promise<void>((resolve) => {
+    signals.addEventListener("SIGTERM", () => resolve(), { once: true });
+  });
+
+  let url = "";
+
+  try {
+    const adapters = createAdapters(
+      { home, userHome: home, keychain: createMemoryKeychainAdapter([]) },
+      () => 0,
+    );
+
+    expect(
+      await runDashboard(adapters, {
+        interactive: true,
+        now: () => 0,
+        report: (line) => {
+          if (line.startsWith("envden ui: ")) {
+            url = line.slice("envden ui: ".length);
+            signals.dispatchEvent(new Event("SIGTERM"));
+          }
+        },
+        stopped,
+      }),
+    ).toEqual({ kind: "stopped" });
+
+    expect(
+      await fetch(url).then(
+        () => false,
+        () => true,
+      ),
+    ).toBe(true);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});

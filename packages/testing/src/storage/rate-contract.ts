@@ -9,6 +9,15 @@ export function rateLimitContract(db: IStorageAdapter) {
   expect(db.charge(b(2), bucket, 1).kind).toBe("charged");
   for (let i = 0; i < 5; i++) db.charge(b(1), bucket, 900000);
   expect(db.charge(b(1), bucket, 900001)).toEqual({ kind: "locked", until: 2700000 });
+  for (let i = 0; i < 5; i++) db.charge(b(3), bucket, 0);
+  const decayed = 900000 + 86400000 + 1;
+  for (let i = 0; i < 5; i++) db.charge(b(3), bucket, decayed);
+
+  expect(db.charge(b(3), bucket, decayed + 1)).toEqual({
+    kind: "locked",
+    until: decayed + 900000,
+  });
+
   const charge = db.charge(b(1), { kind: "member", device: b(4) }, 0);
   if (charge.kind !== "charged") throw new Error("Expected charge");
   expect(db.refund(charge.receipt, 1)).toBe(true);
