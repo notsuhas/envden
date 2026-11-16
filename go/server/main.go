@@ -115,7 +115,6 @@ func Serve(options ServeOptions) (running *Running, err error) {
 	}
 	httpServer := &http.Server{Handler: app, ConnContext: connectionContext, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 10 * time.Second}
 	url := "http://" + listener.Addr().String() + "/"
-	_, _ = fmt.Fprintln(stdout, "envden listening on "+url)
 	scheduler := options.Scheduler
 	if scheduler == nil {
 		scheduler = systemScheduler{}
@@ -165,6 +164,7 @@ func Serve(options ServeOptions) (running *Running, err error) {
 		case <-stopped:
 		}
 	}()
+	_, _ = fmt.Fprintln(stdout, "envden listening on "+url)
 
 	return running, nil
 }
