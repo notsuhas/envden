@@ -52,8 +52,7 @@ func lines(text string, maxWidth float64) []string {
 	result := []string{}
 	line := ""
 	used := 0.0
-	for _, word := range words.FindAllString(text, -1) {
-		w := width(word, "Helvetica", 11)
+	add := func(piece string, w float64) {
 		if used+w > maxWidth {
 			if line != "" {
 				result = append(result, line)
@@ -63,8 +62,27 @@ func lines(text string, maxWidth float64) []string {
 			used = 0
 		}
 
-		line += word
+		line += piece
 		used += w
+	}
+
+	for _, word := range words.FindAllString(text, -1) {
+		w := width(word, "Helvetica", 11)
+		if w <= maxWidth || width(strings.TrimRight(word, " "), "Helvetica", 11) <= maxWidth {
+			add(word, w)
+
+			continue
+		}
+
+		// A word wider than the column breaks between characters so it stays inside the margin.
+		for _, r := range strings.TrimRight(word, " ") {
+			add(string(r), width(string(r), "Helvetica", 11))
+		}
+
+		if strings.HasSuffix(word, " ") {
+			line += " "
+			used += width(" ", "Helvetica", 11)
+		}
 	}
 
 	if line != "" {

@@ -78,3 +78,18 @@ func TestSavePreservesExistingKit(t *testing.T) {
 		}
 	}
 }
+
+func TestUnbrokenWordsWrapInsideTheMargin(t *testing.T) {
+	url := "https://" + strings.Repeat("envden-server-", 12) + "example.ts.net:4280"
+	text := "Run envden join " + url + " on the new device."
+	got := lines(text, 467.28)
+	if strings.Join(got, "") != text || len(got) < 3 {
+		t.Fatalf("%q", got)
+	}
+
+	for _, line := range got {
+		if width(strings.TrimRight(line, " "), "Helvetica", 11) > 467.28 {
+			t.Fatalf("line past the margin: %q", line)
+		}
+	}
+}
