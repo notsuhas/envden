@@ -5,6 +5,7 @@ use crate::{
     state::repository::save_state,
 };
 use envden_core::errors::{ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
 use std::rc::Rc;
 
 struct Never;
@@ -37,7 +38,7 @@ fn placement_resolves_checkout_and_merges_config() {
     );
     let adapters = create_adapters(Some(dir.path().join("home")), dir.path().into(), || 1);
     let config = set_checkout_placement(&adapters, root.to_str().unwrap(), "copy").unwrap();
-    let real = root.canonicalize().unwrap();
+    let real = root.canonical_path().unwrap();
     assert_eq!(config["placement"][real.to_str().unwrap()], "copy");
     assert_eq!(super::read_config(&adapters.home).unwrap(), config);
     assert_eq!(

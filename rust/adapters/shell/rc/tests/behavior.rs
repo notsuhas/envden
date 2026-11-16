@@ -36,7 +36,12 @@ fn rendered_shell_compatibility_guards() {
     .hook_snippet("/tmp/a\\';echo INJECTED;#")
     .unwrap();
     assert!(fish.contains("'/tmp/a\\\\\\';echo INJECTED;#' status --refresh-cache"));
-    assert!(fish.contains("'/tmp/h\\\\\\'o/state/notice'"));
+    let notice = if cfg!(windows) {
+        r"'\\tmp\\h\\\'o\\state\\notice'"
+    } else {
+        r"'/tmp/h\\\'o/state/notice'"
+    };
+    assert!(fish.contains(notice));
 }
 
 #[cfg(unix)]

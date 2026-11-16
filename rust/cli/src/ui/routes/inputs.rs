@@ -46,7 +46,7 @@ mod tests {
     fn restore_accepts_integer_json_numbers() {
         assert!(
             parse(
-                &json!({"root":"/a", "path":".env", "version":1.0}),
+                &json!({"root":std::env::temp_dir(), "path":".env", "version":1.0}),
                 &["root", "path", "version"],
                 "version",
             )

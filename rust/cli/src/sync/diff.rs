@@ -153,19 +153,28 @@ mod tests {
             diff_text(&[
                 json!({"root":"/a","path":".env","differs":true,"kind":"diff","added":["A"],"removed":["B"],"changed":["C"]})
             ]),
-            "/a/.env\n  + A\n  - B\n  ~ C"
+            format!(
+                "{}\n  + A\n  - B\n  ~ C",
+                std::path::Path::new("/a").join(".env").display()
+            )
         );
         assert_eq!(
             diff_text(&[
                 json!({"root":"/a","path":".env","differs":true,"kind":"diff","added":[],"removed":[],"changed":[]})
             ]),
-            "/a/.env\n  only comments or formatting changed"
+            format!(
+                "{}\n  only comments or formatting changed",
+                std::path::Path::new("/a").join(".env").display()
+            )
         );
         assert_eq!(
             diff_text(&[
                 json!({"root":"/a","path":".env","differs":true,"kind":"conflict","reason":"invalid-utf8"})
             ]),
-            "/a/.env\n  can't compare keys: invalid utf8"
+            format!(
+                "{}\n  can't compare keys: invalid utf8",
+                std::path::Path::new("/a").join(".env").display()
+            )
         );
     }
 }

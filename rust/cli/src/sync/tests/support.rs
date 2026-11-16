@@ -1,4 +1,5 @@
 use crate::*;
+use envden_core::filesystem::ICanonicalPath;
 use std::{fs, process::Command};
 
 pub(super) fn opts(a: &adapters::IAdapters) -> sync::remote::context::ISyncOptions {
@@ -35,7 +36,7 @@ pub(super) fn repo(a: &adapters::IAdapters) -> std::path::PathBuf {
             .success()
     );
     fs::write(root.join(".gitignore"), ".env\n.env.local\n").unwrap();
-    fs::canonicalize(root).unwrap()
+    root.canonical_path().unwrap()
 }
 pub(super) fn entry(
     c: &sync::remote::context::ISyncContext<'_>,

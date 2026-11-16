@@ -1,5 +1,6 @@
 use super::*;
 use crate::adapters::create_adapters;
+use envden_core::filesystem::ICanonicalPath;
 use std::process::Command;
 
 fn git(root: &Path, args: &[&str]) {
@@ -32,7 +33,7 @@ fn clone_at(root: &Path) {
 #[test]
 fn discovers_hidden_registered_worktrees_and_skips_vendor_clones() {
     let temp = tempfile::tempdir().unwrap();
-    let home = temp.path().canonicalize().unwrap();
+    let home = temp.path().canonical_path().unwrap();
     let root = home.join("main");
     clone_at(&root);
     git(
@@ -101,7 +102,7 @@ fn discovers_hidden_registered_worktrees_and_skips_vendor_clones() {
 #[test]
 fn does_not_walk_noncheckout_submodule_directories() {
     let temp = tempfile::tempdir().unwrap();
-    let home = temp.path().canonicalize().unwrap();
+    let home = temp.path().canonical_path().unwrap();
     let root = home.join("main");
     clone_at(&root);
     fs::write(

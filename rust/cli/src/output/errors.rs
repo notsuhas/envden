@@ -50,7 +50,7 @@ mod tests {
         );
         assert_eq!(
             home_path(Path::new("/home/me/sub/../file"), Path::new("/home/me/.")),
-            "~/file"
+            format!("~{}file", std::path::MAIN_SEPARATOR)
         );
         assert_eq!(home_path(Path::new("."), Path::new(".")), "~");
     }

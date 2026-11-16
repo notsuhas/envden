@@ -104,11 +104,14 @@ mod tests {
         assert_eq!(checkout_approval(&state, &worktree), "ask");
         assert_eq!(
             checkout_label(&state, &worktree, &[".env".into()], Path::new("/code")),
-            "~/branch, worktree of example/repo (.env)"
+            format!(
+                "~{}branch, worktree of example/repo (.env)",
+                std::path::MAIN_SEPARATOR
+            )
         );
         assert_eq!(
             checkout_label(&state, &checkout, &[], Path::new("/code")),
-            "~/main (files from the vault)"
+            format!("~{}main (files from the vault)", std::path::MAIN_SEPARATOR)
         );
         let changed = ICheckout {
             repo_id: "host/other".into(),
