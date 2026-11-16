@@ -26,7 +26,7 @@ impl ITransport for Server {
                 let hello = p::build_hello(
                     p::IServerHello {
                         challenge: p::fixed(&binary(&challenge)?)?,
-                        host: "server.test".into(),
+                        host: request.url.host_str().unwrap_or_default().into(),
                         server_sign_pub: self.keys.recovery.obj_pub,
                         app_version: "1.0.0".into(),
                         min_client: "0.0.0".into(),

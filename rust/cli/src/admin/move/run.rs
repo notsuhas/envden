@@ -105,7 +105,7 @@ pub fn move_server(
             TPassword::Fixed(options.password),
             p::TLoginPurpose::Unlock,
         )?;
-        switch_server(adapters, &address, transport)?;
+        switch_server(adapters, &address, transport, None)?;
         for name in ["move-swap.bin", "move-address", "move-pin"] {
             remove(&directory.join(name))?;
         }

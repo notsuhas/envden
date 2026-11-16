@@ -17,10 +17,25 @@ use std::rc::Rc;
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let server = invocation.arguments.first();
     if invocation.command.name == "switch" {
+        use std::io::IsTerminal;
+
+        let unlock = |client: &crate::client::IClient, vault: &[u8; 32]| {
+            crate::session::login(
+                client,
+                vault,
+                crate::session::TPassword::Prompt(&mut |retry| {
+                    secret(crate::sync::command::unlock_prompt(retry), |_| None)
+                }),
+                envden_protocol::protocol::TLoginPurpose::Unlock,
+            )
+        };
         switch_server(
             adapters,
             server.map(String::as_str).unwrap_or(""),
             Rc::new(UreqTransport),
+            std::io::stdin()
+                .is_terminal()
+                .then_some(&unlock as crate::admin::r#move::switch::TUnlock<'_>),
         )?;
         print("Server switched");
         return Ok(());
