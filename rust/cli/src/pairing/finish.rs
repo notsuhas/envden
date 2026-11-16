@@ -39,11 +39,11 @@ fn resend(client: &IClient, saved: &str) -> Result<()> {
     })?;
     let invalid = || EnvdenError::new(ErrorCode::InvalidData, "Invalid stored pairing exchange");
     let mailbox = value["mailbox"].as_f64().ok_or_else(invalid)?;
-    let mailbox = if mailbox == 0.0 { 0.0 } else { mailbox };
+    let mailbox = envden_core::text::js_number(mailbox);
     let ke3 = value["ke3"].as_str().ok_or_else(invalid)?;
     let message = value["message"].as_str().ok_or_else(invalid)?;
-    let result =
-        put(client, mailbox, "KE3", ke3).and_then(|_| put(client, mailbox, "PairJoiner", message));
+    let result = put(client, &mailbox, "KE3", ke3)
+        .and_then(|_| put(client, &mailbox, "PairJoiner", message));
 
     match result {
         Ok(_) => Ok(()),
@@ -84,8 +84,19 @@ mod tests {
     }
 
     #[test]
-    fn stored_numeric_mailbox_is_sent_without_integer_coercion() {
-        for mailbox in [-1.5, 0.0, 4_294_967_296.0] {
+    fn stored_numeric_mailbox_uses_javascript_number_formatting() {
+        for (mailbox, expected) in [
+            (7.0, "7"),
+            (999.0, "999"),
+            (1e20, "100000000000000000000"),
+            (1e21, "1e+21"),
+            (1.5, "1.5"),
+            (-0.0, "0"),
+            (1e-7, "1e-7"),
+            (0.000001, "0.000001"),
+            (-1.5, "-1.5"),
+            (4_294_967_296.0, "4294967296"),
+        ] {
             let (client, transport) =
                 super::super::tests::client(vec![(404, json!({"error":"NOT_FOUND"}))]);
             resend(
@@ -95,7 +106,10 @@ mod tests {
             .unwrap();
             assert_eq!(
                 *transport.requests.borrow(),
-                vec![("PUT".into(), format!("/v1/pairing/mailboxes/{mailbox}/KE3"))]
+                vec![(
+                    "PUT".into(),
+                    format!("/v1/pairing/mailboxes/{expected}/KE3")
+                )]
             );
         }
     }

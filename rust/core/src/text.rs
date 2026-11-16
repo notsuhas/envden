@@ -1,3 +1,7 @@
+mod js_number;
+
+pub use js_number::js_number;
+
 pub fn js_trim(value: &str) -> &str {
     value.trim_matches(js_whitespace)
 }
