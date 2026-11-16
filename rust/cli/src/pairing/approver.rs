@@ -117,11 +117,11 @@ fn announce(
     now: crate::time::TClock,
     emit: impl FnOnce(String),
 ) -> Result<u64> {
-    let expiry = (expires_at.max(0) as u64).min(now() + 600_000);
-    super::exchange::require_window(expiry, now())?;
     emit(sanitize_console(&format!(
         "On the new device run: envden join {address}\nand enter code {code} (valid 10 minutes). Keep this running."
     )));
+    let expiry = (expires_at.max(0) as u64).min(now() + 600_000);
+    super::exchange::require_window(expiry, now())?;
 
     Ok(expiry)
 }
