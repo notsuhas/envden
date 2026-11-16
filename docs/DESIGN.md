@@ -327,6 +327,10 @@ Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and th
 
 Replaces a `server switch` that read the new server's history with whatever session the device had. Unlock sessions don't move with the vault, so after a move every other device got "Unlock expired. Run envden unlock", and `unlock` logs in at the old address, which may be gone. Switch now asks for the master password and logs in at the destination itself. Without a terminal it still fails with the unlock message.
 
+### Ctrl-D cancels a prompt
+
+Replaces leaving Ctrl-D to readline. On an empty answer it closed the input and the question waited forever, so the user had to kill the process. Ctrl-D now cancels any prompt the same way Ctrl-C and Esc do, with the same message and exit code.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
