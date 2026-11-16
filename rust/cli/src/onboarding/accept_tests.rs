@@ -127,7 +127,21 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
         keyring: material.keyring,
         files,
     });
+    let mut other = crate::state::empty_state("old");
+    other["vaultId"] = json!(p::base32(&[9; 32]));
+    other["aliases"] = json!({"old":"kept"});
+    crate::state::repository::save_state(&adapters.home, &other, 42).unwrap();
+    assert_eq!(
+        accept(&adapters, &client, &identity, &history, &hash)
+            .unwrap_err()
+            .code,
+        ErrorCode::Conflict
+    );
+    other["creationPending"] = json!("pending");
+    crate::state::repository::save_state(&adapters.home, &other, 42).unwrap();
     let local = accept(&adapters, &client, &identity, &history, &hash).unwrap();
+    assert_eq!(local["aliases"], json!({}));
+    assert!(local.get("creationPending").is_none());
     assert_eq!(local["checkpoint"], text(&hash));
     history.headers[0].body.created_at = 41;
     history.headers[0] = p::sign_object(

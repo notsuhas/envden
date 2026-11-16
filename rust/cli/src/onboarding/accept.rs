@@ -68,7 +68,8 @@ fn locked_accept(
         .filter(|e| e.body.seq <= header.body.list_seq)
         .cloned()
         .collect();
-    let existing = crate::state::repository::load_state(&adapters.home)?;
+    let existing =
+        super::local_state::join_local_state(&adapters.home, &p::base32(&history.state.vault_id))?;
     if let Some(existing) = existing.as_ref().filter(|s| s["checkpoint"].is_string()) {
         let floor = crate::client::binary(existing["checkpoint"].as_str().expect("checkpoint"))?;
         let descends = history
@@ -138,8 +139,7 @@ fn locked_accept(
     let _: p::IFiles = p::decode(&files)?;
     let committed = &state.devices[&identity.record.id];
     adopt_committed_name(&*adapters.keychain, &adapters.home, committed)?;
-    let mut local = crate::state::repository::load_state(&adapters.home)?
-        .unwrap_or_else(|| empty_state(&committed.name));
+    let mut local = existing.unwrap_or_else(|| empty_state(&committed.name));
     local["deviceName"] = json!(committed.name);
     local["verifiedState"] = encode_verified_state(state, &history.entries)?;
     local["vaultId"] = json!(p::base32(&state.vault_id));
