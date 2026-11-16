@@ -12,6 +12,7 @@ import { createFileKeychainAdapter } from "@envden/adapter-keychain-file";
 import { createGitRepoAdapter } from "@envden/adapter-repo-git";
 import { createFsPlacementAdapter, pruneBackups } from "@envden/adapter-placement-fs";
 import { createRcShellAdapter } from "@envden/adapter-shell-rc";
+import { envdenHome } from "./state/store/home.ts";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
 import { localSetupToken } from "@envden/server";
 import type {
@@ -37,7 +38,7 @@ export function createAdapters(
   now: () => number,
 ) {
   const userHome = options?.userHome ?? homedir();
-  const home = realLocation(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
+  const home = realLocation(options?.home ?? envdenHome(process.env.ENVDEN_HOME, userHome));
   const executable = stableExecutable(options?.executable ?? process.execPath);
 
   const adapters = {
