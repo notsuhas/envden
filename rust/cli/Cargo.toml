@@ -10,6 +10,7 @@ name = "envden"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "4.6", features = ["string", "wrap_help"] }
 envden-server = { path = "../server" }
 tokio = { version = "1", features = ["rt-multi-thread", "signal", "io-util"] }
 regex = "1"
@@ -30,14 +31,14 @@ chrono-tz = "0.10"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 crossterm = "0.29"
+cliclack = "=0.5.7"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
 url = "2"
 unicode-general-category = "1"
 unicode-normalization = "0.1"
 
-flate2 = { version = "1", default-features = false, features = ["zlib"] }
-libz-sys = { version = "1", features = ["static"] }
+lopdf = { version = "0.47", default-features = false }
 unicode-width = "0.2.2"
 icu_collator = "2.1"
 num-bigint = "0.4"
@@ -53,7 +54,7 @@ tempfile = "3"
 workspace = true
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.31", features = ["signal", "fs", "user"] }
+nix = { version = "0.31", features = ["signal", "fs", "user", "term"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [

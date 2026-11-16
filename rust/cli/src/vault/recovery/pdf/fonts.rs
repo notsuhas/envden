@@ -15,16 +15,14 @@ pub fn printable(text: &str) -> String {
         .collect()
 }
 
-pub fn hex(text: &str) -> String {
-    printable(text)
-        .chars()
-        .map(|c| {
-            format!(
-                "{:02X}",
-                METRICS["mapping"][c.to_string()][0].as_u64().expect("code")
-            )
-        })
-        .collect()
+pub fn encode(text: &str) -> Vec<u8> {
+    // WinAnsi uses the space and hyphen glyphs for these characters.
+    lopdf::Document::encode_text(
+        &lopdf::Encoding::SimpleEncoding(b"WinAnsiEncoding"),
+        &printable(text)
+            .replace('\u{a0}', " ")
+            .replace('\u{ad}', "-"),
+    )
 }
 
 pub fn width(text: &str, size: f64) -> f64 {
@@ -43,15 +41,20 @@ pub fn width(text: &str, size: f64) -> f64 {
     total * (size / 1000.0)
 }
 
-pub fn suffix(index: usize) -> u64 {
-    METRICS["suffixes"][index].as_u64().expect("font suffix")
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-pub fn utf16(text: &str) -> String {
-    format!(
-        "FEFF{}",
-        text.encode_utf16()
-            .map(|c| format!("{c:04X}"))
-            .collect::<String>()
-    )
+    #[test]
+    fn win_ansi_encoding_matches_supported_characters() {
+        for (text, metric) in METRICS["mapping"].as_object().unwrap() {
+            let encoding = lopdf::Encoding::SimpleEncoding(b"WinAnsiEncoding");
+            let expected =
+                lopdf::Document::decode_text(&encoding, &[metric[0].as_u64().unwrap() as u8])
+                    .unwrap();
+            let actual = lopdf::Document::decode_text(&encoding, &encode(text)).unwrap();
+            assert_eq!(actual, expected, "{text:?}");
+        }
+        assert_eq!(printable("café 💻 東京\n"), "café ? ???");
+    }
 }

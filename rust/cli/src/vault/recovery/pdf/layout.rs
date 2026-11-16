@@ -1,9 +1,9 @@
-use super::{fonts, writer};
+use super::{fonts, pen::IPen, writer};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use lopdf::content::{Content, Operation};
 use serde_json::Value;
 
-use super::pen::IPen;
-use lopdf::content::{Content, Operation};
+mod wrapping;
 
 pub fn render_kit(kit: &Value, now: u64, device: &str) -> Result<Vec<u8>> {
     render_at_zone(kit, now, device, std::env::var("TZ").ok().as_deref())
@@ -101,36 +101,9 @@ fn render_at_zone(kit: &Value, now: u64, device: &str, zone: Option<&str>) -> Re
     ];
     for paragraph in paragraphs {
         let text = fonts::printable(&paragraph);
-        let mut line = String::new();
-        let mut current_width = 0.0;
-        for word in text.split_inclusive(' ') {
-            let word_width = fonts::width(word, 11.0);
-            if current_width + word_width > width && !line.is_empty() {
-                y -= 16.0;
-                pen.write(
-                    envden_core::text::js_trim(&line),
-                    64.0,
-                    y,
-                    "Helvetica",
-                    11.0,
-                    false,
-                );
-                line.clear();
-                current_width = 0.0;
-            }
-            line.push_str(word);
-            current_width += word_width;
-        }
-        if !line.is_empty() {
+        for line in wrapping::lines(&text, width, 11.0) {
             y -= 16.0;
-            pen.write(
-                envden_core::text::js_trim(&line),
-                64.0,
-                y,
-                "Helvetica",
-                11.0,
-                false,
-            );
+            pen.write(&line, 64.0, y, "Helvetica", 11.0, false);
         }
         y -= 8.0;
     }
