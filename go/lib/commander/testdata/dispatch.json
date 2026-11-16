@@ -1,5 +1,77 @@
 [
   {
+    "args": ["--bogus", "status"],
+    "stderr": "error: unknown option '--bogus'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["device", "--bogus", "ls"],
+    "stderr": "error: unknown command 'device'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["--bogus"],
+    "stderr": "error: unknown option '--bogus'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["-x"],
+    "stderr": "error: unknown option '-x'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["--version=1"],
+    "stderr": "error: unknown option '--version=1'(Did you mean --version?)\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["-Vx"],
+    "stderr": "",
+    "stdout": "1.2.3\n",
+    "acted": false,
+    "hooked": false,
+    "code": 0
+  },
+  {
+    "args": ["-hV"],
+    "stderr": "error: unknown option '-hV'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["rm", "--yesx", ".env"],
+    "stderr": "error: unknown option '--yesx'(Did you mean --yes?)\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
+    "args": ["rm", "--x\u001b[31mred"],
+    "stderr": "error: unknown option '--x[31mred'\n",
+    "stdout": "",
+    "acted": false,
+    "hooked": false,
+    "code": 1
+  },
+  {
     "args": ["rm", "help"],
     "stderr": "",
     "stdout": "",
@@ -77,7 +149,7 @@
   {
     "args": ["--dry-run", "rm", "--help"],
     "stderr": "",
-    "stdout": "Usage: demo [options] [command]\n\nOptions:\n  --root\n  -h, --help           display help for command\n\nCommands:\n  rm [options] [file]\n  group\n  run [args...]\n  loose [args...]\n  help [command]       display help for command\n",
+    "stdout": "Usage: demo [options] [command]\n\nOptions:\n  -V, --version        output the version number\n  --root\n  -h, --help           display help for command\n\nCommands:\n  rm [options] [file]\n  group\n  run [args...]\n  loose [args...]\n  help [command]       display help for command\n",
     "acted": false,
     "hooked": false,
     "code": 0

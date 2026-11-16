@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"github.com/notsuhas/envden/go/core/jsnumber"
 	"os"
 	"path/filepath"
 	"strings"
@@ -198,5 +199,5 @@ func submodulePaths(out string) []string {
 }
 
 func checkoutIdentity(device, directory uint64, directoryBirth string, root uint64, rootBirth string) string {
-	return fmt.Sprintf("%.0f:%.0f:%s:%.0f:%s", float64(device), float64(directory), directoryBirth, float64(root), rootBirth)
+	return fmt.Sprintf("%s:%s:%s:%s:%s", jsnumber.String(float64(device)), jsnumber.String(float64(directory)), directoryBirth, jsnumber.String(float64(root)), rootBirth)
 }

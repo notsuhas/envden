@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { lstat, readFile, readdir, readlink } from "node:fs/promises";
 import { join } from "node:path";
 import type { Normalizer } from "../normalize/normalizer.ts";
+import { isLiteralFile } from "../normalize/literal.ts";
 import { isForeignCache } from "./foreign.ts";
 
 function quote(name: string): string {
@@ -65,6 +66,7 @@ export async function snapshot(
   root: string,
   normalizer: Normalizer,
 ): Promise<Record<string, string>> {
+  const canonicalize = normalizer.canonicalizer();
   const result: Record<string, string> = {};
 
   async function walk(path: string, relative: string): Promise<void> {
@@ -81,9 +83,7 @@ export async function snapshot(
     if (stat.isDirectory()) {
       result[`${name}:type`] = "directory";
 
-      for (const item of (await readdir(path)).sort((a, b) =>
-        normalizer.text(a).localeCompare(normalizer.text(b)),
-      ))
+      for (const item of (await readdir(path)).sort())
         await walk(join(path, item), `${relative}/${item}`);
 
       return;
@@ -115,7 +115,7 @@ export async function snapshot(
   await seed(root);
   for (const item of (await readdir(root)).sort()) await walk(join(root, item), item);
 
-  return result;
+  return canonicalize(result);
 }
 
 async function fileSnapshot(
@@ -137,9 +137,6 @@ async function fileSnapshot(
   } else {
     const text = bytes.toString("utf8");
 
-    result[`${name}:content`] =
-      /(?:^|\/)\.env(?:\.[^/]*)?$/.test(relative) || relative.endsWith("shared.env")
-        ? text
-        : normalizer.text(text);
+    result[`${name}:content`] = isLiteralFile(relative) ? text : normalizer.text(text);
   }
 }

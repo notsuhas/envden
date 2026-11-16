@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { canonicalize } from "./canonical.ts";
 
 export class Normalizer {
   private readonly values = new Map<string, string>();
@@ -13,6 +14,24 @@ export class Normalizer {
 
   literal(value: string): void {
     this.literals.add(value);
+  }
+
+  canonicalizer(): (observations: Record<string, string>) => Record<string, string> {
+    const known = new Set(this.values.values());
+    const counts = new Map(this.counts);
+
+    return (observations) =>
+      canonicalize(
+        observations,
+        [...this.values.values()]
+          .filter((value) => !known.has(value))
+          .map((value) => {
+            const group = value.slice(1, value.lastIndexOf("#"));
+
+            return { value, group, first: (counts.get(group) ?? 0) + 1 };
+          }),
+        [...this.values.values()],
+      );
   }
 
   private symbol(kind: string, value: string, numbering = kind): string {

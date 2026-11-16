@@ -107,15 +107,9 @@ func (c *Command) output(stderr bool) io.Writer {
 
 func (c *Command) fail(code, message string) error {
 	text := "error: " + message + "\n"
-	handled := false
-	for p := c; p != nil; p = p.Parent {
-		if p.OutputError != nil {
-			p.OutputError(text, c.output(true))
-			handled = true
-			break
-		}
-	}
-	if !handled {
+	if c.OutputError != nil {
+		c.OutputError(text, c.output(true))
+	} else {
 		_, _ = io.WriteString(c.output(true), text)
 	}
 	if c.ShowHelpAfterError {

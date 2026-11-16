@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
+	whatwg "github.com/nlnwa/whatwg-url/url"
 	"github.com/notsuhas/envden/go/cli/version"
 	"github.com/notsuhas/envden/go/core/errors"
 	serverprotocol "github.com/notsuhas/envden/go/core/protocol/codecs/server"
@@ -26,7 +26,11 @@ type Greeting struct {
 }
 
 func Hello(ctx context.Context, address string, pin []byte, fetch Fetch, minServer string) (Greeting, error) {
-	base, err := url.Parse(address)
+	canonical, err := whatwg.Parse(address)
+	if err != nil {
+		return Greeting{}, err
+	}
+	base, err := url.Parse(canonical.Href(false))
 	if err != nil {
 		return Greeting{}, err
 	}
@@ -85,10 +89,7 @@ func Hello(ctx context.Context, address string, pin []byte, fetch Fetch, minServ
 		expected = presented
 	}
 
-	host := u.Hostname()
-	if strings.HasPrefix(u.Host, "[") {
-		host = "[" + host + "]"
-	}
+	host := canonical.Hostname()
 	verified := requests.VerifyHello(signed, challenge, host, expected, "0.0.0")
 	if !verified.OK {
 		return Greeting{}, errors.New(errors.Unauthorized, "Server identity doesn't match the expected server. Check the server address")

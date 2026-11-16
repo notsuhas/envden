@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/notsuhas/envden/go/cli/output"
+	"io"
 	"os"
 	"os/exec"
 	"reflect"
@@ -15,10 +17,11 @@ func TestRegenerateDispatchReference(t *testing.T) {
 		return
 	}
 	script := `import {Command} from '../../../../apps/cli/node_modules/commander/index.js';
+import {sanitizeTerminal} from '../../../../apps/cli/src/output/sanitize.ts';
 import {writeFileSync} from 'node:fs';
-const cases=[['rm','help'],['--unknown','help','rm'],['help','rm'],['--dry-run','rm','--yes','.env'],['rm','--dry-run','--yes','.env'],['group','--dry-run','rm','.env'],['--yes','rm','.env'],['rm','--yes','.env'],['rm','.env','--root'],['--dry-run','rm','--help'],['rm','--dry-run','--help'],['rm','.env','--dry-run'],['run','echo','--unknown'],['run','--unknown','echo'],['--unknown','run','echo'],['loose','--unknown','x'],['--unknown','loose','x'],['group','rm','--yes','.env']];
+const cases=[['--bogus','status'],['device','--bogus','ls'],['--bogus'],['-x'],['--version=1'],['-Vx'],['-hV'],['rm','--yesx','.env'],['rm','--x\u001b[31mred'],['rm','help'],['--unknown','help','rm'],['help','rm'],['--dry-run','rm','--yes','.env'],['rm','--dry-run','--yes','.env'],['group','--dry-run','rm','.env'],['--yes','rm','.env'],['rm','--yes','.env'],['rm','.env','--root'],['--dry-run','rm','--help'],['rm','--dry-run','--help'],['rm','.env','--dry-run'],['run','echo','--unknown'],['run','--unknown','echo'],['--unknown','run','echo'],['loose','--unknown','x'],['--unknown','loose','x'],['group','rm','--yes','.env']];
 const rows=cases.map(args=>{let stderr='',stdout='',acted=false,hooked=false,code=0,values;
-const p=new Command('demo').option('--root').exitOverride().configureOutput({writeErr:s=>stderr+=s,writeOut:s=>stdout+=s});
+const p=new Command('demo').version('1.2.3').option('--root').exitOverride().configureOutput({writeErr:s=>stderr+=s,writeOut:s=>stdout+=s,outputError:(s,write)=>write(sanitizeTerminal(s)+'\n')});
 p.hook('preAction',()=>hooked=true);
 const action=(...a)=>{acted=true;values=a.at(-1).args};
 p.command('rm').argument('[file]').option('--yes').action(action);
@@ -60,7 +63,8 @@ func TestSubcommandDispatch(t *testing.T) {
 			var stderr, stdout bytes.Buffer
 			acted, hooked := false, false
 			var values []string
-			p := New("demo").Option("--root", "")
+			p := New("demo").Version("1.2.3").Option("--root", "")
+			p.OutputError = func(s string, w io.Writer) { _, _ = io.WriteString(w, output.SanitizeTerminal(s)+"\n") }
 			p.Stderr = &stderr
 			p.Stdout = &stdout
 			p.Hook("preAction", func(*Command, *Command) error { hooked = true; return nil })

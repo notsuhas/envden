@@ -40,7 +40,7 @@ func (c *Command) runHooks(event string, target *Command) error {
 
 func parseValue(o *Option, value string) (any, error) {
 	if len(o.ChoiceValues) > 0 && !contains(o.ChoiceValues, value) {
-		return nil, choiceError("Allowed choices are " + strings.Join(o.ChoiceValues, ", ") + ".")
+		return nil, &InvalidArgumentError{Message: "Allowed choices are " + strings.Join(o.ChoiceValues, ", ") + "."}
 	}
 	if o.Parse != nil {
 		return o.Parse(value)
@@ -74,6 +74,6 @@ func (c *Command) commandNames() []string {
 	return append(names, "help")
 }
 
-type choiceError string
+type InvalidArgumentError struct{ Message string }
 
-func (err choiceError) Error() string { return string(err) }
+func (err *InvalidArgumentError) Error() string { return err.Message }

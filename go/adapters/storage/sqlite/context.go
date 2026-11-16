@@ -33,7 +33,7 @@ func (s *storage) rows(q string, args ...any) (*sql.Rows, error) {
 }
 
 func (s *storage) bytes(q string, args ...any) ([]byte, error) {
-	var b []byte
+	var b *[]byte
 	e := s.conn.QueryRowContext(context.Background(), q, args...).Scan(&b)
 	if errors.Is(e, sql.ErrNoRows) {
 		return nil, nil
@@ -43,9 +43,13 @@ func (s *storage) bytes(q string, args ...any) ([]byte, error) {
 	}
 
 	if b == nil {
-		b = []byte{}
+		return nil, nil
 	}
-	return b, nil
+	if *b == nil {
+		return []byte{}, nil
+	}
+
+	return *b, nil
 }
 
 func (s *storage) count(q string, args ...any) (int64, error) {

@@ -1,6 +1,7 @@
 package commander
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -44,7 +45,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 				helpRequested = true
 				continue
 			}
-			if (token == "--version" || token == "-V") && c.VersionText != "" {
+			if (token == "--version" || strings.HasPrefix(token, "-V") && !strings.HasPrefix(token, "--")) && c.VersionText != "" {
 				_, _ = io.WriteString(c.output(false), c.VersionText+"\n")
 
 				return result, &ExitError{Code: "commander.version"}
@@ -112,7 +113,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 					if hasValue {
 						parsed, err := parseValue(o, value)
 						if err != nil {
-							return result, c.fail("commander.invalidArgument", fmt.Sprintf("option '%s' argument '%s' is invalid. %s", o.Flags, value, err.Error()))
+							return result, c.optionParseError(o, value, err)
 						}
 						if o.Variadic {
 							values, _ := result.Values[o.Key].([]string)
@@ -124,7 +125,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 								i++
 								v := args[i]
 								if _, err := parseValue(o, v); err != nil {
-									return result, c.fail("commander.invalidArgument", fmt.Sprintf("option '%s' argument '%s' is invalid. %s", o.Flags, v, err.Error()))
+									return result, c.optionParseError(o, v, err)
 								}
 								values = append(values, v)
 							}
@@ -230,4 +231,12 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 	}
 
 	return result, c.runHooks("postAction", c)
+}
+
+func (c *Command) optionParseError(o *Option, value string, err error) error {
+	var invalid *InvalidArgumentError
+	if !errors.As(err, &invalid) {
+		return err
+	}
+	return c.fail("commander.invalidArgument", fmt.Sprintf("option '%s' argument '%s' is invalid. %s", o.Flags, value, err.Error()))
 }

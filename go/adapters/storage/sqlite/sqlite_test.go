@@ -215,3 +215,17 @@ func TestEmptyBlobPresent(t *testing.T) {
 		t.Fatal(b, err)
 	}
 }
+
+func TestBytesDistinguishesNullAndEmptyBlob(t *testing.T) {
+	db := open(t, t.TempDir())
+	for _, row := range []struct {
+		query   string
+		present bool
+	}{{"SELECT NULL", false}, {"SELECT X''", true}, {"SELECT X'01' WHERE 0", false}} {
+		got, err := db.bytes(row.query)
+		check(t, err)
+		if (got != nil) != row.present {
+			t.Fatalf("%s: %v", row.query, got)
+		}
+	}
+}
