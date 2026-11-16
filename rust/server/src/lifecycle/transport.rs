@@ -13,6 +13,21 @@ use tokio::{
 };
 use tower::ServiceExt;
 
+// Serves with the server's 10 s header and idle timeouts until `stop` fires; the `envden ui` dashboard uses it too.
+pub async fn serve_http(
+    listener: TcpListener,
+    app: Router,
+    stop: oneshot::Receiver<()>,
+) -> io::Result<()> {
+    listen(
+        listener,
+        app,
+        stop,
+        Arc::new(super::scheduler::SystemScheduler),
+    )
+    .await
+}
+
 pub(super) async fn listen(
     listener: TcpListener,
     app: Router,

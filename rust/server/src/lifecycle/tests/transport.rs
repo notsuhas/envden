@@ -122,3 +122,58 @@ async fn incomplete_headers_have_an_absolute_deadline_despite_activity() {
     tokio::task::yield_now().await;
     assert!(task.is_finished());
 }
+
+async fn served_socket() -> (tokio::net::TcpStream, oneshot::Sender<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let (stop, receive) = oneshot::channel();
+    tokio::spawn(listen(
+        listener,
+        Router::new(),
+        receive,
+        Arc::new(super::super::scheduler::SystemScheduler),
+    ));
+
+    (tokio::net::TcpStream::connect(address).await.unwrap(), stop)
+}
+
+async fn closed_after(client: &mut tokio::net::TcpStream) -> (String, std::time::Duration) {
+    use tokio::io::AsyncReadExt;
+
+    let started = tokio::time::Instant::now();
+    let mut received = Vec::new();
+    client.read_to_end(&mut received).await.unwrap();
+
+    (String::from_utf8(received).unwrap(), started.elapsed())
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_rejected_request_with_an_unread_body_closes_within_ten_seconds() {
+    use tokio::io::AsyncWriteExt;
+
+    let (mut client, _stop) = served_socket().await;
+    client
+        .write_all(b"POST /v1/vault HTTP/1.1\r\nHost: x\r\nContent-Length: 1\r\n\r\n")
+        .await
+        .unwrap();
+    let (response, elapsed) = closed_after(&mut client).await;
+
+    assert!(response.starts_with("HTTP/1.1 404"), "{response}");
+    assert!(elapsed <= std::time::Duration::from_secs(10), "{elapsed:?}");
+}
+
+#[tokio::test(start_paused = true)]
+async fn an_idle_keep_alive_connection_closes_after_ten_seconds() {
+    use tokio::io::AsyncWriteExt;
+
+    let (mut client, _stop) = served_socket().await;
+    client
+        .write_all(b"GET / HTTP/1.1\r\nHost: x\r\n\r\n")
+        .await
+        .unwrap();
+    let (response, elapsed) = closed_after(&mut client).await;
+
+    assert!(response.starts_with("HTTP/1.1 404"), "{response}");
+    assert!(elapsed <= std::time::Duration::from_secs(10), "{elapsed:?}");
+    assert!(elapsed >= std::time::Duration::from_secs(9), "{elapsed:?}");
+}

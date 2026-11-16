@@ -331,6 +331,10 @@ Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and th
 
 Replaces shutdown that left `envden.sqlite-wal` and `envden.sqlite-shm` behind on macOS only, where Apple's SQLite keeps the write-ahead log by default. Every server now checkpoints with `TRUNCATE` on close, with persistent WAL off, so a stopped server leaves only `envden.sqlite` on every platform. The Rust server uses its bundled SQLite everywhere instead of the system library on macOS.
 
+### Explicit 10 second connection timeouts
+
+Replaces timeouts each runtime chose for itself: Bun closed idle connections after about 12 s, and the dashboard had none in some ports. `envden serve` and the `envden ui` dashboard both close a connection that sends no complete request headers within 10 s, and a keep-alive connection that stays idle for 10 s. A rejected request whose declared body never arrives is closed within the same 10 s. Body read deadlines for accepted uploads (10 s plus 1 s per 32 KiB, at most 10 minutes) are unchanged.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).

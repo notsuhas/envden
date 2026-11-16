@@ -4,7 +4,7 @@ use super::{
 };
 use crate::adapters::{IAdapters, create_adapters};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
-use std::{future::IntoFuture, sync::Arc};
+use std::sync::Arc;
 
 pub fn run_dashboard(
     adapters: &IAdapters,
@@ -62,8 +62,10 @@ async fn serve_dashboard(
     app: axum::Router,
     stopped: impl std::future::Future<Output = ()> + Send + 'static,
 ) -> std::io::Result<()> {
+    let (_running, stop) = tokio::sync::oneshot::channel();
+
     tokio::select! {
-        result = axum::serve(listener, app).into_future() => result,
+        result = envden_server::lifecycle::serve_http(listener, app, stop) => result,
         _ = stopped => Ok(()),
     }
 }
@@ -159,5 +161,47 @@ mod shutdown_tests {
                 );
                 server.await.unwrap().unwrap();
             });
+    }
+}
+
+#[cfg(test)]
+mod timeout_tests {
+    use super::*;
+    use std::time::Duration;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    async fn closed_within(request: &'static [u8]) -> Option<Duration> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        tokio::spawn(serve_dashboard(
+            listener,
+            axum::Router::new(),
+            std::future::pending(),
+        ));
+        let mut client = tokio::net::TcpStream::connect(address).await.unwrap();
+        client.write_all(request).await.unwrap();
+        let started = tokio::time::Instant::now();
+        let mut received = Vec::new();
+
+        tokio::time::timeout(Duration::from_secs(60), client.read_to_end(&mut received))
+            .await
+            .ok()
+            .map(|_| started.elapsed())
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn idle_and_partial_header_connections_close_within_ten_seconds() {
+        for request in [
+            b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".as_slice(),
+            b"GET / HTTP/1.1\r\nHost:".as_slice(),
+            b"POST /api/push HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 1\r\n\r\n".as_slice(),
+        ] {
+            let elapsed = closed_within(request).await;
+
+            assert!(
+                elapsed.is_some_and(|elapsed| elapsed <= Duration::from_secs(10)),
+                "{elapsed:?}"
+            );
+        }
     }
 }
