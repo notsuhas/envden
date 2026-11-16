@@ -44,6 +44,11 @@ func TestAdapterWiring(t *testing.T) {
 	if a.ServerPort == nil || a.LocalSetupToken == nil || a.HostServer == nil || a.Timing.Now() != 0 {
 		t.Fatal("missing hook")
 	}
+
+	// a forgotten override must never register a real launchd, systemd or schtasks job
+	if _, e = a.HostServer(4783); !errors.Is(e, errors.Internal) || e.Error() != "No service adapter was supplied" {
+		t.Fatal(e)
+	}
 }
 
 func TestStableExecutable(t *testing.T) {

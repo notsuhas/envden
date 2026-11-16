@@ -20,6 +20,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/errors"
 	serveridentity "github.com/notsuhas/envden/go/server/identity"
 )
 
@@ -132,6 +133,13 @@ func CreateAdapters(options *AdapterOptions, now func() int64) (Adapters, error)
 			defer func() { _ = storage.Close() }() // Best-effort cleanup must not replace the operation result.
 
 			return serveridentity.ReissueSetup(storage, keys.PublicKey)
+		}
+	}
+
+	// like network, a real service is installed only when nothing was injected
+	if a.HostServer == nil && options != nil {
+		a.HostServer = func(int) (hostservice.Installed, error) {
+			return hostservice.Installed{}, errors.New(errors.Internal, "No service adapter was supplied")
 		}
 	}
 
