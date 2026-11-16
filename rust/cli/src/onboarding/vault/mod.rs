@@ -16,3 +16,8 @@ mod resume_initial;
 pub(super) mod kit_resume;
 
 mod preflight;
+
+mod initial_entries;
+
+
+mod bases;

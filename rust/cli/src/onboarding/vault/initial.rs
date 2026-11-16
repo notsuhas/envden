@@ -4,17 +4,27 @@ use crate::{
     state::repository::save_state,
     sync::local::{
         applied::{applied_files, save_applied_files},
-        files::{base_path, write_bytes},
+        files::write_bytes,
     },
     vault::vault_connection,
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
-use std::{path::PathBuf, rc::Rc};
+use std::rc::Rc;
 
 pub(in crate::onboarding) fn push_initial(adapters: &IAdapters, state: &mut Value) -> Result<()> {
-    crate::client::retry_head(|| attempt(adapters, state, Rc::new(UreqTransport)))
+    push(adapters, state, Rc::new(UreqTransport))
+}
+
+fn push(
+    adapters: &IAdapters,
+    state: &mut Value,
+    transport: Rc<dyn crate::client::ITransport>,
+) -> Result<()> {
+    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+        crate::client::retry_head(|| attempt(adapters, state, transport.clone()))
+    })
 }
 
 fn attempt(
@@ -47,89 +57,14 @@ fn attempt(
     };
     let key = &p::fixed(&epoch)?;
     let id = p::fixed(&id)?;
-    let mut files = p::IFiles { entries: vec![] };
-    let mut bases: Vec<(PathBuf, Vec<u8>)> = vec![];
-    for link in state["links"]
-        .as_array()
-        .into_iter()
-        .flatten()
-        .filter(|v| v["localOnly"] != true)
-    {
-        let checkout = state["approved"]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .find(|c| c["root"] == link["root"])
-            .ok_or_else(|| {
-                EnvdenError::new(ErrorCode::Unauthorized, "Checkout approval required")
-            })?;
-        let repo = checkout["repoId"].as_str().unwrap_or_default();
-        let repo = state["aliases"][repo].as_str().unwrap_or(repo);
-        let path = link["path"].as_str().unwrap_or_default();
-        let store = link["store"].as_str().unwrap_or_default();
-        let content = std::fs::read(store)
-            .map_err(|e| EnvdenError::with_source(ErrorCode::Internal, "File read failed", e))?;
-        if let Some(notice) =
-            crate::sync::local::validation::size::file_size_notice(path, Some(&content))
-        {
-            eprintln!("{notice}");
-            continue;
-        }
-        bases.push((
-            base_path(
-                &adapters.home,
-                store,
-                if link["mode"] == "copy" {
-                    link["root"].as_str()
-                } else {
-                    None
-                },
-            ),
-            content.clone(),
-        ));
-        let file_id = p::file_id(&id, repo, path)?;
-        if files.entries.iter().any(|v| v.file_id == file_id) {
-            continue;
-        }
-        let context = p::IFileContext {
-            vault_id: connection.vault_id,
-            epoch: 1,
-            file_id,
-            version: 1,
-        };
-        let blob = p::seal_file(
-            &p::IFile {
-                repo_id: repo.into(),
-                path: path.into(),
-                content,
-            },
-            key,
-            &context,
-            &p::random_bytes(),
-        )?;
-        let blob_hash = p::h("blob", &blob);
-        connection.client.request_bytes(
-            &format!("/v1/blobs/{}", text(&blob_hash)),
-            "PUT",
-            &blob,
-        )?;
-        files.entries.push(p::IFileEntry {
-            file_id,
-            version: 1,
-            epoch: 1,
-            state: 1,
-            blob_hash,
-            name: p::seal_file_name(
-                &p::IFileName {
-                    repo_id: repo.into(),
-                    path: path.into(),
-                },
-                key,
-                &context,
-                &p::random_bytes(),
-            )?,
-        });
-    }
+    let (mut files, bases) = super::initial_entries::entries(
+        adapters,
+        state,
+        &connection.client,
+        connection.vault_id,
+        key,
+        &id,
+    )?;
     if files.entries.is_empty() {
         return Ok(());
     }
@@ -168,7 +103,7 @@ fn attempt(
         applied.insert(p::base32(&entry.file_id), json!(text(&p::encode(&entry)?)));
     }
     save_applied_files(&adapters.home, applied, (adapters.now)())?;
-    for (path, content) in bases {
+    for (path, content) in bases.into_entries() {
         write_bytes(&path, Some(&content), (adapters.now)())?;
     }
     Ok(())
@@ -177,9 +112,13 @@ fn attempt(
 #[cfg(test)]
 mod tests {
     use super::*;
-    struct Offline;
+    struct Offline(std::path::PathBuf);
     impl crate::client::ITransport for Offline {
         fn fetch(&self, _: crate::client::IHttpRequest) -> Result<crate::client::IHttpResponse> {
+            assert!(
+                self.0.join("state/write.lock").exists(),
+                "initial push must hold state lock"
+            );
             Err(EnvdenError::new(ErrorCode::ServerUnreachable, "Offline"))
         }
     }
@@ -193,9 +132,13 @@ mod tests {
         state["server"] = json!({"address":"https://server.test","pin":text(&[2;32]),"protocol":1});
         state["links"] = json!([{}]);
         assert_eq!(
-            attempt(&adapters, &mut state, Rc::new(Offline))
-                .unwrap_err()
-                .code,
+            push(
+                &adapters,
+                &mut state,
+                Rc::new(Offline(adapters.home.clone()))
+            )
+            .unwrap_err()
+            .code,
             ErrorCode::ServerUnreachable
         );
     }
