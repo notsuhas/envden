@@ -14,7 +14,7 @@ an owned cancellation closure. Defaults are the home server directory, port
 `RunningServer` exposes `url: String` and `storage: Arc<dyn IStorageAdapter>`.
 Call `running.shutdown().await` with a mutable binding. Shutdown cancels pruning,
 waits for HTTP shutdown and closes storage; repeated calls succeed. The caller
-handles SIGINT/SIGTERM. The standalone `envden-serve` binary does that itself.
+handles SIGINT/SIGTERM and installs those handlers before `serve` prints the listening line.
 Setup/repair tokens and the listening URL print during `serve`.
 
 For tests, `create_app(IAppOptions, Arc<Mutex<IStatusState>>) -> Result<Router>`

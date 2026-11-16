@@ -37,10 +37,6 @@ url = "2"
 envden-testing = { path = "../testing" }
 tempfile = "3"
 
-[[bin]]
-name = "envden-serve"
-path = "src/bin/serve.rs"
-
 [lints]
 workspace = true
 
