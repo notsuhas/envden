@@ -33,8 +33,10 @@ CLAUDE.md applies, in idiomatic Rust:
 ## Tests
 
 - Small pure-function tests live in a `#[cfg(test)] mod tests` at the bottom of the file they test.
-- Larger suites go in the crate's `tests/` folder, one file per TS `__tests__` file they port.
-- Protocol vectors are read in place from `packages/core/src/protocol/__tests__/vectors/`, so both implementations check the same JSON.
+- Tests that need a module's private items go in that module's `tests.rs` or `tests/` folder, declared `#[cfg(test)] mod tests;`. That folder is Rust's `__tests__`. Never put a test file beside source files under another name (`foo_tests.rs`).
+- Tests of a crate's public API go in the crate's `tests/` folder.
+- Protocol vectors are read in place from `packages/core/src/protocol/__tests__/vectors/`, so every implementation checks the same JSON.
+- Every TS test case has a Rust counterpart with the same inputs and outcome.
 - Tests never touch the real keychain, home config or tailnet.
 
 ## Libraries
@@ -48,7 +50,26 @@ CLAUDE.md applies, in idiomatic Rust:
 | X25519 | `x25519-dalek` | |
 | HPKE | `hpke` 0.13.0, vendored in `rust/vendor/hpke` with a small patch | RFC 9180. TS uses raw random bytes as the ephemeral key; the patch exposes the crate's own fixed-ephemeral encapsulation so wraps match (`ENVDEN-PATCH.md`) |
 | Argon2id | `argon2` | RustCrypto |
+| Zeroizing secrets | `zeroize` | wipes key material on every exit path, where TS calls `fill(0)` |
+| Unicode | `unicode-normalization`, `unicode-general-category`, `unicode-width`, `icu_collator` | NFC/NFKC and the Cc/Cf checks the protocol needs, terminal column widths, and `localeCompare` ordering |
+| Server HTTP | `tokio`, `axum`, `hyper` | Hono on `Bun.serve` becomes axum on hyper, with Bun's idle and header timeouts |
+| Server storage | `rusqlite` (bundled SQLite) | same schema, pragmas and on-disk files as `bun:sqlite` |
+| CLI HTTP | `ureq` | the CLI is synchronous; parallel repo checks use threads |
+| Terminal | `crossterm` | raw mode and keys; the bytes written copy `@clack/prompts` 1.9.0 |
+| PDF compression | `libz-sys` (static C zlib) | pdf-lib deflates with pako, which matches C zlib byte for byte; the recovery kit PDF is identical |
+| Dates | `chrono`, `chrono-tz` | date-fns formatting |
+| Processes | `shared_child`, `rustix`, `nix`, `windows-sys` | trusted spawning, lock liveness checks, file access checks and Windows ownership, with no hand-written `unsafe` outside Windows FFI |
 | Errors | `thiserror` | |
+
+## Mapping
+
+Each TS folder has a Rust module at the same relative path, so `apps/cli/src/sync/local/reconcile.ts` is `rust/cli/src/sync/local/reconcile.rs`. Where Rust needs a different shape, the difference is local:
+
+- Zod schemas in `packages/core/src/protocol` are serde types in `envden-protocol` with the same JSON keys and checks.
+- Adapter interfaces are synchronous traits. The server calls storage behind a mutex, and the CLI uses threads where TS awaits in parallel.
+- Commander and clack are not used: `rust/cli/src/program` and `rust/cli/src/output/prompts` copy their output, help and errors.
+- `envden serve` in the CLI calls `envden_server::serve`, as the TS CLI imports `@envden/server`.
+- JS `trim()` strips different characters from Rust's `str::trim`. Use `envden_core::text::js_trim` wherever TS trims.
 
 ## CLI foundation
 
