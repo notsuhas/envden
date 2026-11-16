@@ -40,7 +40,7 @@ pub fn restore(
     if let TRestoreGate::Refused(message) = gate {
         return Err(EnvdenError::new(ErrorCode::InvalidInput, message));
     }
-    crate::state::lock::with_state_lock(&adapters.home, (options.now)(), || {
+    crate::state::lock::with_state_lock(&adapters.home, &*options.now.clone(), || {
         let mut context = sync_context(adapters, options, transport)?;
         let cwd = context
             .options

@@ -50,7 +50,7 @@ pub fn unlock_device(
     let Some(session) = login(&client, &vault_id, password, p::TLoginPurpose::Unlock)? else {
         return Ok(());
     };
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut current = require_configured(load_state(&adapters.home)?)?;
         current["session"] = serde_json::to_value(session).expect("serializable window");
         save_state(&adapters.home, &current, (adapters.now)())

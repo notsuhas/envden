@@ -39,7 +39,11 @@ pub fn with_state_lock_timing<T>(
     })
 }
 
-pub fn with_state_lock<T>(home: &Path, now: u64, action: impl FnOnce() -> Result<T>) -> Result<T> {
+pub fn with_state_lock<T>(
+    home: &Path,
+    now: &dyn Fn() -> u64,
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
     with_observer(home, now, action, || {
         super::process::process_start(std::process::id())
     })
@@ -47,14 +51,14 @@ pub fn with_state_lock<T>(home: &Path, now: u64, action: impl FnOnce() -> Result
 
 fn with_observer<T>(
     home: &Path,
-    now: u64,
+    now: &dyn Fn() -> u64,
     action: impl FnOnce() -> Result<T>,
     observe: impl FnOnce() -> super::owner::TProcess,
 ) -> Result<T> {
     with_timing_observer(
         home,
         &ILockTiming {
-            now: &|| now,
+            now,
             wait: &crate::time::wait,
             delays: &[50, 100, 200, 400, 800, 1000],
         },
@@ -92,6 +96,7 @@ fn with_timing_observer<T>(
         if attempt > 0 {
             (timing.wait)(delay);
         }
+        let now = (timing.now)();
         let builder = fs::DirBuilder::new();
         #[cfg(unix)]
         let mut builder = builder;
@@ -106,7 +111,7 @@ fn with_timing_observer<T>(
                 break;
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-                super::owner::try_reclaim(&path, (timing.now)())?;
+                super::owner::try_reclaim(&path, now)?;
                 if builder.create(&path).is_ok() {
                     acquired = true;
                     break;

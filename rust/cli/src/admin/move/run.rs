@@ -37,7 +37,7 @@ pub fn move_server(
     options: &IMoveOptions<'_>,
     transport: Rc<dyn ITransport>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let context = admin_context(adapters, transport.clone())?;
         login(
             &context.client,

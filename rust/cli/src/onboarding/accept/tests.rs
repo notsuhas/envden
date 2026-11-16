@@ -175,7 +175,7 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
         opaque_record: None,
         approver: None,
     };
-    let error = crate::state::lock::with_state_lock(&adapters.home, 42, || {
+    let error = crate::state::lock::with_state_lock(&adapters.home, &|| 42, || {
         crate::vault::admin::commit::accept(&context, &swap, &history)
     })
     .unwrap_err();

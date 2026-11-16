@@ -22,7 +22,7 @@ fn push(
     state: &mut Value,
     transport: Rc<dyn crate::client::ITransport>,
 ) -> Result<()> {
-    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+    crate::state::lock::with_state_lock(&adapters.home, &adapters.now, || {
         crate::client::retry_head(|| attempt(adapters, state, transport.clone()))
     })
 }

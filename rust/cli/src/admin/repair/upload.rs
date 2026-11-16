@@ -18,7 +18,7 @@ pub fn upload_repair(
     token: &str,
     transport: Rc<dyn ITransport>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let (context, id) = repair_context(adapters, token, transport)?;
         let remote = read_history(&context.client, &context.vault_id, None)?;
         let stored = stored_history(&context)?;

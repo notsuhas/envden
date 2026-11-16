@@ -14,7 +14,7 @@ pub fn device_identity(
     fresh: bool,
     now: u64,
 ) -> Result<IDeviceIdentity> {
-    with_state_lock(namespace, now, || {
+    with_state_lock(namespace, &|| now, || {
         let slot = format!("envden/{}/device", namespace.display());
         if let Some(stored) = keychain.get(&slot, false)?
             && !fresh

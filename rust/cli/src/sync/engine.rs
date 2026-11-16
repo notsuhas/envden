@@ -63,7 +63,7 @@ fn run_sync(
             report(message);
         }
     }));
-    with_state_lock(&adapters.home, (options.now)(), || {
+    with_state_lock(&adapters.home, &*options.now.clone(), || {
         let mut context = sync_context(adapters, options, transport)?;
         let local = super::remote::accept::history::local_history(&context)?;
         let mut history =

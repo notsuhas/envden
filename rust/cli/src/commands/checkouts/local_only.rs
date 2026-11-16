@@ -15,7 +15,7 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
         .map(String::as_str)
         .unwrap_or_default();
     let absolute = normalize(&cwd.join(file));
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut state = require_configured(load_state(&adapters.home)?)?;
         let link = state["links"]
             .as_array()

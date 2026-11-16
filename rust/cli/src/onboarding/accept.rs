@@ -37,7 +37,7 @@ pub(crate) fn accept(
     history: &IVaultHistory,
     hash: &[u8; 32],
 ) -> Result<Value> {
-    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+    crate::state::lock::with_state_lock(&adapters.home, &adapters.now, || {
         locked_accept(adapters, client, identity, history, hash)
     })
 }

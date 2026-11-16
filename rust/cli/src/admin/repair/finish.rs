@@ -33,7 +33,7 @@ pub fn finish_repair(
     accept_lost: bool,
     transport: Rc<dyn ITransport>,
 ) -> Result<TFinish> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             if let Some(result) = resume_close(adapters, token, transport.clone())? {
                 return Ok(result);

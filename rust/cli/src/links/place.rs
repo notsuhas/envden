@@ -22,7 +22,7 @@ pub fn link_checkout(
     copy: bool,
     report: &dyn Fn(&str),
 ) -> Result<Vec<IOwnLink>> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let approval = checkout_approval(state, checkout);
         if approval == "changed" {
             return Err(EnvdenError::new(

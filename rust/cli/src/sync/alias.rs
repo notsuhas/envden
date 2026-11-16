@@ -6,7 +6,7 @@ use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use std::collections::HashSet;
 
 pub fn alias_unlinked_repo(adapters: &IAdapters, source: &str, target: &str) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         if let Some(state) = load_state(&adapters.home)? {
             let roots: HashSet<_> = state["approved"]
                 .as_array()

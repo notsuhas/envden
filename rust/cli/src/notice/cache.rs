@@ -55,7 +55,7 @@ pub fn refresh_notice(
     case_insensitive: impl Fn(&str) -> Result<bool>,
     now: u64,
 ) -> Result<()> {
-    with_state_lock(home, now, || {
+    with_state_lock(home, &|| now, || {
         let roots: Vec<_> = state["approved"]
             .as_array()
             .into_iter()

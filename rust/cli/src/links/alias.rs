@@ -26,7 +26,7 @@ pub fn derive_alias(aliases: &Value, source: &str, target: &str) -> &'static str
 }
 
 pub fn alias_repo(adapters: &IAdapters, source: &str, target: &str) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut state = load_state(&adapters.home)?
             .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, NOT_SET_UP))?;
         match derive_alias(&state["aliases"], source, target) {

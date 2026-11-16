@@ -17,7 +17,7 @@ pub(super) fn resume(
     identity: &IDeviceIdentity,
     rejoin: bool,
 ) -> Result<Value> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let result = locked_resume(adapters, client, identity, rejoin);
         if result.as_ref().is_err_and(|error| {
             matches!(

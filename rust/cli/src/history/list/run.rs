@@ -22,7 +22,7 @@ pub fn file_history(
     transport: Rc<dyn ITransport>,
     file: Option<&str>,
 ) -> Result<Value> {
-    crate::state::lock::with_state_lock(&adapters.home, (options.now)(), || {
+    crate::state::lock::with_state_lock(&adapters.home, &*options.now.clone(), || {
         let mut context = sync_context(adapters, options, transport)?;
         let cwd = context
             .options

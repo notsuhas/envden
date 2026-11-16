@@ -30,7 +30,7 @@ const KEYS: &[&str] = &[
 ];
 
 pub fn save_state(home: &Path, state: &TLocalState, now: u64) -> Result<()> {
-    with_state_lock(home, now, || {
+    with_state_lock(home, &|| now, || {
         private_directory(home)?;
         let mut record = state.as_object().cloned().ok_or_else(unreadable)?;
         let headers = record

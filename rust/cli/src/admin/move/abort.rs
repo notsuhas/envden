@@ -12,7 +12,7 @@ pub fn abort_move(
     directory: &Path,
     address: Option<&str>,
 ) -> Result<()> {
-    crate::state::lock::with_state_lock(&context.adapters.home, (context.adapters.now)(), || {
+    crate::state::lock::with_state_lock(&context.adapters.home, &context.adapters.now, || {
         locked_abort_move(context, directory, address)
     })
 }

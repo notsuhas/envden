@@ -41,7 +41,7 @@ pub fn setup_checkouts(
     state: &mut Value,
     options: &ICheckoutOptions<'_>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut current = load_state(&adapters.home)?.unwrap_or_else(|| state.clone());
         scan(adapters, &mut current, options)?;
         *state = current;

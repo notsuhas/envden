@@ -16,7 +16,7 @@ pub fn mark_local_only(
     root: &str,
     path: &str,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let link = state["links"]
             .as_array_mut()
             .and_then(|a| {

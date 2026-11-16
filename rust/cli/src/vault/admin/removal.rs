@@ -23,7 +23,7 @@ pub fn remove(
     transport: Rc<dyn ITransport>,
     show: &mut dyn FnMut(&Value) -> Result<()>,
 ) -> Result<bool> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = admin_context(adapters, transport.clone())?;
             let finished = super::pending::settle(&context)?;

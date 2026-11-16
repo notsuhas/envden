@@ -15,7 +15,7 @@ pub fn switch_server(
     address: &str,
     transport: Rc<dyn ITransport>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut context = admin_context(adapters, transport.clone())?;
         let server = hello(address, None, &*transport, MIN_SERVER)?;
         let mut options = context.client.options.clone();

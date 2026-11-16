@@ -38,7 +38,7 @@ pub(super) fn approve<'a>(
     send: &[u8; 32],
     mut context: impl FnMut() -> Result<IAdminContext<'a>>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = context()?;
             let history = read_history(&context.client, &context.vault_id, None)?;

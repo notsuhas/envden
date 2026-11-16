@@ -103,7 +103,7 @@ pub fn set_config(
             format!("Turning on {key} requires a terminal"),
         ));
     }
-    with_state_lock(home, now, || {
+    with_state_lock(home, &|| now, || {
         let mut config = read_config(home)?;
         config[key] = if matches!(key, "placement" | "env-files") {
             serde_json::from_str(value).map_err(|e| {

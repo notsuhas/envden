@@ -58,7 +58,7 @@ pub fn replace(
     removed: Option<[u8; 16]>,
     show: &mut dyn FnMut(&Value) -> Result<()>,
 ) -> Result<bool> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let keys = p::generate_recovery_keys(p::random_bytes);
         let secret = Zeroizing::new(p::random_bytes());
         let mut shown = false;

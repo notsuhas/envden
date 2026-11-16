@@ -76,7 +76,7 @@ fn rename_check<'a>(
 }
 
 pub fn rename(adapters: &IAdapters, name: &str, transport: Rc<dyn ITransport>) -> Result<bool> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = admin_context(adapters, transport.clone())?;
             let history = current_history(&context)?;
@@ -121,7 +121,7 @@ pub fn rename(adapters: &IAdapters, name: &str, transport: Rc<dyn ITransport>) -
 }
 
 pub fn rotate(adapters: &IAdapters, password: &str, transport: Rc<dyn ITransport>) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = admin_context(adapters, transport.clone())?;
             login(

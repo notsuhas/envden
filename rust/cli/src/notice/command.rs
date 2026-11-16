@@ -43,7 +43,7 @@ pub fn command_notice_with_transport(
 ) -> Value {
     let result = (|| -> Result<Value> {
         if !refresh {
-            with_state_lock(&adapters.home, (adapters.now)(), || {
+            with_state_lock(&adapters.home, &adapters.now, || {
                 report_pending_joins(&adapters.home, (adapters.now)())
             })?;
         }
@@ -75,7 +75,7 @@ pub fn command_notice_with_transport(
         if !refresh && !local_only {
             run_update_check(adapters, now, false, fetcher)?;
         }
-        with_state_lock(&adapters.home, (adapters.now)(), || {
+        with_state_lock(&adapters.home, &adapters.now, || {
             let executable = std::env::current_exe().map_err(crate::state::files::failure)?;
             super::cleanup::cleanup_old_binary(&executable, cfg!(windows))?;
             let Some(state) = load_state(&adapters.home)? else {

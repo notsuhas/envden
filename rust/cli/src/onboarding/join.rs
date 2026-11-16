@@ -30,7 +30,7 @@ pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<
     options["rejoin"] = json!(rejoin);
     let options = &options;
     if !rejoin {
-        with_state_lock(&adapters.home, (adapters.now)(), || {
+        with_state_lock(&adapters.home, &adapters.now, || {
             crate::pairing::persistence::guard(adapters)
         })?;
     }
@@ -38,7 +38,7 @@ pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<
         let name = device_name(adapters, options)?;
         let kit = read_kit(options["recoveryKit"].as_str().map(Path::new))?;
         let password = secret("Master password", |_| None)?;
-        with_state_lock(&adapters.home, (adapters.now)(), || {
+        with_state_lock(&adapters.home, &adapters.now, || {
             retry_head(|| {
                 recovery(
                     adapters,

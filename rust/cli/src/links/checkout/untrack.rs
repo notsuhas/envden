@@ -19,7 +19,7 @@ use serde_json::Value;
 use std::path::Path;
 
 pub fn untrack(adapters: &IAdapters, path: &str) -> Result<Vec<String>> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let state = load_state(&adapters.home)?;
         let root = adapters.repo.checkout_at(path)?.map(|c| c.root);
         let mut state = state

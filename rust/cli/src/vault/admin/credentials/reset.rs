@@ -6,7 +6,7 @@ pub fn reset(
     kit: &str,
     transport: Rc<dyn ITransport>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let secret = Zeroizing::new(p::decode_secret_key(kit)?);
             let keys = p::generate_recovery_keys(p::random_bytes);

@@ -18,7 +18,7 @@ pub fn diff(
     options: ISyncOptions,
     transport: Rc<dyn ITransport>,
 ) -> Result<Vec<Value>> {
-    with_state_lock(&adapters.home, (options.now)(), || {
+    with_state_lock(&adapters.home, &*options.now.clone(), || {
         let mut context = sync_context(adapters, options, transport)?;
         let cwd = match &context.options.cwd {
             Some(path) => path.clone(),

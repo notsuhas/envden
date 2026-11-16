@@ -28,7 +28,7 @@ pub fn remove_file(
     report: &dyn Fn(&str),
 ) -> Result<Value> {
     let now = (adapters.now)();
-    with_state_lock(&adapters.home, now, || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut state = load_state(&adapters.home)?.unwrap_or(Value::Null);
         let selected = state["links"]
             .as_array()

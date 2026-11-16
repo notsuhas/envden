@@ -26,7 +26,7 @@ pub fn resolve_conflict(
     cwd: &Path,
 ) -> Result<Value> {
     let now = (adapters.now)();
-    with_state_lock(&adapters.home, now, || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut records = conflict_records(&adapters.home)?;
         let matches = select_conflicts(&records, repo, file, cwd);
         if matches.len() != 1 {

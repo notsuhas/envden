@@ -37,7 +37,7 @@ pub fn remote_notice(
     let mut context = sync_context(adapters, options, transport)?;
     accept_head(&mut context, None, true)?;
     let result = pending_repos(&context)?;
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         write_remote_notice(
             &adapters.home,
             &IRemoteNotice {
@@ -63,7 +63,7 @@ pub fn remote_notice(
 
 pub fn settle_remote_notice(context: &ISyncContext<'_>) -> Result<()> {
     let result = pending_repos(context)?;
-    with_state_lock(&context.adapters.home, (context.options.now)(), || {
+    with_state_lock(&context.adapters.home, &*context.options.now, || {
         write_remote_notice(
             &context.adapters.home,
             &IRemoteNotice {

@@ -22,7 +22,7 @@ pub fn run_track(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<(
                 )
             })
         })?;
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let mut state = require_configured(load_state(&adapters.home)?)?;
         setup_checkouts(
             adapters,

@@ -11,7 +11,7 @@ use envden_core::errors::Result;
 use serde_json::Value;
 
 pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         let existing = load_state(&adapters.home)?;
         let configured = existing
             .as_ref()

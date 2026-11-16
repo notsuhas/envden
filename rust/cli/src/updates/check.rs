@@ -67,7 +67,7 @@ pub fn run_update_check(
     let mut cache = read_update_cache(&adapters.home);
     let result = check_release(&mut cache, now, fetcher, force, &adapters.now);
     if result["kind"] != "skipped" {
-        with_state_lock(&adapters.home, (adapters.now)(), || {
+        with_state_lock(&adapters.home, &adapters.now, || {
             save_update_cache(&adapters.home, &cache, (adapters.now)())
         })?;
     }

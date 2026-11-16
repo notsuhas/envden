@@ -63,7 +63,7 @@ pub fn set_checkout_placement(
         .repo
         .checkout_at(path)?
         .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Checkout not found"))?;
-    crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+    crate::state::lock::with_state_lock(&adapters.home, &adapters.now, || {
         let config = read_config(&adapters.home)?;
         let mut placement = config["placement"].as_object().cloned().unwrap_or_default();
         placement.insert(checkout.root, mode.into());

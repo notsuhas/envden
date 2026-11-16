@@ -7,7 +7,7 @@ pub fn change(
     kit: &str,
     transport: Rc<dyn ITransport>,
 ) -> Result<()> {
-    with_state_lock(&adapters.home, (adapters.now)(), || {
+    with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = admin_context(adapters, transport.clone())?;
             login(

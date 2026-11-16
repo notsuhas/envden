@@ -79,7 +79,7 @@ pub fn report_telemetry(adapters: &crate::adapters::IAdapters, event: &IEvent<'_
         {
             return Ok(());
         }
-        let id = crate::state::lock::with_state_lock(&adapters.home, (adapters.now)(), || {
+        let id = crate::state::lock::with_state_lock(&adapters.home, &adapters.now, || {
             let path = adapters.home.join("state/install-id");
             if let Some(saved) =
                 crate::state::files::optional_read(&path)?.filter(|v| !v.is_empty())

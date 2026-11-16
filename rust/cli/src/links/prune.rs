@@ -12,7 +12,7 @@ pub fn prune_missing_checkouts(
     notice: &dyn Fn(&str),
     now: u64,
 ) -> Result<()> {
-    with_state_lock(home, now, || {
+    with_state_lock(home, &|| now, || {
         let approved = state["approved"].as_array().cloned().unwrap_or_default();
         for approval in approved {
             let root = approval["root"].as_str().unwrap_or_default();
