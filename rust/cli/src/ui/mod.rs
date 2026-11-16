@@ -4,3 +4,5 @@ pub mod start;
 
 pub mod routes;
 pub mod view;
+
+mod signals;

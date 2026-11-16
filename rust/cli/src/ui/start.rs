@@ -1,6 +1,7 @@
 use super::{
     browser::open_browser,
     server::{app::create_request_dashboard_app, token::new_token},
+    signals::interrupted,
 };
 use crate::adapters::{IAdapters, create_adapters};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
@@ -46,12 +47,13 @@ pub fn run_dashboard(
                 )
             }),
         );
+        let stopped = interrupted().map_err(failed)?;
         let url = format!("http://127.0.0.1:{port}/#{token}");
         println!("envden ui: {url}\nPress Ctrl-C to stop.");
         if open && !open_browser(&url) {
             println!("Could not open a browser; open the link above.");
         }
-        serve_dashboard(listener, app, interrupted())
+        serve_dashboard(listener, app, stopped)
             .await
             .map_err(failed)
     })
@@ -72,17 +74,6 @@ async fn serve_dashboard(
 
 fn failed(error: std::io::Error) -> EnvdenError {
     EnvdenError::with_source(ErrorCode::Internal, "Dashboard server failed", error)
-}
-
-async fn interrupted() {
-    #[cfg(unix)]
-    if let Ok(mut terminate) =
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-    {
-        tokio::select! {_ = tokio::signal::ctrl_c()=>{}, _ = terminate.recv()=>{}}
-        return;
-    }
-    let _ = tokio::signal::ctrl_c().await;
 }
 
 #[cfg(test)]
