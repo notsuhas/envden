@@ -313,9 +313,9 @@ Accepted costs:
 
 Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
 
-### Keyring growth counts toward the storage quota
+### Keyring writes ignore the storage quota
 
-Replaces a quota check that ran before the commit wrote its keyring. A rotation could grow a vault past its quota without being refused. The check now runs after every byte of the commit is written, in the same transaction, so an over-quota commit rolls back. A swap whose file list adds no ciphertext and isn't bigger still commits over quota.
+Replaces counting keyring growth toward the quota. The quota gates content growth only; rotate, remove device, replace kit and reset password still commit on an over-quota vault, so a full vault cannot prevent a user from removing a stolen device.
 
 ### HEAD follows GET
 

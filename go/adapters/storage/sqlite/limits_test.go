@@ -53,28 +53,6 @@ func TestSwapQuotaRollsBackCreation(t *testing.T) {
 	}
 }
 
-func TestKeyringGrowthOverQuotaRollsBack(t *testing.T) {
-	db := open(t, t.TempDir())
-	v := b(1)
-	check(t, db.ConfigureVault(v, coreadapters.StoredVault{Active: true}, nil, nil))
-	check(t, db.PutBlob(v, b(2), b(3), nil, 0, 0))
-	runSQL(t, db, "UPDATE blob_usage SET size=1073741823")
-	s := storedSwap(1, nil)
-	s.Vault, s.Files = nil, nil
-	s.State = []coreadapters.StateWrite{{Kind: coreadapters.StateKeyring, Key: b(2), Bytes: []byte{1, 2}}}
-	if _, err := db.CommitSwap(v, nil, s, 0); !coreerrors.Is(err, "STORAGE_QUOTA") {
-		t.Fatal(err)
-	}
-
-	keyring, err := db.State(v, coreadapters.StateKeyring, b(2))
-	check(t, err)
-	head, err := db.Head(v)
-	check(t, err)
-	if keyring != nil || head != nil {
-		t.Fatal("keyring growth survived failed commit")
-	}
-}
-
 func TestOverQuotaOperations(t *testing.T) {
 	for _, op := range []string{"remove", "rotate", "files", "blob", "move", "repair"} {
 		t.Run(op, func(t *testing.T) {
@@ -97,10 +75,11 @@ func TestOverQuotaOperations(t *testing.T) {
 			if op != "files" && !imported {
 				s.Files = nil
 			}
-			if op == "rotate" {
+			if op == "rotate" || op == "remove" {
 				s.State = []coreadapters.StateWrite{{Kind: coreadapters.StateKeyring, Key: b(2), Bytes: b(2)}}
 			}
 			if op == "remove" {
+				check(t, db.PutDevice(v, b(2), coreadapters.StoredDevice{UnlockedUntil: 10, FreshUntil: 10, ClientVersion: "1.0.0"}))
 				s.Devices = []coreadapters.StoredDeviceState{{ID: b(2), State: coreadapters.StoredDevice{ClientVersion: "1.0.0"}}}
 			}
 			if op == "blob" {
@@ -111,7 +90,7 @@ func TestOverQuotaOperations(t *testing.T) {
 				return
 			}
 			_, err := db.CommitSwap(v, nil, s, 0)
-			if op == "files" || op == "rotate" {
+			if op == "files" {
 				if !coreerrors.Is(err, "STORAGE_QUOTA") {
 					t.Fatal(err)
 				}
@@ -119,6 +98,25 @@ func TestOverQuotaOperations(t *testing.T) {
 				return
 			}
 			check(t, err)
+			head, err := db.Head(v)
+			check(t, err)
+			if string(head) != string(s.Header.Hash) {
+				t.Fatal("head did not advance")
+			}
+			if op == "rotate" || op == "remove" {
+				keyring, err := db.State(v, coreadapters.StateKeyring, b(2))
+				check(t, err)
+				if string(keyring) != string(b(2)) {
+					t.Fatal("keyring write did not commit")
+				}
+			}
+			if op == "remove" {
+				device, err := db.Device(v, b(2))
+				check(t, err)
+				if device == nil || device.UnlockedUntil != 0 || device.FreshUntil != 0 {
+					t.Fatal("device sessions were not revoked")
+				}
+			}
 			if imported {
 				check(t, db.PutFileList(v, coreadapters.StoredFiles{StoredObject: coreadapters.StoredObject{Hash: b(4), Bytes: b(2)}}, 0))
 				check(t, db.PutBlob(v, b(5), b(2), nil, 0, 0))
