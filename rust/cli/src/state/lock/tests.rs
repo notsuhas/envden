@@ -95,3 +95,22 @@ fn owner_reclaim_matrix() {
         Some("999".into())
     );
 }
+
+#[test]
+fn published_owner_matches_reference_bytes() {
+    let dir = tempfile::tempdir().unwrap();
+    let owner = IOwner {
+        pid: 1,
+        token: "t".into(),
+        started_at: "s".into(),
+        identity: None,
+        created_at: 1_773_144_000_000.0,
+    };
+
+    super::super::publication::publish_owner(dir.path(), &owner).unwrap();
+
+    assert_eq!(
+        fs::read_to_string(dir.path().join("owner.json")).unwrap(),
+        r#"{"pid":1,"startedAt":"s","token":"t","createdAt":1773144000000}"#
+    );
+}

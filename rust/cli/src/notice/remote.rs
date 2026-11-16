@@ -16,17 +16,9 @@ pub fn read_remote_notice(home: &Path) -> Result<Option<IRemoteNotice>> {
 }
 
 pub fn write_remote_notice(home: &Path, notice: &IRemoteNotice, now: u64) -> Result<()> {
-    let checked_at =
-        if notice.checked_at.fract() == 0.0 && notice.checked_at.abs() <= 9_007_199_254_740_991.0 {
-            serde_json::json!(notice.checked_at as i64)
-        } else {
-            serde_json::json!(notice.checked_at)
-        };
     atomic_write(
         &home.join("state/remote-notice.json"),
-        serde_json::json!({"checkedAt":checked_at,"repos":notice.repos})
-            .to_string()
-            .as_bytes(),
+        crate::state::json::stringify(notice).as_bytes(),
         now,
     )
 }

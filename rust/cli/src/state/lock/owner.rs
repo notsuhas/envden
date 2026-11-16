@@ -7,8 +7,8 @@ use std::{fs, path::Path, process::Command};
 #[serde(rename_all = "camelCase")]
 pub struct IOwner {
     pub pid: u32,
-    pub token: String,
     pub started_at: String,
+    pub token: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub identity: Option<String>,
     pub created_at: f64,

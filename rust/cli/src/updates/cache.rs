@@ -62,13 +62,7 @@ pub fn save_update_cache(home: &Path, cache: &IUpdateCache, now: u64) -> Result<
     }
     for key in order {
         let field = match key {
-            "checkedAt" => cache.checked_at.map(|n| {
-                if n.fract() == 0.0 && n >= 0.0 {
-                    serde_json::Value::from(n as u64)
-                } else {
-                    serde_json::json!(n)
-                }
-            }),
+            "checkedAt" => cache.checked_at.map(|n| serde_json::json!(n)),
             "latest" => cache
                 .latest
                 .as_ref()
@@ -85,7 +79,7 @@ pub fn save_update_cache(home: &Path, cache: &IUpdateCache, now: u64) -> Result<
     }
     atomic_write(
         &home.join("state/updates.json"),
-        serde_json::Value::Object(value).to_string().as_bytes(),
+        crate::state::json::stringify(&value).as_bytes(),
         now,
     )
 }

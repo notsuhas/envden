@@ -18,7 +18,7 @@ pub(super) fn publish_owner(path: &Path, owner: &IOwner) -> Result<()> {
     }
     let result = (|| {
         let mut file = options.open(&temporary).map_err(failure)?;
-        file.write_all(&serde_json::to_vec(owner).expect("owner serialization"))
+        file.write_all(crate::state::json::stringify(owner).as_bytes())
             .map_err(failure)?;
         file.sync_all().map_err(failure)?;
         drop(file);

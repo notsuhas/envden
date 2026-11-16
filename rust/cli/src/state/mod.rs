@@ -1,4 +1,5 @@
 pub mod files;
+pub mod json;
 pub mod lock;
 mod model;
 pub mod repository;
