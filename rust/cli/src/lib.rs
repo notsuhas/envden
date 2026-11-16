@@ -34,3 +34,5 @@ pub mod vault;
 pub mod admin;
 
 pub mod pairing;
+
+pub mod home;

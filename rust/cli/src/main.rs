@@ -9,7 +9,6 @@ use envden_cli::{
 };
 use std::{
     io::{self, IsTerminal, Write},
-    path::PathBuf,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -55,9 +54,10 @@ fn main() {
             std::process::exit(error_exit_code(error.code));
         }
         TParseResult::Action(invocation) => {
-            let home = std::env::var_os("HOME")
-                .map(PathBuf::from)
-                .unwrap_or_default();
+            let home = envden_cli::home::home_directory().unwrap_or_else(|error| {
+                print_error(&error.message);
+                std::process::exit(error_exit_code(error.code));
+            });
             let adapters = create_adapters(None, home, now);
             let result = with_update_status(&adapters.home, || {
                 dispatch(&invocation, &adapters, &DefaultActions, &DefaultHooks)

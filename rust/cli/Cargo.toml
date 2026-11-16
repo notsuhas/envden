@@ -50,7 +50,7 @@ tempfile = "3"
 workspace = true
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.31", features = ["signal", "fs"] }
+nix = { version = "0.31", features = ["signal", "fs", "user"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [
