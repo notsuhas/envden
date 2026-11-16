@@ -1,0 +1,22 @@
+    Checking envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+    Checking envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+    Checking envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Checking envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Checking envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+error: compiling a regex in a loop
+  --> rust/adapters/shell/rc/tests/links.rs:50:17
+   |
+50 |                 regex::Regex::new(r"^\.envden-backup-[0-9a-f-]{36}$")
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+help: move the regex construction outside this loop
+  --> rust/adapters/shell/rc/tests/links.rs:13:9
+   |
+13 |         for install in [true, false] {
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#regex_creation_in_loops
+   = note: `-D clippy::regex-creation-in-loops` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::regex_creation_in_loops)]`
+
+error: could not compile `envden-adapter-shell-rc` (test "links") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

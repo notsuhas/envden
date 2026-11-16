@@ -1,0 +1,31 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.09s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-d9053c7bd51a3e1f)
+
+running 2 tests
+test commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit ... FAILED
+test commands::vault::output::tests::empty_output_path_uses_pdf_reporting ... FAILED
+
+failures:
+
+---- commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit stdout ----
+
+thread 'commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit' (41988153) panicked at rust/cli/src/commands/vault/output.rs:67:9:
+assertion `left == right` failed
+  left: "device"
+ right: "laptop"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- commands::vault::output::tests::empty_output_path_uses_pdf_reporting stdout ----
+
+thread 'commands::vault::output::tests::empty_output_path_uses_pdf_reporting' (41988152) panicked at rust/cli/src/commands/vault/output.rs:75:9:
+assertion failed: replacement_output(&adapters, Some("")).path.is_none()
+
+
+failures:
+    commands::vault::output::tests::empty_output_path_uses_pdf_reporting
+    commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 289 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

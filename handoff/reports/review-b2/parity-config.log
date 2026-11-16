@@ -1,0 +1,11 @@
+91 |       `FAIL ${scenario.name}\n${error instanceof Error ? error.message : String(error)}`,
+92 |     );
+93 |   }
+94 | }
+95 | 
+96 | if (!count) throw new Error(`No scenarios match ${filter}`);
+                           ^
+error: No scenarios match config
+      at /Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/parity/run.ts:96:23
+
+Bun v1.4.0 (macOS arm64)

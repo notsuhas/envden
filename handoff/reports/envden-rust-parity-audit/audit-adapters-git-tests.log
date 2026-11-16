@@ -1,0 +1,79 @@
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.10s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_repo_git-23ce96b0c929a324)
+
+running 8 tests
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test remote::tests::vectors ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.46s
+
+     Running tests/checkout.rs (target/audit-adapters/debug/deps/checkout-09847f91c4e63e98)
+
+running 1 test
+test sole_remote_alias_resolution_shared_worktrees_and_ambiguous_remotes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.96s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-ca0498d96d2bada6)
+
+running 1 test
+test contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.66s
+
+     Running tests/discovery.rs (target/audit-adapters/debug/deps/discovery-add066b0015931be)
+
+running 1 test
+test discovery_skips_submodules_and_nested_clones_and_lists_user_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+     Running tests/excludes.rs (target/audit-adapters/debug/deps/excludes-5363ae34c3a05903)
+
+running 3 tests
+test ignore_failure_preserves_original_git_exclude_bytes ... ok
+test linked_gitignore_is_never_written ... ok
+test symlink_and_hardlink_excludes_preserve_exact_target_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.61s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-23e215808d39cc37)
+
+running 4 tests
+test exact_remote_rejections ... ok
+test embedded_bare_repository_cannot_choose_identity ... ok
+test identities_follow_global_and_local_url_rewrites ... ok
+test escaping_and_case_probed_tracking ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.06s
+
+     Running tests/repo.rs (target/audit-adapters/debug/deps/repo-f1a8564210b6aa27)
+
+running 2 tests
+test unsafe_remotes_and_readonly_case ... ok
+test worktrees_skip_folders_and_private_excludes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.69s
+
+     Running tests/security.rs (target/audit-adapters/debug/deps/security-32dbbbc582f7b5e7)
+
+running 3 tests
+test discovery_filters_templates_tracked_outputs_and_preserves_user_links ... ok
+test checkout_identity_errors_upstream_and_forged_worktree ... ok
+test exclude_preserves_symlinks_hardlinks_and_failed_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.97s
+
+   Doc-tests envden_adapter_repo_git
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

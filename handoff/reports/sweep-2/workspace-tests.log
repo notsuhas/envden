@@ -1,0 +1,30 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+error[E0603]: function `blocked_stores` is private
+  --> rust/cli/src/sync/remote/upload.rs:22:44
+   |
+22 |     let blocked = super::attempt::blocked::blocked_stores(context, failed)?;
+   |                                            ^^^^^^^^^^^^^^ private function
+   |
+note: the function `blocked_stores` is defined here
+  --> rust/cli/src/sync/remote/attempt/blocked.rs:5:1
+   |
+ 5 | pub(super) fn blocked_stores(context: &ISyncContext<'_>, failed: &HashSet<String>) -> Result<HashSet<String>> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0603]: function `report_blocked` is private
+  --> rust/cli/src/sync/remote/upload.rs:23:30
+   |
+23 |     super::attempt::notices::report_blocked(context)?;
+   |                              ^^^^^^^^^^^^^^ private function
+   |
+note: the function `report_blocked` is defined here
+  --> rust/cli/src/sync/remote/attempt/notices.rs:5:1
+   |
+ 5 | pub(super) fn report_blocked(context: &ISyncContext<'_>) -> Result<()> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0603`.
+error: could not compile `envden-cli` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `envden-cli` (lib test) due to 2 previous errors

@@ -1,0 +1,61 @@
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.29s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5990cff2274cf753)
+
+running 2 tests
+test adapter::tests::command_stderr_uses_javascript_whitespace ... ok
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-6be762cb5fb4516d)
+
+running 4 tests
+test schema_fallbacks_and_capped_command_errors ... ok
+test recorded_status_and_capped_serve_failure ... ok
+test exact_commands ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-39e3b3744dcf386a)
+
+running 3 tests
+test recorded_status_and_commands ... ok
+test unavailable_certificate_causes ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_repo_git-b2d4cf313912663f)
+
+running 9 tests
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test parity::git_and_ssh_outputs_use_javascript_whitespace ... FAILED
+test remote::tests::vectors ... ok
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+
+failures:
+
+---- parity::git_and_ssh_outputs_use_javascript_whitespace stdout ----
+
+thread 'parity::git_and_ssh_outputs_use_javascript_whitespace' (39847603) panicked at rust/adapters/repo/git/src/parity.rs:228:9:
+assertion `left == right` failed
+  left: "github.com\u{85}"
+ right: "\u{85}github.com\u{85}"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    parity::git_and_ssh_outputs_use_javascript_whitespace
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.53s
+
+error: test failed, to rerun pass `-p envden-adapter-repo-git --lib`

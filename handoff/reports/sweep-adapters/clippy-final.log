@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+    Checking envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 10s

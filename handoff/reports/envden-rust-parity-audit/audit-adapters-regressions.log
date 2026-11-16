@@ -1,0 +1,25 @@
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.80s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_placement_fs-bcec6226fa07cdd1)
+
+running 3 tests
+test races::unlink_stays_anchored_after_parent_swap ... ok
+test races::exclusive_writes_and_nofollow_identity ... ok
+test races::rename_and_backup_stay_on_opened_directory_after_swap ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_repo_git-23ce96b0c929a324)
+
+running 7 tests
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test remote::tests::vectors ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+test parity::discovery_batches_queries_with_one_global_configuration_read ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.43s
+

@@ -1,0 +1,4 @@
+    Checking envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+    Checking envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Checking envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.13s

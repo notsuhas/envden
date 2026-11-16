@@ -1,0 +1,22 @@
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.18s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_repo_git-23ce96b0c929a324)
+
+running 1 test
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... FAILED
+
+failures:
+
+---- batching_tests::discovery_batches_queries_with_one_global_configuration_read stdout ----
+
+thread 'batching_tests::discovery_batches_queries_with_one_global_configuration_read' (35492028) panicked at rust/adapters/repo/git/src/batching_tests.rs:47:9:
+assertion failed: fs::metadata(path).unwrap().is_file()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    batching_tests::discovery_batches_queries_with_one_global_configuration_read
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.58s
+
+error: test failed, to rerun pass `-p envden-adapter-repo-git --lib`

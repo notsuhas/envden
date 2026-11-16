@@ -1,0 +1,24 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.92s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 1 test
+test state::repository::tests::restores_latest_from_update_cache_without_persisting_it ... FAILED
+
+failures:
+
+---- state::repository::tests::restores_latest_from_update_cache_without_persisting_it stdout ----
+
+thread 'state::repository::tests::restores_latest_from_update_cache_without_persisting_it' (41535248) panicked at rust/cli/src/state/repository.rs:128:9:
+assertion `left == right` failed
+  left: Null
+ right: "1.2.3"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    state::repository::tests::restores_latest_from_update_cache_without_persisting_it
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.15s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

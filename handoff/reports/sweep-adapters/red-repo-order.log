@@ -1,0 +1,32 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 02s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_repo_git-b2d4cf313912663f)
+
+running 3 tests
+test batching_tests::remote_reads_rewrites_before_safe_directories ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... FAILED
+test batching_tests::checkout_resolves_upstream_before_reading_directory_identity ... FAILED
+
+failures:
+
+---- batching_tests::discovery_batches_queries_with_one_global_configuration_read stdout ----
+
+thread 'batching_tests::discovery_batches_queries_with_one_global_configuration_read' (40564646) panicked at rust/adapters/repo/git/src/batching_tests.rs:47:9:
+assertion `left == right` failed
+  left: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpxiINdh"
+ right: "/dev/null"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- batching_tests::checkout_resolves_upstream_before_reading_directory_identity stdout ----
+
+thread 'batching_tests::checkout_resolves_upstream_before_reading_directory_identity' (40564645) panicked at rust/adapters/repo/git/src/batching_tests.rs:95:5:
+assertion failed: adapter.checkout_at(home.path().to_str().unwrap()).is_err()
+
+
+failures:
+    batching_tests::checkout_resolves_upstream_before_reading_directory_identity
+    batching_tests::discovery_batches_queries_with_one_global_configuration_read
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.96s
+
+error: test failed, to rerun pass `-p envden-adapter-repo-git --lib`

@@ -1,0 +1,36 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+   Compiling envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 20s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 2 tests
+
+thread 'admin::r#move::credentials::tests::empty_saved_move_pin_requires_setup_token' (40503649) panicked at rust/cli/src/admin/move/credentials.rs:57:9:
+assertion `left == right` failed
+  left: InvalidData
+ right: InvalidInput
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test admin::r#move::credentials::tests::empty_saved_move_pin_requires_setup_token ... FAILED
+
+thread 'admin::repair::tests::resume::empty_saved_repair_close_is_absent_without_network' (40503650) panicked at rust/cli/src/admin/repair/tests/resume.rs:8:61:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: InvalidData, message: "Truncated data", source: None }
+test admin::repair::tests::resume::empty_saved_repair_close_is_absent_without_network ... FAILED
+
+failures:
+
+failures:
+    admin::r#move::credentials::tests::empty_saved_move_pin_requires_setup_token
+    admin::repair::tests::resume::empty_saved_repair_close_is_absent_without_network
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 239 filtered out; finished in 0.41s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

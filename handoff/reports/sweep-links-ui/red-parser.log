@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 12s
+     Running tests/parser.rs (target/sweep/debug/deps/parser-b7cfa0eb0d5d9fe5)
+
+running 1 test
+test restore_versions_are_parsed_before_dispatch ... FAILED
+
+failures:
+
+---- restore_versions_are_parsed_before_dispatch stdout ----
+
+thread 'restore_versions_are_parsed_before_dispatch' (40620545) panicked at rust/cli/tests/parser.rs:35:5:
+assertion `left == right` failed
+  left: String("v3")
+ right: Number(3)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    restore_versions_are_parsed_before_dispatch
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-cli --test parser`

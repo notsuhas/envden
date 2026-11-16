@@ -1,0 +1,23 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 36s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink ... FAILED
+
+failures:
+
+---- links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink stdout ----
+
+thread 'links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink' (40653310) panicked at rust/cli/src/links/prune.rs:80:9:
+assertion failed: state["approved"].as_array().unwrap().is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 250 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

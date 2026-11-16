@@ -1,0 +1,31 @@
+    Blocking waiting for file lock on build directory
+    Checking envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Checking envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+error: this `if` statement can be collapsed
+   --> rust/cli/src/links/discovery/repos.rs:133:21
+    |
+133 | /                     if path != Path::new(&checkout.root) && path.starts_with(&checkout.root) {
+134 | |                         if let Ok(real) = path.canonicalize()
+135 | |                             && !excluded(&real, &excludes)
+136 | |                             && !visited.contains(&real)
+...   |
+149 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D clippy::all`
+    = help: to override `-D clippy::all` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+133 ~                     if path != Path::new(&checkout.root) && path.starts_with(&checkout.root)
+134 ~                         && let Ok(real) = path.canonicalize()
+135 |                             && !excluded(&real, &excludes)
+...
+147 |                             }
+148 ~                         }
+    |
+
+error: could not compile `envden-cli` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `envden-cli` (lib test) due to 1 previous error

@@ -1,0 +1,25 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.87s
+     Running tests/terminal_sinks.rs (target/sweep/debug/deps/terminal_sinks-a47602b05ec89f41)
+
+running 2 tests
+test notice_sink_probe ... ok
+test library_error_sink_strips_controls_after_formatting ... FAILED
+
+failures:
+
+---- library_error_sink_strips_controls_after_formatting stdout ----
+
+thread 'library_error_sink_strips_controls_after_formatting' (42365618) panicked at rust/cli/tests/terminal_sinks.rs:21:5:
+assertion `left == right` failed
+  left: "envden: repo\u{1b}\n\u{202e}evil out of sync\n"
+ right: "envden: repoevil out of sync\n"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    library_error_sink_strips_controls_after_formatting
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p envden-cli --test terminal_sinks`

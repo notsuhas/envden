@@ -1,0 +1,18 @@
+
+running 1 test
+test ui::server::tests::rejects_requests_before_polling_the_body ... FAILED
+
+failures:
+
+---- ui::server::tests::rejects_requests_before_polling_the_body stdout ----
+
+thread 'ui::server::tests::rejects_requests_before_polling_the_body' (40495634) panicked at rust/cli/src/ui/server/tests.rs:119:32:
+body polled before guards
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    ui::server::tests::rejects_requests_before_polling_the_body
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 239 filtered out; finished in 0.02s
+

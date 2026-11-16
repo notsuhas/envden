@@ -1,0 +1,51 @@
+    Blocking waiting for file lock on build directory
+   Compiling ring v0.17.14
+   Compiling libsqlite3-sys v0.36.0
+   Compiling libz-sys v1.1.30
+    Checking rusqlite v0.38.0
+    Checking flate2 v1.1.11
+   Compiling rustls v0.23.46
+    Checking envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+    Checking envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+    Checking rustls-webpki v0.103.17
+warning: unused import: `File`
+ --> rust/server/src/identity/persist.rs:3:16
+  |
+3 |     fs::{self, File, OpenOptions},
+  |                ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-server` (lib) generated 1 warning (run `cargo fix --lib -p envden-server` to apply 1 suggestion)
+    Checking ureq v3.5.2
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+warning: unused imports: `adopt::adopt_group`, `group::group_own_links`, and `save_state`
+  --> rust/cli/src/links/checkout/tests.rs:6:20
+   |
+ 6 |         takeover::{adopt::adopt_group, group::group_own_links},
+   |                    ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+...
+10 |         repository::{load_state, save_state},
+   |                                  ^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `envden_core::adapters::TPlacementMode`
+  --> rust/cli/src/links/checkout/tests.rs:14:5
+   |
+14 | use envden_core::adapters::TPlacementMode;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+ --> rust/cli/src/diagnostics/probe.rs:6:9
+  |
+6 |     let mut builder = fs::DirBuilder::new();
+  |         ----^^^^^^^
+  |         |
+  |         help: remove this `mut`
+  |
+  = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-cli` (lib) generated 1 warning (run `cargo fix --lib -p envden-cli` to apply 1 suggestion)
+warning: `envden-cli` (lib test) generated 3 warnings (1 duplicate) (run `cargo fix --lib -p envden-cli --tests` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.37s

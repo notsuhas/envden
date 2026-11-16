@@ -1,0 +1,23 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 53.82s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5626a2849fd641a9)
+
+running 1 test
+test serve::source_tests::schema_failure_keeps_cause ... FAILED
+
+failures:
+
+---- serve::source_tests::schema_failure_keeps_cause stdout ----
+
+thread 'serve::source_tests::schema_failure_keeps_cause' (40696259) panicked at rust/adapters/network/tailscale/src/serve.rs:134:9:
+assertion failed: error.source.is_some()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    serve::source_tests::schema_failure_keeps_cause
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-adapter-network-tailscale --lib`

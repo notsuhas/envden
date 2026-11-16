@@ -1,0 +1,20 @@
+
+running 1 test
+test dispatch_scopes_counts_around_actions_and_reporting ... FAILED
+
+failures:
+
+---- dispatch_scopes_counts_around_actions_and_reporting stdout ----
+
+thread 'dispatch_scopes_counts_around_actions_and_reporting' (40542317) panicked at rust/cli/tests/dispatch_counts.rs:14:9:
+assertion `left == right` failed
+  left: Some(99)
+ right: None
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    dispatch_scopes_counts_around_actions_and_reporting
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+

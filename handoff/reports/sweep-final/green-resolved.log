@@ -1,0 +1,55 @@
+    Blocking waiting for file lock on package cache
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+ Downloading crates ...
+  Downloaded icu_locale_fallback_data v2.4.0
+  Downloaded icu_locale_fallback v2.4.0
+  Downloaded icu_collator_data v2.4.0
+  Downloaded icu_collator v2.4.0
+  Downloaded utf16_iter v1.1.0
+  Downloaded write16 v1.0.0
+    Blocking waiting for file lock on build directory
+   Compiling stable_deref_trait v1.2.1
+   Compiling smallvec v1.16.5
+   Compiling zerofrom v0.1.8
+   Compiling writeable v0.6.4
+   Compiling litemap v0.8.3
+   Compiling utf16_iter v1.1.0
+   Compiling write16 v1.0.0
+   Compiling icu_locale_fallback_data v2.4.0
+   Compiling icu_collator_data v2.4.0
+   Compiling yoke v0.8.4
+   Compiling parking_lot_core v0.9.12
+   Compiling hyper v1.12.0
+   Compiling rusqlite v0.38.0
+   Compiling zerovec v0.11.9
+   Compiling zerotrie v0.2.5
+   Compiling parking_lot v0.12.5
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling crossterm v0.29.0
+   Compiling hyper-util v0.1.21
+   Compiling envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+   Compiling axum v0.8.9
+   Compiling tinystr v0.8.5
+   Compiling potential_utf v0.1.6
+   Compiling icu_collections v2.4.0
+   Compiling icu_locale_core v2.4.0
+   Compiling icu_provider v2.4.0
+   Compiling icu_properties v2.4.0
+   Compiling icu_normalizer v2.4.0
+   Compiling icu_locale_fallback v2.4.0
+   Compiling idna_adapter v1.2.2
+   Compiling icu_collator v2.4.0
+   Compiling idna v1.1.0
+   Compiling url v2.5.8
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 10s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-5e7bdaeeb74bd109)
+
+running 1 test
+test commands::sync::resolve::tests::resolved_output_includes_placement_reports_before_backups ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 286 filtered out; finished in 0.01s
+

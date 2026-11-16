@@ -1,0 +1,35 @@
+   Compiling smallvec v1.16.5
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling parking_lot_core v0.9.12
+   Compiling parking_lot v0.12.5
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.93s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5626a2849fd641a9)
+
+running 2 tests
+test adapter::tests::command_stderr_uses_javascript_whitespace ... FAILED
+test serve::tests::conflicts_and_invalid_schemas ... FAILED
+
+failures:
+
+---- adapter::tests::command_stderr_uses_javascript_whitespace stdout ----
+
+thread 'adapter::tests::command_stderr_uses_javascript_whitespace' (39808334) panicked at rust/adapters/network/tailscale/src/adapter.rs:125:13:
+assertion `left == right` failed
+  left: "failed: \u{feff}detail\u{feff}"
+ right: "failed: detail"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- serve::tests::conflicts_and_invalid_schemas stdout ----
+
+thread 'serve::tests::conflicts_and_invalid_schemas' (39808335) panicked at rust/adapters/network/tailscale/src/serve.rs:92:64:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: InvalidData, message: "Invalid Tailscale serve status", source: Some(Error("expected value", line: 1, column: 1)) }
+
+
+failures:
+    adapter::tests::command_stderr_uses_javascript_whitespace
+    serve::tests::conflicts_and_invalid_schemas
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-adapter-network-tailscale --lib`

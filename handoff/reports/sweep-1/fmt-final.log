@@ -1,0 +1,53 @@
+Diff in /Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli/src/sync/tests/operation.rs:1:
+-use super::{fixture, support::{opts, repo}};
+-use crate::{links::approval::checkout_value, sync::{local::{conflicts::IConflictTarget, files::base_path, reconciliation::operation::{deletion::suffix, resume::commit_file}}, remote::context::sync_context}};
++use super::{
++    fixture,
++    support::{opts, repo},
++};
++use crate::{
++    links::approval::checkout_value,
++    sync::{
++        local::{
++            conflicts::IConflictTarget,
++            files::base_path,
++            reconciliation::operation::{deletion::suffix, resume::commit_file},
++        },
++        remote::context::sync_context,
++    },
++};
+ use serde_json::json;
+ use std::fs;
+ 
+Diff in /Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli/src/sync/tests/operation.rs:16:
+     let exclude = root.join(".git/info/exclude");
+     fs::remove_file(&exclude).unwrap();
+     fs::create_dir(&exclude).unwrap();
+-    let target = IConflictTarget { root: root.to_string_lossy().into_owned(), path: ".env".into(), store: store.to_string_lossy().into_owned(), mode: "link".into(), local_only: None };
+-    assert!(commit_file(&mut c, &[target], store.to_str().unwrap(), Some(b"TOKEN=one\n"), Some(b"TOKEN=one\n"), None).is_err());
+-    let pending = suffix(&base_path(&a.home, store.to_str().unwrap(), None), ".pending");
++    let target = IConflictTarget {
++        root: root.to_string_lossy().into_owned(),
++        path: ".env".into(),
++        store: store.to_string_lossy().into_owned(),
++        mode: "link".into(),
++        local_only: None,
++    };
++    assert!(
++        commit_file(
++            &mut c,
++            &[target],
++            store.to_str().unwrap(),
++            Some(b"TOKEN=one\n"),
++            Some(b"TOKEN=one\n"),
++            None
++        )
++        .is_err()
++    );
++    let pending = suffix(
++        &base_path(&a.home, store.to_str().unwrap(), None),
++        ".pending",
++    );
+     let operation: serde_json::Value = serde_json::from_slice(&fs::read(pending).unwrap()).unwrap();
+     assert_eq!(operation["written"], json!([true, false]));
+ }

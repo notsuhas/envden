@@ -1,0 +1,56 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 54.98s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-8d0363103c74a7d6)
+
+running 11 tests
+test profile_tests::powershell_runner_and_redirected_profile ... ok
+test identity::tests::baseline_uses_path_timestamps_when_opened_timestamps_round ... ok
+test profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker ... FAILED
+test profile_tests::bash_profile_decodes_invalid_utf8_like_node ... FAILED
+test profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution ... FAILED
+test races::unexpected_errors_hide_private_shell_contents ... ok
+test races::concurrent_append_is_retained_as_conflict ... ok
+test races::readonly_replacement_preserves_mode_and_leaves_no_temporary ... ok
+test races::resolved_private_file_does_not_follow_swapped_checkout ... ok
+test races::swaps_never_copy_private_bytes_to_checkout ... ok
+test profile_tests::bash_login_profile_matrix ... FAILED
+
+failures:
+
+---- profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker stdout ----
+
+thread 'profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker' (40485479) panicked at rust/adapters/shell/rc/src/profile_tests.rs:177:5:
+assertion failed: adapter.installed().is_err()
+
+---- profile_tests::bash_profile_decodes_invalid_utf8_like_node stdout ----
+
+thread 'profile_tests::bash_profile_decodes_invalid_utf8_like_node' (40485481) panicked at rust/adapters/shell/rc/src/profile_tests.rs:184:5:
+assertion `left == right` failed
+  left: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpXUVQUB/.bash_profile"
+ right: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpXUVQUB/.profile"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution stdout ----
+
+thread 'profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution' (40485483) panicked at rust/adapters/shell/rc/src/profile_tests.rs:149:9:
+assertion `left == right` failed
+  left: Some("/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpQZJo47/redirected/Microsoft.PowerShell_profile.ps1")
+ right: None
+
+---- profile_tests::bash_login_profile_matrix stdout ----
+
+thread 'profile_tests::bash_login_profile_matrix' (40485480) panicked at rust/adapters/shell/rc/src/profile_tests.rs:63:9:
+assertion `left == right` failed
+  left: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmp9xZeL3/.bash_profile"
+ right: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmp9xZeL3/.bashrc"
+
+
+failures:
+    profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker
+    profile_tests::bash_login_profile_matrix
+    profile_tests::bash_profile_decodes_invalid_utf8_like_node
+    profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution
+
+test result: FAILED. 7 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+error: test failed, to rerun pass `-p envden-adapter-shell-rc --lib`

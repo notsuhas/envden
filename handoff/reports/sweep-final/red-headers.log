@@ -1,0 +1,24 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.74s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 1 test
+test state::repository::header_error_tests::header_restore_preserves_specific_causes ... FAILED
+
+failures:
+
+---- state::repository::header_error_tests::header_restore_preserves_specific_causes stdout ----
+
+thread 'state::repository::header_error_tests::header_restore_preserves_specific_causes' (41809344) panicked at rust/cli/src/state/repository.rs:187:13:
+assertion `left == right` failed
+  left: "Unreadable local state"
+ right: "Invalid header reference"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    state::repository::header_error_tests::header_restore_preserves_specific_causes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.16s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

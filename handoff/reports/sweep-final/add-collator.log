@@ -1,0 +1,17 @@
+    Updating crates.io index
+      Adding icu_collator v2.1 to dependencies
+             Features as of v2.1.0:
+             + compiled_data
+             - datagen
+             - latin1
+             - serde
+             - unstable
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+     Locking 6 packages to latest Rust 1.98.1 compatible versions
+      Adding icu_collator v2.4.0
+      Adding icu_collator_data v2.4.0
+      Adding icu_locale_fallback v2.4.0
+      Adding icu_locale_fallback_data v2.4.0
+      Adding utf16_iter v1.1.0
+      Adding write16 v1.0.0

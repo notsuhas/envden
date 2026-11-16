@@ -1,0 +1,4 @@
+    Checking envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Checking envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+    Checking envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.95s

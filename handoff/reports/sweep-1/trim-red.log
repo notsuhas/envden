@@ -1,0 +1,58 @@
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling memchr v2.8.3
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling signal-hook v0.4.6
+   Compiling rustix v1.1.6
+   Compiling regex-syntax v0.8.11
+   Compiling zmij v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling bitflags v2.13.2
+   Compiling aho-corasick v1.1.5
+   Compiling getrandom v0.4.3
+   Compiling thiserror v2.0.21
+   Compiling bstr v1.13.1
+   Compiling syn v3.0.10
+   Compiling log v0.4.35
+   Compiling serde_json v1.0.154
+   Compiling cfg-if v1.0.5
+   Compiling regex-automata v0.4.18
+   Compiling errno v0.3.15
+   Compiling os_pipe v1.2.3
+   Compiling signal-hook-registry v1.4.8
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.19
+   Compiling sigchld v0.2.5
+   Compiling fastrand v2.5.0
+   Compiling shared_child v1.1.2
+   Compiling path-clean v1.0.1
+   Compiling dunce v1.0.5
+   Compiling tempfile v3.27.0
+   Compiling thiserror-impl v2.0.21
+   Compiling globset v0.4.21
+   Compiling regex v1.13.1
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.61s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_core-c5b27e8a0bc5ca90)
+
+running 1 test
+test text::tests::ecmascript_whitespace_table ... FAILED
+
+failures:
+
+---- text::tests::ecmascript_whitespace_table stdout ----
+
+thread 'text::tests::ecmascript_whitespace_table' (39294001) panicked at rust/core/src/text.rs:21:13:
+assertion `left == right` failed: U+FEFF
+  left: "\u{feff}x\u{feff}"
+ right: "x"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    text::tests::ecmascript_whitespace_table
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-core --lib`

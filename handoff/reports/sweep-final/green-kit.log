@@ -1,0 +1,13 @@
+ Downloading crates ...
+  Downloaded hostname v0.4.2
+   Compiling hostname v0.4.2
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 57.80s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0d418dbf4a487c95)
+
+running 2 tests
+test commands::vault::output::tests::empty_output_path_uses_pdf_reporting ... ok
+test commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 0.04s
+

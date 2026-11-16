@@ -1,0 +1,26 @@
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.74s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-5a61f1c1701be785)
+
+running 2 tests
+test report::content::document::tests::fences_use_javascript_trailing_whitespace ... FAILED
+test updates::tests::first_check_cache_key_order_matches_javascript_mutation ... ok
+
+failures:
+
+---- report::content::document::tests::fences_use_javascript_trailing_whitespace stdout ----
+
+thread 'report::content::document::tests::fences_use_javascript_trailing_whitespace' (39818384) panicked at rust/cli/src/report/content/document.rs:78:9:
+assertion `left == right` failed
+  left: "~~~\nline\u{feff}\n~~~"
+ right: "~~~\nline\n~~~"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    report::content::document::tests::fences_use_javascript_trailing_whitespace
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 215 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

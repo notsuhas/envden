@@ -1,0 +1,201 @@
+   Compiling ring v0.17.14
+   Compiling libsqlite3-sys v0.36.0
+   Compiling libz-sys v1.1.30
+warning: ring@0.17.14: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/16643156806769452061detect_compiler_family.c"
+warning: ring@0.17.14: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/17977247633003773277detect_compiler_family.c"
+warning: ring@0.17.14: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/9755743020854576722detect_compiler_family.c"
+warning: ring@0.17.14: error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+error: failed to run custom build command for `ring v0.17.14`
+
+Caused by:
+  process didn't exit successfully: `/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/debug/build/ring-cb005c6d207ed14f/build-script-build` (exit status: 1)
+  --- stdout
+  cargo:rerun-if-env-changed=CARGO_MANIFEST_DIR
+  cargo:rerun-if-env-changed=CARGO_PKG_NAME
+  cargo:rerun-if-env-changed=CARGO_PKG_VERSION_MAJOR
+  cargo:rerun-if-env-changed=CARGO_PKG_VERSION_MINOR
+  cargo:rerun-if-env-changed=CARGO_PKG_VERSION_PATCH
+  cargo:rerun-if-env-changed=CARGO_PKG_VERSION_PRE
+  cargo:rerun-if-env-changed=CARGO_MANIFEST_LINKS
+  cargo:rerun-if-env-changed=RING_PREGENERATE_ASM
+  cargo:rerun-if-env-changed=OUT_DIR
+  cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH
+  cargo:rerun-if-env-changed=CARGO_CFG_TARGET_OS
+  cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ENV
+  cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ENDIAN
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = Some(zig cc -target x86_64-windows-gnu)
+  cargo:rerun-if-env-changed=CC_KNOWN_WRAPPER_CUSTOM
+  CC_KNOWN_WRAPPER_CUSTOM = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/16643156806769452061detect_compiler_family.c"
+  cargo:rerun-if-env-changed=CPATH
+  cargo:rerun-if-env-changed=C_INCLUDE_PATH
+  cargo:rerun-if-env-changed=CPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJC_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJCPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=COMPILER_PATH
+  cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH
+  cargo:rerun-if-env-changed=CCC_OVERRIDE_OPTIONS
+  cargo:rerun-if-env-changed=CLANG_NO_DEFAULT_CONFIG
+  cargo:rerun-if-env-changed=ZIG_LIB_DIR
+  cargo:rerun-if-env-changed=ZIG_LIBC
+  cargo:rerun-if-env-changed=DEVELOPER_DIR
+  cargo:rerun-if-env-changed=TOOLCHAINS
+  cargo:rerun-if-env-changed=SDKROOT
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/17977247633003773277detect_compiler_family.c"
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=TARGET_CFLAGS
+  TARGET_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  CFLAGS = None
+  TARGET_CFLAGS = None
+  CFLAGS_x86_64_pc_windows_gnu = None
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/9755743020854576722detect_compiler_family.c"
+  cargo:warning=error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+
+  --- stderr
+
+
+  error occurred in cc-rs: command did not execute successfully (status code exit status: 1): "zig" "cc" "-target" "x86_64-windows-gnu" "-O0" "-ffunction-sections" "-fdata-sections" "-g" "-gdwarf-2" "-fno-omit-frame-pointer" "-m64" "--target=x86_64-pc-windows-gnu" "-I" "/Users/notsuhas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/include" "-I" "/Users/notsuhas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/pregenerated" "-Wall" "-Wextra" "-fvisibility=hidden" "-std=c1x" "-Wall" "-Wbad-function-cast" "-Wcast-align" "-Wcast-qual" "-Wconversion" "-Wmissing-field-initializers" "-Wmissing-include-dirs" "-Wnested-externs" "-Wredundant-decls" "-Wshadow" "-Wsign-compare" "-Wsign-conversion" "-Wstrict-prototypes" "-Wundef" "-Wuninitialized" "-g3" "-DNDEBUG" "-o" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/ring-b88e0c0c4475c79e/out/b9fed4bd5e786284-curve25519.o" "-c" "/Users/notsuhas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/crypto/curve25519/curve25519.c"
+
+
+warning: build failed, waiting for other jobs to finish...
+warning: libsqlite3-sys@0.36.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libsqlite3-sys-7ce1bd4fea5291f0/out/12621949426214112602detect_compiler_family.c"
+warning: libsqlite3-sys@0.36.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libsqlite3-sys-7ce1bd4fea5291f0/out/15634562262780130267detect_compiler_family.c"
+warning: libsqlite3-sys@0.36.0: error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+error: failed to run custom build command for `libsqlite3-sys v0.36.0`
+
+Caused by:
+  process didn't exit successfully: `/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/debug/build/libsqlite3-sys-4e82f97bc1f5acac/build-script-build` (exit status: 1)
+  --- stdout
+  cargo:rerun-if-env-changed=LIBSQLITE3_SYS_USE_PKG_CONFIG
+  cargo:include=/Users/notsuhas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libsqlite3-sys-0.36.0/sqlite3
+  cargo:rerun-if-changed=sqlite3/sqlite3.c
+  cargo:rerun-if-changed=sqlite3/wasm32-wasi-vfs.c
+  cargo:rerun-if-env-changed=SQLITE_MAX_VARIABLE_NUMBER
+  cargo:rerun-if-env-changed=SQLITE_MAX_EXPR_DEPTH
+  cargo:rerun-if-env-changed=SQLITE_MAX_COLUMN
+  cargo:rerun-if-env-changed=LIBSQLITE3_FLAGS
+  cargo:rerun-if-env-changed=CC_FORCE_DISABLE
+  CC_FORCE_DISABLE = None
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = Some(zig cc -target x86_64-windows-gnu)
+  cargo:rerun-if-env-changed=CC_KNOWN_WRAPPER_CUSTOM
+  CC_KNOWN_WRAPPER_CUSTOM = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libsqlite3-sys-7ce1bd4fea5291f0/out/12621949426214112602detect_compiler_family.c"
+  cargo:rerun-if-env-changed=CPATH
+  cargo:rerun-if-env-changed=C_INCLUDE_PATH
+  cargo:rerun-if-env-changed=CPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJC_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJCPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=COMPILER_PATH
+  cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH
+  cargo:rerun-if-env-changed=CCC_OVERRIDE_OPTIONS
+  cargo:rerun-if-env-changed=CLANG_NO_DEFAULT_CONFIG
+  cargo:rerun-if-env-changed=ZIG_LIB_DIR
+  cargo:rerun-if-env-changed=ZIG_LIBC
+  cargo:rerun-if-env-changed=DEVELOPER_DIR
+  cargo:rerun-if-env-changed=TOOLCHAINS
+  cargo:rerun-if-env-changed=SDKROOT
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libsqlite3-sys-7ce1bd4fea5291f0/out/15634562262780130267detect_compiler_family.c"
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=TARGET_CFLAGS
+  TARGET_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  CFLAGS = None
+  TARGET_CFLAGS = None
+  CFLAGS_x86_64_pc_windows_gnu = None
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+
+  --- stderr
+
+
+  error occurred in cc-rs: command did not execute successfully (status code exit status: 1): "zig" "cc" "-target" "x86_64-windows-gnu" "-O0" "-ffunction-sections" "-fdata-sections" "-g" "-gdwarf-2" "-fno-omit-frame-pointer" "-m64" "--target=x86_64-pc-windows-gnu" "-w" "-DSQLITE_CORE" "-DSQLITE_DEFAULT_FOREIGN_KEYS=1" "-DSQLITE_ENABLE_API_ARMOR" "-DSQLITE_ENABLE_COLUMN_METADATA" "-DSQLITE_ENABLE_DBSTAT_VTAB" "-DSQLITE_ENABLE_FTS3" "-DSQLITE_ENABLE_FTS3_PARENTHESIS" "-DSQLITE_ENABLE_FTS5" "-DSQLITE_ENABLE_JSON1" "-DSQLITE_ENABLE_LOAD_EXTENSION=1" "-DSQLITE_ENABLE_MEMORY_MANAGEMENT" "-DSQLITE_ENABLE_RTREE" "-DSQLITE_ENABLE_STAT4" "-DSQLITE_SOUNDEX" "-DSQLITE_THREADSAFE=1" "-DSQLITE_USE_URI" "-DHAVE_USLEEP=1" "-DHAVE_ISNAN" "-D_POSIX_THREAD_SAFE_FUNCTIONS" "-o" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libsqlite3-sys-7ce1bd4fea5291f0/out/8017ddc1302f104c-sqlite3.o" "-c" "sqlite3/sqlite3.c"
+
+
+warning: libz-sys@1.1.30: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libz-sys-5f38e610ee72bfd0/out/lib/6026006084984029756detect_compiler_family.c"
+warning: libz-sys@1.1.30: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libz-sys-5f38e610ee72bfd0/out/lib/6768799219142112589detect_compiler_family.c"
+warning: libz-sys@1.1.30: error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+error: failed to run custom build command for `libz-sys v1.1.30`
+
+Caused by:
+  process didn't exit successfully: `/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/debug/build/libz-sys-05bdda6cebb193b7/build-script-build` (exit status: 1)
+  --- stdout
+  cargo:rerun-if-env-changed=LIBZ_SYS_STATIC
+  cargo:rerun-if-changed=build.rs
+  cargo:rerun-if-changed=zng/cmake.rs
+  cargo:rerun-if-changed=zng/cc.rs
+  note, vcpkg did not find zlib: the vcpkg-rs Vcpkg build helper can only find libraries built for the MSVC ABI.
+  cargo:rerun-if-env-changed=CC_FORCE_DISABLE
+  CC_FORCE_DISABLE = None
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = Some(zig cc -target x86_64-windows-gnu)
+  cargo:rerun-if-env-changed=CC_KNOWN_WRAPPER_CUSTOM
+  CC_KNOWN_WRAPPER_CUSTOM = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libz-sys-5f38e610ee72bfd0/out/lib/6026006084984029756detect_compiler_family.c"
+  cargo:rerun-if-env-changed=CPATH
+  cargo:rerun-if-env-changed=C_INCLUDE_PATH
+  cargo:rerun-if-env-changed=CPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJC_INCLUDE_PATH
+  cargo:rerun-if-env-changed=OBJCPLUS_INCLUDE_PATH
+  cargo:rerun-if-env-changed=COMPILER_PATH
+  cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH
+  cargo:rerun-if-env-changed=CCC_OVERRIDE_OPTIONS
+  cargo:rerun-if-env-changed=CLANG_NO_DEFAULT_CONFIG
+  cargo:rerun-if-env-changed=ZIG_LIB_DIR
+  cargo:rerun-if-env-changed=ZIG_LIBC
+  cargo:rerun-if-env-changed=DEVELOPER_DIR
+  cargo:rerun-if-env-changed=TOOLCHAINS
+  cargo:rerun-if-env-changed=SDKROOT
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit status: 1): "zig" "-E" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libz-sys-5f38e610ee72bfd0/out/lib/6768799219142112589detect_compiler_family.c"
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=TARGET_CFLAGS
+  TARGET_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  CFLAGS = None
+  TARGET_CFLAGS = None
+  CFLAGS_x86_64_pc_windows_gnu = None
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=error: unable to parse target query 'x86_64-pc-windows-gnu': UnknownOperatingSystem
+
+  --- stderr
+
+
+  error occurred in cc-rs: command did not execute successfully (status code exit status: 1): "zig" "cc" "-target" "x86_64-windows-gnu" "-O0" "-ffunction-sections" "-fdata-sections" "-g" "-gdwarf-2" "-fno-omit-frame-pointer" "-m64" "--target=x86_64-pc-windows-gnu" "-I" "src/zlib" "-w" "-DSTDC" "-o" "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/target/sweep/x86_64-pc-windows-gnu/debug/build/libz-sys-5f38e610ee72bfd0/out/lib/b9b191b8e1a44c35-adler32.o" "-c" "src/zlib/adler32.c"
+
+

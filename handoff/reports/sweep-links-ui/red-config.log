@@ -1,0 +1,44 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+warning: unused import: `context::repair_context`
+ --> rust/cli/src/admin/repair/tests/envelope.rs:2:20
+  |
+2 | use super::super::{context::repair_context, upload::upload_repair};
+  |                    ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `upload::upload_repair`
+ --> rust/cli/src/admin/repair/tests/abort.rs:2:45
+  |
+2 | use super::super::{context::repair_context, upload::upload_repair};
+  |                                             ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `context::repair_context` and `upload::upload_repair`
+ --> rust/cli/src/admin/repair/tests/resume.rs:2:20
+  |
+2 | use super::super::{context::repair_context, upload::upload_repair};
+  |                    ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+
+warning: `envden-cli` (lib test) generated 3 warnings (run `cargo fix --lib -p envden-cli --tests` to apply 3 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 46.73s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test settings::config::tests::reads_config_with_utf8_replacement ... FAILED
+
+failures:
+
+---- settings::config::tests::reads_config_with_utf8_replacement stdout ----
+
+thread 'settings::config::tests::reads_config_with_utf8_replacement' (40489939) panicked at rust/cli/src/settings/config.rs:152:45:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: InvalidData, message: "Unreadable config", source: Some(Error { kind: InvalidData, message: "stream did not contain valid UTF-8" }) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    settings::config::tests::reads_config_with_utf8_replacement
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 239 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

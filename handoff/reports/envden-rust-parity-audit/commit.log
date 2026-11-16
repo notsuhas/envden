@@ -1,0 +1,66 @@
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 26a2d433] test(rust-core): cover manager path and nested checkout policy
+ 2 files changed, 77 insertions(+), 52 deletions(-)
+ create mode 100644 rust/core/tests/process/trust.rs
+To https://github.com/notsuhas/envden.git
+   c570e9c..26a2d43  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 5da3c516] test(rust-protocol): strengthen protocol boundary and chain assertions
+ 13 files changed, 778 insertions(+), 130 deletions(-)
+ create mode 100644 rust/protocol/tests/boundaries.rs
+ create mode 100644 rust/protocol/tests/device_validation.rs
+ create mode 100644 rust/protocol/tests/file_transitions.rs
+ create mode 100644 rust/protocol/tests/manifest_swaps.rs
+ create mode 100644 rust/protocol/tests/manifests/source.rs
+To https://github.com/notsuhas/envden.git
+   26a2d43..5da3c51  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 6b035c48] test(rust-testing): check exact unspecified operation failures
+ 9 files changed, 202 insertions(+), 192 deletions(-)
+To https://github.com/notsuhas/envden.git
+   5da3c51..6b035c4  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 5242cd29] test(rust-adapter-keychain-file): cover key permissions and required key guidance
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+To https://github.com/notsuhas/envden.git
+   6b035c4..5242cd2  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 0686a21e] test(rust-adapter-network-tailscale): cover recorded status and serve conflict cases
+ 2 files changed, 49 insertions(+)
+To https://github.com/notsuhas/envden.git
+   5242cd2..0686a21  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust a3980888] test(rust-adapter-placement-fs): cover staging backup and removal safety
+ 1 file changed, 180 insertions(+)
+ create mode 100644 rust/adapters/placement/fs/tests/safety.rs
+To https://github.com/notsuhas/envden.git
+   0686a21..a398088  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust b92a0f56] test(rust-adapter-repo-git): cover exclude integrity and checkout discovery
+ 1 file changed, 189 insertions(+)
+ create mode 100644 rust/adapters/repo/git/tests/security.rs
+To https://github.com/notsuhas/envden.git
+   a398088..b92a0f5  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.
+✔ vp fmt --no-error-on-unmatched-pattern
+✔ vp lint --no-error-on-unmatched-pattern
+[port/rust 97cf2818] test(rust-adapter-shell-rc): cover shell compatibility and linked rc files
+ 2 files changed, 135 insertions(+)
+ create mode 100644 rust/adapters/shell/rc/tests/behavior.rs
+ create mode 100644 rust/adapters/shell/rc/tests/links.rs
+To https://github.com/notsuhas/envden.git
+   b92a0f5..97cf281  port/rust -> port/rust
+branch 'port/rust' set up to track 'origin/port/rust'.

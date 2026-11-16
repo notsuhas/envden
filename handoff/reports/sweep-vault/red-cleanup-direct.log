@@ -1,0 +1,15 @@
+
+running 1 test
+
+thread 'notice::cleanup::tests::removes_old_binary_only_on_windows' (40674509) panicked at rust/cli/src/notice/cleanup.rs:21:9:
+assertion failed: !old.exists()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test notice::cleanup::tests::removes_old_binary_only_on_windows ... FAILED
+
+failures:
+
+failures:
+    notice::cleanup::tests::removes_old_binary_only_on_windows
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 250 filtered out; finished in 0.02s
+

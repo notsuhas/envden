@@ -1,0 +1,31 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.14s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-d9053c7bd51a3e1f)
+
+running 22 tests
+test state::lock::owner::tests::expired_reclaim_guard_does_not_block_recovery ... ok
+test state::collections::tests::tags_match_javascript_revival_and_reserialization ... ok
+test state::lock::owner::tests::malformed_boot_identity_does_not_prove_a_reboot ... ok
+test state::files::tests::temporary_file_is_restricted_before_writing_or_renaming ... ok
+test state::files::tests::atomic_write_reports_cleanup_failure_before_original_failure ... ok
+test state::files::tests::private_directory_applies_platform_access_restrictions ... ok
+test state::lock::owner::tests::owner_reclaim_matrix ... ok
+test state::files::tests::optional_text_reads_replace_invalid_utf8 ... ok
+test state::lock::owner::tests::owner_accepts_reference_fractional_time_and_rejects_symlink_directory ... ok
+test state::lock::reclaim::tests::disappeared_lock_is_left_for_acquisition_retry ... ok
+test state::model::tests::configured_guard_uses_javascript_truthiness ... ok
+test state::lock::run::tests::failed_owner_identification_does_not_leave_a_lock ... ok
+test state::files::tests::atomic_write_preserves_external_parent_permissions ... ok
+test state::lock::run::tests::nested_lock_normalizes_parent_components_before_observing ... ok
+test state::lock::run::tests::lock_directory_is_private_and_nested_calls_share_owner ... ok
+test state::lock::owner::tests::exited_same_machine_owner_is_reclaimed ... ok
+test status::file_state::tests::states_and_precedence ... ok
+test state::repository::tests::strict_format ... ok
+test state::repository::collection_tests::load_revives_collections_before_validating_state ... ok
+test state::repository::tests::restores_latest_from_update_cache_without_persisting_it ... ok
+test state::repository::tests::roundtrip_and_header_integrity ... ok
+test state::repository::header_error_tests::header_restore_preserves_specific_causes ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 267 filtered out; finished in 0.26s
+

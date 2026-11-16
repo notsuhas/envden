@@ -1,0 +1,151 @@
+    Updating crates.io index
+     Locking 1 package to latest Rust 1.98.1 compatible version
+      Adding cliclack v0.5.7
+    Checking envden-core v0.3.8 (/tmp/review-postswap/head/rust/core)
+    Checking hpke v0.13.0 (/tmp/review-postswap/head/rust/vendor/hpke)
+    Checking cliclack v0.5.7
+    Checking envden-protocol v0.3.8 (/tmp/review-postswap/head/rust/protocol)
+    Checking envden-adapter-storage-sqlite v0.3.8 (/tmp/review-postswap/head/rust/adapters/storage/sqlite)
+    Checking envden-adapter-shell-rc v0.3.8 (/tmp/review-postswap/head/rust/adapters/shell/rc)
+    Checking envden-adapter-keychain-file v0.3.8 (/tmp/review-postswap/head/rust/adapters/keychain/file)
+    Checking envden-adapter-network-tailscale v0.3.8 (/tmp/review-postswap/head/rust/adapters/network/tailscale)
+    Checking envden-adapter-repo-git v0.3.8 (/tmp/review-postswap/head/rust/adapters/repo/git)
+    Checking envden-adapter-placement-fs v0.3.8 (/tmp/review-postswap/head/rust/adapters/placement/fs)
+    Checking envden-server v0.3.8 (/tmp/review-postswap/head/rust/server)
+    Checking envden-cli v0.3.8 (/tmp/review-postswap/head/rust/cli)
+error[E0308]: mismatched types
+  --> rust/cli/src/links/checkout/untrack.rs:68:21
+   |
+55 |                 request_deletion(
+   |                 ---------------- arguments to this function are incorrect
+...
+68 |                     &adapters.now,
+   |                     ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+   |
+   = note:   expected type `u64`
+           found reference `&fn() -> u64`
+note: function defined here
+  --> rust/cli/src/sync/local/reconciliation/operation/deletion.rs:43:8
+   |
+43 | pub fn request_deletion(
+   |        ^^^^^^^^^^^^^^^^
+...
+49 |     now: u64,
+   |     --------
+help: use parentheses to call this function pointer
+   |
+68 |                     (&adapters.now)(),
+   |                     +             +++
+
+error[E0308]: mismatched types
+  --> rust/cli/src/links/checkout/untrack.rs:76:83
+   |
+76 |         super::bases::remove_checkout_bases(&adapters.home, &removed, &remaining, &adapters.now)?;
+   |         -----------------------------------                                       ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+   |         |
+   |         arguments to this function are incorrect
+   |
+   = note:   expected type `u64`
+           found reference `&fn() -> u64`
+note: function defined here
+  --> rust/cli/src/links/checkout/bases.rs:9:8
+   |
+ 9 | pub fn remove_checkout_bases(
+   |        ^^^^^^^^^^^^^^^^^^^^^
+...
+13 |     now: u64,
+   |     --------
+help: use parentheses to call this function pointer
+   |
+76 |         super::bases::remove_checkout_bases(&adapters.home, &removed, &remaining, (&adapters.now)())?;
+   |                                                                                   +             +++
+
+error[E0308]: mismatched types
+   --> rust/cli/src/onboarding/join.rs:166:9
+    |
+159 |     let swap = add_swap(
+    |                -------- arguments to this function are incorrect
+...
+166 |         &adapters.now,
+    |         ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+    |
+    = note:   expected type `u64`
+            found reference `&fn() -> u64`
+note: function defined here
+   --> rust/cli/src/onboarding/vault/add_swap.rs:5:15
+    |
+  5 | pub(crate) fn add_swap(
+    |               ^^^^^^^^
+...
+ 12 |     now: u64,
+    |     --------
+help: use parentheses to call this function pointer
+    |
+166 |         (&adapters.now)(),
+    |         +             +++
+
+error[E0308]: mismatched types
+  --> rust/cli/src/pairing/joiner.rs:76:17
+   |
+73 |             atomic_write(
+   |             ------------ arguments to this function are incorrect
+...
+76 |                 &adapters.now,
+   |                 ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+   |
+   = note:   expected type `u64`
+           found reference `&fn() -> u64`
+note: function defined here
+  --> rust/cli/src/state/files.rs:74:8
+   |
+74 | pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
+   |        ^^^^^^^^^^^^                            --------
+help: use parentheses to call this function pointer
+   |
+76 |                 (&adapters.now)(),
+   |                 +             +++
+
+error[E0308]: mismatched types
+  --> rust/cli/src/pairing/joiner.rs:95:21
+   |
+92 |                 atomic_write(
+   |                 ------------ arguments to this function are incorrect
+...
+95 |                     &adapters.now,
+   |                     ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+   |
+   = note:   expected type `u64`
+           found reference `&fn() -> u64`
+note: function defined here
+  --> rust/cli/src/state/files.rs:74:8
+   |
+74 | pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
+   |        ^^^^^^^^^^^^                            --------
+help: use parentheses to call this function pointer
+   |
+95 |                     (&adapters.now)(),
+   |                     +             +++
+
+error[E0308]: mismatched types
+   --> rust/cli/src/pairing/joiner.rs:138:21
+    |
+133 |                 atomic_write(
+    |                 ------------ arguments to this function are incorrect
+...
+138 |                     &adapters.now,
+    |                     ^^^^^^^^^^^^^ expected `u64`, found `&fn() -> u64`
+    |
+    = note:   expected type `u64`
+            found reference `&fn() -> u64`
+note: function defined here
+   --> rust/cli/src/state/files.rs:74:8
+    |
+ 74 | pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
+    |        ^^^^^^^^^^^^                            --------
+help: use parentheses to call this function pointer
+    |
+138 |                     (&adapters.now)(),
+    |                     +             +++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `envden-cli` (lib) due to 6 previous errors

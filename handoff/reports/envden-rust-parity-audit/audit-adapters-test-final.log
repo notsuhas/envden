@@ -1,0 +1,343 @@
+    Blocking waiting for file lock on package cache
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.81s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_keychain_file-a9e811e3faadf881)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-7d5a851b45badf40)
+
+running 3 tests
+test permissions_and_required ... ok
+test persists_long_names_and_fixed_failures ... ok
+test contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-ec32e8c9911a031d)
+
+running 1 test
+test owner_only_keys_survive_new_adapter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_network_tailscale-5990cff2274cf753)
+
+running 1 test
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-6be762cb5fb4516d)
+
+running 4 tests
+test schema_fallbacks_and_capped_command_errors ... ok
+test exact_commands ... ok
+test contract ... ok
+test recorded_status_and_capped_serve_failure ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-39e3b3744dcf386a)
+
+running 3 tests
+test unavailable_certificate_causes ... ok
+test recorded_status_and_commands ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_placement_fs-bcec6226fa07cdd1)
+
+running 3 tests
+test races::unlink_stays_anchored_after_parent_swap ... ok
+test races::exclusive_writes_and_nofollow_identity ... ok
+test races::rename_and_backup_stay_on_opened_directory_after_swap ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-d38bf2b63333bd14)
+
+running 3 tests
+test temporary_exclude_and_permissions ... ok
+test link_contract ... ok
+test copy_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/escaping.rs (target/audit-adapters/debug/deps/escaping-2c9ca4ef5ce41f9d)
+
+running 1 test
+test escaping_links_leave_targets_untouched ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-0c1d25588f10b190)
+
+running 3 tests
+test retention_uses_names_instead_of_file_timestamps ... ok
+test linked_home_targets_and_exact_replacement_text ... ok
+test differing_bytes_require_backup_and_equal_bytes_use_injected_clock ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/paths.rs (target/audit-adapters/debug/deps/paths-e2ae243a64cccc77)
+
+running 2 tests
+test pulled_and_local_unicode_paths ... ok
+test backups_keep_bytes_names_modes_and_prune_only_expired_files ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/safety.rs (target/audit-adapters/debug/deps/safety-349caaf201c674b6)
+
+running 3 tests
+test removal_and_missing_store_inspection_preserve_unrelated_contents ... ok
+test copy_excludes_before_writing_and_replaces_only_its_leftover ... ok
+test backups_are_required_private_outside_and_not_repeated_for_equal_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/windows.rs (target/audit-adapters/debug/deps/windows-ba86e23425684722)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_repo_git-23ce96b0c929a324)
+
+running 8 tests
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test remote::tests::vectors ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.72s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-935ad15f3c014688)
+
+running 1 test
+test contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.80s
+
+     Running tests/discovery.rs (target/audit-adapters/debug/deps/discovery-c9f50a12e1539d00)
+
+running 1 test
+test discovery_skips_submodules_and_nested_clones_and_lists_user_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-2fb3842a374b6013)
+
+running 4 tests
+test exact_remote_rejections ... ok
+test embedded_bare_repository_cannot_choose_identity ... ok
+test identities_follow_global_and_local_url_rewrites ... ok
+test escaping_and_case_probed_tracking ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.01s
+
+     Running tests/repo.rs (target/audit-adapters/debug/deps/repo-fe108fd15f5a24f4)
+
+running 2 tests
+test unsafe_remotes_and_readonly_case ... ok
+test worktrees_skip_folders_and_private_excludes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.23s
+
+     Running tests/security.rs (target/audit-adapters/debug/deps/security-85f03e1ad3f87cd0)
+
+running 3 tests
+test discovery_filters_templates_tracked_outputs_and_preserves_user_links ... ok
+test checkout_identity_errors_upstream_and_forged_worktree ... ok
+test exclude_preserves_symlinks_hardlinks_and_failed_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.07s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_shell_rc-ffcd90598769b6f3)
+
+running 9 tests
+test identity::tests::baseline_uses_path_timestamps_when_opened_timestamps_round ... ok
+test profile_tests::powershell_runner_and_redirected_profile ... ok
+test profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution ... ok
+test races::unexpected_errors_hide_private_shell_contents ... ok
+test races::concurrent_append_is_retained_as_conflict ... ok
+test races::readonly_replacement_preserves_mode_and_leaves_no_temporary ... ok
+test races::resolved_private_file_does_not_follow_swapped_checkout ... ok
+test races::swaps_never_copy_private_bytes_to_checkout ... ok
+test profile_tests::bash_login_profile_matrix ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/behavior.rs (target/audit-adapters/debug/deps/behavior-76207b0539160064)
+
+running 3 tests
+test rendered_shell_compatibility_guards ... ok
+test bash_selects_login_profiles_and_respects_bashrc_sourcing ... ok
+test bash_preserves_prompt_exit_status ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/bytes.rs (target/audit-adapters/debug/deps/bytes-6566a832d60483f3)
+
+running 2 tests
+test non_utf8_crlf_install_is_idempotent ... ok
+test orphan_marker_keeps_user_lines ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-3a13a293411b0d9e)
+
+running 2 tests
+test preserves_bytes_and_symlink ... ok
+test contracts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/editing.rs (target/audit-adapters/debug/deps/editing-36c6529416f6cfd3)
+
+running 2 tests
+test hard_links_and_dangling_links ... ok
+test crlf_mode_orphans_and_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/execution.rs (target/audit-adapters/debug/deps/execution-094dd67250d8b697)
+
+running 2 tests
+test track_offer_and_update_day_caches ... ok
+test approved_checkout_notices_and_sanitized_refresh ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.00s
+
+     Running tests/links.rs (target/audit-adapters/debug/deps/links-62f95c60df50cd6a)
+
+running 2 tests
+test edits_through_linked_folders_and_dangling_links ... ok
+test all_shells_edit_linked_targets_and_keep_private_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/render.rs (target/audit-adapters/debug/deps/render-30a3849ba97d99a2)
+
+running 2 tests
+test invalid_paths_are_typed_and_profile_resolution_is_lazy ... ok
+test typescript_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/windows.rs (target/audit-adapters/debug/deps/windows-046488439f334b06)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_core-0f8ddaaa0ead2905)
+
+running 8 tests
+test errors::code::tests::round_trips_every_code ... ok
+test process::parity::fake_homebrew_on_linux_remains_a_checkout ... ok
+test process::parity::path_child ... ok
+test process::parity::runtime_child ... ok
+test process::parity::sync_child ... ok
+test process::parity::renamed_and_separate_git_dir_on_path_cannot_supply_tools ... ok
+test process::parity::runtime_executes_with_sanitized_environment ... ok
+test process::parity::env_shebang_searches_system_before_user_symlink_payload ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/env_files.rs (target/audit-adapters/debug/deps/env_files-656c9df214807755)
+
+running 1 test
+test typescript_env_file_rules ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests/filesystem.rs (target/audit-adapters/debug/deps/filesystem-0df659e27562b294)
+
+running 1 test
+test file_and_path_identity_match_and_count_hard_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/merge.rs (target/audit-adapters/debug/deps/merge-d9f71fa6bc307763)
+
+running 2 tests
+test selection_and_value_decisions ... ok
+test typescript_merge_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.31s
+
+     Running tests/paths_release.rs (target/audit-adapters/debug/deps/paths_release-c1a206975472475a)
+
+running 3 tests
+test containment_matches_posix_and_windows ... ok
+test sha256sum_entries ... ok
+test checksums_follow_javascript_whitespace ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/process.rs (target/audit-adapters/debug/deps/process-499a72d77243498c)
+
+running 8 tests
+test owner_mode_policy ... ok
+test runtime_is_explicitly_trusted ... ok
+test directory_policy ... ok
+test environment_allowlist ... ok
+test permissions_and_acl_arguments ... ok
+test trust::trust_registry_and_checkout_rejection ... ok
+test subprocess_timeout_terminates_child ... ok
+test subprocess_uses_sanitized_environment_and_propagates_failure ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests envden_adapter_keychain_file
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_network_tailscale
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_placement_fs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_repo_git
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_shell_rc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

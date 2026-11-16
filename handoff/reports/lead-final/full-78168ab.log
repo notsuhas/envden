@@ -1,0 +1,152 @@
+PASS local state edge cases (rust)
+PASS directory-spelling-collision (rust)
+PASS join-local-file-choice (rust)
+PASS rejoin-after-removal (rust)
+PASS onboarding-options (rust)
+PASS resolution-options (rust)
+PASS recovery-pdf (rust)
+PASS file-options (rust)
+PASS server-repair-lost (rust)
+PASS server-move-interrupted (rust)
+PASS user-flow (rust)
+PASS maintenance (rust)
+FAIL locked-session
+--- reference
++++ rust
+@@ -91,6 +91,7 @@
+       "stdout": [
+         "wrong",
+         "wrong",
++        "wrong",
+         "wrong"
+       ],
+       "stderr": [],
+@@ -110,7 +111,13 @@
+         },
+         {
+           "question": "Wrong master password. Try again",
+-          "choices": [],
++          "choices": [
++            "",
++            "",
++            "",
++            "",
++            ""
++          ],
+           "selected": [],
+           "answer": "wrong\r"
+         }
+
+PASS pairing-secret (rust)
+PASS checkouts (rust)
+FAIL command-surface
+--- reference
++++ rust
+@@ -10,7 +10,34 @@
+         "-h",
+         "-key",
+         "-only",
+-        "help"
++        "agent",
++        "alias",
++        "attention",
++        "config",
++        "device",
++        "diff",
++        "doctor",
++        "history",
++        "join",
++        "local-only",
++        "notices",
++        "password",
++        "pull",
++        "push",
++        "resolve",
++        "rm",
++        "serve",
++        "server",
++        "setup",
++        "shell",
++        "status",
++        "track",
++        "ui",
++        "unlock",
++        "untrack",
++        "update",
++        "vault",
++        "version"
+       ],
+       "stderr": [],
+       "code": 0
+@@ -298,9 +325,7 @@
+         "-h",
+         "-key",
+         "add",
+-        "help",
+         "ls",
+-        "new",
+         "rename",
+         "rm"
+       ],
+@@ -394,7 +419,6 @@
+         "--help",
+         "-h",
+         "-key",
+-        "help",
+         "kit",
+         "password",
+         "rotate"
+@@ -433,7 +457,6 @@
+       "stdout": [
+         "--help",
+         "-h",
+-        "help",
+         "replace"
+       ],
+       "stderr": [],
+@@ -471,7 +494,6 @@
+         "--help",
+         "-h",
+         "change",
+-        "help",
+         "reset"
+       ],
+       "stderr": [],
+@@ -526,12 +548,10 @@
+         "--help",
+         "-h",
+         "-upload",
+-        "help",
+         "move",
+-        "or",
+         "repair",
+-        "switch",
+-        "unreachable"
++        "restore",
++        "switch"
+       ],
+       "stderr": [],
+       "code": 0
+@@ -703,7 +723,6 @@
+       "stdout": [
+         "--help",
+         "-h",
+-        "help",
+         "install"
+       ],
+       "stderr": [],
+@@ -740,7 +759,6 @@
+         "--help",
+         "-h",
+         "-of-sync",
+-        "help",
+PASS credentials (rust)
+PASS invalid-input (rust)
+PASS pairing (rust)
+PASS server-move (rust)
+PASS server-repair (rust)
+PASS server-repair-without (rust)
+PASS settings (rust)
+PASS sync (rust)
+PASS unreachable (rust)
+23/25 scenarios passed

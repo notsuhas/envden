@@ -1,0 +1,38 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 51.90s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5626a2849fd641a9)
+
+running 4 tests
+test adapter::stderr_tests::stderr_limit_counts_utf16_units ... ok
+test adapter::tests::command_stderr_uses_javascript_whitespace ... ok
+test serve::source_tests::schema_failure_keeps_cause ... ok
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-98093c5ed23391a0)
+
+running 4 tests
+test exact_commands ... ok
+test recorded_status_and_capped_serve_failure ... ok
+test schema_fallbacks_and_capped_command_errors ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-07534332b68f6ab4)
+
+running 3 tests
+test unavailable_certificate_causes ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+test recorded_status_and_commands ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_network_tailscale
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

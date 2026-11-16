@@ -1,0 +1,25 @@
+    Blocking waiting for file lock on package cache
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.53s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_repo_git-23ce96b0c929a324)
+
+running 1 test
+test parity::discovery_batches_queries_with_one_global_configuration_read ... FAILED
+
+failures:
+
+---- parity::discovery_batches_queries_with_one_global_configuration_read stdout ----
+
+thread 'parity::discovery_batches_queries_with_one_global_configuration_read' (35130217) panicked at rust/adapters/repo/git/src/parity.rs:104:13:
+assertion `left == right` failed: --global
+  left: 3
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    parity::discovery_batches_queries_with_one_global_configuration_read
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 1.17s
+
+error: test failed, to rerun pass `-p envden-adapter-repo-git --lib`

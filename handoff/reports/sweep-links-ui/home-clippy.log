@@ -1,0 +1,117 @@
+    Checking nix v0.31.3
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+error: redundant field names in struct initialization
+  --> rust/cli/src/onboarding/vault/initial_entries.rs:67:13
+   |
+67 |             vault_id: vault_id,
+   |             ^^^^^^^^^^^^^^^^^^ help: replace it with: `vault_id`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#redundant_field_names
+   = note: `-D clippy::redundant-field-names` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::redundant_field_names)]`
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+  --> rust/cli/src/onboarding/vault/create.rs:84:55
+   |
+84 |     let token = p::decode_token(p::TTokenKind::Setup, &token)?;
+   |                                                       ^^^^^^ help: change this to: `token`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+   = note: `-D clippy::needless-borrow` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::needless_borrow)]`
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+  --> rust/cli/src/onboarding/vault/create.rs:85:11
+   |
+85 |     hello(&address, Some(&token.1), &UreqTransport, MIN_SERVER)?;
+   |           ^^^^^^^^ help: change this to: `address`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+  --> rust/cli/src/onboarding/vault/create.rs:89:9
+   |
+89 |         &name,
+   |         ^^^^^ help: change this to: `name`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:105:43
+    |
+105 |     let mut client = connection(adapters, &address, token.1, material.vault_id, &identity);
+    |                                           ^^^^^^^^ help: change this to: `address`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:110:65
+    |
+110 |     let record = register_password(&client, &material.vault_id, &password)?;
+    |                                                                 ^^^^^^^^^ help: change this to: `password`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:111:60
+    |
+111 |     let creation = create_vault_swap(&material, &identity, &password, &record, (adapters.now)())?;
+    |                                                            ^^^^^^^^^ help: change this to: `password`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:112:67
+    |
+112 |     let kit = setup_kit(&creation.secret_key, &creation.vault_id, &address);
+    |                                                                   ^^^^^^^^ help: change this to: `address`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:113:51
+    |
+113 |     super::pending_kit::report(adapters, options, &name, &kit)?;
+    |                                                   ^^^^^ help: change this to: `name`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: this expression creates a reference which is immediately dereferenced by the compiler
+   --> rust/cli/src/onboarding/vault/create.rs:114:33
+    |
+114 |     let mut state = empty_state(&name);
+    |                                 ^^^^^ help: change this to: `name`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_borrow
+
+error: very complex type used. Consider factoring parts into `type` definitions
+  --> rust/cli/src/onboarding/vault/pending.rs:81:6
+   |
+81 | ) -> envden_core::errors::Result<Option<(p::ISwap, Vec<u8>, [u8; 32])>> {
+   |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#type_complexity
+   = note: `-D clippy::type-complexity` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::type_complexity)]`
+
+error: could not compile `envden-cli` (lib) due to 11 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: items after a test module
+  --> rust/cli/src/onboarding/vault/pending.rs:29:1
+   |
+29 |   mod tests {
+   |   ^^^^^^^^^
+...
+77 | / pub(super) fn resumable(
+78 | |     adapters: &crate::adapters::IAdapters,
+79 | |     pending: &serde_json::Value,
+80 | |     device: &[u8; 16],
+81 | | ) -> envden_core::errors::Result<Option<(p::ISwap, Vec<u8>, [u8; 32])>> {
+   | |_______________________________________________________________________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#items_after_test_module
+   = note: `-D clippy::items-after-test-module` implied by `-D clippy::all`
+   = help: to override `-D clippy::all` add `#[allow(clippy::items_after_test_module)]`
+   = help: move the items to before the test module was defined
+
+error: could not compile `envden-cli` (lib test) due to 12 previous errors

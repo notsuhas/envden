@@ -1,0 +1,52 @@
+    Blocking waiting for file lock on build directory
+   Compiling libc v0.2.191
+   Compiling memchr v2.8.3
+   Compiling rustix v1.1.6
+   Compiling smallvec v1.16.5
+   Compiling syn v3.0.10
+   Compiling serde_core v1.0.229
+   Compiling once_cell v1.21.4
+   Compiling serde_json v1.0.154
+   Compiling indexmap v2.14.2
+   Compiling aho-corasick v1.1.5
+   Compiling bstr v1.13.1
+   Compiling regex-automata v0.4.18
+   Compiling thiserror-impl v2.0.21
+   Compiling errno v0.3.15
+   Compiling os_pipe v1.2.3
+   Compiling getrandom v0.4.3
+   Compiling parking_lot_core v0.9.12
+   Compiling thiserror v2.0.21
+   Compiling signal-hook-registry v1.4.8
+   Compiling uuid v1.29.2
+   Compiling parking_lot v0.12.5
+   Compiling signal-hook v0.4.6
+   Compiling sigchld v0.2.5
+   Compiling shared_child v1.1.2
+   Compiling globset v0.4.21
+   Compiling regex v1.13.1
+   Compiling tempfile v3.27.0
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 13s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-8d0363103c74a7d6)
+
+running 1 test
+test profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker ... FAILED
+
+failures:
+
+---- profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker stdout ----
+
+thread 'profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker' (40469584) panicked at rust/adapters/shell/rc/src/profile_tests.rs:177:5:
+assertion failed: adapter.installed().is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-adapter-shell-rc --lib`

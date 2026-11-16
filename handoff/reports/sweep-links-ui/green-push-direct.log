@@ -1,0 +1,6 @@
+
+running 1 test
+test commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.00s
+

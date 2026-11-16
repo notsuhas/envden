@@ -1,0 +1,2372 @@
+[
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos as root",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos/ as root",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos/a as inside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos/..cache as inside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos/a/../b as inside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds / as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos-other as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "/repos holds /repos/../x as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds C:\\repos as root",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds c:/repos/a as inside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds C:\\repos\\..cache as inside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds C:\\ as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds C:\\repos\\..\\x as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds D:\\repos\\a as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/paths/__tests__/inside.test.ts",
+    "name": "C:\\repos holds \\\\server\\share\\repos as outside",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/decisions.test.ts",
+    "name": "selection preserves concurrent-edit rules",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/decisions.test.ts",
+    "name": "value validation",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "raw assignments include preceding comments and preserve non-UTF8 bytes",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "a leading BOM stays at the start of a merge",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "merged lines follow the local line ending",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "local layout and remote additions in remote order",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided deletion",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "both delete",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "remote append after local file without newline",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "selected entries never join adjacent assignments",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "concurrent appends do not duplicate a former tail",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "identical concurrent entries are clean",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "two-sided independent changes preserve source lines",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: duplicate-key B=1\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: unterminated-quote A='no",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: multiline-value A=\"one\ntwo\"\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: multiline-value A=one\\\ntwo\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: both-changed A=2\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: delete-vs-edit ",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: style-change export A=1\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: style-change A=\"1\"\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: comment-toggle-vs-edit # A=1\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: both-changed # after\nA=1\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: unsupported-syntax source other.env\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "conflict: layout-change A=2\n# old\n",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "diff returns names only",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "seeded one-sided changes reproduce bytes in either direction",
+    "group": "env merge"
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "a comment moved to different keys on both sides conflicts",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "equality shortcuts precede parsing and style checks",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "final line terminators do not change key selection",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\n\" # moved local",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\n\" # moved remote",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\n\" # first\n# second local",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\n\" # first\n# second remote",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\r\\n\" # moved local",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\r\\n\" # moved remote",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\r\\n\" # first\n# second local",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/merge.test.ts",
+    "name": "one-sided comment move merges cleanly: \"\\r\\n\" # first\n# second remote",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/markers.test.ts",
+    "name": "a key changed on both sides is marked alone and the rest merges",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/markers.test.ts",
+    "name": "a key deleted on one side keeps an empty side in its block",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/markers.test.ts",
+    "name": "without a base or a parse, the whole file is one block",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/merge/__tests__/markers.test.ts",
+    "name": "marker detection finds only whole marker lines",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/keys/__tests__/construction.test.ts",
+    "name": "deterministic IDs, keys, secret and token text",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/keys/__tests__/construction.test.ts",
+    "name": "proof derivation vectors",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/permissions.test.ts",
+    "name": "private keychain files and directories get POSIX modes or explicit non-inherited Windows ACLs",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/permissions.test.ts",
+    "name": "the synchronous variant applies the same mode or Windows ACL",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "renamed and separate-git-dir checkouts on PATH cannot supply tools",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "registry rejects symlink targets and child directories without git markers",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "env shebang searches fixed system directories before user symlink payloads",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "environment drops code loading variables and only keeps explicit git settings",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "writable directories, git files, and symlinks into checkouts are rejected",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "sync subprocesses use the same executable and environment policy",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "a package manager root that is a git repository is not a user checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "group write is trusted only for privileged groups",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "manager bin is appended to fixed child PATH and rejected inside registered roots",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "Windows fixed directories use canonical drive paths",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "a fake Homebrew root on Linux is still a checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/process/__tests__/process.test.ts",
+    "name": "the running runtime is trusted without trusting its directory or PATH",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/adapters/storage/__tests__/commit.test.ts",
+    "name": "commit preconditions throw typed EnvdenErrors",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "reads text and binary entries with either line ending",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects empty",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects short hash",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects non-hex hash",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects single space",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects spaced name",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/release/__tests__/checksums.test.ts",
+    "name": "rejects duplicate",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/manifests/__tests__/membership.test.ts",
+    "name": "non-member classifies removal, repair drop, pre-join rollback and forks",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/manifests/__tests__/membership.test.ts",
+    "name": "a repair drop is a fork when a device removed on the stored chain acts on the new branch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/manifests/__tests__/signature.test.ts",
+    "name": "historical signatures use membership at the signed list head and reject corrupt ancestry",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/manifests/__tests__/files.test.ts",
+    "name": "file transitions retain IDs, increase versions and bind changed names and epochs",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/manifests/__tests__/files.test.ts",
+    "name": "repair-fix cannot add IDs or touch tombstones; recovered files must be current epoch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "genesis and epoch verify, empty and repeated genesis fail",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry rejects wrong vaultId",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry rejects wrong parent",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry rejects wrong seq",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry rejects wrong signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry rejects wrong signature",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "first entry must create epoch one, genesis signature and ID are checked",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "add validates name, ID, recipient, cap and preserves previous state",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "recovery signs only add, device and recovery IDs can never be reused",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "remove rejects self, last and unknown; removed signers and reused IDs fail",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "epoch rejects epoch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "epoch rejects missing",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "epoch rejects extra",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "epoch rejects duplicate",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "recovery replacement, pin update and repair ID uniqueness",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry validation preserves unexpected failures",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/devices.test.ts",
+    "name": "entry validation encodes each body once",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest accepts pushes and skipped headers across epoch changes",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest classifies identical head, rollback, equal-seq fork and longer fork",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad signature",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad vault",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad epoch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad keyring",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad envelope",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad list",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest rejects bad link",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "file IDs cannot drop, decrease versions or change at same version",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "crossed repair fixes report changes and prevent local fast-forward after later push",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "keyring rejects hash",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "keyring rejects decrypt",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "keyring rejects id",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "keyring rejects commit",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "unsigned divergent headers are invalid at equal sequence and during descent",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "sibling device list at equal manifest sequence is a fork",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "sibling device list at greater manifest sequence is a fork",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest preserves header source failures",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "manifest preserves files source failures",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/manifests.test.ts",
+    "name": "foreign genesis cannot establish a fork at equal or greater sequence",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/rename.test.ts",
+    "name": "a member renames itself without touching keys or epoch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/rename.test.ts",
+    "name": "rename rejects other signers, non-members, and taken or unchanged names",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/rename.test.ts",
+    "name": "rename rejects names a device record can't hold",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 1 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 1 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 2 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 2 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 3 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 3 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 4 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 4 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 5 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 5 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 6 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 6 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 7 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 7 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 8 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 8 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 9 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 9 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 10 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 10 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 11 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 11 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 12 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 12 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 13 accepts exact shape and reports authorization",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 13 rejects absent or extra fields, entries, mismatched op and request signer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op 13 requires the header signer to be the renamed device",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op10 forwarding on N permits any member and checks N's pin",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "repair fix only changes missing live entries to states 3/4 in current epoch",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "op10 forwards an unchanged header signed by a different member only on N",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "repair-done requires restoredHead to be an earlier verified header",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "repair-done carries an OPAQUE record exactly when re-registering",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "swap optional payloads enforce public key, record and approver shapes",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/swaps.test.ts",
+    "name": "swap validation preserves unexpected failures",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/repair.test.ts",
+    "name": "repair keeps only signatures, repair IDs, current members and heads on chain",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/repair.test.ts",
+    "name": "missing live blobs listed in a report block finish; others are lost",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/repair.test.ts",
+    "name": "candidate chooses newest existing older version and stops at tombstones or missing lists",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/repair.test.ts",
+    "name": "repair login and SK refusal derive from post-restore operations and envelope match",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/unknown.test.ts",
+    "name": "unknown-data classification compares bytes before signature before format",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/chain/__tests__/unknown.test.ts",
+    "name": "unknown entry kind is authenticated over its exact raw bytes",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/stat.test.ts",
+    "name": "rc timestamp baseline comes from lstat even if fstat rounds timestamps",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install and uninstall are idempotent and preserve user configuration",
+    "group": "RC zsh"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install creates missing parent directories",
+    "group": "RC zsh"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install and uninstall are idempotent and preserve user configuration",
+    "group": "RC bash"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install creates missing parent directories",
+    "group": "RC bash"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install and uninstall are idempotent and preserve user configuration",
+    "group": "RC fish"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install creates missing parent directories",
+    "group": "RC fish"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install and uninstall are idempotent and preserve user configuration",
+    "group": "RC powershell"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/contract.test.ts",
+    "name": "install creates missing parent directories",
+    "group": "RC powershell"
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "zsh install edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "zsh uninstall edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "bash install edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "bash uninstall edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "fish install edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "fish uninstall edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "powershell install edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "powershell uninstall edits a dotfiles target, keeps the link and backs up privately",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "fish install and uninstall write through a linked folder or dangling link",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/symlinks.test.ts",
+    "name": "zsh install and uninstall write through a linked folder or dangling link",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc swap after resolved cannot copy private bytes into the checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc swap after opened cannot copy private bytes into the checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc swap after read cannot copy private bytes into the checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc editing rejects hard links and non-files without changing their contents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "install never copies a privately resolved rc into a swapped checkout file",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "uninstall never copies a privately resolved rc into a swapped checkout file",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc install preserves non-UTF-8 bytes, mode and CRLF without duplicate blocks",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc editing replaces read-only files and preserves their permissions",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc append during editing is retained and reported as a conflict",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "macOS bash chooses a login profile unless it sources bashrc",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .profile for # user",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bash_login for # user",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bashrc for # >>> envden >>>",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bashrc for [ -f ~/.bashrc ] && . ~/.bashrc",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bashrc for if true; then . ~/.bashrc; fi",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bashrc for [[ -r ~/.bashrc ]] && source ~/.bashrc",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "bash selects .bash_profile for # source ~/.bashrc",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/editing.test.ts",
+    "name": "rc install and uninstall keep user lines after an orphan start marker",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "zsh hook snapshot",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "bash hook snapshot",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "fish hook snapshot",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "powershell hook snapshot",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "bash prints only inside an approved checkout and sanitizes refresh",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "zsh prints only inside an approved checkout and sanitizes refresh",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "fish tries GNU stat before the BSD fallback",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "PowerShell gates notices on a directory change",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "bash caches track offers and update days",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "zsh caches track offers and update days",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "PowerShell doubles all single quote delimiters in paths",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "bash hook preserves the exit status for following prompt commands",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "fish escapes backslashes and quotes in paths and avoids fish 3.5 builtins",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/index.test.ts",
+    "name": "PowerShell refresh arguments work on Windows PowerShell 5.1",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/profile.test.ts",
+    "name": "PowerShell profile resolution uses trusted runner and redirected Documents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/profile.test.ts",
+    "name": "PowerShell validates profile paths and resolves once per adapter",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/profile.test.ts",
+    "name": "PowerShell prefers an existing envden hook over the first executable",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/__tests__/profile.test.ts",
+    "name": "PowerShell accepts redirected profiles outside home and rejects unsafe output",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "creation, token consumption and digest retries",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "uncommitted blobs expire and obey quota",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "discard removes inactive imports and refuses active vaults",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "chain, credentials and devices survive reopening",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "failed commits roll back all state",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "move and repair state survive reopening",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "login states expire and are consumed once",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "join tickets expire and commit consumes them",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "nonces expire after ten minutes",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "rate limits isolate, refund and double",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "mailbox numbers and write-once slots",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "ten mailboxes per vault per rolling hour",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "pair commit closes mailbox; approver lasts 24h",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "blob hashes, vault isolation and conflicts",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "history retains versions and repair material",
+    "group": "Memory storage"
+  },
+  {
+    "file": "packages/testing/__tests__/memory-storage.test.ts",
+    "name": "memory storage rejects unspecified calls and rolls back transactions",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "missing and repeated deletion are harmless",
+    "group": "Memory keychain"
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "binary values, replacement, empty values and names stay isolated",
+    "group": "Memory keychain"
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "keychain fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "placement fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "repo fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "network fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "shell fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "storage fake rejects every unspecified operation",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/fakes.test.ts",
+    "name": "memory keychain requires explicit operations and returns independent bytes",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "shell/rc has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "network/tailscale has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "storage/sqlite has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "keychain/file has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "repo/git has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/testing/__tests__/adapters.test.ts",
+    "name": "placement/fs has a contract suite",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/shell/rc/src/failures/__tests__/operation.test.ts",
+    "name": "shell failures preserve domain errors and hide unexpected error text",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/files/__tests__/construction.test.ts",
+    "name": "file blob and name vectors, bound metadata and identity",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/files/__tests__/construction.test.ts",
+    "name": "paths are portable relative NFC paths before file identity derivation",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/opaque/__tests__/opaque.test.ts",
+    "name": "OPAQUE stored state finish calls agree",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/opaque/__tests__/opaque.test.ts",
+    "name": "OPAQUE registration stored states",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/opaque/__tests__/opaque.test.ts",
+    "name": "OPAQUE malformed strings never reach WASM",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/opaque/__tests__/opaque.test.ts",
+    "name": "each OPAQUE entrypoint checks external message shapes",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/opaque/__tests__/opaque.test.ts",
+    "name": "OPAQUE wrappers reject omitted identity context before calling WASM",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/contract.test.ts",
+    "name": "missing and repeated deletion are harmless",
+    "group": "file keychain"
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/contract.test.ts",
+    "name": "binary values, replacement, empty values and names stay isolated",
+    "group": "file keychain"
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "keys are owner-only files that survive a new adapter",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "file keys with long names fit in one path component",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "a required key that isn't stored fails closed",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "a file readable by others is reported",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "a directory readable by others is reported",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "key storage failures use a fixed typed message",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/keychain/file/src/__tests__/index.test.ts",
+    "name": "key files drop inherited Windows ACL entries",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/keyring/__tests__/construction.test.ts",
+    "name": "keyring vector and commit checks",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/epochs/__tests__/construction.test.ts",
+    "name": "HPKE fixed ephemeral and low order rejection",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/epochs/__tests__/construction.test.ts",
+    "name": "HPKE rejects a nonzero low-order X25519 recipient",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/epochs/__tests__/construction.test.ts",
+    "name": "wrong HPKE key produces an EnvdenError with cause",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/epochs/__tests__/construction.test.ts",
+    "name": "sealWrap reports malformed and low-order recipients as EnvdenError",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/temporary.test.ts",
+    "name": "copy prepares its exclusion before writing and replaces a leftover for this destination",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \".g‌it/config\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \"nested/‍.env\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \".git/config\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \".GIT/x\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \"GIT~1/.env\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \"nested/ENV~2\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "reject \".env~1\"",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "local paths retain Unicode format characters",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/paths.test.ts",
+    "name": "existing local Unicode copies can be inspected and removed",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "placement can be inspected, repeated and removed",
+    "group": "Filesystem link"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "refuses unrelated links and linked parents and backs up overwrites",
+    "group": "Filesystem link"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "inspection distinguishes equal copies and changed files",
+    "group": "Filesystem link"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "rejects paths outside the checkout and directory destinations",
+    "group": "Filesystem link"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "placement can be inspected, repeated and removed",
+    "group": "Filesystem copy"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "refuses unrelated links and linked parents and backs up overwrites",
+    "group": "Filesystem copy"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "inspection distinguishes equal copies and changed files",
+    "group": "Filesystem copy"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/contract.test.ts",
+    "name": "rejects paths outside the checkout and directory destinations",
+    "group": "Filesystem copy"
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "placement rejects Unicode format characters without creating the path",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "reject escaping parent and destination symlinks without touching targets",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "copy backups stay outside checkout, are private, and skip equal contents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "link backups stay outside checkout, are private, and skip equal contents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "backup directory is required for differing content and cannot be in checkout",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "pruning uses caller time and keeps recent, unrelated and symlink entries",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "remove refuses unrelated links, unsafe parents and directories",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "parent identity rejects replacement directories even without symlinks",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "copy placement uses private POSIX modes",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "copy placement restricts Windows file ACLs",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "inspection reports a regular file beside a missing store as detached",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/placement.test.ts",
+    "name": "placement backup creation uses the injected clock",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/replacing.test.ts",
+    "name": "fallback replaces a user's link only when given its exact text",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback copy creates private parents, replaces matching files and removes safely",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback link creates private parents, replaces matching files and removes safely",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback refuses unsafe roots, parents, sources and destinations without changing contents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback backup requires private ACLs before writing and rejects checkout aliases",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback preserves the original error and removes staged plaintext",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "fallback placement treats a link through a linked home as the store",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/__tests__/fallback.test.ts",
+    "name": "native placement treats a link through a linked home as the store",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: nothing served",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: empty output",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: null output",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: same target",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: other port only on another host",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: different target",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: extra path",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: raw TCP forward",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: listener without a site",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "serve on its own port: another app on 443",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/serve/__tests__/conflict.test.ts",
+    "name": "unreadable serve status is refused",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "ready status publishes a secure device address",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "not-installed fails closed and names the cause",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "not-running fails closed and names the cause",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "logged-out fails closed and names the cause",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "https-disabled fails closed and names the cause",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "unreadable fails closed and names the cause",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "an address already serving something else is not replaced",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "publication failures propagate",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/contract.test.ts",
+    "name": "invalid ports cannot be published",
+    "group": "Tailscale"
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/index.test.ts",
+    "name": "status and serve use the recorded JSON and current CLI syntax",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/index.test.ts",
+    "name": "status names the cause: daemon down",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/index.test.ts",
+    "name": "status names the cause: malformed",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/index.test.ts",
+    "name": "serve failures carry Tailscale's own output, capped",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/network/tailscale/src/__tests__/index.test.ts",
+    "name": "serve refuses to replace another service on its port, and leaves 443 alone",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/case-probe.test.ts",
+    "name": "case probes use an existing spelling and distinguish listed aliases",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/readonly-case.test.ts",
+    "name": "read-only case detection never creates a filesystem probe",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/global-config.test.ts",
+    "name": "git ignores global execution settings while retaining safe directories",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/global-config.test.ts",
+    "name": "repo IDs follow global and local url rewrites",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/checkout-errors.test.ts",
+    "name": "checkout lookup preserves trusted executable failures",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "finds the checkout from nested paths and lists it among worktrees",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "submodule paths follow .gitmodules quoting, and no file means none",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "discovery skips unencodable and unreadable directories",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "already ignored paths accept special characters and case detection matches the filesystem",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "env file rules configure include, exclude and skipped directories",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/contract.test.ts",
+    "name": "ignores exact env paths idempotently and discovers only eligible files",
+    "group": "Git"
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/case.test.ts",
+    "name": "tracked paths respect the probed checkout filesystem",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize git@GitHub.com:Owner/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize ssh://git@GitLab.com/Group/Sub/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize https://GitHub.com/Owner/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize git@work:Owner/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize git@ssh.dev.azure.com:v3/Org/Project/Repo",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize https://dev.azure.com/Org/Project/_git/Repo",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize ssh://git@HOST.test:2222/Team/Sub/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "normalize git://HOST.test/Team/Repo.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject remote /tmp/repo",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject remote https://host/../",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject remote git@host:../repo",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject remote https://host/a/%2e%2e/b.git",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject remote file:///tmp/repo",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "checkout, only remote fallback, alias resolution and shared worktrees",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "discovery filters templates, envrc, outputs, unignored and tracked files",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "exclude patterns escape git syntax and refuse control characters",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "non-repos and ambiguous remotes",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject decoded terminal control %1b",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "reject decoded terminal control %E2%80%AE",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "a forged git file is not a registered worktree",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "a .gitignore linked into dotfiles is never written",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "exclude refuses symlink files and parents",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "filesystem failures are typed and do not expose command output",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "checkout exposes normalized upstream identity alongside the fork",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "git disables executable repository configuration for every read command",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "exclude refuses hardlinks without modifying their target",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "failed ignore attempts do not change exclude bytes",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "embedded bare repositories cannot choose checkout identity",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/repo.test.ts",
+    "name": "checkout lookup propagates filesystem failures",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/worktrees.test.ts",
+    "name": "worktrees whose folder is gone are not listed",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/worktrees.test.ts",
+    "name": "worktrees are listed by git that predates worktree list -z",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/batching.test.ts",
+    "name": "discovery batches git queries and reuses a real empty global config",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/security.test.ts",
+    "name": "discovery skips submodules and nested clones, lists the user's own links and prints nothing",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/__tests__/security.test.ts",
+    "name": "custom env patterns cannot allow shell hooks or skipped folders",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/envelope/__tests__/construction.test.ts",
+    "name": "envelope fixed salt/nonce and wrong password or secret",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/envelope/__tests__/construction.test.ts",
+    "name": "envelope key derivation vector",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/stat.test.ts",
+    "name": "stat bindings prefer modern symbols and select the legacy architecture version",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "native filesystem operations load on supported 64-bit POSIX platforms",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "copy rename stays on the opened directory after a parent swap",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "link rename stays on the opened directory after a parent swap",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "descriptor writes are exclusive and identity checks do not follow links",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "unlink stays anchored after a parent swap",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/placement.test.ts",
+    "name": "backup reads stay anchored after a parent swap",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/placement/fs/src/native/__tests__/initialisation.test.ts",
+    "name": "FFI and binding failures select the non-native fallback",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/requests/__tests__/requests.test.ts",
+    "name": "request signature, time, nonce and body bindings",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/requests/__tests__/requests.test.ts",
+    "name": "hello challenge, pin, host, version and signature",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/requests/__tests__/requests.test.ts",
+    "name": "setup, repair and SK proofs cannot cross roles",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "integer widths, endian and limits",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "trailing, truncated and excessive lengths",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "option flags and list limits",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "string encoding validates UTF-8, normalization and controls",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "Crockford base32 canonical lengths and trailing bits",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "padding is minimal, aligned and zero",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "semver uses arbitrary precision and digits only",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/encoding/__tests__/encoding.test.ts",
+    "name": "base32 and pairing reject Unicode case folding",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/repo/git/src/repo-id/__tests__/ssh.test.ts",
+    "name": "SSH aliases resolve only through option-terminated safe hosts",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/pairing/__tests__/construction.test.ts",
+    "name": "pairing normalization and channel authentication",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/pairing/__tests__/messages.test.ts",
+    "name": "typed pairing boxes authenticate and reject wrong message type",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "all entry payloads round trip; unknown kind/type/version rejected",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "every structured codec is exact and validates nested records",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "semantic rejection rules",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "malformed bytes have coded errors and future operations require an update",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "member codecs reject low-order and noncanonical encryption keys with matching IDs",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/codecs/__tests__/codecs.test.ts",
+    "name": "server data strings are bounded by the largest object they carry",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/chain/__tests__/history.test.ts",
+    "name": "unchanged file versions do not pin every historical list",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/chain/__tests__/history.test.ts",
+    "name": "restored current list stays pinned after a header imported without its body",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/chain/__tests__/history.test.ts",
+    "name": "a list kept for another file's version does not keep pruned blobs",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/recovery.test.ts",
+    "name": "startup adopts verified content-addressed files after a database restore",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/recovery.test.ts",
+    "name": "migration replaces an interrupted backup and live requests prune expired secrets",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/recovery.test.ts",
+    "name": "startup does not adopt blobs pending deletion after discard",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/recovery.test.ts",
+    "name": "startup preserves a blob re-uploaded after garbage was recorded",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/transactions.test.ts",
+    "name": "login finish groups session consumption, device update and charge refund atomically",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/transactions.test.ts",
+    "name": "lockout doubles to a 24 hour cap",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "rate strikes reset after a quiet period",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "rate strikes reset after success",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "swap quota includes files and rolls back the head",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over quota, a list that only deletes still commits",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "expired charges and strikes are pruned across caller-selected buckets",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: remove",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: rotate",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: files",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: blob",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: move",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/limits.test.ts",
+    "name": "over-quota vault: repair",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "creation, token consumption and digest retries",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "uncommitted blobs expire and obey quota",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "discard removes inactive imports and refuses active vaults",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "chain, credentials and devices survive reopening",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "failed commits roll back all state",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "move and repair state survive reopening",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "login states expire and are consumed once",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "join tickets expire and commit consumes them",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "nonces expire after ten minutes",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "rate limits isolate, refund and double",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "mailbox numbers and write-once slots",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "ten mailboxes per vault per rolling hour",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "pair commit closes mailbox; approver lasts 24h",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "blob hashes, vault isolation and conflicts",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/contract.test.ts",
+    "name": "history retains versions and repair material",
+    "group": "SQLite storage contract"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "migrates a synthetic format-zero database after a consistent backup including WAL",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "refuses incompatible schema -1 clearly",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "refuses incompatible schema 2 clearly",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "partial temporary files and published orphans never become visible",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "process exit during partial blob write leaves no visible partial object",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "process exit during published blob write leaves no visible partial object",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "two concurrent workers committing the same head have exactly one winner",
+    "group": "SQLite durability"
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "startup repairs existing directory, database and sidecar modes",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "discard commits durable blob garbage and pruning retries failed deletion",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/sqlite.test.ts",
+    "name": "fresh format one includes every current lookup index",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/permissions.test.ts",
+    "name": "startup restricts the data folder and database files with the shared ACL helper",
+    "group": ""
+  },
+  {
+    "file": "packages/adapters/storage/sqlite/src/__tests__/permissions.test.ts",
+    "name": "on Windows the data folder and database inherit no access from their parent",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "RFC 5869 HKDF SHA256 case 1",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "RFC 4231 HMAC SHA256 case 1",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "RFC 8032 Ed25519 test 1 strict verification",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "RFC 7748 X25519 Alice public key",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "libsodium XChaCha20 Poly1305 known answer",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "Argon2 reference implementation known answer without AD",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/known-answers.test.ts",
+    "name": "RFC 9180 base X25519 HKDF SHA256 ChaCha20 Poly1305",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/construction.test.ts",
+    "name": "labels separate all signature roles",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/construction.test.ts",
+    "name": "noncanonical R passes ZIP215 but envden rejects it",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/construction.test.ts",
+    "name": "a signature with S at or above the group order is rejected",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/construction.test.ts",
+    "name": "box decryption failures carry a fixed EnvdenError and cause",
+    "group": ""
+  },
+  {
+    "file": "packages/core/src/protocol/crypto/__tests__/construction.test.ts",
+    "name": "verification preserves unexpected codec and input failures",
+    "group": ""
+  }
+]

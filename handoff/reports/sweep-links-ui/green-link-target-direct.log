@@ -1,0 +1,6 @@
+
+running 1 test
+test links::file::tests::unresolved_foreign_link_target_is_lexically_normalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 262 filtered out; finished in 0.19s
+

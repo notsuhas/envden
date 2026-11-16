@@ -1,0 +1,24 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.46s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test agent::service::system::tests::service_errors_use_javascript_whitespace ... FAILED
+
+failures:
+
+---- agent::service::system::tests::service_errors_use_javascript_whitespace stdout ----
+
+thread 'agent::service::system::tests::service_errors_use_javascript_whitespace' (39829840) panicked at rust/cli/src/agent/service/system.rs:54:13:
+assertion `left == right` failed
+  left: "Could not start the envden server service: \u{feff}failed\u{feff}"
+ right: "Could not start the envden server service: failed"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    agent::service::system::tests::service_errors_use_javascript_whitespace
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 218 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

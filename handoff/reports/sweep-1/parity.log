@@ -1,0 +1,36 @@
+PASS join-local-file-choice (rust)
+PASS rejoin-after-removal (rust)
+PASS onboarding-options (rust)
+FAIL resolution-options
+--- reference
++++ rust
+@@ -104,7 +104,7 @@
+     },
+     {
+       "label": "device-b detached keep mine",
+-      "stdout": "│\n◇  Detached file: .env\n│  Keep mine\nKept your previous .env at <ROOT>/device-b/envden/conflicts/backups/<encoded:15:50>\nPulled 1 file\n",
++      "stdout": "│\n◇  Detached file: .env\n│  Keep mine\nKept your previous <ROOT>/device-b/home/app/.env at <ROOT>/device-b/envden/conflicts/backups/<encoded:15:50>\nPulled 1 file\n",
+       "stderr": "",
+       "code": 0
+     },
+
+PASS recovery-pdf (rust)
+PASS file-options (rust)
+PASS server-repair-lost (rust)
+PASS server-move-interrupted (rust)
+PASS user-flow (rust)
+PASS maintenance (rust)
+PASS locked-session (rust)
+PASS pairing-secret (rust)
+PASS checkouts (rust)
+PASS command-surface (rust)
+PASS credentials (rust)
+PASS invalid-input (rust)
+PASS pairing (rust)
+PASS server-move (rust)
+PASS server-repair (rust)
+PASS server-repair-without (rust)
+PASS settings (rust)
+PASS sync (rust)
+PASS unreachable (rust)
+22/23 scenarios passed

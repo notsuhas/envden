@@ -1,0 +1,20 @@
+warning: unused import: `File`
+ --> rust/server/src/identity/persist.rs:3:16
+  |
+3 |     fs::{self, File, OpenOptions},
+  |                ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-server` (lib) generated 1 warning (run `cargo fix --lib -p envden-server` to apply 1 suggestion)
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+error[E0433]: cannot find `resume_creation` in `super`
+  --> rust/cli/src/onboarding/vault/create.rs:93:33
+   |
+93 |     if let Some(state) = super::resume_creation::resume(
+   |                                 ^^^^^^^^^^^^^^^ could not find `resume_creation` in `super`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `envden-cli` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `envden-cli` (lib test) due to 1 previous error

@@ -1,0 +1,148 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 26s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_keychain_file-8a220f4d1f21625e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-b35018f84f46f34f)
+
+running 4 tests
+test owner_only_reads_all_metadata_before_deciding ... ok
+test permissions_and_required ... ok
+test persists_long_names_and_fixed_failures ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-d0ac2cb0d82476da)
+
+running 1 test
+test owner_only_keys_survive_new_adapter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5990cff2274cf753)
+
+running 3 tests
+test adapter::tests::command_stderr_uses_javascript_whitespace ... ok
+test adapter::stderr_tests::stderr_limit_counts_utf16_units ... ok
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-6be762cb5fb4516d)
+
+running 4 tests
+test recorded_status_and_capped_serve_failure ... ok
+test exact_commands ... ok
+test schema_fallbacks_and_capped_command_errors ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-39e3b3744dcf386a)
+
+running 3 tests
+test unavailable_certificate_causes ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+test recorded_status_and_commands ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_repo_git-b2d4cf313912663f)
+
+running 11 tests
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test whitespace_tests::git_and_ssh_outputs_use_javascript_whitespace ... ok
+test remote::tests::vectors ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test batching_tests::remote_reads_rewrites_before_safe_directories ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test batching_tests::checkout_resolves_upstream_before_reading_directory_identity ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.70s
+
+     Running tests/checkout.rs (target/sweep/debug/deps/checkout-6bfad0957e4ff1e0)
+
+running 1 test
+test sole_remote_alias_resolution_shared_worktrees_and_ambiguous_remotes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.52s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-53c27a667dd7ad2e)
+
+running 1 test
+test contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.33s
+
+     Running tests/discovery.rs (target/sweep/debug/deps/discovery-702ae1cc787b130a)
+
+running 1 test
+test discovery_skips_submodules_and_nested_clones_and_lists_user_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s
+
+     Running tests/excludes.rs (target/sweep/debug/deps/excludes-fc7bfacfd3d7a5dc)
+
+running 4 tests
+test invalid_utf8_exclude_bytes_are_preserved_when_appending ... ok
+test ignore_failure_preserves_original_git_exclude_bytes ... ok
+test linked_gitignore_is_never_written ... ok
+test symlink_and_hardlink_excludes_preserve_exact_target_bytes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.19s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-f35c0e618285a97f)
+
+running 4 tests
+test exact_remote_rejections ... ok
+test embedded_bare_repository_cannot_choose_identity ... ok
+test identities_follow_global_and_local_url_rewrites ... ok
+test escaping_and_case_probed_tracking ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.07s
+
+     Running tests/repo.rs (target/sweep/debug/deps/repo-38ec040064b1306b)
+
+running 2 tests
+test unsafe_remotes_and_readonly_case ... ok
+test worktrees_skip_folders_and_private_excludes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.28s
+
+     Running tests/security.rs (target/sweep/debug/deps/security-32fe55295a4f70be)
+
+running 3 tests
+test discovery_filters_templates_tracked_outputs_and_preserves_user_links ... ok
+test checkout_identity_errors_upstream_and_forged_worktree ... ok
+test exclude_preserves_symlinks_hardlinks_and_failed_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.35s
+
+   Doc-tests envden_adapter_keychain_file
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_network_tailscale
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_repo_git
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

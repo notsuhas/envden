@@ -1,0 +1,12 @@
+Collecting tree-sitter
+  Downloading tree_sitter-0.26.1-cp314-cp314-macosx_11_0_arm64.whl.metadata (9.9 kB)
+Collecting tree-sitter-typescript
+  Downloading tree_sitter_typescript-0.23.2-cp39-abi3-macosx_11_0_arm64.whl.metadata (2.3 kB)
+Downloading tree_sitter-0.26.1-cp314-cp314-macosx_11_0_arm64.whl (142 kB)
+Downloading tree_sitter_typescript-0.23.2-cp39-abi3-macosx_11_0_arm64.whl (302 kB)
+Installing collected packages: tree-sitter-typescript, tree-sitter
+
+Successfully installed tree-sitter-0.26.1 tree-sitter-typescript-0.23.2
+
+[notice] A new release of pip is available: 26.1.2 -> 26.3
+[notice] To update, run: python3 -m pip install --upgrade pip

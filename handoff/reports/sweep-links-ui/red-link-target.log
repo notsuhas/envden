@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.90s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test links::file::tests::unresolved_foreign_link_target_is_lexically_normalized ... FAILED
+
+failures:
+
+---- links::file::tests::unresolved_foreign_link_target_is_lexically_normalized stdout ----
+
+thread 'links::file::tests::unresolved_foreign_link_target_is_lexically_normalized' (40843192) panicked at rust/cli/src/links/file/tests.rs:47:5:
+assertion `left == right` failed
+  left: "/private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpGMhTqT/checkout/nested/../missing.env"
+ right: "/private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpGMhTqT/checkout/missing.env"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::file::tests::unresolved_foreign_link_target_is_lexically_normalized
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 257 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

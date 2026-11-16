@@ -1,0 +1,10 @@
+    Checking windows-sys v0.61.2
+    Checking errno v0.3.15
+    Checking shared_child v1.1.2
+    Checking tempfile v3.27.0
+    Checking rustix v1.1.6
+    Checking envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+    Checking envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+    Checking envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Checking envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.99s

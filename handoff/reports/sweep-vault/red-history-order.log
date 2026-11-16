@@ -1,0 +1,25 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.63s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test admin::repair::tests::context::stored_entries_decode_before_stored_headers ... FAILED
+
+failures:
+
+---- admin::repair::tests::context::stored_entries_decode_before_stored_headers stdout ----
+
+thread 'admin::repair::tests::context::stored_entries_decode_before_stored_headers' (40769538) panicked at rust/cli/src/admin/repair/tests/context.rs:26:5:
+assertion `left == right` failed
+  left: "Invalid binary encoding"
+ right: "Truncated data"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    admin::repair::tests::context::stored_entries_decode_before_stored_headers
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 253 filtered out; finished in 0.24s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

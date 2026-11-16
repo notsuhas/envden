@@ -1,0 +1,18 @@
+
+running 1 test
+test commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts ... FAILED
+
+failures:
+
+---- commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts stdout ----
+
+thread 'commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts' (40542291) panicked at rust/cli/src/commands/sync/transfer.rs:90:9:
+assertion failed: transfer_conflicted(true, &result)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 244 filtered out; finished in 0.00s
+

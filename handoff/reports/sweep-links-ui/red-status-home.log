@@ -1,0 +1,38 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+warning: function `default_home` is never used
+   --> rust/adapters/shell/rc/src/profile.rs:136:15
+    |
+136 | pub(crate) fn default_home(home: Option<std::ffi::OsString>, _profile: Option<std::ffi::OsString>, _windows: bool) -> Option<PathBu...
+    |               ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+warning: `envden-adapter-shell-rc` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.44s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test commands::sync::status::tests::display_uses_real_user_home_for_canonical_checkout_roots ... FAILED
+
+failures:
+
+---- commands::sync::status::tests::display_uses_real_user_home_for_canonical_checkout_roots stdout ----
+
+thread 'commands::sync::status::tests::display_uses_real_user_home_for_canonical_checkout_roots' (40826994) panicked at rust/cli/src/commands/sync/status.rs:59:9:
+assertion `left == right` failed
+  left: "Server: reachable\nChanged here (run envden push): /private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmp5Ks7S2/real/repo/.env"
+ right: "Server: reachable\nChanged here (run envden push): ~/repo/.env"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    commands::sync::status::tests::display_uses_real_user_home_for_canonical_checkout_roots
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 256 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

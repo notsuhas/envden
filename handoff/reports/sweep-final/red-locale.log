@@ -1,0 +1,25 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.29s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 1 test
+test ui::view::files::ordering_tests::repo_groups_follow_reference_locale_order ... FAILED
+
+failures:
+
+---- ui::view::files::ordering_tests::repo_groups_follow_reference_locale_order stdout ----
+
+thread 'ui::view::files::ordering_tests::repo_groups_follow_reference_locale_order' (41881507) panicked at rust/cli/src/ui/view/files.rs:148:9:
+assertion `left == right` failed
+  left: ["-", "10", "2", "A", "Z", "_", "a", "e", "ä", "é"]
+ right: ["_", "-", "10", "2", "a", "A", "ä", "e", "é", "Z"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    ui::view::files::ordering_tests::repo_groups_follow_reference_locale_order
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 286 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

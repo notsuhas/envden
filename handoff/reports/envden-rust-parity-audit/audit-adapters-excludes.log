@@ -1,0 +1,11 @@
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.07s
+     Running tests/excludes.rs (target/audit-adapters/debug/deps/excludes-0c6bb68e3c21cf63)
+
+running 3 tests
+test ignore_failure_preserves_original_git_exclude_bytes ... ok
+test linked_gitignore_is_never_written ... ok
+test symlink_and_hardlink_excludes_preserve_exact_target_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.38s
+

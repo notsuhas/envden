@@ -1,0 +1,9 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.05s
+     Running tests/parser.rs (target/sweep/debug/deps/parser-d6db8a1a02fb3d26)
+
+running 1 test
+test nested_parser_errors_strip_terminal_controls ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 2.16s
+

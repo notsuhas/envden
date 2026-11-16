@@ -1,0 +1,22 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.48s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-5e7bdaeeb74bd109)
+
+running 1 test
+test state::repository::collection_tests::load_revives_collections_before_validating_state ... FAILED
+
+failures:
+
+---- state::repository::collection_tests::load_revives_collections_before_validating_state stdout ----
+
+thread 'state::repository::collection_tests::load_revives_collections_before_validating_state' (41920064) panicked at rust/cli/src/state/repository.rs:213:13:
+assertion failed: load_state(dir.path()).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    state::repository::collection_tests::load_revives_collections_before_validating_state
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 287 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

@@ -1,0 +1,12 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 45s
+     Running tests/parser.rs (target/sweep/debug/deps/parser-b7cfa0eb0d5d9fe5)
+
+running 2 tests
+test restore_versions_are_parsed_before_dispatch ... ok
+test tests::surface ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

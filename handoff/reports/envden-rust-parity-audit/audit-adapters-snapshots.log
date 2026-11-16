@@ -1,0 +1,12 @@
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.22s
+     Running tests/render.rs (target/audit-adapters/debug/deps/render-6b9c6f13438ffeb5)
+
+running 2 tests
+test invalid_paths_are_typed_and_profile_resolution_is_lazy ... ok
+test typescript_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

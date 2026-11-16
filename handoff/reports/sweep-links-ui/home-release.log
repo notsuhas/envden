@@ -1,0 +1,12 @@
+   Compiling nix v0.31.3
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+warning: function `provided` is never used
+  --> rust/cli/src/onboarding/vault/token.rs:32:15
+   |
+32 | pub(super) fn provided(hosted: Option<String>, value: Option<&str>) -> Result<Option<String>> {
+   |               ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-cli` (lib) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 2m 32s

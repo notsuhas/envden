@@ -1,0 +1,22 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 42.27s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test output::telemetry::tests::child_environment_keeps_only_named_home_and_network_settings ... FAILED
+
+failures:
+
+---- output::telemetry::tests::child_environment_keeps_only_named_home_and_network_settings stdout ----
+
+thread 'output::telemetry::tests::child_environment_keeps_only_named_home_and_network_settings' (40472229) panicked at rust/cli/src/output/telemetry.rs:132:9:
+assertion failed: !result.contains_key("envden_home")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    output::telemetry::tests::child_environment_keeps_only_named_home_and_network_settings
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 236 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

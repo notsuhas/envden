@@ -1,0 +1,24 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.43s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-5a61f1c1701be785)
+
+running 1 test
+test vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member ... FAILED
+
+failures:
+
+---- vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member stdout ----
+
+thread 'vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member' (39719229) panicked at rust/cli/src/vault/admin/__tests__/mod.rs:164:5:
+assertion `left == right` failed
+  left: 2
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 213 filtered out; finished in 2.70s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

@@ -1,0 +1,30 @@
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.83s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 4 tests
+test report::content::document::tests::fences_use_javascript_trailing_whitespace ... ok
+test agent::service::system::tests::service_errors_use_javascript_whitespace ... ok
+test onboarding::vault::pending_kit::tests::resumed_secret_uses_javascript_whitespace ... FAILED
+test updates::tests::first_check_cache_key_order_matches_javascript_mutation ... ok
+
+failures:
+
+---- onboarding::vault::pending_kit::tests::resumed_secret_uses_javascript_whitespace stdout ----
+
+thread 'onboarding::vault::pending_kit::tests::resumed_secret_uses_javascript_whitespace' (39860268) panicked at rust/cli/src/onboarding/vault/pending_kit.rs:112:9:
+assertion `left == right` failed
+  left: "\u{feff}EK1-secret\u{feff}"
+ right: "EK1-secret"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    onboarding::vault::pending_kit::tests::resumed_secret_uses_javascript_whitespace
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 214 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

@@ -1,0 +1,7 @@
+
+running 2 tests
+test links::checkout::mode::tests::compose_detection_matches_javascript_dot_semantics ... ok
+test links::checkout::mode::tests::copy_mode_consent_defaults_to_no ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 261 filtered out; finished in 0.40s
+

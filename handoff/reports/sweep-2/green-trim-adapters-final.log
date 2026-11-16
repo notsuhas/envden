@@ -1,0 +1,196 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-5990cff2274cf753)
+
+running 2 tests
+test adapter::tests::command_stderr_uses_javascript_whitespace ... ok
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-6be762cb5fb4516d)
+
+running 4 tests
+test recorded_status_and_capped_serve_failure ... ok
+test schema_fallbacks_and_capped_command_errors ... ok
+test exact_commands ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-39e3b3744dcf386a)
+
+running 3 tests
+test unavailable_certificate_causes ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+test recorded_status_and_commands ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_repo_git-b2d4cf313912663f)
+
+running 9 tests
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test whitespace_tests::git_and_ssh_outputs_use_javascript_whitespace ... ok
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test remote::tests::vectors ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.37s
+
+     Running tests/checkout.rs (target/sweep/debug/deps/checkout-6bfad0957e4ff1e0)
+
+running 1 test
+test sole_remote_alias_resolution_shared_worktrees_and_ambiguous_remotes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.43s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-53c27a667dd7ad2e)
+
+running 1 test
+test contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.31s
+
+     Running tests/discovery.rs (target/sweep/debug/deps/discovery-702ae1cc787b130a)
+
+running 1 test
+test discovery_skips_submodules_and_nested_clones_and_lists_user_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running tests/excludes.rs (target/sweep/debug/deps/excludes-fc7bfacfd3d7a5dc)
+
+running 3 tests
+test linked_gitignore_is_never_written ... ok
+test ignore_failure_preserves_original_git_exclude_bytes ... ok
+test symlink_and_hardlink_excludes_preserve_exact_target_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.46s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-f35c0e618285a97f)
+
+running 4 tests
+test exact_remote_rejections ... ok
+test embedded_bare_repository_cannot_choose_identity ... ok
+test identities_follow_global_and_local_url_rewrites ... ok
+test escaping_and_case_probed_tracking ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.28s
+
+     Running tests/repo.rs (target/sweep/debug/deps/repo-38ec040064b1306b)
+
+running 2 tests
+test unsafe_remotes_and_readonly_case ... ok
+test worktrees_skip_folders_and_private_excludes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s
+
+     Running tests/security.rs (target/sweep/debug/deps/security-32fe55295a4f70be)
+
+running 3 tests
+test discovery_filters_templates_tracked_outputs_and_preserves_user_links ... ok
+test checkout_identity_errors_upstream_and_forged_worktree ... ok
+test exclude_preserves_symlinks_hardlinks_and_failed_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.67s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-ffcd90598769b6f3)
+
+running 9 tests
+test identity::tests::baseline_uses_path_timestamps_when_opened_timestamps_round ... ok
+test profile_tests::powershell_runner_and_redirected_profile ... ok
+test races::unexpected_errors_hide_private_shell_contents ... ok
+test profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution ... ok
+test races::concurrent_append_is_retained_as_conflict ... ok
+test races::readonly_replacement_preserves_mode_and_leaves_no_temporary ... ok
+test races::resolved_private_file_does_not_follow_swapped_checkout ... ok
+test races::swaps_never_copy_private_bytes_to_checkout ... ok
+test profile_tests::bash_login_profile_matrix ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/behavior.rs (target/sweep/debug/deps/behavior-76207b0539160064)
+
+running 3 tests
+test rendered_shell_compatibility_guards ... ok
+test bash_selects_login_profiles_and_respects_bashrc_sourcing ... ok
+test bash_preserves_prompt_exit_status ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/bytes.rs (target/sweep/debug/deps/bytes-6566a832d60483f3)
+
+running 2 tests
+test orphan_marker_keeps_user_lines ... ok
+test non_utf8_crlf_install_is_idempotent ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-3a13a293411b0d9e)
+
+running 2 tests
+test preserves_bytes_and_symlink ... ok
+test contracts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/editing.rs (target/sweep/debug/deps/editing-36c6529416f6cfd3)
+
+running 2 tests
+test hard_links_and_dangling_links ... ok
+test crlf_mode_orphans_and_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/execution.rs (target/sweep/debug/deps/execution-094dd67250d8b697)
+
+running 2 tests
+test track_offer_and_update_day_caches ... ok
+test approved_checkout_notices_and_sanitized_refresh ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.86s
+
+     Running tests/links.rs (target/sweep/debug/deps/links-62f95c60df50cd6a)
+
+running 2 tests
+test edits_through_linked_folders_and_dangling_links ... ok
+test all_shells_edit_linked_targets_and_keep_private_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/render.rs (target/sweep/debug/deps/render-30a3849ba97d99a2)
+
+running 2 tests
+test invalid_paths_are_typed_and_profile_resolution_is_lazy ... ok
+test typescript_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/windows.rs (target/sweep/debug/deps/windows-046488439f334b06)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_network_tailscale
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_repo_git
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_shell_rc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

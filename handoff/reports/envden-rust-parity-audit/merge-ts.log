@@ -1,0 +1,72 @@
+bun test v1.4.0 (34cbb9a40)
+
+packages/core/src/merge/__tests__/markers.test.ts:
+(pass) a key changed on both sides is marked alone and the rest merges [2.52ms]
+(pass) a key deleted on one side keeps an empty side in its block [0.53ms]
+(pass) without a base or a parse, the whole file is one block [0.29ms]
+(pass) marker detection finds only whole marker lines [0.49ms]
+
+packages/core/src/merge/__tests__/merge.test.ts:
+(pass) env merge > raw assignments include preceding comments and preserve non-UTF8 bytes [0.20ms]
+(pass) env merge > a leading BOM stays at the start of a merge [0.75ms]
+(pass) env merge > merged lines follow the local line ending [0.69ms]
+(pass) env merge > local layout and remote additions in remote order [1.11ms]
+(pass) env merge > one-sided deletion [0.85ms]
+(pass) env merge > both delete [1.04ms]
+(pass) env merge > remote append after local file without newline [0.89ms]
+(pass) env merge > selected entries never join adjacent assignments [0.56ms]
+(pass) env merge > concurrent appends do not duplicate a former tail [0.32ms]
+(pass) env merge > identical concurrent entries are clean [0.40ms]
+(pass) env merge > two-sided independent changes preserve source lines [148.32ms]
+(pass) env merge > conflict: duplicate-key B=1
+ [0.30ms]
+(pass) env merge > conflict: unterminated-quote A='no [0.26ms]
+(pass) env merge > conflict: multiline-value A="one
+two"
+ [0.21ms]
+(pass) env merge > conflict: multiline-value A=one\
+two
+ [0.30ms]
+(pass) env merge > conflict: both-changed A=2
+ [0.16ms]
+(pass) env merge > conflict: delete-vs-edit  [0.22ms]
+(pass) env merge > conflict: style-change export A=1
+ [0.22ms]
+(pass) env merge > conflict: style-change A="1"
+ [0.41ms]
+(pass) env merge > conflict: comment-toggle-vs-edit # A=1
+ [0.20ms]
+(pass) env merge > conflict: both-changed # after
+A=1
+ [0.45ms]
+(pass) env merge > conflict: unsupported-syntax source other.env
+ [0.26ms]
+(pass) env merge > conflict: layout-change A=2
+# old
+ [0.33ms]
+(pass) env merge > diff returns names only [0.37ms]
+(pass) env merge > seeded one-sided changes reproduce bytes in either direction [481.84ms]
+(pass) a comment moved to different keys on both sides conflicts [1.46ms]
+(pass) equality shortcuts precede parsing and style checks [13.75ms]
+(pass) final line terminators do not change key selection [3.06ms]
+(pass) one-sided comment move merges cleanly: "\n" # moved local [1.41ms]
+(pass) one-sided comment move merges cleanly: "\n" # moved remote [1.36ms]
+(pass) one-sided comment move merges cleanly: "\n" # first
+# second local [1.31ms]
+(pass) one-sided comment move merges cleanly: "\n" # first
+# second remote [1.23ms]
+(pass) one-sided comment move merges cleanly: "\r\n" # moved local [1.51ms]
+(pass) one-sided comment move merges cleanly: "\r\n" # moved remote [1.90ms]
+(pass) one-sided comment move merges cleanly: "\r\n" # first
+# second local [3.20ms]
+(pass) one-sided comment move merges cleanly: "\r\n" # first
+# second remote [1.24ms]
+
+packages/core/src/merge/__tests__/decisions.test.ts:
+(pass) selection preserves concurrent-edit rules [0.54ms]
+(pass) value validation [0.07ms]
+
+ 42 pass
+ 0 fail
+ 2906 expect() calls
+Ran 42 tests across 3 files. [957.00ms]

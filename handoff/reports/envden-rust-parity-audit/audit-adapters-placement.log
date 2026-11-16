@@ -1,0 +1,70 @@
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.71s
+     Running unittests src/lib.rs (target/audit-adapters/debug/deps/envden_adapter_placement_fs-c48902eddbafc2d6)
+
+running 4 tests
+test paths::tests::local_paths_preserve_unicode_format_characters ... ok
+test races::unlink_stays_anchored_after_parent_swap ... ok
+test races::exclusive_writes_and_nofollow_identity ... ok
+test races::rename_and_backup_stay_on_opened_directory_after_swap ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/contract.rs (target/audit-adapters/debug/deps/contract-51f1b606d84bdb2b)
+
+running 3 tests
+test temporary_exclude_and_permissions ... ok
+test copy_contract ... ok
+test link_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/escaping.rs (target/audit-adapters/debug/deps/escaping-2094fbc449d2db4a)
+
+running 1 test
+test escaping_links_leave_targets_untouched ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/parity.rs (target/audit-adapters/debug/deps/parity-f52c8763db64eb15)
+
+running 4 tests
+test missing_store_leaves_regular_copy_detached_in_link_mode ... ok
+test linked_home_targets_and_exact_replacement_text ... ok
+test retention_uses_names_instead_of_file_timestamps ... ok
+test differing_bytes_require_backup_and_equal_bytes_use_injected_clock ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/paths.rs (target/audit-adapters/debug/deps/paths-3e35eb3e5507abe5)
+
+running 2 tests
+test pulled_and_local_unicode_paths ... ok
+test backups_keep_bytes_names_modes_and_prune_only_expired_files ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/safety.rs (target/audit-adapters/debug/deps/safety-c6773b3f837cf252)
+
+running 3 tests
+test removal_and_missing_store_inspection_preserve_unrelated_contents ... ok
+test copy_excludes_before_writing_and_replaces_only_its_leftover ... ok
+test backups_are_required_private_outside_and_not_repeated_for_equal_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/windows.rs (target/audit-adapters/debug/deps/windows-90964cf74d729dc7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_placement_fs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

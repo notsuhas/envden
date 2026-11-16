@@ -1,0 +1,25 @@
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.03s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0d418dbf4a487c95)
+
+running 1 test
+test links::discovery::order_tests::finishes_submodule_collection_before_descending_from_a_scan_root ... FAILED
+
+failures:
+
+---- links::discovery::order_tests::finishes_submodule_collection_before_descending_from_a_scan_root stdout ----
+
+thread 'links::discovery::order_tests::finishes_submodule_collection_before_descending_from_a_scan_root' (42537306) panicked at rust/cli/src/links/discovery/order_tests.rs:85:5:
+assertion `left == right` failed
+  left: 2
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::discovery::order_tests::finishes_submodule_collection_before_descending_from_a_scan_root
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 294 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

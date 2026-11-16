@@ -1,0 +1,699 @@
+    Blocking waiting for file lock on build directory
+   Compiling hyper v1.12.0
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling hyper-util v0.1.21
+   Compiling axum v0.8.9
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 29s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_keychain_file-7acc18b4fc877007)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-b2a81dd6f38b6084)
+
+running 4 tests
+test owner_only_reads_all_metadata_before_deciding ... ok
+test persists_long_names_and_fixed_failures ... ok
+test permissions_and_required ... ok
+test contract ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-9f19a55a66eb62b4)
+
+running 1 test
+test owner_only_keys_survive_new_adapter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_network_tailscale-f8eb6511e16e85f3)
+
+running 4 tests
+test serve::source_tests::schema_failure_keeps_cause ... ok
+test adapter::tests::command_stderr_uses_javascript_whitespace ... ok
+test adapter::stderr_tests::stderr_limit_counts_utf16_units ... ok
+test serve::tests::conflicts_and_invalid_schemas ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-d4444773b73697e4)
+
+running 4 tests
+test recorded_status_and_capped_serve_failure ... ok
+test schema_fallbacks_and_capped_command_errors ... ok
+test contract ... ok
+test exact_commands ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-63b4aeedac9fcadf)
+
+running 3 tests
+test unavailable_certificate_causes ... ok
+test conflict_never_publishes_or_changes_port_443 ... ok
+test recorded_status_and_commands ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_placement_fs-d2ae2c1909e08c01)
+
+running 4 tests
+test paths::tests::local_paths_preserve_unicode_format_characters ... ok
+test races::unlink_stays_anchored_after_parent_swap ... ok
+test races::exclusive_writes_and_nofollow_identity ... ok
+test races::rename_and_backup_stay_on_opened_directory_after_swap ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-5c6307daea8854dc)
+
+running 3 tests
+test temporary_exclude_and_permissions ... ok
+test link_contract ... ok
+test copy_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+     Running tests/escaping.rs (target/sweep/debug/deps/escaping-2d97135769286dd2)
+
+running 1 test
+test escaping_links_leave_targets_untouched ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-5ec225ea987f86e5)
+
+running 6 tests
+test inspect_propagates_store_stat_errors ... ok
+test removal_rejects_dangling_checkout_root ... ok
+test missing_store_leaves_regular_copy_detached_in_link_mode ... ok
+test retention_uses_names_instead_of_file_timestamps ... ok
+test linked_home_targets_and_exact_replacement_text ... ok
+test differing_bytes_require_backup_and_equal_bytes_use_injected_clock ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/paths.rs (target/sweep/debug/deps/paths-70789f27458fac41)
+
+running 2 tests
+test pulled_and_local_unicode_paths ... ok
+test backups_keep_bytes_names_modes_and_prune_only_expired_files ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/safety.rs (target/sweep/debug/deps/safety-6765ebe4b467294d)
+
+running 3 tests
+test removal_and_missing_store_inspection_preserve_unrelated_contents ... ok
+test copy_excludes_before_writing_and_replaces_only_its_leftover ... ok
+test backups_are_required_private_outside_and_not_repeated_for_equal_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+     Running tests/windows.rs (target/sweep/debug/deps/windows-d854c94031f13b6a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_repo_git-3baa1df2c4507fe7)
+
+running 11 tests
+test case::tests::probes_existing_spelling_and_listed_aliases ... ok
+test parity::ssh_only_executes_safe_option_terminated_hosts ... ok
+test parity::checkout_preserves_trusted_executable_failure ... ok
+test remote::tests::vectors ... ok
+test whitespace_tests::git_and_ssh_outputs_use_javascript_whitespace ... ok
+test batching_tests::remote_reads_rewrites_before_safe_directories ... ok
+test parity::global_execution_settings_are_ignored_but_safe_directories_survive ... ok
+test parity::every_read_command_disables_repository_fsmonitor ... ok
+test batching_tests::checkout_resolves_upstream_before_reading_directory_identity ... ok
+test batching_tests::discovery_batches_queries_with_one_global_configuration_read ... ok
+test parity::legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.58s
+
+     Running tests/checkout.rs (target/sweep/debug/deps/checkout-af732ca0d2f97ee1)
+
+running 1 test
+test sole_remote_alias_resolution_shared_worktrees_and_ambiguous_remotes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.55s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-d41a0b71d07177db)
+
+running 1 test
+test contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.61s
+
+     Running tests/discovery.rs (target/sweep/debug/deps/discovery-03d062af4654d414)
+
+running 1 test
+test discovery_skips_submodules_and_nested_clones_and_lists_user_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s
+
+     Running tests/excludes.rs (target/sweep/debug/deps/excludes-3122b5b77b92687e)
+
+running 4 tests
+test ignore_failure_preserves_original_git_exclude_bytes ... ok
+test invalid_utf8_exclude_bytes_are_preserved_when_appending ... ok
+test linked_gitignore_is_never_written ... ok
+test symlink_and_hardlink_excludes_preserve_exact_target_bytes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.83s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-83dbab81886ad9c9)
+
+running 4 tests
+test exact_remote_rejections ... ok
+test embedded_bare_repository_cannot_choose_identity ... ok
+test identities_follow_global_and_local_url_rewrites ... ok
+test escaping_and_case_probed_tracking ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.13s
+
+     Running tests/repo.rs (target/sweep/debug/deps/repo-6d28162634a14dfd)
+
+running 2 tests
+test unsafe_remotes_and_readonly_case ... ok
+test worktrees_skip_folders_and_private_excludes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.36s
+
+     Running tests/security.rs (target/sweep/debug/deps/security-87c413a63291c93c)
+
+running 3 tests
+test discovery_filters_templates_tracked_outputs_and_preserves_user_links ... ok
+test checkout_identity_errors_upstream_and_forged_worktree ... ok
+test exclude_preserves_symlinks_hardlinks_and_failed_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.58s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-b1a8ab27c91db523)
+
+running 12 tests
+test profile::home_tests::windows_profile_home_uses_userprofile ... ok
+test identity::tests::baseline_uses_path_timestamps_when_opened_timestamps_round ... ok
+test profile_tests::powershell_runner_and_redirected_profile ... ok
+test profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker ... ok
+test profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution ... ok
+test races::unexpected_errors_hide_private_shell_contents ... ok
+test races::concurrent_append_is_retained_as_conflict ... ok
+test profile_tests::bash_profile_decodes_invalid_utf8_like_node ... ok
+test races::readonly_replacement_preserves_mode_and_leaves_no_temporary ... ok
+test races::resolved_private_file_does_not_follow_swapped_checkout ... ok
+test races::swaps_never_copy_private_bytes_to_checkout ... ok
+test profile_tests::bash_login_profile_matrix ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running tests/behavior.rs (target/sweep/debug/deps/behavior-42dac1a3df2c13cc)
+
+running 4 tests
+test rendered_shell_compatibility_guards ... ok
+test install_validates_existing_rc_before_rendering_hook ... ok
+test bash_preserves_prompt_exit_status ... ok
+test bash_selects_login_profiles_and_respects_bashrc_sourcing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/bytes.rs (target/sweep/debug/deps/bytes-6d6a12a6853bd21d)
+
+running 2 tests
+test orphan_marker_keeps_user_lines ... ok
+test non_utf8_crlf_install_is_idempotent ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-92e0fceafa2934a1)
+
+running 2 tests
+test preserves_bytes_and_symlink ... ok
+test contracts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+     Running tests/editing.rs (target/sweep/debug/deps/editing-10006b9dad129c65)
+
+running 2 tests
+test hard_links_and_dangling_links ... ok
+test crlf_mode_orphans_and_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/execution.rs (target/sweep/debug/deps/execution-e5a9b57e371cc490)
+
+running 2 tests
+test track_offer_and_update_day_caches ... ok
+test approved_checkout_notices_and_sanitized_refresh ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.24s
+
+     Running tests/links.rs (target/sweep/debug/deps/links-a65f5401a25cf654)
+
+running 2 tests
+test edits_through_linked_folders_and_dangling_links ... ok
+test all_shells_edit_linked_targets_and_keep_private_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.68s
+
+     Running tests/render.rs (target/sweep/debug/deps/render-3d0808e4eb39d34b)
+
+running 2 tests
+test invalid_paths_are_typed_and_profile_resolution_is_lazy ... ok
+test typescript_vectors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/windows.rs (target/sweep/debug/deps/windows-b748c632734db820)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_storage_sqlite-cf760cf25a34e4fb)
+
+running 4 tests
+test blobs::objects::tests::crash_child ... ok
+test db::schema::tests::startup_uses_shared_access_helper_for_directory_and_database ... ok
+test db::schema::tests::connection_pragmas_match_typescript ... ok
+test blobs::objects::tests::process_exit_during_real_blob_write_leaves_no_visible_partial_object ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.17s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-56ce8832cfe67613)
+
+running 2 tests
+test blob_staging ... ok
+test storage ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.68s
+
+     Running tests/crash.rs (target/sweep/debug/deps/crash-dc7c06ce3ec78570)
+
+running 2 tests
+test child_write ... ok
+test abrupt_exit_does_not_publish_partial_objects ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+     Running tests/durability.rs (target/sweep/debug/deps/durability-36e9f8d7f29ee08c)
+
+running 5 tests
+test rejects_incompatible_versions ... ok
+test concurrent_connections_have_exactly_one_cas_winner ... ok
+test migrates_with_consistent_wal_backup ... ok
+test login_transaction_rolls_back_all_effects ... ok
+test startup_repairs_private_modes ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running tests/history.rs (target/sweep/debug/deps/history-c5420cadbaefd579)
+
+running 4 tests
+test restored_current_list_stays_pinned_after_header_only_import ... ok
+test over_quota_deletions_commit_but_new_content_does_not ... ok
+test unchanged_versions_do_not_pin_every_list ... ok
+test retained_lists_do_not_retain_other_files_pruned_blobs ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.71s
+
+     Running tests/limits.rs (target/sweep/debug/deps/limits-f6cb01cbf619e2f0)
+
+running 4 tests
+test quiet_period_resets_first_strike ... ok
+test successful_refund_resets_strikes_before_next_lockout ... ok
+test lockout_doubles_to_daily_cap_and_resets_after_success_or_quiet_period ... ok
+test expired_charges_and_strikes_are_pruned_across_buckets ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.11s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-3b666027e815545b)
+
+running 2 tests
+test exact_typescript_schema_and_pragmas ... ok
+test databases_are_readable_in_both_runtimes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s
+
+     Running tests/permissions.rs (target/sweep/debug/deps/permissions-70593fdf6c1c8ee9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/quota.rs (target/sweep/debug/deps/quota-d54001738b8c31f7)
+
+running 3 tests
+test preserves_reference_keyring_quota_check_order ... ok
+test swap_quota_rolls_back_creation_and_head ... ok
+test over_quota_metadata_operations_and_imports_match_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.83s
+
+     Running tests/recovery.rs (target/sweep/debug/deps/recovery-0d0d66749b61ccf3)
+
+running 4 tests
+test adopts_verified_orphans_removes_invalid_and_temporary_files ... ok
+test live_maintenance_prunes_expired_secrets_and_backups ... ok
+test failed_garbage_deletion_is_durable_and_retried ... ok
+test honors_pending_garbage_and_preserves_reuploads ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.75s
+
+     Running tests/shutdown.rs (target/sweep/debug/deps/shutdown-1c574ce73b0792d8)
+
+running 1 test
+test shutdown_matches_bun_checkpoint_sidecars_permissions_and_database_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running tests/storage_classes.rs (target/sweep/debug/deps/storage_classes-ed16183a7f48c081)
+
+running 1 test
+test sqlite_storage_classes_match_bun ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0ab084ca504190ae)
+
+running 292 tests
+test admin::repair::finish::tests::gaps_require_uploads_even_when_accepting_loss ... ok
+test admin::r#move::run::tests::resume_destination_must_match_saved_move ... ok
+test admin::repair::completion::lost::tests::missing_file_and_recovery_epoch_keys_return_the_ts_error ... ok
+test adapters::tests::missing_relative_home_resolves_from_the_working_directory ... ok
+test admin::r#move::credentials::tests::empty_saved_move_pin_requires_setup_token ... ok
+test admin::repair::tests::cases::missing_reports_identify_device_without_password_exchange ... ok
+test admin::repair::tests::abort::abort_move_holds_state_lock_during_history_requests ... ok
+test admin::repair::tests::cases::close_from_another_repair_is_discarded_without_network ... ok
+test admin::repair::tests::abort::abort_move_empty_pin_reports_missing_pin_before_discard ... ok
+test admin::repair::tests::cases::upload_saves_restore_evidence_and_signed_report ... ok
+test admin::repair::tests::cases::reused_token_refused_before_network ... ok
+test admin::repair::tests::cases::cached_blob_corruption_is_refused_before_upload ... ok
+test admin::repair::tests::cases::wrong_server_token_refused_without_network ... ok
+test admin::repair::tests::context::stored_entries_decode_before_stored_headers ... ok
+test admin::repair::tests::context::repair_context_only_decodes_local_entries ... ok
+test agent::install::tests::name_must_be_in_frontmatter ... ok
+test agent::service::generate::tests::quoting_and_ports ... ok
+test agent::service::install::tests::injected_effects_and_bootstrap_retries ... ok
+test admin::repair::tests::envelope::unreadable_cached_envelope_stops_before_second_history_read ... ok
+test agent::service::system::tests::service_errors_use_javascript_whitespace ... ok
+test admin::repair::tests::resume::empty_saved_repair_close_is_absent_without_network ... ok
+test client::minimum::tests::invalid_redirect_tag_uses_api_fallback ... ok
+test client::minimum::tests::relative_redirect_uses_github_origin ... ok
+test admin::shared::context::tests::pending_creation_allows_admin_context ... ok
+test client::tests::busy_retries_have_fresh_nonces_and_bounded_backoff ... ok
+test client::tests::errors_and_encoding_match_reference ... ok
+test client::tests::exact_body_query_signatures_and_locked_retry ... ok
+test client::tests::hello_rejects_wrong_pin_and_newer_minimum ... ok
+test client::tests::kit_required_never_unlocks_and_binary_transport_signs_bytes ... ok
+test client::tests::authenticated_success_clears_only_scoped_update_marker ... ok
+test client::wire::tests::malformed_error_json_uses_reference_message ... ok
+test client::wire::tests::non_redirect_three_hundred_status_is_a_server_response ... ok
+test agent::install::tests::install_refresh_and_refuse_other_skills ... ok
+test admin::repair::tests::cases::pre_command_remote_refresh_writes_notice_cache ... ok
+test commands::device::ls::tests::list_output ... ok
+test client::wire::tests::redirects_are_refused_except_for_manual_release_lookup ... ok
+test client::wire::tests::response_body_has_no_ten_mebibyte_limit ... ok
+test commands::onboarding::join::summary_tests::rejoin_omits_the_fresh_join_summary ... ok
+test agent::write_through::tests::preserves_existing_and_dangling_links ... ok
+test commands::maintenance::update::tests::captures_command_time_before_post_install ... ok
+test commands::onboarding::missing_setup_flags::tests::lists_every_unanswered_choice_without_terminal ... ok
+test commands::server::serve::tests::consumes_nonempty_token_only ... ok
+test commands::sync::resolve::tests::resolved_output_includes_placement_reports_before_backups ... ok
+test commands::sync::transfer::tests::push_conflict_kind_is_an_error_even_with_zero_conflicts ... ok
+test commands::sync::transfer::tests::reference_summaries ... ok
+test commands::sync::transfer::tests::unlock_retry_label ... ok
+test commands::sync::status::tests::display_uses_real_user_home_for_canonical_checkout_roots ... ok
+test commands::vault::output::tests::empty_output_path_uses_pdf_reporting ... ok
+test commands::vault::output::tests::missing_state_uses_hostname_for_the_replacement_kit ... ok
+test diagnostics::render::tests::doctor_text_and_json_match_report_fields ... ok
+test commands::onboarding::join::tests::existing_checkpoint_routes_to_rejoin ... ok
+test history::files::select::tests::checkout_selection_named_files_and_aliases ... ok
+test history::list::changes::tests::changes_compare_newest_to_next_older ... ok
+test history::list::render::tests::device_columns_are_padded_by_terminal_cells ... ok
+test history::restore::gate::tests::gate_matrix ... ok
+test diagnostics::probe::tests::doctor_probe_is_private ... ok
+test history::restore::refusal::tests::priority_matches_the_reference ... ok
+test history::versions::retained::tests::retained_lists_require_the_requested_hash ... ok
+test history::versions::walk::tests::oldest_listing_header_and_pruned_lists ... ok
+test home::tests::environment_home_does_not_probe_account_database ... ok
+test home::tests::home_precedence_matches_each_platform_without_touching_process_env ... ok
+test history::files::current::tests::detached_history_reads_placed_bytes_and_equal_bytes_are_not_detached ... ok
+test identity::name::suggested::tests::suggestions_match_reference ... ok
+test identity::name::unique::tests::unique_names_match_reference ... ok
+test links::alias::tests::alias_decisions ... ok
+test links::approval::tests::approval_binds_directory_remote_and_identity ... ok
+test links::checkout::bases::tests::removes_corrupt_marker_before_checkout_and_shared_bases ... ok
+test links::checkout::mode::tests::compose_detection_matches_javascript_dot_semantics ... ok
+test identity::tests::stored_identity_authenticates_secrets_and_record ... ok
+test identity::tests::fresh_join_replaces_orphan_keys_and_name ... ok
+test identity::tests::configured_state_refuses_missing_identity ... ok
+test links::checkout::worktree::tests::worktree_approval_matrix ... ok
+test links::discovery::folders::tests::scope_sensitive_skips ... ok
+test links::discovery::order_tests::adds_checkout_and_reports_progress_before_listing_related_checkouts ... ok
+test identity::tests::independent_keys_survive_reload_in_their_namespace ... ok
+test admin::repair::tests::notice::notice_deadline_starts_at_invocation_time ... ok
+test admin::repair::tests::notice::pre_command_discovers_and_marks_recovery_join_once ... ok
+test links::checkout::mode::tests::copy_mode_consent_defaults_to_no ... ok
+test links::file::choice::tests::disappearing_store_is_treated_as_absent_after_stat ... ok
+test links::fork::tests::an_existing_self_alias_suppresses_the_fork_offer ... ok
+test links::alias::persistence_tests::updates_preserve_aliases_and_rejections_preserve_state ... ok
+test links::file::tests::unresolved_foreign_link_target_is_lexically_normalized ... ok
+test links::file::tests::keeps_checkout_link_when_the_store_link_is_dangling ... ok
+test notice::current::tests::resolves_cwd_before_matching_approved_checkouts ... ok
+test notice::deadline::tests::requests_share_deadline_and_preserve_shorter_timeouts ... ok
+test notice::cleanup::tests::removes_old_binary_only_on_windows ... ok
+test links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink ... ok
+test notice::remote::tests::remote_notice_preserves_timestamp ... ok
+test onboarding::checkouts::rescan::tests::repeats_the_requested_roots_and_quotes_spaces ... ok
+test notice::cache::tests::local_and_remote_order_and_safe_roots ... ok
+test onboarding::complete::tests::first_sync_does_not_report ... ok
+test onboarding::decisions::tests::bare_hosts_and_invalid_addresses ... ok
+test onboarding::accept::tests::latest_membership_rejects_removed_device_and_changed_pin ... ok
+test onboarding::decisions::tests::preference_decisions ... ok
+test onboarding::kit_attempt::tests::pending_kit_only_ignores_missing_files ... ok
+test onboarding::complete::tests::completed_join_does_not_refresh_notice_again ... ok
+test onboarding::password::tests::retries_only_mismatches_and_rejects_empty_passwords ... ok
+test onboarding::join::tests::recovery_checks_local_vault_before_decoding_the_kit_vault ... ok
+test onboarding::scan_tests::checkout_setup_reloads_other_writers_state ... ok
+test onboarding::accept::tests::acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint ... ok
+test onboarding::vault::create::tests::already_created_returns_without_server_or_prompts ... ok
+test onboarding::vault::create::tests::kit_serializes_in_reference_order ... ok
+test onboarding::kit_attempt::tests::recovery_swap_is_verified_before_network ... ok
+test onboarding::vault::initial::tests::initial_push_reads_remote_before_trusting_local_checkpoint ... ok
+test onboarding::vault::initial_entries::tests::initial_entries_validate_names_before_reading_and_overwrite_duplicate_bases ... ok
+test links::checkout::tests::takeover_and_untrack_restore_the_original_foreign_link ... ok
+test onboarding::vault::pending::tests::missing_keys_skip_malformed_pending_creation ... ok
+test onboarding::vault::pending_kit::tests::kit_saved_strips_terminal_controls ... ok
+test onboarding::scan_tests::differing_worktrees_do_not_abort_unrelated_linking ... ok
+test onboarding::vault::pending_kit::tests::resumed_secret_uses_javascript_whitespace ... ok
+test onboarding::vault::preflight::tests::hosted_setup_defers_server_check_until_after_prompts ... ok
+test onboarding::vault::preflight::tests::server_failure_precedes_invalid_setup_token ... ok
+test onboarding::vault::token::tests::hosted_token_wins_and_explicit_tokens_are_validated_before_preflight ... ok
+test onboarding::vault::token::tests::piped_token_is_trimmed_and_validated ... ok
+test output::errors::tests::home_paths_resolve_relative_and_dotted_arguments ... ok
+test output::prompts::terminal::tests::input_repaints_do_not_repeat_the_prompt_header ... ok
+test output::prompts::terminal::tests::nonterminal_errors_are_actionable ... ok
+test output::render::sync::tests::summaries ... ok
+test output::sanitize::tests::strips_controls_and_bidi ... ok
+test output::telemetry::tests::child_environment_keeps_only_named_home_and_network_settings ... ok
+test onboarding::vault::add_swap::tests::retries_number_names_against_the_latest_list ... ok
+test pairing::approval::tests::directional_keys_zeroize_on_drop ... ok
+test pairing::exchange::pause_tests::pending_exchange_uses_injected_pause ... ok
+test pairing::exchange::tests::pairing_window_boundaries ... ok
+test pairing::joiner::tests::exchange_failure_before_saved_message_clears_any_error ... ok
+test links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories ... ok
+test pairing::joiner::tests::resume_preflight_errors_preserve_exchange ... ok
+test pairing::lock_tests::pairing_cleanup_holds_lock_over_key_and_file_deletion ... ok
+test pairing::response::tests::response_preserves_and_caps_expiry ... ok
+test program::help::tests::every_help_matches_commander ... ok
+test program::restore::tests::restore_version_uses_reference_grammar_and_js_number_rounding ... ok
+test report::content::arguments::tests::secret_and_password_flags ... ok
+test report::content::document::tests::fences_use_javascript_trailing_whitespace ... ok
+test report::content::document::tests::report_redacts_home_values_and_keeps_only_last_eighty_log_lines ... ok
+test report::content::issue::tests::command_title_and_encoded_body ... ok
+test report::content::redact::tests::all_secret_formats ... ok
+test report::offer::tests::terminal_agent_optout_and_conflicts ... ok
+test onboarding::vault::kit_resume::tests::resumed_kit_accepts_its_original_join_checkpoint ... ok
+test onboarding::vault::pending::tests::pending_requires_both_keys_and_matching_commit ... ok
+test onboarding::vault::pending_kit::tests::resumed_kit_must_match_pending_vault ... ok
+test settings::config::tests::reads_config_with_utf8_replacement ... ok
+test settings::request::tests::validates_whole_request_before_prompts ... ok
+test pairing::persistence::tests::committed_join_refuses_and_clears_abandoned_exchange ... ok
+test settings::tests::unlock_actions_validate_before_network ... ok
+test state::collections::tests::bigint_revival_rejects_digit_separators ... FAILED
+test state::collections::tests::tags_match_javascript_revival_and_reserialization ... ok
+test settings::config::tests::strict_defaults_and_private_save ... ok
+test state::files::tests::atomic_write_reports_cleanup_failure_before_original_failure ... ok
+test report::tests::run::report_agent_browser_decline_cancel_and_environment ... ok
+test state::files::tests::private_directory_applies_platform_access_restrictions ... ok
+test state::files::tests::optional_text_reads_replace_invalid_utf8 ... ok
+test state::files::tests::atomic_write_preserves_external_parent_permissions ... ok
+test state::files::tests::temporary_file_is_restricted_before_writing_or_renaming ... ok
+test state::lock::owner::tests::malformed_boot_identity_does_not_prove_a_reboot ... ok
+test state::lock::owner::tests::expired_reclaim_guard_does_not_block_recovery ... ok
+test state::lock::owner::tests::owner_reclaim_matrix ... ok
+test state::lock::reclaim::tests::disappeared_lock_is_left_for_acquisition_retry ... ok
+test state::lock::owner::tests::owner_accepts_reference_fractional_time_and_rejects_symlink_directory ... ok
+test state::lock::run::tests::failed_owner_identification_does_not_leave_a_lock ... ok
+test state::lock::owner::tests::exited_same_machine_owner_is_reclaimed ... ok
+test state::model::tests::configured_guard_uses_javascript_truthiness ... ok
+test state::lock::run::tests::nested_lock_normalizes_parent_components_before_observing ... ok
+test state::lock::run::tests::lock_directory_is_private_and_nested_calls_share_owner ... ok
+test state::repository::collection_tests::load_revives_collections_before_validating_state ... ok
+test state::repository::tests::restores_latest_from_update_cache_without_persisting_it ... ok
+test pairing::local::tests::local_opaque_exchange_derives_matching_directional_keys ... ok
+test status::file_state::tests::states_and_precedence ... ok
+test state::repository::tests::strict_format ... ok
+test status::reachability::tests::transport_and_protocol_errors_are_distinct ... ok
+test status::render::tests::reference_groups ... ok
+test sync::diff::tests::diff_selection_respects_approval_aliases_and_local_only ... ok
+test sync::diff::tests::renders_only_key_names_and_formatting_changes ... ok
+test status::local::tests::unconfigured_status_has_reference_shape ... ok
+test state::repository::header_error_tests::header_restore_preserves_specific_causes ... ok
+test sync::local::files::tests::byte_roundtrip_and_absence ... ok
+test state::repository::tests::roundtrip_and_header_integrity ... ok
+test sync::local::lineage::reasons::tests::held_back_priority_matches_reference ... ok
+test sync::local::reconciliation::decision::tests::absence_does_not_delete_local_edits ... ok
+test sync::local::files::tests::refuses_links_even_dangling ... ok
+test sync::engine::tests::piped_push_requires_yes_before_loading_state ... ok
+test sync::local::reconciliation::decision::tests::observed_reverts_conflict_before_detachment ... ok
+test sync::local::reconciliation::operation::guards::tests::written_places_cannot_revert ... ok
+test sync::local::conflicts::tests::missing_and_malformed_records ... ok
+test sync::local::reconciliation::sides::tests::a_copy_matching_the_server_is_not_an_edit ... ok
+test sync::local::reconciliation::sides::tests::absent_store_retains_a_changed_copy ... ok
+test sync::local::reconciliation::tests::reference_content_decisions ... ok
+test sync::local::reconciliation::tests::reference_copies_and_detached_versions ... ok
+test sync::local::reconciliation::tests::reference_store_decisions ... ok
+test sync::local::reconciliation::tests::reference_store_sources_and_conflict_gates ... ok
+test sync::local::reconciliation::tests::resolution::explicit_choices_preserve_selected_bytes_and_the_existing_default ... ok
+test sync::local::reconciliation::tests::resolution::merge_confirmation_matches_reference_reports ... ok
+test sync::local::reconciliation::tests::resolution::missing_baselines_and_noninteractive_choices_remain_conflicts ... ok
+test sync::local::reconciliation::tests::sides::owning_store_edit_is_independent_of_target_order ... ok
+test sync::local::reconciliation::tests::sides::all_6400_reachable_copy_states_match_the_design_reference ... ok
+test sync::remote::attempt::record::tests::attempt_header_and_decimal_sequence_match_typescript_schema ... ok
+test sync::local::validation::collisions::tests::later_aliases_and_directory_aliases_collide ... ok
+test settings::tests::placement_resolves_checkout_and_merges_config ... ok
+test sync::remote::attempt::record::tests::rejects_tampered_receipts_and_invalid_sequences ... ok
+test sync::remote::upload::places::tests::two_copies_keep_both_bases_but_link_targets_share_one ... ok
+test sync::remote::context::tests::unconfigured_context_refuses_before_keys_or_network ... ok
+test sync::remote::upload::retention::tests::deletion_preserves_copies_whose_bases_were_not_uploaded ... ok
+test sync::local::retention::tests::nested_expired_temps_are_removed_but_active_records_remain ... ok
+test sync::resolution::tests::matching_prefers_placed_file_over_bare_name ... ok
+test sync::resolution::tests::explicit_deletion_and_edit_guards ... ok
+test sync::remote::repairs::tests::pending_repairs_keep_first_seen_order_and_reject_corruption ... ok
+test sync::remote::attempt::record::tests::detects_corrupt_attempts_without_changing_records ... ok
+test sync::tests::attempts::attempts_directory_read_errors_are_ignored_like_typescript ... ok
+test sync::tests::attempts::only_one_invalid_suffix_is_stripped_from_attempt_names ... ok
+test sync::tests::author::author_lookup_propagates_file_list_read_failures ... ok
+test links::checkout::tests::placement_local_only_and_untrack_preserve_bytes ... ok
+test links::discovery::repos::tests::discovers_hidden_registered_worktrees_and_skips_vendor_clones ... ok
+test sync::tests::history_lock::history_holds_lock_through_network_reads ... ok
+test sync::tests::ancestry::restored_removal_targets_do_not_silently_skip_unsafe_symlinks ... ok
+test sync::tests::notice_clock::command_notice_freezes_remote_status_and_request_timestamps ... ok
+test sync::tests::move_follow::pull_follows_signed_move_before_reconciliation ... ok
+test sync::tests::join_choice::corrupt_state_preserves_the_reference_chooser_dispatch ... ok
+test sync::tests::join_choice::pending_repair_still_conflicts_after_a_local_choice ... ok
+test sync::tests::backup_notice::placement_backup_notice_uses_the_checkout_relative_path ... ok
+test sync::tests::prune::completed_sync_prunes_expired_placement_backups ... ok
+test session::tests::opaque_registration_login_retries_tickets_and_window ... ok
+test sync::tests::join_choice::initial_reconciliation_offers_a_choice_for_a_differing_regular_copy ... ok
+test sync::tests::operation::missing_target_is_unwritten_even_when_the_store_already_matches ... ok
+test sync::tests::push_counts_conflicts_outside_selected_repositories ... ok
+test sync::tests::repairs::repairs_report_lost_and_restored_paths ... ok
+test sync::tests::unlock::interactive_context_does_not_invent_an_unlock_callback ... ok
+test sync::tests::regressions::missing_unpublished_link_content_is_held_back ... ok
+test sync::tests::unlock::only_interactive_contexts_install_the_supplied_unlock_callback ... ok
+test sync::tests::unlock::sync_client_uses_the_supplied_clock ... ok
+test sync::tests::removal::removal_cleans_shared_bases ... ok
+test sync::tests::regressions::interrupted_placement_marks_completed_store_write ... ok
+test time::tests::formats_local_and_relative_times ... ok
+test ui::browser::tests::platform_commands_pass_url_as_argument ... ok
+test ui::routes::api::tests::unconfigured_status_unknown_routes_and_invalid_bodies ... ok
+test ui::routes::inputs::tests::restore_accepts_integer_json_numbers ... ok
+test ui::routes::inputs::tests::strict_route_inputs_reject_missing_extra_and_invalid_fields ... ok
+test ui::server::host::tests::loopback_only_and_exact_origin ... ok
+test sync::tests::regressions::aligned_conflicts ... ok
+test ui::server::tests::auth_host_origin_and_assets ... ok
+test sync::tests::regressions::repair_marker_is_consumed ... ok
+test ui::server::tests::rejects_requests_before_polling_the_body ... ok
+test ui::server::tests::request_routes_receive_method_query_and_body ... ok
+test ui::server::tests::routes_without_json_input_do_not_poll_request_bodies ... ok
+test sync::tests::regressions::detached_chooser ... ok
+test ui::server::token::tests::strict_bearer_and_fresh_random_token ... ok
+test ui::view::files::ordering_tests::repo_groups_follow_reference_locale_order ... ok
+test ui::view::files::tests::statuses_follow_precedence ... ok
+test ui::start::tests::requires_terminal_and_refuses_invalid_ports_before_listening ... ok
+test ui::view::status::tests::checkout_approvals_look_up_each_root_once_in_link_order ... ok
+test ui::view::status::tests::key_changes_omits_empty_conflict_key ... ok
+test ui::view::unlock::tests::server_status_overrides_recorded_expiry ... ok
+test updates::lock_tests::empty_retry_delays_never_wait_or_run_the_action ... ok
+test ui::view::held::tests::corrupt_attempt_holds_synced_files_and_skips_local_only ... ok
+test updates::maintenance::tests::refresh_passes_the_original_executable_to_installed_shells ... ok
+test updates::lock_tests::retry_delays_use_the_injected_wait_and_clock ... ok
+test updates::self_update::install::tests::explicit_method_does_not_read_marker ... ok
+test updates::self_update::install::tests::script_detection_resolves_parent_components_and_relative_paths ... ok
+test updates::self_update::execute::tests::npm_requires_node_execution_and_cli_read_access ... ok
+test updates::self_update::paths::tests::npm_cli_normalizes_repeated_separators ... ok
+test updates::self_update::paths::tests::stable_paths_and_release_variants ... ok
+test updates::self_update::paths::tests::pinned_paths_follow_ts_prefix_precedence ... ok
+test sync::tests::regressions::placement_writes_a_journal ... ok
+test updates::self_update::paths::tests::stable_scoop_paths_require_consistent_separators_and_ts_greediness ... ok
+test updates::self_update::install::tests::markers_detection_and_precedence ... ok
+test updates::tests::check_tests::expired_deadline_never_stamps_an_unsent_check ... ok
+test updates::self_update::run::tests::failed_post_install_uses_update_command_error ... ok
+test updates::tests::check_tests::expired_first_request_does_not_send_the_fallback ... ok
+test updates::tests::check_tests::one_deadline_bounds_both_release_requests ... ok
+test updates::tests::daily_cache_for_success_and_failure ... ok
+test updates::tests::malformed_stable_tags ... ok
+test updates::tests::public_redirect_and_api_fallback ... ok
+test updates::self_update::replace::tests::cleanup_failure_takes_precedence_over_verification_failure ... ok
+test updates::tests::verified_download_matrix ... ok
+test vault::admin::devices::tests::rename_matrix ... ok
+test updates::self_update::lock::tests::update_lock_conflicts_are_translated_only_before_acquisition ... ok
+test vault::join::material::tests::cached_headers_are_decoded_before_checkpoint_bytes ... ok
+test vault::join::tests::verified_state_encoding_preserves_chain_insertion_order ... ok
+test vault::recovery::input::source_tests::kit_parse_preserves_failure_source ... ok
+test vault::recovery::input::tests::kit_validation_matches_reference ... ok
+test updates::tests::first_check_cache_key_order_matches_javascript_mutation ... ok
+test vault::recovery::pdf::layout::tests::exact_pdf_lib_bytes ... ok
+test vault::recovery::output::tests::private_export_roundtrips_and_preserves_existing_files ... ok
+test vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters ... ok
+test vault::recovery::pdf::save::tests::private_unique_pdf_files_and_folder ... ok
+test vault::tests::genesis_builds_valid_chain_and_wrapped_keyring ... ok
+test vault::tests::unknown_history_is_authenticated_before_update_errors ... ok
+test updates::self_update::replace::tests::swap_and_rollback ... ok
+test sync::tests::upload::held_back_reporting_propagates_record_read_failures ... ok
+test sync::tests::upload::detached_upload_refuses_before_sending_content ... ok
+test sync::tests::upload::push_reports_files_held_for_approval_even_outside_selection ... ok
+test vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member ... ok
+test vault::join::tests::checkpoint_material_authenticates_keyring_and_requires_keys ... ok
+test vault::tests::creation_binds_the_envelope_manifest_and_recovery_kit ... ok
+
+failures:
+
+---- state::collections::tests::bigint_revival_rejects_digit_separators stdout ----
+
+thread 'state::collections::tests::bigint_revival_rejects_digit_separators' (42140352) panicked at rust/cli/src/state/collections.rs:121:9:
+assertion failed: revive(&mut json!({"$bigint":"1_0"})).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    state::collections::tests::bigint_revival_rejects_digit_separators
+
+test result: FAILED. 291 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.80s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

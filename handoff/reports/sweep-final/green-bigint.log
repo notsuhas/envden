@@ -1,0 +1,9 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.65s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0d418dbf4a487c95)
+
+running 1 test
+test state::collections::tests::bigint_revival_rejects_digit_separators ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 291 filtered out; finished in 0.00s
+

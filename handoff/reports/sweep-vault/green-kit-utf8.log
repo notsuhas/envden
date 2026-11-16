@@ -1,0 +1,52 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.90s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 254 filtered out; finished in 0.05s
+
+     Running unittests src/main.rs (target/sweep/debug/deps/envden-3d26f27bb5578984)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/dispatch_counts.rs (target/sweep/debug/deps/dispatch_counts-1bcca3b2c11e0db4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/help.rs (target/sweep/debug/deps/help-46452c8be467b7da)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.01s
+
+     Running tests/parser.rs (target/sweep/debug/deps/parser-b7cfa0eb0d5d9fe5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/resolve_approval.rs (target/sweep/debug/deps/resolve_approval-920b99ff69c06b9d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/shutdown.rs (target/sweep/debug/deps/shutdown-cf9ee622778a2cae)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/surface.rs (target/sweep/debug/deps/surface-08325a96e31faf5c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+

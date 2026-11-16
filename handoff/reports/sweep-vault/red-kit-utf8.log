@@ -1,0 +1,25 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.18s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters ... FAILED
+
+failures:
+
+---- vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters stdout ----
+
+thread 'vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters' (40807073) panicked at rust/cli/src/vault/recovery/read.rs:39:9:
+assertion `left == right` failed
+  left: "Can't read the recovery kit file"
+ right: "Not a recovery kit file"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    vault::recovery::read::tests::invalid_utf8_kit_is_parsed_with_replacement_characters
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 254 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

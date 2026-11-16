@@ -1,0 +1,91 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.97s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-8d0363103c74a7d6)
+
+running 12 tests
+test profile::home_tests::windows_profile_home_uses_userprofile ... ok
+test profile_tests::powershell_runner_and_redirected_profile ... ok
+test identity::tests::baseline_uses_path_timestamps_when_opened_timestamps_round ... ok
+test profile_tests::bash_profile_decodes_invalid_utf8_like_node ... ok
+test profile_tests::profiles_validate_output_prefer_existing_hook_and_cache_resolution ... ok
+test profile_tests::bash_candidate_errors_are_not_hidden_by_installed_marker ... ok
+test races::unexpected_errors_hide_private_shell_contents ... ok
+test races::readonly_replacement_preserves_mode_and_leaves_no_temporary ... ok
+test races::concurrent_append_is_retained_as_conflict ... ok
+test races::resolved_private_file_does_not_follow_swapped_checkout ... ok
+test races::swaps_never_copy_private_bytes_to_checkout ... ok
+test profile_tests::bash_login_profile_matrix ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/behavior.rs (target/sweep/debug/deps/behavior-0dba86ca0fa16a70)
+
+running 4 tests
+test install_validates_existing_rc_before_rendering_hook ... ok
+test rendered_shell_compatibility_guards ... ok
+test bash_preserves_prompt_exit_status ... ok
+test bash_selects_login_profiles_and_respects_bashrc_sourcing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/bytes.rs (target/sweep/debug/deps/bytes-1fac17ed0b6bd12a)
+
+running 2 tests
+test non_utf8_crlf_install_is_idempotent ... ok
+test orphan_marker_keeps_user_lines ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-9746f3d2f5485956)
+
+running 2 tests
+test preserves_bytes_and_symlink ... ok
+test contracts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s
+
+     Running tests/editing.rs (target/sweep/debug/deps/editing-2a39a3e63aeebd1d)
+
+running 2 tests
+test hard_links_and_dangling_links ... ok
+test crlf_mode_orphans_and_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/execution.rs (target/sweep/debug/deps/execution-f62f02b01e1befaf)
+
+running 2 tests
+test track_offer_and_update_day_caches ... ok
+test approved_checkout_notices_and_sanitized_refresh ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.49s
+
+     Running tests/links.rs (target/sweep/debug/deps/links-a28158680b56e2d3)
+
+running 2 tests
+test edits_through_linked_folders_and_dangling_links ... ok
+test all_shells_edit_linked_targets_and_keep_private_backups ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+     Running tests/render.rs (target/sweep/debug/deps/render-6b9c6f13438ffeb5)
+
+running 2 tests
+test typescript_vectors ... ok
+test invalid_paths_are_typed_and_profile_resolution_is_lazy ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/windows.rs (target/sweep/debug/deps/windows-256bc0ee2762f15c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests envden_adapter_shell_rc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

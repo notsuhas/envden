@@ -1,0 +1,10 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+   Compiling review-b2-probe v0.0.0 (/tmp/review-b2/probe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 21.95s
+     Running `/tmp/review-b2/target/debug/review-b2-probe`
+error: remote origin already exists.
+
+thread 'main' (38662813) panicked at src/main.rs:7:124:
+assertion failed: Command::new("git").arg("-C").arg(&root).args(["remote", "add", "origin",
+                        "https://github.com/test/review"]).status().unwrap().success()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

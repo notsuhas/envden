@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 38s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test vault::join::material::tests::cached_headers_are_decoded_before_checkpoint_bytes ... FAILED
+
+failures:
+
+---- vault::join::material::tests::cached_headers_are_decoded_before_checkpoint_bytes stdout ----
+
+thread 'vault::join::material::tests::cached_headers_are_decoded_before_checkpoint_bytes' (40590797) panicked at rust/cli/src/vault/join/material.rs:130:9:
+assertion `left == right` failed
+  left: "Invalid binary encoding"
+ right: "Truncated data"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    vault::join::material::tests::cached_headers_are_decoded_before_checkpoint_bytes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

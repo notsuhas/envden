@@ -1,0 +1,9 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.69s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-5a61f1c1701be785)
+
+running 1 test
+test vault::admin::tests::epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 213 filtered out; finished in 2.17s
+

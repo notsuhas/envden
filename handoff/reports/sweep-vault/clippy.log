@@ -1,0 +1,56 @@
+    Blocking waiting for file lock on build directory
+    Checking envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+    Checking hyper v1.12.0
+    Checking tower v0.5.3
+    Checking envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Checking rustls-webpki v0.103.17
+    Checking envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+    Checking ureq-proto v0.7.1
+    Checking phf v0.12.1
+    Checking signal-hook-mio v0.2.5
+    Checking flate2 v1.1.11
+    Checking webpki-roots v1.0.12
+    Checking utf8-zero v0.8.1
+    Checking nix v0.31.3
+    Checking chrono-tz v0.10.4
+    Checking crossterm v0.29.0
+    Checking rustls v0.23.46
+    Checking unicode-width v0.2.3
+    Checking hyper-util v0.1.21
+    Checking axum v0.8.9
+    Checking envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+    Checking envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+    Checking envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Checking envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+    Checking envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+    Checking envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+    Checking ureq v3.5.2
+    Checking envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+    Checking envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+error: this `if` statement can be collapsed
+   --> rust/cli/src/links/discovery/repos.rs:133:21
+    |
+133 | /                     if path != Path::new(&checkout.root) && path.starts_with(&checkout.root) {
+134 | |                         if let Ok(real) = path.canonicalize()
+135 | |                             && !excluded(&real, &excludes)
+136 | |                             && !visited.contains(&real)
+...   |
+149 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D clippy::all`
+    = help: to override `-D clippy::all` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+133 ~                     if path != Path::new(&checkout.root) && path.starts_with(&checkout.root)
+134 ~                         && let Ok(real) = path.canonicalize()
+135 |                             && !excluded(&real, &excludes)
+...
+147 |                             }
+148 ~                         }
+    |
+
+error: could not compile `envden-cli` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `envden-cli` (lib test) due to 1 previous error

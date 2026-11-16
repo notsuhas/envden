@@ -1,0 +1,37 @@
+     Locking 1 package to latest Rust 1.98.1 compatible version
+      Adding hpke v0.13.0 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/vendor/hpke)
+    Blocking waiting for file lock on build directory
+   Compiling hpke v0.13.0 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/vendor/hpke)
+   Compiling envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-repo-git v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/repo/git)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+warning: struct `Deadline` is never constructed
+ --> /Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli/src/updates/deadline.rs:5:19
+  |
+5 | pub(super) struct Deadline<'a> {
+  |                   ^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated items `new`, `sent`, and `remaining` are never used
+  --> /Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli/src/updates/deadline.rs:13:19
+   |
+12 | impl<'a> Deadline<'a> {
+   | --------------------- associated items in this implementation
+13 |     pub(super) fn new(fetcher: &'a dyn IFetcher, clock: &'a dyn Fn() -> u64) -> Self {
+   |                   ^^^
+...
+22 |     pub(super) fn sent(&self) -> bool {
+   |                   ^^^^
+...
+26 |     fn remaining(&self) -> Result<Duration> {
+   |        ^^^^^^^^^
+
+warning: `envden-cli` (lib) generated 2 warnings
+   Compiling review-b2-probe v0.0.0 (/tmp/review-b2/probe)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 44.68s
+     Running `/tmp/review-b2/target/debug/review-b2-probe`
+{"kind":"removed","path":".env","preserved":["/private/tmp/review-b2/rust-rm/home/conflicts/backups/1800000000000_4d93f380-434f-4d87-9e93-a61c2daa7e2c","/private/tmp/review-b2/rust-rm/home/conflicts/backups/1800000000000_4be59b8d-4a20-4c29-bdf5-43ddc6514fdc"],"backups":[{"source":"/tmp/review-b2/rust-rm/home/store/file","path":"/private/tmp/review-b2/rust-rm/home/conflicts/backups/1800000000000_4d93f380-434f-4d87-9e93-a61c2daa7e2c"},{"source":"/private/tmp/review-b2/rust-rm/repo/.env","path":"/private/tmp/review-b2/rust-rm/home/conflicts/backups/1800000000000_4be59b8d-4a20-4c29-bdf5-43ddc6514fdc"}],"publish":"none","skipped":[]}
+remaining bases ["KSYCQ9N1PJ9ZQV6B2TJP77T6HQNBGK0TZV3Z159F48WRSTW0FY80"]

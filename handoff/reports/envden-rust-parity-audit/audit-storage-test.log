@@ -1,0 +1,229 @@
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-adapter-storage-sqlite v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/storage/sqlite)
+warning: function `setup` is never used
+ --> rust/adapters/storage/sqlite/tests/support/mod.rs:4:8
+  |
+4 | pub fn setup() -> (tempfile::TempDir, SqliteStorageAdapter) {
+  |        ^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-adapter-storage-sqlite` (test "storage_classes") generated 1 warning
+warning: function `vault` is never used
+ --> rust/adapters/storage/sqlite/tests/support/mod.rs:9:8
+  |
+9 | pub fn vault(active: bool) -> IStoredVault {
+  |        ^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-adapter-storage-sqlite` (test "limits") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.46s
+     Running unittests src/lib.rs (target/audit-storage/debug/deps/envden_adapter_storage_sqlite-f752c239817a1050)
+
+running 3 tests
+test blobs::objects::tests::crash_child ... ok
+test db::schema::tests::connection_pragmas_match_typescript ... ok
+test blobs::objects::tests::process_exit_during_real_blob_write_leaves_no_visible_partial_object ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/contract.rs (target/audit-storage/debug/deps/contract-25b568b4d55e6152)
+
+running 2 tests
+test blob_staging ... ok
+test storage ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests/crash.rs (target/audit-storage/debug/deps/crash-77814a32717d97b9)
+
+running 2 tests
+test child_write ... ok
+test abrupt_exit_does_not_publish_partial_objects ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/durability.rs (target/audit-storage/debug/deps/durability-f80acd22e00e34ba)
+
+running 5 tests
+test rejects_incompatible_versions ... ok
+test concurrent_connections_have_exactly_one_cas_winner ... ok
+test startup_repairs_private_modes ... ok
+test login_transaction_rolls_back_all_effects ... ok
+test migrates_with_consistent_wal_backup_and_replaces_partial_backup ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/history.rs (target/audit-storage/debug/deps/history-c809c53adc28b42c)
+
+running 4 tests
+test restored_current_list_stays_pinned_after_header_only_import ... ok
+test unchanged_versions_do_not_pin_every_list ... ok
+test over_quota_deletions_commit_but_new_content_does_not ... ok
+test retained_lists_do_not_retain_other_files_pruned_blobs ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running tests/limits.rs (target/audit-storage/debug/deps/limits-801985dbdeb674fc)
+
+running 4 tests
+test successful_refund_resets_strikes_before_next_lockout ... ok
+test quiet_period_resets_first_strike ... ok
+test lockout_doubles_to_daily_cap_and_resets_after_success_or_quiet_period ... ok
+test expired_charges_and_strikes_are_pruned_across_buckets ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+
+     Running tests/parity.rs (target/audit-storage/debug/deps/parity-a49afa9390da32bf)
+
+running 2 tests
+test exact_typescript_schema_and_pragmas ... ok
+test databases_are_readable_in_both_runtimes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s
+
+     Running tests/permissions.rs (target/audit-storage/debug/deps/permissions-22c6637f3cec6323)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quota.rs (target/audit-storage/debug/deps/quota-bc5a29de49232eae)
+
+running 3 tests
+test swap_quota_rolls_back_creation_and_head ... ok
+test preserves_reference_keyring_quota_check_order ... ok
+test over_quota_metadata_operations_and_imports_match_reference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s
+
+     Running tests/recovery.rs (target/audit-storage/debug/deps/recovery-56f9931aed32f6e0)
+
+running 4 tests
+test live_maintenance_prunes_expired_secrets_and_backups ... ok
+test failed_garbage_deletion_is_durable_and_retried ... ok
+test adopts_verified_orphans_removes_invalid_and_temporary_files ... ok
+test honors_pending_garbage_and_preserves_reuploads ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+     Running tests/storage_classes.rs (target/audit-storage/debug/deps/storage_classes-9de0e0dc64b76eba)
+
+running 1 test
+test sqlite_storage_classes_match_bun ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running unittests src/lib.rs (target/audit-storage/debug/deps/envden_testing-e8735ed1da85da29)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/adapters.rs (target/audit-storage/debug/deps/adapters-5285f4f22c3968e4)
+
+running 1 test
+test adapter_crates_have_contract_suites ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/commit.rs (target/audit-storage/debug/deps/commit-913cf0c1df42cf0b)
+
+running 1 test
+test commit_preconditions_throw_typed_errors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fakes.rs (target/audit-storage/debug/deps/fakes-5a0b21326d9bbc4c)
+
+running 65 tests
+test keychain::keychain_delete_is_strict ... ok
+test keychain::keychain_get_is_strict ... ok
+test keychain::keychain_owner_only_is_strict ... ok
+test keychain::keychain_set_is_strict ... ok
+test network::network_check_https_certificate_is_strict ... ok
+test network::network_expose_is_strict ... ok
+test network::network_status_is_strict ... ok
+test placement::placement_inspect_is_strict ... ok
+test placement::placement_place_is_strict ... ok
+test placement::placement_remove_is_strict ... ok
+test placement::placement_supported_is_strict ... ok
+test repo::repo_case_insensitive_is_strict ... ok
+test repo::repo_ensure_ignored_is_strict ... ok
+test repo::repo_env_files_is_strict ... ok
+test repo::repo_is_ignored_is_strict ... ok
+test repo::repo_checkout_at_is_strict ... ok
+test repo::repo_worktrees_is_strict ... ok
+test shell::shell_hook_snippet_is_strict ... ok
+test shell::shell_hook_snippet_preserves_typed_errors ... ok
+test shell::shell_installed_is_strict ... ok
+test shell::shell_install_is_strict ... ok
+test repo::repo_submodules_is_strict ... ok
+test shell::shell_rc_path_is_strict ... ok
+test shell::shell_uninstall_is_strict ... ok
+test storage::storage_cap_unlocks_is_strict ... ok
+test storage::storage_close_is_strict ... ok
+test storage::storage_commit_swap_is_strict ... ok
+test storage::storage_configure_vault_is_strict ... ok
+test storage::storage_find_committed_is_strict ... ok
+test storage::storage_has_blob_is_strict ... ok
+test storage::storage_has_vault_is_strict ... ok
+test storage::storage_discard_inactive_vault_is_strict ... ok
+test storage::storage_headers_for_files_is_strict ... ok
+test storage::storage_head_is_strict ... ok
+test storage::storage_headers_is_strict ... ok
+test storage::storage_transaction_is_strict ... ok
+test storage::storage_vault_ids_is_strict ... ok
+test storage::storage_vault_is_strict ... ok
+test storage_queries::storage_approver_is_strict ... ok
+test storage_queries::storage_close_mailbox_is_strict ... ok
+test storage_queries::storage_device_is_strict ... ok
+test storage_queries::storage_entries_is_strict ... ok
+test storage_queries::storage_file_list_is_strict ... ok
+test storage_queries::storage_header_is_strict ... ok
+test storage_queries::storage_put_device_is_strict ... ok
+test storage_queries::storage_put_file_list_is_strict ... ok
+test storage_queries::storage_remember_nonce_is_strict ... ok
+test storage_queries::storage_state_is_strict ... ok
+test storage_queries::storage_write_mailbox_is_strict ... ok
+test storage_queries::storage_states_is_strict ... ok
+test storage_queries::storage_write_state_is_strict ... ok
+test storage_state::storage_blob_hashes_is_strict ... ok
+test storage_state::storage_charge_is_strict ... ok
+test storage_state::storage_consume_session_is_strict ... ok
+test storage_state::storage_get_blob_is_strict ... ok
+test storage_state::storage_mailbox_is_strict ... ok
+test storage_state::storage_open_mailbox_is_strict ... ok
+test storage_state::storage_prune_is_strict ... ok
+test storage_state::storage_put_session_is_strict ... ok
+test storage_state::storage_put_blob_is_strict ... ok
+test storage_state::storage_session_is_strict ... ok
+test storage_state::storage_refund_is_strict ... ok
+test storage_state::storage_set_setup_token_is_strict ... ok
+test storage_state::storage_setup_token_is_strict ... ok
+test storage_state::storage_vault_usage_is_strict ... ok
+
+test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/memory.rs (target/audit-storage/debug/deps/memory-468bdbcb04ee5e7d)
+
+running 3 tests
+test memory_keychain_contract ... ok
+test memory_adapters_require_explicit_operations_and_roll_back ... ok
+test memory_storage_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests envden_adapter_storage_sqlite
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_testing
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

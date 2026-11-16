@@ -1,0 +1,18 @@
+
+running 1 test
+test links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink ... FAILED
+
+failures:
+
+---- links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink stdout ----
+
+thread 'links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink' (40649342) panicked at rust/cli/src/links/prune.rs:80:9:
+assertion failed: state["approved"].as_array().unwrap().is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::prune::tests::parent_existence_uses_lstat_even_for_a_dangling_symlink
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.11s
+

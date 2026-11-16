@@ -1,0 +1,2 @@
+ts UNAUTHORIZED Pairing code expired or already used. Run envden device add for a new one
+rust NOT_FOUND Pairing code expired or already used. Run envden device add for a new one

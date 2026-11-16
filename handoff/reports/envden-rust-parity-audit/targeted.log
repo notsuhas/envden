@@ -1,0 +1,291 @@
+   Compiling envden-protocol v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/protocol)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.78s
+     Running unittests src/lib.rs (target/audit/debug/deps/envden_adapter_placement_fs-c48902eddbafc2d6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/audit/debug/deps/contract-51f1b606d84bdb2b)
+
+running 3 tests
+test temporary_exclude_and_permissions ... ok
+test link_contract ... ok
+test copy_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/paths.rs (target/audit/debug/deps/paths-3e35eb3e5507abe5)
+
+running 2 tests
+test pulled_and_local_unicode_paths ... ok
+test backups_keep_bytes_names_modes_and_prune_only_expired_files ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/safety.rs (target/audit/debug/deps/safety-c6773b3f837cf252)
+
+running 3 tests
+test removal_and_missing_store_inspection_preserve_unrelated_contents ... ok
+test copy_excludes_before_writing_and_replaces_only_its_leftover ... ok
+test backups_are_required_private_outside_and_not_repeated_for_equal_bytes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/windows.rs (target/audit/debug/deps/windows-90964cf74d729dc7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/audit/debug/deps/envden_protocol-2669e61a893b7b88)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/boundaries.rs (target/audit/debug/deps/boundaries-6e8d0cdb326bb534)
+
+running 3 tests
+test semver_rejects_each_noncanonical_component ... ok
+test integer_slices_sizes_lists_and_utf8_match_typescript ... ok
+test portable_file_identity_checks_every_reference_path ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/boxes.rs (target/audit/debug/deps/boxes-513848aaffe95062)
+
+running 5 tests
+test keyring_checks_all_commits_identity_and_nested_epochs ... ok
+test pair_messages_reject_cross_type_wrong_keys_and_oversize ... ok
+test file_boxes_bind_every_context_field_and_identity ... ok
+test hpke_rejects_low_order_wrong_key_commit_and_ciphertext ... ok
+test envelope_rejects_wrong_password_secret_and_vault ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.66s
+
+     Running tests/chain.rs (target/audit/debug/deps/chain-69355d547f9eb2bb)
+
+running 7 tests
+test rename_and_repair::rename_is_self_only_and_unique ... ok
+test files_and_unknown::changed_files_and_recovery_decisions ... ok
+test rename_and_repair::moves_and_repair_ids ... ok
+test devices::genesis_epoch_and_entry_bindings ... ok
+test files_and_unknown::unknown_data_order_and_future_formats ... ok
+test devices::epochs_reject_wrong_recipients_and_numbers ... ok
+test devices::additions_removal_and_reuse ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/codecs.rs (target/audit/debug/deps/codecs-604f18d3e06917f7)
+
+running 2 tests
+test malformed_members_future_formats_and_ordering ... ok
+test every_payload_and_structured_codec_roundtrips ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/construction.rs (target/audit/debug/deps/construction-4ede283376148e15)
+
+running 4 tests
+test json_schema_strictness_and_limits ... ok
+test opaque_message_identity_and_shape_rejections ... ok
+test pairing_codes_and_directional_keys ... ok
+test request_time_replay_binding_and_hello ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/device_validation.rs (target/audit/debug/deps/device_validation-17ad47a166e9ab5d)
+
+running 1 test
+test genesis_first_epoch_and_device_addition_require_valid_context ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/encoding.rs (target/audit/debug/deps/encoding-5d3ccadfbfe0f3d0)
+
+running 4 tests
+test padding_rejects_nonzero_excess_and_unaligned_data ... ok
+test strings_match_js_normalization_and_categories ... ok
+test reader_rejects_truncation_limits_options_and_unknown_formats ... ok
+test crockford_round_trips_and_rejects_noncanonical_text ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/file_transitions.rs (target/audit/debug/deps/file_transitions-8c573c5f4c50690f)
+
+running 1 test
+test transitions_retain_ids_increase_versions_and_bind_names_and_epochs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/foundation_vectors.rs (target/audit/debug/deps/foundation_vectors-4e929f3c1830da96)
+
+running 3 tests
+test published_primitive_vectors ... ok
+test protocol_key_identifiers_signatures_and_kdfs ... ok
+test strict_key_signature_and_path_rejections ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/gate_one.rs (target/audit/debug/deps/gate_one-56fe4e982f38a598)
+
+running 3 tests
+test known_answers::remaining_known_answers ... ok
+test compositions::protocol_compositions ... ok
+test opaque_states::opaque_stored_states ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.99s
+
+     Running tests/manifests.rs (target/audit/debug/deps/manifests-da5f1df78a7a28ee)
+
+running 3 tests
+test operation_matrix_constraints ... ok
+test swap_roundtrip_and_rename_authorization ... ok
+test accepts_descending_signed_manifests_and_preserves_source_errors ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/membership.rs (target/audit/debug/deps/membership-ba65cf792d50d2fa)
+
+running 1 test
+test member_removal_rollback_repair_drop_and_fork ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/repair.rs (target/audit/debug/deps/repair-b30eb13b6a8546bc)
+
+running 2 tests
+test reports_bind_member_repair_vault_and_known_header ... ok
+test unknown_formats_are_verified_over_original_bytes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/swaps.rs (target/audit/debug/deps/swaps-466e80cea5be0b81)
+
+running 2 tests
+test move_destination_and_repair_registration_bindings ... ok
+test every_operation_accepts_exact_payload_and_rejects_absent_or_extra_fields ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.05s
+
+     Running unittests src/lib.rs (target/audit/debug/deps/envden_testing-7146da912aa904f0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/adapters.rs (target/audit/debug/deps/adapters-197b79213c6710f8)
+
+running 1 test
+test adapter_crates_have_contract_suites ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/commit.rs (target/audit/debug/deps/commit-f4e2b091a78acbb6)
+
+running 1 test
+test commit_preconditions_throw_typed_errors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fakes.rs (target/audit/debug/deps/fakes-a6b273bbba2f6f4e)
+
+running 65 tests
+test network::network_check_https_certificate_is_strict ... ok
+test keychain::keychain_set_is_strict ... ok
+test keychain::keychain_owner_only_is_strict ... ok
+test keychain::keychain_delete_is_strict ... ok
+test network::network_expose_is_strict ... ok
+test network::network_status_is_strict ... ok
+test placement::placement_inspect_is_strict ... ok
+test keychain::keychain_get_is_strict ... ok
+test placement::placement_place_is_strict ... ok
+test placement::placement_remove_is_strict ... ok
+test placement::placement_supported_is_strict ... ok
+test repo::repo_case_insensitive_is_strict ... ok
+test repo::repo_checkout_at_is_strict ... ok
+test repo::repo_env_files_is_strict ... ok
+test repo::repo_is_ignored_is_strict ... ok
+test repo::repo_submodules_is_strict ... ok
+test shell::shell_hook_snippet_is_strict ... ok
+test shell::shell_hook_snippet_preserves_typed_errors ... ok
+test shell::shell_install_is_strict ... ok
+test shell::shell_installed_is_strict ... ok
+test shell::shell_rc_path_is_strict ... ok
+test shell::shell_uninstall_is_strict ... ok
+test repo::repo_ensure_ignored_is_strict ... ok
+test storage::storage_cap_unlocks_is_strict ... ok
+test storage::storage_close_is_strict ... ok
+test repo::repo_worktrees_is_strict ... ok
+test storage::storage_commit_swap_is_strict ... ok
+test storage::storage_configure_vault_is_strict ... ok
+test storage::storage_has_vault_is_strict ... ok
+test storage::storage_discard_inactive_vault_is_strict ... ok
+test storage::storage_head_is_strict ... ok
+test storage::storage_headers_for_files_is_strict ... ok
+test storage::storage_headers_is_strict ... ok
+test storage::storage_find_committed_is_strict ... ok
+test storage::storage_transaction_is_strict ... ok
+test storage::storage_has_blob_is_strict ... ok
+test storage::storage_vault_ids_is_strict ... ok
+test storage::storage_vault_is_strict ... ok
+test storage_queries::storage_approver_is_strict ... ok
+test storage_queries::storage_close_mailbox_is_strict ... ok
+test storage_queries::storage_device_is_strict ... ok
+test storage_queries::storage_entries_is_strict ... ok
+test storage_queries::storage_file_list_is_strict ... ok
+test storage_queries::storage_header_is_strict ... ok
+test storage_queries::storage_put_device_is_strict ... ok
+test storage_queries::storage_put_file_list_is_strict ... ok
+test storage_queries::storage_remember_nonce_is_strict ... ok
+test storage_queries::storage_state_is_strict ... ok
+test storage_queries::storage_states_is_strict ... ok
+test storage_queries::storage_write_mailbox_is_strict ... ok
+test storage_queries::storage_write_state_is_strict ... ok
+test storage_state::storage_blob_hashes_is_strict ... ok
+test storage_state::storage_charge_is_strict ... ok
+test storage_state::storage_consume_session_is_strict ... ok
+test storage_state::storage_get_blob_is_strict ... ok
+test storage_state::storage_open_mailbox_is_strict ... ok
+test storage_state::storage_mailbox_is_strict ... ok
+test storage_state::storage_prune_is_strict ... ok
+test storage_state::storage_put_blob_is_strict ... ok
+test storage_state::storage_put_session_is_strict ... ok
+test storage_state::storage_refund_is_strict ... ok
+test storage_state::storage_session_is_strict ... ok
+test storage_state::storage_set_setup_token_is_strict ... ok
+test storage_state::storage_setup_token_is_strict ... ok
+test storage_state::storage_vault_usage_is_strict ... ok
+
+test result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/memory.rs (target/audit/debug/deps/memory-918980ad98f52070)
+
+running 3 tests
+test memory_adapters_require_explicit_operations_and_roll_back ... ok
+test memory_keychain_contract ... ok
+test memory_storage_contract ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_adapter_placement_fs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests envden_testing
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,18 @@
+
+running 1 test
+test links::checkout::bases::tests::removes_corrupt_marker_before_checkout_and_shared_bases ... FAILED
+
+failures:
+
+---- links::checkout::bases::tests::removes_corrupt_marker_before_checkout_and_shared_bases stdout ----
+
+thread 'links::checkout::bases::tests::removes_corrupt_marker_before_checkout_and_shared_bases' (40542233) panicked at rust/cli/src/links/checkout/bases.rs:55:9:
+assertion failed: checkout.exists()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::checkout::bases::tests::removes_corrupt_marker_before_checkout_and_shared_bases
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 244 filtered out; finished in 0.07s
+

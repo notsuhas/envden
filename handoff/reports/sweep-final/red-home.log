@@ -1,0 +1,24 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.44s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 1 test
+test output::errors::tests::home_paths_resolve_relative_and_dotted_arguments ... FAILED
+
+failures:
+
+---- output::errors::tests::home_paths_resolve_relative_and_dotted_arguments stdout ----
+
+thread 'output::errors::tests::home_paths_resolve_relative_and_dotted_arguments' (41752479) panicked at rust/cli/src/output/errors.rs:41:9:
+assertion `left == right` failed
+  left: "~/../other"
+ right: "/home/me/../other"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    output::errors::tests::home_paths_resolve_relative_and_dotted_arguments
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 281 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

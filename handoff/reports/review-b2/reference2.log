@@ -1,0 +1,30 @@
+bun test v1.4.0 (34cbb9a40)
+
+../../../../../../private/tmp/review-b2/reference.test.ts:
+{
+  repair: false,
+  result: {
+    changed: 1,
+    conflicts: 0,
+  },
+  chooser: 1,
+  store: "A=1\n",
+}
+{
+  repair: true,
+  result: {
+    changed: 0,
+    conflicts: 1,
+  },
+  chooser: 0,
+  store: "A=1\nB=0\n",
+}
+aligned conflict {
+  changed: 0,
+  conflicts: 0,
+}
+(pass) TS detached chooser and mandatory repair conflict [7825.31ms]
+
+ 1 pass
+ 0 fail
+Ran 1 test across 1 file. [8.22s]

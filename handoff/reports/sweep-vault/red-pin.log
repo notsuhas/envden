@@ -1,0 +1,22 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.97s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+
+thread 'admin::repair::tests::cases::abort_move_empty_pin_reports_missing_pin_before_discard' (40472228) panicked at rust/cli/src/admin/repair/tests/cases.rs:236:5:
+assertion `left == right` failed
+  left: "Wrong byte length"
+ right: "Missing move pin"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test admin::repair::tests::cases::abort_move_empty_pin_reports_missing_pin_before_discard ... FAILED
+
+failures:
+
+failures:
+    admin::repair::tests::cases::abort_move_empty_pin_reports_missing_pin_before_discard
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 236 filtered out; finished in 0.31s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

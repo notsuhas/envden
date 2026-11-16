@@ -1,0 +1,819 @@
+diff --git a/parity/catalog.ts b/parity/catalog.ts
+index 2a036b1..23343ab 100644
+--- a/parity/catalog.ts
++++ b/parity/catalog.ts
+@@ -1,3 +1,4 @@
++import localFileChoice from "./scenarios/onboarding/local-file-choice.ts";
+ import rejoin from "./scenarios/onboarding/rejoin.ts";
+ import hostHere from "./scenarios/onboarding/host-here.ts";
+ import onboardingOptions from "./scenarios/onboarding/options.ts";
+@@ -31,6 +32,7 @@ if (
+   throw new Error("Host shims require a disposable GitHub runner");
+ 
+ export const scenarios = [
++  localFileChoice,
+   rejoin,
+   ...(process.env.PARITY_HOST_SHIMS === "1" ? [hostHere] : []),
+   onboardingOptions,
+diff --git a/parity/scenarios/files/options.ts b/parity/scenarios/files/options.ts
+index 70c4d5a..cf50e30 100644
+--- a/parity/scenarios/files/options.ts
++++ b/parity/scenarios/files/options.ts
+@@ -1,5 +1,6 @@
++import { sha256, base32 } from "@envden/core/protocol";
+ import { join } from "node:path";
+-import { writeFile } from "node:fs/promises";
++import { readFile, access, writeFile } from "node:fs/promises";
+ import { setup } from "../../harness/onboarding.ts";
+ import type { IScenario } from "../../harness/types.ts";
+ 
+@@ -27,7 +28,16 @@ export default {
+     const restore = c.pty("device-a", ["history", ".env", "--restore", "1"]);
+     await restore.expect("?", "y");
+     await c.finish("device-a", "history restore confirmation", restore);
++    const home = d.env.ENVDEN_HOME!;
++    const state = JSON.parse(await readFile(join(home, "state/device.json"), "utf8"));
++    const store = state.links.find((link: { path: string }) => link.path === ".env").store;
++    const base = join(home, "base", base32(sha256(new TextEncoder().encode(store))));
++    await access(base);
++    await writeFile(base + ".corrupt", "corrupt");
+     await c.run("device-a", ["rm", ".env", "--yes"]);
++    for (const path of [base, base + ".corrupt"]) {
++      if (await Bun.file(path).exists()) throw new Error("Removal left a shared base or corrupt marker");
++    }
+     await c.run("device-a", ["untrack", d.checkout]);
+     const track = c.pty("device-a", ["track", d.checkout, "--copy", "--verbose"]);
+     await track.expect("Sync env files for these checkouts", "\r");
+diff --git a/parity/scenarios/files/resolution.ts b/parity/scenarios/files/resolution.ts
+index 1b26a6c..5aa656b 100644
+--- a/parity/scenarios/files/resolution.ts
++++ b/parity/scenarios/files/resolution.ts
+@@ -1,5 +1,5 @@
+ import { join } from "node:path";
+-import { realpath, writeFile } from "node:fs/promises";
++import { realpath, writeFile, unlink } from "node:fs/promises";
+ import { setup, recoveryJoin } from "../../harness/onboarding.ts";
+ import type { IScenario } from "../../harness/types.ts";
+ 
+@@ -31,5 +31,23 @@ export default {
+       await c.run("device-b", ["push", "--yes"]);
+       await c.run("device-a", ["pull", "--yes"]);
+     }
++
++    const checkout = c.get("device-b").checkout;
++    await writeFile(join(checkout, ".env"), "TOKEN=store-edit\n");
++    await unlink(join(checkout, ".env"));
++    await writeFile(join(checkout, ".env"), "TOKEN=detached-edit\n");
++    const detached = c.pty("device-b", ["pull", "--yes"]);
++    await detached.expect(/Keep mine[\s\S]*Take server[\s\S]*Merge/, "\r");
++    await c.finish("device-b", "detached keep mine", detached);
++    await c.run("device-b", ["push", "--yes"]);
++    await c.run("device-a", ["pull", "--yes"]);
++
++    await writeFile(join(c.get("device-a").checkout, ".env"), "TOKEN=aligned-server\n");
++    await writeFile(join(checkout, ".env"), "TOKEN=aligned-local\n");
++    await c.run("device-a", ["push", "--yes"]);
++    await c.run("device-b", ["pull", "--yes"], 3);
++    await writeFile(join(checkout, ".env"), "TOKEN=aligned-server\n");
++    await c.run("device-b", ["pull", "--yes"]);
++    await c.run("device-b", ["resolve", "--list", "--json"]);
+   },
+ } satisfies IScenario;
+diff --git a/parity/scenarios/onboarding/locked-session.ts b/parity/scenarios/onboarding/locked-session.ts
+index da1321d..9b58d05 100644
+--- a/parity/scenarios/onboarding/locked-session.ts
++++ b/parity/scenarios/onboarding/locked-session.ts
+@@ -1,3 +1,5 @@
++import { Database } from "bun:sqlite";
++import { join } from "node:path";
+ import { setup, password } from "../../harness/onboarding.ts";
+ import type { IScenario } from "../../harness/types.ts";
+ 
+@@ -6,6 +8,7 @@ export default {
+   roles: ["server", "device-a"],
+   async run(c) {
+     await setup(c);
++    const database = join(c.servers[0]!.data, "envden.sqlite");
+     const period = c.pty("device-a", ["config", "unlock-period", "1d"]);
+     await period.expect("Master password", `${password}\r`);
+     await c.finish("device-a", "shortest unlock period", period);
+@@ -18,6 +21,13 @@ export default {
+     const unlock = c.pty("device-a", ["unlock"]);
+     await unlock.expect("Master password", `${password}\r`);
+     await c.finish("device-a", "unlock after failures", unlock);
+-    await c.run("device-a", ["push", "--all", "--yes", "--json"]);
++    for (const command of ["push", "pull"]) {
++      const db = new Database(database);
++      db.run("UPDATE devices SET unlocked=0, fresh=0");
++      db.close();
++      const sync = c.pty("device-a", [command, "--all", "--yes", "--json"]);
++      await sync.expect("Master password", `${password}\r`);
++      await c.finish("device-a", `${command} unlock and retry`, sync);
++    }
+   },
+ } satisfies IScenario;
+diff --git a/rust/adapters/storage/sqlite/src/adapter/implementation.rs b/rust/adapters/storage/sqlite/src/adapter/implementation.rs
+index 4fcaf4e..7996e5d 100644
+--- a/rust/adapters/storage/sqlite/src/adapter/implementation.rs
++++ b/rust/adapters/storage/sqlite/src/adapter/implementation.rs
+@@ -1,4 +1,5 @@
+ use super::SqliteStorageAdapter;
++use super::forwarding::forward;
+ use envden_core::{adapters::*, errors::Result};
+ 
+ impl IStorageAdapter for SqliteStorageAdapter {
+@@ -18,217 +19,73 @@ impl IStorageAdapter for SqliteStorageAdapter {
+         self.atomic(run)?;
+         self.collect_garbage()
+     }
+-    fn vault_ids(&self) -> Result<Vec<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::vault_ids(self)
+-    }
+-    fn cap_unlocks(&self, vault_id: &[u8], until: u64) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::cap_unlocks(self, vault_id, until)
+-    }
+-    fn has_vault(&self, vault_id: &[u8]) -> Result<bool> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::has_vault(self, vault_id)
+-    }
+-    fn vault(&self, vault_id: &[u8]) -> Result<Option<IStoredVault>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::vault(self, vault_id)
+-    }
+-    fn configure_vault(
+-        &self,
+-        vault_id: &[u8],
++    forward!(vault_ids() -> Result<Vec<Vec<u8>>>);
++    forward!(cap_unlocks(vault_id: &[u8], until: u64) -> Result<()>);
++    forward!(has_vault(vault_id: &[u8]) -> Result<bool>);
++    forward!(vault(vault_id: &[u8]) -> Result<Option<IStoredVault>>);
++    forward!(configure_vault(vault_id: &[u8],
+         state: &IStoredVault,
+         writes: &[IStateWrite],
+-        setup_token_hash: Option<&[u8]>,
+-    ) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::configure_vault(self, vault_id, state, writes, setup_token_hash)
+-    }
+-    fn discard_inactive_vault(&self, vault_id: &[u8]) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::discard_inactive_vault(self, vault_id)
+-    }
+-    fn find_committed(&self, vault_id: &[u8], digest: &[u8]) -> Result<bool> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::find_committed(self, vault_id, digest)
+-    }
+-    fn has_blob(&self, vault_id: &[u8], hash: &[u8]) -> Result<bool> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::has_blob(self, vault_id, hash)
+-    }
+-    fn head(&self, vault_id: &[u8]) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::head(self, vault_id)
+-    }
+-    fn commit_swap(
+-        &self,
+-        vault_id: &[u8],
++        setup_token_hash: Option<&[u8]>,) -> Result<()>);
++    forward!(discard_inactive_vault(vault_id: &[u8]) -> Result<()>);
++    forward!(find_committed(vault_id: &[u8], digest: &[u8]) -> Result<bool>);
++    forward!(has_blob(vault_id: &[u8], hash: &[u8]) -> Result<bool>);
++    forward!(head(vault_id: &[u8]) -> Result<Option<Vec<u8>>>);
++    forward!(commit_swap(vault_id: &[u8],
+         expected_head: Option<&[u8]>,
+         swap: &IStoredSwap,
+-        now: u64,
+-    ) -> Result<TCommitResult> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::commit_swap(self, vault_id, expected_head, swap, now)
+-    }
+-    fn headers(
+-        &self,
+-        vault_id: &[u8],
++        now: u64,) -> Result<TCommitResult>);
++    forward!(headers(vault_id: &[u8],
+         from_seq: u64,
+         to_seq: u64,
+         limit: Option<usize>,
+-        max_bytes: Option<usize>,
+-    ) -> Result<Vec<IStoredHeader>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::headers(self, vault_id, from_seq, to_seq, limit, max_bytes)
+-    }
+-    fn headers_for_files(&self, vault_id: &[u8], hash: &[u8]) -> Result<Vec<IStoredHeader>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::headers_for_files(self, vault_id, hash)
+-    }
+-    fn header(&self, vault_id: &[u8], hash: &[u8]) -> Result<Option<IStoredHeader>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::header(self, vault_id, hash)
+-    }
+-    fn entries(
+-        &self,
+-        vault_id: &[u8],
++        max_bytes: Option<usize>,) -> Result<Vec<IStoredHeader>>);
++    forward!(headers_for_files(vault_id: &[u8], hash: &[u8]) -> Result<Vec<IStoredHeader>>);
++    forward!(header(vault_id: &[u8], hash: &[u8]) -> Result<Option<IStoredHeader>>);
++    forward!(entries(vault_id: &[u8],
+         from_seq: u64,
+         to_seq: u64,
+         limit: Option<usize>,
+-        max_bytes: Option<usize>,
+-    ) -> Result<Vec<IStoredHeader>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::entries(self, vault_id, from_seq, to_seq, limit, max_bytes)
+-    }
+-    fn put_file_list(&self, vault_id: &[u8], files: &IStoredFiles, now: u64) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::put_file_list(self, vault_id, files, now)
+-    }
+-    fn file_list(&self, vault_id: &[u8], hash: &[u8]) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::file_list(self, vault_id, hash)
+-    }
+-    fn state(&self, vault_id: &[u8], kind: TStateKind, key: &[u8]) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::state(self, vault_id, kind, key)
+-    }
+-    fn states(&self, vault_id: &[u8], kind: TStateKind) -> Result<Vec<IStateEntry>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::states(self, vault_id, kind)
+-    }
+-    fn write_state(&self, vault_id: &[u8], writes: &[IStateWrite]) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::write_state(self, vault_id, writes)
+-    }
+-    fn device(&self, vault_id: &[u8], device: &[u8]) -> Result<Option<IStoredDevice>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::device(self, vault_id, device)
+-    }
+-    fn put_device(&self, vault_id: &[u8], device: &[u8], state: &IStoredDevice) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::put_device(self, vault_id, device, state)
+-    }
+-    fn put_blob(
+-        &self,
+-        vault_id: &[u8],
++        max_bytes: Option<usize>,) -> Result<Vec<IStoredHeader>>);
++    forward!(put_file_list(vault_id: &[u8], files: &IStoredFiles, now: u64) -> Result<()>);
++    forward!(file_list(vault_id: &[u8], hash: &[u8]) -> Result<Option<Vec<u8>>>);
++    forward!(state(vault_id: &[u8], kind: TStateKind, key: &[u8]) -> Result<Option<Vec<u8>>>);
++    forward!(states(vault_id: &[u8], kind: TStateKind) -> Result<Vec<IStateEntry>>);
++    forward!(write_state(vault_id: &[u8], writes: &[IStateWrite]) -> Result<()>);
++    forward!(device(vault_id: &[u8], device: &[u8]) -> Result<Option<IStoredDevice>>);
++    forward!(put_device(vault_id: &[u8], device: &[u8], state: &IStoredDevice) -> Result<()>);
++    forward!(put_blob(vault_id: &[u8],
+         hash: &[u8],
+         bytes: &[u8],
+         verify: Option<TVerifyBlob<'_>>,
+         now: Option<u64>,
+-        quota_bytes: Option<u64>,
+-    ) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::put_blob(self, vault_id, hash, bytes, verify, now, quota_bytes)
+-    }
+-    fn get_blob(&self, vault_id: &[u8], hash: &[u8]) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::get_blob(self, vault_id, hash)
+-    }
+-    fn blob_hashes(&self, vault_id: &[u8]) -> Result<Vec<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::blob_hashes(self, vault_id)
+-    }
+-    fn vault_usage(&self, vault_id: &[u8]) -> Result<u64> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::vault_usage(self, vault_id)
+-    }
+-    fn prune(&self, vault_id: &[u8], policy: &IHistoryPolicy, now: u64) -> Result<IPruneResult> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::prune(self, vault_id, policy, now)
+-    }
+-    fn setup_token(&self) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::setup_token(self)
+-    }
+-    fn set_setup_token(&self, hash: &[u8]) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::set_setup_token(self, hash)
+-    }
+-    fn put_session(
+-        &self,
+-        vault_id: &[u8],
++        quota_bytes: Option<u64>,) -> Result<()>);
++    forward!(get_blob(vault_id: &[u8], hash: &[u8]) -> Result<Option<Vec<u8>>>);
++    forward!(blob_hashes(vault_id: &[u8]) -> Result<Vec<Vec<u8>>>);
++    forward!(vault_usage(vault_id: &[u8]) -> Result<u64>);
++    forward!(prune(vault_id: &[u8], policy: &IHistoryPolicy, now: u64) -> Result<IPruneResult>);
++    forward!(setup_token() -> Result<Option<Vec<u8>>>);
++    forward!(set_setup_token(hash: &[u8]) -> Result<()>);
++    forward!(put_session(vault_id: &[u8],
+         key: &ISessionKey,
+         bytes: &[u8],
+-        now: u64,
+-    ) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::put_session(self, vault_id, key, bytes, now)
+-    }
+-    fn session(&self, vault_id: &[u8], key: &ISessionKey, now: u64) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::session(self, vault_id, key, now)
+-    }
+-    fn consume_session(
+-        &self,
+-        vault_id: &[u8],
++        now: u64,) -> Result<()>);
++    forward!(session(vault_id: &[u8], key: &ISessionKey, now: u64) -> Result<Option<Vec<u8>>>);
++    forward!(consume_session(vault_id: &[u8],
+         key: &ISessionKey,
+-        now: u64,
+-    ) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::consume_session(self, vault_id, key, now)
+-    }
+-    fn charge(&self, vault_id: &[u8], bucket: &TRateBucket, now: u64) -> Result<TRateCharge> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::charge(self, vault_id, bucket, now)
+-    }
+-    fn refund(&self, receipt: &str, now: u64) -> Result<bool> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::refund(self, receipt, now)
+-    }
+-    fn open_mailbox(
+-        &self,
+-        vault_id: &[u8],
++        now: u64,) -> Result<Option<Vec<u8>>>);
++    forward!(charge(vault_id: &[u8], bucket: &TRateBucket, now: u64) -> Result<TRateCharge>);
++    forward!(refund(receipt: &str, now: u64) -> Result<bool>);
++    forward!(open_mailbox(vault_id: &[u8],
+         device: &[u8],
+-        now: u64,
+-    ) -> Result<Option<IStoredMailbox>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::open_mailbox(self, vault_id, device, now)
+-    }
+-    fn mailbox(&self, vault_id: &[u8], number: u64, now: u64) -> Result<Option<IStoredMailbox>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::mailbox(self, vault_id, number, now)
+-    }
+-    fn write_mailbox(
+-        &self,
+-        vault_id: &[u8],
++        now: u64,) -> Result<Option<IStoredMailbox>>);
++    forward!(mailbox(vault_id: &[u8], number: u64, now: u64) -> Result<Option<IStoredMailbox>>);
++    forward!(write_mailbox(vault_id: &[u8],
+         number: u64,
+         slot: TMailboxSlot,
+         bytes: &[u8],
+-        now: u64,
+-    ) -> Result<TMailboxWrite> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::write_mailbox(self, vault_id, number, slot, bytes, now)
+-    }
+-    fn close_mailbox(&self, vault_id: &[u8], number: u64) -> Result<()> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::close_mailbox(self, vault_id, number)
+-    }
+-    fn approver(&self, vault_id: &[u8], device: &[u8], now: u64) -> Result<Option<Vec<u8>>> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::approver(self, vault_id, device, now)
+-    }
+-    fn remember_nonce(&self, device: &[u8], nonce: &[u8], now: u64) -> Result<bool> {
+-        let _guard = self.gate.lock();
+-        SqliteStorageAdapter::remember_nonce(self, device, nonce, now)
+-    }
++        now: u64,) -> Result<TMailboxWrite>);
++    forward!(close_mailbox(vault_id: &[u8], number: u64) -> Result<()>);
++    forward!(approver(vault_id: &[u8], device: &[u8], now: u64) -> Result<Option<Vec<u8>>>);
++    forward!(remember_nonce(device: &[u8], nonce: &[u8], now: u64) -> Result<bool>);
+ }
+diff --git a/rust/adapters/storage/sqlite/src/adapter/mod.rs b/rust/adapters/storage/sqlite/src/adapter/mod.rs
+index fa6a147..a91b0f4 100644
+--- a/rust/adapters/storage/sqlite/src/adapter/mod.rs
++++ b/rust/adapters/storage/sqlite/src/adapter/mod.rs
+@@ -2,3 +2,5 @@ mod factory;
+ mod implementation;
+ 
+ pub use factory::{SqliteStorageAdapter, create_sqlite_storage_adapter};
++
++mod forwarding;
+diff --git a/rust/cli/src/commands/sync/transfer.rs b/rust/cli/src/commands/sync/transfer.rs
+index 47171a1..ce1dfe7 100644
+--- a/rust/cli/src/commands/sync/transfer.rs
++++ b/rust/cli/src/commands/sync/transfer.rs
+@@ -19,8 +19,8 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
+             crate::session::login(
+                 client,
+                 vault_id,
+-                crate::session::TPassword::Prompt(&mut |_| {
+-                    crate::output::prompts::secret("Master password", |_| None)
++                crate::session::TPassword::Prompt(&mut |retry| {
++                    crate::output::prompts::secret(unlock_prompt(retry), |_| None)
+                 }),
+                 envden_protocol::protocol::TLoginPurpose::Unlock,
+             )
+@@ -41,6 +41,14 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
+     Ok(())
+ }
+ 
++fn unlock_prompt(retry: bool) -> &'static str {
++    if retry {
++        "Wrong master password. Try again"
++    } else {
++        "Master password"
++    }
++}
++
+ fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
+     let verb = if pushing { "Pushed" } else { "Pulled" };
+     let moved = (changed > 0).then(|| {
+@@ -71,6 +79,12 @@ fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++    #[test]
++    fn unlock_retry_label() {
++        assert_eq!(unlock_prompt(false), "Master password");
++        assert_eq!(unlock_prompt(true), "Wrong master password. Try again");
++    }
++
+     #[test]
+     fn reference_summaries() {
+         assert_eq!(sync_text(true, 0, 0), "Nothing to push");
+diff --git a/rust/cli/src/onboarding/accept_tests.rs b/rust/cli/src/onboarding/accept_tests.rs
+index c77ae3a..d1df403 100644
+--- a/rust/cli/src/onboarding/accept_tests.rs
++++ b/rust/cli/src/onboarding/accept_tests.rs
+@@ -143,6 +143,29 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
+             .code,
+         ErrorCode::Fork
+     );
++    let context = crate::admin::shared::context::IAdminContext {
++        adapters: &adapters,
++        local: json!({"server":{"address":"http://server.test"}}),
++        identity: identity.clone(),
++        vault_id: history.state.vault_id,
++        client: crate::client::create_client(client.options.clone()),
++    };
++    let swap = p::ISwap {
++        expected_head: [0; 32],
++        entries: vec![],
++        header: history.headers[0].clone(),
++        files: None,
++        keyring: None,
++        envelope: None,
++        sk_pub: None,
++        opaque_record: None,
++        approver: None,
++    };
++    let error = crate::state::lock::with_state_lock(&adapters.home, 42, || {
++        crate::vault::admin::commit::accept(&context, &swap, &history)
++    })
++    .unwrap_err();
++    assert_eq!(error.code, ErrorCode::Fork);
+     assert_eq!(
+         crate::state::repository::load_state(&adapters.home)
+             .unwrap()
+diff --git a/rust/cli/src/program/mod.rs b/rust/cli/src/program/mod.rs
+index 0465f74..4c71d3d 100644
+--- a/rust/cli/src/program/mod.rs
++++ b/rust/cli/src/program/mod.rs
+@@ -9,3 +9,5 @@ pub use parser::parse;
+ mod dispatch;
+ pub use dispatch::{DefaultActions, DefaultHooks, ICommandActions, ICommandHooks, dispatch};
+ mod validation;
++
++mod finish;
+diff --git a/rust/cli/src/program/parser.rs b/rust/cli/src/program/parser.rs
+index 5b253db..2c89aca 100644
+--- a/rust/cli/src/program/parser.rs
++++ b/rust/cli/src/program/parser.rs
+@@ -1,6 +1,5 @@
+-use super::suggestions::suggest;
+-use super::validation::{defaults, error, validate};
+-use super::{ICommand, IInvocation, TParseResult};
++use super::validation::{defaults, error};
++use super::{ICommand, TParseResult};
+ use serde_json::Value;
+ use std::collections::VecDeque;
+ 
+@@ -147,86 +146,5 @@ pub fn parse<'a>(root: &'a ICommand, args: &[String]) -> TParseResult<'a> {
+         }
+         positional.push(token);
+     }
+-    if help {
+-        return TParseResult::Help(command, false);
+-    }
+-    if let Some(flag) = unknown.first() {
+-        let candidates = parents
+-            .iter()
+-            .rev()
+-            .flat_map(|c| &c.options)
+-            .filter_map(|o| o.long.clone())
+-            .collect();
+-        return error(
+-            command,
+-            format!(
+-                "error: unknown option '{flag}'{}",
+-                if flag.starts_with("--") {
+-                    suggest(flag, candidates)
+-                } else {
+-                    String::new()
+-                }
+-            ),
+-        );
+-    }
+-    if !command.commands.is_empty() && !command.action {
+-        if let Some(name) = positional.first() {
+-            let mut candidates: Vec<String> = command
+-                .commands
+-                .iter()
+-                .filter(|c| !c.hidden)
+-                .flat_map(|c| std::iter::once(c.name.clone()).chain(c.aliases.first().cloned()))
+-                .collect();
+-            candidates.push("help".into());
+-            return error(
+-                command,
+-                format!(
+-                    "error: unknown command '{name}'{}",
+-                    suggest(name, candidates)
+-                ),
+-            );
+-        }
+-        return TParseResult::Help(command, true);
+-    }
+-    for (i, arg) in command.arguments.iter().enumerate() {
+-        if arg.required && positional.get(i).is_none() {
+-            return error(
+-                command,
+-                format!("error: missing required argument '{}'", arg.name),
+-            );
+-        }
+-    }
+-    let expected = command.arguments.len();
+-    if positional.len() > expected && !command.arguments.last().is_some_and(|a| a.variadic) {
+-        let suffix = if command.path.is_empty() {
+-            String::new()
+-        } else {
+-            format!(" for '{}'", command.name)
+-        };
+-        return error(
+-            command,
+-            format!(
+-                "error: too many arguments{suffix}. Expected {expected} argument{} but got {}: {}.",
+-                if expected == 1 { "" } else { "s" },
+-                positional.len(),
+-                positional.join(", ")
+-            ),
+-        );
+-    }
+-    if let Some(message) = validate(command, &positional, &options) {
+-        return error(command, message);
+-    }
+-    if command.name == "track" && positional.is_empty() {
+-        positional.push(
+-            std::env::current_dir()
+-                .unwrap_or_default()
+-                .to_string_lossy()
+-                .into_owned(),
+-        );
+-    }
+-    TParseResult::Action(IInvocation {
+-        command,
+-        arguments: positional,
+-        options,
+-    })
++    super::finish::finish(command, &parents, positional, options, unknown, help)
+ }
+diff --git a/rust/cli/src/sync/remote/attempt/mod.rs b/rust/cli/src/sync/remote/attempt/mod.rs
+index 2066636..d2b5268 100644
+--- a/rust/cli/src/sync/remote/attempt/mod.rs
++++ b/rust/cli/src/sync/remote/attempt/mod.rs
+@@ -1 +1,4 @@
+ pub mod record;
++
++pub(super) mod blocked;
++pub(super) mod notices;
+diff --git a/rust/cli/src/sync/remote/attempt/record/acknowledge.rs b/rust/cli/src/sync/remote/attempt/record/acknowledge.rs
+index 1cf6f03..5485204 100644
+--- a/rust/cli/src/sync/remote/attempt/record/acknowledge.rs
++++ b/rust/cli/src/sync/remote/attempt/record/acknowledge.rs
+@@ -1,10 +1,7 @@
+ use super::{application::apply, codec::decode};
+ use crate::{
+     client::text,
+-    state::{
+-        files::{atomic_write, failure},
+-        records::recover_sync_record,
+-    },
++    state::{files::atomic_write, records::recover_sync_record},
+     sync::{
+         local::{
+             files::{base_path, write_bytes},
+@@ -19,19 +16,17 @@ use std::fs;
+ 
+ pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
+     let directory = context.adapters.home.join("state/attempts");
+-    let names = match fs::read_dir(&directory) {
+-        Ok(names) => names,
+-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+-        Err(e) => return Err(failure(e)),
+-    };
++    let names = fs::read_dir(&directory)
++        .and_then(|names| {
++            names
++                .map(|name| name.map(|entry| entry.file_name()))
++                .collect::<std::io::Result<Vec<_>>>()
++        })
++        .unwrap_or_default();
+     let mut attempts = Vec::new();
+     for name in names {
+-        let name = name
+-            .map_err(failure)?
+-            .file_name()
+-            .to_string_lossy()
+-            .into_owned();
+-        let receipt = name.trim_end_matches(".invalid");
++        let name = name.to_string_lossy().into_owned();
++        let receipt = name.strip_suffix(".invalid").unwrap_or(&name);
+         if receipt.len() != 43
+             || !receipt
+                 .bytes()
+@@ -76,7 +71,7 @@ pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
+             write_bytes(&marker, None, (context.options.now)())?;
+         }
+     }
+-    attempts.sort_by_key(|(_, a)| a.sequence.parse::<u64>().unwrap_or_default());
++    attempts.sort_by_key(|(_, a)| a.sequence.parse::<u128>().unwrap_or_default());
+     for (path, attempt) in attempts {
+         let accepted = context
+             .headers
+@@ -86,8 +81,8 @@ pub fn acknowledge(context: &ISyncContext<'_>) -> Result<()> {
+             apply(context, &attempt)?;
+         }
+         if accepted
+-            || context.checkpoint.header.body.seq
+-                >= attempt.sequence.parse::<u64>().unwrap_or_default()
++            || u128::from(context.checkpoint.header.body.seq)
++                >= attempt.sequence.parse::<u128>().unwrap_or_default()
+         {
+             write_bytes(&path, None, (context.options.now)())?;
+         }
+diff --git a/rust/cli/src/sync/tests/mod.rs b/rust/cli/src/sync/tests/mod.rs
+index cc8e7c8..7fe66b5 100644
+--- a/rust/cli/src/sync/tests/mod.rs
++++ b/rust/cli/src/sync/tests/mod.rs
+@@ -54,4 +54,6 @@ mod support;
+ 
+ mod join_choice;
+ 
++mod attempts;
+ 
++mod upload;
+diff --git a/rust/cli/src/ui/routes/api.rs b/rust/cli/src/ui/routes/api.rs
+index 746f8a8..0ff806c 100644
+--- a/rust/cli/src/ui/routes/api.rs
++++ b/rust/cli/src/ui/routes/api.rs
+@@ -94,7 +94,7 @@ pub fn api(
+                 options,
+                 transport,
+                 input["path"].as_str().unwrap(),
+-                input["version"].as_u64().unwrap(),
++                input["version"].as_f64().unwrap() as u64,
+             )?
+         }
+         _ => return Ok(None),
+diff --git a/rust/cli/src/ui/routes/inputs.rs b/rust/cli/src/ui/routes/inputs.rs
+index 22184f7..4b2fcac 100644
+--- a/rust/cli/src/ui/routes/inputs.rs
++++ b/rust/cli/src/ui/routes/inputs.rs
+@@ -14,8 +14,8 @@ pub fn parse<'a>(
+     for key in keys {
+         let valid = if *key == "version" {
+             object[*key]
+-                .as_u64()
+-                .is_some_and(|v| v > 0 && v <= 9_007_199_254_740_991)
++                .as_f64()
++                .is_some_and(|v| v.fract() == 0.0 && v > 0.0 && v <= 9_007_199_254_740_991.0)
+         } else {
+             object[*key].as_str().is_some_and(|v| {
+                 !v.is_empty() && v.encode_utf16().count() <= if *key == "name" { 256 } else { 4096 }
+diff --git a/rust/cli/src/vault/admin/commit.rs b/rust/cli/src/vault/admin/commit.rs
+index d781803..3a0353c 100644
+--- a/rust/cli/src/vault/admin/commit.rs
++++ b/rust/cli/src/vault/admin/commit.rs
+@@ -1,6 +1,5 @@
+ use crate::{
+     admin::shared::context::IAdminContext,
+-    session::record_unlock_window,
+     state::files::atomic_write,
+     vault::history::{IVaultHistory, read_history},
+ };
+@@ -64,42 +63,29 @@ pub fn commit(context: &IAdminContext<'_>, swap: &p::ISwap) -> Result<()> {
+ }
+ 
+ pub fn accept(context: &IAdminContext<'_>, swap: &p::ISwap, history: &IVaultHistory) -> Result<()> {
+-    let mut local = context.local.clone();
+-    record_unlock_window(&context.client, &mut local)?;
+-    let material = crate::vault::join::checkpoint_material(context.adapters, &local)?;
+-    let mut sync = crate::sync::remote::context::ISyncContext {
+-        adapters: context.adapters,
+-        options: crate::sync::remote::context::ISyncOptions {
+-            now: || 0,
+-            cwd: None,
+-            all: false,
+-            yes: false,
+-            interactive: false,
+-            choose: None,
+-            confirm: None,
+-            report: None,
+-        },
+-        state: local,
+-        skipped_roots: Default::default(),
+-        identity: context.identity.clone(),
+-        vault_id: context.vault_id,
+-        client: crate::client::create_client(context.client.options.clone()),
+-        headers: material.headers,
+-        entries: material.entries,
+-        keys: material.keys,
+-        checkpoint: material.checkpoint,
+-    };
+-    crate::sync::remote::accept::accept_head(
+-        &mut sync,
+-        Some(IVaultHistory {
+-            entries: history.entries.clone(),
+-            headers: history.headers.clone(),
+-            state: history.state.clone(),
+-            states: history.states.clone(),
+-        }),
+-        false,
++    let server = context
++        .local
++        .get("server")
++        .filter(|v| !v.is_null())
++        .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, "Missing server configuration"))?;
++    let mut options = context.client.options.clone();
++    options.address = server["address"].as_str().unwrap_or_default().into();
++    options.pin = history.state.server_pin;
++    let client = crate::client::create_client(options);
++    let hash = p::object_hash(
++        history
++            .headers
++            .last()
++            .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Missing manifest history"))?,
++        "manifest",
++    )?;
++    crate::onboarding::accept::accept(
++        context.adapters,
++        &client,
++        &context.identity,
++        history,
++        &hash,
+     )?;
+-    crate::sync::remote::persist::persist_checkpoint(&mut sync)?;
+     if let Some(envelope) = &swap.envelope {
+         atomic_write(
+             &context.adapters.home.join("state/envelope.bin"),
+diff --git a/rust/server/src/lifecycle/tests/transport.rs b/rust/server/src/lifecycle/tests/transport.rs
+index 8710ff1..48c07a3 100644
+--- a/rust/server/src/lifecycle/tests/transport.rs
++++ b/rust/server/src/lifecycle/tests/transport.rs
+@@ -2,6 +2,25 @@ use super::*;
+ 
+ #[tokio::test]
+ async fn accept_errors_do_not_end_listener() {
++    if std::env::var_os("ENVDEN_TEST_ACCEPT_CHILD").is_none() {
++        let output = std::process::Command::new(std::env::current_exe().unwrap())
++            .args([
++                "--exact",
++                "lifecycle::transport::tests::accept_errors_do_not_end_listener",
++                "--nocapture",
++            ])
++            .env("ENVDEN_TEST_ACCEPT_CHILD", "1")
++            .output()
++            .unwrap();
++        assert!(output.status.success());
++        assert!(
++            output.stderr.is_empty(),
++            "{}",
++            String::from_utf8_lossy(&output.stderr)
++        );
++        return;
++    }
++
+     let (stop, receive) = oneshot::channel();
+     let mut stop = Some(stop);
+     let mut first = true;
+diff --git a/rust/server/src/lifecycle/transport.rs b/rust/server/src/lifecycle/transport.rs
+index 516ba2d..b6abb6e 100644
+--- a/rust/server/src/lifecycle/transport.rs
++++ b/rust/server/src/lifecycle/transport.rs
+@@ -47,7 +47,6 @@ where
+                 let stream = match result {
+                     Ok(stream) => stream,
+                     Err(error) => {
+-                        eprintln!("envden accept failed: {:?}", error.kind());
+                         // ENFILE and EMFILE share these values on supported Unix platforms.
+                         if matches!(error.raw_os_error(), Some(23 | 24)) {
+                             let (ready, wait) = oneshot::channel();

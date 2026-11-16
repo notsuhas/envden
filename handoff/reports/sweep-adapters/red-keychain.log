@@ -1,0 +1,34 @@
+    Blocking waiting for file lock on build directory
+   Compiling generic-array v0.14.7
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 44.89s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_keychain_file-d4b82dd64a88f114)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/sweep/debug/deps/contract-0439c7a9262ec254)
+
+running 1 test
+test owner_only_reads_all_metadata_before_deciding ... FAILED
+
+failures:
+
+---- owner_only_reads_all_metadata_before_deciding stdout ----
+
+thread 'owner_only_reads_all_metadata_before_deciding' (40487035) panicked at rust/adapters/keychain/file/tests/contract.rs:87:5:
+assertion failed: adapter.owner_only().is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    owner_only_reads_all_metadata_before_deciding
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p envden-adapter-keychain-file --test contract`

@@ -1,0 +1,27 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.59s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-8d0363103c74a7d6)
+
+running 1 test
+test profile_tests::bash_login_profile_matrix ... FAILED
+
+failures:
+
+---- profile_tests::bash_login_profile_matrix stdout ----
+
+thread 'profile_tests::bash_login_profile_matrix' (39820549) panicked at rust/adapters/shell/rc/src/profile_tests.rs:57:9:
+assertion `left == right` failed
+  left: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmphcDkps/.bashrc"
+ right: "/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmphcDkps/.bash_profile"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    profile_tests::bash_login_profile_matrix
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-adapter-shell-rc --lib`

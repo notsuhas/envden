@@ -1,0 +1,22 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.93s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0d418dbf4a487c95)
+
+running 1 test
+test ui::start::shutdown_tests::stop_finishes_with_a_pending_dashboard_request ... FAILED
+
+failures:
+
+---- ui::start::shutdown_tests::stop_finishes_with_a_pending_dashboard_request stdout ----
+
+thread 'ui::start::shutdown_tests::stop_finishes_with_a_pending_dashboard_request' (42223849) panicked at rust/cli/src/ui/start.rs:138:13:
+dashboard must force stop pending requests
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    ui::start::shutdown_tests::stop_finishes_with_a_pending_dashboard_request
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 293 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

@@ -1,0 +1,34 @@
+[
+  {
+    "crate": "core",
+    "sha": "26a2d4332fe16fd6ca705cfaf217ab1cf51a8d42"
+  },
+  {
+    "crate": "protocol",
+    "sha": "5da3c5160dd9873bcd19d47b036616e6e6bb54e9"
+  },
+  {
+    "crate": "testing",
+    "sha": "6b035c48e780a74d6078621975d32e4aad4f0906"
+  },
+  {
+    "crate": "adapter-keychain-file",
+    "sha": "5242cd2976cf115ff7fd3c7f1478afe44f357355"
+  },
+  {
+    "crate": "adapter-network-tailscale",
+    "sha": "0686a21e4671c3965e80e67e18e8de72918137a9"
+  },
+  {
+    "crate": "adapter-placement-fs",
+    "sha": "a3980888d6967b3e507eefcc7b2795cb8d4c94ad"
+  },
+  {
+    "crate": "adapter-repo-git",
+    "sha": "b92a0f56b975c5db817162e41a533f2b387271d3"
+  },
+  {
+    "crate": "adapter-shell-rc",
+    "sha": "97cf281801254ceaef0035ca43a91c10d5fd02fc"
+  }
+]

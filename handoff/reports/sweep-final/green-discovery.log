@@ -1,0 +1,13 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.25s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0d418dbf4a487c95)
+
+running 5 tests
+test links::discovery::folders::tests::scope_sensitive_skips ... ok
+test links::discovery::order_tests::adds_checkout_and_reports_progress_before_listing_related_checkouts ... ok
+test links::discovery::order_tests::finishes_submodule_collection_before_descending_from_a_scan_root ... ok
+test links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories ... ok
+test links::discovery::repos::tests::discovers_hidden_registered_worktrees_and_skips_vendor_clones ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.14s
+

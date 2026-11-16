@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-placement-fs v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/placement/fs)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-adapter-keychain-file v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/keychain/file)
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 26s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+
+thread 'admin::repair::tests::envelope::unreadable_cached_envelope_stops_before_second_history_read' (40514426) panicked at rust/cli/src/admin/repair/tests/envelope.rs:9:5:
+assertion `left == right` failed
+  left: 4
+ right: 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test admin::repair::tests::envelope::unreadable_cached_envelope_stops_before_second_history_read ... FAILED
+
+failures:
+
+failures:
+    admin::repair::tests::envelope::unreadable_cached_envelope_stops_before_second_history_read
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 240 filtered out; finished in 0.37s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

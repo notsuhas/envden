@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+warning: unused import: `text`
+ --> rust/cli/src/pairing/finish.rs:4:23
+  |
+4 |     client::{IClient, text},
+  |                       ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `unlock_prompt` is never used
+  --> rust/cli/src/commands/sync/transfer.rs:44:4
+   |
+44 | fn unlock_prompt(retry: bool) -> &'static str {
+   |    ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-cli` (lib) generated 2 warnings (run `cargo fix --lib -p envden-cli` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/shutdown.rs (target/sweep/debug/deps/shutdown-3e155ada1b640c10)
+
+running 1 test
+test serve_sigterm_exits_successfully ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.73s
+

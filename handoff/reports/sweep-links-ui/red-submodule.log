@@ -1,0 +1,24 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 30s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories ... FAILED
+
+failures:
+
+---- links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories stdout ----
+
+thread 'links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories' (40607187) panicked at rust/cli/src/links/discovery/tests.rs:124:5:
+assertion `left == right` failed
+  left: ["/private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpTSYPnv/main", "/private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpTSYPnv/main/.hidden/module/nested"]
+ right: ["/private/var/folders/nt/z137jjdn0z995fp6l_10pqxc0000gn/T/.tmpTSYPnv/main"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    links::discovery::repos::tests::does_not_walk_noncheckout_submodule_directories
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 247 filtered out; finished in 2.07s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

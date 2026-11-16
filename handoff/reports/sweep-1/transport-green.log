@@ -1,0 +1,81 @@
+   Compiling envden-server v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.80s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_server-0313c5ca9ba5fa43)
+
+running 1 test
+test lifecycle::transport::tests::accept_errors_do_not_end_listener ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.04s
+
+     Running unittests src/bin/serve.rs (target/sweep/debug/deps/envden_serve-0c57657c0e841099)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/body.rs (target/sweep/debug/deps/body-9bf8ab9f6f81c7ed)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/body_budget.rs (target/sweep/debug/deps/body_budget-b0b302cc81f99ce3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/body_deadlines.rs (target/sweep/debug/deps/body_deadlines-b1e8bd6402f1c98f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/fixture.rs (target/sweep/debug/deps/fixture-b74e13bcd49afe40)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/identity.rs (target/sweep/debug/deps/identity-2ae6f6ab12bdbcda)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/lifecycle.rs (target/sweep/debug/deps/lifecycle-08c5a335994b54f8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/parity.rs (target/sweep/debug/deps/parity-5ebbf519c1197e20)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 59 filtered out; finished in 0.00s
+
+     Running tests/protocol.rs (target/sweep/debug/deps/protocol-5718e7479e932e09)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/pruning.rs (target/sweep/debug/deps/pruning-eb469d0d36232820)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/restore_start.rs (target/sweep/debug/deps/restore_start-107a8a800abf829e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/status.rs (target/sweep/debug/deps/status-1cd2a514c92c6a3e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+

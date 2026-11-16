@@ -1,0 +1,37 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.15s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 4 tests
+test state::files::tests::private_directory_applies_platform_access_restrictions ... FAILED
+test state::files::tests::optional_text_reads_replace_invalid_utf8 ... FAILED
+test state::files::tests::temporary_file_is_restricted_before_writing_or_renaming ... FAILED
+test state::files::tests::atomic_write_preserves_external_parent_permissions ... ok
+
+failures:
+
+---- state::files::tests::private_directory_applies_platform_access_restrictions stdout ----
+
+thread 'state::files::tests::private_directory_applies_platform_access_restrictions' (41571435) panicked at rust/cli/src/state/files/tests.rs:47:5:
+assertion failed: applied.get()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- state::files::tests::optional_text_reads_replace_invalid_utf8 stdout ----
+
+thread 'state::files::tests::optional_text_reads_replace_invalid_utf8' (41571434) panicked at rust/cli/src/state/files/tests.rs:9:41:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: Internal, message: "State file operation failed", source: Some(Error { kind: InvalidData, message: "stream did not contain valid UTF-8" }) }
+
+---- state::files::tests::temporary_file_is_restricted_before_writing_or_renaming stdout ----
+
+thread 'state::files::tests::temporary_file_is_restricted_before_writing_or_renaming' (41571436) panicked at rust/cli/src/state/files/tests.rs:59:23:
+called `Result::unwrap_err()` on an `Ok` value: ()
+
+
+failures:
+    state::files::tests::optional_text_reads_replace_invalid_utf8
+    state::files::tests::private_directory_applies_platform_access_restrictions
+    state::files::tests::temporary_file_is_restricted_before_writing_or_renaming
+
+test result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

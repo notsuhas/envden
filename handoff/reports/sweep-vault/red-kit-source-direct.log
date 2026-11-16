@@ -1,0 +1,15 @@
+
+running 1 test
+
+thread 'vault::recovery::input::source_tests::kit_parse_preserves_failure_source' (40674506) panicked at rust/cli/src/vault/recovery/input.rs:95:13:
+assertion failed: error.source.is_some()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test vault::recovery::input::source_tests::kit_parse_preserves_failure_source ... FAILED
+
+failures:
+
+failures:
+    vault::recovery::input::source_tests::kit_parse_preserves_failure_source
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 250 filtered out; finished in 0.01s
+

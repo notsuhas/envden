@@ -1,0 +1,27 @@
+ Downloading crates ...
+  Downloaded unicode-width v0.2.3
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-network-tailscale v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/network/tailscale)
+   Compiling unicode-width v0.2.3
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.39s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-a62a180b9951fbb5)
+
+running 1 test
+test vault::recovery::input::tests::kit_validation_matches_reference ... FAILED
+
+failures:
+
+---- vault::recovery::input::tests::kit_validation_matches_reference stdout ----
+
+thread 'vault::recovery::input::tests::kit_validation_matches_reference' (39829839) panicked at rust/cli/src/vault/recovery/input.rs:70:50:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: InvalidInput, message: "Not a recovery kit file", source: None }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    vault::recovery::input::tests::kit_validation_matches_reference
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 218 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

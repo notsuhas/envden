@@ -1,0 +1,24 @@
+   Compiling envden-cli v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.08s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_cli-0295d6a4811e7f15)
+
+running 1 test
+test adapters::tests::missing_relative_home_resolves_from_the_working_directory ... FAILED
+
+failures:
+
+---- adapters::tests::missing_relative_home_resolves_from_the_working_directory stdout ----
+
+thread 'adapters::tests::missing_relative_home_resolves_from_the_working_directory' (41417016) panicked at rust/cli/src/adapters.rs:88:9:
+assertion `left == right` failed
+  left: ".envden-missing-e7b89062-795a-421e-8b55-7fc8a90aa253/nested"
+ right: "/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/cli/.envden-missing-e7b89062-795a-421e-8b55-7fc8a90aa253/nested"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    adapters::tests::missing_relative_home_resolves_from_the_working_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p envden-cli --lib`

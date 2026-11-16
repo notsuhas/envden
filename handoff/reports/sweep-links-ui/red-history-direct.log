@@ -1,0 +1,18 @@
+
+running 1 test
+test commands::sync::history::tests::restore_version_uses_reference_grammar_and_js_number_rounding ... FAILED
+
+failures:
+
+---- commands::sync::history::tests::restore_version_uses_reference_grammar_and_js_number_rounding stdout ----
+
+thread 'commands::sync::history::tests::restore_version_uses_reference_grammar_and_js_number_rounding' (40542277) panicked at rust/cli/src/commands/sync/history.rs:88:52:
+called `Result::unwrap()` on an `Err` value: EnvdenError { code: InvalidInput, message: "Version must be a number such as 3 or v3", source: None }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    commands::sync::history::tests::restore_version_uses_reference_grammar_and_js_number_rounding
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 244 filtered out; finished in 0.01s
+

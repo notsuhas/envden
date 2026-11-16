@@ -1,0 +1,27 @@
+    Blocking waiting for file lock on build directory
+   Compiling envden-core v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/core)
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+   Compiling envden-testing v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 19s
+     Running tests/behavior.rs (target/sweep/debug/deps/behavior-0dba86ca0fa16a70)
+
+running 1 test
+test install_validates_existing_rc_before_rendering_hook ... FAILED
+
+failures:
+
+---- install_validates_existing_rc_before_rendering_hook stdout ----
+
+thread 'install_validates_existing_rc_before_rendering_hook' (40509971) panicked at rust/adapters/shell/rc/tests/behavior.rs:90:5:
+assertion `left == right` failed
+  left: "Hook paths must be absolute and single-line"
+ right: "Unsafe shell configuration file"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    install_validates_existing_rc_before_rendering_hook
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-adapter-shell-rc --test behavior`

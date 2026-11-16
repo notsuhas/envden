@@ -1,0 +1,36 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling envden-adapter-shell-rc v0.3.8 (/Users/notsuhas/.t3/worktrees/envden/t3-84633671-b415b23408ab932e/rust/adapters/shell/rc)
+warning: function `default_home` is never used
+   --> rust/adapters/shell/rc/src/profile.rs:136:15
+    |
+136 | pub(crate) fn default_home(home: Option<std::ffi::OsString>, _profile: Option<std::ffi::OsString>, _windows: bool) -> Option<PathBu...
+    |               ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `envden-adapter-shell-rc` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.70s
+     Running unittests src/lib.rs (target/sweep/debug/deps/envden_adapter_shell_rc-8d0363103c74a7d6)
+
+running 1 test
+test profile::home_tests::windows_profile_home_uses_userprofile ... FAILED
+
+failures:
+
+---- profile::home_tests::windows_profile_home_uses_userprofile stdout ----
+
+thread 'profile::home_tests::windows_profile_home_uses_userprofile' (40819986) panicked at rust/adapters/shell/rc/src/profile.rs:144:9:
+assertion `left == right` failed
+  left: Some("other")
+ right: Some("user")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    profile::home_tests::windows_profile_home_uses_userprofile
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p envden-adapter-shell-rc --lib`

@@ -1,0 +1,13 @@
+    Updating crates.io index
+      Adding num-bigint v0.4 to dependencies
+             Features as of v0.4.0:
+             + std
+             - arbitrary
+             - quickcheck
+             - rand
+             - serde
+    Updating crates.io index
+    Blocking waiting for file lock on package cache
+     Locking 2 packages to latest Rust 1.98.1 compatible versions
+      Adding num-bigint v0.4.8 (available: v0.5.1)
+      Adding num-integer v0.1.47

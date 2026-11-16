@@ -1,0 +1,29 @@
+{
+  "sweep_complete": false,
+  "named_functions_compared": 172,
+  "named_functions_pending": 247,
+  "fmt": "passed",
+  "clippy": "passed",
+  "workspace_tests": {
+    "passed": 602,
+    "failed": 0
+  },
+  "release": "passed",
+  "parity": {
+    "passed": 24,
+    "failed": 0
+  },
+  "e2e": "passed",
+  "commits": [
+    "60d2e77c",
+    "6d29506d",
+    "5d425138",
+    "07a88cb0",
+    "a076aa5a",
+    "152a822",
+    "d7c5597",
+    "5c73f28e",
+    "049f5a3"
+  ],
+  "notes": "Shared-index race included concurrent rejoin fixture in 07a88cb0. Remaining gaps in observations.md."
+}
