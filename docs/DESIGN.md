@@ -339,6 +339,10 @@ Replaces leaving SQLite's sidecar files to the platform. On macOS, Apple's SQLit
 
 Replaces relying on each runtime's default. Bun closed idle connections after about 12 seconds, the Go port after 10 and its dashboard never. `envden serve` and the `envden ui` dashboard now set a 10-second idle timeout, which also covers half-sent headers and a rejected request whose body never arrives. Bun checks timeouts every 4 seconds, so it closes such a connection up to 2 seconds late. Body-read deadlines are unchanged.
 
+### Env-file patterns use a fixed grammar
+
+Replaces accepting any pattern Bun.Glob takes. The Go and Rust ports can't reproduce every corner of Bun's matcher, so the same config could sync different files depending on the build. Patterns are now limited to a grammar all three match the same way: an optional leading `!`, non-empty `/` segments, `**` as a whole segment, printable ASCII literals with `*` and `?` (`?` is one character), and flat `{a,b}` groups, at most 10 groups, 16 alternatives and 1024 characters. Anything else fails with "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).

@@ -35,7 +35,7 @@ To change discovery rules:
 envden config env-files '{"include":[".env",".env.*"],"exclude":["*.example","*.sample","*.template","*.defaults"],"extraSkipped":["generated"]}'
 ```
 
-This replaces the include and exclude patterns and adds skipped directory names. Patterns without `/` match basenames; patterns with `/` match paths relative to the checkout. Tracked files and `.envrc` remain excluded.
+This replaces the include and exclude patterns and adds skipped directory names. Patterns without `/` match basenames; patterns with `/` match paths relative to the checkout. A pattern can use `*`, `?`, `**` as a whole path segment, `{a,b}` groups and a leading `!`; envden refuses anything else, such as `[a-z]` classes or nested groups. Tracked files and `.envrc` remain excluded.
 
 ## Review a merge
 

@@ -18,6 +18,7 @@ import { withSyncLock } from "./local/files.ts";
 import { conflictRecords } from "./local/conflicts.ts";
 import { settleRemoteNotice } from "../notice/remote.ts";
 import { refreshNotice } from "../notice/cache.ts";
+import { refuseConfiguredPatterns } from "../settings/config.ts";
 
 async function sync(
   adapters: TAdapters,
@@ -32,6 +33,7 @@ async function sync(
     );
 
   return withSyncLock(adapters.home, async () => {
+    await refuseConfiguredPatterns(adapters.home);
     const context = await syncContext(adapters, options);
 
     let history = await readHistory(context.client, context.vaultId, context.state);

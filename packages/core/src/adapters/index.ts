@@ -7,6 +7,7 @@ export type { IShellAdapter } from "./shell.ts";
 
 export { prepareCommit, writeCommitState } from "./storage/commit.ts";
 
-export { acceptsEnvPath } from "./env-files.ts";
+export { acceptsEnvPath } from "./env/files.ts";
+export { supportedEnvPattern } from "./env/patterns.ts";
 
 export { VAULT_QUOTA_BYTES } from "./quota.ts";
