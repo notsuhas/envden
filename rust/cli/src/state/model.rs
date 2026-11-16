@@ -23,7 +23,7 @@ pub fn require_configured(state: Option<TLocalState>) -> Result<TLocalState> {
         .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, NOT_SET_UP))
 }
 
-fn truthy(value: &Value) -> bool {
+pub(crate) fn truthy(value: &Value) -> bool {
     match value {
         Value::Null => false,
         Value::Bool(value) => *value,

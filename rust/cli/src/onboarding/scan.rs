@@ -3,18 +3,21 @@ use super::checkouts::{
 };
 use crate::{
     adapters::IAdapters,
+    client::UreqTransport,
     links::{fork::offer_fork_alias, place::link_checkout, takeover::offer::offer_takeover},
     output::prompts::consent,
     state::{
         lock::with_state_lock,
         repository::{load_state, save_state},
     },
-    vault::join::checkpoint_material,
+    sync::remote::{
+        content::{entry_name, readable_entries},
+        context::{ISyncOptions, sync_context},
+    },
 };
 use envden_core::{adapters::ICheckout, errors::Result};
-use envden_protocol::protocol as p;
 use serde_json::Value;
-use std::{collections::HashSet, path::PathBuf};
+use std::{collections::HashSet, path::PathBuf, rc::Rc};
 
 type TApproval<'a> = &'a dyn Fn(&ICheckout) -> Result<bool>;
 type TAlias<'a> = &'a dyn Fn(&str, &str) -> Result<bool>;
@@ -103,32 +106,28 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
     Ok(())
 }
 
-fn vault_repos(adapters: &IAdapters, state: &Value) -> Result<HashSet<String>> {
-    if state.get("checkpoint").is_none() {
+pub(super) fn vault_repos(adapters: &IAdapters, state: &Value) -> Result<HashSet<String>> {
+    if !crate::state::truthy(&state["checkpoint"]) {
         return Ok(HashSet::new());
     }
-    let material = checkpoint_material(adapters, state)?;
-    let vault_id = material.checkpoint.header.body.vault_id;
-    let mut repos = HashSet::new();
-    for entry in material
-        .checkpoint
-        .files
-        .entries
+    let context = sync_context(
+        adapters,
+        ISyncOptions {
+            now: Rc::new(adapters.now),
+            unlock: None,
+            cwd: None,
+            all: true,
+            yes: false,
+            interactive: false,
+            choose: None,
+            confirm: None,
+            report: None,
+        },
+        Rc::new(UreqTransport),
+    )?;
+    readable_entries(&context)?
         .iter()
         .filter(|entry| matches!(entry.state, 1 | 3))
-    {
-        let Some(key) = material.keys.get(&entry.epoch) else {
-            continue;
-        };
-        let context = p::IFileContext {
-            vault_id,
-            epoch: entry.epoch,
-            file_id: entry.file_id,
-            version: entry.version,
-        };
-        repos.insert(
-            p::open_file_name(&entry.name, key, &material.checkpoint.id_key, &context)?.repo_id,
-        );
-    }
-    Ok(repos)
+        .map(|entry| entry_name(&context, entry).map(|name| name.repo_id))
+        .collect()
 }

@@ -8,3 +8,5 @@ pub mod journal;
 pub mod records;
 
 mod collections;
+
+pub(crate) use model::truthy;
