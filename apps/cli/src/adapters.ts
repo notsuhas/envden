@@ -22,6 +22,7 @@ import type {
   TPlacementMode,
 } from "@envden/core/adapters";
 import { unsuppliedNetwork } from "./network/unsupplied.ts";
+import { unsuppliedHostServer } from "./agent/service/unsupplied.ts";
 
 export function createAdapters(
   options:
@@ -76,21 +77,24 @@ export function createAdapters(
     network: options ? (options.network ?? unsuppliedNetwork()) : createTailscaleNetworkAdapter(),
     serverPort: () => chooseServerPort(systemPortProbe),
     localSetupToken: () => localSetupToken(join(home, "server"), now()),
-    hostServer: (port: number) =>
-      installHostService(
-        {
-          platform: process.platform,
-          executable,
-          userHome,
-          home,
-          port,
-          uid: process.getuid?.() ?? 0,
-          write: (path, bytes) => writeThrough(path, bytes, now),
-          run: runServiceCommand,
-          pause: (ms) => Bun.sleep(ms),
-        },
-        now,
-      ),
+    // like network, a real service is installed only when nothing was injected
+    hostServer: options
+      ? unsuppliedHostServer
+      : (port: number) =>
+          installHostService(
+            {
+              platform: process.platform,
+              executable,
+              userHome,
+              home,
+              port,
+              uid: process.getuid?.() ?? 0,
+              write: (path, bytes) => writeThrough(path, bytes, now),
+              run: runServiceCommand,
+              pause: (ms) => Bun.sleep(ms),
+            },
+            now,
+          ),
   };
 
   return adapters;
