@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/notsuhas/envden/releases"><img alt="Latest release" src="https://shieldcn.dev/github/release/notsuhas/envden.svg?variant=secondary" /></a>
-  <a href="https://github.com/notsuhas/envden/actions/workflows/ci.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
+  <a href="https://github.com/notsuhas/envden/actions/workflows/go.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="LICENSE"><img alt="License" src="https://shieldcn.dev/github/license/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/stargazers"><img alt="GitHub stars" src="https://shieldcn.dev/github/stars/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/commits/main"><img alt="Last commit" src="https://shieldcn.dev/github/last-commit/notsuhas/envden.svg?variant=secondary" /></a>
@@ -31,9 +31,6 @@ irm https://envden.theclau.de/install.ps1 | iex
 
 # Homebrew
 brew install notsuhas/tap/envden
-
-# npm
-npm i -g envden
 
 # Scoop
 scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
@@ -97,42 +94,50 @@ Every command and flag is in the [CLI reference](https://envden.theclau.de/docs/
 
 The server can't read your files or add devices on its own. It can refuse service or ignore unlock expiry, and a lost device keeps whatever it already pulled. See [Security](https://envden.theclau.de/docs/security) for the model, [DESIGN.md](docs/DESIGN.md#threat-model) for the threat model and [PROTOCOL.md](docs/PROTOCOL.md) for the cryptography. To report a vulnerability, see [SECURITY.md](docs/SECURITY.md).
 
+## This branch
+
+This branch is the Go implementation. The TypeScript reference, the parity harness and the website are on `main`; both implementations share one protocol and must behave the same (see [docs/ports/go.md](docs/ports/go.md)).
+
 ## Building from source
 
-For contributors. Needs [Bun](https://bun.sh) 1.4.
+Needs Go 1.26.
 
 ```sh
-bun install
-bun run --cwd apps/cli build   # writes apps/cli/dist/envden
+cd go
+go build -o dist/envden ./cmd/envden   # one binary, CLI and server
+./scripts/build-all.sh                 # the eight release platforms, into go/dist
 ```
 
-The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [docs/releasing.md](docs/releasing.md).
+The server image is built from [packaging/docker/Dockerfile](packaging/docker/Dockerfile) with the musl binaries, and releases are described in [docs/releasing.md](docs/releasing.md).
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| `apps/cli` | The `envden` command |
-| `apps/server` | The sync server (Hono on SQLite) |
-| `apps/web` | Website and docs (Next.js, Fumadocs) |
-| `packages/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
-| `packages/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
-| `packages/testing` | Contract tests and fakes for adapters |
+| `go/cmd/envden` | The `envden` binary |
+| `go/cli` | The commands |
+| `go/server` | The sync server (`net/http` on SQLite) |
+| `go/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
+| `go/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
+| `go/testing` | Contract tests and fakes for adapters |
+| `packaging/` | Docker image, install scripts, Homebrew, Scoop and winget templates |
 | `docs/` | Design and decisions, protocol spec, terms, adapter guide, release runbook |
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike and lint enforces package boundaries, file layout, naming and comment limits.
+Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike. Turn on the pre-commit hook once:
 
 ```sh
-bun run check    # format, lint and type check (Vite+)
-bun test
-bun run fallow   # unused code, cycles, duplication, complexity
+git config core.hooksPath .githooks
 ```
 
-After changing a command's help text, run `bun run docs:cli` to regenerate the CLI reference; a test fails while it's stale.
+```sh
+cd go
+gofmt -l . && go vet ./... && golangci-lint run ./...
+go test ./...
+```
 
-Adding an adapter: see [docs/adapters.md](docs/adapters.md) or run `bun run new-adapter <kind> <impl>`.
+Adding an adapter: see [docs/adapters.md](docs/adapters.md).
 
 ## License
 

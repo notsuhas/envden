@@ -17,14 +17,13 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 ## Shape
 
 - **Server**: one Docker container, or `envden serve` on one of the user's devices (launchd / systemd / Windows login service). Stores ciphertext and opaque IDs only. One server per vault, no peer-to-peer (see Decisions). Many vaults per server, one owner each.
-- **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
-- **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
-  - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
-  - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
-  - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
-  - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
-  - Releases: GitHub Actions builds every platform binary and the Docker image, uploads the binaries and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
-- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
+- **Device**: the `envden` CLI, a single static Go binary for macOS, Linux and Windows. No background daemon.
+- **Stack**: Go (this branch), alongside the TypeScript reference on `main` (see Decisions). One module in `go/`: `core` (crypto, protocol, chain, merge, adapter interfaces), `adapters/<kind>/<impl>`, `testing` (fakes and contract suites), `cli`, `server`, and `cmd/envden`, the one binary for both.
+  - Checks: `gofmt`, `go vet`, golangci-lint, `go test` with the adapter contract suites. Wire messages are decoded by one strict decoder per schema in `core/protocol`.
+  - CLI: cobra for commands and flags, huh and bubbletea for prompts, keys in owner-only files behind the keychain adapter, git via the `git` command.
+  - Server: `net/http` with the request signing, rate limits and setup token checks in one handler; tests use `httptest` with no open port. SQLite via `modernc.org/sqlite` (pure Go, no cgo).
+  - Releases: `go/scripts/build-all.sh` builds every platform binary; the server image is built from `packaging/docker/Dockerfile`. Channels under Distribution.
+- **Crypto libraries**: the Go standard library for SHA-256, HMAC, HKDF, X25519 and HPKE; `golang.org/x/crypto` for XChaCha20-Poly1305 and Argon2id; `crypto/ed25519` to sign, `ed25519consensus` plus `filippo.io/edwards25519` to verify; OPAQUE from `bytemare/opaque`, byte-compatible with the reference. All pinned in `go.sum`, vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
 
 ## Adapters
 
@@ -37,7 +36,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 | Placement | How files appear in a checkout | Link, copy | — |
 | Shell | Out-of-sync line | zsh, bash, fish, PowerShell | nushell |
 
-Interfaces live in `packages/core`; each adapter is its own package and must pass the shared contract tests. Built into the binary in v1; added by fork or PR. A template, a "write an adapter" docs page and an agent skill for writing adapters ship with the repo. Encryption, the sync protocol and merging are not adapters.
+Interfaces live in `go/core/adapters`; each adapter is its own package and must pass the shared contract suite in `go/testing`. Built into the binary in v1; added by fork or PR. A "write an adapter" guide ships with the repo. Encryption, the sync protocol and merging are not adapters.
 
 ## Crypto
 
@@ -117,8 +116,8 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - Devices **pin** the server (a hash of its signing key) at setup or join, and store its address separately.
 - History: every manifest and ciphertext version kept for 90 days, and at least the last 20 per file. Deletes are tombstones and outlive history pruning, so an offline device can't bring a deleted file back without an explicit restore. Repair-fix file lists, and the list before each, are kept forever. A list kept for one file's version keeps no other file's ciphertext, and a swap whose list adds no ciphertext and isn't bigger commits even over the storage quota, so deletes always work.
 - **`envden history`** reads only what the server retains: verified headers, the file lists they name and the version blobs, decrypted on the device and shown as key names. History ends where lists or blobs were pruned. Restoring a version writes it locally as an ordinary edit; only a later push publishes it, and agents need `agent-merge` plus `--yes`.
-- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, re-registers the master password on the new server (the user types it), then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint.
-- Backups: file contents are ciphertext, but the data folder also holds the master password's OPAQUE record, which someone could guess passwords against offline. Protect backups like a password database. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then logs in, re-registering the password only if the chain shows a password change or reset after the restored point. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
+- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, re-registers the master password on the new server (the user types it), then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint. `envden server switch <address>` follows the move when the old server is gone; it logs in to the new server first if that server has no unlocked session for the device.
+- Backups: file contents are ciphertext, but the data folder also holds the master password's OPAQUE record, which someone could guess passwords against offline. Protect backups like a password database. A stopped server leaves one file, `envden.sqlite`, on every platform, so copying it is a complete backup. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then logs in, re-registering the password only if the chain shows a password change or reset after the restored point. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
 - **Status page**: `GET /` (and `/v1/status` as JSON) is unsigned, since anyone on the tailnet can open it. It shows only server-wide facts: version, uptime, mode (normal, restored, moved), vault count, total storage, the fullest vault's quota band and the last prune. Nothing per vault. `ENVDEN_STATUS_PAGE=off` turns it off.
 - Laptop-hosted servers are supported; setup recommends an always-on host, since two laptops only sync while the server laptop is awake. An unreachable server never blocks local work; status shows "server unreachable".
 
@@ -181,7 +180,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 ## Out-of-sync notice
 
 - A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git and never writes to checkouts.
-- The binary is compiled with `.env` and `bunfig.toml` autoload disabled, and the hook calls it as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden` (those variables bypass the compile flags).
+- The hook calls the binary by absolute path as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden`, the same line the Bun build needs, so either build can own the rc file.
 - Every `envden` command also reports other out-of-sync repos. `envden status --json` for tools.
 
 ## Agents
@@ -229,9 +228,8 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 
 ## Distribution and site
 
-- Homebrew, `curl | sh`, `irm | iex`, npm (`npm i -g envden`), Scoop. Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
-- The static site CSP permits inline Next.js bootstrap scripts and component styles; scripts, search, fonts and images otherwise use the same origin.
-- Site `envden.theclau.de` for now, from one `SITE_URL` constant. LLM-friendly docs: `llms.txt`, `llms-full.txt`, raw markdown per page, comparison pages (vs Infisical, dotenv-vault, DotVeil), agent setup page.
+- Homebrew, `curl | sh`, `irm | iex`, Scoop. Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
+- The docs site lives with the TypeScript reference on `main`.
 
 ## Decisions
 
@@ -241,9 +239,9 @@ When a decision changes, rewrite its entry here and say what it replaced.
 
 Each vault has exactly one authoritative server at a time; devices push and pull only through it. Peer-to-peer (Syncthing-style) was rejected: every device could hold a divergent version with no source of truth, which makes conflicts hard to reason about. Users without a home lab run the server on one of their own devices and move it later with `envden server move`.
 
-### TypeScript on Bun, not Go
+### A Go implementation beside the TypeScript reference
 
-Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
+envden started as a TypeScript monorepo on Bun, because the maintainer needed to audit the code. This Go implementation runs the same protocol and must behave the same: devices running either share one vault and one server, and CI runs the reference's parity harness against this binary. It gives static binaries with no runtime, and pure-Go SQLite cross-compiles without cgo. Tailscale's `tsnet` is still not embedded: the server listens on localhost and sits behind `tailscale serve`, as the reference does. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
 
 ### Built-in adapters; crypto, sync and merge are not pluggable
 
@@ -271,7 +269,7 @@ When envden fails on its own bug in a terminal, it offers to start the user's in
 
 ### The recovery kit is a PDF file
 
-Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses pdf-lib's standard fonts, so nothing is embedded and the compiled binary stays pure JavaScript. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
+Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses the standard PDF fonts, so nothing is embedded. A word wider than the instruction column, such as a long server URL, breaks between characters so every character stays inside the margins. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
 
 ### User files are written through their symlinks
 
@@ -310,6 +308,42 @@ Accepted costs:
 - Changing the master password needs the recovery kit, since devices never hold the secret key.
 - A server restored from backup is a rollback: restored mode trusts member signatures without a password until every member repairs or is dropped, and a file whose newest version no device holds can be lost.
 - A server alone can show different devices different branches; each stops when it sees the other branch but can't detect one it's never shown. A removed device or old recovery key colluding with the server can fork history, and values a removed device already pulled can't be revoked, so envden lists them for rotation.
+
+### Device names refuse control characters
+
+Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
+
+### Keyring growth counts toward the storage quota
+
+Replaces a quota check that ran before the commit wrote its keyring. A rotation could grow a vault past its quota without being refused. The check now runs after every byte of the commit is written, in the same transaction, so an over-quota commit rolls back. A swap whose file list adds no ciphertext and isn't bigger still commits over quota.
+
+### HEAD follows GET
+
+Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a running server as down. The server and the `envden ui` dashboard now answer HEAD on any GET route with the GET status, headers and authorization and no body.
+
+### An empty ENVDEN_HOME means the default home
+
+Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and the store in whatever folder the command ran from. Empty now means unset, so envden uses `~/.envden`, the same as the install scripts.
+
+### Server switch logs in at the destination
+
+Replaces a `server switch` that read the new server's history with whatever session the device had. Unlock sessions don't move with the vault, so after a move every other device got "Unlock expired. Run envden unlock", and `unlock` logs in at the old address, which may be gone. Switch now asks for the master password and logs in at the destination itself, outside the state lock. Without a terminal it still fails with the unlock message.
+
+### Ctrl-D cancels a prompt
+
+Replaces leaving Ctrl-D to the prompt library. In the reference it closed the input on an empty answer and the question waited forever. Ctrl-D now cancels any prompt the same way Ctrl-C and Esc do, with the same message and exit code.
+
+### A stopped server leaves one database file
+
+Replaces leaving SQLite's sidecar files to the platform. On macOS, Apple's SQLite kept `envden.sqlite-wal` and `-shm` after shutdown and Linux removed them, and this build copied the macOS behaviour. The server now runs a truncating checkpoint when it closes the database and never keeps the WAL, so the data folder is one file everywhere.
+
+### Connection timeouts are set, not inherited
+
+Replaces relying on each runtime's default: Bun closed idle connections after about 12 seconds, this build after 10 and its dashboard never. `envden serve` and the `envden ui` dashboard now close a connection after 10 idle seconds, which also covers half-sent headers and a rejected request whose body never arrives. Body-read deadlines are unchanged.
+
+### Env-file patterns use a fixed grammar
+
+Replaces accepting any pattern the reference's Bun.Glob takes, which this build reproduced by hand. The implementations can't match every corner of Bun's matcher alike, so the same config could sync different files depending on the build. Patterns are now limited to a grammar all of them match the same way: an optional leading `!`, non-empty `/` segments, `**` as a whole segment, printable ASCII literals with `*` and `?` (`?` is one character), and flat `{a,b}` groups, at most 10 groups, 16 alternatives and 1024 characters. Anything else fails with "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing.
 
 ## Not in v1
 

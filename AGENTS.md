@@ -1,85 +1,86 @@
-# Working on envden
+# Working on envden (Go)
+
+This branch holds the Go implementation only. The TypeScript reference, the parity harness and the site live on `main`.
 
 ## Where things are
 
-- **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`.
-- **Packages:** `packages/core` holds the protocol, merge and adapter interfaces. Each adapter is its own package in `packages/adapters/<kind>/<impl>`. `apps/cli`, `apps/server` and `apps/web` are the apps.
-- **Go:** the Go implementation in `go/` and its rules are documented in `docs/ports/`.
-- **Packages are source-only** (`"exports": {".": "./src/index.ts"}`). Relative imports use the `.ts` extension.
+- **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`. Go-specific notes and libraries are in `docs/ports/go.md`; differences from the reference are in `docs/ports/go-parity.md`.
+- **Module:** `go/` is one module, `github.com/notsuhas/envden/go`. `core/` holds the protocol, chain, merge and adapter interfaces. Each adapter is its own package in `adapters/<kind>/<impl>`. Fakes and contract suites are in `testing/`. `cli/` and `server/` are the apps; `cmd/envden` is the one binary.
+- **Parity:** CI checks out the reference commit in `.parity-reference` and runs `main`'s harness against this binary. Recorded fixtures from the reference are in each package's `testdata/`.
 
 ## Checks
 
 ```sh
-./node_modules/.bin/vp check --fix   # format (Oxfmt), lint (Oxlint), type check (tsgolint)
-bun test
-./node_modules/.bin/fallow           # unused code, cycles, duplication, complexity
+cd go
+export GOMODCACHE=$PWD/../.cache/gomod GOCACHE=$PWD/../.cache/gobuild GOBIN=$PWD/../.cache/bin GOFLAGS=-modcacherw
+gofmt -l . && go vet ./... && golangci-lint run ./...
+GOOS=darwin golangci-lint run ./... && GOOS=windows golangci-lint run ./...
+go test ./...                          # TestExploration in cli/sync/enginetest takes ~25 min; -skip '^TestExploration$' while iterating
+go build -o dist/envden ./cmd/envden
 ```
 
-Tests use `bun:test` and live in a `__tests__/` folder next to the code they test, for example `src/protocol/__tests__/encoding.test.ts` for `src/protocol/encoding.ts`. Never put a test file directly beside source files or at a folder's top level. Fixtures and vectors used only by tests go in that `__tests__/` folder too.
+golangci-lint is v2.15.0 (`go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0`). Turn on the pre-commit hook once per clone with `git config core.hooksPath .githooks`; it runs gofmt, `go vet` and golangci-lint on the staged packages.
+
+Tests are `*_test.go` files in the package they test. Fixtures and vectors used only by tests go in that package's `testdata/`.
 
 ## Code style
 
-- **No god files.** Each file does one thing: one codec, one helper, one command, one component, so each can be tested on its own. `index.ts` files only re-export; they contain no logic. Split any file that holds unrelated pieces or grows past roughly 200 lines.
-- **Group related files in folders.** A folder's top level holds only its entry points. Everything else sits in folders named after the domain: `commands/device/{add,ls,rm}.ts`, `commands/server/{move,switch,repair}.ts`, `settings/`, `diagnostics/`. Don't encode the group in a filename (`device-add.ts`); make it a folder. Once a folder passes about 8 files, split it into subfolders.
-- **Let code breathe.** Leave a blank line after the imports, between top-level declarations, between class members, before a `return` that follows other statements, and between the logical steps inside a function (setup, work, result). Keep tightly related lines together; separate everything else.
-- **Naming:** interfaces are `I<Name>`, never with a `Props` suffix. Type aliases are `T<Name>`.
-- **Exports:** export only what other files import.
-- **Comments:** one line at most, and only for a non-obvious "why". No JSDoc essays and no legend comments on unions.
-- **Branching:** no IIFEs. Use module-level pure functions.
-- **Decisions:** derive them in pure functions, each with a compact test.
-- **Discriminated returns:** make the falsy fields optional.
+- **No god files.** Each file does one thing: one codec, one helper, one command. Split any file that holds unrelated pieces or grows past roughly 200 lines.
+- **Group related files in packages** named after the domain (`cli/admin/devices`, `cli/admin/move`). Don't encode the group in a filename. Once a package passes about 8 files, split it.
+- **Let code breathe.** Blank line between top-level declarations, before a `return` that follows other statements, and between the logical steps inside a function.
+- **Exports:** export only what other packages use.
+- **Comments:** one line at most, and only for a non-obvious "why".
+- **Decisions:** derive them in pure functions, each with a compact table test.
+- **Discriminated returns:** a struct with a `Kind` string; leave the fields that don't apply at their zero value.
 - **No deprecated APIs.**
-- **Crypto:** never hand-roll primitives. Use the pinned libraries in `packages/core`.
-- **React:** components take one `props` parameter and destructure it inside the body. Colours are `rgba()`, never hex.
+- **Crypto:** never hand-roll primitives. Use the libraries pinned in `docs/ports/go.md`.
 
 ## Commits and reviews
 
-- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, `testing`, `tools`, or an adapter such as `adapter-storage-sqlite`. Use `adapters` for a change spanning several adapters. Mark breaking changes with `!`.
-- **Changesets:** add one with `bunx changeset` for any change a user would notice, naming `@envden/cli`. Releases run `bun run release:version`.
-- **Review comments follow [Conventional Comments](https://conventionalcomments.org):** `label (decorations): subject`, using labels such as `issue`, `suggestion`, `nitpick`, `question` and `praise`, and decorations such as `(blocking)` or `(non-blocking)`.
+- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, lowercase and imperative. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is `go` for code in the module, or `ci`, `docs`, `packaging`. Mark breaking changes with `!`.
+- **A behaviour change lands in every implementation**, never in Go alone. Record a deliberate difference in `docs/ports/go-parity.md`.
+- **Review comments follow [Conventional Comments](https://conventionalcomments.org).**
 
 ## Packages and imports
 
-- **Import by name.** Another package is `@envden/<name>` or one of its subpath exports, never a relative path into another package's `src`.
-- **Layers:** `core` imports no workspace package. An adapter imports only `@envden/core`, plus `@envden/testing` in tests. Apps import core and adapters. Lint and Fallow boundaries enforce this.
-- **Wiring:** adapters are wired in one file per app, `apps/cli/src/adapters.ts` and `apps/server/src/adapters.ts`. Everything else receives adapters as arguments.
+- **Layers:** `core` imports no other package of the module. An adapter imports only `core`, plus `testing` in tests. `cli` and `server` import core and adapters.
+- **Wiring:** adapters are wired in `cli/adapters.go` and in the server's `Serve`. Everything else receives adapters as arguments. Injected adapters never fall back to a real service, network or keychain.
 - **Never branch on which adapter is in use.** Add a capability to the interface and read that.
-- **Moves:** moving a file deletes the old one and updates every importer. No re-export shims.
+- **Moves:** moving a file updates every importer. No forwarding shims.
 
 ## Adapters
 
-- One package per implementation at `packages/adapters/<kind>/<impl>`, named `@envden/adapter-<kind>-<impl>`.
-- `src/adapter.ts` exports `create<Impl><Kind>Adapter`, which returns the core `I<Kind>Adapter`. `src/index.ts` re-exports it.
-- Every adapter has `src/__tests__/contract.test.ts` running its kind's suite from `@envden/testing`. A new kind adds its suite there first.
-- Fakes live in `@envden/testing`. A fake throws on any call the test didn't supply.
+- One package per implementation at `adapters/<kind>/<impl>`, exporting `Create<Impl><Kind>Adapter`, which returns the core interface.
+- Every adapter has a `contract_test.go` running its kind's suite from `testing/<kind>`. A new kind adds its suite there first.
+- Fakes live in `testing/`. A fake panics on any call the test didn't supply.
 - Read `docs/adapters.md` before adding one.
 
 ## Errors
 
-- **Expected outcomes are return values:** a discriminated union with a `kind`.
-- **Failures throw `EnvdenError`** with a `code` from `TErrorCode`. The message is fixed text, and the underlying error goes in `cause`.
+- **Expected outcomes are return values:** a struct with a `Kind`.
+- **Failures return `*errors.Error`** from `core/errors` with a code from its list. The message is fixed text, and the underlying error goes in the cause. Never wrap one in `fmt.Errorf`; the CLI inspects the top error.
 - **Never put env file contents, keys, tokens or passwords in a message, log line or error field.** Use a length, count or hash.
-- **Translate once.** The CLI maps `code` to an exit code in `main.ts`, and the server maps it to a status in one `onError`.
+- **Translate once.** The CLI maps the code to an exit code in `cli/output`, and the server maps it to a status in one `onError`.
 
 ## Commands and routes
 
-- A CLI command or server route does three things: parse input, call one function, report the result. Logic lives in that function, so a test can call it without a terminal or a socket.
-- Anything on the wire has one Zod schema in `packages/core/src/protocol`, built at module level, with its type inferred from it. Never declare a shape twice.
+- A command or route does three things: parse input, call one function, report the result. Logic lives in that function, so a test can call it without a terminal or a socket.
+- Anything on the wire has one decoder in `core/protocol` that rejects exactly what the reference schema rejects.
+- `--json` output, state files and wire JSON match `JSON.stringify` byte for byte: ordered structs, no HTML escaping, JS number formatting.
 
 ## Tests
 
 - **Test what can break:** codecs against vectors, crypto compositions, merge, storage commits, path validation, and whatever a bug fix changed. Skip what types guarantee.
-- **Extend before you add.** Add a row or assertion to an existing test when one fits.
-- **One layer.** Test at the lowest layer that fails. Don't repeat a case per adapter or per command.
+- **Extend before you add.** Add a row to an existing table test when one fits.
+- **One layer.** Test at the lowest layer that fails.
 - **Bug fixes** start with a test that fails without the fix.
-- **Time is an argument.** No `Date.now()`, sleeps, polling or per-test timeouts in logic or tests. A flaky test is fixed, not retried.
-- **No `.only`.** A `.skip` needs an issue link on the line above.
-- **Tests never touch the real keychain, the user's home config or a real tailnet.** Use temp dirs and fakes. A real-keychain test is opt-in through an env var.
+- **Time is an argument.** No `time.Now()` in logic; take `now func() int64`. Socket tests that check a timeout are the only tests that wait on the clock.
+- **Tests never touch the real keychain, the user's home config, a real tailnet or a real launchd, systemd or schtasks service.** Use temp dirs and fakes.
 
 ## Suppressions
 
-- Every `oxlint-disable`, `@ts-expect-error` and Fallow ignore says why.
-- Don't add an ignore to `.fallowrc.json` or `vite.config.ts` to get past a check. Fix the code.
+- Every `//nolint` says which linter and why.
+- Don't add an exclusion to `.golangci.yml` to get past a check. Fix the code.
 
 ## Docs and work artifacts
 

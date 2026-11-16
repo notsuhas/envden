@@ -1,33 +1,8 @@
-# Go port
+# Go implementation notes
 
-The Go port lives in `go/` as one module, `github.com/notsuhas/envden/go`. It implements core, adapters, CLI and server; the site stays TypeScript. TypeScript at `v0.3.8` is the reference.
+The Go implementation lives in `go/` as one module, `github.com/notsuhas/envden/go`: core, adapters, CLI and server in one binary. The TypeScript implementation on `main` is the reference. Devices running either share one vault and one server, so both must agree on everything that is stored, sent or decided: wire bytes, crypto, server database state, files written (names, contents, modes), exit and error codes, accepted flags and arguments, prompts and their order and choices, and `--json` output. Terminal styling, prompt rendering, help layout, error wording and PDF bytes are native Go and compare by meaning. Remaining differences are in [go-parity.md](go-parity.md).
 
-## Why functional parity
-
-Devices running different implementations share one vault and one server, so they must agree on everything that is stored, sent or decided. TypeScript at `v0.3.8` is the reference and its behaviour never changes for the port. Go must be functionally identical to it.
-
-These must match TypeScript exactly, bugs included:
-
-- wire bytes, crypto and the protocol
-- server database state
-- files written: names, contents and modes, including state and config files
-- exit codes and error codes
-- which flags and arguments are accepted or rejected
-- which prompts are asked, in what order, with which choices
-- every decision and outcome
-- `--json` output, after random values are normalized
-
-These are native Go and compare by meaning:
-
-- terminal styling, spinners, prompt rendering and help layout
-- the wording of errors and notices, which must keep the same meaning and facts (paths, names, counts, codes)
-- the PDF's internal bytes, which must keep the same extracted text and Info fields
-
-Rejected: byte-for-byte terminal output. It forced in-tree ports of npm libraries (commander, clack, date-fns, pako) to reproduce their exact bytes, while the vault, the server and scripts depend only on the things listed above. A port that behaves "better" in any of those still fails.
-
-A fix or improvement found while porting goes in [go-parity.md](go-parity.md), as does every presentation difference. A behaviour change lands in every implementation in the same PR, never in Go alone. Nothing a user sees (help, errors, prompts, README) mentions the port, TypeScript or parity.
-
-`parity/` checks this as a black box (see [parity.md](parity.md)): it runs each scenario against two binaries in throwaway homes and compares everything they produce, with random values mapped to placeholders. CI runs it on every push to `port/go`, plus mixed setups (a TS device and a Go device in one vault, each CLI against the other's server) and `apps/cli/scripts/e2e.ts` unchanged against the Go binary. Byte-level vectors in `packages/core/src/protocol/__tests__/vectors` gate the crypto.
+The parity harness, the transport comparison and the e2e script live on `main` and run against this binary in CI from the commit pinned in `.parity-reference`.
 
 ## Rules
 
@@ -37,49 +12,10 @@ The code style, error, test and adapter rules in `CLAUDE.md` apply, in Go idiom:
 - Errors are returned, not thrown: `errors.Wrap(code, message, cause)` from `go/core/errors`. The code matches TS; the message keeps the TS meaning and facts.
 - Times are `int64` milliseconds passed in, never `time.Now()` in logic.
 - Use maintained Go libraries for parsing, prompts, compression and the like. Never port an npm library by hand, and never hand-roll crypto.
-- Go forbids import cycles, so a CLI file goes where [go-cli-layout.md](go-cli-layout.md) puts it, even when its TS folder differs. `python3 scripts/ports/check-cli-layout.py --layers` checks the layering.
 
 ## Building and checks
 
-Go 1.26. Keep caches in the worktree:
-
-```sh
-cd go
-export GOMODCACHE=$PWD/../.cache/gomod GOCACHE=$PWD/../.cache/gobuild GOFLAGS=-modcacherw
-go build -o dist/envden ./cmd/envden   # one binary, CLI and server
-gofmt -l . && go vet ./... && golangci-lint run ./...
-go test ./...
-./scripts/build-all.sh                 # the eight release platforms, into go/dist
-```
-
-The parity suite needs Bun, Git and the TypeScript build. From the repo root:
-
-```sh
-bun run --cwd apps/cli build
-bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden
-bun apps/cli/scripts/e2e.ts go/dist/envden
-```
-
-`--server-binary` and `--device-binary` mix the two implementations in one run.
-
-The dashboard embeds gzipped compiled assets and decompresses them for serving; the asset tests pin the original served bytes.
-
-## Layout and TS mapping
-
-| Go | TS |
-|---|---|
-| `core/errors` | `packages/core/src/errors` |
-| `core/adapters` | `packages/core/src/adapters` (interfaces, env-file rules, commit prep) |
-| `core/protocol/...` | `packages/core/src/protocol/...`, one Go package per TS folder |
-| `core/chain/...` | `packages/core/src/chain` |
-| `core/merge`, `core/paths`, `core/process`, `core/release` | same names |
-| `adapters/<kind>/<impl>` | `packages/adapters/<kind>/<impl>` |
-| `testing/...` | `packages/testing` (fakes and contract suites) |
-| `server/...` | `apps/server/src` |
-| `cli/...` | `apps/cli/src`, mapped file by file in [go-cli-layout.md](go-cli-layout.md) |
-| `cmd/envden` | `apps/cli/src/main.ts` |
-
-A TS folder becomes a Go package with the same name, unless the name is a Go keyword or clashes, in which case add a suffix. Folder size and file rules from `CLAUDE.md` apply: one thing per file, about 200 lines max, about 8 files per folder.
+See `CLAUDE.md` for the commands. `./scripts/build-all.sh` cross-compiles the eight release platforms into `go/dist`. The dashboard embeds gzipped compiled assets and decompresses them for serving; the asset tests pin the served bytes.
 
 ## Adapters
 
@@ -90,7 +26,7 @@ Every adapter exists in TypeScript and in Go, and both must behave the same. In 
 - The contract suite and fake are in `go/testing/<kind>`, and `contract_test.go` in the adapter package runs the suite.
 - It is wired in `go/cli/adapters.go` or the server's `Serve`.
 
-Port the TypeScript contract cases as they are. A new case goes into both suites in the same PR. Behaviour the contract can't see, such as file names and permissions, is checked by the parity suite.
+The contract cases match the TypeScript suites. A new case goes into both in the same change. Behaviour the contract can't see, such as file names and permissions, is checked by the parity harness.
 
 ## Translating TypeScript
 
@@ -115,7 +51,7 @@ Port the TypeScript contract cases as they are. A new case goes into both suites
 | X25519, HPKE | `crypto/ecdh`, `crypto/hpke` (Go 1.26) | RFC 9180 in the standard library; rejects all-zero shared secrets |
 | OPAQUE | `github.com/bytemare/opaque` v0.18.0, RFC 9807, ristretto255-SHA512, Argon2id KSF with a 16-byte zero salt, `t=3, m=65536, p=4`, 64-byte output | reproduces `@serenity-kit/opaque` 1.1.0 (`opaque-ke` 4) byte for byte against the stored vectors |
 | Unicode normalization and case | `golang.org/x/text` | its tables are Unicode 15, Bun's ICU is newer; the gaps are in [go-parity.md](go-parity.md) |
-| SQLite | `modernc.org/sqlite` | pure Go, so every platform cross-compiles without cgo. On darwin it turns on persistent WAL and truncates the WAL on close, because Bun links Apple's SQLite there, which keeps empty `-wal` and `-shm` files after shutdown |
+| SQLite | `modernc.org/sqlite` | pure Go, so every platform cross-compiles without cgo. Close checkpoints with `TRUNCATE`, so a stopped server leaves only `envden.sqlite` |
 | URL parsing | `github.com/nlnwa/whatwg-url` | TS uses the WHATWG `URL`; `net/url` normalizes differently |
 | Commands, flags, help | `github.com/spf13/cobra` | the standard Go CLI library; envden normalizes argv first so the same flags and operands are accepted or rejected |
 | Prompts, spinners | `github.com/charmbracelet/huh`, `bubbletea`, `bubbles` | maintained terminal prompts; the questions, their order and choices follow TS |
@@ -128,15 +64,7 @@ Port the TypeScript contract cases as they are. A new case goes into both suites
 
 ## Reference fixtures
 
-Fixtures captured from the TS code are committed under each package's `testdata`. The tests that regenerate them, and the live comparisons, only run with `ENVDEN_TS_PARITY=1` and need Bun and the installed workspace dependencies:
-
-```sh
-cd go
-ENVDEN_TS_PARITY=1 go test ./... -run 'TestRegenerate' -count=1
-ENVDEN_TS_PARITY=1 go test -count=1 -run 'Bun|TypeScriptParity|PDFLibLive' ./server ./cli/vault/recovery/pdf
-```
-
-Each package names the test `TestRegenerateReference`. The second line compares against a running Bun server and pdf-lib, as CI does. See [go-server-parity.md](go-server-parity.md) for the server request corpus.
+Fixtures captured from the TypeScript code are committed under each package's `testdata` and replayed by the tests: protocol vectors, chain and merge traces, the 417-request server corpus with database snapshots, PDF text and the command behaviour table. The tests that regenerated them needed Bun and the TypeScript tree, so they are no longer in this branch; to regenerate a fixture, run its generator from history in a checkout that has `main` beside `go/`.
 
 ### OPAQUE state formats
 
@@ -155,6 +83,4 @@ A finish call resumes from these with `ClientOptions{OPRFBlind, ResumePassword, 
 
 ## Releases
 
-`go/scripts/build-all.sh` cross-compiles the same eight platforms as the TS release, with the same asset names (`envden-darwin-arm64`, `envden-linux-x64-musl`, `envden-windows-x64.exe` and so on). Builds are static with `CGO_ENABLED=0`, so the musl targets need no separate toolchain. `ENVDEN_TELEMETRY_KEY` is baked in the same way. Pass target names to build a subset.
-
-CI uploads the binaries as the `envden-go` workflow artifact. Signing, notarization, `SHA256SUMS`, GitHub releases, Homebrew, Scoop, npm and Docker publishing stay off for the port. Turning them on would follow [releasing.md](../releasing.md) with these binaries in place of Bun's.
+`go/scripts/build-all.sh` builds the same eight platforms as the TypeScript release, with the same asset names (`envden-darwin-arm64`, `envden-linux-x64-musl`, `envden-windows-x64.exe` and so on). Builds are static with `CGO_ENABLED=0`, so the musl targets need no separate toolchain. `ENVDEN_TELEMETRY_KEY` is baked in at build time. CI uploads the binaries as the `envden-go` artifact and builds the server image from `packaging/docker/Dockerfile` without publishing; see [releasing.md](../releasing.md).
