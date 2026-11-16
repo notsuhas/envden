@@ -54,6 +54,30 @@ mod cases {
 }
 
 #[test]
+fn release_failure_replaces_success_or_action_error() {
+    use std::os::unix::fs::PermissionsExt;
+
+    for action_fails in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("state/write.lock");
+        let result = with_state_lock(dir.path(), &|| 100, || {
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o500)).unwrap();
+            if action_fails {
+                Err(EnvdenError::new(ErrorCode::Conflict, "Action failed"))
+            } else {
+                Ok(())
+            }
+        });
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+
+        let error = result.unwrap_err();
+        assert_eq!(error.code, ErrorCode::Internal);
+        assert_eq!(crate::output::error_exit_code(error.code), 1);
+        assert!(std::error::Error::source(&error).is_some());
+    }
+}
+
+#[test]
 fn default_lock_reads_injected_clock_for_each_check() {
     let dir = tempfile::tempdir().unwrap();
     let reads = std::cell::Cell::new(0);

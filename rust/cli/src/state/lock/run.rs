@@ -150,7 +150,7 @@ fn with_timing_observer<T>(
         result
     })();
     if super::owner::read_owner(&path).as_ref().map(|o| &o.token) == Some(&token) {
-        let _ = fs::remove_dir_all(path);
+        fs::remove_dir_all(path).map_err(failure)?;
     }
     result
 }
