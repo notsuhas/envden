@@ -106,7 +106,10 @@ fn key_changes(change: &Value) -> Value {
         return json!({"kind":"diff","added":change["added"],"removed":change["removed"],"changed":change["changed"]});
     }
     let mut result = json!({"kind":"unparsed","reason":change["reason"]});
-    if let Some(key) = change.get("key") {
+    if let Some(key) = change
+        .get("key")
+        .filter(|v| v.as_str().is_some_and(|s| !s.is_empty()))
+    {
         result["key"] = key.clone();
     }
     result
@@ -122,4 +125,17 @@ fn conflict_views(adapters: &IAdapters) -> Result<Vec<Value>> {
         };
         Ok(json!({"id":r.file,"path":r.path,"roots":r.targets.iter().map(|t|&t.root).collect::<Vec<_>>(),"keys":keys,"serverDeleted":r.deleted,"mineDeleted":r.mine_deleted}))
     }).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn key_changes_omits_empty_conflict_key() {
+        assert_eq!(
+            key_changes(&json!({"kind":"conflict", "reason":"duplicate-key", "key":""})),
+            json!({"kind":"unparsed", "reason":"duplicate-key"})
+        );
+    }
 }
