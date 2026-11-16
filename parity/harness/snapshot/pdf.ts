@@ -5,8 +5,12 @@ export function pdfText(bytes: Buffer, n: Normalizer) {
   const source = bytes.toString("latin1");
   const streams: string[] = [];
 
-  for (const match of source.matchAll(/<<(.*?)>>\s*stream\r?\n([\s\S]*?)\r?\nendstream/gs)) {
-    const raw = Buffer.from(match[2]!, "latin1");
+  for (const match of source.matchAll(/<<(.*?)>>\s*stream\r?\n/gs)) {
+    const length = /\/Length\s+(\d+)\b/.exec(match[1]!);
+    if (!length) throw new Error("PDF stream has no direct length");
+
+    const start = match.index + match[0].length;
+    const raw = bytes.subarray(start, start + Number(length[1]));
 
     const decoded = /FlateDecode/.test(match[1]!)
       ? inflateSync(raw).toString("latin1")

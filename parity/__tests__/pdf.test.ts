@@ -4,9 +4,11 @@ import { pdfText } from "../harness/snapshot/pdf.ts";
 import { Normalizer } from "../harness/normalize.ts";
 
 function fixture(text: string) {
+  const compressed = deflateSync(Buffer.from(text));
+
   return Buffer.concat([
-    Buffer.from("%PDF-1.7\n<< /Filter /FlateDecode >>\nstream\n"),
-    deflateSync(Buffer.from(text)),
+    Buffer.from(`%PDF-1.7\n<< /Filter /FlateDecode /Length ${compressed.length} >>\nstream\n`),
+    compressed,
     Buffer.from("\nendstream\n%%EOF"),
   ]);
 }
@@ -21,6 +23,8 @@ test("PDF comparison inflates text operators and detects changed kit instruction
   expect(pdfText(fixture("BT (keep online) Tj ET"), n)).not.toEqual(
     pdfText(fixture("BT (keep offline) Tj ET"), n),
   );
+
+  expect(pdfText(fixture("(kit) Tj\n%15"), n)).toEqual({ pdfText: "kit" });
 
   expect(() => pdfText(fixture("q Q"), n)).toThrow("no decoded text operators");
 });
