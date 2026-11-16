@@ -31,14 +31,47 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
         cwd.to_str(),
         true,
     );
-    print(&if invocation.options.get("json") == Some(&true.into()) {
-        terminal_json(&report)
-    } else {
-        status_text(
-            &report,
-            &std::env::current_dir().map_err(crate::state::files::failure)?,
-            &adapters.user_home,
-        )
-    });
+    print(&render_report(
+        &report,
+        invocation.options.get("json") == Some(&true.into()),
+        &cwd,
+        &adapters.user_home,
+    ));
     Ok(())
+}
+
+fn render_report(
+    report: &serde_json::Value,
+    json: bool,
+    cwd: &std::path::Path,
+    user_home: &std::path::Path,
+) -> String {
+    if json {
+        terminal_json(report)
+    } else {
+        let home = user_home
+            .canonicalize()
+            .unwrap_or_else(|_| user_home.to_owned());
+        status_text(report, cwd, &home)
+    }
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_uses_real_user_home_for_canonical_checkout_roots() {
+        let temp = tempfile::tempdir().unwrap();
+        let home = temp.path().join("real");
+        std::fs::create_dir(&home).unwrap();
+        let alias = temp.path().join("alias");
+        std::os::unix::fs::symlink(&home, &alias).unwrap();
+        let root = home.canonicalize().unwrap().join("repo");
+        let report = serde_json::json!({"configured":true, "server":"reachable", "serverChecked":true, "files":[{"root":root,"path":".env","state":"changed"}]});
+        assert_eq!(
+            render_report(&report, false, &temp.path().join("elsewhere"), &alias),
+            "Server: reachable\nChanged here (run envden push): ~/repo/.env"
+        );
+    }
 }
