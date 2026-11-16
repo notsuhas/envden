@@ -116,7 +116,7 @@ pub fn restore(
                     path.display(),
                     crate::history::list::render::changes_text(&changes)
                 ),
-                true,
+                false,
             )?
         {
             result["kind"] = "cancelled".into();

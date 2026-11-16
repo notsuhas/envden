@@ -1,135 +1,42 @@
-use super::{
-    render::{color, header},
-    terminal::{Terminal, cancelled},
-};
+use super::terminal::{Terminal, failure};
 use crate::output::sanitize_terminal;
-use crossterm::event::{KeyCode, KeyModifiers};
 use envden_core::errors::Result;
 
-pub fn secret(message: &str, check: impl Fn(&str) -> Option<String>) -> Result<String> {
-    ask(message, true, None, true, check)
+pub fn secret(message: &str, check: impl Fn(&str) -> Option<String> + 'static) -> Result<String> {
+    let _terminal = Terminal::open(message)?;
+    cliclack::password(sanitize_terminal(message))
+        .allow_empty()
+        .validate(move |value: &String| validate(value, true, &check))
+        .interact()
+        .map_err(failure)
 }
 
 pub fn input(
     message: &str,
     required: bool,
     initial: Option<&str>,
-    check: impl Fn(&str) -> Option<String>,
+    check: impl Fn(&str) -> Option<String> + 'static,
 ) -> Result<String> {
-    ask(message, required, initial, false, check)
+    let _terminal = Terminal::open(message)?;
+    cliclack::input(sanitize_terminal(message))
+        .required(false)
+        .initial_input(initial.unwrap_or_default())
+        .validate(move |value: &String| validate(value, required, &check))
+        .interact()
+        .map_err(failure)
 }
 
-fn ask(
-    message: &str,
+fn validate(
+    value: &str,
     required: bool,
-    initial: Option<&str>,
-    password: bool,
-    check: impl Fn(&str) -> Option<String>,
-) -> Result<String> {
-    let mut terminal = Terminal::open(message)?;
-    let message = sanitize_terminal(message);
-    let mut value: Vec<char> = initial.unwrap_or_default().chars().collect();
-    let mut cursor = value.len();
-    let mut error: Option<String> = None;
-    loop {
-        let text: String = value.iter().collect();
-        let display = if password {
-            "▪".repeat(text.encode_utf16().count())
+    check: &impl Fn(&str) -> Option<String>,
+) -> std::result::Result<(), String> {
+    if value.is_empty() {
+        return if required {
+            Err("Required".into())
         } else {
-            text.clone()
+            Ok(())
         };
-        let status = if error.is_some() { "error" } else { "active" };
-        let body = if let Some(error) = &error {
-            format!("{}  {}", color("33", "└"), color("33", error))
-        } else {
-            color("36", "└")
-        };
-        terminal.render(&format!(
-            "{}{}  {}\n{body}\n",
-            header(&message, status),
-            color(if error.is_some() { "33" } else { "36" }, "│"),
-            display
-        ))?;
-        let key = terminal.key()?;
-        if key.code == KeyCode::Esc
-            || (key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c'))
-        {
-            terminal.render(&format!(
-                "{}{}  {}\n{}\n",
-                header(&message, "cancel"),
-                color("90", "│"),
-                color("9;2", &display),
-                color("90", "│")
-            ))?;
-            return Err(cancelled());
-        }
-        match key.code {
-            KeyCode::Enter => {
-                error = if required && text.is_empty() {
-                    Some("Required".into())
-                } else if !text.is_empty() {
-                    check(&text)
-                } else {
-                    None
-                };
-                if error.is_none() {
-                    terminal.render(&format!(
-                        "{}{}{}\n",
-                        header(&message, "submit"),
-                        color("90", "│"),
-                        if display.is_empty() {
-                            String::new()
-                        } else {
-                            format!("  {}", color("2", &display))
-                        }
-                    ))?;
-                    return Ok(text);
-                }
-            }
-            KeyCode::Backspace if cursor > 0 => {
-                cursor -= 1;
-                value.remove(cursor);
-            }
-            KeyCode::Delete if cursor < value.len() => {
-                value.remove(cursor);
-            }
-            KeyCode::Left => cursor = cursor.saturating_sub(1),
-            KeyCode::Right => cursor = (cursor + 1).min(value.len()),
-            KeyCode::Home => cursor = 0,
-            KeyCode::End => cursor = value.len(),
-            KeyCode::Char('a') if key.modifiers.contains(KeyModifiers::CONTROL) => cursor = 0,
-            KeyCode::Char('e') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                cursor = value.len()
-            }
-            KeyCode::Char('b') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                cursor = cursor.saturating_sub(1)
-            }
-            KeyCode::Char('f') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                cursor = (cursor + 1).min(value.len())
-            }
-            KeyCode::Char('k') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                value.truncate(cursor)
-            }
-            KeyCode::Char('w') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                let end = cursor;
-                while cursor > 0 && value[cursor - 1].is_whitespace() {
-                    cursor -= 1;
-                }
-                while cursor > 0 && !value[cursor - 1].is_whitespace() {
-                    cursor -= 1;
-                }
-                value.drain(cursor..end);
-            }
-            KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                value.clear();
-                cursor = 0;
-            }
-            KeyCode::Char(c) if !key.modifiers.contains(KeyModifiers::CONTROL) => {
-                value.insert(cursor, c);
-                cursor += 1;
-                error = None;
-            }
-            _ => {}
-        }
     }
+    check(value).map_or(Ok(()), |message| Err(sanitize_terminal(&message)))
 }

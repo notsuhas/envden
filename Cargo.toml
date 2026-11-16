@@ -31,6 +31,7 @@ all = { level = "deny", priority = -1 }
 thiserror = "2"
 
 [patch.crates-io]
+cliclack = { path = "rust/vendor/cliclack" }
 # exposes fixed-ephemeral encapsulation; see rust/vendor/hpke/ENVDEN-PATCH.md
 hpke = { path = "rust/vendor/hpke" }
 

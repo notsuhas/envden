@@ -15,80 +15,67 @@ pub fn require_terminal(label: &str) -> Result<()> {
 }
 
 pub(super) struct Terminal {
-    previous: String,
+    #[cfg(unix)]
+    original: nix::sys::termios::Termios,
 }
 
 impl Terminal {
     pub(super) fn open(label: &str) -> Result<Self> {
         require_terminal(label)?;
-        crossterm::terminal::enable_raw_mode().map_err(failure)?;
-        Ok(Self {
-            previous: String::new(),
-        })
-    }
+        #[cfg(unix)]
+        {
+            use nix::sys::termios::{SetArg, cfmakeraw, tcgetattr, tcsetattr};
+            let original = tcgetattr(io::stdin()).map_err(|e| failure(e.into()))?;
+            let mut mode = original.clone();
+            cfmakeraw(&mut mode);
+            mode.output_flags = original.output_flags;
+            tcsetattr(io::stdin(), SetArg::TCSANOW, &mode).map_err(|e| failure(e.into()))?;
 
-    pub(super) fn render(&mut self, text: &str) -> Result<()> {
-        use std::io::Write;
-        let mut output = io::stdout();
-        let update = redraw(&self.previous, text);
-        write!(output, "\x1b[?25l{update}").map_err(failure)?;
-        output.flush().map_err(failure)?;
-        self.previous = text.into();
-        Ok(())
-    }
-
-    pub(super) fn key(&self) -> Result<crossterm::event::KeyEvent> {
-        loop {
-            if let crossterm::event::Event::Key(key) = crossterm::event::read().map_err(failure)? {
-                return Ok(key);
-            }
+            Ok(Self { original })
+        }
+        #[cfg(not(unix))]
+        {
+            crossterm::terminal::enable_raw_mode().map_err(failure)?;
+            Ok(Self {})
         }
     }
 }
 
-fn redraw(previous: &str, text: &str) -> String {
-    let shared = previous
-        .split_inclusive('\n')
-        .zip(text.split_inclusive('\n'))
-        .take_while(|(old, new)| old == new)
-        .map(|(_, line)| line.len())
-        .sum::<usize>();
-    let remaining = &previous[shared..];
-    let lines = remaining.matches('\n').count();
-    let movement = if lines > 0 {
-        format!("\x1b[{lines}A\r\x1b[J")
-    } else {
-        String::new()
-    };
-    format!("{movement}{}", text[shared..].replace('\n', "\r\n"))
-}
-
 impl Drop for Terminal {
     fn drop(&mut self) {
-        use std::io::Write;
-        let _ = write!(io::stdout(), "\x1b[?25h");
-        let _ = io::stdout().flush();
+        #[cfg(unix)]
+        {
+            use nix::sys::termios::{SetArg, tcsetattr};
+            let _ = tcsetattr(io::stdin(), SetArg::TCSANOW, &self.original);
+        }
+        #[cfg(not(unix))]
         let _ = crossterm::terminal::disable_raw_mode();
     }
 }
 
-pub(super) fn failure(error: std::io::Error) -> EnvdenError {
+pub(super) fn failure(error: io::Error) -> EnvdenError {
+    if error.kind() == io::ErrorKind::Interrupted {
+        return EnvdenError::new(ErrorCode::InvalidInput, "Cancelled");
+    }
     EnvdenError::with_source(ErrorCode::Internal, "Terminal operation failed", error)
-}
-
-pub(super) fn cancelled() -> EnvdenError {
-    EnvdenError::new(ErrorCode::InvalidInput, "Cancelled")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
-    fn input_repaints_do_not_repeat_the_prompt_header() {
-        let previous = "│\n◆  Wrong master password. Try again\n│  ▪\n└\n";
-        let next = previous.replace("│  ▪", "│  ▪▪");
-        assert_eq!(redraw(previous, &next), "\x1b[2A\r\x1b[J│  ▪▪\r\n└\r\n");
-        assert_eq!(redraw(previous, previous), "");
+    fn cancellation_keeps_the_input_error_and_exit_code() {
+        let error = failure(io::ErrorKind::Interrupted.into());
+        assert_eq!(error.code, ErrorCode::InvalidInput);
+        assert_eq!(crate::output::error_exit_code(error.code), 2);
+    }
+
+    #[test]
+    fn terminal_failures_keep_their_cause() {
+        let error = failure(io::ErrorKind::BrokenPipe.into());
+        assert_eq!(error.code, ErrorCode::Internal);
+        assert!(std::error::Error::source(&error).is_some());
     }
 
     #[test]

@@ -125,7 +125,7 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 
 - Scenario: discover checkouts during setup or join with progress enabled.
 - TS behaviour: @clack/prompts animates a spinner on stdout and reports the number of repos found.
-- Rust behaviour: CliClack 0.5.7 uses its indicatif-backed spinner on stdout, with native animation and completion styling. The scan location, found count, singular/plural completion text and silent non-terminal default stay unchanged.
+- Rust behaviour: CliClack 0.5.7 uses its indicatif-backed spinner on stdout, with native animation and a plain completion line. Completion counts remain visible even when the animation is hidden. The scan location, found count, singular/plural completion text and silent non-terminal default stay unchanged.
 - Why: the maintained spinner replaces the custom ANSI progress renderer; discovery decisions and results stay unchanged.
 
 ## presentation: command help layout
