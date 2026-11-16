@@ -1,7 +1,7 @@
 use std::process::Command;
 
 #[test]
-fn empty_home_uses_working_directory_for_reads_and_writes() {
+fn an_empty_envden_home_uses_the_default_home() {
     let root = tempfile::tempdir().unwrap();
     for (args, expected) in [
         (
@@ -27,9 +27,11 @@ fn empty_home_uses_working_directory_for_reads_and_writes() {
         assert!(output.status.success(), "{output:?}");
         assert_eq!(String::from_utf8(output.stdout).unwrap(), expected);
         assert!(output.stderr.is_empty());
-        assert!(root.path().join("state").is_dir());
+        assert!(root.path().join(".envden/state").is_dir());
+        assert!(!root.path().join("state").exists());
     }
     let config: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(root.path().join("config.json")).unwrap()).unwrap();
+        serde_json::from_slice(&std::fs::read(root.path().join(".envden/config.json")).unwrap())
+            .unwrap();
     assert_eq!(config["telemetry"], false);
 }
