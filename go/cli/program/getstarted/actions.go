@@ -13,12 +13,12 @@ import (
 	"github.com/notsuhas/envden/go/cli/onboarding/report"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/program/access"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/vault"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 	"golang.org/x/term"
 )
 
@@ -49,7 +49,7 @@ func missingSetupFlags(interactive bool, o onboarding.SetupOptions) []string {
 	return result
 }
 
-func setupAction(inv *commander.Invocation) error {
+func setupAction(inv *command.Invocation) error {
 	options := setupOptions(inv.Values)
 	interactive := term.IsTerminal(int(os.Stdin.Fd()))
 	if missing := missingSetupFlags(interactive, options); len(missing) > 0 {
@@ -101,7 +101,7 @@ func setupAction(inv *commander.Invocation) error {
 	return nil
 }
 
-func joinAction(inv *commander.Invocation) error {
+func joinAction(inv *command.Invocation) error {
 	a, p, stdout, err := access.Runtime(inv)
 	if err != nil {
 		return err

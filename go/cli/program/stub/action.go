@@ -1,8 +1,8 @@
 package stub
 
 import (
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func Action(*commander.Invocation) error { return errors.New(errors.NotImplemented, "not implemented") }
+func Action(*command.Invocation) error { return errors.New(errors.NotImplemented, "not implemented") }

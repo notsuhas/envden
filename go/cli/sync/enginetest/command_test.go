@@ -11,6 +11,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/program"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/dailyuse"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/lock"
@@ -18,7 +19,11 @@ import (
 )
 
 func TestCommandFreshHomeSyncGates(t *testing.T) {
-	text := program.CreateProgram().Help()
+	var help bytes.Buffer
+	p := program.CreateProgram()
+	p.SetOut(&help)
+	must(t, p.Help())
+	text := help.String()
 
 	for _, name := range []string{"setup", "join", "push", "pull", "status", "diff", "resolve", "rm", "alias", "device", "server", "serve", "update", "config", "agent", "shell", "doctor", "version"} {
 		if !strings.Contains(text, name) {
@@ -85,7 +90,7 @@ func TestCommandResolutionChoices(t *testing.T) {
 			f.write(records[0].File, "TOKEN=edited\n")
 			c := dailyuse.ResolveCommand()
 			var output bytes.Buffer
-			c.Stdout = &output
+			c.SetOut(&output)
 			runtime.Bind(c, runtime.Environment{Context: f.ctx, Adapters: f.second, Interactive: true})
 			defer runtime.Release(c)
 			args := []string{}
@@ -94,7 +99,7 @@ func TestCommandResolutionChoices(t *testing.T) {
 				args = append(args, "--"+choice)
 			}
 
-			_, err = c.Parse(args)
+			_, err = command.Execute(c, args)
 			must(t, err)
 			expected := map[string]string{"edit": "TOKEN=edited\n", "keep-mine": "TOKEN=mine\n", "take-server": "TOKEN=remote\n"}[choice]
 			equal(t, f.read(target.Store), expected)
@@ -110,9 +115,9 @@ func TestDiffReportsUnapprovedCheckout(t *testing.T) {
 	for _, args := range [][]string{nil, {"--all"}, {"--json"}} {
 		c := dailyuse.DiffCommand()
 		var out bytes.Buffer
-		c.Stdout = &out
+		c.SetOut(&out)
 		runtime.Bind(c, runtime.Environment{Context: f.ctx, Adapters: f.first, Interactive: false})
-		_, err := c.Parse(args)
+		_, err := command.Execute(c, args)
 		runtime.Release(c)
 		if len(args) > 0 && args[0] == "--all" {
 			must(t, err)

@@ -7,16 +7,16 @@ import (
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/notice"
 	"github.com/notsuhas/envden/go/cli/onboarding"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/vault/initial"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
 func FirstRun(ctx context.Context, a contracts.Adapters, p onboarding.Prompts) error {
 	interactive := true
 	_, err := sync.FirstRun(ctx, a, sync.Options{Now: a.Now, Fetcher: a.Fetcher, All: true, Interactive: &interactive}, func(path string) (string, error) {
-		return p.Terminal.Select(clack.PromptOptions{Message: path + " differs from the server's copy", Options: []clack.Option{{Value: "keep-mine", Label: "Keep mine"}, {Value: "take-server", Label: "Take the server's"}, {Value: "merge", Label: "Merge both"}}})
+		return p.Terminal.Select(prompts.PromptOptions{Message: path + " differs from the server's copy", Options: []prompts.Option{{Value: "keep-mine", Label: "Keep mine"}, {Value: "take-server", Label: "Take the server's"}, {Value: "merge", Label: "Merge both"}}})
 	})
 
 	return err

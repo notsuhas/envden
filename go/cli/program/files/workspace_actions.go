@@ -6,14 +6,14 @@ import (
 
 	"github.com/notsuhas/envden/go/cli/links"
 	"github.com/notsuhas/envden/go/cli/links/checkout"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func untrackAction(i *commander.Invocation) error {
+func untrackAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func untrackAction(i *commander.Invocation) error {
 	return nil
 }
 
-func localOnlyAction(i *commander.Invocation) error {
+func localOnlyAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

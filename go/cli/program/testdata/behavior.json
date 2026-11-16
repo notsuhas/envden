@@ -1,0 +1,5133 @@
+[
+  {
+    "args": ["--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["untrack", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["local-only", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["alias", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "add", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rename", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "rotate", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "replace", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "change", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "reset", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "switch", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["unlock", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["agent", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["agent", "install", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "install", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "uninstall", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["version", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--dry-run", "rm", "--yes", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=1"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--yes", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "--bogus", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "rm", "extra"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "rm"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "abc", ".env"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["setup", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "setup"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--server", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "server": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--server=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "server": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--server"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--server", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "server": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--kit-out", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--kit-out=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--kit-out"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--kit-out", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--name", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--name=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--name"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--name", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--host-server"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "hostServer": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--host-server=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--host-server=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--host-server="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--setup-token", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--setup-token=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--setup-token"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--setup-token", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--telemetry", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "telemetry": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--telemetry=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "telemetry": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--telemetry"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--telemetry", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--telemetry", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--update-check", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "updateCheck": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--update-check=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "updateCheck": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--update-check"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--update-check", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--update-check", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--shell", "zsh"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "shell": "zsh"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--shell=zsh"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "shell": "zsh"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--shell"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--shell", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--shell", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--agent", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "agent": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--agent=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "agent": "on"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--agent"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--agent", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--agent", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--scan-root", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "scanRoot": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--scan-root=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "scanRoot": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--scan-root"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--scan-root", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "scanRoot": ["--help"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--scan-root", "a", "b", "--scan-root", "c"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "scanRoot": ["a", "b", "c"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--exclude-root", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "excludeRoot": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--exclude-root=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "excludeRoot": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--exclude-root"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--exclude-root", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "excludeRoot": ["--help"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--exclude-root", "a", "b", "--exclude-root", "c"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "excludeRoot": ["a", "b", "c"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--verbose"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "verbose": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--verbose=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--verbose=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--verbose="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "join"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "join"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--recovery"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "recovery": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--recovery=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--recovery=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--recovery="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--recovery-kit", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "recoveryKit": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--recovery-kit=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "recoveryKit": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--recovery-kit"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--recovery-kit", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "recoveryKit": "--help"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--name", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--name=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--name"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--name", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "name": "--help"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--telemetry", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "telemetry": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--telemetry=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "telemetry": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--telemetry"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--telemetry", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--telemetry", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--update-check", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "updateCheck": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--update-check=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "updateCheck": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--update-check"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--update-check", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--update-check", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--shell", "zsh"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "shell": "zsh"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--shell=zsh"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "shell": "zsh"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--shell"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--shell", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--shell", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--agent", "on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "agent": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--agent=on"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "agent": "on"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--agent"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--agent", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--agent", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--resume"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "resume": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["join", ".env", "--resume=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--resume=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["join", ".env", "--resume="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["status", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "status"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["status", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--refresh-cache"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "refreshCache": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["status", "--refresh-cache=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--refresh-cache=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--refresh-cache="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["push", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "push"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "push"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["push", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--all"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "all": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["push", "--all=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--all=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--all="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["push", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["push", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["pull", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "pull"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "pull"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["pull", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--all"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "all": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["pull", "--all=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--all=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--all="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["pull", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["pull", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["diff", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "diff"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "diff"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["diff", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--all"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "all": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["diff", "--all=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--all=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["diff", "--all="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "resolve"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "resolve"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--list"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "list": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--list=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--list=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--list="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--repo", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repo": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--repo=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repo": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--repo"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--repo", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repo": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--keep-mine"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "keepMine": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--keep-mine=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--keep-mine=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--keep-mine="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--take-server"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "takeServer": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["resolve", "--take-server=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--take-server=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["resolve", "--take-server="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["history", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "history"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--all"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "all": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["history", "--all=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--all=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--all="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "3"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "restore": 3
+    },
+    "parsed": []
+  },
+  {
+    "args": ["history", "--restore=3"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "restore": 3
+    },
+    "parsed": []
+  },
+  {
+    "args": ["history", "--restore"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "--help"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["history", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["history", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["<cwd>"]
+  },
+  {
+    "args": ["track", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "track"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "track"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--copy"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "copy": true
+    },
+    "parsed": ["<cwd>"]
+  },
+  {
+    "args": ["track", "--copy=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--copy=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--copy="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--verbose"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "verbose": true
+    },
+    "parsed": ["<cwd>"]
+  },
+  {
+    "args": ["track", "--verbose=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--verbose=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["track", "--verbose="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["untrack"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["untrack", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["untrack", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["untrack", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "untrack"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "untrack"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["local-only"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["local-only", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["local-only", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["local-only", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "local-only"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "local-only"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["rm", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "rm"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["rm", ".env", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["rm", ".env", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["alias"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["alias", ".env", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env", ".env"]
+  },
+  {
+    "args": ["alias", ".env", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["alias", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "alias"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "alias"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "add"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["device", "add", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "add", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "add"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "device", "add"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["device", "ls", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "device", "ls"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["device", "ls", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--verbose"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "verbose": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["device", "ls", "--verbose=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--verbose=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--verbose="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rename"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rename", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rename", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rename", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "rename"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "device", "rename"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rm", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "rm"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "device", "rm"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", ".env", "--kit-out", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rm", ".env", "--kit-out=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rm", ".env", "--kit-out"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", ".env", "--kit-out", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "--help"
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rm", ".env", "--new-kit"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "newKit": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["device", "rm", ".env", "--new-kit=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", ".env", "--new-kit=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", ".env", "--new-kit="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "rotate"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["vault", "rotate", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "rotate", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "vault", "rotate"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "vault", "rotate"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "replace"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["vault", "kit", "replace", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "replace", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "vault", "kit", "replace"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "vault", "kit", "replace"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "replace", "--kit-out", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["vault", "kit", "replace", "--kit-out=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["vault", "kit", "replace", "--kit-out"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "kit", "replace", "--kit-out", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "kitOut": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["vault", "password", "change"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["vault", "password", "change", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "change", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "vault", "password", "change"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "vault", "password", "change"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "reset"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["vault", "password", "reset", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["vault", "password", "reset", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "vault", "password", "reset"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "vault", "password", "reset"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "server", "move"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "server", "move"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--setup-token", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "--setup-token=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "--setup-token"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--setup-token", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "setupToken": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "--resume"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "resume": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "--resume=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--resume=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--resume="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--abort"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "abort": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "move", "--abort=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--abort=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "move", "--abort="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "switch"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "switch", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["server", "switch", ".env", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "switch", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "server", "switch"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "server", "switch"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "server", "repair"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "server", "repair"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--repair-token", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repairToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--repair-token=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repairToken": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--repair-token"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--repair-token", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "repairToken": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--finish"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "finish": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--finish=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--finish=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--finish="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--without", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "without": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--without=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "without": ["value"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--without"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--without", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "without": ["--help"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--without", "a", "b", "--without", "c"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "without": ["a", "b", "c"]
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--accept-lost"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "acceptLost": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["server", "repair", "--accept-lost=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--accept-lost=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["server", "repair", "--accept-lost="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["unlock"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["unlock", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["unlock", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "unlock"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "unlock"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["config", "extra", "extra"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["extra", "extra"]
+  },
+  {
+    "args": ["config", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "config"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["doctor", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "doctor"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "doctor"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor", "--json"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "json": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["doctor", "--json=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor", "--json=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["doctor", "--json="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["update", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "update"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "update"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--check"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "check": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["update", "--check=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--check=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--check="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--post-install"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "postInstall": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["update", "--post-install=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--post-install=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["update", "--post-install="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "open": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["ui", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "ui"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "ui"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--port", "123"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "open": true,
+      "port": 123
+    },
+    "parsed": []
+  },
+  {
+    "args": ["ui", "--port=123"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "open": true,
+      "port": 123
+    },
+    "parsed": []
+  },
+  {
+    "args": ["ui", "--port"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--port", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "open": true,
+      "port": null
+    },
+    "parsed": []
+  },
+  {
+    "args": ["ui", "--no-open", "value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--no-open=value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["ui", "--no-open"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "open": false
+    },
+    "parsed": []
+  },
+  {
+    "args": ["ui", "--no-open", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["agent", "install"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["agent", "install", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["agent", "install", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "agent", "install"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "agent", "install"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "install"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["shell", "install", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "install", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "shell", "install"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "shell", "install"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "uninstall"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["shell", "uninstall", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["shell", "uninstall", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "shell", "uninstall"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "shell", "uninstall"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["serve", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "serve"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "serve"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--restored"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "restored": true
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--restored=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--restored=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--restored="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--min-client", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "minClient": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--min-client=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "minClient": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--min-client"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--min-client", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "minClient": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--data-dir", "value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "dataDir": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--data-dir=value"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "dataDir": "value"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--data-dir"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--data-dir", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "dataDir": "--help"
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--port", "123"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "port": 123
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--port=123"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "port": 123
+    },
+    "parsed": []
+  },
+  {
+    "args": ["serve", "--port"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["serve", "--port", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["version"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["version", "extra", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["version", "--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "version"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help", "version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--no-open=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--no-open="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--no-open"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "-y=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "-y="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "-ymvalue"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "-m=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "-m="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--maybe=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--maybe="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--maybe"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--maybe", "value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--maybe", "--yes"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false", "--maybe", "value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-x"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yesx", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--x\u001b[31mred"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["help"]
+  },
+  {
+    "args": ["--unknown", "help", "rm"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--dry-run", "--yes", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "--dry-run", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {
+      "yes": true
+    },
+    "parsed": [".env"]
+  },
+  {
+    "args": ["rm", ".env", "--root"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--dry-run", "rm", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--dry-run", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--dry-run"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "echo", "--unknown"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--unknown", "echo"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--unknown", "rm", "echo"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--unknown", "x"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--unknown", "config", "x"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "rm", "--yes", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required", "x", "--no-open=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required", "x", "--no-open="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--yes=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--yes=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--yes="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--no-open=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--no-open="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--maybe=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--maybe="],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--maybe"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--maybe", "value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": [],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "b"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rnu"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--loud"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--mode"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--mode", "bad"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--left", "--right"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--mode=fast"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--count", "-2"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--", "--x"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["--x"]
+  },
+  {
+    "args": ["other", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["other"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["other", "wat"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--yes", "extra"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "a", "--name", "value"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "a", "b", "--tag", "x", "y"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--tag", "x"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--no-open", "file"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--hidden", "file"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required", "x"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required", "x", "file"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--required", "x", "file", "--tag", "a", "b"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "status"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "status"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "status"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "status"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "status"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "status"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "status"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "status"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "status", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "status"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["status", "--", "--yes"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["status", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "rm", ".env"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "rm", ".env"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "rm", ".env"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "rm", ".env"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "rm", ".env", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "rm", ".env"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": [".env"]
+  },
+  {
+    "args": ["rm", ".env", "--", "--yes"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", ".env", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "device", "ls"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "device", "ls"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "device", "ls"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "device", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "device", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "device", "ls"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "device", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "device", "ls"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "device", "ls", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "device", "ls"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["device", "ls", "--", "--yes"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["device", "ls", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "config"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "config"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "config"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "config"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "config"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "config"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "config"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "config"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "config", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "config"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["config", "--", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["--yes"]
+  },
+  {
+    "args": ["config", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["config", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "history"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "history"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "history"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "history"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "history"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "history"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "history"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "history"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "history"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["history", "--", "--yes"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["--yes"]
+  },
+  {
+    "args": ["history", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version", "setup"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-V", "setup"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "-V"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-Vx", "setup"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "-Vx"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hV", "setup"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "-hV"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["-hx", "setup"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "-hx"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "setup"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help=true", "setup"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "--help=true"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--version=false", "setup"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "setup", "--version=false"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "setup"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": []
+  },
+  {
+    "args": ["setup", "--", "--yes"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--bogus", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--yes=false", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "abc", "--help"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--telemetry", "invalid", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--", "--help"],
+    "code": 0,
+    "acted": true,
+    "hooked": true,
+    "values": {},
+    "parsed": ["--help"]
+  },
+  {
+    "args": ["status", "--bogus", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--bogus", "--restore", "abc"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "abc", "--bogus"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["setup", "--bogus", "--telemetry", "invalid"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "history", "--restore", "abc"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["history", "--restore", "abc", "--yes=false"],
+    "code": 2,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false", ".env", "--help"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--yes=false", ".env", "--version"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--bogus", "--", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--bogus", "--", "rm", "--yes", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["x", "--", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "--", "rm", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "--help"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["rm", "--help", "--", ".env"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--", "rm", "--yes", ".env"],
+    "code": 1,
+    "acted": false,
+    "hooked": false
+  },
+  {
+    "args": ["--help", "--bogus", "--", "rm"],
+    "code": 0,
+    "acted": false,
+    "hooked": false
+  }
+]

@@ -10,16 +10,17 @@ import (
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/onboarding"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/clack"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
 var SetupEffects onboarding.Effects
 
 var JoinEffects onboarding.JoinEffects
 
-func Runtime(inv *commander.Invocation) (contracts.Adapters, onboarding.Prompts, io.Writer, error) {
+func Runtime(inv *command.Invocation) (contracts.Adapters, onboarding.Prompts, io.Writer, error) {
 	stdout, stderr := Writers(inv.Command)
 	env, err := runtime.Get(inv)
 	a := env.Adapters
@@ -27,30 +28,13 @@ func Runtime(inv *commander.Invocation) (contracts.Adapters, onboarding.Prompts,
 		a.UserHome = home
 	}
 
-	p := onboarding.Prompts{Interactive: env.Interactive, Terminal: clack.New(os.Stdin, stdout), Stderr: stderr}
+	p := onboarding.Prompts{Interactive: env.Interactive, Terminal: prompts.New(os.Stdin, stdout), Stderr: stderr}
 
 	return a, p, stdout, err
 }
 
-func Writers(c *commander.Command) (io.Writer, io.Writer) {
-	var stdout, stderr io.Writer
-	for ; c != nil; c = c.Parent {
-		if stdout == nil {
-			stdout = c.Stdout
-		}
-
-		if stderr == nil {
-			stderr = c.Stderr
-		}
-	}
-
-	if stdout == nil {
-		stdout = os.Stdout
-	}
-
-	if stderr == nil {
-		stderr = os.Stderr
-	}
+func Writers(c *cobra.Command) (io.Writer, io.Writer) {
+	stdout, stderr := c.OutOrStdout(), c.ErrOrStderr()
 
 	if wrapped, ok := stdout.(output.TerminalWriter); ok {
 		stdout = wrapped.Writer

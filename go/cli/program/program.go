@@ -1,43 +1,38 @@
 package program
 
 import (
-	"io"
-
-	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/dailyuse"
 	"github.com/notsuhas/envden/go/cli/program/devicesandvault"
 	"github.com/notsuhas/envden/go/cli/program/files"
 	"github.com/notsuhas/envden/go/cli/program/getstarted"
 	"github.com/notsuhas/envden/go/cli/program/maintenance"
 	"github.com/notsuhas/envden/go/cli/version"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func CreateProgram() *commander.Command {
-	c := commander.New("envden").Description("Encrypted whole-file env sync over your private network").Version(version.Version)
-	c.OutputError = func(message string, w io.Writer) { _, _ = io.WriteString(w, output.SanitizeTerminal(message)+"\n") }
-	c.CommandsGroup("Get started:")
+func CreateProgram() *cobra.Command {
+	c := command.New("envden", "Encrypted whole-file env sync over your private network")
+	c.Version = version.Version
+	c.Flags().BoolP("version", "V", false, "Print the version")
+	c.SetVersionTemplate("{{.Version}}\n")
 	c.AddCommand(getstarted.SetupCommand())
 	c.AddCommand(getstarted.JoinCommand())
-	c.CommandsGroup("Daily use:")
 	c.AddCommand(dailyuse.StatusCommand())
 	c.AddCommand(dailyuse.PushCommand())
 	c.AddCommand(dailyuse.PullCommand())
 	c.AddCommand(dailyuse.DiffCommand())
 	c.AddCommand(dailyuse.ResolveCommand())
 	c.AddCommand(dailyuse.HistoryCommand())
-	c.CommandsGroup("Files:")
 	c.AddCommand(files.TrackCommand())
 	c.AddCommand(files.UntrackCommand())
 	c.AddCommand(files.LocalOnlyCommand())
 	c.AddCommand(files.RmCommand())
 	c.AddCommand(files.AliasCommand())
-	c.CommandsGroup("Devices and vault:")
 	c.AddCommand(devicesandvault.DeviceCommand())
 	c.AddCommand(devicesandvault.VaultCommand())
 	c.AddCommand(devicesandvault.ServerCommand())
 	c.AddCommand(devicesandvault.UnlockCommand())
-	c.CommandsGroup("Maintenance:")
 	c.AddCommand(maintenance.ConfigCommand())
 	c.AddCommand(maintenance.DoctorCommand())
 	c.AddCommand(maintenance.UpdateCommand())

@@ -7,11 +7,11 @@ import (
 	"github.com/notsuhas/envden/go/cli/admin/repair/finish"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/output/render"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func serverRepairAction(i *commander.Invocation) error {
+func serverRepairAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

@@ -6,11 +6,11 @@ import (
 
 	"github.com/notsuhas/envden/go/cli/admin/devices"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func deviceListAction(i *commander.Invocation) error {
+func deviceListAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

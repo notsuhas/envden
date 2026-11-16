@@ -7,15 +7,15 @@ import (
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/output/render/devices"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/ui"
 	vaultrecovery "github.com/notsuhas/envden/go/cli/vault/recovery"
 	"github.com/notsuhas/envden/go/cli/vault/recovery/pdf"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func removalKit(i *commander.Invocation, kit recovery.ReplacementKit) error {
+func removalKit(i *command.Invocation, kit recovery.ReplacementKit) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

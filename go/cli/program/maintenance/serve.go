@@ -7,20 +7,21 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
 	"github.com/notsuhas/envden/go/server"
+	"github.com/spf13/cobra"
 )
 
-func ServeCommand() *commander.Command {
-	c := commander.New("serve").Description("Run the server; ENVDEN_SETUP_TOKEN replaces the setup token")
-	c.AddOption(commander.NewOption("--restored", "Start a restored backup in repair-only mode"))
-	c.AddOption(commander.NewOption("--min-client <version>", "Oldest client version to accept"))
-	c.AddOption(commander.NewOption("--data-dir <path>", "Server data directory"))
-	port := commander.NewOption("--port <port>", "Localhost port")
+func ServeCommand() *cobra.Command {
+	c := command.New("serve", "Run the server; ENVDEN_SETUP_TOKEN replaces the setup token")
+	command.AddFlag(c, command.Flag{Syntax: "--restored", Description: "Start a restored backup in repair-only mode"})
+	command.AddFlag(c, command.Flag{Syntax: "--min-client <version>", Description: "Oldest client version to accept"})
+	command.AddFlag(c, command.Flag{Syntax: "--data-dir <path>", Description: "Server data directory"})
+	port := command.Flag{Syntax: "--port <port>", Description: "Localhost port"}
 	port.Parse = func(value string) (any, error) { return ParsePort(value) }
-	c.AddOption(port)
-	c.Action(func(i *commander.Invocation) error {
+	command.AddFlag(c, port)
+	command.Action(c, func(i *command.Invocation) error {
 		str := func(k string) string { v, _ := i.Values[k].(string); return v }
 		token := os.Getenv("ENVDEN_SETUP_TOKEN")
 		_ = os.Unsetenv("ENVDEN_SETUP_TOKEN") // Best-effort cleanup preserves the original operation result.
@@ -48,7 +49,7 @@ func ServeCommand() *commander.Command {
 func ParsePort(value string) (int, error) {
 	port, e := strconv.Atoi(value)
 	if e != nil || !regexp.MustCompile(`^[0-9]{1,5}$`).MatchString(value) || port < 0 || port > 65535 {
-		return 0, &commander.InvalidArgumentError{Message: "Expected a port from 0 (any free port) to 65535."}
+		return 0, &command.InvalidArgumentError{Message: "Expected a port from 0 (any free port) to 65535."}
 	}
 
 	return port, nil

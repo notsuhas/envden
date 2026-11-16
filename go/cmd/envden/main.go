@@ -16,9 +16,9 @@ import (
 	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/output/telemetry"
 	"github.com/notsuhas/envden/go/cli/program"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/report"
 	"github.com/notsuhas/envden/go/core/process"
-	"github.com/notsuhas/envden/go/lib/commander"
 	"golang.org/x/term"
 )
 
@@ -46,7 +46,7 @@ func run() int {
 		return 0
 	}
 
-	var exit *commander.ExitError
+	var exit *command.ExitError
 	if errors.As(err, &exit) {
 		return exit.ExitCode
 	}

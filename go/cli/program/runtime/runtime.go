@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
 type Environment struct {
@@ -23,14 +23,14 @@ type Environment struct {
 
 var environments sync.Map
 
-func Bind(command *commander.Command, env Environment) { environments.Store(command, env) }
+func Bind(command *cobra.Command, env Environment) { environments.Store(command, env) }
 
-func Release(command *commander.Command) { environments.Delete(command) }
+func Release(command *cobra.Command) { environments.Delete(command) }
 
-func Get(i *commander.Invocation) (Environment, error) {
+func Get(i *command.Invocation) (Environment, error) {
 	c := i.Command
-	for c.Parent != nil {
-		c = c.Parent
+	for c.Parent() != nil {
+		c = c.Parent()
 	}
 
 	if env, ok := environments.Load(c); ok {
@@ -40,31 +40,20 @@ func Get(i *commander.Invocation) (Environment, error) {
 	return Environment{}, errors.New(errors.Internal, "Command runtime is not configured")
 }
 
-func Writer(c *commander.Command, stderr bool) io.Writer {
-	for ; c != nil; c = c.Parent {
-		if stderr && c.Stderr != nil {
-			return c.Stderr
-		}
-
-		if !stderr && c.Stdout != nil {
-			return c.Stdout
-		}
-	}
-
+func Writer(c *cobra.Command, stderr bool) io.Writer {
 	if stderr {
-		return os.Stderr
+		return c.ErrOrStderr()
 	}
-
-	return os.Stdout
+	return c.OutOrStdout()
 }
 
-func Print(i *commander.Invocation, text string) error {
+func Print(i *command.Invocation, text string) error {
 	_, e := fmt.Fprintln(Writer(i.Command, false), output.SanitizeConsole(text))
 
 	return e
 }
 
-func Context(i *commander.Invocation) context.Context {
+func Context(i *command.Invocation) context.Context {
 	env, err := Get(i)
 	if err != nil || env.Context == nil {
 		return context.Background()

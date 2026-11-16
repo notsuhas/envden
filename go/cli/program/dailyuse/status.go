@@ -6,16 +6,17 @@ import (
 	"github.com/notsuhas/envden/go/cli/notice"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/render/sync/diff"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/status"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func StatusCommand() *commander.Command {
-	c := commander.New("status").Description("Show what changed here, what's newer on the server and what needs attention")
-	c.AddOption(commander.NewOption("--json", "Machine-readable status"))
-	c.AddOption(commander.NewOption("--refresh-cache", "").HideHelp())
-	c.Action(func(i *commander.Invocation) error {
+func StatusCommand() *cobra.Command {
+	c := command.New("status", "Show what changed here, what's newer on the server and what needs attention")
+	command.AddFlag(c, command.Flag{Syntax: "--json", Description: "Machine-readable status"})
+	command.AddFlag(c, command.Flag{Syntax: "--refresh-cache", Description: "", Hidden: true})
+	command.Action(c, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e

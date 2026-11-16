@@ -108,7 +108,10 @@ export class Normalizer {
       },
     );
 
-    text = text.replace(/\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|seconds?)\b/g, "<DURATION>");
+    text = text.replace(
+      /\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/g,
+      "<DURATION>",
+    );
     text = text.replace(/(<DURATION> ago \([^\n]*?\)) +/g, "$1 ");
     text = text.replace(/("pid"\s*:\s*)\d+/g, "$1<PID>");
 

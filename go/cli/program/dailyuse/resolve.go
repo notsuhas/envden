@@ -1,18 +1,19 @@
 package dailyuse
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func ResolveCommand() *commander.Command {
-	c := commander.New("resolve").Description("Keep yours, take the server's, or finish an edited conflict")
-	c.AddOption(commander.NewOption("--json", "Print the result as JSON"))
-	c.AddOption(commander.NewOption("--list", "List unresolved conflicts"))
-	c.AddOption(commander.NewOption("--repo <path>", "Select a checkout"))
-	c.AddOption(commander.NewOption("--keep-mine", "Keep your version").Conflicts("takeServer"))
-	c.AddOption(commander.NewOption("--take-server", "Take the server's version"))
-	c.AddArgument(commander.NewArgument("[file]", "Conflicted env file"))
-	c.Action(resolveAction)
+func ResolveCommand() *cobra.Command {
+	c := command.New("resolve", "Keep yours, take the server's, or finish an edited conflict")
+	command.AddFlag(c, command.Flag{Syntax: "--json", Description: "Print the result as JSON"})
+	command.AddFlag(c, command.Flag{Syntax: "--list", Description: "List unresolved conflicts"})
+	command.AddFlag(c, command.Flag{Syntax: "--repo <path>", Description: "Select a checkout"})
+	command.AddFlag(c, command.Flag{Syntax: "--keep-mine", Description: "Keep your version", Conflicts: []string{"takeServer"}})
+	command.AddFlag(c, command.Flag{Syntax: "--take-server", Description: "Take the server's version"})
+	command.AddArgument(c, command.Argument{Term: "[file]", Description: "Conflicted env file"})
+	command.Action(c, resolveAction)
 
 	return c
 }

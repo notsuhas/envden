@@ -4,15 +4,16 @@ import (
 	"github.com/notsuhas/envden/go/cli/diagnostics"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/render"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/settings"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func DoctorCommand() *commander.Command {
-	c := commander.New("doctor").Description("Check key files, symlinks, updates, Tailscale, HTTPS and shell notices")
-	c.AddOption(commander.NewOption("--json", "Print the report as JSON"))
-	c.Action(func(i *commander.Invocation) error {
+func DoctorCommand() *cobra.Command {
+	c := command.New("doctor", "Check key files, symlinks, updates, Tailscale, HTTPS and shell notices")
+	command.AddFlag(c, command.Flag{Syntax: "--json", Description: "Print the report as JSON"})
+	command.Action(c, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e

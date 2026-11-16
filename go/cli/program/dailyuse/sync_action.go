@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/sync"
 	envdenerrors "github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
 func syncText(direction string, result sync.Result) string {
@@ -50,8 +50,8 @@ func plural(n int, noun string) string {
 	return fmt.Sprintf("%d %s", n, noun)
 }
 
-func syncAction(direction string) func(*commander.Invocation) error {
-	return func(i *commander.Invocation) error {
+func syncAction(direction string) func(*command.Invocation) error {
+	return func(i *command.Invocation) error {
 		env, err := runtime.Get(i)
 		if err != nil {
 			return err

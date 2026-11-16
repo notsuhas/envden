@@ -6,12 +6,12 @@ import (
 	"github.com/notsuhas/envden/go/cli/admin/move"
 	"github.com/notsuhas/envden/go/cli/onboarding"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func serverMoveAction(i *commander.Invocation) error {
+func serverMoveAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

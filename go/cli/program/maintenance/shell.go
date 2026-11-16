@@ -3,15 +3,16 @@ package maintenance
 import (
 	"github.com/notsuhas/envden/go/cli/agent"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func ShellCommand() *commander.Command {
-	c := commander.New("shell").Description("Manage the shell notice")
-	c0 := commander.New("install").Description("Add the out-of-sync notice to your shell config")
-	c0.AddArgument(commander.NewArgument("[shell]", "Shell; asks if omitted").Choices("zsh", "bash", "fish", "powershell"))
-	c0.Action(func(i *commander.Invocation) error {
+func ShellCommand() *cobra.Command {
+	c := command.New("shell", "Manage the shell notice")
+	c0 := command.New("install", "Add the out-of-sync notice to your shell config")
+	command.AddArgument(c0, command.Argument{Term: "[shell]", Description: "Shell; asks if omitted", Choices: []string{"zsh", "bash", "fish", "powershell"}})
+	command.Action(c0, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e
@@ -27,12 +28,12 @@ func ShellCommand() *commander.Command {
 			}
 		}
 
-		return agent.ManageShell(env.Adapters, i.Command.CommandName, shell)
+		return agent.ManageShell(env.Adapters, i.Command.Name(), shell)
 	})
 	c.AddCommand(c0)
-	c1 := commander.New("uninstall").Description("Remove the out-of-sync notice from your shell config")
-	c1.AddArgument(commander.NewArgument("[shell]", "Shell; asks if omitted").Choices("zsh", "bash", "fish", "powershell"))
-	c1.Action(func(i *commander.Invocation) error {
+	c1 := command.New("uninstall", "Remove the out-of-sync notice from your shell config")
+	command.AddArgument(c1, command.Argument{Term: "[shell]", Description: "Shell; asks if omitted", Choices: []string{"zsh", "bash", "fish", "powershell"}})
+	command.Action(c1, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e
@@ -48,7 +49,7 @@ func ShellCommand() *commander.Command {
 			}
 		}
 
-		return agent.ManageShell(env.Adapters, i.Command.CommandName, shell)
+		return agent.ManageShell(env.Adapters, i.Command.Name(), shell)
 	})
 	c.AddCommand(c1)
 

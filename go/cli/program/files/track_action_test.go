@@ -7,6 +7,7 @@ import (
 
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
@@ -25,7 +26,7 @@ func TestTrackActionPassesChoicesUnderReentrantLock(t *testing.T) {
 	}
 
 	called := false
-	command := TrackCommand(func(ctx context.Context, a contracts.Adapters, state *model.State, o TrackOptions) error {
+	c := TrackCommand(func(ctx context.Context, a contracts.Adapters, state *model.State, o TrackOptions) error {
 		called = true
 		if !o.Copy || !o.Verbose || len(o.ScanRoot) != 1 || o.ScanRoot[0] != "/repo" || o.Command != "track" || o.Now() != 100 {
 			t.Fatal(o)
@@ -33,9 +34,9 @@ func TestTrackActionPassesChoicesUnderReentrantLock(t *testing.T) {
 
 		return store.SaveState(ctx, a.Home, state, a.Timing)
 	})
-	runtime.Bind(command, runtime.Environment{Context: ctx, Adapters: a})
-	defer runtime.Release(command)
-	if _, err := command.Parse([]string{"/repo", "--copy", "--verbose"}); err != nil {
+	runtime.Bind(c, runtime.Environment{Context: ctx, Adapters: a})
+	defer runtime.Release(c)
+	if _, err := command.Execute(c, []string{"/repo", "--copy", "--verbose"}); err != nil {
 		t.Fatal(err)
 	}
 

@@ -8,12 +8,12 @@ import (
 	"github.com/notsuhas/envden/go/cli/history/restore"
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func historyAction(i *commander.Invocation) error {
+func historyAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err
@@ -31,11 +31,7 @@ func historyAction(i *commander.Invocation) error {
 	}
 
 	json, _ := i.Values["json"].(bool)
-	if value, ok := i.Values["restore"].(string); ok {
-		version, err := restore.ParseVersion(value)
-		if err != nil {
-			return err
-		}
+	if version, ok := i.Values["restore"].(uint64); ok {
 
 		if file == nil {
 			return errors.New(errors.InvalidInput, "Name the env file to restore")

@@ -1,28 +1,29 @@
 package devicesandvault
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func ServerCommand() *commander.Command {
-	c := commander.New("server").Description("Move, switch or repair the server")
-	c0 := commander.New("move").Description("Move the vault to a new server")
-	c0.AddOption(commander.NewOption("--setup-token <token>", "Setup token, visible to other processes; use the prompt in a terminal"))
-	c0.AddOption(commander.NewOption("--resume", "Resume an interrupted move").Conflicts("abort"))
-	c0.AddOption(commander.NewOption("--abort", "Abort an unfinished move"))
-	c0.AddArgument(commander.NewArgument("[server]", "Destination server address"))
-	c0.Action(serverMoveAction)
+func ServerCommand() *cobra.Command {
+	c := command.New("server", "Move, switch or repair the server")
+	c0 := command.New("move", "Move the vault to a new server")
+	command.AddFlag(c0, command.Flag{Syntax: "--setup-token <token>", Description: "Setup token, visible to other processes; use the prompt in a terminal"})
+	command.AddFlag(c0, command.Flag{Syntax: "--resume", Description: "Resume an interrupted move", Conflicts: []string{"abort"}})
+	command.AddFlag(c0, command.Flag{Syntax: "--abort", Description: "Abort an unfinished move"})
+	command.AddArgument(c0, command.Argument{Term: "[server]", Description: "Destination server address"})
+	command.Action(c0, serverMoveAction)
 	c.AddCommand(c0)
-	c1 := commander.New("switch").Description("Follow a signed move when the old server is unreachable")
-	c1.AddArgument(commander.NewArgument("<server>", "Destination server address"))
-	c1.Action(serverSwitchAction)
+	c1 := command.New("switch", "Follow a signed move when the old server is unreachable")
+	command.AddArgument(c1, command.Argument{Term: "<server>", Description: "Destination server address"})
+	command.Action(c1, serverSwitchAction)
 	c.AddCommand(c1)
-	c2 := commander.New("repair").Description("After a server restore, re-upload this device's data, or finish the restore with --finish")
-	c2.AddOption(commander.NewOption("--repair-token <token>", "Repair token; prefer stdin for upload, use a terminal for --finish"))
-	c2.AddOption(commander.NewOption("--finish", "Check every device's upload and finish the restore"))
-	c2.AddOption(commander.NewOption("--without <device...>", "Drop unavailable devices; they rejoin as new devices"))
-	c2.AddOption(commander.NewOption("--accept-lost", "Accept the newest verified older version of a missing file"))
-	c2.Action(serverRepairAction)
+	c2 := command.New("repair", "After a server restore, re-upload this device's data, or finish the restore with --finish")
+	command.AddFlag(c2, command.Flag{Syntax: "--repair-token <token>", Description: "Repair token; prefer stdin for upload, use a terminal for --finish"})
+	command.AddFlag(c2, command.Flag{Syntax: "--finish", Description: "Check every device's upload and finish the restore"})
+	command.AddFlag(c2, command.Flag{Syntax: "--without <device...>", Description: "Drop unavailable devices; they rejoin as new devices"})
+	command.AddFlag(c2, command.Flag{Syntax: "--accept-lost", Description: "Accept the newest verified older version of a missing file"})
+	command.Action(c2, serverRepairAction)
 	c.AddCommand(c2)
 
 	return c

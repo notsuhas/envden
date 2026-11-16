@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/sync"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func diffAction(i *commander.Invocation) error {
+func diffAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

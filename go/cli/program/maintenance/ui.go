@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/ui"
 	dashboardactions "github.com/notsuhas/envden/go/cli/ui/actions"
@@ -16,22 +17,25 @@ import (
 	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
 	"github.com/notsuhas/envden/go/cli/ui/view/status"
 	"github.com/notsuhas/envden/go/core/textcase"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func UiCommand(actions ...routes.Actions) *commander.Command {
-	c := commander.New("ui").Description("Open a local dashboard for this device")
-	c.AddOption(commander.NewOption("--port <port>", "Port on 127.0.0.1 (default: random)"))
-	c.AddOption(commander.NewOption("--no-open", "Print the link without opening a browser"))
-	c.Action(func(i *commander.Invocation) error {
+func UiCommand(actions ...routes.Actions) *cobra.Command {
+	c := command.New("ui", "Open a local dashboard for this device")
+	command.AddFlag(c, command.Flag{Syntax: "--port <port>", Description: "Port on 127.0.0.1 (default: random)", Parse: func(raw string) (any, error) { return number(raw), nil }})
+	command.AddFlag(c, command.Flag{Syntax: "--no-open", Description: "Print the link without opening a browser"})
+	command.Action(c, func(i *command.Invocation) error {
 		env, err := runtime.Get(i)
 		if err != nil {
 			return err
 		}
 
 		options := ui.DashboardOptions{Interactive: env.Interactive, Report: func(line string) { _ = runtime.Print(i, line) }}
-		if raw, ok := i.Values["port"].(string); ok {
-			port := dashboardPort(raw)
+		if value, ok := i.Values["port"].(float64); ok {
+			port := -1
+			if value >= 1 && value <= 65535 && value == math.Trunc(value) {
+				port = int(value)
+			}
 			options.Port = &port
 		}
 
@@ -61,17 +65,19 @@ func UiCommand(actions ...routes.Actions) *commander.Command {
 	return c
 }
 
-func dashboardPort(raw string) int {
+func number(raw string) float64 {
 	text := textcase.Trim(raw)
+	if text == "" {
+		return 0
+	}
 	value, err := strconv.ParseFloat(text, 64)
 	if strings.HasPrefix(strings.ToLower(text), "0x") || strings.HasPrefix(strings.ToLower(text), "0o") || strings.HasPrefix(strings.ToLower(text), "0b") {
 		n, e := strconv.ParseInt(text, 0, 64)
 		value, err = float64(n), e
 	}
 
-	if err != nil || math.IsNaN(value) || value < 1 || value > 65535 || value != math.Trunc(value) {
-		return -1
+	if err != nil {
+		return math.NaN()
 	}
-
-	return int(value)
+	return value
 }

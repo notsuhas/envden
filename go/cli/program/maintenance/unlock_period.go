@@ -3,14 +3,14 @@ package maintenance
 import (
 	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/output/render"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/vault"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func applyUnlockPeriod(i *commander.Invocation, env runtime.Environment, r settings.Request) error {
+func applyUnlockPeriod(i *command.Invocation, env runtime.Environment, r settings.Request) error {
 	s, e := store.LoadState(env.Adapters.Home)
 	if e != nil {
 		return e

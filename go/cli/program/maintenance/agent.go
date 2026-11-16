@@ -2,14 +2,15 @@ package maintenance
 
 import (
 	"github.com/notsuhas/envden/go/cli/agent"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func AgentCommand() *commander.Command {
-	c := commander.New("agent").Description("Install the envden agent skill")
-	c0 := commander.New("install").Description("Install or refresh the agent skill")
-	c0.Action(func(i *commander.Invocation) error {
+func AgentCommand() *cobra.Command {
+	c := command.New("agent", "Install the envden agent skill")
+	c0 := command.New("install", "Install or refresh the agent skill")
+	command.Action(c0, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e

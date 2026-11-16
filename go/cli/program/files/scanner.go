@@ -16,16 +16,16 @@ import (
 	"github.com/notsuhas/envden/go/cli/links/takeover"
 	"github.com/notsuhas/envden/go/cli/onboarding/checkouts"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/output/progress"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
 	scanrender "github.com/notsuhas/envden/go/cli/output/render/scan"
 	"github.com/notsuhas/envden/go/cli/state"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
-func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr io.Writer) TrackScanner {
+func WorkspaceScanner(interactive bool, terminal prompts.ITerminal, stdout, stderr io.Writer) TrackScanner {
 	return func(ctx context.Context, a contracts.Adapters, state *model.State, o TrackOptions) error {
 		repos, err := links.VaultRepos(ctx, a, state, o.Now)
 		if err != nil {
@@ -37,7 +37,7 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 		report := func(message string) { _, _ = fmt.Fprintln(stderr, message) }
 		ask := func(message string) (bool, error) {
 			initial := false
-			yes, err := terminal.Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
+			yes, err := terminal.Confirm(prompts.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
 
 			return yes, cancelled(err)
 		}
@@ -50,7 +50,7 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 		dependencies := checkouts.Dependencies{
 			Find: func(state *model.State) ([]checkouts.Eligible, error) {
 				skips := []discovery.RepoSkip{}
-				var spinner *clack.Spinner
+				var spinner *progress.Spinner
 				if interactive {
 					spinner = terminal.Spinner()
 					shown := []string{}
@@ -142,7 +142,7 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 			Finish: func(ctx context.Context, state *model.State) error {
 				confirm := func(message string) (bool, error) {
 					initial := true
-					yes, err := terminal.Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
+					yes, err := terminal.Confirm(prompts.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
 
 					return yes, cancelled(err)
 				}
@@ -172,7 +172,7 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 }
 
 func cancelled(err error) error {
-	if clack.IsCancel(err) {
+	if prompts.IsCancel(err) {
 		return state.PromptCancelled()
 	}
 

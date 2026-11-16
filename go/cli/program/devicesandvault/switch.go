@@ -2,11 +2,11 @@ package devicesandvault
 
 import (
 	"github.com/notsuhas/envden/go/cli/admin/move"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func serverSwitchAction(i *commander.Invocation) error {
+func serverSwitchAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err

@@ -3,18 +3,19 @@ package maintenance
 import (
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/prompts"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/updates"
 	"github.com/notsuhas/envden/go/cli/updates/check"
 	"github.com/notsuhas/envden/go/cli/updates/self"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func UpdateCommand() *commander.Command {
-	c := commander.New("update").Description("Update envden through the method it was installed with")
-	c.AddOption(commander.NewOption("--check", "Check for a release without installing"))
-	c.AddOption(commander.NewOption("--post-install", "Refresh installed integrations"))
-	c.Action(func(i *commander.Invocation) error {
+func UpdateCommand() *cobra.Command {
+	c := command.New("update", "Update envden through the method it was installed with")
+	command.AddFlag(c, command.Flag{Syntax: "--check", Description: "Check for a release without installing"})
+	command.AddFlag(c, command.Flag{Syntax: "--post-install", Description: "Refresh installed integrations"})
+	command.Action(c, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e

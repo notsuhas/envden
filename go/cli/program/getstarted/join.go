@@ -1,22 +1,23 @@
 package getstarted
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func JoinCommand() *commander.Command {
-	c := commander.New("join").Description("Join using a pairing code or recovery kit in your own terminal")
-	c.AddOption(commander.NewOption("--recovery", "Paste a recovery secret key and vault ID"))
-	c.AddOption(commander.NewOption("--recovery-kit <path>", "Recovery kit path"))
-	c.AddOption(commander.NewOption("--name <name>", "Device name"))
-	c.AddOption(commander.NewOption("--yes", "Use default preferences"))
-	c.AddOption(commander.NewOption("--telemetry <choice>", "Anonymous telemetry").Choices("on", "off"))
-	c.AddOption(commander.NewOption("--update-check <choice>", "Daily update check").Choices("on", "off"))
-	c.AddOption(commander.NewOption("--shell <shell>", "Shell notice").Choices("zsh", "bash", "fish", "powershell", "none"))
-	c.AddOption(commander.NewOption("--agent <choice>", "Install the agent skill").Choices("on", "off"))
-	c.AddOption(commander.NewOption("--resume", "Finish a join that was approved while this command wasn't running"))
-	c.AddArgument(commander.NewArgument("<server>", "Server address, e.g. envden.your-tailnet.ts.net"))
-	c.Action(joinAction)
+func JoinCommand() *cobra.Command {
+	c := command.New("join", "Join using a pairing code or recovery kit in your own terminal")
+	command.AddFlag(c, command.Flag{Syntax: "--recovery", Description: "Paste a recovery secret key and vault ID"})
+	command.AddFlag(c, command.Flag{Syntax: "--recovery-kit <path>", Description: "Recovery kit path"})
+	command.AddFlag(c, command.Flag{Syntax: "--name <name>", Description: "Device name"})
+	command.AddFlag(c, command.Flag{Syntax: "--yes", Description: "Use default preferences"})
+	command.AddFlag(c, command.Flag{Syntax: "--telemetry <choice>", Description: "Anonymous telemetry", Choices: []string{"on", "off"}})
+	command.AddFlag(c, command.Flag{Syntax: "--update-check <choice>", Description: "Daily update check", Choices: []string{"on", "off"}})
+	command.AddFlag(c, command.Flag{Syntax: "--shell <shell>", Description: "Shell notice", Choices: []string{"zsh", "bash", "fish", "powershell", "none"}})
+	command.AddFlag(c, command.Flag{Syntax: "--agent <choice>", Description: "Install the agent skill", Choices: []string{"on", "off"}})
+	command.AddFlag(c, command.Flag{Syntax: "--resume", Description: "Finish a join that was approved while this command wasn't running"})
+	command.AddArgument(c, command.Argument{Term: "<server>", Description: "Server address, e.g. envden.your-tailnet.ts.net"})
+	command.Action(c, joinAction)
 
 	return c
 }

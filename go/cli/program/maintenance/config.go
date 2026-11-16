@@ -2,18 +2,19 @@ package maintenance
 
 import (
 	"github.com/notsuhas/envden/go/cli/output/render"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state"
 	"github.com/notsuhas/envden/go/cli/state/store"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func ConfigCommand() *commander.Command {
-	c := commander.New("config").Description("Read or change settings")
-	c.AddArgument(commander.NewArgument("[key]", "telemetry, update-check, agent-merge, auto-approve-worktrees, unlock-period, placement or env-files"))
-	c.AddArgument(commander.NewArgument("[values...]", "New value; placement takes a checkout path and link or copy"))
-	c.Action(func(i *commander.Invocation) error {
+func ConfigCommand() *cobra.Command {
+	c := command.New("config", "Read or change settings")
+	command.AddArgument(c, command.Argument{Term: "[key]", Description: "telemetry, update-check, agent-merge, auto-approve-worktrees, unlock-period, placement or env-files"})
+	command.AddArgument(c, command.Argument{Term: "[values...]", Description: "New value; placement takes a checkout path and link or copy"})
+	command.Action(c, func(i *command.Invocation) error {
 		env, e := runtime.Get(i)
 		if e != nil {
 			return e

@@ -1,14 +1,15 @@
 package dailyuse
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func DiffCommand() *commander.Command {
-	c := commander.New("diff").Description("Show changed key names without values")
-	c.AddOption(commander.NewOption("--json", "Print the result as JSON"))
-	c.AddOption(commander.NewOption("--all", "Include all repos"))
-	c.Action(diffAction)
+func DiffCommand() *cobra.Command {
+	c := command.New("diff", "Show changed key names without values")
+	command.AddFlag(c, command.Flag{Syntax: "--json", Description: "Print the result as JSON"})
+	command.AddFlag(c, command.Flag{Syntax: "--all", Description: "Include all repos"})
+	command.Action(c, diffAction)
 
 	return c
 }

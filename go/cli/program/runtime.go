@@ -3,11 +3,11 @@ package program
 import (
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/process"
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/spf13/cobra"
 )
 
-func SetExecutionRoots(home string) func(*commander.Command, *commander.Command) error {
-	return func(*commander.Command, *commander.Command) error {
+func SetExecutionRoots(home string) func(*cobra.Command, *cobra.Command) error {
+	return func(*cobra.Command, *cobra.Command) error {
 		s, _ := store.LoadState(home)
 		roots := []string{}
 		if s != nil {

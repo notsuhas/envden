@@ -1,13 +1,14 @@
 package files
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func UntrackCommand() *commander.Command {
-	c := commander.New("untrack").Description("Stop tracking a checkout and restore regular env files")
-	c.AddArgument(commander.NewArgument("<path>", "Checkout root"))
-	c.Action(untrackAction)
+func UntrackCommand() *cobra.Command {
+	c := command.New("untrack", "Stop tracking a checkout and restore regular env files")
+	command.AddArgument(c, command.Argument{Term: "<path>", Description: "Checkout root"})
+	command.Action(c, untrackAction)
 
 	return c
 }

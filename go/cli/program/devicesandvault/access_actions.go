@@ -7,15 +7,15 @@ import (
 	admin "github.com/notsuhas/envden/go/cli/admin/recovery"
 	"github.com/notsuhas/envden/go/cli/onboarding"
 	"github.com/notsuhas/envden/go/cli/program/access"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/session"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/vault"
 	"github.com/notsuhas/envden/go/cli/vault/recovery"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func unlockAction(inv *commander.Invocation) error {
+func unlockAction(inv *command.Invocation) error {
 	a, p, stdout, err := access.Runtime(inv)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func unlockAction(inv *commander.Invocation) error {
 	return err
 }
 
-func deviceAddAction(inv *commander.Invocation) error {
+func deviceAddAction(inv *command.Invocation) error {
 	a, p, stdout, err := access.Runtime(inv)
 	if err != nil {
 		return err
@@ -45,8 +45,8 @@ func deviceAddAction(inv *commander.Invocation) error {
 	return onboarding.RunDeviceAdd(runtime.Context(inv), a, p, stdout, access.Pause)
 }
 
-func vaultAction(action string) func(*commander.Invocation) error {
-	return func(inv *commander.Invocation) error {
+func vaultAction(action string) func(*command.Invocation) error {
+	return func(inv *command.Invocation) error {
 		a, p, stdout, err := access.Runtime(inv)
 		if err != nil {
 			return err

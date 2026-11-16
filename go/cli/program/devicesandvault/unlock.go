@@ -1,12 +1,13 @@
 package devicesandvault
 
 import (
-	"github.com/notsuhas/envden/go/lib/commander"
+	"github.com/notsuhas/envden/go/cli/program/command"
+	"github.com/spf13/cobra"
 )
 
-func UnlockCommand() *commander.Command {
-	c := commander.New("unlock").Description("Log in with your master password to restart the unlock period")
-	c.Action(unlockAction)
+func UnlockCommand() *cobra.Command {
+	c := command.New("unlock", "Log in with your master password to restart the unlock period")
+	command.Action(c, unlockAction)
 
 	return c
 }

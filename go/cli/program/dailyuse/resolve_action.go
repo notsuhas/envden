@@ -2,16 +2,16 @@ package dailyuse
 
 import (
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/program/command"
 	"github.com/notsuhas/envden/go/cli/program/runtime"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/sync/local"
 	"github.com/notsuhas/envden/go/cli/sync/presentation"
 	envdenerrors "github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/commander"
 )
 
-func resolveAction(i *commander.Invocation) error {
+func resolveAction(i *command.Invocation) error {
 	env, err := runtime.Get(i)
 	if err != nil {
 		return err
