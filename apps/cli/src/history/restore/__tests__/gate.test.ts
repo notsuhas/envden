@@ -30,7 +30,8 @@ for (const [changes, expected] of [
 test("restore versions accept a number or a v prefix", () => {
   expect(parseVersion("3")).toBe(3);
   expect(parseVersion("v12")).toBe(12);
+  expect(parseVersion("9007199254740991")).toBe(Number.MAX_SAFE_INTEGER);
 
-  for (const value of ["0", "-1", "1.5", "x", ""])
+  for (const value of ["0", "-1", "1.5", "x", "", "9007199254740992", "9999999999999999"])
     expect(() => parseVersion(value)).toThrow("Version must be a number");
 });
