@@ -14,7 +14,6 @@ pub struct GitRepoAdapter {
     pub(crate) resolve_host: TResolveHost,
     pub(crate) home: Option<String>,
     skip_folders: Vec<String>,
-    empty_global: std::sync::Mutex<Option<tempfile::NamedTempFile>>,
 }
 
 pub fn create_git_repo_adapter(options: IGitRepoOptions) -> GitRepoAdapter {
@@ -24,19 +23,10 @@ pub fn create_git_repo_adapter(options: IGitRepoOptions) -> GitRepoAdapter {
             .unwrap_or_else(|| Box::new(crate::remote::resolve_host)),
         home: options.home,
         skip_folders: options.skip_folders,
-        empty_global: std::sync::Mutex::new(None),
     }
 }
 
 impl GitRepoAdapter {
-    pub(crate) fn empty_global(&self) -> Result<std::path::PathBuf> {
-        let mut file = self.empty_global.lock().unwrap();
-        if file.is_none() {
-            *file = Some(tempfile::NamedTempFile::new().map_err(exec::failure)?);
-        }
-        Ok(file.as_ref().unwrap().path().to_owned())
-    }
-
     pub(crate) fn git(&self, root: &str, args: &[&str], input: Option<&str>) -> Result<String> {
         exec::git(root, args, input, false, self.home.as_deref())
     }

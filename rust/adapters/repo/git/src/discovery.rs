@@ -21,7 +21,6 @@ pub(crate) fn files(
     checkout: &ICheckout,
     rules: Option<&IEnvFileRules>,
 ) -> Result<Vec<String>> {
-    let empty = adapter.empty_global()?;
     let safe = exec::global("^safe\\.directory$", adapter.home.as_deref())?;
     files_with(checkout, rules, |args, input| {
         exec::git_with_config(
@@ -31,7 +30,6 @@ pub(crate) fn files(
             false,
             adapter.home.as_deref(),
             Some(&safe),
-            &empty,
         )
     })
 }

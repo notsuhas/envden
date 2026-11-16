@@ -44,7 +44,34 @@ fn discovery_batches_queries_with_one_global_configuration_read() {
             .collect();
         assert_eq!(configs.len(), 1);
         let path = configs.into_iter().next().unwrap();
-        assert!(fs::metadata(path).unwrap().is_file());
-        assert_eq!(fs::read(path).unwrap(), b"");
+        assert_eq!(path, "/dev/null");
+    });
+}
+
+#[test]
+fn remote_reads_rewrites_before_safe_directories() {
+    let home = tempfile::tempdir().unwrap();
+    git(home.path(), &["init", "-q"]);
+    git(
+        home.path(),
+        &["remote", "add", "origin", "https://github.com/team/repo"],
+    );
+    exec::CALLS.with(|calls| calls.borrow_mut().clear());
+    exec::git(
+        home.path().to_str().unwrap(),
+        &["remote", "get-url", "origin"],
+        None,
+        true,
+        home.path().to_str(),
+    )
+    .unwrap();
+    exec::CALLS.with(|calls| {
+        let patterns: Vec<_> = calls
+            .borrow()
+            .iter()
+            .filter(|(args, _)| args.iter().any(|s| s == "--global"))
+            .map(|(args, _)| args.last().unwrap().clone())
+            .collect();
+        assert_eq!(patterns, ["^url\\..*\\.insteadof$", "^safe\\.directory$"]);
     });
 }

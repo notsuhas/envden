@@ -97,8 +97,7 @@ pub(crate) fn git(
     rewrites: bool,
     home: Option<&str>,
 ) -> Result<String> {
-    let empty = tempfile::NamedTempFile::new().map_err(failure)?;
-    git_with_config(root, args, input, rewrites, home, None, empty.path())
+    git_with_config(root, args, input, rewrites, home, None)
 }
 
 pub(crate) fn git_with_config(
@@ -108,8 +107,12 @@ pub(crate) fn git_with_config(
     rewrites: bool,
     home: Option<&str>,
     safe: Option<&[(String, String)]>,
-    empty: &std::path::Path,
 ) -> Result<String> {
+    let rewrites = if rewrites {
+        global("^url\\..*\\.insteadof$", home)?
+    } else {
+        Vec::new()
+    };
     let mut command = Vec::new();
     for config in [
         "safe.bareRepository=explicit",
@@ -145,12 +148,9 @@ pub(crate) fn git_with_config(
     ] {
         env.insert(key.into(), Some(value.into()));
     }
-    env.insert(
-        "GIT_CONFIG_GLOBAL".into(),
-        Some(empty.to_string_lossy().into_owned()),
-    );
-    if rewrites {
-        let config = global("^url\\..*\\.insteadof$", home)?;
+    env.insert("GIT_CONFIG_GLOBAL".into(), Some("/dev/null".into()));
+    if !rewrites.is_empty() {
+        let config = rewrites;
         if !config.is_empty() {
             env.insert("GIT_CONFIG_COUNT".into(), Some(config.len().to_string()));
         }
