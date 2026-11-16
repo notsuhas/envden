@@ -163,3 +163,20 @@ func TestActionLifecycle(t *testing.T) {
 		})
 	}
 }
+
+func TestParserErrorsStripControlBytesAtEveryDepth(t *testing.T) {
+	for _, args := range [][]string{{"\x1b[2Jstatu\nforged"}, {"rm", "--x\x1b[31mred", ".env"}, {"device", "ls", "--\x1b]0;title\x07"}, {"device", "\x1b[2J"}, {"vault", "kit", "replace", "--\x1b[2J"}, {"config", "env-files", "--\u009b31m"}} {
+		p := CreateProgram()
+		var stderr bytes.Buffer
+		p.SetOut(&bytes.Buffer{})
+		p.SetErr(&stderr)
+		if _, err := command.Execute(p, args); err == nil {
+			t.Fatalf("%q accepted", args)
+		}
+
+		text := strings.TrimSuffix(stderr.String(), "\n")
+		if text == "" || strings.ContainsFunc(text, func(r rune) bool { return r < 0x20 || r == 0x7f || (r >= 0x80 && r < 0xa0) }) {
+			t.Errorf("%q: %q", args, stderr.String())
+		}
+	}
+}
