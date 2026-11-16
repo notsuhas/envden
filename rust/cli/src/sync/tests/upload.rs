@@ -57,3 +57,19 @@ fn detached_upload_refuses_before_sending_content() {
         "Detached checkout; resolve local content before pushing"
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn held_back_reporting_propagates_record_read_failures() {
+    let (_dir, a, server, _) = fixture::fixture();
+    let root = repo(&a);
+    let mut c = sync_context(&a, opts(&a), server).unwrap();
+    let store = a.home.join("store/file");
+    fs::create_dir_all(store.parent().unwrap()).unwrap();
+    fs::write(&store, b"TOKEN=local\n").unwrap();
+    c.state["links"] = json!([{"root":root,"path":".env","store":store,"mode":"copy"}]);
+    crate::state::repository::save_state(&a.home, &c.state, (a.now)()).unwrap();
+    fs::write(a.home.join("base"), b"not a directory").unwrap();
+    let error = upload_changes(&mut c, &HashSet::new(), &HashSet::new()).unwrap_err();
+    assert_eq!(error.code, envden_core::errors::ErrorCode::Internal);
+}
