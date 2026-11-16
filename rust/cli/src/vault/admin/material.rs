@@ -9,6 +9,17 @@ pub struct IMaterial {
     pub keys: BTreeMap<u32, [u8; 32]>,
 }
 
+impl IMaterial {
+    pub fn epoch_key(&self, epoch: u32) -> Result<&[u8; 32]> {
+        self.keys.get(&epoch).ok_or_else(|| {
+            EnvdenError::new(
+                ErrorCode::InvalidData,
+                "Vault key for an earlier epoch is missing",
+            )
+        })
+    }
+}
+
 pub fn current_material(context: &IAdminContext<'_>, history: &IVaultHistory) -> Result<IMaterial> {
     let head = &history.headers.last().expect("history").body;
     let own = context.identity.record.id;
@@ -113,4 +124,31 @@ pub fn next_epoch(
         },
         keyring,
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_missing_epoch_key_fails_as_invalid_data() {
+        let material = IMaterial {
+            key: [7; 32],
+            ring: p::IKeyring {
+                vault_id: [0; 32],
+                epoch: 3,
+                id_key: [0; 32],
+                older: vec![],
+            },
+            keys: BTreeMap::from([(3, [7; 32])]),
+        };
+
+        assert_eq!(material.epoch_key(3).unwrap(), &[7; 32]);
+        for epoch in [1, 2] {
+            let error = material.epoch_key(epoch).unwrap_err();
+
+            assert_eq!(error.code, ErrorCode::InvalidData);
+            assert_eq!(error.message, "Vault key for an earlier epoch is missing");
+        }
+    }
 }

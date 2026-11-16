@@ -111,10 +111,7 @@ fn names(
         .map(|e| {
             p::open_file_name(
                 &e.name,
-                material
-                    .keys
-                    .get(&e.epoch)
-                    .ok_or_else(|| invalid(ErrorCode::InvalidData, "Missing epoch key"))?,
+                material.epoch_key(e.epoch)?,
                 &material.ring.id_key,
                 &p::IFileContext {
                     vault_id,

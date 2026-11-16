@@ -7,7 +7,7 @@ use crate::{
 };
 use envden_core::errors::{ErrorCode, Result};
 use envden_protocol::{chain as c, protocol as p};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 pub fn fix_lost(
     context: &IAdminContext<'_>,
@@ -51,7 +51,7 @@ pub fn fix_lost(
         };
         let name = p::open_file_name(
             &file.name,
-            epoch_key(&material.keys, file.epoch)?,
+            material.epoch_key(file.epoch)?,
             &material.ring.id_key,
             &old,
         )?;
@@ -78,7 +78,7 @@ pub fn fix_lost(
             };
             let file = p::open_file(
                 &bytes,
-                epoch_key(&material.keys, entry.epoch)?,
+                material.epoch_key(entry.epoch)?,
                 &material.ring.id_key,
                 &old,
                 &entry.blob_hash,
@@ -133,32 +133,4 @@ pub fn fix_lost(
         (context.adapters.now)(),
     )?;
     crate::admin::shared::submission::submit_admin(context, &swap).map(|_| ())
-}
-
-fn epoch_key(keys: &BTreeMap<u32, [u8; 32]>, epoch: u32) -> Result<&[u8; 32]> {
-    keys.get(&epoch).ok_or_else(|| {
-        invalid(
-            ErrorCode::InvalidData,
-            "undefined is not an object (evaluating 'v.length')",
-        )
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn missing_file_and_recovery_epoch_keys_return_the_ts_error() {
-        let keys = BTreeMap::from([(3, [7; 32])]);
-        assert_eq!(epoch_key(&keys, 3).unwrap(), &[7; 32]);
-        for epoch in [1, 2] {
-            let error = epoch_key(&keys, epoch).unwrap_err();
-            assert_eq!(error.code, ErrorCode::InvalidData);
-            assert_eq!(
-                error.message,
-                "undefined is not an object (evaluating 'v.length')"
-            );
-        }
-    }
 }
