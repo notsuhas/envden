@@ -163,7 +163,7 @@ fn recovery(
         &epoch,
         3,
         &identity,
-        &adapters.now,
+        (adapters.now)(),
     )?;
     super::kit_attempt::submit(&client, &swap, &history.state.recovery.obj_pub)?;
     let updated = read_history(&client, &vault_id, None)?;

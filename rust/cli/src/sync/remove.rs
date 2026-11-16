@@ -51,7 +51,7 @@ pub fn remove_file(
             }
             if !crate::output::prompts::consent(
                 "Remove this env file everywhere and discard local edits and conflicts? All local content will be backed up.",
-                true,
+                false,
             )? {
                 return Err(EnvdenError::new(
                     ErrorCode::InvalidInput,
