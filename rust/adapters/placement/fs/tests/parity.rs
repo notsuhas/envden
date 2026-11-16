@@ -204,3 +204,24 @@ fn removal_rejects_dangling_checkout_root() {
             .is_err()
     );
 }
+
+#[test]
+fn inspect_propagates_store_stat_errors() {
+    use envden_core::{adapters::IPlacementAdapter, adapters::TPlacementMode};
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let dest = root.join(".env");
+    std::fs::write(&dest, "value").unwrap();
+    let store = dest.join("not-a-directory");
+    let adapter = envden_adapter_placement_fs::create_fs_placement_adapter(
+        TPlacementMode::Copy,
+        root,
+        None,
+        || 0.0,
+    );
+    assert!(
+        adapter
+            .inspect(store.to_str().unwrap(), dest.to_str().unwrap())
+            .is_err()
+    );
+}

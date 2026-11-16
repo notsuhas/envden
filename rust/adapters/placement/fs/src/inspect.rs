@@ -66,8 +66,15 @@ pub(crate) fn inspect(
             },
         );
     }
-    if !info.is_file() || Path::new(store).symlink_metadata().is_err() {
+    if !info.is_file() {
         return Ok(TPlacementState::Detached);
+    }
+    match Path::new(store).symlink_metadata() {
+        Ok(_) => (),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(TPlacementState::Detached);
+        }
+        Err(error) => return Err(native::failure(error)),
     }
     if fs::read(dest).map_err(native::failure)? != fs::read(store).map_err(native::failure)? {
         return Ok(TPlacementState::Detached);
