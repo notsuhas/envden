@@ -43,13 +43,13 @@ fn restore_versions_are_parsed_before_dispatch() {
 }
 
 #[test]
-fn nested_parser_errors_strip_terminal_controls() {
+fn nested_parser_errors_preserve_reference_terminal_bytes() {
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_envden"))
         .args(["device", "ls", "--\u{1b}[31m"])
         .output()
         .unwrap();
     assert!(!output.status.success());
-    assert!(!output.stderr.contains(&0x1b));
+    assert_eq!(output.stderr, b"error: unknown option '--\x1b[31m'\n");
 }
 
 #[test]
