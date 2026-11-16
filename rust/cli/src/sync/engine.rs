@@ -54,7 +54,6 @@ fn run_sync(
             "Without a terminal, push needs --yes to confirm the changes",
         ));
     }
-    crate::settings::refuse_configured_patterns(&adapters.home)?;
     let reports = Rc::new(RefCell::new(Vec::<String>::new()));
     let recorded = reports.clone();
     let report = options.report.take();
@@ -66,6 +65,7 @@ fn run_sync(
     }));
     with_state_lock(&adapters.home, &*options.now.clone(), || {
         let mut context = sync_context(adapters, options, transport)?;
+        crate::settings::refuse_configured_patterns(&adapters.home)?;
         let local = super::remote::accept::history::local_history(&context)?;
         let mut history =
             crate::vault::history::read_history(&context.client, &context.vault_id, Some(&local))?;

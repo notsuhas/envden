@@ -7,6 +7,15 @@ use serde_json::{Value, json};
 use std::{fs, path::Path};
 
 pub fn parse_config(value: Value) -> Result<Value> {
+    let config = parse_shared_config(value)?;
+
+    super::patterns::refuse_patterns(&config["env-files"])?;
+
+    Ok(config)
+}
+
+// The schema the reference shares; pattern refusal applies only to configs that pass it.
+pub(super) fn parse_shared_config(value: Value) -> Result<Value> {
     let input = value.as_object().ok_or_else(invalid)?;
     let mut result = serde_json::Map::new();
     if input.keys().any(|k| {
@@ -42,7 +51,6 @@ pub fn parse_config(value: Value) -> Result<Value> {
         }) {
             return Err(invalid());
         }
-        super::patterns::refuse_patterns(rules)?;
         let mut ordered = serde_json::Map::new();
         for key in ["include", "exclude", "extraSkipped"] {
             if let Some(v) = rules.get(key) {

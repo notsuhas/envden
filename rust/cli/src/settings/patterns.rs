@@ -23,7 +23,7 @@ pub(super) fn refuse_patterns(rules: &Value) -> Result<()> {
     Ok(())
 }
 
-// Runs before a sync writes; any other config problem surfaces where it always has.
+// Runs before a sync writes; a config the shared schema rejects fails where it always has.
 pub fn refuse_configured_patterns(home: &Path) -> Result<()> {
     let Ok(bytes) = fs::read(home.join("config.json")) else {
         return Ok(());
@@ -32,5 +32,8 @@ pub fn refuse_configured_patterns(home: &Path) -> Result<()> {
         return Ok(());
     };
 
-    refuse_patterns(&config["env-files"])
+    match super::config::parse_shared_config(config) {
+        Ok(config) => refuse_patterns(&config["env-files"]),
+        Err(_) => Ok(()),
+    }
 }

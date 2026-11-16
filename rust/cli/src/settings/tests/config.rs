@@ -40,6 +40,13 @@ fn refuses_env_file_patterns_it_cannot_match_exactly() {
         "Unsupported env file pattern"
     );
     assert!(parse_config(json!({"env-files":{"extraSkipped":["[a"]}})).is_ok());
+
+    for config in [
+        json!({"unknown":true,"env-files":{"include":["["]}}),
+        json!({"env-files":{"include":["["]},"telemetry":"bad"}),
+    ] {
+        assert_eq!(parse_config(config).unwrap_err().message, "Invalid config");
+    }
 }
 
 #[test]

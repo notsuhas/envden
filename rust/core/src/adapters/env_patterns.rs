@@ -24,6 +24,7 @@ fn scan(pattern: &str) -> Option<IScan> {
     let mut opened = 0;
     let mut alternatives = 1usize;
     let mut byte_sensitive = false;
+    let mut partial_globstar = false;
     let mut index = 0;
 
     while let Some(&current) = chars.get(index) {
@@ -43,7 +44,21 @@ fn scan(pattern: &str) -> Option<IScan> {
                 byte_sensitive = true;
                 index = class.end;
             }
-            '*' if chars.get(index + 1) == Some(&'*') && !groups.is_empty() => return None,
+            '*' if chars.get(index + 1) == Some(&'*') => {
+                let end = chars[index..]
+                    .iter()
+                    .position(|c| *c != '*')
+                    .map_or(chars.len(), |offset| index + offset);
+                let segment = (index == 0 || chars[index - 1] == '/')
+                    && chars.get(end).is_none_or(|c| *c == '/');
+
+                if !groups.is_empty() {
+                    return None;
+                }
+
+                partial_globstar |= !segment;
+                index = end - 1;
+            }
             '{' => {
                 opened += 1;
                 groups.push(1);
@@ -63,7 +78,10 @@ fn scan(pattern: &str) -> Option<IScan> {
         index += 1;
     }
 
-    (groups.is_empty() && opened <= MAX_GROUPS).then_some(IScan {
+    // fast-glob mishandles a `**` that isn't a whole segment once braces expand around it.
+    let globstar_braces = partial_globstar && opened > 0;
+
+    (groups.is_empty() && opened <= MAX_GROUPS && !globstar_braces).then_some(IScan {
         byte_sensitive,
         alternatives,
     })
@@ -132,6 +150,9 @@ mod tests {
             "!apps/**",
             ".env.{local,development}",
             "{apps,packages}/**/.env",
+            "{apps,packages}/**",
+            "**/.env.{local,dev}",
+            "*a**/**/*",
             ".env.[a-z]*",
             ".env.[!e]*",
             "config/.env.?",
