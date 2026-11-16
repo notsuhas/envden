@@ -71,3 +71,18 @@ test("relative times normalize across minute and hour boundaries", () => {
   expect(n.text("2 minutes ago")).toBe(n.text("59 seconds ago"));
   expect(n.text("1 hour ago")).toBe(n.text("3 minutes ago"));
 });
+
+for (const duration of ["10m0s", "5s", "1h", "2m", "1h2m3s", "1h0m0.5s", "2m0.25s"])
+  test(`native duration ${duration} matches relative time in either direction`, () => {
+    const n = new Normalizer();
+
+    for (const relative of ["3 minutes ago", "less than a minute ago", "about 1 hour ago"])
+      expect(n.text(`${duration} ago`)).toBe(n.text(relative));
+
+    expect(n.text(`wait ${duration}`)).toBe("wait <DURATION>");
+    expect(n.text(`${duration} ago file-a`)).not.toBe(n.text("3 minutes ago file-b"));
+  });
+
+test("duration normalization preserves identifiers containing units", () => {
+  expect(new Normalizer().text("item5s v1h file-2m.txt")).toBe("item5s v1h file-2m.txt");
+});

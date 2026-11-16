@@ -109,6 +109,16 @@ export class Normalizer {
     );
 
     text = text.replace(
+      /(?<![\w./-])(?:\d+(?:\.\d+)?(?:h|m|s|ms|µs|μs|ns))+(?![\w./-])/g,
+      "<DURATION>",
+    );
+
+    text = text.replace(
+      /\b(?:(?:less than|about|over|almost)\s+)?(?:\d+|an?)\s+(?:milliseconds?|seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/g,
+      "<DURATION>",
+    );
+
+    text = text.replace(
       /\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/g,
       "<DURATION>",
     );

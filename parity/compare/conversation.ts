@@ -1,3 +1,4 @@
+import { stripVTControlCharacters } from "node:util";
 import { presentation, words } from "./presentation.ts";
 import { facts } from "./facts.ts";
 
@@ -53,27 +54,51 @@ export function conversation(text: string): string[] {
     offset += line.length + 1;
   }
 
-  return found.sort((a, b) => a.start - b.start).map((item) => item.key);
+  return found
+    .sort((a, b) => a.start - b.start)
+    .map((item) => item.key)
+    .filter((key, index, keys) => key !== keys[index - 1]);
 }
 
-export function conversationTurn(text: string, answer: string) {
-  return { prompts: conversation(text), choices: choices(text), answer };
+export function conversationTurn(text: string, answer: string, previousPrompt?: string) {
+  const prompts = conversation(text);
+  if (prompts.length > 1 && prompts[0] === previousPrompt) prompts.shift();
+
+  return { prompts, choices: choices(text), answer };
 }
 
 export function choices(text: string): string[] {
-  const lines = text.split("\n");
+  const lines = stripVTControlCharacters(text).replace(/[│┃]/g, " ").split("\n");
+  const labels: string[] = [];
+  const marker = /[●○◉◯▪□■•✓]|\[[ x✓•]\]/;
+  const selector = lines.find((line) => /^\s*>\s+\S/.test(line));
+  const column = selector?.indexOf(">") ?? -1;
 
-  const offered = lines.filter((line) =>
-    /[●○◉◯▪□■]|\[[ x✓]\]|^\s*>\s|\bYes\s*[/|]\s*No\b/i.test(line),
-  );
+  for (const line of lines) {
+    const plain = presentation(line).trim();
 
-  const labels = offered
-    .flatMap((line) => line.split(/[●○◉◯▪□■]|\[[ x✓]\]|^\s*>\s|\s+[|/]\s+/))
-    .map((line) => presentation(line).replace(/^[\s/|]+|[\s/|]+$/g, ""))
-    .filter(Boolean);
+    if (/^(?:>\s*)?Yes\s*(?:[/|]\s*|\s+)No$/i.test(plain)) {
+      labels.push("Yes", "No");
+      continue;
+    }
+
+    if (marker.test(line)) {
+      labels.push(...line.split(/[●○◉◯▪□■•✓]|\[[ x✓•]\]/));
+      continue;
+    }
+
+    if (/^\s*>\s+/.test(line)) labels.push(line.replace(/^\s*>\s+/, ""));
+    else if (column >= 0 && line.search(/\S/) === column + 2) labels.push(line.trim());
+  }
+
+  const offered = [
+    ...new Set(
+      labels.map((line) => presentation(line).replace(/^[\s/|>]+|[\s/|]+$/g, "")).filter(Boolean),
+    ),
+  ];
 
   return [
-    ...labels.map((line) => words(line).join(" ")).filter(Boolean),
-    ...facts(labels.join("\n")),
+    ...offered.map((line) => words(line).join(" ")).filter(Boolean),
+    ...facts(offered.join("\n")),
   ].sort();
 }

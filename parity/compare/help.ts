@@ -1,28 +1,47 @@
 import { presentation } from "./presentation.ts";
 
+const HEADING = /^[\w][\w ]*:\s*$/;
+const SKIPPED = /^(?:usage|arguments|examples|description)\s*:/i;
+const OPTIONS = /^(?:options|(?:global |local |inherited )?flags)\s*:/i;
+
+function indentOf(line: string): number {
+  return line.length - line.trimStart().length;
+}
+
+function signatures(lines: string[]): string[] {
+  const rows = lines.filter((line) => /^\s+\S/.test(line));
+  const indent = Math.min(...rows.map(indentOf));
+
+  return rows
+    .filter((line) => indentOf(line) === indent)
+    .map((line) => line.trim().split(/\s{2,}/)[0]!);
+}
+
+function optionEntries(signature: string): string[] {
+  if (!signature.startsWith("-")) return [];
+
+  return [...signature.matchAll(/(?:^|[\s,])(--?[\w][\w-]*)/g)].map(
+    (match) => `option:${match[1]}`,
+  );
+}
+
+function commandEntries(signature: string): string[] {
+  const command = /^[\w-]+/.exec(signature)?.[0];
+
+  return command ? [`command:${command}`] : [];
+}
+
+function sectionEntries(section: string): string[] {
+  const [heading = "", ...lines] = section.split("\n");
+  if (!HEADING.test(heading) || SKIPPED.test(heading)) return [];
+
+  const entries = OPTIONS.test(heading) ? optionEntries : commandEntries;
+
+  return signatures(lines).flatMap(entries);
+}
+
 export function help(text: string): string[] {
-  const plain = presentation(text);
-  const entries = new Set<string>();
-  let commands = false;
+  const sections = presentation(text).split(/^(?=[\w][\w ]*:\s*$)/m);
 
-  for (const line of plain.split("\n")) {
-    const trimmed = line.trim();
-
-    if (/^(?:commands|subcommands|available commands)\s*:/i.test(trimmed)) {
-      commands = true;
-      continue;
-    }
-
-    if (/^[\w ]+:$/.test(trimmed)) commands = false;
-
-    for (const option of trimmed.matchAll(/(?:^|[\s,])(--?[\w][\w-]*)/g))
-      entries.add(`option:${option[1]}`);
-
-    if (commands && trimmed) {
-      const command = /^[\w-]+/.exec(trimmed)?.[0];
-      if (command) entries.add(`command:${command}`);
-    }
-  }
-
-  return [...entries].sort();
+  return [...new Set(sections.flatMap(sectionEntries))].sort();
 }

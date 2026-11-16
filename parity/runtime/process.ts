@@ -127,7 +127,8 @@ export class Terminal {
 
       const screen = terminalText(this.raw.slice(this.answerCursor));
 
-      this.conversation.push(conversationTurn(screen, answer.send));
+      const previousPrompt = this.conversation.at(-1)?.prompts.at(-1);
+      this.conversation.push(conversationTurn(screen, answer.send, previousPrompt));
       this.answerCursor = this.raw.length;
       this.child.terminal?.write(answer.send);
     }

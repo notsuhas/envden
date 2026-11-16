@@ -105,3 +105,98 @@ test("state and scenario names remain facts in unlabelled output", () => {
 test("known names keep one fact when quoted", () => {
   expect(facts('removed "laptop"', ["laptop"])).toEqual(facts("removed laptop", ["laptop"]));
 });
+
+test("grouped commander and cobra help extract entries without wrapped prose", () => {
+  const ts = `Usage: envden [options] [command]
+Options:
+  -h, --help  display help with --verbose examples
+Get started:
+  setup [options]  Create a vault and configure this device
+  join <server>    Join using a pairing code in your
+                    own terminal
+Daily use:
+  push             Send changes
+Commands:
+  repair           Re-upload this device's data,
+                    or finish with --finish
+  help [command]   display help
+Examples:
+  envden setup --example`;
+
+  const go = `Usage:
+  envden [command]
+Available Commands:
+  setup   Create a vault
+  join    Join a vault
+  push    Send changes
+  repair  Repair
+  help    Help
+Flags:
+  -h, --help   help for envden
+
+Use "envden [command] --help" for more information about a command.`;
+
+  expect(help(ts)).toEqual(help(go));
+
+  expect(help(ts)).toEqual([
+    "command:help",
+    "command:join",
+    "command:push",
+    "command:repair",
+    "command:setup",
+    "option:--help",
+    "option:-h",
+  ]);
+
+  expect(help(ts)).not.toEqual(help(go.replace("  repair  Repair\n", "")));
+  expect(help(ts)).not.toEqual(help(go.replace("--help", "--verbose")));
+});
+
+for (const native of [
+  "> Red\n  Blue",
+  "  Red\n> Blue",
+  "[x] Red\n[ ] Blue",
+  "> [•] Red\n  [ ] Blue",
+  "• Red\n✓ Blue",
+  "\x1b[32m┃ > Red\x1b[0m\n┃   Blue",
+])
+  test(`native choices match clack: ${native}`, () => {
+    expect(choices(native)).toEqual(choices("● Red\n○ Blue"));
+    expect(choices(native)).not.toEqual(choices("● Red\n○ Green"));
+  });
+
+for (const native of ["> Yes / No", "Yes / No", "┃   Yes     No   "])
+  test(`native confirm choices: ${native}`, () => {
+    expect(choices(native)).toEqual(choices("│ ● Yes / ○ No"));
+    expect(choices(native)).not.toEqual(choices("● Yes"));
+  });
+
+test("redrawn and submitted prompts are recorded once in order", async () => {
+  const { conversationTurn } = await import("../compare/conversation.ts");
+  const ts = "◇ Server address\n│ localhost\n◆ Master password\n│";
+  const go = "Server address\nServer address\nMaster password\nMaster password";
+  expect(conversation(go)).toEqual(["server address", "master password"]);
+
+  expect(conversationTurn(ts, "secret\r", "server address")).toEqual(
+    conversationTurn(go, "secret\r", "server address"),
+  );
+
+  expect(conversationTurn(go, "secret\r", "server address").prompts).toEqual(["master password"]);
+
+  expect(conversationTurn(go, "secret\r", "server address")).not.toEqual(
+    conversationTurn("Confirm master password", "secret\r"),
+  );
+});
+
+test("repeated prompts and newly introduced intermediate prompts stay strict", async () => {
+  const { conversationTurn } = await import("../compare/conversation.ts");
+
+  expect(conversationTurn("Master password", "secret\r", "master password").prompts).toEqual([
+    "master password",
+  ]);
+
+  expect(
+    conversationTurn("Server address\nPairing code\nMaster password", "secret\r", "server address")
+      .prompts,
+  ).toEqual(["pairing code", "master password"]);
+});
