@@ -29,7 +29,7 @@ pub fn create_rc_shell_adapter(
     let home = home.as_ref().to_owned();
     let envden_home = envden_home
         .map(Path::to_owned)
-        .or_else(|| std::env::var_os("ENVDEN_HOME").map(PathBuf::from))
+        .or_else(|| envden_core::paths::envden_home_override(std::env::var_os("ENVDEN_HOME")))
         .unwrap_or_else(|| home.join(".envden"))
         .to_string_lossy()
         .into_owned();
