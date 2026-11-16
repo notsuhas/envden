@@ -36,12 +36,19 @@ fn typescript_env_file_rules() {
 #[test]
 fn patterns_fast_glob_cannot_match_exactly_fail_closed() {
     let ten_wide_groups = format!(".env{}", "{,,,,,,,}".repeat(10));
+    let wide_alternatives = format!(".env.{{{}}}", vec!["a"; 17].join(","));
+    let long_pattern = format!(".env.{}", "a".repeat(1020));
     let patterns = [
         ".env.[a",
         ".env.{a",
         ".env\\",
         ".env.{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}",
         ten_wide_groups.as_str(),
+        wide_alternatives.as_str(),
+        long_pattern.as_str(),
+        ".env.{[],a]}",
+        ".env.{[]{a]}",
+        ".env.{[ab],c}",
         "apps/{*,**}",
         "{*,**}/.env",
         "**/a{**,}",

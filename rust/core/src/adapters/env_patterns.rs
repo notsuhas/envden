@@ -8,9 +8,10 @@ pub fn byte_sensitive_env_pattern(pattern: &str) -> bool {
     scan(pattern).is_none_or(|scan| scan.byte_sensitive)
 }
 
-// Bun stops expanding after 10 brace groups; fast-glob's work grows with every alternative.
+// Bun stops expanding after 10 brace groups; fast-glob evaluates every alternative even after a match.
 const MAX_GROUPS: usize = 10;
-const MAX_ALTERNATIVES: usize = 256;
+const MAX_ALTERNATIVES: usize = 16;
+const MAX_LENGTH: usize = 1024;
 
 struct IScan {
     byte_sensitive: bool,
@@ -19,6 +20,11 @@ struct IScan {
 
 fn scan(pattern: &str) -> Option<IScan> {
     let chars: Vec<char> = pattern.chars().collect();
+
+    if chars.len() > MAX_LENGTH {
+        return None;
+    }
+
     let path_mode = pattern.contains('/');
     let mut groups: Vec<usize> = Vec::new();
     let mut opened = 0;
@@ -38,7 +44,8 @@ fn scan(pattern: &str) -> Option<IScan> {
             '[' => {
                 let class = class(&chars, index)?;
 
-                if class.unsupported(path_mode) {
+                // Bun reads brace syntax inside a class that sits in a brace group.
+                if !groups.is_empty() || class.unsupported(path_mode) {
                     return None;
                 }
 
