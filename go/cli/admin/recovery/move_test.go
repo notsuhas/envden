@@ -2,6 +2,7 @@ package recovery_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -10,6 +11,9 @@ import (
 	"github.com/notsuhas/envden/go/cli/admin/devices"
 	"github.com/notsuhas/envden/go/cli/admin/move"
 	"github.com/notsuhas/envden/go/cli/client"
+	"github.com/notsuhas/envden/go/cli/session"
+	"github.com/notsuhas/envden/go/cli/state/model"
+	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/errors"
 )
 
@@ -52,8 +56,28 @@ func TestMoveAndResume(t *testing.T) {
 			}
 
 			if action != "abort" {
-				if err = move.SwitchServer(f.ctx, f.b, address, f.now, f.b.Fetcher); !errors.Is(err, errors.Locked) {
-					t.Fatal("TS switch must require destination unlock", err)
+				if err = move.SwitchServer(f.ctx, f.b, address, f.now, f.b.Fetcher, nil); !errors.Is(err, errors.Locked) {
+					t.Fatal("switch without a terminal must require unlock", err)
+				}
+
+				destinationOnly := client.Fetch(func(req *http.Request) (*http.Response, error) {
+					if strings.HasPrefix(req.URL.String(), f.address) {
+						t.Error("switch contacted the old server", req.URL)
+					}
+
+					return client.DefaultFetch(req)
+				})
+				prompts := 0
+				unlock := func(ctx context.Context, cl *client.Client, vault []byte) (*model.Window, error) {
+					return session.Login(ctx, cl, vault, session.Password{Prompt: func(bool) (string, error) { prompts++; return "old password", nil }}, "")
+				}
+				if err = move.SwitchServer(f.ctx, f.b, address, f.now, destinationOnly, unlock); err != nil || prompts != 1 {
+					t.Fatal(prompts, err)
+				}
+
+				switched, err := store.LoadState(f.b.Home)
+				if err != nil || switched.Server.Address != address || switched.Session == nil {
+					t.Fatal(switched, err)
 				}
 			}
 		})

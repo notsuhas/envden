@@ -15,7 +15,10 @@ import (
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 )
 
-func SwitchServer(ctx context.Context, a contracts.Adapters, address string, now func() int64, fetch client.Fetch) error {
+// Unlock logs in to the destination; nil means no terminal, so a locked destination fails.
+type Unlock func(ctx context.Context, cl *client.Client, vaultID []byte) (*model.Window, error)
+
+func SwitchServer(ctx context.Context, a contracts.Adapters, address string, now func() int64, fetch client.Fetch, unlock Unlock) error {
 	return lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
 		cxt, err := shared.AdminContext(ctx, a, now, fetch)
 		if err != nil {
@@ -27,7 +30,18 @@ func SwitchServer(ctx context.Context, a contracts.Adapters, address string, now
 			return err
 		}
 
-		cl := client.CreateClient(client.Options{Address: address, Pin: server.Pin, VaultID: cxt.VaultID, Identity: cxt.Identity, Now: now, Fetcher: fetch, Version: version.Version, HelloCache: a.HelloCache})
+		var cl *client.Client
+		var window *model.Window
+		options := client.Options{Address: address, Pin: server.Pin, VaultID: cxt.VaultID, Identity: cxt.Identity, Now: now, Fetcher: fetch, Version: version.Version, HelloCache: a.HelloCache}
+		if unlock != nil {
+			options.Unlock = func(ctx context.Context) error {
+				window, err = unlock(ctx, cl, cxt.VaultID)
+
+				return err
+			}
+		}
+
+		cl = client.CreateClient(options)
 		h, err := shared.ReadHistory(ctx, cl, cxt.VaultID)
 		if err != nil {
 			return err
@@ -43,6 +57,10 @@ func SwitchServer(ctx context.Context, a contracts.Adapters, address string, now
 		}
 
 		cxt.Local.Server = &model.Server{Address: address, Pin: client.Text(server.Pin), Protocol: 1}
+		if window != nil {
+			cxt.Local.Session = window
+			cxt.Local.Touch("session")
+		}
 
 		return store.SaveState(ctx, a.Home, cxt.Local, a.Timing)
 	})

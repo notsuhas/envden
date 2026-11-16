@@ -119,7 +119,7 @@ func MoveServer(ctx context.Context, a contracts.Adapters, o Options) error {
 			return err
 		}
 
-		if err = SwitchServer(ctx, a, address, o.Now, o.Fetcher); err != nil {
+		if err = SwitchServer(ctx, a, address, o.Now, o.Fetcher, nil); err != nil {
 			return err
 		}
 
