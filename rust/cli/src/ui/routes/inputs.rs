@@ -18,7 +18,7 @@ pub fn parse<'a>(
                 .is_some_and(|v| v.fract() == 0.0 && v > 0.0 && v <= 9_007_199_254_740_991.0)
         } else {
             object[*key].as_str().is_some_and(|v| {
-                !v.is_empty() && v.encode_utf16().count() <= if *key == "name" { 256 } else { 4096 }
+                !v.is_empty() && v.chars().count() <= if *key == "name" { 256 } else { 4096 }
             })
         };
         if !valid {
@@ -64,6 +64,7 @@ mod tests {
             json!({"name":"a","extra":1}),
             json!({"name":1}),
             json!({"name":"a".repeat(257)}),
+            json!({"name":"😀".repeat(257)}),
         ] {
             assert_eq!(
                 parse(&input, &["name"], "Enter a device name")
@@ -73,6 +74,7 @@ mod tests {
             );
         }
         assert!(parse(&json!({"name":"a"}), &["name"], "name").is_ok());
+        assert!(parse(&json!({"name":"😀".repeat(256)}), &["name"], "name").is_ok());
         for input in [
             json!({"root":"relative","path":".env"}),
             json!({"root":"/a","path":""}),

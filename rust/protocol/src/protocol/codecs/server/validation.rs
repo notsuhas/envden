@@ -38,7 +38,7 @@ pub fn period<'de, D: Deserializer<'de>>(d: D) -> Result<Option<u64>, D::Error> 
 
 pub fn mailbox_message<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
     let s = String::deserialize(d)?;
-    if s.encode_utf16().count() > 5462 {
+    if s.chars().count() > 5462 {
         return Err(D::Error::custom("Mailbox message limit"));
     }
     Ok(s)
@@ -73,4 +73,28 @@ pub fn nullable_integer<'de, D: Deserializer<'de>>(d: D) -> Result<Option<u64>, 
         Ok(n as u64)
     })
     .transpose()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::protocol::IMailboxWrite;
+
+    #[test]
+    fn mailbox_message_limit_counts_code_points() {
+        let rows = [
+            ("😀".repeat(2731) + "a", true),
+            ("😀".repeat(5462), true),
+            ("😀".repeat(5463), false),
+            ("a".repeat(5463), false),
+        ];
+
+        for (message, accepted) in rows {
+            let body = serde_json::json!({ "message": message }).to_string();
+
+            assert_eq!(
+                serde_json::from_str::<IMailboxWrite>(&body).is_ok(),
+                accepted
+            );
+        }
+    }
 }
