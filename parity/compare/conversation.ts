@@ -105,3 +105,27 @@ export function choices(text: string): string[] {
     ...facts(offered.join("\n")),
   ].sort();
 }
+
+export function withoutChoiceRows(text: string): string {
+  let column = -1;
+
+  return stripVTControlCharacters(text)
+    .split("\n")
+    .map((line) => line.replace(/(?:[●○◉◯]\s*)?Yes\s*[/|]\s*(?:[●○◉◯]\s*)?No\s*$/i, ""))
+    .filter((line) => {
+      const plain = line.replace(/[│┃]/g, " ");
+      const selector = /^\s*>\s+\S/.test(plain);
+      const continuation = column >= 0 && plain.search(/\S/) === column + 2;
+
+      if (selector) column = plain.indexOf(">");
+      else if (!continuation) column = -1;
+
+      return !(
+        selector ||
+        continuation ||
+        /^\s*(?:[●○◉◯▪□■◻◼•✓]|\[[ x✓•]\])\s+\S/.test(plain) ||
+        /^\s*(?:>\s*)?Yes\s*(?:[/|]\s*|\s+)No\s*$/i.test(plain)
+      );
+    })
+    .join("\n");
+}

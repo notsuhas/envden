@@ -14,7 +14,7 @@ import (
 	"github.com/creack/pty"
 )
 
-const helperShellTitle = "Shell choice? It prints a line when you cd into a checkout whose env files need a push or pull"
+const helperShellTitle = "Install the shell notice? It prints a line when you cd into a checkout whose env files need a push or pull"
 
 func TestPromptPTYHelper(t *testing.T) {
 	mode := os.Getenv("ENVDEN_PROMPT_HELPER")
@@ -137,29 +137,29 @@ func TestPromptPTY(t *testing.T) {
 				}
 				expect("Device name")
 				send("\r")
-				expect("Device name\r\n  laptop")
+				expect("Device name\r\n\x1b[2K\r  laptop")
 				expect("NAME:laptop")
 				expect("Master password")
 				send("\r")
 				expect("Required")
 				send("secret\r")
-				expect("Master password\r\n  ••••••")
+				expect("Master password\r\n\x1b[2K\r  ••••••")
 				expect("SECRET-LENGTH:6")
 				expect("Add device?")
 				send("y")
-				expect("Add device? An always-on host is recommended.\r\n  Yes")
+				expect("Add device? An always-on host is recommended.\r\n\x1b[2K\r  Yes")
 				expect("Open it now?")
 				send("n")
-				expect("Open it now?\r\n  No")
-				expect("Shell choice")
+				expect("Open it now?\r\n\x1b[2K\r  No")
+				expect("Install the shell notice")
 				expect("No, skip it")
 				send("\x1b[B\r")
-				expect(helperShellTitle + "\r\n  bash")
+				expect(helperShellTitle + "\r\n\x1b[2K\r  bash")
 				expect("Checkouts")
 				expect("~/app (.env)")
 				expect("second")
 				send("\r")
-				expect("Checkouts\r\n  ~/app (.env), second")
+				expect("Checkouts\r\n\x1b[2K\r  ~/app (.env), second")
 				expect("RESULT:true:false:bash:first,second")
 			}
 			if err := cmd.Wait(); err != nil {

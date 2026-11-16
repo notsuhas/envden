@@ -53,7 +53,7 @@ func (t *session) run(field huh.Field) error {
 	field = field.WithWidth(80)
 
 	err := huh.NewForm(huh.NewGroup(field)).WithProgramOptions(tea.WithoutSignalHandler()).WithInput(t.input).WithOutput(t.output).
-		WithKeyMap(keys).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
+		WithWidth(80).WithKeyMap(keys).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
 	if errors.Is(err, huh.ErrUserAborted) {
 		return errCancelled
 	}

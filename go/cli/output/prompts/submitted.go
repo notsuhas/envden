@@ -9,7 +9,7 @@ import (
 )
 
 func (t *session) submitted(o PromptOptions, answer string) {
-	_, _ = fmt.Fprintf(t.output, "%s\n  %s\n", output.SanitizeTerminal(o.Message), output.SanitizeTerminal(answer))
+	_, _ = fmt.Fprintf(t.output, "\x1b[2K\r%s\n\x1b[2K\r  %s\n", output.SanitizeTerminal(o.Message), output.SanitizeTerminal(answer))
 }
 
 func selectedLabels(options []Option, values []string) string {

@@ -200,3 +200,28 @@ test("repeated prompts and newly introduced intermediate prompts stay strict", a
       .prompts,
   ).toEqual(["pairing code", "master password"]);
 });
+
+for (const menu of [
+  "│ ● Keep\n│ ○ No, discard it",
+  "┃ > Keep\n┃   No, discard it",
+  "[x] Keep\n[ ] No, discard it",
+  "Yes / No",
+]) {
+  test(`PTY menu rows are choices rather than stdout facts: ${menu}`, () => {
+    const result = "Pushed 2 files: /tmp/app/.env";
+    const pty = (text: string) => outputObservation(text, "pty", identity);
+
+    expect(pty(`${menu}\n${result}`)).toBe(pty(result));
+    expect(pty(`${menu}\n${result}`)).not.toBe(pty(`${menu}\nPushed 2 files`));
+    expect(pty(`${menu}\n${result}`)).not.toBe(pty(`${menu}\nPushed 3 files: /tmp/app/.env`));
+    expect(choices(menu)).not.toEqual([]);
+  });
+}
+
+test("PTY confirm redraw residue preserves the submitted answer", () => {
+  const pty = (text: string) => outputObservation(text, "pty", identity);
+
+  expect(pty("│ NoYes / ○ No\nPushed 2 files")).toBe(pty("  No\nPushed 2 files"));
+  expect(pty("│ YesYes / ○ No\nPushed 2 files")).toBe(pty("  Yes\nPushed 2 files"));
+  expect(pty("│ NoYes / ○ No\nPushed 2 files")).not.toBe(pty("Pushed 2 files"));
+});
