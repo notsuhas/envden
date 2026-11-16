@@ -80,11 +80,22 @@ pub(super) fn option_value(
         return port.map(Value::from).ok_or_else(|| format!("error: option '{}' argument '{}' is invalid. Expected a port from 0 (any free port) to 65535.", option.flags, text));
     }
     if command.name == "ui" {
-        return Ok(envden_core::text::js_trim(text)
-            .parse::<f64>()
-            .ok()
+        return Ok(js_number(text)
             .and_then(serde_json::Number::from_f64)
             .map_or(Value::Null, Value::Number));
     }
     Ok(value)
+}
+
+fn js_number(text: &str) -> Option<f64> {
+    let text = envden_core::text::js_trim(text);
+    for (prefixes, radix) in [(["0x", "0X"], 16), (["0b", "0B"], 2), (["0o", "0O"], 8)] {
+        if let Some(digits) = prefixes.iter().find_map(|prefix| text.strip_prefix(prefix)) {
+            if digits.is_empty() || digits.starts_with(['+', '-']) {
+                return None;
+            }
+            return u64::from_str_radix(digits, radix).ok().map(|n| n as f64);
+        }
+    }
+    text.parse().ok()
 }

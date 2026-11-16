@@ -51,3 +51,19 @@ fn nested_parser_errors_strip_terminal_controls() {
     assert!(!output.status.success());
     assert!(!output.stderr.contains(&0x1b));
 }
+
+#[test]
+fn dashboard_ports_use_javascript_number_prefixes() {
+    use envden_cli::program::{TParseResult, command_tree, parse};
+    for (text, expected) in [("0x10", 16), ("0X10", 16), ("0b10", 2), ("0o10", 8)] {
+        let TParseResult::Action(invocation) =
+            parse(command_tree(), &["ui".into(), "--port".into(), text.into()])
+        else {
+            panic!("action expected")
+        };
+        assert_eq!(
+            invocation.options["port"].as_f64(),
+            Some(f64::from(expected))
+        );
+    }
+}
