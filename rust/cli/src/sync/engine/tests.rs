@@ -45,3 +45,44 @@ mod cases {
         }
     }
 }
+
+#[path = "../tests/fixture.rs"]
+mod fixture;
+
+#[cfg(unix)]
+#[test]
+fn pull_saves_selection_and_two_checkpoints() {
+    use std::{fs::File, os::unix::fs::MetadataExt};
+    let (_dir, a, server, _) = fixture::fixture();
+    let path = a.home.join("state/device.json");
+    let initial = File::open(&path).unwrap();
+    let revisions = Rc::new(RefCell::new(vec![initial]));
+    let observed = revisions.clone();
+    let options = ISyncOptions {
+        now: Rc::new(move || {
+            let current = File::open(&path).unwrap();
+            let mut revisions = observed.borrow_mut();
+            if current.metadata().unwrap().ino()
+                != revisions.last().unwrap().metadata().unwrap().ino()
+            {
+                revisions.push(current);
+            }
+            1800000000000
+        }),
+        unlock: None,
+        cwd: None,
+        all: true,
+        yes: true,
+        interactive: false,
+        choose: None,
+        confirm: None,
+        report: None,
+    };
+    let result = sync(&a, options, server, false).unwrap();
+    assert_eq!(result["kind"], "pulled");
+    assert_eq!(
+        revisions.borrow().len() - 1,
+        3,
+        "pull must save selection and two reconciliation checkpoints"
+    );
+}

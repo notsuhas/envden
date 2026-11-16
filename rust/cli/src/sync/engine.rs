@@ -145,7 +145,9 @@ fn run_sync(
             } else {
                 result.changed
             };
-            persist_checkpoint(&mut context)?;
+            if pushing {
+                persist_checkpoint(&mut context)?;
+            }
             super::local::retention::prune_backups(&adapters.home, (context.options.now)())?;
             adapters.prune_placement_backups((context.options.now)())?;
             if crate::notice::fetch::settle_remote_notice(&context)
@@ -154,7 +156,7 @@ fn run_sync(
                         &adapters.home,
                         &context.state,
                         |r| adapters.repo.case_insensitive(r, true),
-                        (adapters.now)(),
+                        &adapters.now,
                     )
                 })
                 .is_err()
