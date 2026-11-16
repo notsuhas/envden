@@ -66,6 +66,8 @@ export async function serve(
       options.listen?.(app) ??
       Bun.serve({
         maxRequestBodySize,
+        // Seconds an idle or half-sent connection stays open; every implementation uses 10.
+        idleTimeout: 10,
         hostname: "127.0.0.1",
         port: options.port ?? 4280,
         fetch: app.fetch,

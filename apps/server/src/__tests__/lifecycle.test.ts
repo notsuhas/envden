@@ -10,6 +10,7 @@ import { manualScheduler } from "./scheduler.ts";
 test("serve injects time and shutdown removes handlers and closes storage", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-lifecycle-"));
   const listeners = process.listenerCount("SIGTERM");
+  const listen = spyOn(Bun, "serve");
   let calls = 0;
 
   const running = await serve({
@@ -23,6 +24,7 @@ test("serve injects time and shutdown removes handlers and closes storage", asyn
   });
 
   try {
+    expect(listen.mock.calls[0]?.[0]).toMatchObject({ hostname: "127.0.0.1", idleTimeout: 10 });
     expect(calls).toBeGreaterThan(0);
     expect(process.listenerCount("SIGTERM")).toBe(listeners + 1);
     await running.shutdown();
@@ -30,6 +32,7 @@ test("serve injects time and shutdown removes handlers and closes storage", asyn
     expect(process.listenerCount("SIGTERM")).toBe(listeners);
     expect(() => running.storage.vaultIds()).toThrow();
   } finally {
+    listen.mockRestore();
     await running.shutdown();
     rmSync(dir, { recursive: true, force: true });
   }

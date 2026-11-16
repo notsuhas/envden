@@ -335,6 +335,10 @@ Replaces leaving Ctrl-D to readline. On an empty answer it closed the input and 
 
 Replaces leaving SQLite's sidecar files to the platform. On macOS, Apple's SQLite kept `envden.sqlite-wal` and `-shm` after shutdown and Linux removed them, so the data folder differed by OS and a backup taken after a stop on macOS needed three files. The server now turns persistent WAL off and runs a truncating checkpoint when it closes the database.
 
+### Connection timeouts are set, not inherited
+
+Replaces relying on each runtime's default. Bun closed idle connections after about 12 seconds, the Go port after 10 and its dashboard never. `envden serve` and the `envden ui` dashboard now set a 10-second idle timeout, which also covers half-sent headers and a rejected request whose body never arrives. Bun checks timeouts every 4 seconds, so it closes such a connection up to 2 seconds late. Body-read deadlines are unchanged.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
