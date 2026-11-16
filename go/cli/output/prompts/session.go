@@ -3,7 +3,6 @@ package prompts
 import (
 	"errors"
 	"io"
-	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,7 +10,6 @@ import (
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/output/progress"
 	"github.com/notsuhas/envden/go/cli/state"
-	"golang.org/x/term"
 )
 
 type ITerminal interface {
@@ -30,19 +28,16 @@ type PromptOptions struct {
 	InitialValues         []string
 	InitialBool           *bool
 	Options               []Option
-	Required              bool
 	Validate              func(string) string
 }
 
 type session struct {
-	input   io.Reader
-	output  io.Writer
-	shared  *sharedInput
-	current *promptInput
+	input  io.Reader
+	output io.Writer
 }
 
 func New(input io.Reader, output io.Writer) *session {
-	return &session{input: input, output: output, shared: newSharedInput(input)}
+	return &session{input: input, output: output}
 }
 
 var errCancelled = state.PromptCancelled()
@@ -52,26 +47,8 @@ func IsCancel(err error) bool {
 }
 
 func (t *session) run(field huh.Field, programOptions ...tea.ProgramOption) error {
-	keys := promptKeyMap()
-	_, confirm := field.(*huh.Confirm)
-	reader := t.shared.prompt(confirm)
-	switch field.(type) {
-	case *huh.Select[string], *huh.MultiSelect[string]:
-		reader.menu = true
-	}
-	t.current = reader
-	defer close(reader.done)
-	if file, ok := t.input.(*os.File); ok && term.IsTerminal(int(file.Fd())) {
-		original, err := term.MakeRaw(int(file.Fd()))
-		if err != nil {
-			return err
-		}
-		defer func() { _ = term.Restore(int(file.Fd()), original) }()
-	}
-	field = field.WithWidth(80)
-
-	err := huh.NewForm(huh.NewGroup(field)).WithProgramOptions(append(programOptions, tea.WithoutSignalHandler())...).WithInput(reader).WithOutput(t.output).
-		WithWidth(80).WithKeyMap(keys).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
+	err := huh.NewForm(huh.NewGroup(field.WithWidth(80))).WithProgramOptions(append(programOptions, tea.WithoutSignalHandler())...).WithInput(t.input).WithOutput(t.output).
+		WithWidth(80).WithKeyMap(promptKeyMap()).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
 	if errors.Is(err, huh.ErrUserAborted) {
 		return errCancelled
 	}
@@ -82,7 +59,6 @@ func (t *session) validate(o PromptOptions) func(string) error {
 	return func(v string) error {
 		if o.Validate != nil {
 			if message := o.Validate(v); message != "" {
-				t.current.continueReading()
 				return errors.New(message)
 			}
 		}
@@ -149,15 +125,6 @@ func (t *session) Select(o PromptOptions) (string, error) {
 func (t *session) Multiselect(o PromptOptions) ([]string, error) {
 	value := append([]string{}, o.InitialValues...)
 	field := huh.NewMultiSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value).Filterable(false).Height(fieldHeight(o))
-	if o.Required {
-		field.Validate(func(v []string) error {
-			if len(v) == 0 {
-				t.current.continueReading()
-				return errors.New("please select at least one option")
-			}
-			return nil
-		})
-	}
 	err := t.run(field, tea.WithFilter(multiselectNavigation(len(o.Options))))
 	selected := make(map[string]bool, len(value))
 	for _, v := range value {

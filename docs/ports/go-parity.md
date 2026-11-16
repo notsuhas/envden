@@ -220,3 +220,27 @@ Possible improvement: investigate the extra request and stabilize scenario coord
 Why: terminal presentation equivalence must not hide persistent-state differences. Minute/hour history durations now normalize like seconds; nonce counts remain exact.
 
 Bug-in-TS: unknown
+
+## prompts: key handling inside a prompt is native
+
+Scenario: keys pressed inside a question, rather than the answers they produce.
+
+TS behaviour: clack reads keys through Node's readline. Tab does nothing; `k`, `j`, `h`, `l`, Space and Ctrl-J toggle a yes/no question; `a` selects or clears every checkout and `i` inverts the selection; Ctrl-J clears a text answer; readline's word rules apply to Ctrl-W and Alt-B; Up recalls a rejected answer. Keys typed after Enter in the same terminal read are dropped, and later reads reach the next question. Ctrl-D on an empty line closes readline's input, which wedges the question until the process is interrupted. Go uses huh and bubbletea defaults for all of these: Tab submits the question like Enter, `y`/`n`, arrows, `h`/`l` and Space answer a yes/no question, `x` and Space toggle a checkout, a pasted line keeps its text until Enter, and Ctrl-D never wedges a question.
+
+Possible improvement: none for Go. The wedge on Ctrl-D is a TS bug: a prompt should either ignore it or cancel.
+
+Why: the questions asked, their order and choices, the answers they accept, and the outcome of each answer match. Cancel matches too: Ctrl-C and Esc cancel with the same exit code. Only the keystrokes that reach an answer differ, and the parity suite sends each answer once its prompt is shown.
+
+Bug-in-TS: yes, for Ctrl-D
+
+## prompts: answers typed before a prompt appears
+
+Scenario: a user types the next answer while envden is still working, before the next question is drawn.
+
+TS behaviour: readline pauses stdin between questions, so input typed meanwhile waits in the terminal and reaches the next question, except keys that arrived in the same read as the previous Enter. Go reads the terminal only while a question is on screen, so typed-ahead input also waits; bubbletea may consume keys that arrive in the same read as the Enter that ends a question.
+
+Possible improvement: none.
+
+Why: typed-ahead keystrokes are interaction timing, not an outcome.
+
+Bug-in-TS: no

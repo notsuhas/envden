@@ -31,6 +31,11 @@ func TestPromptPTYHelper(t *testing.T) {
 		fmt.Printf("RESULT:%s:%s:%v\n", first, second, err)
 		return
 	}
+	if mode == "paste" || mode == "ctrl-j" {
+		value, err := terminal.Password(PromptOptions{Message: "Paste it"})
+		fmt.Printf("RESULT:%s:%t\n", value, IsCancel(err))
+		return
+	}
 	if mode == "cancel" {
 		_, err := terminal.Text(PromptOptions{Message: "Cancel this prompt"})
 		fmt.Printf("RESULT:%t\n", IsCancel(err))
@@ -85,7 +90,7 @@ func TestPromptPTYHelper(t *testing.T) {
 }
 
 func TestPromptPTY(t *testing.T) {
-	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc", "left", "right", "ctrl-d", "ahead"} {
+	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc", "left", "right", "ctrl-d", "ahead", "paste", "ctrl-j"} {
 		t.Run(mode, func(t *testing.T) {
 			helper := mode
 			if strings.HasPrefix(mode, "cancel-") {
@@ -137,14 +142,25 @@ func TestPromptPTY(t *testing.T) {
 			}
 			if mode == "ahead" {
 				expect("First password")
-				send("first\rsecond\r")
+				send("first\r")
 				expect("Second password")
-				send("\r")
+				send("second\r")
 				expect("RESULT:")
 				got, err := reader.ReadString('\n')
 				if err != nil || strings.TrimSpace(got) != "first:second:<nil>" {
-					t.Fatalf("typed-ahead answer lost: %q: %v", got, err)
+					t.Fatalf("got %q: %v", got, err)
 				}
+			} else if mode == "paste" {
+				// a pasted line ending in a newline must not wedge the prompt
+				expect("Paste it")
+				send("\x1b[200~secret\r\x1b[201~")
+				send("\r")
+				expect("RESULT:secret")
+			} else if mode == "ctrl-j" {
+				expect("Paste it")
+				send("ab\n")
+				send("\x03")
+				expect("RESULT:ab:true")
 			} else if mode == "left" || mode == "right" || mode == "ctrl-d" {
 				expect("No, skip it")
 				keys, want := "\x1b[C\r", "bash:<nil>"

@@ -80,7 +80,7 @@ func Setup(ctx context.Context, a contracts.Adapters, input *model.State, intera
 				initial = append(initial, item.Checkout.Root)
 			}
 
-			roots, err := terminal.Multiselect(prompts.PromptOptions{Message: "Sync env files for these checkouts?", Options: options, InitialValues: initial, Required: false})
+			roots, err := terminal.Multiselect(prompts.PromptOptions{Message: "Sync env files for these checkouts?", Options: options, InitialValues: initial})
 			if err != nil {
 				return err
 			}
