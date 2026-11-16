@@ -218,10 +218,15 @@ for (const menu of [
   });
 }
 
-test("PTY confirm redraw residue preserves the submitted answer", () => {
+test("PTY confirm redraw answers belong to the conversation", () => {
   const pty = (text: string) => outputObservation(text, "pty", identity);
+  const prompt = "◇ Add device-b?\n";
 
-  expect(pty("│ NoYes / ○ No\nPushed 2 files")).toBe(pty("  No\nPushed 2 files"));
-  expect(pty("│ YesYes / ○ No\nPushed 2 files")).toBe(pty("  Yes\nPushed 2 files"));
-  expect(pty("│ NoYes / ○ No\nPushed 2 files")).not.toBe(pty("Pushed 2 files"));
+  expect(pty(`${prompt}│ NoYes / ○ No\nPushed 2 files`)).toBe(pty(`${prompt}  No\nPushed 2 files`));
+
+  expect(pty(`${prompt}│ YesYes / ○ No\nPushed 2 files`)).toBe(
+    pty(`${prompt}  Yes\nPushed 2 files`),
+  );
+
+  expect(pty(`${prompt}│ NoYes / ○ No\nPushed 2 files`)).toBe(pty(`${prompt}Pushed 2 files`));
 });

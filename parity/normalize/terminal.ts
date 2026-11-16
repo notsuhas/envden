@@ -2,11 +2,10 @@ interface IScreen {
   lines: string[][];
   row: number;
   col: number;
-  redraw: boolean;
 }
 
 export function terminalText(raw: string): string {
-  const screen: IScreen = { lines: [[]], row: 0, col: 0, redraw: false };
+  const screen: IScreen = { lines: [[]], row: 0, col: 0 };
   // oxlint-disable-next-line no-control-regex -- Parse terminal escape sequences before rendering redraws.
   const tokens = raw.match(/\x1b\][^\x07]*(?:\x07|\x1b\\)|\x1b\[[0-?]*[ -/]*[@-~]|[^\x1b]/gu) ?? [];
 
@@ -15,8 +14,11 @@ export function terminalText(raw: string): string {
     else character(screen, token);
   }
 
-  return screen.lines
-    .map((line) => line.join("").trimEnd())
+  return Array.from(screen.lines, (line) =>
+    Array.from(line ?? [], (char) => char ?? " ")
+      .join("")
+      .trimEnd(),
+  )
     .filter((line) => !/^\s*[◒◐◓◑⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/u.test(line))
     .join("\n")
     .trimEnd();
@@ -41,7 +43,6 @@ function control(screen: IScreen, token: string): void {
     },
     G: () => {
       screen.col = n - 1;
-      if (screen.col === 0) screen.redraw = true;
     },
     K: () => eraseLine(screen, token),
     J: () => clearScreen(screen, token),
@@ -55,7 +56,6 @@ function character(screen: IScreen, token: string): void {
 
   if (token === "\r") {
     screen.col = 0;
-    screen.redraw = true;
 
     return;
   }
@@ -63,7 +63,6 @@ function character(screen: IScreen, token: string): void {
   if (token === "\n") {
     screen.row++;
     screen.col = 0;
-    screen.redraw = false;
 
     return;
   }
@@ -76,25 +75,29 @@ function character(screen: IScreen, token: string): void {
 
   if (token < " " && token !== "\t") return;
 
-  if (screen.redraw) {
-    screen.lines[screen.row] = [];
-    screen.redraw = false;
-  }
-
   screen.lines[screen.row] ??= [];
   screen.lines[screen.row]![screen.col++] = token;
 }
 
 function eraseLine(screen: IScreen, token: string): void {
-  screen.lines[screen.row] ??= [];
+  const mode = Number(token.slice(2, -1)) || 0;
+  const line = (screen.lines[screen.row] ??= []);
 
-  if (token.includes("2")) screen.lines[screen.row] = [];
-  else screen.lines[screen.row]!.length = Math.min(screen.col, screen.lines[screen.row]!.length);
+  if (mode === 2) screen.lines[screen.row] = [];
+  else if (mode === 1) {
+    for (let col = 0; col <= screen.col; col++) line[col] = " ";
+  } else line.length = Math.min(screen.col, line.length);
 }
 
 function clearScreen(screen: IScreen, token: string): void {
-  if (!token.includes("2")) return;
-  screen.lines.length = 0;
-  screen.row = 0;
-  screen.col = 0;
+  const mode = Number(token.slice(2, -1)) || 0;
+
+  if (mode === 2) screen.lines = [];
+  else if (mode === 1) {
+    for (let row = 0; row < screen.row; row++) screen.lines[row] = [];
+    eraseLine(screen, "\x1b[1K");
+  } else {
+    eraseLine(screen, "\x1b[K");
+    screen.lines.length = screen.row + 1;
+  }
 }

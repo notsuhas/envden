@@ -3,8 +3,8 @@ import { Normalizer } from "../normalize/normalizer.ts";
 import { terminalText } from "../normalize/terminal.ts";
 
 describe("normalization", () => {
-  test("shorter redraws do not retain spinner suffixes", () => {
-    expect(terminalText("Found 1 repo...\rFound 1 repo\r\nnext\r\n")).toBe("Found 1 repo\nnext");
+  test("carriage return overwrites without erasing the rest of the line", () => {
+    expect(terminalText("Found 1 repo...\rFound 1 repo\r\nnext\r\n")).toBe("Found 1 repo...\nnext");
   });
 
   test("one registry across encodings and binary values", () => {
@@ -86,3 +86,25 @@ for (const duration of ["10m0s", "5s", "1h", "2m", "1h2m3s", "1h0m0.5s", "2m0.25
 test("duration normalization preserves identifiers containing units", () => {
   expect(new Normalizer().text("item5s v1h file-2m.txt")).toBe("item5s v1h file-2m.txt");
 });
+
+test("clack erases option and hint rows before writing the join outcome", () => {
+  const raw =
+    "\u001b[?25l\u001b[90m│\u001b[39m\r\n\u001b[36m◆\u001b[39m  Sync env files for these checkouts?\r\n\u001b[36m│\u001b[39m  \u001b[32m◼\u001b[39m ~/app (files from the vault)\r\n\u001b[36m│\u001b[39m  \u001b[2m↑/↓\u001b[22m to navigate • \u001b[2mSpace:\u001b[22m select • \u001b[2mEnter:\u001b[22m confirm\r\n\u001b[36m└\u001b[39m\r\n\u001b[999D\u001b[5A\u001b[1B\u001b[J\u001b[32m◇\u001b[39m  Sync env files for these checkouts?\r\n\u001b[90m│\u001b[39m  \u001b[2m~/app (files from the vault)\u001b[22m\r\n\u001b[?25hJoined as device-b. Synced 1 env file in ~/app.\r\n";
+
+  expect(terminalText(raw)).toBe(
+    "│\n◇  Sync env files for these checkouts?\n│  ~/app (files from the vault)\nJoined as device-b. Synced 1 env file in ~/app.",
+  );
+});
+
+for (const [raw, expected] of [
+  ["abcdef\rxy", "xycdef"],
+  ["abcdef\x1b[1Gxy", "xycdef"],
+  ["abcdef\rxy\x1b[K", "xy"],
+  ["above\r\nbelow\x1b[1A\r\x1b[Jnew", "new"],
+  ["abcdef\x1b[3G\x1b[1Kx", "  xdef"],
+  ["above\r\nbelow\x1b[3G\x1b[1Jx", "\n  xow"],
+  ["above\r\nbelow\x1b[2Jx", "\n     x"],
+] satisfies [string, string][])
+  test(`terminal cursor and erase semantics: ${JSON.stringify(raw)}`, () => {
+    expect(terminalText(raw)).toBe(expected);
+  });

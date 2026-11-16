@@ -1,3 +1,4 @@
+import { matchesPrompt } from "../compare/prompt/match.ts";
 import { conversationTurn } from "../compare/conversation.ts";
 import { keywordPattern } from "../compare/presentation.ts";
 import { output } from "./process/output.ts";
@@ -78,17 +79,14 @@ export class Terminal {
     void this.child.exited.then(() => this.wake());
   }
 
-  async expect(pattern: string | RegExp): Promise<string> {
+  async expect(pattern: string | RegExp, prompt?: string | RegExp): Promise<string> {
     const re = expression(pattern);
     const signal = AbortSignal.timeout(30000);
 
     while (true) {
-      const plain = stripVTControlCharacters(this.raw);
-      const match = re.exec(plain.slice(this.cursor));
+      const match = this.match(re, prompt);
 
       if (match) {
-        this.cursor += match.index + match[0].length;
-
         return matchedText(match);
       }
 
@@ -96,6 +94,21 @@ export class Terminal {
 
       await this.wait(signal, re);
     }
+  }
+
+  private match(re: RegExp, prompt?: string | RegExp): RegExpExecArray | null {
+    if (prompt === undefined) {
+      const match = re.exec(stripVTControlCharacters(this.raw).slice(this.cursor));
+      if (match) this.cursor += match.index + match[0].length;
+
+      return match;
+    }
+
+    const plain = terminalText(this.raw.slice(this.answerCursor));
+    const previous = this.conversation.at(-1)?.prompts.at(-1);
+    if (!promptReady(plain, prompt, previous)) return null;
+
+    return re.exec(plain);
   }
 
   private ended(signal: AbortSignal): boolean {
@@ -121,9 +134,7 @@ export class Terminal {
 
   async answers(answers: IAnswer[]): Promise<void> {
     for (const answer of answers) {
-      await this.expect(
-        typeof answer.expect === "string" ? keywordPattern(answer.expect) : answer.expect,
-      );
+      await this.expect(expression(answer.expect, true), answer.expect);
 
       const screen = terminalText(this.raw.slice(this.answerCursor));
 
@@ -153,10 +164,16 @@ export class Terminal {
   }
 }
 
-function expression(pattern: string | RegExp): RegExp {
-  return typeof pattern === "string" ? new RegExp(RegExp.escape(pattern)) : pattern;
+function expression(pattern: string | RegExp, prompt = false): RegExp {
+  if (typeof pattern !== "string") return pattern;
+
+  return prompt ? keywordPattern(pattern) : new RegExp(RegExp.escape(pattern));
 }
 
 function matchedText(match: RegExpExecArray): string {
   return match[1] ?? match[0];
+}
+
+function promptReady(text: string, expected: string | RegExp, previous?: string): boolean {
+  return typeof expected !== "string" || matchesPrompt(text, expected, previous);
 }
