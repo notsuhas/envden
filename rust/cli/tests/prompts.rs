@@ -1,5 +1,6 @@
 use envden_cli::output::prompts::{choose, choose_many, consent, input, secret};
 use envden_core::errors::Result;
+#[cfg(unix)]
 use std::process::Command;
 
 #[test]
