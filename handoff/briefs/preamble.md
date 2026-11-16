@@ -1,0 +1,14 @@
+You are porting envden from TypeScript to Go, as part of a larger port coordinated by a parent agent. Repo: /Users/notsuhas/.t3/worktrees/envden/t3-97f9f53b-161054af94131d11 (branch port/go). Work only in that checkout.
+
+THE BAR: Go must be behaviourally indistinguishable from the TypeScript at this commit: same stdout/stderr text, exit codes, files written (names, contents, permissions), server DB state and wire bytes, BUGS INCLUDED. If you spot a TS bug or a better behaviour, still ship the matching behaviour and append an entry to /Users/notsuhas/.t3/worktrees/envden/t3-97f9f53b-161054af94131d11/PARITY-NOTES.md (create if missing; sections: "## <area>: <short title>" then Scenario / TS behaviour / Possible improvement / Why / Bug-in-TS: yes|no). Never edit any TypeScript.
+
+READ FIRST: CLAUDE.md (code style rules apply in idiomatic Go), docs/ports/go.md (Go conventions and TS->Go translation rules: MUST follow), docs/PROTOCOL.md for anything crypto. Foundation already exists: go/go.mod (module github.com/notsuhas/envden/go), go/core/errors (Error{Code,Message,Cause}, New, Wrap, As, Is), go/core/adapters (all adapter interfaces incl. Storage). Read them; do not change their exported shapes without a strong reason (if you must, keep it minimal and say so in your report).
+
+GO ENV (always): cd go && export GOMODCACHE=$PWD/../.cache/gomod GOCACHE=$PWD/../.cache/gobuild GOFLAGS=-modcacherw
+- Other agents are editing other directories of the same module concurrently. Only build/test YOUR packages (go test ./core/merge/... etc), never assume ./... builds.
+- NEVER run `go mod tidy` (it would drop deps other agents need). If you need a new dependency, prefer the standard library / already-required modules (x/crypto, x/text, x/sys, x/term, bytemare/opaque, filippo.io/edwards25519, modernc.org/sqlite, creack/pty). If truly needed, `go get module@version` only, and name it in your report.
+- Do NOT git commit, push, stash or reset. The parent commits.
+
+STYLE: gofmt + go vet clean. One thing per file, ~200 lines max per file, ~8 files per folder (split into subpackages by domain). One-line comments max, only for non-obvious why. Errors: fixed text + code, cause wrapped; never secrets in messages. Pure decision functions with compact table tests. Tests live in the package as *_test.go (Go convention; that replaces the TS __tests__ folder rule). Port the TS tests that test what can break (codecs vs vectors, crypto, merge, storage commits, path validation...), reading the TS __tests__ for cases. No time.Now()/sleeps in logic or tests; time is an argument. Tests never touch the real keychain, the user's home config or a real tailnet: use t.TempDir() and fakes.
+
+REPORT at the end: what you ported (TS file -> Go file mapping, briefly), test command + result, any exported API other packages will need to know, any deviation or PARITY-NOTES entries you added, anything unfinished. Be concise.
