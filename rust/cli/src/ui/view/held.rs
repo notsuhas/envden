@@ -101,7 +101,7 @@ pub fn held_files(adapters: &IAdapters, state: &Value) -> Result<BTreeMap<String
             Some("oversized")
         } else if !approved {
             Some("needs-approval")
-        } else if !accepts_env_path(path, Some(&rules)) {
+        } else if !accepts_env_path(path, Some(&rules))? {
             Some("excluded")
         } else if conflicts.iter().any(|r| r.store == store) {
             Some("conflict")

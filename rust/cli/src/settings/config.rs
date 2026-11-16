@@ -2,7 +2,10 @@ use crate::state::{
     files::{atomic_write, private_directory},
     lock::with_state_lock,
 };
-use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::{
+    adapters::unsupported_env_pattern,
+    errors::{EnvdenError, ErrorCode, Result},
+};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -41,6 +44,17 @@ pub fn parse_config(value: Value) -> Result<Value> {
             })
         }) {
             return Err(invalid());
+        }
+        if ["include", "exclude"]
+            .iter()
+            .filter_map(|key| rules[key].as_array())
+            .flatten()
+            .any(|pattern| pattern.as_str().is_some_and(unsupported_env_pattern))
+        {
+            return Err(EnvdenError::new(
+                ErrorCode::InvalidInput,
+                "Unsupported env file pattern",
+            ));
         }
         let mut ordered = serde_json::Map::new();
         for key in ["include", "exclude", "extraSkipped"] {
@@ -144,48 +158,4 @@ pub fn set_config(
 
 fn invalid() -> EnvdenError {
     EnvdenError::new(ErrorCode::InvalidInput, "Invalid config")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn reads_config_with_utf8_replacement() {
-        let temp = tempfile::tempdir().unwrap();
-        fs::write(
-            temp.path().join("config.json"),
-            b"{\"placement\":{\"bad\xff\":\"copy\"}}",
-        )
-        .unwrap();
-        assert_eq!(
-            read_config(temp.path()).unwrap()["placement"]["bad\u{fffd}"],
-            "copy"
-        );
-    }
-
-    #[test]
-    fn strict_defaults_and_private_save() {
-        let temp = tempfile::tempdir().unwrap();
-        assert!(
-            !read_config(temp.path()).unwrap()["telemetry"]
-                .as_bool()
-                .unwrap()
-        );
-        assert!(parse_config(json!({"unknown":true})).is_err());
-        set_config("telemetry", "on", temp.path(), &|| 1, false).unwrap();
-        assert_eq!(read_config(temp.path()).unwrap()["telemetry"], true);
-        assert!(set_config("agent-merge", "on", temp.path(), &|| 1, false).is_err());
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            assert_eq!(
-                fs::metadata(temp.path().join("config.json"))
-                    .unwrap()
-                    .permissions()
-                    .mode()
-                    & 0o777,
-                0o600
-            );
-        }
-    }
 }

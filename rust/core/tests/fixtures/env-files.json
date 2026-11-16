@@ -1561,5 +1561,11 @@
   { "path": "lib/.env", "options": { "include": ["!apps/**"] }, "accepted": true },
   { "path": ".env", "options": { "include": ["**/"] }, "accepted": false },
   { "path": ".env.]", "options": { "include": [".env.[\\]]"] }, "accepted": true },
-  { "path": "{a}", "options": { "include": ["*}"] }, "accepted": true }
+  { "path": "{a}", "options": { "include": ["*}"] }, "accepted": true },
+  { "path": ".env. ", "options": {}, "accepted": false },
+  { "path": ".env.a b", "options": {}, "accepted": false },
+  { "path": ".env.\n", "options": {}, "accepted": false },
+  { "path": ".env.\r", "options": {}, "accepted": false },
+  { "path": ".env.", "options": {}, "accepted": true },
+  { "path": "apps/.env.x ", "options": {}, "accepted": false }
 ]

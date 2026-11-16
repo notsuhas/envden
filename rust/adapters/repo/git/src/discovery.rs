@@ -116,10 +116,10 @@ fn walk(
                 extra_skipped: rules.and_then(|r| r.extra_skipped.clone()),
                 ..Default::default()
             };
-            if accepts_env_path(&format!("{path}/.env"), Some(&descend)) {
+            if accepts_env_path(&format!("{path}/.env"), Some(&descend))? {
                 walk(root, &path, rules, submodules, files)?;
             }
-        } else if (kind.is_file() || kind.is_symlink()) && accepts_env_path(&path, rules) {
+        } else if (kind.is_file() || kind.is_symlink()) && accepts_env_path(&path, rules)? {
             files.push(path);
         }
     }

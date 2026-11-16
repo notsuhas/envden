@@ -97,7 +97,7 @@ fn pending_repos(context: &ISyncContext<'_>) -> Result<IRemoteStatus> {
             continue;
         }
         let name = entry_name(context, &entry)?;
-        if accepts_env_path(&name.path, Some(&rules)) && receives_file(&context.state, &name) {
+        if accepts_env_path(&name.path, Some(&rules))? && receives_file(&context.state, &name) {
             if !repos.contains(&name.repo_id) {
                 repos.push(name.repo_id.clone());
             }

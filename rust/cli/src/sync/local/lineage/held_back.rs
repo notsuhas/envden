@@ -91,7 +91,7 @@ pub(crate) fn held_back_files(adapters: &IAdapters) -> Result<Vec<IHeldBack>> {
                     .repo
                     .checkout_at(root)?
                     .is_some_and(|checkout| checkout_approval(&state, &checkout) == "approved");
-                let included = accepts_env_path(path, Some(&rules));
+                let included = accepts_env_path(path, Some(&rules))?;
                 let conflict = conflicts.iter().any(|record| record.store == store);
                 let pending = read_bytes(&suffix(&base, ".pending"))?.is_some();
                 let unapplied = entry

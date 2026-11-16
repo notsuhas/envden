@@ -1,4 +1,4 @@
-use super::actions::{get_unlock_period, set_checkout_placement, set_unlock_period};
+use crate::settings::actions::{get_unlock_period, set_checkout_placement, set_unlock_period};
 use crate::{
     adapters::create_adapters,
     client::{IHttpRequest, IHttpResponse, ITransport},
@@ -40,7 +40,10 @@ fn placement_resolves_checkout_and_merges_config() {
     let config = set_checkout_placement(&adapters, root.to_str().unwrap(), "copy").unwrap();
     let real = root.canonical_path().unwrap();
     assert_eq!(config["placement"][real.to_str().unwrap()], "copy");
-    assert_eq!(super::read_config(&adapters.home).unwrap(), config);
+    assert_eq!(
+        crate::settings::read_config(&adapters.home).unwrap(),
+        config
+    );
     assert_eq!(
         set_checkout_placement(&adapters, root.to_str().unwrap(), "bad")
             .unwrap_err()

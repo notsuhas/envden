@@ -75,7 +75,68 @@ fn discovery_skips_submodules_and_nested_clones_and_lists_user_links() {
         "Node_Modules/.env",
         "generated/.env",
     ] {
-        assert!(!accepts_env_path(path, Some(&rules)));
+        assert!(!accepts_env_path(path, Some(&rules)).unwrap());
     }
-    assert!(accepts_env_path("apps/.env.local", None));
+    assert!(accepts_env_path("apps/.env.local", None).unwrap());
+}
+
+#[test]
+fn discovery_stays_in_the_checkout_and_refuses_unsupported_patterns() {
+    use envden_core::{adapters::IEnvFileRules, errors::ErrorCode};
+
+    let home = tempfile::tempdir().unwrap();
+    let root = home.path().join("repo");
+    let outside = home.path().join("outside");
+
+    fs::create_dir_all(root.join("apps/web")).unwrap();
+    fs::create_dir_all(&outside).unwrap();
+    git(&root, &["init", "-q"]);
+    git(
+        &root,
+        &["remote", "add", "origin", "https://github.com/team/repo"],
+    );
+
+    fs::write(root.join(".gitignore"), ".env*\nlinked\n").unwrap();
+
+    for path in [".env", ".env.local", "apps/web/.env", ".env.é"] {
+        fs::write(root.join(path), "KEY=value\n").unwrap();
+    }
+
+    fs::write(outside.join(".env"), "KEY=outside\n").unwrap();
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&outside, root.join("linked")).unwrap();
+
+    let adapter = create_git_repo_adapter(IGitRepoOptions {
+        home: Some(home.path().to_string_lossy().into_owned()),
+        ..Default::default()
+    });
+    let checkout = adapter
+        .checkout_at(root.to_str().unwrap())
+        .unwrap()
+        .unwrap();
+    let rules = |include: &str| IEnvFileRules {
+        include: Some(vec![include.into()]),
+        ..Default::default()
+    };
+
+    assert_eq!(
+        adapter
+            .env_files(&checkout, Some(&rules("**/.env*")))
+            .unwrap(),
+        [".env", ".env.local", ".env.é", "apps/web/.env"]
+    );
+
+    for pattern in [
+        "+(.env)",
+        ".env.{a..c}",
+        "apps[/]web/.env",
+        ".env.[a",
+        ".env.?",
+    ] {
+        let error = adapter
+            .env_files(&checkout, Some(&rules(pattern)))
+            .unwrap_err();
+
+        assert_eq!(error.code, ErrorCode::InvalidInput, "{pattern}");
+    }
 }

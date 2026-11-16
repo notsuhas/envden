@@ -27,7 +27,7 @@ pub(in crate::sync::remote) fn blocked_stores(
         if !envden_core::adapters::accepts_env_path(
             link["path"].as_str().unwrap_or_default(),
             Some(&rules),
-        ) {
+        )? {
             blocked.insert(link["store"].as_str().unwrap_or_default().to_owned());
         }
     }

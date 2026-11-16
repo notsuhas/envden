@@ -44,7 +44,7 @@ pub fn reconcile_with_choice(
         if !repos.contains(&name.repo_id) {
             continue;
         }
-        if !envden_core::adapters::accepts_env_path(&name.path, Some(&rules)) {
+        if !envden_core::adapters::accepts_env_path(&name.path, Some(&rules))? {
             report(context, &format!("Skipped env file: {}", name.path));
         } else {
             selected.push(entry);
