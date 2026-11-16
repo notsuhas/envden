@@ -36,10 +36,18 @@ pub(in crate::onboarding) fn rescan_command(
 }
 
 fn shell_path(path: &Path, home: &Path) -> String {
+    let home = normalize(&std::path::absolute(home).unwrap_or_else(|_| home.to_owned()));
     match path.strip_prefix(home) {
         Ok(rest) if rest.as_os_str().is_empty() => "~".into(),
         Ok(rest) if !rest.to_string_lossy().starts_with("..") => {
-            format!("~/{}", quoted(&rest.to_string_lossy()))
+            format!(
+                "~/{}",
+                quoted(
+                    &rest
+                        .to_string_lossy()
+                        .replace(std::path::MAIN_SEPARATOR, "/")
+                )
+            )
         }
         _ => quoted(&path.to_string_lossy()),
     }
@@ -72,5 +80,14 @@ mod tests {
             "envden setup --scan-root ~/'My Work'"
         );
         assert_eq!(rescan_command("track", None, None, home), "envden track ~");
+        assert_eq!(
+            rescan_command(
+                "track",
+                Some(&[home.join("nested").join("repo")]),
+                None,
+                home
+            ),
+            "envden track ~/nested/repo"
+        );
     }
 }
