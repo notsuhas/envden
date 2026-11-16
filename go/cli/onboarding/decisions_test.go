@@ -81,3 +81,16 @@ func TestWHATWGServerAddresses(t *testing.T) {
 		}
 	}
 }
+
+func TestDeviceNameRefusedBeforeSigning(t *testing.T) {
+	for _, bad := range []string{"a\nb", "a\tb", "\x1b[2Jb", "a\u200bb", "a\u0085b", ""} {
+		_, err := askName(&bad, "laptop.local", Prompts{Interactive: true})
+		if !errors.Is(err, errors.InvalidInput) || err.Error() != "Device names are 1-64 bytes with no invisible characters" {
+			t.Fatalf("%q: %v", bad, err)
+		}
+	}
+
+	if got, err := askName(nil, "MacBook.local", Prompts{}); err != nil || got != "MacBook" {
+		t.Fatal(got, err)
+	}
+}

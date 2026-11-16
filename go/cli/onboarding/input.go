@@ -41,14 +41,18 @@ func readToken(value string, p Prompts, stdin io.Reader) (string, error) {
 	return value, err
 }
 
-func askName(value, hostname string, p Prompts) (string, error) {
-	if value != "" {
-		return value, nil
+func askName(value *string, hostname string, p Prompts) (string, error) {
+	if value != nil {
+		if problem := name.Problem(*value); problem != "" {
+			return "", errors.New(errors.InvalidInput, problem)
+		}
+
+		return *value, nil
 	}
 
 	suggested := name.Suggested(hostname)
 	if p.Interactive {
-		return p.Input("Device name", suggested, true, nil)
+		return p.Input("Device name", suggested, true, name.Problem)
 	}
 
 	return suggested, nil

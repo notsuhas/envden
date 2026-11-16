@@ -15,7 +15,8 @@ import (
 
 type JoinOptions struct {
 	Preferences
-	RecoveryKit, Name        string
+	RecoveryKit              string
+	Name                     *string
 	Recovery, Resume, Rejoin bool
 }
 

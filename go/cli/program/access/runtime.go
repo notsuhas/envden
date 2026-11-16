@@ -60,6 +60,14 @@ func Pause(ctx context.Context) error {
 
 func String(v map[string]any, key string) string { value, _ := v[key].(string); return value }
 
+func OptionalString(v map[string]any, key string) *string {
+	if value, ok := v[key].(string); ok {
+		return &value
+	}
+
+	return nil
+}
+
 func Bool(v map[string]any, key string) bool { value, _ := v[key].(bool); return value }
 
 func Strings(v map[string]any, key string) []string { value, _ := v[key].([]string); return value }

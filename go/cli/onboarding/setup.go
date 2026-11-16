@@ -20,10 +20,11 @@ import (
 
 type SetupOptions struct {
 	Preferences
-	Server, SetupToken, Name, KitOut string
-	Command                          string
-	HostServer, Verbose              bool
-	ScanRoot, ExcludeRoot            []string
+	Server, SetupToken, KitOut string
+	Name                       *string
+	Command                    string
+	HostServer, Verbose        bool
+	ScanRoot, ExcludeRoot      []string
 }
 
 type Effects struct {

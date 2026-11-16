@@ -23,7 +23,7 @@ import (
 )
 
 func setupOptions(v map[string]any) onboarding.SetupOptions {
-	return onboarding.SetupOptions{Preferences: access.Preferences(v), Command: "setup", Server: access.String(v, "server"), SetupToken: access.String(v, "setupToken"), Name: access.String(v, "name"), KitOut: access.String(v, "kitOut"), HostServer: access.Bool(v, "hostServer"), Verbose: access.Bool(v, "verbose"), ScanRoot: access.Strings(v, "scanRoot"), ExcludeRoot: access.Strings(v, "excludeRoot")}
+	return onboarding.SetupOptions{Preferences: access.Preferences(v), Command: "setup", Server: access.String(v, "server"), SetupToken: access.String(v, "setupToken"), Name: access.OptionalString(v, "name"), KitOut: access.String(v, "kitOut"), HostServer: access.Bool(v, "hostServer"), Verbose: access.Bool(v, "verbose"), ScanRoot: access.Strings(v, "scanRoot"), ExcludeRoot: access.Strings(v, "excludeRoot")}
 }
 
 func missingSetupFlags(interactive bool, o onboarding.SetupOptions) []string {
@@ -113,7 +113,7 @@ func joinAction(inv *command.Invocation) error {
 	}
 
 	v := inv.Values
-	options := onboarding.JoinOptions{Preferences: access.Preferences(v), RecoveryKit: access.String(v, "recoveryKit"), Name: access.String(v, "name"), Recovery: access.Bool(v, "recovery"), Resume: access.Bool(v, "resume")}
+	options := onboarding.JoinOptions{Preferences: access.Preferences(v), RecoveryKit: access.String(v, "recoveryKit"), Name: access.OptionalString(v, "name"), Recovery: access.Bool(v, "recovery"), Resume: access.Bool(v, "resume")}
 	local, err := store.LoadState(a.Home)
 	if err != nil {
 		return err

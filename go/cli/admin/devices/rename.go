@@ -6,6 +6,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/admin/shared"
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
+	devicename "github.com/notsuhas/envden/go/cli/identity/name"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/codecs"
@@ -64,7 +65,7 @@ func RenameDevice(ctx context.Context, a contracts.Adapters, name string, now fu
 			}
 
 			if check == "invalid" {
-				return false, errors.New(errors.InvalidInput, "Device names are 1-64 bytes with no invisible characters")
+				return false, errors.New(errors.InvalidInput, devicename.DeviceNameRule)
 			}
 
 			entry, e := shared.SignEntry(cxt, h, 7, entrypayloads.RenameDevice{Device: cxt.Identity.Record.Id, Name: name})
