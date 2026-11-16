@@ -1,5 +1,7 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 
+const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
+
 pub(super) fn parse_version(value: &serde_json::Value) -> Result<u64> {
     let invalid = || {
         EnvdenError::new(
@@ -17,7 +19,11 @@ pub(super) fn parse_version(value: &serde_json::Value) -> Result<u64> {
     {
         return Err(invalid());
     }
-    Ok(digits.parse::<f64>().map_err(|_| invalid())? as u64)
+    digits
+        .parse::<u64>()
+        .ok()
+        .filter(|version| *version <= MAX_SAFE_INTEGER)
+        .ok_or_else(invalid)
 }
 
 #[cfg(test)]
@@ -25,11 +31,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn restore_version_uses_reference_grammar_and_js_number_rounding() {
+    fn restore_version_accepts_only_safe_integers() {
         for (text, expected) in [
             ("v3", 3),
             ("\u{feff}3 ", 3),
-            ("9999999999999999", 10_000_000_000_000_000),
+            ("9007199254740991", 9_007_199_254_740_991),
         ] {
             assert_eq!(parse_version(&text.into()).unwrap(), expected);
         }
@@ -41,6 +47,8 @@ mod tests {
             "3.0",
             "v0",
             "10000000000000000",
+            "9007199254740992",
+            "9999999999999999",
             "\u{85}3",
         ] {
             let error = parse_version(&text.into()).unwrap_err();
