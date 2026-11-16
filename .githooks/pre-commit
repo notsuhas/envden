@@ -1,0 +1,27 @@
+#!/bin/sh
+# Enable with: git config core.hooksPath .githooks
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- 'go/*.go' 'go/go.mod' 'go/go.sum')
+[ -z "$staged" ] && exit 0
+
+cd "$(git rev-parse --show-toplevel)/go"
+
+unformatted=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go' | sed 's|^go/||' | xargs gofmt -l)
+if [ -n "$unformatted" ]; then
+  echo "gofmt needed:" >&2
+  echo "$unformatted" >&2
+  exit 1
+fi
+
+packages=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go' | sed 's|^go/||' | xargs -n1 dirname | sort -u | sed 's|^|./|')
+[ -n "$packages" ] || packages=./...
+
+go vet $packages
+
+if ! command -v golangci-lint >/dev/null 2>&1; then
+  echo "golangci-lint not found; install v2.15.0 into PATH" >&2
+  exit 1
+fi
+
+golangci-lint run $packages

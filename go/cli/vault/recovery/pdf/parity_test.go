@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"reflect"
 	"regexp"
 	"strings"
@@ -18,22 +17,6 @@ func TestPDFLibParity(t *testing.T) {
 	raw, err := os.ReadFile("testdata/reference.json")
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	checkPDFLibParity(t, raw)
-}
-
-func TestPDFLibLiveReference(t *testing.T) {
-	if os.Getenv("ENVDEN_TS_PARITY") != "1" {
-		t.Skip("set ENVDEN_TS_PARITY=1 to compare with pdf-lib")
-	}
-
-	writeReferenceScript(t)
-	cmd := exec.Command("bun", "testdata/reference.mjs", "--stdout")
-	cmd.Env = append(os.Environ(), "TZ=UTC")
-	raw, err := cmd.Output()
-	if err != nil {
-		t.Fatal("pdf-lib reference:", err)
 	}
 
 	checkPDFLibParity(t, raw)

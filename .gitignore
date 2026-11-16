@@ -1,14 +1,8 @@
-node_modules/
-dist/
-.next/
-.source/
-out/
-*.tsbuildinfo
 .env
 .env.*
 !.env.example
 .DS_Store
-coverage/
 .cache/
 go/dist/
 go/envden
+reference/
