@@ -71,8 +71,6 @@ export async function serve(
         fetch: app.fetch,
       });
 
-    console.log(`envden listening on ${server.url.toString()}`);
-
     const scheduler = options.scheduler ?? systemScheduler;
 
     const jobs = [
@@ -94,6 +92,8 @@ export async function serve(
 
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
+
+    console.log(`envden listening on ${server.url.toString()}`);
 
     return { server, storage, shutdown };
   } catch (error) {

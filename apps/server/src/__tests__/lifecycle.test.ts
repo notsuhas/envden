@@ -35,6 +35,33 @@ test("serve injects time and shutdown removes handlers and closes storage", asyn
   }
 });
 
+test("shutdown handlers exist before the listening line is printed", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "envden-lifecycle-"));
+  const listeners = process.listenerCount("SIGTERM");
+  const atListening: number[] = [];
+
+  const log = spyOn(console, "log").mockImplementation((line: string) => {
+    if (line.startsWith("envden listening")) atListening.push(process.listenerCount("SIGTERM"));
+  });
+
+  const listen = () => ({ url: new URL("http://server.invalid"), stop: () => {} });
+
+  const running = await serve({
+    dataDir: dir,
+    now: () => 1000,
+    scheduler: manualScheduler(),
+    listen,
+  });
+
+  try {
+    expect(atListening).toEqual([listeners + 1]);
+  } finally {
+    log.mockRestore();
+    await running.shutdown();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("serve schedules pruning on the injected scheduler and shutdown cancels every job", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-lifecycle-"));
   const scheduler = manualScheduler();
