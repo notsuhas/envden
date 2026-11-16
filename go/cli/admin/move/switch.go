@@ -18,52 +18,76 @@ import (
 // Unlock logs in to the destination; nil means no terminal, so a locked destination fails.
 type Unlock func(ctx context.Context, cl *client.Client, vaultID []byte) (*model.Window, error)
 
+// The destination keeps its own unlock sessions, so a locked device logs in there, never at the old address.
 func SwitchServer(ctx context.Context, a contracts.Adapters, address string, now func() int64, fetch client.Fetch, unlock Unlock) error {
-	return lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
-		cxt, err := shared.AdminContext(ctx, a, now, fetch)
-		if err != nil {
-			return err
-		}
+	attempt := func(window *model.Window) error {
+		return lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
+			return switchLocked(ctx, a, address, now, fetch, window)
+		})
+	}
 
-		server, err := client.Hello(ctx, address, nil, fetch, version.MinServer)
-		if err != nil {
-			return err
-		}
+	err := attempt(nil)
+	if unlock == nil || !errors.Is(err, errors.Locked) {
+		return err
+	}
 
-		var cl *client.Client
-		var window *model.Window
-		options := client.Options{Address: address, Pin: server.Pin, VaultID: cxt.VaultID, Identity: cxt.Identity, Now: now, Fetcher: fetch, Version: version.Version, HelloCache: a.HelloCache}
-		if unlock != nil {
-			options.Unlock = func(ctx context.Context) error {
-				window, err = unlock(ctx, cl, cxt.VaultID)
+	// The password prompt runs outside the state lock so a retry never blocks other commands.
+	cxt, cl, _, err := destination(ctx, a, address, now, fetch)
+	if err != nil {
+		return err
+	}
 
-				return err
-			}
-		}
+	window, err := unlock(ctx, cl, cxt.VaultID)
+	if err != nil {
+		return err
+	}
 
-		cl = client.CreateClient(options)
-		h, err := shared.ReadHistory(ctx, cl, cxt.VaultID)
-		if err != nil {
-			return err
-		}
+	return attempt(window)
+}
 
-		if err = shared.CheckFloor(cxt.Local, h); err != nil {
-			return err
-		}
+func destination(ctx context.Context, a contracts.Adapters, address string, now func() int64, fetch client.Fetch) (*shared.Context, *client.Client, []byte, error) {
+	cxt, err := shared.AdminContext(ctx, a, now, fetch)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
-		moved := lastMove(h)
-		if moved == nil || !encoding.Equal(moved.NewPin, server.Pin) || !encoding.Equal(h.State.ServerPin, server.Pin) {
-			return errors.New(errors.InvalidData, "Server has no verified move to this pin")
-		}
+	server, err := client.Hello(ctx, address, nil, fetch, version.MinServer)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
-		cxt.Local.Server = &model.Server{Address: address, Pin: client.Text(server.Pin), Protocol: 1}
-		if window != nil {
-			cxt.Local.Session = window
-			cxt.Local.Touch("session")
-		}
+	cl := client.CreateClient(client.Options{Address: address, Pin: server.Pin, VaultID: cxt.VaultID, Identity: cxt.Identity, Now: now, Fetcher: fetch, Version: version.Version, HelloCache: a.HelloCache})
 
-		return store.SaveState(ctx, a.Home, cxt.Local, a.Timing)
-	})
+	return cxt, cl, server.Pin, nil
+}
+
+func switchLocked(ctx context.Context, a contracts.Adapters, address string, now func() int64, fetch client.Fetch, window *model.Window) error {
+	cxt, cl, pin, err := destination(ctx, a, address, now, fetch)
+	if err != nil {
+		return err
+	}
+
+	h, err := shared.ReadHistory(ctx, cl, cxt.VaultID)
+	if err != nil {
+		return err
+	}
+
+	if err = shared.CheckFloor(cxt.Local, h); err != nil {
+		return err
+	}
+
+	moved := lastMove(h)
+	if moved == nil || !encoding.Equal(moved.NewPin, pin) || !encoding.Equal(h.State.ServerPin, pin) {
+		return errors.New(errors.InvalidData, "Server has no verified move to this pin")
+	}
+
+	cxt.Local.Server = &model.Server{Address: address, Pin: client.Text(pin), Protocol: 1}
+	if window != nil {
+		cxt.Local.Session = window
+		cxt.Local.Touch("session")
+	}
+
+	return store.SaveState(ctx, a.Home, cxt.Local, a.Timing)
 }
 
 func lastMove(h shared.History) *entrypayloads.ServerMoved {
