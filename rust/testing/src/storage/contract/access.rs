@@ -72,4 +72,28 @@ pub(super) fn rates(f: &IStorageFixture) {
     };
     assert!(db.refund(&receipt, 1).unwrap());
     assert!(!db.refund(&receipt, 1).unwrap());
+
+    let bucket = TRateBucket::NonMember;
+    let receipts: Vec<_> = (0..5)
+        .map(|_| match db.charge(&[3], &bucket, 0).unwrap() {
+            TRateCharge::Charged { receipt } => receipt,
+            locked => panic!("Expected charge, got {locked:?}"),
+        })
+        .collect();
+    for _ in 0..5 {
+        db.charge(&[3], &bucket, 900000).unwrap();
+    }
+    assert!(!db.refund(&receipts[0], 900000).unwrap());
+    let TRateCharge::Charged { receipt } = db.charge(&[3], &bucket, 2700000).unwrap() else {
+        panic!("Expected charge")
+    };
+    assert!(db.refund(&receipt, 2700000).unwrap());
+    for _ in 0..5 {
+        db.charge(&[3], &bucket, 2700001).unwrap();
+    }
+    assert_eq!(
+        db.charge(&[3], &bucket, 2700002).unwrap(),
+        TRateCharge::Locked { until: 3600001 },
+        "a refund resets strikes"
+    );
 }

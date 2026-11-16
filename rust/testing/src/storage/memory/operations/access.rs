@@ -109,8 +109,8 @@ impl IMemory {
             return Ok(false);
         }
         d.charges.shift_remove(receipt);
-        if let Some((until, _)) = d.buckets.get_mut(&key) {
-            *until = 0;
+        if let Some(bucket) = d.buckets.get_mut(&key) {
+            *bucket = (0, 0);
         }
         Ok(true)
     }
