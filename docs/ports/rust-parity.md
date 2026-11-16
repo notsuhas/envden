@@ -106,7 +106,7 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - Discovery's p-limit equivalent already uses scoped standard-library threads. Keep its limits, result order and traversal barriers because discovered checkouts feed prompts and saved state.
 - Zod equivalents use serde with custom checks. Keep acceptance, rejection, defaults, code-point string lengths (zod 4.6.7 counts `😀` as one), safe-integer limits and property order because these decide requests and persisted configuration. validator and garde check fields after typed deserialization, where serde's integer types reject `5.0`, which `z.number().int()` accepts.
 - Semver parsing is envden's own code: the reference accepts arbitrary-size decimal components and rejects prerelease/build suffixes. The semver crate's u64 components and broader syntax would change protocol and update decisions.
-- Glob matching uses fast-glob, which shares Bun.Glob's glob-match lineage; globset treated `!.env.local` and `**/` differently. Where fast-glob and Bun.Glob disagree, envden refuses the pattern instead of guessing; see "env-file patterns fast-glob cannot match exactly" below.
+- Glob matching uses fast-glob, which shares Bun.Glob's glob-match lineage; globset treated `!.env.local` and `**/` differently. Patterns outside a grammar where both agree are refused; see "env-file patterns outside the supported grammar" below.
 - localeCompare uses icu_collator's root collation, which matches Bun's fixed en-US collator whatever `LANG` says. Ordering determines discovery choices, takeover operations and writes.
 - English integer plurals use the single `count == 1` rule. This is application wording, not a general Intl implementation; adding ICU plural rules would add no behavior for these inputs.
 - JSON uses serde_json, with a formatter that writes floats through ryu-js as Number#toString does (`100`, where serde_json writes `100.0`). Keep insertion order, whitespace, trailing newlines and tagged collection revival because they determine wire and file bytes; terminal sanitization remains an application policy. serde_json still rejects `1e400` and keeps integers above 2^53 exact, where JSON.parse yields Infinity and rounds; only hand-edited files reach this.
@@ -150,9 +150,16 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - Rust behaviour: long words wrap within the page margins; every character remains in the PDF and the server field remains intact.
 - Why: PDF line wrapping is presentation, and the recovery instructions must remain readable on one page.
 
-## accepted difference: env-file patterns fast-glob cannot match exactly
+## accepted difference: env-file patterns outside the supported grammar
 
-- Scenario: `config env-files` (or a hand-edited `config.json`) includes or excludes files with an unclosed `[` or `{`, a trailing `\`, more than 10 brace groups, more than 16 brace alternatives or more than 1024 characters, a character class inside a brace group, `**` inside braces (`apps/{*,**}`), a `**` that isn't a whole path segment (`.env**`, `*{a}**/.env`), or a character class that can match `/` (`apps[/]web/.env`, a negated class in a pattern containing `/`, a range spanning `/`) holds an escape or holds non-ASCII characters. Separately, an unescaped `?` or character class meets a non-ASCII file name.
-- TS behaviour: Bun.Glob decides these by its own rules (classes across `/`, globstars inside braces, characters rather than bytes) and the command proceeds.
-- Rust behaviour: saving or reading such a config fails with INVALID_INPUT "Unsupported env file pattern", and push and pull check it before writing anything (a config the shared schema rejects still fails with the reference's error); a `?` or class pattern that meets a non-ASCII name fails the command with the same error. Rust never guesses: it doesn't silently match everything, drop ordinary `.env` files or list paths outside the checkout, and matching stays bounded. Every other pattern decides exactly as Bun does: 0 differences over 32M fuzzed path/pattern/rule rows from six independent generators against `acceptsEnvPath`, apart from paths ending in `/`, which path validation rejects.
-- Why: chosen over a hand-written port of Bun's matcher; fast-glob stays the matcher, and refusing keeps every decision Rust does make identical.
+- Scenario: `config env-files` (or a hand-edited `config.json`) sets an include or exclude pattern.
+- TS behaviour: Bun.Glob accepts any pattern and decides by its own rules.
+- Rust behaviour: fast-glob matches only patterns in a grammar where both are known to agree; anything else fails with INVALID_INPUT "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing anything (a config the shared schema rejects still fails with the reference's error). The grammar, ASCII only, at most 1024 characters:
+  - one optional leading `!`;
+  - `/`-separated, non-empty segments;
+  - a segment is exactly `**`, or literals with `*` and `?`, never two `*` in a row;
+  - flat `{a,b}` groups of non-empty literal or `*` options: no nesting, classes, ranges (`..`) or escapes, and a group with a starred option never touches an outside `*`;
+  - at most 10 groups and 16 alternatives in total;
+  - literals are printable ASCII except `*?[]{}\,!()|+@/`.
+  A `?` that meets a non-ASCII file name also fails the command with the same error, since fast-glob matches it per byte. Every pattern the reference's tests and docs use (`.env`, `.env.*`, `.env*`, `*.example`, `secrets.*`, `!.env.example`, `{apps,packages}/**/.env` and so on) is accepted. Within the grammar, decisions match `acceptsEnvPath` with 0 differences over 25M fuzzed rows, 9M of them generated from the grammar itself.
+- Why: chosen over a hand-written port of Bun's matcher. Refusing everything outside a proven grammar keeps every decision Rust makes identical; exotic syntax is refused, never guessed.

@@ -99,23 +99,23 @@ fn patterns_fast_glob_cannot_match_exactly_fail_closed() {
 }
 
 #[test]
-fn byte_wildcards_refuse_non_ascii_names_only() {
+fn single_character_wildcards_refuse_non_ascii_names_only() {
     let rules = IEnvFileRules {
-        include: Some(vec![".env.?".into(), ".env.[a-z]".into()]),
+        include: Some(vec![".env.?".into(), ".env.*".into()]),
         ..Default::default()
     };
 
     assert!(accepts_env_path(".env.a", Some(&rules)).unwrap());
-    assert!(!accepts_env_path(".env.ab", Some(&rules)).unwrap());
+    assert!(accepts_env_path(".env.ab", Some(&rules)).unwrap());
     assert!(accepts_env_path(".env.é", Some(&rules)).is_err());
     assert!(accepts_env_path("é/.env.a", Some(&rules)).unwrap());
 
-    let escaped = IEnvFileRules {
-        include: Some(vec![".env.\\[team\\]*".into()]),
+    let starred = IEnvFileRules {
+        include: Some(vec![".env.*".into()]),
         ..Default::default()
     };
 
-    assert!(accepts_env_path(".env.[team]é", Some(&escaped)).unwrap());
+    assert!(accepts_env_path(".env.é", Some(&starred)).unwrap());
 }
 
 fn refusable(rules: &IEnvFileRules, path: &str) -> bool {
