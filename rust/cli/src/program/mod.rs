@@ -11,3 +11,5 @@ pub use dispatch::{DefaultActions, DefaultHooks, ICommandActions, ICommandHooks,
 mod validation;
 
 mod finish;
+
+mod restore;

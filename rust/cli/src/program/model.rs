@@ -60,6 +60,7 @@ pub enum TParseResult<'a> {
     Version,
     Action(IInvocation<'a>),
     Error(String),
+    Failure(envden_core::errors::EnvdenError),
 }
 
 pub fn command_tree() -> &'static ICommand {

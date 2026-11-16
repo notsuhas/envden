@@ -22,3 +22,22 @@ mod tests {
         );
     }
 }
+
+#[test]
+fn restore_versions_are_parsed_before_dispatch() {
+    use envden_cli::program::{TParseResult, command_tree, parse};
+    let TParseResult::Action(invocation) = parse(
+        command_tree(),
+        &["history".into(), "--restore".into(), "v3".into()],
+    ) else {
+        panic!("action expected")
+    };
+    assert_eq!(invocation.options["restore"], serde_json::json!(3));
+    assert!(!matches!(
+        parse(
+            command_tree(),
+            &["history".into(), "--restore".into(), "0".into()]
+        ),
+        TParseResult::Action(_)
+    ));
+}

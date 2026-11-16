@@ -76,6 +76,14 @@ pub fn parse<'a>(root: &'a ICommand, args: &[String]) -> TParseResult<'a> {
                         ),
                     );
                 }
+                let value = if command.name == "history" && option.name == "restore" {
+                    match super::restore::parse_version(&value) {
+                        Ok(version) => Value::from(version),
+                        Err(error) => return TParseResult::Failure(error),
+                    }
+                } else {
+                    value
+                };
                 let value = match super::validation::option_value(command, option, value) {
                     Ok(value) => value,
                     Err(message) => return error(command, message),

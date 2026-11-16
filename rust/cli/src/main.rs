@@ -50,6 +50,10 @@ fn main() {
             eprintln!("{message}");
             std::process::exit(1);
         }
+        TParseResult::Failure(error) => {
+            print_error(&error.message);
+            std::process::exit(error_exit_code(error.code));
+        }
         TParseResult::Action(invocation) => {
             let home = std::env::var_os("HOME")
                 .map(PathBuf::from)

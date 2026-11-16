@@ -17,11 +17,10 @@ use std::rc::Rc;
 
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let file = invocation.arguments.first().map(String::as_str);
-    let version = invocation.options.get("restore").and_then(|v| {
-        v.as_str()
-            .and_then(|s| s.parse::<u64>().ok())
-            .or_else(|| v.as_u64())
-    });
+    let version = invocation
+        .options
+        .get("restore")
+        .and_then(serde_json::Value::as_u64);
     let result = if let Some(version) = version {
         let file = file.ok_or_else(|| {
             EnvdenError::new(ErrorCode::InvalidInput, "Name the env file to restore")
