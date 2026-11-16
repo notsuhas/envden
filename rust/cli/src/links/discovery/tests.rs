@@ -1,5 +1,6 @@
 use super::repos::{IDiscoveryScope, discover_repos};
 use envden_core::adapters::ICheckout;
+use envden_core::filesystem::ICanonicalPath;
 use envden_testing::repo::IFakeRepoAdapter;
 use std::sync::{
     Arc,
@@ -58,7 +59,7 @@ fn finishes_submodule_collection_before_descending_from_a_scan_root() {
     use std::sync::atomic::AtomicBool;
 
     let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
+    let root = temp.path().canonical_path().unwrap();
     for path in [&root, &root.join("sub"), &root.join("child")] {
         std::fs::create_dir_all(path.join(".git")).unwrap();
     }

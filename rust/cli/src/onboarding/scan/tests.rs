@@ -6,6 +6,7 @@ use crate::{
         repository::{load_state, save_state},
     },
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::{ICheckout, IEnvFileRules, IRepoAdapter},
     errors::Result,
@@ -47,7 +48,7 @@ impl IRepoAdapter for Repos {
 #[test]
 fn differing_worktrees_do_not_abort_unrelated_linking() {
     let root = tempfile::tempdir().unwrap();
-    let root = root.path().canonicalize().unwrap();
+    let root = root.path().canonical_path().unwrap();
     let mut adapters = create_adapters(Some(root.join("home")), root.clone(), || 1800000000000);
     let repos: Vec<_> = ["main", "worktree", "unrelated", "empty"]
         .iter()

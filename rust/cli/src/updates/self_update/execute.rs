@@ -1,5 +1,6 @@
 use super::paths::{normalize_cli, pinned_install};
 use crate::{output::prompts::consent, state::files::failure};
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     errors::{EnvdenError, ErrorCode, Result},
     process::{ISpawnOptions, TStdio, inside_working_tree, spawn_trusted},
@@ -54,9 +55,14 @@ pub fn manager_update(command: &[String], binary: &str, now: u64) -> Result<Valu
     let home = std::env::var("HOME")
         .ok()
         .or_else(|| std::env::var("USERPROFILE").ok());
-    let temp = fs::canonicalize(std::env::temp_dir()).map_err(failure)?;
+    let temp = std::env::temp_dir().canonical_path().map_err(failure)?;
     if home.as_ref().is_some_and(|h| {
-        inside_working_tree(fs::canonicalize(h).unwrap_or_else(|_| h.into()), None)
+        inside_working_tree(
+            std::path::Path::new(h)
+                .canonical_path()
+                .unwrap_or_else(|_| h.into()),
+            None,
+        )
     }) || inside_working_tree(&temp, None)
     {
         eprintln!(

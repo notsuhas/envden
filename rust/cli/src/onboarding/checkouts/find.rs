@@ -7,6 +7,7 @@ use crate::{
     output::{home_path, progress::scan_progress},
     settings::read_config,
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::{ICheckout, IEnvFileRules},
     errors::Result,
@@ -30,11 +31,16 @@ pub(in crate::onboarding) fn find_checkouts(
     let roots = roots.unwrap_or(&defaults);
     let home = adapters
         .user_home
-        .canonicalize()
+        .canonical_path()
         .unwrap_or_else(|_| adapters.user_home.clone());
     let shown = roots
         .iter()
-        .map(|root| home_path(&root.canonicalize().unwrap_or_else(|_| root.clone()), &home))
+        .map(|root| {
+            home_path(
+                &root.canonical_path().unwrap_or_else(|_| root.clone()),
+                &home,
+            )
+        })
         .collect::<Vec<_>>()
         .join(", ");
     if std::io::IsTerminal::is_terminal(&std::io::stdout()) {

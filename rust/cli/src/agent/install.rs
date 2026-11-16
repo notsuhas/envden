@@ -1,6 +1,7 @@
 use super::write_through::write_through;
 use crate::state::files::failure;
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
 use std::{fs, path::Path};
 
 pub fn install_agent(home: &Path, now: u64) -> Result<()> {
@@ -26,7 +27,7 @@ pub fn install_agent(home: &Path, now: u64) -> Result<()> {
             std::os::windows::fs::symlink_dir(&target, &link).map_err(failure)?;
         }
         Err(e) => return Err(failure(e)),
-        Ok(_) if fs::canonicalize(&link).ok() != fs::canonicalize(&target).ok() => {
+        Ok(_) if link.canonical_path().ok() != target.canonical_path().ok() => {
             return Err(conflict(
                 "~/.claude/skills/envden already holds a different skill",
             ));

@@ -4,6 +4,7 @@ use crate::{
     state::{empty_state, repository::save_state},
     sync::{local::files::base_path, remove::remove_file},
 };
+use envden_core::filesystem::ICanonicalPath;
 use serde_json::json;
 use std::{fs, process::Command};
 #[test]
@@ -31,7 +32,7 @@ fn removal_cleans_shared_bases() {
             .unwrap()
             .success()
     );
-    let root = fs::canonicalize(root).unwrap();
+    let root = root.canonical_path().unwrap();
     let a = create_adapters(Some(home.clone()), dir.into(), || 1800000000000);
     let checkout = a.repo.checkout_at(root.to_str().unwrap()).unwrap().unwrap();
     let mut s = empty_state("test");

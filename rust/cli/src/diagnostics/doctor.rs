@@ -2,6 +2,7 @@ use crate::{
     adapters::IAdapters, output::home_path, settings::ensure_paths, state::files::failure,
 };
 use envden_adapter_shell_rc::TShell;
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::{INetworkStatus, THttpsCheck},
     errors::Result,
@@ -56,7 +57,7 @@ pub fn doctor(adapters: &IAdapters) -> Result<IDoctorReport> {
                 &adapters.home,
                 &adapters
                     .user_home
-                    .canonicalize()
+                    .canonical_path()
                     .unwrap_or_else(|_| adapters.user_home.clone()),
             ),
             owner_only: adapters.keychain.owner_only()?,

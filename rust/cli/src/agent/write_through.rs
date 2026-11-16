@@ -1,5 +1,6 @@
 use crate::state::files::{atomic_write, failure};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::filesystem::ICanonicalPath;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -18,7 +19,7 @@ pub fn write_through(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
 fn link_target(path: &Path) -> Result<PathBuf> {
     let mut current = std::path::absolute(path).map_err(failure)?;
     for _ in 0..40 {
-        match fs::canonicalize(&current) {
+        match current.canonical_path() {
             Ok(real) => return Ok(real),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
             Err(e) => return Err(failure(e)),
@@ -32,7 +33,8 @@ fn link_target(path: &Path) -> Result<PathBuf> {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 let parent = current.parent().unwrap();
                 fs::create_dir_all(parent).map_err(failure)?;
-                return Ok(fs::canonicalize(parent)
+                return Ok(parent
+                    .canonical_path()
                     .map_err(failure)?
                     .join(current.file_name().unwrap()));
             }

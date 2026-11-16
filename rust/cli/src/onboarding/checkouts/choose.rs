@@ -4,6 +4,7 @@ use crate::{
     links::{approval::checkout_label, checkout::worktree::auto_approved_worktree},
     output::prompts::choose_many,
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::ICheckout,
     errors::{EnvdenError, ErrorCode, Result},
@@ -43,7 +44,7 @@ pub(in crate::onboarding) fn chosen_checkouts(
     }
     let home = adapters
         .user_home
-        .canonicalize()
+        .canonical_path()
         .unwrap_or_else(|_| adapters.user_home.clone());
     let options = asked
         .iter()

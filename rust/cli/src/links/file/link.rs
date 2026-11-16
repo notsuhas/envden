@@ -11,6 +11,7 @@ use crate::{
     store::store_path,
     sync::local::validation::size::file_size_notice,
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::{ICheckout, IPlacementAdapter, TPlacementState},
     errors::{EnvdenError, ErrorCode, Result},
@@ -66,7 +67,7 @@ pub fn link_file(
                 path: path.into(),
                 link: link.to_string_lossy().into_owned(),
                 target: target
-                    .canonicalize()
+                    .canonical_path()
                     .unwrap_or(target)
                     .to_string_lossy()
                     .into_owned(),
@@ -80,7 +81,7 @@ pub fn link_file(
                     &destination,
                     &adapters
                         .user_home
-                        .canonicalize()
+                        .canonical_path()
                         .unwrap_or_else(|_| adapters.user_home.clone())
                 ))
             );

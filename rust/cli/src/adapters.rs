@@ -3,6 +3,7 @@ use envden_core::adapters::{
     IKeychainAdapter, INetworkAdapter, IPlacementAdapter, IRepoAdapter, IShellAdapter,
     TPlacementMode,
 };
+use envden_core::filesystem::ICanonicalPath;
 use std::path::{Path, PathBuf};
 
 pub struct IAdapters {
@@ -73,7 +74,7 @@ fn real_location(path: &Path) -> PathBuf {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_owned());
     let absolute = crate::links::takeover::sibling::normalize(&absolute);
     let path = absolute.as_path();
-    if let Ok(real) = path.canonicalize() {
+    if let Ok(real) = path.canonical_path() {
         return real;
     }
     match (path.parent(), path.file_name()) {
@@ -91,7 +92,8 @@ mod tests {
         let relative = PathBuf::from(format!(".envden-missing-{}/nested", uuid::Uuid::new_v4()));
         let temp = tempfile::tempdir().unwrap();
         let adapters = create_adapters(Some(relative.clone()), temp.path().into(), || 42);
-        let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
+        let cwd = std::env::current_dir().unwrap().canonical_path().unwrap();
         assert_eq!(adapters.home, cwd.join(relative));
+        assert!(!adapters.home.to_string_lossy().starts_with(r"\\?\"));
     }
 }

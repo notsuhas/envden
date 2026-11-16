@@ -6,6 +6,7 @@ use super::{
 };
 use crate::{adapters::IAdapters, output::prompts::consent};
 use envden_core::errors::Result;
+use envden_core::filesystem::ICanonicalPath;
 use serde_json::Value;
 use std::{
     io::{self, IsTerminal},
@@ -23,7 +24,7 @@ pub fn offer_takeover(
 ) -> Result<Vec<IOwnLink>> {
     let home = adapters
         .user_home
-        .canonicalize()
+        .canonical_path()
         .unwrap_or_else(|_| adapters.user_home.clone());
     let mut left = Vec::new();
     for group in group_own_links(links) {

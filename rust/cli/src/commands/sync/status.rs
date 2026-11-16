@@ -6,6 +6,7 @@ use crate::{
     status::{render::status_text, report::status_report},
 };
 use envden_core::errors::Result;
+use envden_core::filesystem::ICanonicalPath;
 use std::rc::Rc;
 
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
@@ -50,7 +51,7 @@ fn render_report(
         terminal_json(report)
     } else {
         let home = user_home
-            .canonicalize()
+            .canonical_path()
             .unwrap_or_else(|_| user_home.to_owned());
         status_text(report, cwd, &home)
     }
@@ -67,7 +68,7 @@ mod tests {
         std::fs::create_dir(&home).unwrap();
         let alias = temp.path().join("alias");
         std::os::unix::fs::symlink(&home, &alias).unwrap();
-        let root = home.canonicalize().unwrap().join("repo");
+        let root = home.canonical_path().unwrap().join("repo");
         let report = serde_json::json!({"configured":true, "server":"reachable", "serverChecked":true, "files":[{"root":root,"path":".env","state":"changed"}]});
         assert_eq!(
             render_report(&report, false, &temp.path().join("elsewhere"), &alias),

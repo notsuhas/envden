@@ -15,6 +15,7 @@ use crate::{
         context::{ISyncOptions, sync_context},
     },
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{adapters::ICheckout, errors::Result};
 use serde_json::Value;
 use std::{collections::HashSet, path::PathBuf, rc::Rc};
@@ -59,7 +60,7 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
     )?;
     let home = adapters
         .user_home
-        .canonicalize()
+        .canonical_path()
         .unwrap_or_else(|_| adapters.user_home.clone());
     let command = rescan_command(
         options.command.unwrap_or("track"),

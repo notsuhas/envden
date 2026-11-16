@@ -1,9 +1,10 @@
 use crate::output::{home_path, sanitize_terminal};
+use envden_core::filesystem::ICanonicalPath;
 use serde_json::Value;
 use std::path::Path;
 
 pub(super) fn summary(state: &Value, home: &Path, setup: bool) -> Vec<String> {
-    let real_home = home.canonicalize().unwrap_or_else(|_| home.to_owned());
+    let real_home = home.canonical_path().unwrap_or_else(|_| home.to_owned());
     let home = real_home.as_path();
     let links: Vec<_> = state["links"]
         .as_array()

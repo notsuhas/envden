@@ -15,6 +15,7 @@ use crate::{
         validation::size::file_size_notice,
     },
 };
+use envden_core::filesystem::ICanonicalPath;
 use envden_core::{
     adapters::TPlacementMode,
     errors::{EnvdenError, ErrorCode, Result},
@@ -30,7 +31,7 @@ pub fn adopt_group(
 ) -> Result<Vec<IOwnLink>> {
     let home = adapters
         .user_home
-        .canonicalize()
+        .canonical_path()
         .unwrap_or_else(|_| adapters.user_home.clone());
     let target = sanitize_terminal(&home_path(Path::new(&group.target), &home));
     let Some(content) = read_target(Path::new(&group.target)) else {
