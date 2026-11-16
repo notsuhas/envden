@@ -181,13 +181,14 @@ func TestPromptPTY(t *testing.T) {
 				}
 			} else if helper == "cancel" {
 				expect("Cancel this prompt")
-				if mode == "cancel-esc" {
+				switch mode {
+				case "cancel-esc":
 					send("\x1b")
-				} else if mode == "cancel-alt-enter" {
+				case "cancel-alt-enter":
 					// alt+enter doesn't submit, so cancel must still work after it
 					send("abc\x1b\r")
 					send("\x03")
-				} else {
+				default:
 					send("\x03")
 				}
 				expect("RESULT:true")
