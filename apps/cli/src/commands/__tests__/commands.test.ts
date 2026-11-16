@@ -142,3 +142,41 @@ test("secret-prompt commands no longer recommend piped tokens", () => {
     expect(text).toContain("terminal");
   }
 });
+
+function everyCommand(command: CommandUnknownOpts): CommandUnknownOpts[] {
+  return [command, ...command.commands.flatMap(everyCommand)];
+}
+
+async function parserError(args: string[]) {
+  const program = createProgram(fixtureClock);
+  const written: string[] = [];
+
+  for (const command of everyCommand(program))
+    command.exitOverride().configureOutput({ writeErr: (text) => written.push(text) });
+
+  await Promise.resolve(expect(program.parseAsync(args, { from: "user" })).rejects.toThrow());
+
+  return written.join("");
+}
+
+test("parser errors keep their line breaks and strip control bytes at every depth", async () => {
+  expect(await parserError(["statu"])).toBe(
+    "error: unknown command 'statu'\n(Did you mean status?)\n",
+  );
+
+  expect(await parserError(["\x1b[2Jstatu\nforged"])).toBe(
+    "error: unknown command '[2Jstatuforged'\n",
+  );
+
+  expect(await parserError(["rm", "--yesx", ".env"])).toBe(
+    "error: unknown option '--yesx'\n(Did you mean --yes?)\n",
+  );
+
+  expect(await parserError(["rm", "--x\x1b[31mred", ".env"])).toBe(
+    "error: unknown option '--x[31mred'\n",
+  );
+
+  expect(await parserError(["device", "ls", "--\x1b]0;title\x07"])).toBe(
+    "error: unknown option '--]0;title'\n",
+  );
+});
