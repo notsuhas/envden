@@ -96,10 +96,16 @@ pub fn dashboard_status(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> 
     )
 }
 
-fn checkout_approvals<'a>(state: &'a Value, lookup: &dyn Fn(&str) -> Result<Option<envden_core::adapters::ICheckout>>) -> Result<std::collections::HashMap<&'a str, &'static str>> {
+fn checkout_approvals<'a>(
+    state: &'a Value,
+    lookup: &dyn Fn(&str) -> Result<Option<envden_core::adapters::ICheckout>>,
+) -> Result<std::collections::HashMap<&'a str, &'static str>> {
     let mut approvals = std::collections::HashMap::new();
     for link in state["links"].as_array().into_iter().flatten() {
         let root = link["root"].as_str().unwrap_or_default();
+        if approvals.contains_key(root) {
+            continue;
+        }
         let approval = match lookup(root)? {
             Some(checkout) => match checkout_approval(state, &checkout) {
                 "ask" => "needs-approval",
@@ -149,7 +155,8 @@ mod tests {
         let approvals = checkout_approvals(&state, &|root| {
             calls.borrow_mut().push(root.to_owned());
             Ok(None)
-        }).unwrap();
+        })
+        .unwrap();
         assert_eq!(*calls.borrow(), ["/b", "/a"]);
         assert_eq!(approvals["/b"], "unavailable");
     }
