@@ -1,3 +1,4 @@
+import { jsonOutput } from "./json.ts";
 import type { Normalizer } from "../normalize.ts";
 import { stripVTControlCharacters } from "node:util";
 
@@ -26,7 +27,10 @@ export function facts(text: string, names: ReadonlySet<string> = new Set()): str
     if (/^(?:name|named|alias|device)\s*[:=]/i.test(token))
       return [token.replace(/\s*[:=]\s*/, "=")];
 
-    if (/^["'`]/.test(token)) return [token.slice(1, -1)];
+    if (/^["'`]/.test(token)) {
+      return [quotedFact(token, names)];
+    }
+
     if (names.has(token)) return [token];
     if (outcomes.has(token.toLowerCase())) return [token.toLowerCase()];
 
@@ -35,6 +39,13 @@ export function facts(text: string, names: ReadonlySet<string> = new Set()): str
 
     return [];
   });
+}
+
+function quotedFact(token: string, names: ReadonlySet<string>) {
+  const quoted = token.slice(1, -1);
+  const parameter = /^\[([a-z][\w-]*)\]$/.exec(quoted)?.[1];
+
+  return parameter && names.has(parameter) ? parameter : quoted;
 }
 
 function helpNames(text: string): string[] {
@@ -59,7 +70,9 @@ export function semanticOutput(text: string, label: string, names?: ReadonlySet<
   if (/(?:^|\s)--json(?:\s|$)/.test(label))
     return text.trim() ? { json: JSON.parse(text) } : { empty: true };
 
-  return facts(text, names);
+  const tokens = facts(text, names);
+
+  return /^error\s*:/i.test(plainTerminal(text)) ? tokens.sort() : tokens;
 }
 
 export function normalizedOutput(
@@ -68,8 +81,20 @@ export function normalizedOutput(
   n: Normalizer,
   names: ReadonlySet<string>,
   strict: boolean,
+  mixed = false,
 ) {
   if (strict) return n.text(text);
+
+  if (/(?:^|\s)--json(?:\s|$)/.test(label)) {
+    const parsed = jsonOutput(text, mixed);
+    if (!("json" in parsed)) return parsed;
+
+    return n.value({
+      json: parsed.json,
+      ...(parsed.before ? { terminal: facts(n.text(parsed.before), names) } : {}),
+    });
+  }
+
   const structured = /(?:^|\s)--(?:json|help)(?:\s|$)/.test(label);
 
   return n.value(semanticOutput(structured ? text : n.text(text), label, names));

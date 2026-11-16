@@ -68,8 +68,19 @@ fn semver_rejects_each_noncanonical_component() {
         Ordering::Greater
     );
     assert_eq!(parse_semver("0.0.0").unwrap(), ["0", "0", "0"]);
+    assert_eq!(
+        compare_semver("18446744073709551616.0.0", "18446744073709551615.0.0").unwrap(),
+        Ordering::Greater
+    );
     for value in [
-        "1.2", "v1.2.3", "1.2.3-a", "-1.2.3", "01.2.3", "1.02.3", "1.2.03",
+        "1.2",
+        "v1.2.3",
+        "1.2.3-a",
+        "1.2.3+build",
+        "-1.2.3",
+        "01.2.3",
+        "1.02.3",
+        "1.2.03",
     ] {
         assert_eq!(
             parse_semver(value).unwrap_err().code,

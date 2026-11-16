@@ -9,6 +9,10 @@ test("restyled notices retain the same ordered facts", () => {
     facts("Pushed\n 2 files .env <id:1:26>"),
   );
 
+  expect(facts("invalid argument 'shell'", new Set(["shell"]))).toEqual(
+    facts("invalid argument '[shell]'", new Set(["shell"])),
+  );
+
   expect(facts("Device name: alpha")).not.toEqual(facts("Device name: beta"));
 
   for (const changed of [
@@ -125,6 +129,7 @@ test("repeated questions wait for the active prompt rather than its submitted re
   const submitted = "◇ Wrong master password. Try again\n│ *****\n";
   const pattern = /Wrong master password\. Try again/;
   expect(nextPrompt(submitted, pattern, true)).toBeNull();
+  expect(nextPrompt("│ ▪_│ ▪▪_" + submitted, pattern, true)).toBeNull();
 
   expect(
     nextPrompt(submitted + "◆ Wrong master password. Try again\n│ _\n└", pattern, true)?.index,
@@ -132,4 +137,44 @@ test("repeated questions wait for the active prompt rather than its submitted re
 
   expect(nextPrompt("✓ Wrong master password. Try again", pattern, true)).toBeNull();
   expect(nextPrompt("Plain prompt:", /Plain prompt:/, true)?.[0]).toBe("Plain prompt:");
+});
+
+test("queued notices retain names and multiplicity when delivery moves between commands", async () => {
+  const snapshot = async (first: string, second: string, strict = false) => {
+    const c = new Context("/tmp/parity-notice", {});
+    c.results.push({ label: "a push", stdout: first, stderr: "", code: 0 });
+    c.results.push({ label: "a pull", stdout: second, stderr: "", code: 0 });
+
+    return capture(c, false, strict);
+  };
+
+  const notice = "envden: beta joined with the recovery kit\n";
+
+  expect(await snapshot(notice + "Pushed 1", "Pulled 1")).toBe(
+    await snapshot("Pushed 1", notice + "Pulled 1"),
+  );
+
+  expect(await snapshot(notice, "")).not.toBe(await snapshot(notice.replace("beta", "gamma"), ""));
+  expect(await snapshot(notice, "")).not.toBe(await snapshot(notice, notice));
+  expect(await snapshot(notice, "")).not.toBe(await snapshot("", ""));
+  expect(await snapshot(notice, "", true)).not.toBe(await snapshot("", notice, true));
+});
+
+test("PTY JSON retains prompts while comparing the machine result exactly", async () => {
+  const snapshot = async (count: number) => {
+    const c = new Context("/tmp/parity-mixed-json", {});
+
+    c.results.push({
+      label: "a push --json",
+      stdout: `◆ Master password\n│ *****\n{"count":${count}}\n`,
+      stderr: "",
+      code: 0,
+      prompts: [],
+    });
+
+    return capture(c, false);
+  };
+
+  expect(await snapshot(1)).toBe(await snapshot(1));
+  expect(await snapshot(1)).not.toBe(await snapshot(2));
 });
