@@ -1554,5 +1554,12 @@
     "path": "a/secrets.conf",
     "options": { "include": ["secrets.*", ".envrc"], "exclude": [".env*"] },
     "accepted": true
-  }
+  },
+  { "path": ".env", "options": { "exclude": ["!.env.local"] }, "accepted": false },
+  { "path": ".env.local", "options": { "exclude": ["!.env.local"] }, "accepted": true },
+  { "path": "apps/web/.env", "options": { "include": ["!apps/**"] }, "accepted": false },
+  { "path": "lib/.env", "options": { "include": ["!apps/**"] }, "accepted": true },
+  { "path": ".env", "options": { "include": ["**/"] }, "accepted": false },
+  { "path": ".env.]", "options": { "include": [".env.[\\]]"] }, "accepted": true },
+  { "path": "{a}", "options": { "include": ["*}"] }, "accepted": true }
 ]

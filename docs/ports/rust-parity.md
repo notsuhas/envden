@@ -106,7 +106,7 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - Discovery's p-limit equivalent already uses scoped standard-library threads. Keep its limits, result order and traversal barriers because discovered checkouts feed prompts and saved state.
 - Zod equivalents use serde with custom checks. Keep acceptance, rejection, defaults, UTF-16 lengths, safe-integer limits and property order because these decide requests and persisted configuration.
 - Semver parsing stays custom: the reference accepts arbitrary-size decimal components and rejects prerelease/build suffixes. The semver crate's u64 components and broader syntax would change protocol and update decisions.
-- Glob matching already uses globset. Keep its options and surrounding filters because they decide which files synchronize.
+- Glob matching uses fast-glob, which shares Bun.Glob's glob-match lineage; globset treated `!.env.local` and `**/` differently. Bun still matches malformed patterns (`.env.[a`, `.env.{a`, a trailing `\`) literally and supports extglobs (`+(.env)`), `{a..c}` ranges and more than 10 brace groups, which fast-glob does not.
 - localeCompare already uses icu_collator. Keep it because ordering also determines discovery choices, takeover operations and writes.
 - English integer plurals use the single `count == 1` rule. This is application wording, not a general Intl implementation; adding ICU plural rules would add no behavior for these inputs.
 - JSON.stringify equivalents already use serde_json. Keep insertion order, whitespace, trailing newlines and tagged collection revival because they determine wire and file bytes; terminal sanitization remains an application policy.

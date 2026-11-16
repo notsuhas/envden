@@ -1,5 +1,4 @@
 use super::IEnvFileRules;
-use globset::GlobBuilder;
 pub fn accepts_env_path(path: &str, options: Option<&IEnvFileRules>) -> bool {
     let empty = IEnvFileRules::default();
     let options = options.unwrap_or(&empty);
@@ -26,15 +25,9 @@ pub fn accepts_env_path(path: &str, options: Option<&IEnvFileRules>) -> bool {
                 .is_some_and(|v| v.iter().any(|p| p.to_lowercase() == lower))
     });
     let matches = |patterns: &[String]| {
-        patterns.iter().any(|p| {
-            GlobBuilder::new(p)
-                .literal_separator(true)
-                .build()
-                .is_ok_and(|g| {
-                    g.compile_matcher()
-                        .is_match(if p.contains('/') { path } else { name })
-                })
-        })
+        patterns
+            .iter()
+            .any(|p| fast_glob::glob_match(p, if p.contains('/') { path } else { name }))
     };
     !skip
         && name.to_lowercase() != ".envrc"

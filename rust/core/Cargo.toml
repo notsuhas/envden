@@ -14,7 +14,7 @@ dunce = "1"
 shared_child = "1"
 regex = "1"
 ryu-js = "1.0"
-globset = "0.4"
+fast-glob = "1.1"
 path-clean = "1"
 rustix = { version = "1", features = ["process", "fs"] }
 
