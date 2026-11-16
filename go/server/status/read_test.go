@@ -1,10 +1,13 @@
 package status
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/notsuhas/envden/go/core/adapters"
+	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 )
 
 func TestDecisions(t *testing.T) {
@@ -51,13 +54,27 @@ func TestFormats(t *testing.T) {
 	for _, row := range []struct {
 		seconds int64
 		want    string
-	}{{59, "under a minute"}, {3660, "1 hour 1 minute"}, {90000, "1 day 1 hour"}} {
+	}{{59, "under a minute"}, {3660, "1h1m0s"}, {90000, "25h0m0s"}, {31 * 86400, "744h0m0s"}} {
 		if got := FormatUptime(row.seconds); got != row.want {
 			t.Fatal(got, row.want)
 		}
 	}
 	now := time.Date(2027, 1, 15, 8, 12, 0, 0, time.UTC).UnixMilli()
-	if got := FormatWhen("2027-01-15T08:00:00.000Z", now); got != "12 minutes ago (2027-01-15 08:00 UTC)" {
+	if got := FormatWhen("2027-01-15T08:00:00.000Z", now); got != "12m0s ago (2027-01-15 08:00 UTC)" {
 		t.Fatal(got)
+	}
+}
+
+func TestStoragePresentation(t *testing.T) {
+	for _, row := range []struct {
+		bytes int64
+		want  string
+	}{{0, "0 B"}, {1024, "1.0 KiB"}, {1048576, "1.0 MiB"}} {
+		t.Run(fmt.Sprint(row.bytes), func(t *testing.T) {
+			page := Render(wire.StatusResponse{Mode: "normal", StorageBytes: row.bytes}, 0)
+			if !strings.Contains(page, "<dt>Storage</dt><dd>"+row.want+"</dd>") {
+				t.Fatal(page)
+			}
+		})
 	}
 }

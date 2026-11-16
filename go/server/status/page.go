@@ -6,9 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
-	libdatefns "github.com/notsuhas/envden/go/lib/datefns"
-	libprettybytes "github.com/notsuhas/envden/go/lib/prettybytes"
 )
 
 const style = `body{margin:0;min-height:100vh;display:grid;place-items:center;background:rgba(12,12,11,1);color:rgba(237,233,224,1);font:15px/1.5 ui-sans-serif,system-ui,sans-serif}
@@ -41,18 +40,24 @@ const page = `<!doctype html>
     </html> `
 
 func FormatUptime(seconds int64) string {
-	text := libdatefns.FormatDuration(libdatefns.IntervalToDuration(time.Unix(0, 0).UTC(), time.Unix(seconds, 0).UTC()), "days", "hours", "minutes")
-	if text == "" {
+	if seconds < 60 {
 		return "under a minute"
 	}
 
-	return text
+	return (time.Duration(seconds) * time.Second).Truncate(time.Minute).String()
 }
 
 func FormatWhen(utc string, now int64) string {
 	date, _ := time.Parse(time.RFC3339Nano, utc)
 
-	return libdatefns.FormatDistanceStrict(date, time.UnixMilli(now), libdatefns.DistanceOptions{AddSuffix: true}) + " (" + libdatefns.Format(date.UTC(), "yyyy-MM-dd HH:mm") + " UTC)"
+	base := time.UnixMilli(now)
+	distance := date.Sub(base).Abs().Round(time.Second).String()
+	relative := distance + " ago"
+	if date.After(base) {
+		relative = "in " + distance
+	}
+
+	return relative + " (" + date.UTC().Format("2006-01-02 15:04") + " UTC)"
 }
 
 func Render(value wire.StatusResponse, now int64) string {
@@ -65,7 +70,11 @@ func Render(value wire.StatusResponse, now int64) string {
 		return "<dt>" + html.EscapeString(label) + "</dt><dd" + class + ">" + html.EscapeString(value) + "</dd>"
 	}
 	modes := map[string]string{"normal": "Normal", "restored": "Restored from backup, accepting repairs only", "moved": "Moved to another server, read-only"}
-	rows := []string{row("Version", value.Version, false), row("Uptime", FormatUptime(value.UptimeSeconds), false), row("Mode", modes[value.Mode], value.Mode != "normal"), row("Vaults", fmt.Sprint(value.Vaults), false), row("Storage", libprettybytes.Format(float64(value.StorageBytes), libprettybytes.Options{Binary: true}), false)}
+	var storageBytes uint64
+	if value.StorageBytes > 0 {
+		storageBytes = uint64(value.StorageBytes)
+	}
+	rows := []string{row("Version", value.Version, false), row("Uptime", FormatUptime(value.UptimeSeconds), false), row("Mode", modes[value.Mode], value.Mode != "normal"), row("Vaults", fmt.Sprint(value.Vaults), false), row("Storage", humanize.IBytes(storageBytes), false)}
 	bands := map[string]string{"below-50": "under 50% of quota", "50-80": "50–80% of quota", "80-95": "80–95% of quota", "95-plus": "95% of quota or more"}
 	if value.FullestVault != nil {
 		rows = append(rows, row("Fullest vault", bands[*value.FullestVault], *value.FullestVault == "95-plus"))

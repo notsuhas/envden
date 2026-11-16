@@ -1,3 +1,4 @@
+import { outputObservation, type TOutputMode } from "../compare/output.ts";
 import { environment } from "./device/environment.ts";
 import { prepare } from "./prepare.ts";
 import { realpath, mkdir, writeFile, mkdtemp, rm } from "node:fs/promises";
@@ -27,7 +28,7 @@ export async function createContext(
   const servers = new Map<string, TServer>();
   const terminals = new Set<Terminal>();
   let counter = 0;
-  const outputs: { prefix: string; output: IOutput }[] = [];
+  const outputs: { prefix: string; output: IOutput; mode: TOutputMode }[] = [];
   normalizer.path(root, "root");
   if (root.startsWith("/var/")) normalizer.path(`/private${root}`, "root");
   normalizer.path(binary, "binary");
@@ -84,9 +85,9 @@ export async function createContext(
     if (output.code !== 0) throw new Error(output.stderr);
   }
 
-  function record(label: string, output: IOutput): void {
+  function record(label: string, output: IOutput, mode: TOutputMode = "semantic"): void {
     const prefix = `${String(++counter).padStart(3, "0")} ${label}`;
-    outputs.push({ prefix, output });
+    outputs.push({ prefix, output, mode });
   }
 
   const cli = async (device: string, args: string[], code = 0): Promise<IOutput> => {
@@ -106,7 +107,12 @@ export async function createContext(
     }
 
     const result = await command({ binary: d.binary, args, cwd: d.checkout, env: d.env });
-    record(`${device} ${args[0]}`, result);
+
+    record(
+      `${device} ${args[0]}`,
+      result,
+      args.includes("--json") ? "json" : args.includes("--help") ? "help" : "semantic",
+    );
 
     if (result.code !== code)
       throw new Error(
@@ -132,7 +138,7 @@ export async function createContext(
   ): Promise<void> {
     const result = await terminal.finish();
     terminals.delete(terminal);
-    record(`${device} PTY ${args[0]}`, result);
+    record(`${device} PTY ${args[0]}`, result, "pty");
 
     if (result.code !== code)
       throw new Error(`Expected PTY exit ${code}, got ${result.code}\n${result.stdout}`);
@@ -176,9 +182,20 @@ export async function createContext(
       outputs.map(({ output }) => output),
     );
 
-    for (const { prefix, output } of outputs) {
-      observations[`${prefix}/stdout`] = normalizer.text(output.stdout);
-      observations[`${prefix}/stderr`] = normalizer.text(output.stderr);
+    for (const { prefix, output, mode } of outputs) {
+      observations[`${prefix}/stdout`] = outputObservation(output.stdout, mode, (text) =>
+        normalizer.text(text),
+      );
+
+      observations[`${prefix}/stderr`] = outputObservation(output.stderr, "semantic", (text) =>
+        normalizer.text(text),
+      );
+
+      if (output.conversation)
+        observations[`${prefix}/conversation`] = normalizer.text(
+          JSON.stringify(output.conversation),
+        );
+
       observations[`${prefix}/exit`] = String(output.code);
     }
 

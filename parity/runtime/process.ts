@@ -1,3 +1,5 @@
+import { choices, conversation } from "../compare/conversation.ts";
+import { keywordPattern } from "../compare/presentation.ts";
 import { output } from "./process/output.ts";
 import { stripVTControlCharacters } from "node:util";
 import { terminalText } from "../normalize/terminal.ts";
@@ -6,6 +8,7 @@ export interface IOutput {
   stdout: string;
   stderr: string;
   code: number;
+  conversation?: { prompts: string[]; choices: string[]; answer: string }[];
 }
 
 interface IProcess {
@@ -51,6 +54,8 @@ export async function command(options: IProcess): Promise<IOutput> {
 
 export class Terminal {
   private raw = "";
+  private readonly conversation: NonNullable<IOutput["conversation"]> = [];
+  private answerCursor = 0;
   private cursor = 0;
   private wake = () => {};
   private readonly decoder = new TextDecoder();
@@ -116,7 +121,19 @@ export class Terminal {
 
   async answers(answers: IAnswer[]): Promise<void> {
     for (const answer of answers) {
-      await this.expect(answer.expect);
+      await this.expect(
+        typeof answer.expect === "string" ? keywordPattern(answer.expect) : answer.expect,
+      );
+
+      const screen = terminalText(this.raw.slice(this.answerCursor));
+
+      this.conversation.push({
+        prompts: conversation(screen),
+        choices: choices(screen),
+        answer: answer.send,
+      });
+
+      this.answerCursor = this.raw.length;
       this.child.terminal?.write(answer.send);
     }
   }
@@ -127,7 +144,7 @@ export class Terminal {
     try {
       const code = await this.child.exited;
 
-      return { stdout: terminalText(this.raw), stderr: "", code };
+      return { stdout: terminalText(this.raw), stderr: "", code, conversation: this.conversation };
     } finally {
       clearTimeout(timer);
       this.child.terminal?.close();
