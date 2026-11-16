@@ -16,6 +16,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/onboarding"
 	"github.com/notsuhas/envden/go/cli/onboarding/checkouts"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	scanrender "github.com/notsuhas/envden/go/cli/output/render/scan"
 	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state/model"
@@ -120,7 +121,7 @@ func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.Stat
 			return checkout.AutoApprovedWorktree(a, state, item)
 		},
 		Label: func(state *model.State, item checkouts.Eligible) string {
-			return links.CheckoutLabel(state, item.Checkout, item.Files, a.UserHome)
+			return links.CheckoutLabel(state, item.Checkout, item.Files, output.RealHome(a.UserHome))
 		},
 		Link: func(ctx context.Context, state *model.State, item adapters.Checkout) error {
 			if err := links.OfferForkAlias(state, item, stored, func(source, target string) (bool, error) {
@@ -133,7 +134,9 @@ func SetupCheckouts(ctx context.Context, a contracts.Adapters, state *model.Stat
 				return err
 			}
 
-			found, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Interactive: p.Interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Report: func(line string) { _, _ = fmt.Fprintln(p.Stderr, line) }})
+			found, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Interactive: p.Interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Choose: func(path string) (string, error) {
+				return prompts.ChooseVersion(p.Interactive, p.Terminal, path)
+			}, Report: func(line string) { _, _ = fmt.Fprintln(p.Stderr, line) }})
 			own = append(own, found...)
 
 			return err

@@ -2,10 +2,10 @@ package prompts
 
 import (
 	"io"
-	"strings"
 
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/proofs"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func ReadToken(kind string, value *string, source io.Reader, interactive bool) (string, error) {
@@ -33,7 +33,7 @@ func ReadToken(kind string, value *string, source io.Reader, interactive bool) (
 			return "", e
 		}
 
-		token = strings.TrimSpace(string(raw))
+		token = textcase.Trim(string(raw))
 		if token == "" {
 			return "", errors.New(errors.InvalidInput, "Provide the token on stdin or use the prompt in a terminal")
 		}

@@ -2,7 +2,9 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
@@ -89,5 +91,30 @@ func TestLocalSetupReissue(t *testing.T) {
 	}
 	if first == "" || first == second {
 		t.Fatal("expected fresh setup token")
+	}
+}
+
+func TestConnectionTimeouts(t *testing.T) {
+	port := 0
+	running, err := Serve(ServeOptions{DataDir: t.TempDir(), Port: &port, Now: func() int64 { return 1000 }, Scheduler: &manualScheduler{}, Stdout: io.Discard, Stderr: io.Discard})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = running.Shutdown() }()
+	if running.Server.ReadHeaderTimeout != 10*time.Second || running.Server.IdleTimeout != 10*time.Second {
+		t.Fatal(running.Server.ReadHeaderTimeout, running.Server.IdleTimeout)
+	}
+}
+
+func TestBusyPortMessage(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = listener.Close() }()
+	port := listener.Addr().(*net.TCPAddr).Port
+	_, err = Serve(ServeOptions{DataDir: t.TempDir(), Port: &port, Now: func() int64 { return 0 }, Stdout: io.Discard, Stderr: io.Discard})
+	if err == nil || err.Error() != fmt.Sprintf("Failed to start server. Is port %d in use?", port) {
+		t.Fatal(err)
 	}
 }

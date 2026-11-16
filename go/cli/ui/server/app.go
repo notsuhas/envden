@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
@@ -59,6 +60,9 @@ func CreateDashboardApp(dashboard Dashboard) http.Handler {
 
 		if asset, ok := dashboard.Assets[r.URL.Path]; ok && (r.Method == "GET" || r.Method == "HEAD") {
 			w.Header().Set("Content-Type", asset.Type)
+			if r.Method != "HEAD" {
+				w.Header().Set("Content-Length", strconv.Itoa(len(asset.Body)))
+			}
 			w.WriteHeader(200)
 			if r.Method != "HEAD" {
 				_, _ = w.Write(asset.Body)

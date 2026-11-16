@@ -51,11 +51,11 @@ func CreateAdapters(options *AdapterOptions, now func() int64) (Adapters, error)
 
 	home := o.Home
 	if home == "" {
-		home = os.Getenv("ENVDEN_HOME")
-	}
-
-	if home == "" {
-		home = filepath.Join(userHome, ".envden")
+		var present bool
+		home, present = os.LookupEnv("ENVDEN_HOME")
+		if !present {
+			home = filepath.Join(userHome, ".envden")
+		}
 	}
 
 	home, err := files.RealLocation(home)

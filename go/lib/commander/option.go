@@ -55,14 +55,6 @@ func (o *Option) Conflicts(keys ...string) *Option { o.ConflictKeys = keys; retu
 
 func (o *Option) Env(name string) *Option { o.EnvVar = name; return o }
 
-func (o *Option) flag() string {
-	if o.Long != "" {
-		return o.Long
-	}
-
-	return o.Short
-}
-
 type Argument struct {
 	Term, Description  string
 	DefaultValue       any

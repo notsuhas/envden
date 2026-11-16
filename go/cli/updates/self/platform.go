@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/process"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func currentReleasePlatform(platform, arch string, run func(string, ...string) ([]byte, error)) string {
@@ -13,7 +14,7 @@ func currentReleasePlatform(platform, arch string, run func(string, ...string) (
 	glibc := ""
 	if platform == "linux" {
 		output, err := run("getconf", "GNU_LIBC_VERSION")
-		if err == nil && strings.HasPrefix(strings.TrimSpace(string(output)), "glibc ") {
+		if err == nil && strings.HasPrefix(textcase.Trim(string(output)), "glibc ") {
 			glibc = string(output)
 		} else {
 			output, _ = run("ldd", "--version")

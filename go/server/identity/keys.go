@@ -33,13 +33,14 @@ func LoadServerKeys(dir string) (out shared.Keys, err error) {
 	raw, err := os.ReadFile(path)
 	if err == nil {
 		var data persisted
-		if err := json.Unmarshal(raw, &data); err != nil {
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &fields); err != nil {
 			return shared.Keys{}, err
 		}
 		if err := process.RestrictAccessSync(path, false); err != nil {
 			return shared.Keys{}, err
 		}
-		if data.SecretKey == "" || data.PublicKey == "" || data.OpaqueSetup == "" {
+		if json.Unmarshal(fields["secretKey"], &data.SecretKey) != nil || string(fields["secretKey"]) == "null" || json.Unmarshal(fields["publicKey"], &data.PublicKey) != nil || string(fields["publicKey"]) == "null" || json.Unmarshal(fields["opaqueSetup"], &data.OpaqueSetup) != nil || string(fields["opaqueSetup"]) == "null" {
 			return shared.Keys{}, enverrors.New(enverrors.InvalidData, "Invalid server identity")
 		}
 		binary, err := shared.Binary(data.SecretKey, 32)

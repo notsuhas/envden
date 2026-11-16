@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/process"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type Process struct {
@@ -48,7 +49,7 @@ func ProcessStart(pid int) Process {
 	} else {
 		result, err := process.ExecTrusted("ps", []string{"-p", strconv.Itoa(pid), "-o", "lstart="}, process.Options{Env: map[string]string{"LC_ALL": "C"}})
 		if err == nil {
-			started = strings.TrimSpace(result.Stdout)
+			started = textcase.Trim(result.Stdout)
 		}
 	}
 
@@ -76,7 +77,7 @@ func ProcessIdentity() string {
 		if e != nil {
 			return ""
 		}
-		boot = strings.TrimSpace(string(b))
+		boot = textcase.Trim(string(b))
 		namespace, e = os.Readlink("/proc/self/ns/pid")
 		if e != nil {
 			return ""
@@ -100,7 +101,7 @@ func ProcessIdentity() string {
 			return ""
 		}
 
-		boot = strings.TrimSpace(result.Stdout)
+		boot = textcase.Trim(result.Stdout)
 	}
 
 	if boot == "" {

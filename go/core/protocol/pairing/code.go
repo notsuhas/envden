@@ -8,6 +8,7 @@ import (
 	enverrors "github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type Code struct {
@@ -27,7 +28,7 @@ func NormalizePairingCode(input string) (Code, error) {
 		return Code{}, bad
 	}
 	text := strings.NewReplacer("-", "", " ", "", "O", "0", "I", "1", "L", "1").Replace(strings.ToUpper(input))
-	g := mailboxGroup.FindStringSubmatch(strings.TrimSpace(input))
+	g := mailboxGroup.FindStringSubmatch(textcase.Trim(input))
 	if len(g) > 0 && len(g[1]) != len(text)-8 {
 		return Code{}, bad
 	}

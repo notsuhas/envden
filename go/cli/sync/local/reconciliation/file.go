@@ -97,7 +97,7 @@ func ReconcileFile(context *syncmodel.Context, targets []state.Link, store strin
 			variants = append(variants, item.Bytes)
 		}
 
-		record := conflictmodel.Record{Root: first.Root, Path: first.Path, Store: first.Store, Mode: first.Mode, Base: snapshot.Base, Entry: encoded, Targets: targets}
+		record := conflictmodel.Record{Root: first.Root, Path: first.Path, Store: first.Store, Mode: first.Mode, OriginalLink: first.OriginalLink, LocalOnly: first.LocalOnly, Base: snapshot.Base, Entry: encoded, Targets: targets}
 		if err = local.RecordConflict(context, record, decision.Mine, decision.Theirs, snapshot.Previous, variants); err != nil {
 			return Result{}, err
 		}

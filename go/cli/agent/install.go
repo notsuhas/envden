@@ -35,7 +35,7 @@ func InstallAgent(userHome string, now func() int64) error {
 		return e
 	}
 
-	if e == nil && !regexp.MustCompile(`(?m)^name: envden$`).MatchString(strings.SplitN(string(raw), "\n---", 2)[0]) {
+	if e == nil && !regexp.MustCompile(`(?m)^name: envden\r?$`).MatchString(strings.SplitN(string(raw), "\n---", 2)[0]) {
 		return errors.New(errors.Conflict, "~/.agents/skills/envden already holds a different skill")
 	}
 

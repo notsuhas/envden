@@ -54,6 +54,9 @@ func CreateApp(options Options, state ...*status.State) (*App, error) {
 }
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.EqualFold(r.Header.Get("Expect"), "100-continue") {
+		w.WriteHeader(http.StatusContinue)
+	}
 	if tooLarge(w, r) {
 		return
 	}
@@ -81,6 +84,10 @@ func (app *App) handle(w http.ResponseWriter, r *http.Request) error {
 
 	o := app.options
 	path := r.URL.EscapedPath()
+	if r.Host == "" {
+		app.write(w, r, []byte("404 Not Found"), "text/plain; charset=UTF-8", 404)
+		return nil
+	}
 	method := r.Method
 	if method == "HEAD" {
 		method = "GET"
@@ -150,9 +157,7 @@ func (app *App) handle(w http.ResponseWriter, r *http.Request) error {
 
 func requestHost(r *http.Request) string {
 	u := *r.URL
-	if u.Host == "" {
-		u.Host = r.Host
-	}
+	u.Host = r.Host
 	host := u.Hostname()
 	if strings.HasPrefix(u.Host, "[") {
 		return "[" + host + "]"

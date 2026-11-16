@@ -9,6 +9,7 @@ import (
 
 	"github.com/notsuhas/envden/go/cli/contracts"
 	linkmodel "github.com/notsuhas/envden/go/cli/links/model"
+	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/store"
@@ -78,7 +79,7 @@ func LinkFile(ctx context.Context, a contracts.Adapters, state *model.State, ite
 			}
 
 			if report != nil {
-				report("envden: removed " + destination + ", a link to a deleted copy")
+				report("envden: removed " + output.SanitizeTerminal(output.HomePath(destination, a.UserHome)) + ", a link to a deleted copy")
 			}
 
 			return done, nil
@@ -132,7 +133,7 @@ func LinkFile(ctx context.Context, a contracts.Adapters, state *model.State, ite
 
 	if choice == "skip" {
 		if report != nil {
-			report(fmt.Sprintf("envden: %s differs from the synced copy; skipped", destination))
+			report(fmt.Sprintf("envden: %s differs from the synced copy; skipped", output.SanitizeTerminal(output.HomePath(destination, a.UserHome))))
 		}
 
 		return done, nil

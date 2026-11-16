@@ -14,6 +14,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/pairing"
 	"github.com/notsuhas/envden/go/cli/pairing/persistence"
 	"github.com/notsuhas/envden/go/cli/state/files"
+	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/version"
 	"github.com/notsuhas/envden/go/core/errors"
@@ -60,7 +61,7 @@ func pairingJoin(ctx context.Context, a contracts.Adapters, address string, o Jo
 			}
 		}
 	} else {
-		if err := persistence.ClearJoiner(a); err != nil {
+		if err := lock.WithStateLock(ctx, a.Home, a.Timing, func(context.Context) error { return persistence.ClearJoiner(a) }); err != nil {
 			return err
 		}
 	}
@@ -103,7 +104,9 @@ func pairingJoin(ctx context.Context, a contracts.Adapters, address string, o Jo
 
 	cl := client.CreateClient(client.Options{HelloCache: a.HelloCache, Address: address, Pin: server.Pin, VaultID: make([]byte, 32), Identity: ident, Now: a.Now, Fetcher: a.Fetcher, Version: version.Version})
 	if !o.Resume {
-		if err = files.AtomicWrite(filepath.Join(a.Home, "state", "pair-pin"), []byte(client.Text(server.Pin)), a.Now); err != nil {
+		if err = lock.WithStateLock(ctx, a.Home, a.Timing, func(context.Context) error {
+			return files.AtomicWrite(filepath.Join(a.Home, "state", "pair-pin"), []byte(client.Text(server.Pin)), a.Now)
+		}); err != nil {
 			return err
 		}
 

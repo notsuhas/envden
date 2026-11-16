@@ -102,3 +102,24 @@ func TestCommandResolutionChoices(t *testing.T) {
 		})
 	}
 }
+
+func TestDiffReportsUnapprovedCheckout(t *testing.T) {
+	f := newFixture(t)
+	t.Chdir(f.checkout.Root)
+	f.repo(&f.first, nil)
+	for _, args := range [][]string{nil, {"--all"}, {"--json"}} {
+		c := dailyuse.DiffCommand()
+		var out bytes.Buffer
+		c.Stdout = &out
+		runtime.Bind(c, runtime.Environment{Context: f.ctx, Adapters: f.first, Interactive: false})
+		_, err := c.Parse(args)
+		runtime.Release(c)
+		if len(args) > 0 && args[0] == "--all" {
+			must(t, err)
+		}
+		has := strings.Contains(out.String(), "Skipped checkout requiring approval; run envden track")
+		if has != (len(args) == 0 || args[0] != "--json") {
+			t.Fatal(args, out.String())
+		}
+	}
+}

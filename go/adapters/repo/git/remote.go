@@ -70,7 +70,7 @@ func normalizeRepoID(remote, resolved string) (string, error) {
 	if err != nil || !utf8.ValidString(decoded) || unsafeText(decoded) {
 		return "", invalid
 	}
-	p, err := remoteParts(strings.TrimSpace(remote))
+	p, err := remoteParts(textcase.Trim(remote))
 	if err != nil {
 		if _, ok := errors.As(err); ok {
 			return "", err
@@ -117,7 +117,7 @@ func resolveSSHHostWith(host string, run func(string, []string, map[string]strin
 		return "", errors.New(errors.Internal, "SSH hostname resolution failed")
 	}
 
-	return strings.TrimSpace(m[1]), nil
+	return textcase.Trim(m[1]), nil
 }
 
 func remoteID(root, name string, resolve func(string) (string, error)) (string, error) {
@@ -133,7 +133,7 @@ func remoteID(root, name string, resolve func(string) (string, error)) (string, 
 	if err != nil {
 		return "", err
 	}
-	remote = strings.TrimSpace(remote)
+	remote = textcase.Trim(remote)
 	parts, err := remoteParts(remote)
 	if err != nil {
 		return "", err

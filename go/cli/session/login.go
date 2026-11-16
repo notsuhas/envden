@@ -113,5 +113,5 @@ func attemptLogin(ctx context.Context, c *client.Client, vaultID []byte, passwor
 		return nil, true, nil
 	}
 
-	return &model.Window{UnlockedUntil: parsed.UnlockedUntil, FreshUntil: *parsed.FreshUntil}, true, nil
+	return &model.Window{UnlockedUntil: sessionTime(parsed.UnlockedUntil), FreshUntil: float64(*parsed.FreshUntil)}, true, nil
 }

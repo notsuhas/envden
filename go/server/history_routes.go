@@ -6,6 +6,7 @@ import (
 	"github.com/notsuhas/envden/go/core/adapters"
 	enverrors "github.com/notsuhas/envden/go/core/errors"
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
+	"github.com/notsuhas/envden/go/core/query"
 	"github.com/notsuhas/envden/go/server/access"
 	"github.com/notsuhas/envden/go/server/shared"
 )
@@ -21,7 +22,7 @@ func (app *App) historyRoute(w http.ResponseWriter, r *http.Request, auth *share
 
 	from := uint64(0)
 	to := ^uint64(0)
-	query := r.URL.Query()
+	query := query.Values(r.URL.RawQuery)
 	raw, ok := query["from"]
 	if ok {
 		input, err := shared.Input(func() (uint64, error) {

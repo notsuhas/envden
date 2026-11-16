@@ -88,7 +88,7 @@ func checkoutAt(path string, resolve func(string) (string, error)) (*adapters.Ch
 	if err != nil {
 		return nil, err
 	}
-	identity := fmt.Sprintf("%d:%d:%s:%d:%s", ddev, dino, dbirth, rino, rbirth)
+	identity := checkoutIdentity(ddev, dino, dbirth, rino, rbirth)
 	device := int64(rdev) //nolint:gosec // G115: device identity preserves the OS bit pattern used by TS.
 	registered := registeredWorktree(root, gitDir)
 
@@ -195,4 +195,8 @@ func submodulePaths(out string) []string {
 	}
 
 	return paths
+}
+
+func checkoutIdentity(device, directory uint64, directoryBirth string, root uint64, rootBirth string) string {
+	return fmt.Sprintf("%.0f:%.0f:%s:%.0f:%s", float64(device), float64(directory), directoryBirth, float64(root), rootBirth)
 }

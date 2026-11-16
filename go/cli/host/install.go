@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"unicode/utf16"
 
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type Options struct {
@@ -95,7 +95,7 @@ func RunServiceCommand(args []string) error {
 			return err
 		}
 
-		message := strings.TrimSpace(result.Stderr)
+		message := textcase.Trim(result.Stderr)
 		if message == "" {
 			message = args[0] + " exited " + strconv.Itoa(result.ExitCode)
 		}

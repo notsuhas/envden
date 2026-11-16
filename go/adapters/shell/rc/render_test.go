@@ -82,6 +82,7 @@ func TestHookRuntime(t *testing.T) {
 				t.Skip("shell unavailable")
 			}
 			home := t.TempDir()
+			t.Setenv("ENVDEN_HOME", filepath.Join(home, ".envden"))
 			state := filepath.Join(home, ".envden", "state")
 			must(t, os.MkdirAll(state, 0700))
 			must(t, os.WriteFile(filepath.Join(state, "notice"), nil, 0600))

@@ -3,11 +3,11 @@ package host
 import (
 	"context"
 	"encoding/binary"
-	"net/url"
 	"os"
 	"runtime"
 	"unicode/utf16"
 
+	url "github.com/nlnwa/whatwg-url/url"
 	"github.com/notsuhas/envden/go/cli/contracts"
 	service "github.com/notsuhas/envden/go/cli/host"
 	"github.com/notsuhas/envden/go/cli/state/model"

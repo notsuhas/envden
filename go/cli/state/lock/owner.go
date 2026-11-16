@@ -2,6 +2,7 @@ package lock
 
 import (
 	"encoding/json"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -9,11 +10,11 @@ import (
 )
 
 type Owner struct {
-	PID       int    `json:"pid"`
-	StartedAt string `json:"startedAt"`
-	Token     string `json:"token"`
-	Identity  string `json:"identity,omitempty"`
-	CreatedAt int64  `json:"createdAt"`
+	PID       int     `json:"pid"`
+	StartedAt string  `json:"startedAt"`
+	Token     string  `json:"token"`
+	Identity  string  `json:"identity,omitempty"`
+	CreatedAt float64 `json:"createdAt"`
 }
 
 func ReadOwner(path string) *Owner {
@@ -50,6 +51,25 @@ func ReadOwner(path string) *Owner {
 		}
 	}
 
+	for _, key := range []string{"token", "startedAt", "identity"} {
+		if raw, ok := v[key]; ok {
+			var value any
+			if json.Unmarshal(raw, &value) != nil {
+				return nil
+			}
+			if _, ok := value.(string); !ok {
+				return nil
+			}
+		}
+	}
+	if string(v["createdAt"]) == "null" {
+		return nil
+	}
+	var pid float64
+	if json.Unmarshal(v["pid"], &pid) != nil || pid <= 0 || math.Trunc(pid) != pid || pid > 9007199254740991 || pid >= float64(math.MaxInt) {
+		return nil
+	}
+	v["pid"], _ = json.Marshal(int(pid))
 	b, _ := json.Marshal(v)
 	var value Owner
 	if json.Unmarshal(b, &value) != nil || value.PID <= 0 {
@@ -68,7 +88,7 @@ func Reclaimable(previous Owner, observed Process, identity string, now int64) b
 			}
 		}
 
-		return now-previous.CreatedAt >= 86400000
+		return float64(now)-previous.CreatedAt >= 86400000
 	}
 
 	return observed.Kind == "dead" || observed.Kind == "live" && observed.StartedAt != previous.StartedAt

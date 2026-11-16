@@ -74,8 +74,8 @@ type FinishLoginParams struct {
 }
 
 type LoginFinish struct {
-	OK                                                               bool
-	FinishLoginRequest, SessionKey, ExportKey, ServerStaticPublicKey string
+	OK                                        bool
+	FinishLoginRequest, SessionKey, ExportKey string
 }
 
 func OpaqueFinishLogin(p FinishLoginParams) (LoginFinish, error) {
@@ -97,11 +97,10 @@ func OpaqueFinishLogin(p FinishLoginParams) (LoginFinish, error) {
 		}
 
 		return LoginFinish{
-			OK:                    true,
-			FinishLoginRequest:    text(ke3.Serialize()),
-			SessionKey:            text(sess),
-			ExportKey:             text(ek),
-			ServerStaticPublicKey: text(loginServerPublicKey(pw, state, resp)),
+			OK:                 true,
+			FinishLoginRequest: text(ke3.Serialize()),
+			SessionKey:         text(sess),
+			ExportKey:          text(ek),
 		}
 	})
 }

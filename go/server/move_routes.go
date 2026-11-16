@@ -81,7 +81,7 @@ func (app *App) moveRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 		if data == nil {
 			return false, enverrors.New(enverrors.NotFound, "Missing public key")
 		}
-		app.write(w, r, data, "", 200)
+		app.write(w, r, data, "application/octet-stream", 200)
 
 		return true, nil
 

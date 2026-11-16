@@ -48,7 +48,7 @@ func WithStateLock(ctx context.Context, home string, timing Timing, fn func(cont
 			_ = os.RemoveAll(path) // Best-effort cleanup preserves the original operation result.
 		}
 	}()
-	if err = PublishOwner(path, Owner{os.Getpid(), observed.StartedAt, token, ProcessIdentity(), timing.Now()}); err != nil {
+	if err = PublishOwner(path, Owner{os.Getpid(), observed.StartedAt, token, ProcessIdentity(), float64(timing.Now())}); err != nil {
 		return err
 	}
 

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"unicode"
 
+	"github.com/charmbracelet/x/ansi"
 	"github.com/notsuhas/envden/go/cli/output"
 	clitime "github.com/notsuhas/envden/go/cli/time"
-	"golang.org/x/text/width"
 )
 
 func ChangesText(changes any) string {
@@ -116,20 +115,4 @@ func HistoryText(result Result, now int64, zone string) string {
 
 func column(s string, width int) string { return s + strings.Repeat(" ", max(0, width-stringWidth(s))) }
 
-func stringWidth(s string) int {
-	n := 0
-	for _, r := range s {
-		if unicode.Is(unicode.Mn, r) || unicode.Is(unicode.Me, r) || unicode.Is(unicode.Cf, r) {
-			continue
-		}
-
-		switch width.LookupRune(r).Kind() {
-		case width.EastAsianWide, width.EastAsianFullwidth:
-			n += 2
-		default:
-			n++
-		}
-	}
-
-	return n
-}
+func stringWidth(s string) int { return ansi.StringWidth(s) }

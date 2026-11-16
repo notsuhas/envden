@@ -207,3 +207,11 @@ func runSQL(t *testing.T, db *storage, query string, args ...any) {
 		t.Fatal(err)
 	}
 }
+
+func TestEmptyBlobPresent(t *testing.T) {
+	db := open(t, t.TempDir())
+	b, err := db.bytes("SELECT x''")
+	if err != nil || b == nil || len(b) != 0 {
+		t.Fatal(b, err)
+	}
+}

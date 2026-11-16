@@ -108,12 +108,12 @@ func Serve(options ServeOptions) (running *Running, err error) {
 	} else {
 		listenResult, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to start server. Is port %d in use?", port) //nolint:staticcheck // ST1005: preserve Bun's user-facing diagnostic.
 		}
 
 		listener = listenResult
 	}
-	httpServer := &http.Server{Handler: app, ReadHeaderTimeout: -1}
+	httpServer := &http.Server{Handler: app, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 10 * time.Second}
 	url := "http://" + listener.Addr().String() + "/"
 	_, _ = fmt.Fprintln(stdout, "envden listening on "+url)
 	scheduler := options.Scheduler

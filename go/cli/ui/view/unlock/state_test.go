@@ -5,9 +5,9 @@ import (
 )
 
 func TestDeriveUnlock(t *testing.T) {
-	future, past, period := int64(200), int64(50), int64(30)
+	future, past, period := float64(200), float64(50), int64(30)
 	for _, row := range []struct {
-		recorded *int64
+		recorded *float64
 		present  bool
 		probe    Probe
 		want     string

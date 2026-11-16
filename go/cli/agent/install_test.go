@@ -34,3 +34,18 @@ func TestInstallAgent(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestInstallCRLFSkill(t *testing.T) {
+	home := t.TempDir()
+	now := func() int64 { return 0 }
+	if err := InstallAgent(home, now); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(home, ".agents", "skills", "envden", "SKILL.md")
+	if err := os.WriteFile(path, []byte("---\r\nname: envden\r\n---\r\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := InstallAgent(home, now); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -1,11 +1,11 @@
 package onboarding
 
 import (
-	"net/url"
 	"regexp"
-	"strings"
 
+	whatwg "github.com/nlnwa/whatwg-url/url"
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 const addressHint = "Not a server address. Use one like envden.your-tailnet.ts.net"
@@ -51,26 +51,16 @@ func DeriveAgent(agent string, yes bool) string {
 }
 
 func RequireServerAddress(text string) (string, error) {
-	candidate := strings.TrimSpace(text)
+	candidate := textcase.Trim(text)
 	if !addressScheme.MatchString(candidate) {
 		candidate = "https://" + candidate
 	}
 
-	parsed, err := url.Parse(candidate)
-	if err != nil || parsed.Hostname() == "" || (parsed.Scheme != "https" && parsed.Scheme != "http") {
+	parsed, err := whatwg.Parse(candidate)
+	if err != nil || parsed.Hostname() == "" || (parsed.Protocol() != "https:" && parsed.Protocol() != "http:") {
 		return "", errors.New(errors.InvalidInput, addressHint)
 	}
-
-	host := strings.ToLower(parsed.Host)
-	if parsed.Scheme == "https" && parsed.Port() == "443" {
-		host = strings.TrimSuffix(host, ":443")
-	}
-
-	if parsed.Scheme == "http" && parsed.Port() == "80" {
-		host = strings.TrimSuffix(host, ":80")
-	}
-
-	return parsed.Scheme + "://" + host, nil
+	return parsed.Protocol() + "//" + parsed.Host(), nil
 }
 
 func AddressProblem(text string) string {

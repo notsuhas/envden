@@ -3,10 +3,10 @@ package rc
 import (
 	"os"
 	"reflect"
-	"strings"
 
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/process"
+	"github.com/notsuhas/envden/go/core/textcase"
 	"golang.org/x/sys/windows"
 )
 
@@ -31,7 +31,7 @@ func verifyOwner(path string) error {
 	if e != nil {
 		return e
 	}
-	if strings.TrimSpace(out.Stdout) != "True" {
+	if textcase.Trim(out.Stdout) != "True" {
 		return errors.New(errors.InvalidInput, "Unsafe shell configuration owner")
 	}
 

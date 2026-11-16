@@ -16,6 +16,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/links/takeover"
 	"github.com/notsuhas/envden/go/cli/onboarding/checkouts"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	scanrender "github.com/notsuhas/envden/go/cli/output/render/scan"
 	"github.com/notsuhas/envden/go/cli/state"
 	"github.com/notsuhas/envden/go/cli/state/model"
@@ -131,13 +132,7 @@ func WorkspaceScanner(interactive bool, terminal *clack.Terminal, stdout, stderr
 				}
 
 				choose := func(path string) (string, error) {
-					if !interactive {
-						return "skip", nil
-					}
-
-					value, err := terminal.Select(clack.PromptOptions{Message: output.SanitizeTerminal(path + " differs from the synced copy"), Options: []clack.Option{{Value: "separate", Label: "Keep separate (local only)"}, {Value: "store", Label: "Use the synced version"}}})
-
-					return value, cancelled(err)
+					return prompts.ChooseVersion(interactive, terminal, path)
 				}
 				values, err := place.LinkCheckout(ctx, a, state, item, place.LinkOptions{Copy: o.Copy, Interactive: interactive, Approve: func(adapters.Checkout) (bool, error) { return true, nil }, Ask: ask, Choose: choose, Report: report})
 				own = append(own, values...)

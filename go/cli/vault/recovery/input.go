@@ -2,11 +2,11 @@ package recovery
 
 import (
 	"encoding/json"
-	"strings"
 
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/keys"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type KitInput struct {
@@ -15,7 +15,7 @@ type KitInput struct {
 }
 
 func SecretKeyProblem(value string) string {
-	raw, err := keys.DecodeSecretKey(strings.TrimSpace(value))
+	raw, err := keys.DecodeSecretKey(textcase.Trim(value))
 	if err == nil && len(raw) == 16 {
 		return ""
 	}
@@ -24,7 +24,7 @@ func SecretKeyProblem(value string) string {
 }
 
 func VaultIDProblem(value string) string {
-	raw, err := encoding.Unbase32(strings.TrimSpace(value))
+	raw, err := encoding.Unbase32(textcase.Trim(value))
 	if err == nil && len(raw) == 32 {
 		return ""
 	}
@@ -33,13 +33,18 @@ func VaultIDProblem(value string) string {
 }
 
 func ParseKit(text string) (KitInput, error) {
+	var fields map[string]json.RawMessage
 	var kit KitInput
-	if json.Unmarshal([]byte(text), &kit) != nil || VaultIDProblem(kit.VaultID) != "" || SecretKeyProblem(kit.SecretKey) != "" {
+	if json.Unmarshal([]byte(text), &fields) == nil {
+		_ = json.Unmarshal(fields["vaultId"], &kit.VaultID)
+		_ = json.Unmarshal(fields["secretKey"], &kit.SecretKey)
+	}
+	if VaultIDProblem(kit.VaultID) != "" || SecretKeyProblem(kit.SecretKey) != "" {
 		return KitInput{}, errors.New(errors.InvalidInput, "Not a recovery kit file")
 	}
 
-	kit.VaultID = strings.TrimSpace(kit.VaultID)
-	kit.SecretKey = strings.TrimSpace(kit.SecretKey)
+	kit.VaultID = textcase.Trim(kit.VaultID)
+	kit.SecretKey = textcase.Trim(kit.SecretKey)
 
 	return kit, nil
 }

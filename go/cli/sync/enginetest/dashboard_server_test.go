@@ -80,8 +80,8 @@ func TestDashboardServerSyncFlows(t *testing.T) {
 	})
 	t.Run("recorded unlock expiry appears once server agrees", func(t *testing.T) {
 		s := f.state(f.third)
-		until := clock() + 86400000
-		s.Session = &state.Window{UnlockedUntil: &until, FreshUntil: clock()}
+		until := float64(clock()) + 86400000
+		s.Session = &state.Window{UnlockedUntil: &until, FreshUntil: float64(clock())}
 		f.save(f.third, s)
 		unlock := object(object(c.get(f.third, "/api/status")["overview"])["unlock"])
 		equal(t, unlock["kind"], any("until"))

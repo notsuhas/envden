@@ -166,7 +166,7 @@ func DashboardStatus(ctx context.Context, a contracts.Adapters, sources Sources)
 		}
 	}
 
-	var recorded *int64
+	var recorded *float64
 	if state.Session != nil {
 		recorded = state.Session.UnlockedUntil
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/onboarding/host"
@@ -16,6 +15,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/vault/recovery"
 	"github.com/notsuhas/envden/go/cli/vault/setup"
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type SetupOptions struct {
@@ -163,7 +163,7 @@ func createState(ctx context.Context, a contracts.Adapters, o SetupOptions, p Pr
 
 			key, err := p.Secret("Secret key from that kit (EK1-…)", recovery.SecretKeyProblem)
 
-			return strings.TrimSpace(key), err
+			return textcase.Trim(key), err
 		}, OnKit: func(kit vault.SetupKit) error {
 			if o.KitOut != "" {
 				if err := recovery.WriteKit(o.KitOut, kit); err != nil {

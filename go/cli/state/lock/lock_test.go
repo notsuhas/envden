@@ -68,3 +68,15 @@ func TestOwnerRejectsLinks(t *testing.T) {
 		t.Fatal("symlink owner accepted")
 	}
 }
+
+func TestFractionalOwner(t *testing.T) {
+	path := t.TempDir()
+	raw := `{"pid":1.0,"startedAt":"a","token":"t","createdAt":1794792136609.9294}`
+	if err := os.WriteFile(filepath.Join(path, "owner.json"), []byte(raw), 0600); err != nil {
+		t.Fatal(err)
+	}
+	owner := ReadOwner(path)
+	if owner == nil || !Reclaimable(*owner, Process{Kind: "unknown"}, "", 1794964936610) {
+		t.Fatal(owner)
+	}
+}

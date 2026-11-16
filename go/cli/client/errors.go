@@ -42,8 +42,8 @@ func ResponseError(response *http.Response, path string) error {
 		return errors.New(errors.InvalidData, "Invalid server response")
 	}
 
-	var head struct{ Kind string }
-	if json.Unmarshal(raw, &head) == nil && head.Kind == "head-moved" {
+	var head map[string]any
+	if json.Unmarshal(raw, &head) == nil && head["kind"] == "head-moved" {
 		return errors.New(errors.HeadMoved, messages[errors.HeadMoved])
 	}
 

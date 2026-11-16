@@ -175,7 +175,7 @@ func AcceptHead(context *syncmodel.Context, history *vault.History, readOnly boo
 		}
 	}
 
-	for id := range accepted.NoFastForward {
+	for _, id := range accepted.NoFastForward {
 		if !result.NoFastForward[id] {
 			pending = append(pending, id)
 		}

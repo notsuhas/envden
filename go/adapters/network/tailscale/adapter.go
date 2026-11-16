@@ -2,11 +2,11 @@ package tailscale
 
 import (
 	"fmt"
-	"strings"
 	"unicode/utf16"
 
 	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type CommandResult struct {
@@ -57,7 +57,7 @@ func (a *adapter) command(args []string, summary string) (string, error) {
 		return "", errors.Wrap(errors.Internal, summary, err)
 	}
 	if r.ExitCode != 0 {
-		detail := utf16.Encode([]rune(strings.TrimSpace(r.Stderr)))
+		detail := utf16.Encode([]rune(textcase.Trim(r.Stderr)))
 		if len(detail) > 500 {
 			detail = detail[:500]
 		}

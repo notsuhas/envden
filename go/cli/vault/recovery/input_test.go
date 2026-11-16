@@ -20,7 +20,7 @@ func TestRecoveryInput(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, text := range []string{"# kit", "{}", `{"vaultId":"v","secretKey":"` + secret + `"}`, `{"vaultId":"` + id + `","secretKey":"EK1-AAAAA"}`} {
+	for _, text := range []string{"# kit", "{}", `{"VAULTID":"` + id + `","secretKey":"` + secret + `"}`, `{"vaultId":"` + id + `","SECRETKEY":"` + secret + `"}`, `{"vaultId":"v","secretKey":"` + secret + `"}`, `{"vaultId":"` + id + `","secretKey":"EK1-AAAAA"}`} {
 		if _, err := ParseKit(text); !errors.Is(err, errors.InvalidInput) {
 			t.Fatal(text, err)
 		}

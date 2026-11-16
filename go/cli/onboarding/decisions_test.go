@@ -72,3 +72,12 @@ func TestPromptRefusesNoTTY(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestWHATWGServerAddresses(t *testing.T) {
+	for _, r := range []struct{ input, want string }{{"https://host:0443", "https://host"}, {"https://127.1", "https://127.0.0.1"}, {"https://Bücher.ts.net", "https://xn--bcher-kva.ts.net"}, {`https://host\x`, "https://host"}, {"https://%68ost", "https://host"}, {"https://host:99999", ""}} {
+		got, err := RequireServerAddress(r.input)
+		if got != r.want || (err != nil) != (r.want == "") {
+			t.Errorf("%s = %s, %v", r.input, got, err)
+		}
+	}
+}

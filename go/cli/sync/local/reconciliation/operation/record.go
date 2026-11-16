@@ -1,11 +1,11 @@
 package operation
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"regexp"
 	"strings"
 
+	"github.com/notsuhas/envden/go/cli/client"
 	state "github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/records"
 	envdenerrors "github.com/notsuhas/envden/go/core/errors"
@@ -14,6 +14,7 @@ import (
 )
 
 type Operation struct {
+	parsed  bool
 	Targets []state.Link `json:"targets"`
 	Before  []*string    `json:"before"`
 	Written []bool       `json:"written"`
@@ -26,7 +27,7 @@ type Operation struct {
 var headerPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{43}$`)
 
 func DecodeEntry(value string) (manifests.FileEntry, error) {
-	raw, err := base64.RawURLEncoding.DecodeString(value)
+	raw, err := client.Binary(value)
 	if err != nil {
 		return manifests.FileEntry{}, err
 	}
@@ -65,6 +66,11 @@ func DecodeOperation(saved string) (Operation, error) {
 		_, err = DecodeEntry(*value.Entry)
 	}
 
+	value.parsed = true
+	for i := range value.Targets {
+		value.Targets[i].LocalOnly = false
+		value.Targets[i].OriginalLink = nil
+	}
 	return value, err
 }
 

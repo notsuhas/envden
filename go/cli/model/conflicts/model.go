@@ -12,6 +12,8 @@ type Record struct {
 	Path         string       `json:"path"`
 	Store        string       `json:"store"`
 	Mode         string       `json:"mode"`
+	OriginalLink *string      `json:"originalLink,omitempty"`
+	LocalOnly    bool         `json:"localOnly,omitempty"`
 	Base         string       `json:"base"`
 	Entry        *string      `json:"entry"`
 	Targets      []model.Link `json:"targets"`

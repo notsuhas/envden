@@ -42,6 +42,9 @@ func (s *storage) bytes(q string, args ...any) ([]byte, error) {
 		return nil, err
 	}
 
+	if b == nil {
+		b = []byte{}
+	}
 	return b, nil
 }
 

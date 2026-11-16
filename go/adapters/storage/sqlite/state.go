@@ -25,6 +25,12 @@ func (s *storage) states(v []byte, k adapters.StateKind) ([]adapters.StateEntry,
 			return nil, err
 		}
 
+		if row.Key == nil {
+			row.Key = []byte{}
+		}
+		if row.Bytes == nil {
+			row.Bytes = []byte{}
+		}
 		out = append(out, row)
 	}
 	if err := r.Err(); err != nil {

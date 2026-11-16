@@ -74,6 +74,7 @@ func Reconcile(context *syncmodel.Context, repos, noFastForward map[string]bool,
 		return result, err
 	}
 
+	selected := entries[:0]
 	for _, entry := range entries {
 		name, err := remote.EntryName(context, entry)
 		if err != nil {
@@ -87,6 +88,15 @@ func Reconcile(context *syncmodel.Context, repos, noFastForward map[string]bool,
 		if !adapters.AcceptsEnvPath(name.Path, rules) {
 			context.Report(output.SanitizeTerminal("Skipped env file: " + name.Path))
 			continue
+		}
+
+		selected = append(selected, entry)
+	}
+
+	for _, entry := range selected {
+		name, err := remote.EntryName(context, entry)
+		if err != nil {
+			return result, err
 		}
 
 		before := result.Conflicts

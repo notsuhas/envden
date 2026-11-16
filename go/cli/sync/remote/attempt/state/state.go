@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
 	statefiles "github.com/notsuhas/envden/go/cli/state/files"
 	state "github.com/notsuhas/envden/go/cli/state/model"
@@ -67,7 +68,7 @@ func DecodeAttempt(saved, name string) (Attempt, error) {
 	}
 
 	for _, entry := range value.Entries {
-		raw, err := base64.RawURLEncoding.DecodeString(entry)
+		raw, err := client.Binary(entry)
 		if err != nil {
 			return value, err
 		}

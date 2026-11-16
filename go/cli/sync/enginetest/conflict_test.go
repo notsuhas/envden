@@ -13,7 +13,11 @@ import (
 func TestSyncConflict(t *testing.T) {
 	f := newFixture(t)
 	f.pull(f.second)
-	b := f.state(f.second).Links[0].Store
+	saved := f.state(f.second)
+	link := "original.env"
+	saved.Links[0].OriginalLink = &link
+	f.save(f.second, saved)
+	b := saved.Links[0].Store
 	f.pull(f.first)
 	f.write(f.aStore, "TOKEN=local-test-value\nA=remote\nB=one\n")
 	f.write(b, "TOKEN=local-test-value\nA=mine\nB=one\n")
@@ -31,6 +35,12 @@ func TestSyncConflict(t *testing.T) {
 
 	if !strings.Contains(f.read(b), "A=mine") {
 		t.Fatal("lost mine")
+	}
+
+	var document struct{ Records []map[string]any }
+	must(t, json.Unmarshal([]byte(f.read(filepath.Join(f.second.Home, "state", "conflicts.json"))), &document))
+	if len(document.Records) != 1 || document.Records[0]["originalLink"] != "original.env" {
+		t.Fatal("conflict lost originalLink")
 	}
 
 	records, err := local.ConflictRecords(f.second.Home)

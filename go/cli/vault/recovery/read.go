@@ -2,9 +2,9 @@ package recovery
 
 import (
 	"os"
-	"strings"
 
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func ReadKit(path string, secret func(string, func(string) string) (string, error), input func(string, string, bool, func(string) string) (string, error)) (KitInput, error) {
@@ -27,5 +27,5 @@ func ReadKit(path string, secret func(string, func(string) string) (string, erro
 		return KitInput{}, err
 	}
 
-	return KitInput{VaultID: strings.TrimSpace(id), SecretKey: strings.TrimSpace(key)}, nil
+	return KitInput{VaultID: textcase.Trim(id), SecretKey: textcase.Trim(key)}, nil
 }

@@ -36,7 +36,7 @@ func ExchangeJoiner(ctx context.Context, a contracts.Adapters, cl *client.Client
 	}
 
 	if saved == nil || *saved == "" {
-		if clearErr := persistence.ClearJoiner(a); clearErr != nil {
+		if clearErr := lock.WithStateLock(ctx, a.Home, a.Timing, func(context.Context) error { return persistence.ClearJoiner(a) }); clearErr != nil {
 			return clearErr
 		}
 
@@ -46,7 +46,7 @@ func ExchangeJoiner(ctx context.Context, a contracts.Adapters, cl *client.Client
 	}
 
 	if errors.Is(err, errors.Unauthorized) || errors.Is(err, errors.Conflict) || errors.Is(err, errors.InvalidData) || errors.Is(err, errors.NotFound) {
-		if clearErr := persistence.ClearJoiner(a); clearErr != nil {
+		if clearErr := lock.WithStateLock(ctx, a.Home, a.Timing, func(context.Context) error { return persistence.ClearJoiner(a) }); clearErr != nil {
 			return clearErr
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"path/filepath"
 
+	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	statefiles "github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/records"
@@ -33,7 +34,7 @@ func AppliedFiles(home string) (jsonvalue.Object, error) {
 				return nil, envdenerrors.New(envdenerrors.InvalidData, "Invalid applied files")
 			}
 
-			raw, err := base64.RawURLEncoding.DecodeString(text)
+			raw, err := client.Binary(text)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +88,7 @@ func MarkAppliedEntry(home, encoded, store string, now func() int64, writes ...f
 		}
 	}
 
-	raw, err := base64.RawURLEncoding.DecodeString(encoded)
+	raw, err := client.Binary(encoded)
 	if err != nil {
 		return err
 	}

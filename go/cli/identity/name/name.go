@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func Fit(value string, reserved int) string {
@@ -29,7 +31,7 @@ func Suggested(hostname string) string {
 		return r
 	}, hostname)
 	host = strings.Split(host, ".")[0]
-	value := strings.TrimSpace(Fit(strings.TrimSpace(host), 0))
+	value := textcase.Trim(Fit(textcase.Trim(host), 0))
 	if value == "" {
 		return "device"
 	}

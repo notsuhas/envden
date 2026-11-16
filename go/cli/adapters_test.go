@@ -53,3 +53,17 @@ func TestStableExecutable(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyEnvdenHomeUsesWorkingDirectory(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	t.Setenv("ENVDEN_HOME", "")
+	a, err := CreateAdapters(&AdapterOptions{UserHome: t.TempDir(), Executable: "/envden", Hostname: "test"}, func() int64 { return 0 })
+	if err != nil {
+		t.Fatal(err)
+	}
+	real, err := filepath.EvalSymlinks(dir)
+	if err != nil || a.Home != real {
+		t.Fatal(a.Home, real, err)
+	}
+}

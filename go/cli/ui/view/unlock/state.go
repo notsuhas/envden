@@ -1,8 +1,8 @@
 package unlock
 
 type Unlock struct {
-	Kind  string `json:"kind"`
-	Until int64  `json:"until,omitempty"`
+	Kind  string  `json:"kind"`
+	Until float64 `json:"until,omitempty"`
 }
 
 type Probe struct {
@@ -10,7 +10,7 @@ type Probe struct {
 	Period *int64
 }
 
-func DeriveUnlock(recorded *int64, recordedPresent bool, probe Probe, now int64) Unlock {
+func DeriveUnlock(recorded *float64, recordedPresent bool, probe Probe, now int64) Unlock {
 	if probe.Kind == "locked" {
 		return Unlock{Kind: "locked"}
 	}
@@ -20,7 +20,7 @@ func DeriveUnlock(recorded *int64, recordedPresent bool, probe Probe, now int64)
 			return Unlock{Kind: "never"}
 		}
 
-		if recorded != nil && *recorded > now {
+		if recorded != nil && *recorded > float64(now) {
 			return Unlock{"until", *recorded}
 		}
 
@@ -35,7 +35,7 @@ func DeriveUnlock(recorded *int64, recordedPresent bool, probe Probe, now int64)
 		return Unlock{Kind: "unknown"}
 	}
 
-	if *recorded > now {
+	if *recorded > float64(now) {
 		return Unlock{"until", *recorded}
 	}
 

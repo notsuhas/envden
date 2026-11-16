@@ -15,6 +15,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/ui/routes"
 	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
 	"github.com/notsuhas/envden/go/cli/ui/view/status"
+	"github.com/notsuhas/envden/go/core/textcase"
 	"github.com/notsuhas/envden/go/lib/commander"
 )
 
@@ -61,7 +62,7 @@ func UiCommand(actions ...routes.Actions) *commander.Command {
 }
 
 func dashboardPort(raw string) int {
-	text := strings.TrimSpace(raw)
+	text := textcase.Trim(raw)
 	value, err := strconv.ParseFloat(text, 64)
 	if strings.HasPrefix(strings.ToLower(text), "0x") || strings.HasPrefix(strings.ToLower(text), "0o") || strings.HasPrefix(strings.ToLower(text), "0b") {
 		n, e := strconv.ParseInt(text, 0, 64)

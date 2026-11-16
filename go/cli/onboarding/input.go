@@ -3,7 +3,6 @@ package onboarding
 import (
 	"context"
 	"io"
-	"strings"
 
 	"github.com/notsuhas/envden/go/cli/client"
 	"github.com/notsuhas/envden/go/cli/contracts"
@@ -11,6 +10,7 @@ import (
 	"github.com/notsuhas/envden/go/core/errors"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/proofs"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func readToken(value string, p Prompts, stdin io.Reader) (string, error) {
@@ -30,7 +30,7 @@ func readToken(value string, p Prompts, stdin io.Reader) (string, error) {
 			return "", err
 		}
 
-		value = strings.TrimSpace(string(raw))
+		value = textcase.Trim(string(raw))
 		if value == "" {
 			return "", errors.New(errors.InvalidInput, "Provide the token on stdin or use the prompt in a terminal")
 		}

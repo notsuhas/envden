@@ -5,32 +5,20 @@ import (
 	"net/url"
 	"strings"
 
+	whatwg "github.com/nlnwa/whatwg-url/url"
 	"github.com/notsuhas/envden/go/server/middleware"
 )
 
 func normalizeRequestURL(r *http.Request) {
-	path := strings.ReplaceAll(r.URL.EscapedPath(), "\\", "/")
-	segments := strings.Split(path, "/")
-	out := []string{}
-	for i, part := range segments {
-		dot := strings.ReplaceAll(strings.ToLower(part), "%2e", ".")
-		switch dot {
-		case ".":
-			if i == len(segments)-1 {
-				out = append(out, "")
-			}
-		case "..":
-			if len(out) > 1 {
-				out = out[:len(out)-1]
-			}
-			if i == len(segments)-1 {
-				out = append(out, "")
-			}
-		default:
-			out = append(out, part)
-		}
+	raw := r.RequestURI
+	if strings.HasPrefix(raw, "/") {
+		raw = "http://envden.invalid" + raw
 	}
-	normalized := strings.Join(out, "/")
+	parsed, err := whatwg.Parse(raw)
+	if err != nil {
+		return
+	}
+	normalized := parsed.Pathname()
 	decoded, err := url.PathUnescape(normalized)
 	if err == nil {
 		r.URL.Path = decoded

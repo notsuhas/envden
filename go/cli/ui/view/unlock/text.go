@@ -12,9 +12,9 @@ func UnlockText(unlock Unlock, now int64, date func(int64) string) string {
 		return fixed[unlock.Kind]
 	}
 
-	if unlock.Until <= now {
+	if unlock.Until <= float64(now) {
 		return fixed["locked"]
 	}
 
-	return date(unlock.Until) + " (" + datefns.FormatDistanceStrict(time.UnixMilli(unlock.Until), time.UnixMilli(now), datefns.DistanceOptions{AddSuffix: true}) + ")"
+	return date(int64(unlock.Until)) + " (" + datefns.FormatDistanceStrict(time.UnixMilli(int64(unlock.Until)), time.UnixMilli(now), datefns.DistanceOptions{AddSuffix: true}) + ")"
 }

@@ -103,3 +103,13 @@ func TestErrorsSanitized(t *testing.T) {
 		t.Fatal(body)
 	}
 }
+
+func TestDashboardAssetLength(t *testing.T) {
+	app := CreateDashboardApp(Dashboard{Port: 4100, Assets: map[string]assets.PageAsset{"/": {Body: []byte("page"), Type: "text/html"}}})
+	r := httptest.NewRequest("GET", "http://localhost:4100/", nil)
+	w := httptest.NewRecorder()
+	app.ServeHTTP(w, r)
+	if w.Header().Get("Content-Length") != "4" {
+		t.Fatal(w.Header())
+	}
+}

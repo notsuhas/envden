@@ -173,7 +173,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 			}
 			for _, other := range c.Options {
 				if other.Key == key {
-					return result, c.fail("commander.conflictingOption", "option '"+o.flag()+"' cannot be used with option '"+other.flag()+"'")
+					return result, c.fail("commander.conflictingOption", "option '"+o.Flags+"' cannot be used with option '"+other.Flags+"'")
 				}
 			}
 		}

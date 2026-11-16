@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/adapters"
@@ -18,6 +19,11 @@ func (app *App) importRoute(w http.ResponseWriter, r *http.Request, auth *shared
 	path := r.URL.EscapedPath()
 	var result any
 	parts := strings.Split(path, "/")
+	for i, part := range parts {
+		if decoded, err := url.PathUnescape(part); err == nil {
+			parts[i] = decoded
+		}
+	}
 	if len(parts) > 3 {
 		if parts[2] == "move" {
 			if err := authn.RequireMove(o, auth); err != nil {

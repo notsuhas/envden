@@ -13,11 +13,11 @@ func globMatch(pattern, target string) bool {
 	}
 	expression, ok := globExpression([]rune(pattern))
 	if !ok {
-		return false
+		return negate
 	}
 	re, err := regexp.Compile("^(?:" + expression + ")$")
 	if err != nil {
-		return false
+		return negate
 	}
 
 	return re.MatchString(target) != negate
@@ -68,8 +68,7 @@ func globExpression(p []rune) (string, bool) {
 				j++
 			}
 			if j == len(p) {
-				out.WriteString(`\[`)
-				continue
+				return "", false
 			}
 			content := string(p[i+1 : j])
 			if strings.HasPrefix(content, "!") {

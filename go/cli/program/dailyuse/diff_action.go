@@ -16,7 +16,11 @@ func diffAction(i *commander.Invocation) error {
 		return err
 	}
 
-	options := sync.CommandOptions(env.Adapters, i.Values, env.Interactive, nil)
+	options := sync.CommandOptions(env.Adapters, i.Values, env.Interactive, func(message string) {
+		if i.Values["json"] != true {
+			_ = runtime.Print(i, output.SanitizeTerminal(message))
+		}
+	})
 	result, err := sync.Diff(env.Context, env.Adapters, options)
 	if err != nil {
 		return err

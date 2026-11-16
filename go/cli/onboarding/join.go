@@ -7,6 +7,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/contracts"
 	"github.com/notsuhas/envden/go/cli/pairing"
 	"github.com/notsuhas/envden/go/cli/state"
+	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/cli/vault/recovery"
@@ -33,7 +34,7 @@ func RunJoin(ctx context.Context, a contracts.Adapters, address string, o JoinOp
 }
 
 func JoinVault(ctx context.Context, a contracts.Adapters, address string, o JoinOptions, prompts Prompts, stdout io.Writer, e JoinEffects) error {
-	if err := pairing.RefuseCommittedJoin(a, o.Rejoin); err != nil {
+	if err := lock.WithStateLock(ctx, a.Home, a.Timing, func(context.Context) error { return pairing.RefuseCommittedJoin(a, o.Rejoin) }); err != nil {
 		return err
 	}
 

@@ -31,7 +31,15 @@ func RecordUnlockWindow(ctx context.Context, c *client.Client, state *model.Stat
 		return err
 	}
 
-	state.Session = &model.Window{UnlockedUntil: window.UnlockedUntil, FreshUntil: window.FreshUntil}
+	state.Session = &model.Window{UnlockedUntil: sessionTime(window.UnlockedUntil), FreshUntil: float64(window.FreshUntil)}
 
 	return nil
+}
+
+func sessionTime(value *int64) *float64 {
+	if value == nil {
+		return nil
+	}
+	n := float64(*value)
+	return &n
 }

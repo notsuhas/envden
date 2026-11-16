@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	filippo.io/edwards25519 v1.2.0
 	github.com/bytemare/opaque v0.18.0
+	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/creack/pty v1.1.24
 	github.com/google/uuid v1.6.0
 	github.com/hdevalence/ed25519consensus v0.2.0
@@ -18,15 +19,19 @@ require (
 
 require (
 	filippo.io/nistec v0.0.4 // indirect
-	github.com/bits-and-blooms/bitset v1.20.0 // indirect
+	github.com/bits-and-blooms/bitset v1.24.4 // indirect
 	github.com/bytemare/ecc v0.9.0 // indirect
 	github.com/bytemare/hash v0.6.2 // indirect
 	github.com/bytemare/hash2curve v0.5.4 // indirect
 	github.com/bytemare/ksf v0.5.0 // indirect
 	github.com/bytemare/secp256k1 v0.3.0 // indirect
+	github.com/clipperhouse/displaywidth v0.11.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/gtank/ristretto255 v0.2.0 // indirect
+	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
+	github.com/mattn/go-runewidth v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/net v0.62.0 // indirect

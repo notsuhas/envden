@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/notsuhas/envden/go/core/adapters"
@@ -27,6 +28,11 @@ func (app *App) readRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 	id := auth.Request.VaultId
 	path := r.URL.EscapedPath()
 	parts := strings.Split(path, "/")
+	for i, part := range parts {
+		if decoded, err := url.PathUnescape(part); err == nil {
+			parts[i] = decoded
+		}
+	}
 	if r.Method == "PUT" && len(parts) == 4 && parts[2] == "blobs" {
 		return app.uploadBlob(w, r, auth, body)
 	}

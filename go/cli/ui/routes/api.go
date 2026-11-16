@@ -8,6 +8,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/ui/routes/inputs"
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/query"
 )
 
 type Action func(context.Context, inputs.Input) (any, error)
@@ -17,7 +18,11 @@ type Actions struct{ Status, Devices, Pull, Push, Resolve, Rename, History, Rest
 func API(r *http.Request, actions Actions) (any, bool, error) {
 	var action Action
 	kind := ""
-	switch r.Method + " " + r.URL.Path {
+	method := r.Method
+	if method == "HEAD" {
+		method = "GET"
+	}
+	switch method + " " + r.URL.Path {
 	case "GET /api/status":
 		action = actions.Status
 	case "GET /api/devices":
@@ -47,7 +52,7 @@ func API(r *http.Request, actions Actions) (any, bool, error) {
 		var raw []byte
 		if kind == "file" {
 			object := jsonvalue.Object{}
-			for k, v := range r.URL.Query() {
+			for k, v := range query.Values(r.URL.RawQuery) {
 				if len(v) > 0 {
 					object.Set(k, v[0])
 				}

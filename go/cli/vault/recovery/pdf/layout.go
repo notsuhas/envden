@@ -114,7 +114,7 @@ func RenderKit(document Document, metadataTime int64) ([]byte, error) {
 	for _, paragraph := range document.Instructions {
 		for _, line := range lines(printable(paragraph, "Helvetica"), 467.28) {
 			y -= 16
-			p.write(strings.TrimSpace(line), 64, y, "Helvetica", 11, false)
+			p.write(textcase.Trim(line), 64, y, "Helvetica", 11, false)
 		}
 
 		y -= 8

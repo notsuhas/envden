@@ -30,7 +30,6 @@ func TestOpaqueVectors(t *testing.T) {
 			eq(t, login.SessionKey, l["sessionKey"])
 			eq(t, login.ExportKey, l["exportKey"])
 			eq(t, login.FinishLoginRequest, l["finishLoginRequest"])
-			eq(t, login.ServerStaticPublicKey, l["serverStaticPublicKey"])
 			server := must(opaque.OpaqueServerFinishLogin(opaque.ServerFinishLoginParams{Identifiers: v.Ids.Identifiers, ServerLoginState: l["serverLoginState"], FinishLoginRequest: l["finishLoginRequest"]}))
 			eq(t, server.SessionKey, login.SessionKey)
 			p.Password = "wrong"

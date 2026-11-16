@@ -3,13 +3,13 @@ package tailscale
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func serveConflict(stdout, hostname string, port int, target string) (bool, error) {
-	raw := strings.TrimSpace(stdout)
+	raw := textcase.Trim(stdout)
 	if raw == "" || raw == "null" {
 		raw = "{}"
 	}

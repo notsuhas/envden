@@ -69,6 +69,15 @@ func hydrate(v reflect.Value) {
 
 func equalJSON(t *testing.T, want, got any, path string) {
 	t.Helper()
+	if strings.HasSuffix(path, ".noFastForward") {
+		if ids, ok := got.([]any); ok {
+			set := map[string]any{}
+			for _, id := range ids {
+				set[id.(string)] = true
+			}
+			got = set
+		}
+	}
 	switch w := want.(type) {
 	case map[string]any:
 		g, ok := got.(map[string]any)

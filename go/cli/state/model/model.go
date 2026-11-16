@@ -15,8 +15,8 @@ type Server struct {
 }
 
 type Window struct {
-	UnlockedUntil *int64 `json:"unlockedUntil"`
-	FreshUntil    int64  `json:"freshUntil"`
+	UnlockedUntil *float64 `json:"unlockedUntil"`
+	FreshUntil    float64  `json:"freshUntil"`
 }
 
 type Checkout struct {

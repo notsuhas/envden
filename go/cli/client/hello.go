@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -84,7 +85,11 @@ func Hello(ctx context.Context, address string, pin []byte, fetch Fetch, minServ
 		expected = presented
 	}
 
-	verified := requests.VerifyHello(signed, challenge, u.Hostname(), expected, "0.0.0")
+	host := u.Hostname()
+	if strings.HasPrefix(u.Host, "[") {
+		host = "[" + host + "]"
+	}
+	verified := requests.VerifyHello(signed, challenge, host, expected, "0.0.0")
 	if !verified.OK {
 		return Greeting{}, errors.New(errors.Unauthorized, "Server identity doesn't match the expected server. Check the server address")
 	}

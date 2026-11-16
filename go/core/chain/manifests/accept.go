@@ -23,7 +23,7 @@ type Result struct {
 	Checkpoint    *Checkpoint
 	Headers       []encoding.Signed[manifests.ManifestHeader]
 	Repairs       []manifests.FileEntry
-	NoFastForward map[string]bool
+	NoFastForward []string
 }
 
 func AcceptManifest(input AcceptInput) (Result, error) {
@@ -99,7 +99,8 @@ func accept(input AcceptInput) (Result, error) {
 	}
 	known[chainshared.ID(hash)] = true
 	repairs := []manifests.FileEntry{}
-	noFastForward := map[string]bool{}
+	noFastForward := []string{}
+	seenRepairs := map[string]bool{}
 	_, err = CheckedFiles(&c.Files, c.Header.Body.FilesHash)
 	if err != nil {
 		return *new(Result), err
@@ -145,7 +146,11 @@ func accept(input AcceptInput) (Result, error) {
 		repairs = append(repairs, changes...)
 		for _, entry := range changes {
 			if input.LocalFileIds[chainshared.ID(entry.FileId)] {
-				noFastForward[chainshared.ID(entry.FileId)] = true
+				id := chainshared.ID(entry.FileId)
+				if !seenRepairs[id] {
+					noFastForward = append(noFastForward, id)
+					seenRepairs[id] = true
+				}
 			}
 		}
 		hash, err := headerHash(signed)

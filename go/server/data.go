@@ -1,6 +1,7 @@
 package server
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,6 +12,8 @@ import (
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/query"
+	"github.com/notsuhas/envden/go/core/textcase"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/vault"
 )
@@ -62,9 +65,9 @@ func (app *App) dataRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 			result = create
 		} else {
 			var mailbox *int
-			raw, ok := r.URL.Query()["mailbox"]
+			raw, ok := query.Values(r.URL.RawQuery)["mailbox"]
 			if ok {
-				n, _ := strconv.Atoi(raw[0])
+				n := mailboxNumber(raw[0])
 				mailbox = &n
 			}
 			commit, err := vault.Commit(o, auth, swap, digest, mailbox)
@@ -90,4 +93,34 @@ func (app *App) dataRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 	}
 
 	return app.readRoute(w, r, auth, body)
+}
+
+func mailboxNumber(s string) int {
+	s = textcase.Trim(s)
+	if s == "" {
+		return 0
+	}
+	if len(s) > 2 && s[0] == '0' {
+		base := 0
+		switch s[1] {
+		case 'x', 'X':
+			base = 16
+		case 'b', 'B':
+			base = 2
+		case 'o', 'O':
+			base = 8
+		}
+		if base != 0 {
+			n, err := strconv.ParseUint(s[2:], base, 64)
+			if err == nil && n <= math.MaxInt {
+				return int(n)
+			}
+			return -1
+		}
+	}
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil || math.IsNaN(n) || math.IsInf(n, 0) || math.Trunc(n) != n || n >= float64(math.MaxInt) || n < float64(math.MinInt) {
+		return -1
+	}
+	return int(n)
 }
