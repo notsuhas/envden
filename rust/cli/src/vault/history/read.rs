@@ -58,24 +58,28 @@ pub fn read_history(
 ) -> Result<IVaultHistory> {
     let empty = ILocalHistory::default();
     let local = local.unwrap_or(&empty);
-    let stored_entries: Vec<_> = local
+    let (stored_entries, mut entries): (Vec<_>, Vec<p::ISigned<p::TEntry>>) = local
         .entries
         .iter()
-        .map(|v| binary(v))
-        .collect::<Result<_>>()?;
-    let stored_headers: Vec<_> = local
+        .map(|value| {
+            let bytes = binary(value)?;
+            let entry = p::decode(&bytes)?;
+            Ok((bytes, entry))
+        })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .unzip();
+    let (stored_headers, mut headers): (Vec<_>, Vec<p::ISigned<p::IManifestHeader>>) = local
         .headers
         .iter()
-        .map(|v| binary(v))
-        .collect::<Result<_>>()?;
-    let mut entries: Vec<p::ISigned<p::TEntry>> = stored_entries
-        .iter()
-        .map(|v| p::decode(v))
-        .collect::<Result<_>>()?;
-    let mut headers: Vec<p::ISigned<p::IManifestHeader>> = stored_headers
-        .iter()
-        .map(|v| p::decode(v))
-        .collect::<Result<_>>()?;
+        .map(|value| {
+            let bytes = binary(value)?;
+            let header = p::decode(&bytes)?;
+            Ok((bytes, header))
+        })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .unzip();
     let mut states = BTreeMap::new();
     let state = stored_state(&entries, local.verified_state.as_ref(), &mut states)?;
     let incoming = objects(
