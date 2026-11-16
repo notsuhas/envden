@@ -56,7 +56,7 @@ The checked package DAG can be reproduced with `python3 scripts/ports/check-cli-
 
 `go test ./cli/...` includes 43 TS-binary help/version goldens, exact TS state/config fixtures, authenticated history fixtures, signed HTTP/retry cases, OPAQUE sessions and private persistence. `python3 scripts/ports/check-cli-help.py` compares both built binaries directly. `go vet ./cli/... ./cmd/envden` checks the foundation.
 
-Command actions intentionally return `NOT_IMPLEMENTED`. W5 still owns notice/update/telemetry/report lifecycle integration. Pass `Adapters.HelloCache` as `client.Options.HelloCache` to share TS’s per-fetch hello cache across clients. `ForVault` retains the cache. Allocate a separate cache when changing fetchers. Raw filesystem errno messages use Go wording (see `PARITY-NOTES.md`). Native Windows lock calls compile by platform but have not been run on Windows.
+Command actions intentionally return `NOT_IMPLEMENTED`. W5 still owns notice/update/telemetry/report lifecycle integration. Pass `Adapters.HelloCache` as `client.Options.HelloCache` to share TS’s per-fetch hello cache across clients. `ForVault` retains the cache. Allocate a separate cache when changing fetchers. Raw filesystem errno messages use Go wording (see [go-parity.md](go-parity.md)). Native Windows lock calls compile by platform but have not been run on Windows.
 
 ## Every source file
 

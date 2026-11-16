@@ -1,3 +1,5 @@
+# Go server request corpus
+
 The reference corpus records 417 requests from the existing server tests, including the SQLite snapshot before each request and every table after it. Keys and tokens are synthetic test data.
 
 From the repository root, regenerate it without changing TypeScript:

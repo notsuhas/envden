@@ -4,7 +4,7 @@
 
 - **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`.
 - **Packages:** `packages/core` holds the protocol, merge and adapter interfaces. Each adapter is its own package in `packages/adapters/<kind>/<impl>`. `apps/cli`, `apps/server` and `apps/web` are the apps.
-- **Go port:** `go/` is a second implementation of core, adapters, CLI and server. TypeScript is the reference. See the Go port section below.
+- **Go:** the Go implementation in `go/` and its rules are documented in `docs/ports/`.
 - **Packages are source-only** (`"exports": {".": "./src/index.ts"}`). Relative imports use the `.ts` extension.
 
 ## Checks
@@ -87,19 +87,3 @@ Tests use `bun:test` and live in a `__tests__/` folder next to the code they tes
 - When a decision changes, rewrite the affected text and its entry under `docs/DESIGN.md` § Decisions, saying what it replaced.
 - Use the terms in `docs/CONTEXT.md` in identifiers, messages and docs.
 - Don't commit plans, research notes or scratch files.
-
-## Go port
-
-- **Parity first.** Go must match TypeScript in stdout, stderr, exit codes, files and permissions, server database rows and wire bytes, bugs included (DESIGN § Decisions). A behaviour change lands in every implementation in the same PR. An improvement or TS bug found while porting goes in `PARITY-NOTES.md`; it is fixed in all implementations later, never in Go alone.
-- **Where things are.** `docs/ports/go.md` maps Go packages to TS modules and lists the libraries; `docs/ports/go-cli-layout.md` maps every CLI file. `parity/` is the shared black-box runner.
-- **Checks:**
-
-  ```sh
-  cd go
-  gofmt -l . && go vet ./... && golangci-lint run ./...
-  go test ./...
-  cd .. && bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden
-  ```
-
-- **Same rules, Go idiom.** The code style, error, test and adapter rules above apply. Tests are `*_test.go` files in the package they test, as Go requires, instead of a `__tests__/` folder. Errors are returned, not thrown: `errors.Wrap(code, message, cause)` from `go/core/errors`, with the TS message text. Times are `int64` milliseconds passed in, never `time.Now()` in logic.
-- **No cycles.** Go forbids import cycles, so a CLI file goes where `docs/ports/go-cli-layout.md` puts it, even when its TS folder differs. `python3 scripts/ports/check-cli-layout.py --layers` checks the layering.

@@ -49,7 +49,7 @@ Pairing uses a local forwarding proxy that holds slot reads until the matching w
 - `files-worktrees`: registered Git worktree auto-approval, placement mode, track, local-only, alias, removal and untrack.
 - `symlink-takeover`: consent to replace a foreign env link, then restore the original link on untrack.
 - `devices-vault`: device listing/rename/removal, wrong password followed by unlock, kit replacement, password change/reset and rotation.
-- `server-move`: successful move and the current TS switch refusal, recorded in PARITY-NOTES.md.
+- `server-move`: successful move and the current TS switch refusal, recorded in [go-parity.md](go-parity.md).
 - `server-move-resume`, `server-move-abort`: interrupt after source commit or before chain transfer, then resume/abort.
 - `server-repair`, `server-repair-without`: restored mode, upload, finish, unavailable-device removal and accept-lost flag.
 - `onboarding-errors`: invalid token, unreachable server and unknown pairing mailbox.
