@@ -27,7 +27,11 @@ pub fn move_credentials(
     let pin = token
         .as_ref()
         .map(|t| Ok(t.1))
-        .or_else(|| saved_pin.map(|s| binary(&s).and_then(|b| p::fixed(&b))))
+        .or_else(|| {
+            saved_pin
+                .filter(|s| !s.is_empty())
+                .map(|s| binary(&s).and_then(|b| p::fixed(&b)))
+        })
         .transpose()?
         .ok_or_else(|| {
             EnvdenError::new(
@@ -40,4 +44,25 @@ pub fn move_credentials(
         pin,
         token_slot,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_saved_move_pin_requires_setup_token() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = crate::adapters::create_adapters(
+            Some(dir.path().join("envden")),
+            dir.path().into(),
+            || 42,
+        );
+        let state = dir.path().join("state");
+        std::fs::create_dir(&state).unwrap();
+        std::fs::write(state.join("move-pin"), "").unwrap();
+        let error = move_credentials(&adapters, &state, None).err().unwrap();
+        assert_eq!(error.code, ErrorCode::InvalidInput);
+        assert_eq!(error.message, "A setup token is required for a new move");
+    }
 }
