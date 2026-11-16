@@ -155,3 +155,82 @@ fn waited_slots_are_fetched_again_and_pending_is_not_found() {
         }
     }
 }
+
+struct IPairingServer {
+    inner: Rc<crate::admin::repair::tests::fixture::Server>,
+    entries: RefCell<Vec<p::ISigned<p::TEntry>>>,
+    headers: RefCell<Vec<p::ISigned<p::IManifestHeader>>>,
+}
+
+impl ITransport for IPairingServer {
+    fn fetch(&self, request: IHttpRequest) -> Result<IHttpResponse> {
+        let path = request.url.path().to_owned();
+        let from = || {
+            request
+                .url
+                .query_pairs()
+                .find(|(k, _)| k == "from")
+                .map_or(0, |(_, v)| v.parse::<u64>().unwrap())
+        };
+        let body = match path.as_str() {
+            "/v1/entries" => json!({"objects": self.entries.borrow().iter()
+                .filter(|e| e.body.seq >= from())
+                .map(|e| text(&p::encode(e).unwrap())).collect::<Vec<_>>()}),
+            "/v1/headers" => json!({"objects": self.headers.borrow().iter()
+                .filter(|h| h.body.seq >= from())
+                .map(|h| text(&p::encode(h).unwrap())).collect::<Vec<_>>()}),
+            "/v1/swap" => {
+                let swap: p::ISwap = p::decode(&request.body)?;
+                self.entries.borrow_mut().extend(swap.entries);
+                self.headers.borrow_mut().push(swap.header);
+                json!({"kind": "committed"})
+            }
+            _ => return self.inner.fetch(request),
+        };
+
+        Ok(IHttpResponse {
+            status: 200,
+            location: None,
+            body: body.to_string().into_bytes(),
+        })
+    }
+}
+
+#[test]
+fn approval_returns_the_name_it_committed() {
+    let (_dir, adapters, server, _token) = crate::admin::repair::tests::fixture::fixture();
+    let transport = Rc::new(IPairingServer {
+        entries: RefCell::new(server.entries.clone()),
+        headers: RefCell::new(server.headers.clone()),
+        inner: server,
+    });
+    let keys = p::generate_device_keys(p::random_bytes);
+    let candidate = p::IDeviceRecord {
+        id: p::device_id(
+            &keys.recovery.enc_pub,
+            &keys.recovery.obj_pub,
+            &keys.req_pub,
+        ),
+        name: "laptop".into(),
+        enc_pub: keys.recovery.enc_pub,
+        obj_pub: keys.recovery.obj_pub,
+        req_pub: keys.req_pub,
+    };
+
+    let name = super::approval::approve(
+        &adapters,
+        7,
+        (adapters.now)() + 60_000,
+        &candidate,
+        &[3; 32],
+        || crate::admin::shared::context::admin_context(&adapters, transport.clone()),
+    )
+    .unwrap();
+
+    assert_eq!(name, "laptop-2");
+    let entries = transport.entries.borrow();
+    let p::TEntryPayload::AddDevice(added) = &entries.last().unwrap().body.change else {
+        panic!("expected an added device");
+    };
+    assert_eq!(added.device.name, "laptop-2");
+}

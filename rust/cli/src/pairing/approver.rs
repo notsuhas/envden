@@ -103,7 +103,7 @@ pub fn add(adapters: &IAdapters) -> Result<()> {
         println!("Declined");
         return Ok(());
     }
-    super::approval::approve(adapters, number, expiry, &candidate, &keys.send, || {
+    let name = super::approval::approve(adapters, number, expiry, &candidate, &keys.send, || {
         admin_context(adapters, Rc::new(UreqTransport))
     })?;
     println!("{}", sanitize_console(&format!("Device {name} added")));

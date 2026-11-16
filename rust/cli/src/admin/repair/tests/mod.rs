@@ -2,6 +2,6 @@ mod abort;
 mod cases;
 mod context;
 mod envelope;
-mod fixture;
+pub(crate) mod fixture;
 mod notice;
 mod resume;

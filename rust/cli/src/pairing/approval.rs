@@ -37,7 +37,7 @@ pub(super) fn approve<'a>(
     candidate: &p::IDeviceRecord,
     send: &[u8; 32],
     mut context: impl FnMut() -> Result<IAdminContext<'a>>,
-) -> Result<()> {
+) -> Result<String> {
     with_state_lock(&adapters.home, &adapters.now, || {
         retry_head(|| {
             let context = context()?;
@@ -45,9 +45,11 @@ pub(super) fn approve<'a>(
             check_floor(&context.local, &history)?;
             let material = current_material(&context, &history)?;
             super::exchange::require_window(expiry, (adapters.now)())?;
+            let committed = named_for_list(candidate.clone(), &history);
+            let name = committed.name.clone();
             let mut swap = add_swap(
                 &history,
-                named_for_list(candidate.clone(), &history),
+                committed,
                 (context.identity.record.id, &context.identity.keys.obj_sk),
                 &material.key,
                 2,
@@ -65,7 +67,8 @@ pub(super) fn approve<'a>(
             )?);
             super::persistence::save_approval(adapters, number, &swap)?;
             super::persistence::submit(adapters, &context.client)?;
-            Ok(())
+
+            Ok(name)
         })
     })
 }

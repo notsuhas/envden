@@ -10,9 +10,9 @@ use envden_protocol::protocol as p;
 use serde_json::json;
 use std::{cell::RefCell, rc::Rc};
 mod transport;
-pub(super) use transport::Server;
+pub(crate) use transport::Server;
 
-pub(super) fn fixture() -> (tempfile::TempDir, IAdapters, Rc<Server>, String) {
+pub(crate) fn fixture() -> (tempfile::TempDir, IAdapters, Rc<Server>, String) {
     let dir = tempfile::tempdir().unwrap();
     let adapters = create_adapters(Some(dir.path().join("envden")), dir.path().into(), || {
         1800000000000
