@@ -52,7 +52,8 @@ func lines(text string, maxWidth float64) []string {
 	result := []string{}
 	line := ""
 	used := 0.0
-	add := func(piece string, w float64) {
+	for _, word := range words.FindAllString(text, -1) {
+		w := width(word, "Helvetica", 11)
 		if used+w > maxWidth {
 			if line != "" {
 				result = append(result, line)
@@ -62,31 +63,39 @@ func lines(text string, maxWidth float64) []string {
 			used = 0
 		}
 
-		line += piece
+		line += word
 		used += w
-	}
-
-	for _, word := range words.FindAllString(text, -1) {
-		w := width(word, "Helvetica", 11)
-		if w <= maxWidth || width(strings.TrimRight(word, " "), "Helvetica", 11) <= maxWidth {
-			add(word, w)
-
-			continue
-		}
-
-		// A word wider than the column breaks between characters so it stays inside the margin.
-		for _, r := range strings.TrimRight(word, " ") {
-			add(string(r), width(string(r), "Helvetica", 11))
-		}
-
-		if strings.HasSuffix(word, " ") {
-			line += " "
-			used += width(" ", "Helvetica", 11)
-		}
 	}
 
 	if line != "" {
 		result = append(result, line)
+	}
+
+	return result
+}
+
+// Lines break only at spaces, so a longer word is split between characters to stay in the margins.
+func wrapText(text string, maxWidth float64) []string {
+	result := []string{}
+	for _, line := range lines(text, maxWidth) {
+		trimmed := textcase.Trim(line)
+		if width(trimmed, "Helvetica", 11) <= maxWidth {
+			result = append(result, trimmed)
+
+			continue
+		}
+
+		part := ""
+		for _, r := range trimmed {
+			if part != "" && width(part+string(r), "Helvetica", 11) > maxWidth {
+				result = append(result, part)
+				part = ""
+			}
+
+			part += string(r)
+		}
+
+		result = append(result, part)
 	}
 
 	return result
@@ -130,9 +139,9 @@ func RenderKit(document Document, metadataTime int64) ([]byte, error) {
 
 	y = top - height - 28
 	for _, paragraph := range document.Instructions {
-		for _, line := range lines(printable(paragraph, "Helvetica"), 467.28) {
+		for _, line := range wrapText(printable(paragraph, "Helvetica"), 467.28) {
 			y -= 16
-			p.write(textcase.Trim(line), 64, y, "Helvetica", 11, false)
+			p.write(line, 64, y, "Helvetica", 11, false)
 		}
 
 		y -= 8
