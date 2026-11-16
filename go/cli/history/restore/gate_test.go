@@ -40,14 +40,14 @@ func TestParseVersion(t *testing.T) {
 	for _, c := range []struct {
 		value string
 		want  uint64
-	}{{"3", 3}, {"v12", 12}, {" v4 ", 4}, {"\ufeffv3\ufeff", 3}, {"9999999999999999", 10000000000000000}} {
+	}{{"3", 3}, {"v12", 12}, {" v4 ", 4}, {"\ufeffv3\ufeff", 3}, {"9007199254740991", 9007199254740991}} {
 		got, err := ParseVersion(c.value)
 		if err != nil || got != c.want {
 			t.Fatal(c, got, err)
 		}
 	}
 
-	for _, v := range []string{"0", "-1", "1.5", "x", "", "01", "V3", "10000000000000000", "\u00853\u0085"} {
+	for _, v := range []string{"0", "-1", "1.5", "x", "", "01", "V3", "10000000000000000", "9007199254740992", "9999999999999999", "\u00853\u0085"} {
 		if _, err := ParseVersion(v); !errors.Is(err, errors.InvalidInput) {
 			t.Fatal(v, err)
 		}

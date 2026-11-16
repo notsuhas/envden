@@ -17,11 +17,11 @@ func ParseVersion(value string) (uint64, error) {
 	}
 
 	number, err := strconv.ParseUint(match[1], 10, 64)
-	if err != nil {
-		return 0, err
+	if err != nil || number > 1<<53-1 {
+		return 0, errors.New(errors.InvalidInput, "Version must be a number such as 3 or v3")
 	}
 
-	return uint64(float64(number)), nil
+	return number, nil
 }
 
 func versionSpace(r rune) bool {
