@@ -78,10 +78,8 @@ fn scan(pattern: &str) -> Option<IScan> {
         index += 1;
     }
 
-    // fast-glob mishandles a `**` that isn't a whole segment once braces expand around it.
-    let globstar_braces = partial_globstar && opened > 0;
-
-    (groups.is_empty() && opened <= MAX_GROUPS && !globstar_braces).then_some(IScan {
+    // fast-glob and Bun disagree on a `**` that isn't a whole path segment.
+    (groups.is_empty() && opened <= MAX_GROUPS && !partial_globstar).then_some(IScan {
         byte_sensitive,
         alternatives,
     })
@@ -152,7 +150,6 @@ mod tests {
             "{apps,packages}/**/.env",
             "{apps,packages}/**",
             "**/.env.{local,dev}",
-            "*a**/**/*",
             ".env.[a-z]*",
             ".env.[!e]*",
             "config/.env.?",
