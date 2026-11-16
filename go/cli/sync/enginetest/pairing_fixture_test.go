@@ -17,6 +17,12 @@ import (
 )
 
 func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
+	f, _ := pairWith(t, beforeResume, nil)
+
+	return f
+}
+
+func pairWith(t *testing.T, beforeResume func(*fixture), onConfirm func(*fixture)) (*fixture, pairing.Approval) {
 	f := createConfiguredFixture(t, fixtureOptions{devices: 1, bare: true, password: "old password"})
 	f.write(filepath.Join(f.checkout.Root, ".env"), original)
 	f.track(&f.first, f.checkout, false, ".env")
@@ -43,6 +49,7 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 	joiner := client.CreateClient(client.Options{Address: f.kit.Server, VaultID: make([]byte, 32), Pin: pin, Identity: other, Now: clock, Version: "0.0.0"})
 	ke1, ke2, ke3 := make(chan struct{}), make(chan struct{}), make(chan struct{})
 	approved := make(chan error, 1)
+	var approval pairing.Approval
 	go func() {
 		result, e := pairing.ApprovePairing(f.ctx, f.first, cl, id, pin, vault, attempt, clock, func(slot string) error {
 			if _, err := os.Lstat(filepath.Join(f.first.Home, "state", "write.lock")); !os.IsNotExist(err) {
@@ -60,11 +67,19 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 			}
 
 			return nil
-		}, func(string) (bool, error) { return true, nil })
+		}, func(string) (bool, error) {
+			if onConfirm != nil {
+				onConfirm(f)
+			}
 
-		if e == nil && result != "paired" {
-			e = fmt.Errorf("unexpected pairing result %s", result)
+			return true, nil
+		})
+
+		if e == nil && result.Kind != "paired" {
+			e = fmt.Errorf("unexpected pairing result %s", result.Kind)
 		}
+
+		approval = result
 
 		approved <- e
 	}()
@@ -97,5 +112,5 @@ func pairedFixture(t *testing.T, beforeResume func(*fixture)) *fixture {
 	assertPairingDevice(t, listed, encoding.Base32(other.Record.Id), false)
 	f.repo(&f.second, nil)
 
-	return f
+	return f, approval
 }

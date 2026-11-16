@@ -50,94 +50,100 @@ func OpenPairing(ctx context.Context, cl *client.Client, pin []byte) (Attempt, e
 	return Attempt{mailbox.Number, mailbox.ExpiresAt, local}, err
 }
 
-func ApprovePairing(ctx context.Context, a contracts.Adapters, cl *client.Client, ident identity.Identity, pin, vaultID []byte, attempt Attempt, now func() int64, wait func(string) error, confirm func(string) (bool, error)) (string, error) {
+type Approval struct {
+	Kind string
+	Name string
+}
+
+func ApprovePairing(ctx context.Context, a contracts.Adapters, cl *client.Client, ident identity.Identity, pin, vaultID []byte, attempt Attempt, now func() int64, wait func(string) error, confirm func(string) (bool, error)) (Approval, error) {
 	expiry := min(attempt.ExpiresAt, now()+600000)
 	if err := RequireWindow(expiry, now()); err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	if err := wait("KE1"); err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	message, err := GetSlot(ctx, cl, attempt.Number, "KE1")
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	response, err := attempt.Answer(message)
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	if _, err = PutSlot(ctx, cl, attempt.Number, "KE2", response.LoginResponse); err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	if err = wait("KE3"); err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	message, err = GetSlot(ctx, cl, attempt.Number, "KE3")
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	keys, err := FinishApprover(pin, attempt.Number, response.ServerLoginState, message)
 	if err != nil {
 		r, e := cl.Request(ctx, fmt.Sprintf("/v1/pairing/mailboxes/%d", attempt.Number), "DELETE", nil)
 		if e != nil {
-			return "", e
+			return Approval{}, e
 		}
 
 		_ = r.Body.Close() // Best-effort cleanup preserves the original operation result.
 
-		return "", err
+		return Approval{}, err
 	}
 
 	defer clear(keys.ApproverToJoiner)
 	defer clear(keys.JoinerToApprover)
 	if err = wait("PairJoiner"); err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	message, err = GetSlot(ctx, cl, attempt.Number, "PairJoiner")
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	raw, err := client.Binary(message)
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	candidate, err := protocolpairing.OpenPairJoiner(raw, keys.JoinerToApprover)
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	history, err := vault.ReadHistory(ctx, cl, vaultID, nil)
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	proposed := vault.NamedForList(candidate.Device, history)
 	approved, err := confirm(proposed.Name)
 	if err != nil {
-		return "", err
+		return Approval{}, err
 	}
 
 	if !approved {
 		r, err := cl.Request(ctx, fmt.Sprintf("/v1/pairing/mailboxes/%d", attempt.Number), "DELETE", nil)
 		if err != nil {
-			return "", err
+			return Approval{}, err
 		}
 
 		_ = r.Body.Close() // Best-effort cleanup preserves the original operation result.
 
-		return "declined", nil
+		return Approval{Kind: "declined"}, nil
 	}
 
+	committed := ""
 	err = lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
 		_, err := client.RetryHead(func() (bool, error) {
 			history, err := vault.ReadHistory(ctx, cl, vaultID, nil)
@@ -168,7 +174,9 @@ func ApprovePairing(ctx context.Context, a contracts.Adapters, cl *client.Client
 				return false, err
 			}
 
-			swap, err := vault.AddDeviceSwap(history, vault.NamedForList(candidate.Device, history), ident.Record.Id, ident.Keys.ObjSk, key, 2, now(), ident.Record.Id, ident.Keys.ObjSk)
+			named := vault.NamedForList(candidate.Device, history)
+			committed = named.Name
+			swap, err := vault.AddDeviceSwap(history, named, ident.Record.Id, ident.Keys.ObjSk, key, 2, now(), ident.Record.Id, ident.Keys.ObjSk)
 			if err != nil {
 				return false, err
 			}
@@ -199,5 +207,9 @@ func ApprovePairing(ctx context.Context, a contracts.Adapters, cl *client.Client
 		return err
 	})
 
-	return "paired", err
+	if err != nil {
+		return Approval{}, err
+	}
+
+	return Approval{Kind: "paired", Name: committed}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/notsuhas/envden/go/cli/admin/devices"
+	"github.com/notsuhas/envden/go/cli/pairing"
 	"github.com/notsuhas/envden/go/cli/sync/local"
 	"github.com/notsuhas/envden/go/cli/vault/initial"
 )
@@ -54,4 +55,12 @@ func TestInitialPushDoesNotRecordBaselinesAfterOtherCommit(t *testing.T) {
 	applied, err := local.AppliedFiles(f.first.Home)
 	must(t, err)
 	equal(t, len(applied), 0)
+}
+
+func TestPairingReportsTheCommittedName(t *testing.T) {
+	_, approval := pairWith(t, nil, func(f *fixture) {
+		_, err := devices.RenameDevice(f.ctx, f.first, "second", clock, nil)
+		must(t, err)
+	})
+	equal(t, approval, pairing.Approval{Kind: "paired", Name: "second-2"})
 }
