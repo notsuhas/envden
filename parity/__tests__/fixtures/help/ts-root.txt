@@ -1,0 +1,56 @@
+Usage: envden [options] [command]
+
+Encrypted whole-file env sync over your private network
+
+Options:
+  -V, --version             output the version number
+  -h, --help                display help for command
+
+Get started:
+  setup [options]           Create a vault and configure this device
+  join [options] <server>   Join using a pairing code or recovery kit in your
+                            own terminal
+
+Daily use:
+  status [options]          Show what changed here, what's newer on the server
+                            and what needs attention
+  push [options]            Send your changes to the server
+  pull [options]            Fetch and merge changes from your other devices
+  diff [options]            Show changed key names without values
+  resolve [options] [file]  Keep yours, take the server's, or finish an edited
+                            conflict
+  history [options] [file]  List the versions the server keeps, or restore one
+                            as a local edit
+
+Files:
+  track [options] [path]    Scan, approve and link checkout env files
+  untrack <path>            Stop tracking a checkout and restore regular env
+                            files
+  local-only <file>         Keep a managed file local to this checkout
+  rm [options] <path>       Remove an env file everywhere on the next push
+  alias <repo> <target>     Share another repo's env files, for example from a
+                            fork
+
+Devices and vault:
+  device                    Add, list, rename and remove devices
+  vault                     Re-key the vault, replace the recovery kit, or
+                            change or reset the password
+  server                    Move, switch or repair the server
+  unlock                    Log in with your master password to restart the
+                            unlock period
+
+Maintenance:
+  config [key] [values...]  Read or change settings
+  doctor [options]          Check key files, symlinks, updates, Tailscale, HTTPS
+                            and shell notices
+  update [options]          Update envden through the method it was installed
+                            with
+  ui [options]              Open a local dashboard for this device
+  agent                     Install the envden agent skill
+  shell                     Manage the shell notice
+  serve [options]           Run the server; ENVDEN_SETUP_TOKEN replaces the
+                            setup token
+  version                   Print the version
+
+Commands:
+  help [command]            display help for command

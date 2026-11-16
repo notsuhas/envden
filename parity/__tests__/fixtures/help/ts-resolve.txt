@@ -1,0 +1,14 @@
+Usage: envden resolve [options] [file]
+
+Keep yours, take the server's, or finish an edited conflict
+
+Arguments:
+  file           Conflicted env file
+
+Options:
+  --json         Print the result as JSON
+  --list         List unresolved conflicts
+  --repo <path>  Select a checkout
+  --keep-mine    Keep your version
+  --take-server  Take the server's version
+  -h, --help     display help for command
