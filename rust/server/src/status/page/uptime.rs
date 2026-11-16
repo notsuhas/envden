@@ -1,18 +1,19 @@
-use chrono::{Datelike, TimeDelta, Timelike};
-use chrono_humanize::{Accuracy, HumanTime, Tense};
-
+// Total days, never calendar months or years, so a long uptime isn't shown short.
 pub fn format_uptime(seconds: u64) -> String {
-    let Some(end) = chrono::DateTime::from_timestamp(seconds as i64, 0) else {
-        return "Invalid Date".into();
-    };
-    let duration = TimeDelta::days(i64::from(end.day() - 1))
-        + TimeDelta::hours(i64::from(end.hour()))
-        + TimeDelta::minutes(i64::from(end.minute()));
+    let parts: Vec<String> = [
+        (seconds / 86400, "day"),
+        (seconds % 86400 / 3600, "hour"),
+        (seconds % 3600 / 60, "minute"),
+    ]
+    .into_iter()
+    .filter(|(count, _)| *count > 0)
+    .map(|(count, unit)| format!("{count} {unit}{}", if count == 1 { "" } else { "s" }))
+    .collect();
 
-    if duration.is_zero() {
+    if parts.is_empty() {
         "under a minute".into()
     } else {
-        HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
+        parts.join(" ")
     }
 }
 
@@ -21,19 +22,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn uptime_omits_seconds_months_and_years() {
+    fn uptime_counts_total_days_hours_and_minutes() {
         assert_eq!(
-            [0, 59, 60, 3660, 90000, 32 * 86400, 365 * 86400].map(format_uptime),
+            [0, 59, 60, 3660, 90000, 2775600, 34560060].map(format_uptime),
             [
                 "under a minute",
                 "under a minute",
                 "1 minute",
-                "1 hour and 1 minute",
-                "1 day and 1 hour",
-                "1 day",
-                "under a minute"
+                "1 hour 1 minute",
+                "1 day 1 hour",
+                "32 days 3 hours",
+                "400 days 1 minute"
             ]
         );
-        assert_eq!(format_uptime(i64::MAX as u64), "Invalid Date");
+        assert_eq!(format_uptime(1_000_000_000), "11574 days 1 hour 46 minutes");
     }
 }
