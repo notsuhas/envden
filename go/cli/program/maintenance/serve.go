@@ -1,7 +1,6 @@
 package maintenance
 
 import (
-	"errors"
 	"os"
 	"os/signal"
 	"regexp"
@@ -49,7 +48,7 @@ func ServeCommand() *commander.Command {
 func ParsePort(value string) (int, error) {
 	port, e := strconv.Atoi(value)
 	if e != nil || !regexp.MustCompile(`^[0-9]{1,5}$`).MatchString(value) || port < 0 || port > 65535 {
-		return 0, errors.New("Expected a port from 0 (any free port) to 65535.") //nolint:staticcheck // Preserve the exact TS error text.
+		return 0, &commander.InvalidArgumentError{Message: "Expected a port from 0 (any free port) to 65535."}
 	}
 
 	return port, nil

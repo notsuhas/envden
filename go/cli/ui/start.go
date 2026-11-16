@@ -54,10 +54,10 @@ func RunDashboard(ctx context.Context, options DashboardOptions) (Result, error)
 	}
 
 	port = listener.Addr().(*net.TCPAddr).Port
-	app := &http.Server{Handler: server.CreateDashboardApp(server.Dashboard{Token: token, Port: port, Assets: page, Actions: options.Actions})} //nolint:gosec // Match TS server timeout behavior on the loopback-only dashboard.
+	app := &http.Server{Handler: server.CreateDashboardApp(server.Dashboard{Token: token, Port: port, Assets: page, Actions: options.Actions})} //nolint:gosec // The listener enforces Bun idle timeouts.
 	defer func() { _ = app.Close() }()                                                                                                          // Best-effort cleanup must not replace the operation result.
 	done := make(chan error, 1)
-	go func() { done <- app.Serve(listener) }()
+	go func() { done <- app.Serve(dashboardListener{listener}) }()
 	url := "http://127.0.0.1:" + strconv.Itoa(port) + "/#" + token
 	if options.Report != nil {
 		options.Report("envden ui: " + url)

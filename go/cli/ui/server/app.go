@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +21,8 @@ type Dashboard struct {
 
 func CreateDashboardApp(dashboard Dashboard) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = http.NewResponseController(w).EnableFullDuplex()
+		r.Body = unclosedBody{r.Body}
 		for k, v := range securityHeaders {
 			w.Header().Set(k, v)
 		}
@@ -89,3 +92,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.WriteHeader(status)
 	_, _ = w.Write(raw) //nolint:gosec // JSON is served with an application/json content type.
 }
+
+type unclosedBody struct{ io.ReadCloser }
+
+func (unclosedBody) Close() error { return nil }
