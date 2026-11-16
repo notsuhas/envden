@@ -1,3 +1,4 @@
+import { separateNotices } from "./terminal/notices.ts";
 import { normalizedOutput, plainTerminal } from "./terminal/semantic.ts";
 import { executablePaths } from "./executables.ts";
 import { pdfText } from "./snapshot/pdf.ts";
@@ -122,7 +123,11 @@ export async function capture(c: Context, includeFiles = true, strictOutput = fa
 
   const names = new Set(c.results.flatMap((step) => step.args ?? []));
 
-  const steps = c.results.map((step) => ({
+  const separated = strictOutput
+    ? { steps: c.results, notices: undefined }
+    : separateNotices(c.results);
+
+  const steps = separated.steps.map((step) => ({
     ...step,
     args: undefined,
     label: n.text(step.label),
@@ -132,6 +137,7 @@ export async function capture(c: Context, includeFiles = true, strictOutput = fa
       n,
       names,
       strictOutput,
+      step.prompts !== undefined,
     ),
     stderr: normalizedOutput(
       step.stderr,
@@ -152,7 +158,9 @@ export async function capture(c: Context, includeFiles = true, strictOutput = fa
       : {}),
   }));
 
-  if (!includeFiles) return JSON.stringify({ steps }, null, 2);
+  const notices = n.value(separated.notices);
+
+  if (!includeFiles) return JSON.stringify({ steps, notices }, null, 2);
 
   const files: Record<string, unknown> = {};
 
@@ -172,5 +180,5 @@ export async function capture(c: Context, includeFiles = true, strictOutput = fa
       databases.push({ role: server.role, name: path, ...database(join(server.data, path), n) });
   }
 
-  return JSON.stringify({ steps, files, databases }, null, 2);
+  return JSON.stringify({ steps, notices, files, databases }, null, 2);
 }

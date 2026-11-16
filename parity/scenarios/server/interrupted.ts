@@ -14,7 +14,6 @@ export default {
     try {
       const { kit } = await setup(c, { ...source, url: from.url });
       await recoveryJoin(c, from.url, kit);
-      await c.run("device-a", ["device", "ls", "--json"]);
 
       const move = async (args: string[], code = 0) => {
         const t = c.pty("device-a", ["server", "move", ...args]);

@@ -33,7 +33,7 @@ export function nextPrompt(output: string, pattern: RegExp, answering: boolean) 
 
   for (const match of output.matchAll(regex)) {
     const prefix = output.slice(0, match.index).split("\n").at(-1) ?? "";
-    if (answering && /^\s*[◇✓✔]\s*$/.test(prefix)) continue;
+    if (answering && /[◇✓✔]\s*$/.test(prefix)) continue;
 
     return match;
   }
