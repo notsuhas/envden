@@ -1,6 +1,6 @@
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::Path,
 };
@@ -40,7 +40,7 @@ pub(super) fn persist_identity(directory: &Path, data: &[u8]) -> Result<()> {
 
 fn sync_directory(_directory: &Path) -> Result<()> {
     #[cfg(unix)]
-    File::open(_directory)
+    fs::File::open(_directory)
         .and_then(|directory| directory.sync_all())
         .map_err(io_error)?;
 
