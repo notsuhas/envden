@@ -18,7 +18,6 @@ pub fn upload_changes(
     let mut files = context.checkpoint.files.clone();
     let mut seen = HashSet::new();
     let mut places = places::IPlaces::default();
-    let mut uploaded = Vec::new();
     let blocked = super::attempt::blocked::blocked_stores(context, failed)?;
     super::attempt::notices::report_blocked(context)?;
     for link in context.state["links"].as_array().into_iter().flatten() {
@@ -99,7 +98,6 @@ pub fn upload_changes(
             previous.map_or(1, |e| e.version + 1),
             bytes.as_deref(),
         )?;
-        uploaded.push(next.clone());
         match files.entries.iter().position(|e| e.file_id == id) {
             Some(index) => files.entries[index] = next,
             None => files.entries.push(next),
@@ -110,6 +108,12 @@ pub fn upload_changes(
         return Ok(0);
     }
     files.entries.sort_by_key(|e| e.file_id);
+    let uploaded = files
+        .entries
+        .iter()
+        .filter(|entry| seen.contains(&entry.file_id))
+        .cloned()
+        .collect::<Vec<_>>();
     let expected = p::object_hash(&context.checkpoint.header, "manifest")?;
     let mut body = context.checkpoint.header.body.clone();
     body.seq += 1;
