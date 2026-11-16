@@ -121,12 +121,11 @@ pub fn reconcile_file_with_choice(
             decision.sides.theirs,
             chooser.as_deref(),
         )?
-    } else if lineage.invalid || lineage.corrupt {
-        TResolution::Conflict
     } else {
-        match decision.action {
-            TContentAction::Write(bytes) => TResolution::Write(bytes.map(<[u8]>::to_vec)),
-            TContentAction::Conflict | TContentAction::RepairConflict => TResolution::Conflict,
+        match &decision.action {
+            TContentAction::Write(bytes) if !lineage.invalid && !lineage.corrupt => {
+                TResolution::Write(bytes.map(<[u8]>::to_vec))
+            }
             _ => resolve_content(
                 &IResolutionOptions {
                     interactive: Some(context.options.interactive),
@@ -144,6 +143,16 @@ pub fn reconcile_file_with_choice(
                 },
             )?,
         }
+    };
+    let resolution = if entry.is_some_and(|e| repairs.contains(&p::base32(&e.file_id)))
+        || (!local_conflict
+            && (lineage.invalid
+                || lineage.corrupt
+                || matches!(decision.action, TContentAction::Conflict)))
+    {
+        TResolution::Conflict
+    } else {
+        resolution
     };
     let encoded = entry.map(|e| p::encode(e).map(|b| text(&b))).transpose()?;
     match resolution {
