@@ -108,8 +108,9 @@ pub fn upload_repair(
                 &binary(keyring)?,
             )?;
         }
+        let envelope = cached_bytes(&adapters.home.join("state/envelope.bin"))?;
         let history = read_history(&context.client, &context.vault_id, None)?;
-        if let Some(envelope) = cached_bytes(&adapters.home.join("state/envelope.bin"))? {
+        if let Some(envelope) = envelope {
             let hash = p::h("envelope-blob", &envelope);
             if hash == history.headers.last().expect("history").body.envelope_hash {
                 context.client.request_bytes(
