@@ -29,9 +29,33 @@ fn piped(source: &mut dyn Read) -> Result<String> {
     Ok(token.into())
 }
 
+pub(super) fn provided(hosted: Option<String>, value: Option<&str>) -> Result<Option<String>> {
+    if hosted.is_some() {
+        return Ok(hosted);
+    }
+    if let Some(token) = value {
+        p::decode_token(p::TTokenKind::Setup, token)?;
+    }
+    Ok(value.map(str::to_owned))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn hosted_token_wins_and_explicit_tokens_are_validated_before_preflight() {
+        assert_eq!(
+            provided(Some("hosted".into()), Some("invalid"))
+                .unwrap()
+                .as_deref(),
+            Some("hosted")
+        );
+        assert_eq!(
+            provided(None, Some("invalid")).unwrap_err().code,
+            ErrorCode::InvalidInput
+        );
+    }
+
     #[test]
     fn piped_token_is_trimmed_and_validated() {
         let token = p::encode_token(p::TTokenKind::Setup, &[1; 20], &[2; 32]);

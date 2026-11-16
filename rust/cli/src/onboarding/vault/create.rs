@@ -13,7 +13,7 @@ use crate::{
     vault::{create_genesis, create_vault_swap},
     version::MIN_SERVER,
 };
-use envden_core::errors::{EnvdenError, ErrorCode, Result};
+use envden_core::errors::Result;
 use envden_protocol::protocol as p;
 use serde_json::{Value, json};
 use std::rc::Rc;
@@ -28,38 +28,13 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
             crate::onboarding::address_problem(v).map(str::to_owned)
         })?,
     })?;
-    let token = match options["setupToken"].as_str() {
-        Some(v) => v.to_owned(),
-        None => match hosted.and_then(|v| v.1) {
+    let token =
+        match super::token::provided(hosted.and_then(|v| v.1), options["setupToken"].as_str())? {
             Some(token) => token,
             None => super::token::read_token()?,
-        },
-    };
+        };
     super::preflight::preflight(is_hosted, || {
-        let token = p::decode_token(p::TTokenKind::Setup, &token)?;
-        let server = hello(&address, None, &UreqTransport, MIN_SERVER).map_err(|error| {
-            if matches!(
-                error.code,
-                ErrorCode::ServerTooOld | ErrorCode::UpdateRequired
-            ) {
-                error
-            } else {
-                EnvdenError::with_source(
-                    ErrorCode::ServerUnreachable,
-                    format!(
-                        "Can't reach {address}. Check the address and that the server is running"
-                    ),
-                    error,
-                )
-            }
-        })?;
-        if server.pin != token.1 {
-            return Err(EnvdenError::new(
-                ErrorCode::InvalidInput,
-                "This setup token is for a different server",
-            ));
-        }
-        Ok(())
+        super::preflight::check_server(&address, &token, &UreqTransport)
     })?;
     let name = crate::onboarding::setup::device_name(options)?;
     let password = confirmed_password(|label| secret(label, |_| None), 3, |v| eprintln!("{v}"))?;

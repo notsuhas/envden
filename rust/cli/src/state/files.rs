@@ -32,6 +32,10 @@ fn prepare_directory(path: &Path) -> Result<()> {
 }
 
 pub fn private_directory(path: &Path) -> Result<()> {
+    private_directory_with(path, &|path, directory| envden_core::process::restrict_access(path, directory))
+}
+
+fn private_directory_with(path: &Path, _restrict: &dyn Fn(&Path, bool) -> Result<()>) -> Result<()> {
     prepare_directory(path)?;
     #[cfg(unix)]
     {
@@ -66,6 +70,10 @@ pub fn optional_read(path: &Path) -> Result<Option<String>> {
 }
 
 pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
+    atomic_write_with(path, bytes, now, &|path, directory| envden_core::process::restrict_access(path, directory))
+}
+
+fn atomic_write_with(path: &Path, bytes: &[u8], now: u64, _restrict: &dyn Fn(&Path, bool) -> Result<()>) -> Result<()> {
     let parent = path
         .parent()
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Unsafe state directory"))?;
@@ -105,28 +113,6 @@ pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
     result
 }
 
-#[cfg(all(test, unix))]
-mod tests {
-    use super::*;
-    use std::os::unix::fs::PermissionsExt;
-
-    #[test]
-    fn atomic_write_preserves_external_parent_permissions() {
-        let dir = tempfile::tempdir().unwrap();
-        fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o755)).unwrap();
-        atomic_write(&dir.path().join("restored"), b"content", 1).unwrap();
-        assert_eq!(
-            fs::metadata(dir.path()).unwrap().permissions().mode() & 0o777,
-            0o755
-        );
-        private_directory(dir.path()).unwrap();
-        let nested = dir.path().join("nested");
-        fs::create_dir(&nested).unwrap();
-        fs::set_permissions(&nested, fs::Permissions::from_mode(0o755)).unwrap();
-        atomic_write(&nested.join("state"), b"content", 1).unwrap();
-        assert_eq!(
-            fs::metadata(nested).unwrap().permissions().mode() & 0o777,
-            0o700
-        );
-    }
-}
+#[cfg(test)]
+#[path = "files/tests.rs"]
+mod tests;
