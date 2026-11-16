@@ -31,9 +31,7 @@ pub fn sync_options(invocation: &IInvocation<'_>, adapters: &IAdapters) -> ISync
         all: invocation.options.get("all") == Some(&true.into()),
         yes: invocation.options.get("yes") == Some(&true.into()),
         interactive: io::stdin().is_terminal(),
-        confirm: Some(Rc::new(|keys| {
-            consent(&format!("Merge changes to {}?", keys.join(", ")), true)
-        })),
+        confirm: Some(Rc::new(|keys| confirm_merge(keys, consent))),
         choose: Some(Rc::new(|path| {
             choose(
                 &format!("Detached file: {}", crate::output::sanitize_terminal(path)),
@@ -58,5 +56,26 @@ pub(crate) fn unlock_prompt(retry: bool) -> &'static str {
         "Wrong master password. Try again"
     } else {
         "Master password"
+    }
+}
+
+fn confirm_merge(
+    keys: &[String],
+    confirm: impl FnOnce(&str, bool) -> envden_core::errors::Result<bool>,
+) -> envden_core::errors::Result<bool> {
+    confirm(&format!("Merge changes to {}?", keys.join(", ")), false)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn merge_consent_defaults_to_no() {
+        assert!(
+            !super::confirm_merge(&["PORT".into()], |message, initial| {
+                assert_eq!(message, "Merge changes to PORT?");
+                Ok(initial)
+            })
+            .unwrap()
+        );
     }
 }
