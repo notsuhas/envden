@@ -36,6 +36,11 @@ export interface ILocalState {
   latest?: string;
 }
 
+// Prototype-free, so repo IDs like constructor or __proto__ are plain keys.
+export function aliasMap(aliases: Record<string, string> = {}): Record<string, string> {
+  return Object.assign(Object.create(null), aliases);
+}
+
 export function emptyState(deviceName: string): ILocalState {
   return {
     format: 1,
@@ -44,7 +49,7 @@ export function emptyState(deviceName: string): ILocalState {
     entries: [],
     approved: [],
     links: [],
-    aliases: {},
+    aliases: aliasMap(),
     telemetry: false,
     updateCheck: true,
   };

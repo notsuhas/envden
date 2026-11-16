@@ -10,6 +10,9 @@ for (const [source, target, aliases, kind] of [
   ["a", "b", { b: "c" }, "chain"],
   ["a", "b", { c: "a" }, "chain"],
   ["a", "b", {}, "assign"],
+  ["x", "constructor", {}, "assign"],
+  ["x", "hasOwnProperty", {}, "assign"],
+  ["__proto__", "x", {}, "assign"],
 ] satisfies [string, string, Record<string, string>, string][])
   test(`alias ${source} ${target} ${JSON.stringify(aliases)}`, () => {
     expect(String(deriveAlias(aliases, source, target).kind)).toBe(kind);
@@ -58,6 +61,14 @@ test("alias updates persist without losing prior aliases and rejected chains lea
 
       expect(await loadState(home)).toEqual(saved);
     }
+
+    await aliasRepo(adapters, "__proto__", "x");
+    await aliasRepo(adapters, "y", "toString");
+    const named = (await loadState(home))!.aliases;
+
+    expect(Object.entries(named)).toContainEqual(["__proto__", "x"]);
+    expect(named["y"]).toBe("toString");
+    expect(named["constructor"]).toBeUndefined();
   } finally {
     await rm(home, { recursive: true, force: true });
   }
