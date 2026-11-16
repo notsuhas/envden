@@ -1,4 +1,5 @@
 import { blobStagingContract } from "./staging-contract.ts";
+import { rateLimitContract } from "./rate-contract.ts";
 import { describe, expect, test } from "bun:test";
 import type {
   IStorageAdapter,
@@ -190,18 +191,7 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       expect(db.rememberNonce(b(1), b(2), 600000)).toBe(true);
     });
 
-    check("rate limits isolate, refund and double", (db) => {
-      const bucket = { kind: "non-member" } as const;
-      for (let i = 0; i < 5; i++) expect(db.charge(b(1), bucket, 0).kind).toBe("charged");
-      expect(db.charge(b(1), bucket, 1)).toEqual({ kind: "locked", until: 900000 });
-      expect(db.charge(b(2), bucket, 1).kind).toBe("charged");
-      for (let i = 0; i < 5; i++) db.charge(b(1), bucket, 900000);
-      expect(db.charge(b(1), bucket, 900001)).toEqual({ kind: "locked", until: 2700000 });
-      const charge = db.charge(b(1), { kind: "member", device: b(4) }, 0);
-      if (charge.kind !== "charged") throw new Error("Expected charge");
-      expect(db.refund(charge.receipt, 1)).toBe(true);
-      expect(db.refund(charge.receipt, 1)).toBe(false);
-    });
+    check("rate limits isolate, refund and double", rateLimitContract);
 
     check("mailbox numbers and write-once slots", (db) => {
       const box = db.openMailbox(b(1), b(2), 0);

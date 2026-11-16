@@ -10,30 +10,22 @@ function temp() {
   return mkdtempSync(join(tmpdir(), "envden-limits-"));
 }
 
-for (const refund of [false, true])
-  test(`rate strikes reset after ${refund ? "success" : "a quiet period"}`, () => {
-    const dir = temp();
-    const storage = createSqliteStorageAdapter(dir, 0);
-    const vault = new Uint8Array([1]);
-    const bucket = { kind: "non-member" } as const;
+test("rate strikes reset after a quiet period", () => {
+  const dir = temp();
+  const storage = createSqliteStorageAdapter(dir, 0);
+  const vault = new Uint8Array([1]);
+  const bucket = { kind: "non-member" } as const;
 
-    try {
-      let receipt = "";
-
-      for (let i = 0; i < 5; i++) {
-        const charge = storage.charge(vault, bucket, 0);
-        if (charge.kind === "charged") receipt = charge.receipt;
-      }
-
-      if (refund) expect(storage.refund(receipt, 1)).toBe(true);
-      const now = refund ? 900001 : 30 * 86400000;
-      for (let i = 0; i < 5; i++) storage.charge(vault, bucket, now);
-      expect(storage.charge(vault, bucket, now)).toEqual({ kind: "locked", until: now + 900000 });
-    } finally {
-      storage.close();
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
+  try {
+    for (let i = 0; i < 5; i++) storage.charge(vault, bucket, 0);
+    const now = 30 * 86400000;
+    for (let i = 0; i < 5; i++) storage.charge(vault, bucket, now);
+    expect(storage.charge(vault, bucket, now)).toEqual({ kind: "locked", until: now + 900000 });
+  } finally {
+    storage.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test("swap quota includes files and rolls back the head", () => {
   const dir = temp();

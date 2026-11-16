@@ -66,8 +66,9 @@ export function createAccess(context: IMemoryContext) {
       const charge = context.data.charges.get(receipt);
       if (!charge || charge.at <= now - 900000) return false;
       context.data.charges.delete(receipt);
-      const bucket = context.data.buckets.get(charge.key);
-      if (bucket) bucket.until = 0;
+
+      if (context.data.buckets.has(charge.key))
+        context.data.buckets.set(charge.key, { until: 0, strikes: 0 });
 
       return true;
     },
