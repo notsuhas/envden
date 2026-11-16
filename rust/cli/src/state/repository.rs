@@ -103,6 +103,12 @@ pub fn load_state(home: &Path) -> Result<Option<TLocalState>> {
     };
     restore()
         .and_then(|mut state| {
+            if let Some(latest) = crate::updates::cache::read_update_cache(home)
+                .latest
+                .filter(|value| !value.is_empty())
+            {
+                state["latest"] = latest.into();
+            }
             super::journal::restore_placement(home, &mut state)?;
             Ok(state)
         })
@@ -117,6 +123,29 @@ fn unreadable() -> EnvdenError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn restores_latest_from_update_cache_without_persisting_it() {
+        let temp = tempfile::tempdir().unwrap();
+        let mut state = super::super::empty_state("test");
+        state["latest"] = "0.0.1".into();
+        save_state(temp.path(), &state, 42).unwrap();
+        crate::updates::cache::save_update_cache(
+            temp.path(),
+            &crate::updates::cache::IUpdateCache {
+                latest: Some("1.2.3".into()),
+                ..Default::default()
+            },
+            42,
+        )
+        .unwrap();
+        let restored = load_state(temp.path()).unwrap().unwrap();
+        assert_eq!(restored["latest"], "1.2.3");
+        let saved: Value =
+            serde_json::from_slice(&std::fs::read(temp.path().join("state/device.json")).unwrap())
+                .unwrap();
+        assert!(saved.get("latest").is_none());
+    }
+
     #[test]
     fn roundtrip_and_header_integrity() {
         let temp = tempfile::tempdir().unwrap();
