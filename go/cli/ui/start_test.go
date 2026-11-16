@@ -67,3 +67,24 @@ func TestDashboardServesBeforeReportingAndStops(t *testing.T) {
 		t.Fatal(lines)
 	}
 }
+
+func TestDashboardStopsAtURLLine(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	base := ""
+	result, err := RunDashboard(ctx, DashboardOptions{Interactive: true, Report: func(line string) {
+		if strings.HasPrefix(line, "envden ui: ") {
+			base, _, _ = strings.Cut(strings.TrimPrefix(line, "envden ui: "), "#")
+			cancel()
+		}
+	}})
+	if err != nil || result.Kind != "stopped" || base == "" {
+		t.Fatal(result, err, base)
+	}
+
+	response, err := http.Get(base) //nolint:gosec // The URL points at the test loopback dashboard.
+	if err == nil {
+		_ = response.Body.Close()
+		t.Fatal("dashboard still listening")
+	}
+}

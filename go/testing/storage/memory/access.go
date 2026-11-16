@@ -97,7 +97,10 @@ func (m *memory) charge(v []byte, b adapters.RateBucket, now int64) adapters.Rat
 		threshold = 20
 	}
 	if count >= threshold {
-		strikes := prior.Strikes + 1
+		strikes := 1
+		if now-prior.Until < 86400000 {
+			strikes += prior.Strikes
+		}
 		duration := min(int64(86400000), int64(900000)<<min(strikes-1, 7))
 		m.data.Buckets[key] = bucket{now + duration, strikes}
 	}

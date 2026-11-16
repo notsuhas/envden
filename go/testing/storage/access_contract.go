@@ -47,6 +47,14 @@ func accessContract(t *testing.T, check func(string, func(*testing.T, adapters.S
 			value(db.Charge(b(1), bucket, 900000))
 		}
 		equal(t, value(db.Charge(b(1), bucket, 900001)), adapters.RateCharge{Kind: "locked", Until: 2700000})
+		for i := 0; i < 5; i++ {
+			value(db.Charge(b(3), bucket, 0))
+		}
+		decayed := int64(900000 + 86400000 + 1)
+		for i := 0; i < 5; i++ {
+			value(db.Charge(b(3), bucket, decayed))
+		}
+		equal(t, value(db.Charge(b(3), bucket, decayed+1)), adapters.RateCharge{Kind: "locked", Until: decayed + 900000})
 		charge := value(db.Charge(b(1), adapters.RateBucket{Kind: "member", Device: b(4)}, 0))
 		equal(t, value(db.Refund(charge.Receipt, 1)), true)
 		equal(t, value(db.Refund(charge.Receipt, 1)), false)
