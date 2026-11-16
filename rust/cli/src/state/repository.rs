@@ -69,7 +69,7 @@ pub fn load_state(home: &Path) -> Result<Option<TLocalState>> {
         super::collections::revive(&mut value)?;
         let record = value.as_object_mut().ok_or_else(unreadable)?;
         if record.keys().any(|k| !KEYS.contains(&k.as_str()))
-            || record.get("format") != Some(&Value::from(1))
+            || record.get("format").and_then(Value::as_f64) != Some(1.0)
             || !record.get("deviceName").is_some_and(Value::is_string)
             || ["headerRefs", "entries", "approved", "links"]
                 .iter()
@@ -171,6 +171,10 @@ mod tests {
         assert!(load_state(temp.path()).unwrap().is_none());
         atomic_write(&temp.path().join("state/device.json"), b"{}", 0).unwrap();
         assert!(load_state(temp.path()).is_err());
+        let mut state = super::super::empty_state("test");
+        state["format"] = serde_json::json!(1.0);
+        save_state(temp.path(), &state, 42).unwrap();
+        assert!(load_state(temp.path()).unwrap().is_some());
     }
 }
 
