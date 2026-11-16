@@ -45,7 +45,7 @@ pub fn unlock_device(
         transport,
         proof: None,
         unlock: None,
-        backoff: Rc::new(|ms| std::thread::sleep(std::time::Duration::from_millis(ms))),
+        backoff: Rc::new(crate::time::wait),
     });
     let Some(session) = login(&client, &vault_id, password, p::TLoginPurpose::Unlock)? else {
         return Ok(());

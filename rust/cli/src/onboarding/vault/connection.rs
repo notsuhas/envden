@@ -24,6 +24,6 @@ pub(crate) fn connection(
         transport: Rc::new(UreqTransport),
         proof: None,
         unlock: None,
-        backoff: Rc::new(|ms| std::thread::sleep(std::time::Duration::from_millis(ms))),
+        backoff: Rc::new(crate::time::wait),
     })
 }

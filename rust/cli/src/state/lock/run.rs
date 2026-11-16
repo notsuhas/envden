@@ -55,7 +55,7 @@ fn with_observer<T>(
         home,
         &ILockTiming {
             now: &|| now,
-            wait: &|delay| std::thread::sleep(std::time::Duration::from_millis(delay)),
+            wait: &crate::time::wait,
             delays: &[50, 100, 200, 400, 800, 1000],
         },
         action,

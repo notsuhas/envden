@@ -81,3 +81,6 @@ mod tests {
         );
     }
 }
+
+mod wait;
+pub(crate) use wait::wait;
