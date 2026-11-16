@@ -126,7 +126,14 @@ fn discovery_stays_in_the_checkout_and_refuses_unsupported_patterns() {
         [".env", ".env.local", ".env.é", "apps/web/.env"]
     );
 
-    for pattern in ["{*,**}/.env", "apps[/]web/.env", ".env.[a", ".env.?"] {
+    assert_eq!(
+        adapter
+            .env_files(&checkout, Some(&rules(".env.?")))
+            .unwrap(),
+        [".env.é"]
+    );
+
+    for pattern in ["{*,**}/.env", "apps[/]web/.env", ".env.[a"] {
         let error = adapter
             .env_files(&checkout, Some(&rules(pattern)))
             .unwrap_err();
