@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 
-use zeroize::ZeroizeOnDrop;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// A cursor for editing multiline strings.
 ///
@@ -45,6 +45,28 @@ impl StringCursor {
     /// Returns `true` if the cursor contains no characters.
     pub fn is_empty(&self) -> bool {
         self.value.is_empty()
+    }
+
+    /// Returns the characters of the value.
+    pub fn chars(&self) -> &[char] {
+        &self.value
+    }
+
+    /// Returns the cursor position, in characters.
+    pub fn position(&self) -> usize {
+        self.cursor
+    }
+
+    /// Replaces the value and cursor position, wiping the old value.
+    pub fn set(&mut self, value: &[char], position: usize) {
+        self.value.zeroize();
+        self.value.extend_from_slice(value);
+        self.cursor = position.min(self.value.len());
+    }
+
+    /// Moves the cursor to a position, clamped to the value.
+    pub fn move_to(&mut self, position: usize) {
+        self.cursor = position.min(self.value.len());
     }
 
     /// Returns a character at the current cursor position.

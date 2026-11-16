@@ -48,7 +48,7 @@ impl PromptInteraction<bool> for Confirm {
         let Event::Key(key) = event;
 
         match key {
-            Key::Char(' ')
+            Key::Char(' ' | '\n')
             | Key::ArrowDown
             | Key::ArrowRight
             | Key::ArrowUp

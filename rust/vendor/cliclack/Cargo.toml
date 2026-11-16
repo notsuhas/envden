@@ -26,3 +26,9 @@ strsim = "0.11"
 textwrap = "0.16"
 zeroize = { version = "1.8", features = ["derive"] }
 
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.31", features = ["poll", "term"] }
+
+[target.'cfg(windows)'.dependencies]
+crossterm = "0.29"
+
