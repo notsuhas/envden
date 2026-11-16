@@ -1,5 +1,5 @@
 use envden_adapter_repo_git::{IGitRepoOptions, create_git_repo_adapter};
-use envden_core::adapters::IRepoAdapter;
+use envden_core::{adapters::IRepoAdapter, filesystem::ICanonicalPath};
 use std::{fs, path::Path, process::Command};
 
 fn git(root: &Path, args: &[&str]) {
@@ -69,7 +69,8 @@ fn sole_remote_alias_resolution_shared_worktrees_and_ambiguous_remotes() {
     assert_eq!(worktree.git_dir, checkout.git_dir);
     assert!(
         adapter.worktrees(&checkout).unwrap().contains(
-            &fs::canonicalize(&other)
+            &other
+                .canonical_path()
                 .unwrap()
                 .to_string_lossy()
                 .into_owned()

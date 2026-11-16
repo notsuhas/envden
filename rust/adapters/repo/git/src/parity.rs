@@ -1,26 +1,30 @@
 use crate::{checkout::worktrees_with, exec, remote::resolve_host_with};
-use envden_core::errors::{EnvdenError, ErrorCode};
+use envden_core::{
+    errors::{EnvdenError, ErrorCode},
+    filesystem::ICanonicalPath,
+};
 use std::{fs, path::Path, process::Command};
 
 pub(super) fn git(root: &Path, args: &[&str]) {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(args)
+        .env_clear()
+        .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+        .envs(
+            ["SYSTEMROOT", "COMSPEC", "TEMP", "TMP"]
+                .into_iter()
+                .filter_map(|key| std::env::var_os(key).map(|value| (key, value))),
+        )
+        .env("HOME", root)
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .output()
+        .unwrap();
     assert!(
-        Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(args)
-            .env_clear()
-            .env("PATH", std::env::var_os("PATH").unwrap_or_default())
-            .envs(
-                ["SYSTEMROOT", "COMSPEC", "TEMP", "TMP"]
-                    .into_iter()
-                    .filter_map(|key| std::env::var_os(key).map(|value| (key, value)))
-            )
-            .env("HOME", root)
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .output()
-            .unwrap()
-            .status
-            .success()
+        output.status.success(),
+        "git {args:?}: {}",
+        String::from_utf8_lossy(&output.stderr)
     );
 }
 
@@ -95,7 +99,7 @@ fn ssh_only_executes_safe_option_terminated_hosts() {
 #[test]
 fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     let temp = tempfile::tempdir().unwrap();
-    let root = fs::canonicalize(temp.path()).unwrap();
+    let root = temp.path().canonical_path().unwrap();
     git(&root, &["init", "-q"]);
     fs::write(root.join("README"), "test").unwrap();
     git(&root, &["add", "README"]);
@@ -129,7 +133,7 @@ fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     assert!(
         listed
             .iter()
-            .any(|path| fs::canonicalize(path).unwrap() == root.join("kept"))
+            .any(|path| Path::new(path).canonical_path().unwrap() == root.join("kept"))
     );
     assert!(!listed.iter().any(|p| p.ends_with("gone")));
     let listed = worktrees_with(|args| {
@@ -143,7 +147,7 @@ fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     assert_eq!(
         listed
             .iter()
-            .map(|path| fs::canonicalize(path).unwrap())
+            .map(|path| Path::new(path).canonical_path().unwrap())
             .collect::<Vec<_>>(),
         [root.clone(), root.join("kept")]
     );
