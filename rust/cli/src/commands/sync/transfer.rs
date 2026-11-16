@@ -29,16 +29,21 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     )?;
     let changed = result["changed"].as_u64().unwrap_or(0);
     let conflicts = result["conflicts"].as_u64().unwrap_or(0);
+    let conflicted = transfer_conflicted(pushing, &result);
     let message = sync_text(pushing, changed, conflicts);
     if invocation.options.get("json") == Some(&true.into()) {
         print(&terminal_json(&result));
-    } else if conflicts == 0 {
+    } else if !conflicted {
         print(&message);
     }
-    if conflicts > 0 {
+    if conflicted {
         return Err(EnvdenError::new(ErrorCode::Conflict, message));
     }
     Ok(())
+}
+
+fn transfer_conflicted(pushing: bool, result: &serde_json::Value) -> bool {
+    result["conflicts"].as_u64().unwrap_or(0) > 0 || (pushing && result["kind"] == "conflict")
 }
 
 fn unlock_prompt(retry: bool) -> &'static str {
@@ -79,6 +84,13 @@ fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn push_conflict_kind_is_an_error_even_with_zero_conflicts() {
+        let result = serde_json::json!({"kind":"conflict", "conflicts":0});
+        assert!(transfer_conflicted(true, &result));
+        assert!(!transfer_conflicted(false, &result));
+    }
+
     #[test]
     fn unlock_retry_label() {
         assert_eq!(unlock_prompt(false), "Master password");
