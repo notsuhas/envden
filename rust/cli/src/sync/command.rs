@@ -15,6 +15,17 @@ use std::{
 pub fn sync_options(invocation: &IInvocation<'_>, adapters: &IAdapters) -> ISyncOptions {
     let json = invocation.options.get("json") == Some(&true.into());
     ISyncOptions {
+        unlock: Some(Rc::new(|client, vault| {
+            crate::session::login(
+                client,
+                vault,
+                crate::session::TPassword::Prompt(&mut |retry| {
+                    crate::output::prompts::secret(unlock_prompt(retry), |_| None)
+                }),
+                envden_protocol::protocol::TLoginPurpose::Unlock,
+            )
+            .map(|_| ())
+        })),
         now: adapters.now,
         cwd: std::env::current_dir().ok(),
         all: invocation.options.get("all") == Some(&true.into()),
@@ -39,5 +50,13 @@ pub fn sync_options(invocation: &IInvocation<'_>, adapters: &IAdapters) -> ISync
                 print(message);
             }
         })),
+    }
+}
+
+pub(crate) fn unlock_prompt(retry: bool) -> &'static str {
+    if retry {
+        "Wrong master password. Try again"
+    } else {
+        "Master password"
     }
 }

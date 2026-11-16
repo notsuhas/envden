@@ -23,6 +23,7 @@ impl ITransport for Observe {
 fn history_holds_lock_through_network_reads() {
     let (_dir, a, server, _) = fixture::fixture();
     let options = ISyncOptions {
+        unlock: None,
         now: a.now,
         cwd: None,
         all: true,

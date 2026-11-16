@@ -204,6 +204,7 @@ mod tests {
             (false, false, crate::state::NOT_SET_UP),
         ] {
             let options = ISyncOptions {
+                unlock: None,
                 now: adapters.now,
                 cwd: None,
                 all: true,

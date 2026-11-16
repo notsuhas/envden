@@ -8,6 +8,7 @@ fn completed_sync_prunes_expired_placement_backups() {
     std::fs::create_dir_all(backup.parent().unwrap()).unwrap();
     std::fs::write(&backup, b"previous").unwrap();
     let options = ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: Some(adapters.user_home.clone()),
         all: true,

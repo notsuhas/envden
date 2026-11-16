@@ -9,6 +9,7 @@ use std::{path::PathBuf, rc::Rc};
 
 pub fn options(adapters: &IAdapters) -> ISyncOptions {
     ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: None,
         all: true,

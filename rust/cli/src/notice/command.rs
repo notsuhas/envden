@@ -54,6 +54,7 @@ pub fn command_notice_with_transport(
             let remote = read_remote_notice(&adapters.home)?;
             if !refresh || remote.is_none_or(|r| now as f64 - r.checked_at >= 60_000.0) {
                 let options = crate::sync::remote::context::ISyncOptions {
+                    unlock: None,
                     now: adapters.now,
                     cwd: None,
                     all: true,
@@ -66,7 +67,7 @@ pub fn command_notice_with_transport(
                 let bounded = super::deadline::bounded_transport(
                     transport,
                     adapters.now,
-                    now.saturating_add(2_000),
+                    (adapters.now)().saturating_add(2_000),
                 );
                 let _ = super::fetch::remote_notice(adapters, options, bounded);
             }

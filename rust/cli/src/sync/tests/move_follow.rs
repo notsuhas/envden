@@ -45,6 +45,7 @@ fn pull_follows_signed_move_before_reconciliation() {
     value.headers.push(header);
     value.destination = Some(destination);
     let options = ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: Some(adapters.user_home.clone()),
         all: true,

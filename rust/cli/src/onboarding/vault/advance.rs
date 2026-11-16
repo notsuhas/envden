@@ -30,6 +30,7 @@ pub(in crate::onboarding) fn advance(
         client: create_client(client.options.clone()),
         vault_id: client.options.vault_id,
         options: ISyncOptions {
+            unlock: None,
             now: || 0,
             cwd: None,
             all: false,

@@ -5,7 +5,7 @@ pub mod history;
 pub mod join;
 pub mod recovery;
 
-pub use connection::{IVaultConnection, vault_connection};
+pub use connection::{IVaultConnection, TVaultUnlock, vault_connection};
 pub use creation::{IVaultCreation, create_vault_swap};
 pub use genesis::{IGenesis, create_genesis};
 

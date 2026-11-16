@@ -24,6 +24,7 @@ fn push_counts_conflicts_outside_selected_repositories() {
     };
     crate::sync::local::conflicts::save_conflicts(home, &[record], 1).unwrap();
     let options = ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: Some(adapters.user_home.clone()),
         all: true,

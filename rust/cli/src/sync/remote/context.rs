@@ -21,6 +21,7 @@ pub type TReport = Rc<dyn Fn(&str)>;
 
 pub struct ISyncOptions {
     pub now: TClock,
+    pub unlock: Option<crate::vault::TVaultUnlock>,
     pub cwd: Option<PathBuf>,
     pub all: bool,
     pub yes: bool,
@@ -57,25 +58,11 @@ pub fn sync_context(
         })
         .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, NOT_SET_UP))?;
     let mut connection = vault_connection(adapters, &state, transport)?;
-    if options.interactive {
-        connection = connection.with_unlock(Rc::new(|client, vault| {
-            crate::session::login(
-                client,
-                vault,
-                crate::session::TPassword::Prompt(&mut |retry| {
-                    crate::output::prompts::secret(
-                        if retry {
-                            "Wrong master password. Try again"
-                        } else {
-                            "Master password"
-                        },
-                        |_| None,
-                    )
-                }),
-                p::TLoginPurpose::Unlock,
-            )
-            .map(|_| ())
-        }));
+    connection.client.options.now = options.now;
+    if options.interactive
+        && let Some(unlock) = &options.unlock
+    {
+        connection = connection.with_unlock(unlock.clone());
     }
     let material = checkpoint_material(adapters, &state)?;
     Ok(ISyncContext {
@@ -111,6 +98,7 @@ mod tests {
             || 1,
         );
         let options = ISyncOptions {
+            unlock: None,
             now: adapters.now,
             cwd: None,
             all: true,

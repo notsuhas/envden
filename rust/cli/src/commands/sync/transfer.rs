@@ -10,22 +10,14 @@ use std::rc::Rc;
 
 pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let pushing = invocation.command.name == "push";
+    let options = sync_options(invocation, adapters);
+    let unlock = options.unlock.clone();
     let result = sync_with_unlock(
         adapters,
-        sync_options(invocation, adapters),
+        options,
         Rc::new(UreqTransport),
         pushing,
-        Some(&|client, vault_id| {
-            crate::session::login(
-                client,
-                vault_id,
-                crate::session::TPassword::Prompt(&mut |retry| {
-                    crate::output::prompts::secret(unlock_prompt(retry), |_| None)
-                }),
-                envden_protocol::protocol::TLoginPurpose::Unlock,
-            )
-            .map(|_| ())
-        }),
+        unlock.as_deref(),
     )?;
     let changed = result["changed"].as_u64().unwrap_or(0);
     let conflicts = result["conflicts"].as_u64().unwrap_or(0);
@@ -44,14 +36,6 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
 
 fn transfer_conflicted(pushing: bool, result: &serde_json::Value) -> bool {
     result["conflicts"].as_u64().unwrap_or(0) > 0 || (pushing && result["kind"] == "conflict")
-}
-
-fn unlock_prompt(retry: bool) -> &'static str {
-    if retry {
-        "Wrong master password. Try again"
-    } else {
-        "Master password"
-    }
 }
 
 fn sync_text(pushing: bool, changed: u64, conflicts: u64) -> String {
@@ -93,8 +77,14 @@ mod tests {
 
     #[test]
     fn unlock_retry_label() {
-        assert_eq!(unlock_prompt(false), "Master password");
-        assert_eq!(unlock_prompt(true), "Wrong master password. Try again");
+        assert_eq!(
+            crate::sync::command::unlock_prompt(false),
+            "Master password"
+        );
+        assert_eq!(
+            crate::sync::command::unlock_prompt(true),
+            "Wrong master password. Try again"
+        );
     }
 
     #[test]

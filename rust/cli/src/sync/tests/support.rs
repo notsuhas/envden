@@ -3,6 +3,7 @@ use std::{fs, process::Command};
 
 pub(super) fn opts(a: &adapters::IAdapters) -> sync::remote::context::ISyncOptions {
     sync::remote::context::ISyncOptions {
+        unlock: None,
         now: a.now,
         cwd: None,
         all: true,

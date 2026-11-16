@@ -8,6 +8,7 @@ fn repairs_report_lost_and_restored_paths() {
     let reports = Rc::new(RefCell::new(Vec::new()));
     let recorded = reports.clone();
     let options = ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: None,
         all: true,

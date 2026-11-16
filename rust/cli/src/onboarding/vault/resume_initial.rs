@@ -22,6 +22,7 @@ pub(super) fn resume(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
     let mut context = sync_context(
         adapters,
         ISyncOptions {
+            unlock: None,
             now: adapters.now,
             cwd: None,
             all: true,

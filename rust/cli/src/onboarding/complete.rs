@@ -19,6 +19,7 @@ fn first_run_with(
     run: impl FnOnce(ISyncOptions) -> Result<Value>,
 ) -> Result<Value> {
     run(ISyncOptions {
+        unlock: None,
         now: adapters.now,
         cwd: std::env::current_dir().ok(),
         all: true,

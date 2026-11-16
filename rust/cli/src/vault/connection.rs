@@ -9,7 +9,7 @@ use envden_protocol::protocol as p;
 use serde_json::Value;
 use std::rc::Rc;
 
-type TVaultUnlock = Rc<dyn Fn(&IClient, &[u8; 32]) -> Result<()>>;
+pub type TVaultUnlock = Rc<dyn Fn(&IClient, &[u8; 32]) -> Result<()>>;
 
 pub struct IVaultConnection {
     pub identity: IDeviceIdentity,
