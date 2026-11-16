@@ -2,7 +2,7 @@ use std::io;
 
 use zeroize::Zeroizing;
 
-use super::keypress::{parse, Keypress};
+use super::super::keypress::{parse, Keypress};
 
 /// Readline's `escapeCodeTimeout` under Clack.
 const ESCAPE_TIMEOUT_MS: u16 = 50;
