@@ -32,16 +32,14 @@ fn prepare_directory(path: &Path) -> Result<()> {
 }
 
 pub fn private_directory(path: &Path) -> Result<()> {
-    private_directory_with(path, &|path, directory| envden_core::process::restrict_access(path, directory))
+    private_directory_with(path, &|path, directory| {
+        envden_core::process::restrict_access(path, directory)
+    })
 }
 
-fn private_directory_with(path: &Path, _restrict: &dyn Fn(&Path, bool) -> Result<()>) -> Result<()> {
+fn private_directory_with(path: &Path, restrict: &dyn Fn(&Path, bool) -> Result<()>) -> Result<()> {
     prepare_directory(path)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(path, fs::Permissions::from_mode(0o700)).map_err(failure)?;
-    }
+    restrict(path, true)?;
     OWNED
         .get_or_init(Default::default)
         .lock()
@@ -66,14 +64,25 @@ pub fn optional_read(path: &Path) -> Result<Option<String>> {
         }
         Ok(_) => {}
     }
-    fs::read_to_string(path).map(Some).map_err(failure)
+    match fs::read(path) {
+        Ok(bytes) => Ok(Some(String::from_utf8_lossy(&bytes).into_owned())),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(failure(error)),
+    }
 }
 
 pub fn atomic_write(path: &Path, bytes: &[u8], now: u64) -> Result<()> {
-    atomic_write_with(path, bytes, now, &|path, directory| envden_core::process::restrict_access(path, directory))
+    atomic_write_with(path, bytes, now, &|path, directory| {
+        envden_core::process::restrict_access(path, directory)
+    })
 }
 
-fn atomic_write_with(path: &Path, bytes: &[u8], now: u64, _restrict: &dyn Fn(&Path, bool) -> Result<()>) -> Result<()> {
+fn atomic_write_with(
+    path: &Path,
+    bytes: &[u8],
+    now: u64,
+    restrict: &dyn Fn(&Path, bool) -> Result<()>,
+) -> Result<()> {
     let parent = path
         .parent()
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Unsafe state directory"))?;
@@ -99,6 +108,7 @@ fn atomic_write_with(path: &Path, bytes: &[u8], now: u64, _restrict: &dyn Fn(&Pa
             options.mode(0o600);
         }
         let mut file = options.open(&temporary).map_err(failure)?;
+        restrict(&temporary, false)?;
         file.write_all(bytes).map_err(failure)?;
         file.sync_all().map_err(failure)?;
         drop(file);
