@@ -153,9 +153,11 @@ func TestPromptPTY(t *testing.T) {
 			} else if mode == "paste" {
 				// a pasted line ending in a newline must not wedge the prompt
 				expect("Paste it")
-				send("\x1b[200~secret\r\x1b[201~")
-				send("\r")
-				expect("RESULT:secret")
+				send("secret\r")
+				expect("RESULT:secret:false")
+				if strings.Contains(transcript.String(), "\x1b[?2004h") {
+					t.Fatal("bracketed paste would turn a pasted newline into part of the answer")
+				}
 			} else if mode == "ctrl-j" {
 				expect("Paste it")
 				send("ab\n")

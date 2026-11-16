@@ -47,7 +47,7 @@ func IsCancel(err error) bool {
 }
 
 func (t *session) run(field huh.Field, programOptions ...tea.ProgramOption) error {
-	err := huh.NewForm(huh.NewGroup(field.WithWidth(80))).WithProgramOptions(append(programOptions, tea.WithoutSignalHandler())...).WithInput(t.input).WithOutput(t.output).
+	err := huh.NewForm(huh.NewGroup(field.WithWidth(80))).WithProgramOptions(append(programOptions, tea.WithoutSignalHandler(), tea.WithoutBracketedPaste())...).WithInput(t.input).WithOutput(t.output).
 		WithWidth(80).WithKeyMap(promptKeyMap()).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
 	if errors.Is(err, huh.ErrUserAborted) {
 		return errCancelled
