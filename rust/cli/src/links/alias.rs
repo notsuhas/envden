@@ -13,9 +13,7 @@ pub fn derive_alias(aliases: &Value, source: &str, target: &str) -> &'static str
     if source.is_empty() || target.is_empty() || source == target {
         return "invalid";
     }
-    if aliases
-        .get(target)
-        .map_or_else(|| inherited_alias(target), crate::state::truthy)
+    if aliases.get(target).is_some_and(crate::state::truthy)
         || aliases
             .as_object()
             .is_some_and(|a| a.values().any(|v| v.as_str() == Some(source)))
@@ -44,29 +42,9 @@ pub fn alias_repo(adapters: &IAdapters, source: &str, target: &str) -> Result<()
             }
             _ => {}
         }
-        if source != "__proto__" || state["aliases"].get(source).is_some() {
-            state["aliases"][source] = target.into();
-        }
+        state["aliases"][source] = target.into();
         save_state(&adapters.home, &state, &adapters.now)
     })
-}
-
-fn inherited_alias(name: &str) -> bool {
-    matches!(
-        name,
-        "constructor"
-            | "__defineGetter__"
-            | "__defineSetter__"
-            | "hasOwnProperty"
-            | "__lookupGetter__"
-            | "__lookupSetter__"
-            | "isPrototypeOf"
-            | "propertyIsEnumerable"
-            | "toString"
-            | "valueOf"
-            | "__proto__"
-            | "toLocaleString"
-    )
 }
 
 #[cfg(test)]
@@ -82,10 +60,11 @@ mod tests {
             ("a", "b", json!({"b":"c"}), "chain"),
             ("a", "b", json!({"c":"a"}), "chain"),
             ("a", "b", json!({}), "assign"),
-            ("x", "constructor", json!({}), "chain"),
-            ("x", "toString", json!({}), "chain"),
-            ("x", "hasOwnProperty", json!({}), "chain"),
-            ("x", "__proto__", json!({}), "chain"),
+            ("x", "constructor", json!({}), "assign"),
+            ("x", "toString", json!({}), "assign"),
+            ("x", "hasOwnProperty", json!({}), "assign"),
+            ("x", "__proto__", json!({}), "assign"),
+            ("x", "constructor", json!({"constructor":"y"}), "chain"),
             ("x", "constructor", json!({"constructor":""}), "assign"),
             ("x", "constructor", json!({"constructor":null}), "assign"),
             ("x", "b", json!({"b":true}), "chain"),
@@ -127,22 +106,19 @@ mod persistence_tests {
         let mut state = empty_state("test");
         state["aliases"] = serde_json::json!({"old":"canonical"});
         save_state(dir.path(), &state, &adapters.now).unwrap();
-        alias_repo(&adapters, "__proto__", "ignored").unwrap();
-        assert_eq!(
-            load_state(dir.path()).unwrap().unwrap()["aliases"],
-            state["aliases"]
-        );
+        alias_repo(&adapters, "__proto__", "saved").unwrap();
+        alias_repo(&adapters, "x", "constructor").unwrap();
         alias_repo(&adapters, "a", "b").unwrap();
         let saved = load_state(dir.path()).unwrap().unwrap();
         assert_eq!(
             saved["aliases"],
-            serde_json::json!({"old":"canonical", "a":"b"})
+            serde_json::json!({"old":"canonical", "__proto__":"saved", "x":"constructor", "a":"b"})
         );
         for (source, target, code) in [
             ("b", "c", ErrorCode::Conflict),
-            ("x", "constructor", ErrorCode::Conflict),
-            ("x", "toString", ErrorCode::Conflict),
-            ("x", "hasOwnProperty", ErrorCode::Conflict),
+            ("y", "x", ErrorCode::Conflict),
+            ("constructor", "z", ErrorCode::Conflict),
+            ("y", "__proto__", ErrorCode::Conflict),
             ("a", "a", ErrorCode::InvalidInput),
         ] {
             assert_eq!(
