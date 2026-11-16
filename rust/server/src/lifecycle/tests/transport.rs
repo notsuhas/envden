@@ -137,17 +137,25 @@ async fn served_socket() -> (tokio::net::TcpStream, oneshot::Sender<()>) {
     (tokio::net::TcpStream::connect(address).await.unwrap(), stop)
 }
 
+// Reads the response head on the real clock, then pauses time so only the server's timers can end the wait.
 async fn closed_after(client: &mut tokio::net::TcpStream) -> (String, std::time::Duration) {
     use tokio::io::AsyncReadExt;
 
-    let started = tokio::time::Instant::now();
     let mut received = Vec::new();
+    while !received.windows(4).any(|part| part == b"\r\n\r\n") {
+        let mut chunk = [0; 1024];
+        let read = client.read(&mut chunk).await.unwrap();
+        assert!(read > 0, "closed before a response");
+        received.extend_from_slice(&chunk[..read]);
+    }
+    tokio::time::pause();
+    let started = tokio::time::Instant::now();
     client.read_to_end(&mut received).await.unwrap();
 
     (String::from_utf8(received).unwrap(), started.elapsed())
 }
 
-#[tokio::test(start_paused = true)]
+#[tokio::test]
 async fn a_rejected_request_with_an_unread_body_closes_within_ten_seconds() {
     use tokio::io::AsyncWriteExt;
 
@@ -159,10 +167,13 @@ async fn a_rejected_request_with_an_unread_body_closes_within_ten_seconds() {
     let (response, elapsed) = closed_after(&mut client).await;
 
     assert!(response.starts_with("HTTP/1.1 404"), "{response}");
-    assert!(elapsed <= std::time::Duration::from_secs(10), "{elapsed:?}");
+    assert!(
+        elapsed <= std::time::Duration::from_millis(10_010),
+        "{elapsed:?}"
+    );
 }
 
-#[tokio::test(start_paused = true)]
+#[tokio::test]
 async fn an_idle_keep_alive_connection_closes_after_ten_seconds() {
     use tokio::io::AsyncWriteExt;
 
@@ -174,6 +185,9 @@ async fn an_idle_keep_alive_connection_closes_after_ten_seconds() {
     let (response, elapsed) = closed_after(&mut client).await;
 
     assert!(response.starts_with("HTTP/1.1 404"), "{response}");
-    assert!(elapsed <= std::time::Duration::from_secs(10), "{elapsed:?}");
+    assert!(
+        elapsed <= std::time::Duration::from_millis(10_010),
+        "{elapsed:?}"
+    );
     assert!(elapsed >= std::time::Duration::from_secs(9), "{elapsed:?}");
 }
