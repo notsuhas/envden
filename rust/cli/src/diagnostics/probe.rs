@@ -3,12 +3,14 @@ use envden_core::errors::Result;
 use std::{fs, path::Path};
 
 pub(super) fn symlink_probe(directory: &Path) -> Result<bool> {
-    let mut builder = fs::DirBuilder::new();
+    let builder = fs::DirBuilder::new();
     #[cfg(unix)]
-    {
+    let builder = {
         use std::os::unix::fs::DirBuilderExt;
+        let mut builder = builder;
         builder.mode(0o700);
-    }
+        builder
+    };
     builder.create(directory).map_err(failure)?;
 
     Ok((|| -> std::io::Result<()> {
