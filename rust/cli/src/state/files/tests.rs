@@ -63,3 +63,18 @@ fn temporary_file_is_restricted_before_writing_or_renaming() {
     assert!(!destination.exists());
     assert_eq!(fs::read_dir(temp.path()).unwrap().count(), 0);
 }
+
+#[test]
+fn atomic_write_reports_cleanup_failure_before_original_failure() {
+    let temp = tempfile::tempdir().unwrap();
+    let destination = temp.path().join("state");
+    let result = atomic_write_with(&destination, b"A=1", 42, &|path, _| {
+        fs::remove_file(path).unwrap();
+        fs::create_dir(path).unwrap();
+        Err(EnvdenError::new(
+            ErrorCode::InvalidInput,
+            "Cannot restrict access",
+        ))
+    });
+    assert_eq!(result.unwrap_err().message, "State file operation failed");
+}

@@ -119,7 +119,11 @@ fn atomic_write_with(
             .map_err(failure)?;
         Ok(())
     })();
-    let _ = fs::remove_file(temporary);
+    match fs::remove_file(temporary) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(failure(error)),
+    }
     result
 }
 
