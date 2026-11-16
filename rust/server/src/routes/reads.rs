@@ -33,10 +33,7 @@ pub(super) fn reads(
     let path = request.uri().path();
     let id = &auth.request.vault_id;
     let storage = options.storage.as_ref();
-    let query: std::collections::HashMap<_, _> =
-        url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
-            .into_owned()
-            .collect();
+    let query = super::query::query_parameters(request.uri());
     let result = match path {
         "/v1/head" => {
             require_read(options, auth, "history", None)?;
@@ -139,3 +136,7 @@ pub(super) fn reads(
 
     Ok(Some(result))
 }
+
+#[cfg(test)]
+#[path = "tests/reads.rs"]
+mod tests;

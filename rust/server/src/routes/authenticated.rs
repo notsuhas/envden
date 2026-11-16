@@ -85,10 +85,7 @@ pub(crate) fn dispatch_authenticated(
         let result = if path == "/v1/vault" {
             crate::vault::create_vault(options, auth, &swap, &digest)?
         } else {
-            let query: std::collections::HashMap<_, _> =
-                url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
-                    .into_owned()
-                    .collect();
+            let query = super::query::query_parameters(request.uri());
             crate::vault::commit_swap(
                 options,
                 auth,
