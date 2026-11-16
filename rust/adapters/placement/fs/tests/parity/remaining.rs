@@ -47,16 +47,17 @@ fn inspect_propagates_store_stat_errors() {
     let root = temp.path();
     let dest = root.join(".env");
     std::fs::write(&dest, "value").unwrap();
-    let store = dest.join("not-a-directory");
+    let store = root.join("invalid\0store");
+    let cause = store.symlink_metadata().unwrap_err();
+    assert_ne!(cause.kind(), std::io::ErrorKind::NotFound);
     let adapter = envden_adapter_placement_fs::create_fs_placement_adapter(
         TPlacementMode::Copy,
         root,
         None,
         || 0.0,
     );
-    assert!(
-        adapter
-            .inspect(store.to_str().unwrap(), dest.to_str().unwrap())
-            .is_err()
-    );
+    let error = adapter
+        .inspect(store.to_str().unwrap(), dest.to_str().unwrap())
+        .unwrap_err();
+    assert!(std::error::Error::source(&error).is_some());
 }
