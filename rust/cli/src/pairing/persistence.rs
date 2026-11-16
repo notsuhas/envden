@@ -79,14 +79,7 @@ pub(super) fn submit(adapters: &IAdapters, client: &IClient) -> Result<bool> {
     let Some(saved) = optional_read(&path)? else {
         return Ok(false);
     };
-    let (number, encoded) = saved
-        .split_once(':')
-        .ok_or_else(|| invalid("Invalid stored pairing swap"))?;
-    let number: u32 = number
-        .parse()
-        .ok()
-        .filter(|v| (1..=999).contains(v))
-        .ok_or_else(|| invalid("Invalid stored pairing swap"))?;
+    let (number, encoded) = stored_swap(&saved)?;
     let bytes = binary(encoded)?;
     let swap: p::ISwap = p::decode(&bytes)?;
     let hash = p::object_hash(&swap.header, "manifest")?;
@@ -107,6 +100,26 @@ pub(super) fn submit(adapters: &IAdapters, client: &IClient) -> Result<bool> {
     Ok(true)
 }
 
+fn stored_swap(saved: &str) -> Result<(u32, &str)> {
+    let mut fields = saved.split(':');
+    let number = fields.next().unwrap_or_default();
+    let encoded = fields
+        .next()
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| invalid("Invalid stored pairing swap"))?;
+    if !(1..=3).contains(&number.len())
+        || !matches!(number.as_bytes()[0], b'1'..=b'9')
+        || !number.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        return Err(invalid("Invalid stored pairing swap"));
+    }
+    let number = number
+        .parse()
+        .map_err(|_| invalid("Invalid stored pairing swap"))?;
+
+    Ok((number, encoded))
+}
+
 fn invalid(message: &'static str) -> EnvdenError {
     EnvdenError::new(ErrorCode::InvalidData, message)
 }
@@ -119,18 +132,33 @@ mod tests {
         state::{empty_state, repository::save_state},
     };
     #[test]
+    fn stored_mailbox_requires_canonical_decimal() {
+        for saved in ["007:AA", "+7:AA", "0:AA", "1000:AA", "7:"] {
+            assert_eq!(
+                stored_swap(saved).unwrap_err().code,
+                ErrorCode::InvalidData,
+                "{saved}"
+            );
+        }
+        for saved in ["1:AA", "7:AA", "999:AA"] {
+            assert!(stored_swap(saved).is_ok(), "{saved}");
+        }
+        assert_eq!(stored_swap("7:AA:ignored").unwrap(), (7, "AA"));
+    }
+
+    #[test]
     fn committed_join_refuses_and_clears_abandoned_exchange() {
         let dir = tempfile::tempdir().unwrap();
         let adapters = create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
         guard(&adapters).unwrap();
         let mut state = empty_state("test");
         state["vaultId"] = "vault".into();
-        save_state(&adapters.home, &state, 42).unwrap();
+        save_state(&adapters.home, &state, &|| 42).unwrap();
         atomic_write(&adapters.home.join("state/pair-pin"), b"abandoned", 42).unwrap();
         assert_eq!(guard(&adapters).unwrap_err().code, ErrorCode::Conflict);
         assert!(!adapters.home.join("state/pair-pin").exists());
         state["creationPending"] = "pending".into();
-        save_state(&adapters.home, &state, 42).unwrap();
+        save_state(&adapters.home, &state, &|| 42).unwrap();
         guard(&adapters).unwrap();
     }
 }
