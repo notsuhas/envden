@@ -37,7 +37,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     let name = if resume {
         None
     } else {
-        let name = device_name(options)?;
+        let name = device_name(adapters, options)?;
         super::persistence::clear(adapters)?;
         Some(name)
     };

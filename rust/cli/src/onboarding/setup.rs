@@ -52,20 +52,32 @@ pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
     })
 }
 
-pub(crate) fn device_name(options: &Value) -> Result<String> {
+pub(crate) fn device_name(adapters: &IAdapters, options: &Value) -> Result<String> {
     use std::io::IsTerminal;
     if let Some(name) = options["name"].as_str() {
         return Ok(name.into());
     }
-    let hostname = std::process::Command::new("hostname")
-        .output()
-        .ok()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_else(|| "device".into());
-    let name = crate::identity::name::suggested_device_name(&hostname);
+    let name = crate::identity::name::suggested_device_name(&adapters.hostname);
     if std::io::stdin().is_terminal() {
         input("Device name", true, Some(&name), |_| None)
     } else {
         Ok(name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn suggested_name_uses_the_adapter_hostname() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+        adapters.hostname = "injected-laptop".into();
+        assert_eq!(
+            device_name(&adapters, &serde_json::json!({})).unwrap(),
+            crate::identity::name::suggested_device_name(&adapters.hostname)
+        );
     }
 }

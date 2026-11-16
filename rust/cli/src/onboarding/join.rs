@@ -35,7 +35,7 @@ pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<
         })?;
     }
     let mut state = if options["recovery"] == true || options["recoveryKit"].is_string() {
-        let name = device_name(options)?;
+        let name = device_name(adapters, options)?;
         let kit = read_kit(options["recoveryKit"].as_str().map(Path::new))?;
         let password = secret("Master password", |_| None)?;
         with_state_lock(&adapters.home, (adapters.now)(), || {

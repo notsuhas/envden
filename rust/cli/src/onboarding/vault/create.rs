@@ -36,7 +36,7 @@ pub(in crate::onboarding) fn create(adapters: &IAdapters, options: &Value) -> Re
     super::preflight::preflight(is_hosted, || {
         super::preflight::check_server(&address, &token, &UreqTransport)
     })?;
-    let name = crate::onboarding::setup::device_name(options)?;
+    let name = crate::onboarding::setup::device_name(adapters, options)?;
     let password = confirmed_password(|label| secret(label, |_| None), 3, |v| eprintln!("{v}"))?;
     setup(adapters, options, &address, &token, &name, &password)
 }
