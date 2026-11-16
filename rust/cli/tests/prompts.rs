@@ -62,7 +62,7 @@ fn prompt_fixture() {
 #[cfg(unix)]
 fn terminal_answers_preserve_defaults_keys_validation_and_cancellation() {
     let script = r#"
-import fcntl, os, pty, select, struct, subprocess, sys, termios
+import fcntl, os, pty, re, select, struct, subprocess, sys, termios
 cases = [
  ('initial', b'\r', 'ANSWER:device:END'),
  ('redirected', b'\r', 'ANSWER:device:END'),
@@ -129,6 +129,9 @@ for case, keys, expected in cases:
  assert child.wait() == 0, (case, output.decode(errors='replace'))
  text = output.decode(errors='replace')
  assert expected in text, (case, expected, text)
+ if case == 'password-edit':
+  plain = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', text)
+  assert plain.count('◆  Fixture prompt') == 1, plain
  if case == 'progress':
   assert 'Found 1 repo with env files' in text, text
  if case == 'password':

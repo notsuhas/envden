@@ -13,6 +13,7 @@ The local changes preserve existing keyboard decisions:
   Clack 1.9.0 PTY results under Bun and Node; other cursor editing stays enabled.
 - Empty optional multiselects wait for Enter or cancellation; empty filtered
   lists ignore navigation rather than wrapping modulo zero.
+- Redraws preserve unchanged prompt headers so automation sees each question once.
 - Terminal eligibility and key reading follow stdin, including redirected output.
 - Progress uses stdout to match the CLI's stdout terminal gate.
 

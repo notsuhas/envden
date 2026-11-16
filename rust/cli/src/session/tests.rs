@@ -11,6 +11,7 @@ struct Server {
     record: RefCell<Option<String>>,
     pending: RefCell<Option<String>>,
     vault: [u8; 32],
+    login_starts: std::cell::Cell<usize>,
 }
 
 impl ITransport for Server {
@@ -54,6 +55,7 @@ impl ITransport for Server {
                 json!({"kind":"registered"})
             }
             "/v1/opaque/login/start" => {
+                self.login_starts.set(self.login_starts.get() + 1);
                 let response = p::opaque_server_start_login(p::IStartServerLoginParams {
                     server_setup: self.setup.clone(),
                     registration_record: self.record.borrow().clone(),
@@ -95,6 +97,7 @@ fn opaque_registration_login_retries_tickets_and_window() {
         record: RefCell::new(None),
         pending: RefCell::new(None),
         vault: [3; 32],
+        login_starts: std::cell::Cell::new(0),
     });
     let keys = p::generate_device_keys(p::random_bytes);
     let client = create_client(IClientOptions {
@@ -115,7 +118,7 @@ fn opaque_registration_login_retries_tickets_and_window() {
         req_sk: keys.req_sk,
         version: "1.0.0".into(),
         now: std::rc::Rc::new(|| 0),
-        transport: server,
+        transport: server.clone(),
         proof: None,
         unlock: None,
         backoff: Rc::new(|_| panic!("unexpected backoff")),
@@ -132,6 +135,24 @@ fn opaque_registration_login_retries_tickets_and_window() {
         .message,
         "Wrong master password"
     );
+    server.login_starts.set(0);
+    let mut retries = Vec::new();
+    let mut wrong = |retry| {
+        retries.push(retry);
+        Ok("wrong".into())
+    };
+    let error = login(
+        &client,
+        &[3; 32],
+        TPassword::Prompt(&mut wrong),
+        p::TLoginPurpose::Unlock,
+    )
+    .unwrap_err();
+    assert_eq!(retries, [false, true, true]);
+    assert_eq!(server.login_starts.get(), 3);
+    assert_eq!(error.code, envden_core::errors::ErrorCode::Unauthorized);
+    assert_eq!(error.message, "Wrong master password");
+    assert_eq!(crate::output::error_exit_code(error.code), 1);
     let mut calls = 0;
     let mut prompt = |retry| {
         calls += 1;

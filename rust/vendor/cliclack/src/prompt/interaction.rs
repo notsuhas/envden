@@ -92,10 +92,16 @@ pub trait PromptInteraction<T> {
             let frame = self.render(&state);
 
             if frame != prev_frame {
-                let prev_frame_check = wrap(&prev_frame, term.size().1 as usize);
+                let prefix = prev_frame
+                    .split_inclusive('\n')
+                    .zip(frame.split_inclusive('\n'))
+                    .take_while(|(previous, next)| previous == next)
+                    .map(|(line, _)| line.len())
+                    .sum::<usize>();
+                let previous = wrap(&prev_frame[prefix..], term.size().1 as usize);
 
-                term.clear_last_lines(prev_frame_check.lines().count())?;
-                term.write_all(frame.as_bytes())?;
+                term.clear_last_lines(previous.lines().count())?;
+                term.write_all(frame[prefix..].as_bytes())?;
                 term.flush()?;
 
                 prev_frame = frame;
