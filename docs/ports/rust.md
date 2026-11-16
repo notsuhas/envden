@@ -60,7 +60,7 @@ CLAUDE.md applies, in idiomatic Rust:
 | Recovery kit PDF | `lopdf` with `flate2` | pdf-lib's page, text and fields; the PDF's internal bytes differ |
 | Dates | `chrono`, `chrono-tz` | date-fns formatting |
 | Status page | `humansize`, `chrono-humanize` | pretty-bytes and date-fns relative times on the HTML page |
-| Globs | `globset` | Bun.Glob matching for synchronised files |
+| Globs | `fast-glob` | Bun.Glob matching for synchronised files; the remaining edge cases are in rust-parity.md |
 | Processes | `shared_child`, `rustix`, `nix`, `windows-sys` | trusted spawning, lock liveness checks, file access checks and Windows ownership, with no hand-written `unsafe` outside Windows FFI |
 | Errors | `thiserror` | |
 
