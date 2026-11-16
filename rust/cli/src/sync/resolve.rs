@@ -75,7 +75,7 @@ pub fn resolve_conflict(
         )?;
         let base = base_path(&adapters.home, &record.store, None);
         for end in [".pending", ".corrupt"] {
-            write_bytes(&suffix(&base, end), None, now)?;
+            remove_file(&suffix(&base, end))?;
         }
         write_bytes(Path::new(&record.store), bytes.as_deref(), now)?;
         let mut state = load_state(&adapters.home)?.ok_or_else(|| {
@@ -123,7 +123,7 @@ pub fn resolve_conflict(
                 now,
             )?;
         }
-        save_state(&adapters.home, &state, now)?;
+        save_state(&adapters.home, &state, &|| now)?;
         if let Some(entry) = &record.entry {
             write_bytes(Path::new(&record.base), bytes.as_deref(), now)?;
             mark_applied_entry(&adapters.home, entry, Some(&record.store), now)?;
@@ -134,10 +134,21 @@ pub fn resolve_conflict(
             .into_iter()
             .chain(record.alternatives.iter())
         {
-            write_bytes(Path::new(path), None, now)?;
+            remove_file(Path::new(path))?;
         }
         Ok(
             json!({"kind":"resolved","path":record.path,"preserved":preserved,"placementReports":reports.into_inner(),"backups":adapters.home.join("conflicts/backups"),"savedBackups":backups}),
         )
     })
 }
+
+fn remove_file(path: &Path) -> Result<()> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(crate::state::files::failure(error)),
+    }
+}
+
+#[cfg(test)]
+mod tests;
