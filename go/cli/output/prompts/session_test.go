@@ -90,7 +90,7 @@ func TestPromptPTYHelper(t *testing.T) {
 }
 
 func TestPromptPTY(t *testing.T) {
-	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc", "left", "right", "ctrl-d", "ahead", "paste", "ctrl-j"} {
+	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc", "cancel-alt-enter", "left", "right", "ctrl-d", "ahead", "paste", "ctrl-j"} {
 		t.Run(mode, func(t *testing.T) {
 			helper := mode
 			if strings.HasPrefix(mode, "cancel-") {
@@ -183,6 +183,10 @@ func TestPromptPTY(t *testing.T) {
 				expect("Cancel this prompt")
 				if mode == "cancel-esc" {
 					send("\x1b")
+				} else if mode == "cancel-alt-enter" {
+					// alt+enter doesn't submit, so cancel must still work after it
+					send("abc\x1b\r")
+					send("\x03")
 				} else {
 					send("\x03")
 				}
