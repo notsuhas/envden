@@ -19,7 +19,7 @@ pub fn resume_close(
     transport: Rc<dyn ITransport>,
 ) -> Result<Option<TFinish>> {
     let path = adapters.home.join("state/repair-close");
-    let Some(saved) = optional_read(&path)? else {
+    let Some(saved) = optional_read(&path)?.filter(|value| !value.is_empty()) else {
         return Ok(None);
     };
     let swap: p::ISwap = p::decode(&binary(&saved)?)?;

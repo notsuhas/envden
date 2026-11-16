@@ -1,3 +1,4 @@
+mod resume;
 mod envelope;
 mod abort;
 mod cases;
