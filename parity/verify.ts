@@ -7,8 +7,8 @@ const reference = resolve(process.argv[2] ?? "apps/cli/dist/envden");
 const directory = await mkdtemp(join(tmpdir(), "parity-tamper-"));
 
 const mutations = [
-  ["stdout", 'console.log("deliberately changed output");', "/stdout"],
-  ["stderr", 'console.error("deliberately changed error");', "/stderr"],
+  ["stdout", 'console.log("pushed 987 files to /tampered/output.env");', "/stdout"],
+  ["stderr", 'console.error("error E_PARITY_MUTATION: missing /tampered/error.env");', "/stderr"],
   ["exit", "process.exitCode = 7;", "/exit"],
   [
     "content",

@@ -9,7 +9,8 @@ export async function prepare(
   devices: Iterable<IDevice>,
   normalizer: Normalizer,
   outputs: IOutput[],
-): Promise<void> {
+): Promise<string[]> {
+  const names: string[] = [];
   const transcript = outputs.map((output) => `${output.stdout}\n${output.stderr}`).join("\n");
 
   for (const d of devices) {
@@ -47,5 +48,17 @@ export async function prepare(
 
     const state = await readFile(join(home, "state/device.json"), "utf8").catch(() => "");
     normalizer.text(state);
+    if (state) collectNames(JSON.parse(state), names);
+  }
+
+  return names;
+}
+
+function collectNames(value: unknown, names: string[]): void {
+  if (!value || typeof value !== "object") return;
+
+  for (const [key, child] of Object.entries(value)) {
+    if (["deviceName", "repoId"].includes(key) && typeof child === "string") names.push(child);
+    else collectNames(child, names);
   }
 }

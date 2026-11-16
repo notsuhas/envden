@@ -195,3 +195,28 @@ Possible improvement: reset memory strikes on refund to match persistent storage
 Why: tests using the memory fake can predict a different lockout than production.
 
 Bug-in-TS: yes
+
+
+## harness: functional terminal and PDF parity
+
+Scenario: compare two CLI implementations with different terminal libraries or PDF writers.
+
+TS behaviour: the harness previously compared normalized terminal text and opaque PDF bytes. It now compares terminal facts, prompt order, choices and answers. JSON values stay strict, help compares command and option sets, and PDFs compare extracted text and Info fields except dates and ID. Exit codes, normalized file names and contents, modes, symlinks, state/config files and server database dumps keep their existing exact comparison.
+
+Possible improvement: extend fact and prompt recognition alongside new CLI vocabulary and scenarios.
+
+Why: native presentation may differ while decisions, facts and persistent effects must match. This replaces the previous presentation-identical rule; it changes no CLI behaviour.
+
+Bug-in-TS: no
+
+## harness: TS baseline differs under concurrent load
+
+Scenario: run setup-interactive and pairing-sync against two copies of the same TS binary while concurrent test jobs drive host load above 150.
+
+TS behaviour: one full-run setup exceeded the server's 15-second startup deadline. A focused setup rerun completed but the server nonce table had 38 rows on one side and 37 on the other, with different canonical labels for entry and blob hashes. Pairing also showed file-ID label differences. The full 18/18 baseline is not verified by this run.
+
+Possible improvement: investigate the extra request and stabilize scenario coordination without filtering nonce rows or weakening database comparison.
+
+Why: terminal presentation equivalence must not hide persistent-state differences. Minute/hour history durations now normalize like seconds; nonce counts remain exact.
+
+Bug-in-TS: unknown

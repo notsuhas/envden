@@ -178,6 +178,10 @@ func replayFixture(t *testing.T, reference capturedReference) {
 		if json.Unmarshal(actual, &got) != nil || json.Unmarshal(f.Response.Body, &expected) != nil || len(got.Message) != len(expected.Message) {
 			t.Fatalf("OPAQUE response shape differs")
 		}
+	} else if req.URL.Path == "/" && response.StatusCode == 200 {
+		if !reflect.DeepEqual(statusPageFacts(actual), statusPageFacts(f.Response.Body)) {
+			t.Fatalf("status page facts differ\ngot %v\nwant %v", statusPageFacts(actual), statusPageFacts(f.Response.Body))
+		}
 	} else if !bytes.Equal(actual, f.Response.Body) {
 		t.Fatalf("%s %s: body differs\ngot %.500s\nwant %.500s", req.Method, req.URL.Path, actual, f.Response.Body)
 	}

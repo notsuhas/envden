@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Normalizer } from "../normalize/normalizer.ts";
 import { snapshot } from "../runtime/snapshot.ts";
+import { outputObservation } from "../compare/output.ts";
 import { differences } from "../runtime/diff.ts";
 
 for (const channel of ["stdout", "stderr", "exit", "content", "mode", "db", "symlink"]) {
@@ -37,15 +38,23 @@ for (const channel of ["stdout", "stderr", "exit", "content", "mode", "db", "sym
       if (channel === "symlink") await symlink("missing", join(b, "extra-link"));
 
       const left = {
-        stdout: "version",
-        stderr: "",
+        stdout: outputObservation("version 1.2.3", "semantic", (text) => text),
+        stderr: outputObservation("", "semantic", (text) => text),
         exit: "0",
         ...(await snapshot(a, new Normalizer())),
       };
 
       const right = {
-        stdout: channel === "stdout" ? "tampered" : "version",
-        stderr: channel === "stderr" ? "tampered" : "",
+        stdout: outputObservation(
+          channel === "stdout" ? "version 1.2.4" : "version 1.2.3",
+          "semantic",
+          (text) => text,
+        ),
+        stderr: outputObservation(
+          channel === "stderr" ? "error E_TAMPERED" : "",
+          "semantic",
+          (text) => text,
+        ),
         exit: channel === "exit" ? "4" : "0",
         ...(await snapshot(b, new Normalizer())),
       };

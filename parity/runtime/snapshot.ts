@@ -1,3 +1,4 @@
+import { pdfContent } from "../compare/pdf.ts";
 import { Database } from "bun:sqlite";
 import { lstat, readFile, readdir, readlink } from "node:fs/promises";
 import { join } from "node:path";
@@ -127,7 +128,9 @@ async function fileSnapshot(
 ): Promise<void> {
   const bytes = await readFile(path);
 
-  if (bytes.subarray(0, 16).toString() === "SQLite format 3\x00") {
+  if (path.endsWith(".pdf")) {
+    result[`${name}:pdf`] = normalizer.text(JSON.stringify(pdfContent(bytes)));
+  } else if (bytes.subarray(0, 16).toString() === "SQLite format 3\x00") {
     result[`${name}:db`] = JSON.stringify(dump(path, normalizer), null, 2);
   } else if (
     bytes.includes(0) ||

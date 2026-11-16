@@ -21,7 +21,17 @@ Each side of every scenario gets separate HOME, ENVDEN_HOME, XDG configuration, 
 
 The full 18-scenario TS-versus-TS run took 302.1 seconds on this Mac. Both sides run sequentially. Each process has a 30-second deadline; server startup has 15 seconds. PTY prompts wait on output events rather than sleeps. Servers come from the implementation under test, start with port zero, and are stopped before observation. Restored-server scenarios reuse the previously assigned port so device addresses remain valid.
 
-The runner compares stdout, stderr and exit status per command, plus the final file tree of the entire temporary root. Tree observations include directories, file bytes, modes and symlink text. SQLite files are replaced by logical dumps of every table, schema and row, with SQLite storage types, lossless integer values and BLOB lengths. Normalized rows are sorted, preserving duplicates. The fixture database in `channel-probe` also exercises ordinary literal rows.
+The runner compares exit status exactly per command, plus the final file tree of the entire temporary root. After the existing random-value normalization, names, contents, modes, symlinks, state and config files remain exact. Terminal presentation is compared semantically; it never changes file or database comparison. SQLite files are replaced by logical dumps of every table, schema and row, with SQLite storage types, lossless integer values and BLOB lengths. Normalized rows are sorted, preserving duplicates. The fixture database in `channel-probe` also exercises ordinary literal rows.
+
+## Presentation rule
+
+This replaces byte-for-byte terminal output parity. stdout and stderr compare multisets of facts: paths, filenames, repository IDs, device names, numbers, versions, URLs, normalized placeholders, quoted names, error codes and outcome keywords such as pushed, pulled, conflict, skipped, removed, in sync and held back. Device and repository names from scenario arguments and saved state also count when printed without labels or quotes. Fact values and multiplicities remain exact. Fixed wording may differ in case and punctuation; ANSI/VT controls, boxes, bullets, spinners, blank lines, padding, alignment and word wrapping do not count.
+
+PTY steps also compare the ordered prompt sequence by keywords, the choices offered, and the answers sent. Each answer records the visible conversation before it is sent, preserving choices that disappear after selection. Expected prompt matching ignores case and punctuation. Unknown questions remain observable. PTY stdout and stderr still share one terminal stream; noninteractive streams stay separate.
+
+Commands using `--json` parse stdout and compare its serialized structure exactly after random-value normalization. Whitespace is ignored; values, types, array order and object key order remain strict. Malformed JSON fails. Help compares command and option sets instead of descriptions or layout. Errors retain their facts and outcome keywords, with exit status checked separately.
+
+Files ending in `.pdf` compare ordered text from `Tj` and `TJ` operators and Info fields, excluding CreationDate, ModDate and ID. Every FlateDecode stream is inflated with `node:zlib`; literal and hex strings are decoded. Compression and drawing layout may differ. Unsupported stream filters and malformed content fail rather than falling back to opaque bytes. PDF names and modes remain exact.
 
 ## Normalization
 
@@ -29,7 +39,7 @@ A run has one registry shared across command output, files and SQLite. Crockford
 
 Explicit roots and executable paths have stable names, including macOS `/private` aliases. Ports are normalized as local URLs. Recovery keys, pairing codes, UUIDs and filesystem identities have separate placeholders. SHA-256 key-slot filenames derived from temporary namespaces are mapped to their documented slot names. Backup filenames are anchored by literal content hash and occurrence count in transcript order, avoiding random UUID order when several copies are backed up in the same millisecond. Device state seeds identities before walking random filenames; SQLite seeds further byte identities before the file tree is traversed. Nonce numbering is scoped by device to avoid dependence on request interleaving. Fresh snapshot identities are canonically labeled from the complete normalized tree and database relationships, independent of raw filename or row order. Ties are resolved by comparing full observations, preserving file presence, content, modes, links and equality relationships.
 
-Real clock values, including fractional filesystem times, become `<TIME>` and durations become `<DURATION>`. Padding after a relative-time history column becomes one space, because its width changes with the clock. Clock equality and elapsed-time arithmetic are deliberately outside this comparison. Ordinary counts, versions, numeric sequence strings and SQLite types remain literal. Scenario-written fixture strings are protected, and `.env` files are always compared literally. Paths inserted as placeholders are protected from subsequent token normalization.
+Real clock values, including fractional filesystem times, become `<TIME>` and durations, including minute/hour relative times, become `<DURATION>`. Padding after a relative-time history column becomes one space, because its width changes with the clock. Clock equality and elapsed-time arithmetic are deliberately outside this comparison. Ordinary counts, versions, numeric sequence strings and SQLite types remain literal. Scenario-written fixture strings are protected, and `.env` files are always compared literally. Paths inserted as placeholders are protected from subsequent token normalization.
 
 PTY output is rendered into logical lines: cursor-up, erase-line, carriage-return, colors and redraw sequences update the current line rather than append frames. A carriage-return redraw replaces the whole logical line, dropping leftover spinner suffixes; CRLF retains the completed line. Incomplete spinner frames are discarded; finalized text is retained. PTY stdout and stderr share the terminal stream and are compared together in the stdout observation. Noninteractive commands retain separate streams. Raw PTY bytes are not compared.
 
@@ -58,9 +68,9 @@ Flows come from `apps/cli/scripts/e2e.ts`, its onboarding/conflict helpers, CLI 
 
 ## Adding a scenario
 
-Add an `IScenario` with a name and a list of named steps, then register it in `run.ts`. Each command names its device. Reuse setup/join helpers and the CLI/edit step constructors. Expected nonzero exits must be explicit; equal failures on both sides do not count as success. Use PTY answers matched to expected prompt text for interactive commands. Add literal fixtures through `normalizer.literal` before writing them. Avoid clock thresholds and sleeping to coordinate processes.
+Add an `IScenario` with a name and a list of named steps, then register it in `run.ts`. Each command names its device. Reuse setup/join helpers and the CLI/edit step constructors. Expected nonzero exits must be explicit; equal failures on both sides do not count as success. Use PTY answers matched to expected prompt keywords for interactive commands. Add literal fixtures through `normalizer.literal` before writing them. Avoid clock thresholds and sleeping to coordinate processes.
 
-Run the new scenario against two copies of TS first, then rerun the full suite and `verify.ts`. The latter wraps the real binary six times and changes stdout, stderr, exit status, file content, file mode or a DB row; every run must fail with a diff naming that channel.
+Run the new scenario against two copies of TS first, then rerun the full suite and `verify.ts`. The latter wraps the real binary six times and changes a stdout fact, a stderr fact, exit status, file content, file mode or a DB row; every run must fail with a diff naming that channel.
 
 ## Limits
 

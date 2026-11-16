@@ -65,3 +65,9 @@ test("history clock padding varies while other whitespace stays literal", () => 
 
   expect(n.text("ordinary   spacing")).toBe("ordinary   spacing");
 });
+
+test("relative times normalize across minute and hour boundaries", () => {
+  const n = new Normalizer();
+  expect(n.text("2 minutes ago")).toBe(n.text("59 seconds ago"));
+  expect(n.text("1 hour ago")).toBe(n.text("3 minutes ago"));
+});

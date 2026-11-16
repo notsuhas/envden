@@ -1,4 +1,4 @@
-import { choices, conversation } from "../compare/conversation.ts";
+import { conversationTurn } from "../compare/conversation.ts";
 import { keywordPattern } from "../compare/presentation.ts";
 import { output } from "./process/output.ts";
 import { stripVTControlCharacters } from "node:util";
@@ -127,12 +127,7 @@ export class Terminal {
 
       const screen = terminalText(this.raw.slice(this.answerCursor));
 
-      this.conversation.push({
-        prompts: conversation(screen),
-        choices: choices(screen),
-        answer: answer.send,
-      });
-
+      this.conversation.push(conversationTurn(screen, answer.send));
       this.answerCursor = this.raw.length;
       this.child.terminal?.write(answer.send);
     }
