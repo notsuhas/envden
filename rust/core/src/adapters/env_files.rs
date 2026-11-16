@@ -1,4 +1,4 @@
-use super::{IEnvFileRules, byte_sensitive_env_pattern, unsupported_env_pattern};
+use super::{IEnvFileRules, unsupported_env_pattern};
 use crate::errors::{EnvdenError, ErrorCode, Result};
 
 pub fn accepts_env_path(path: &str, options: Option<&IEnvFileRules>) -> Result<bool> {
@@ -61,19 +61,30 @@ fn matches(patterns: &[String], path: &str, name: &str) -> Result<bool> {
     for pattern in patterns {
         let target = if pattern.contains('/') { path } else { name };
 
-        if unsupported_env_pattern(pattern)
-            || (byte_sensitive_env_pattern(pattern) && !target.is_ascii())
-        {
+        if unsupported_env_pattern(pattern) {
             return Err(EnvdenError::new(
                 ErrorCode::InvalidInput,
                 "Unsupported env file pattern",
             ));
         }
 
-        if fast_glob::glob_match(pattern, target) {
+        if fast_glob::glob_match(pattern, per_code_point(target).as_bytes()) {
             return Ok(true);
         }
     }
 
     Ok(false)
+}
+
+// fast-glob matches per byte, so each non-ASCII code point becomes one byte no pattern literal matches.
+fn per_code_point(target: &str) -> std::borrow::Cow<'_, str> {
+    if target.is_ascii() {
+        return target.into();
+    }
+
+    target
+        .chars()
+        .map(|c| if c.is_ascii() { c } else { '\u{1}' })
+        .collect::<String>()
+        .into()
 }

@@ -1,7 +1,5 @@
 use envden_core::{
-    adapters::{
-        IEnvFileRules, accepts_env_path, byte_sensitive_env_pattern, unsupported_env_pattern,
-    },
+    adapters::{IEnvFileRules, accepts_env_path, unsupported_env_pattern},
     errors::ErrorCode,
 };
 use serde_json::Value;
@@ -27,7 +25,7 @@ fn typescript_env_file_rules() {
             Ok(accepted) => assert_eq!(accepted, case["accepted"].as_bool().unwrap(), "{case}"),
             Err(error) => {
                 assert_eq!(error.code, ErrorCode::InvalidInput, "{case}");
-                assert!(refusable(&rules, path), "{case}");
+                assert!(refusable(&rules), "{case}");
             }
         }
     }
@@ -99,36 +97,34 @@ fn patterns_fast_glob_cannot_match_exactly_fail_closed() {
 }
 
 #[test]
-fn single_character_wildcards_refuse_non_ascii_names_only() {
+fn single_character_wildcards_match_one_code_point() {
     let rules = IEnvFileRules {
-        include: Some(vec![".env.?".into(), ".env.*".into()]),
+        include: Some(vec![".env.?".into(), "?/x/.env".into()]),
         ..Default::default()
     };
 
-    assert!(accepts_env_path(".env.a", Some(&rules)).unwrap());
-    assert!(accepts_env_path(".env.ab", Some(&rules)).unwrap());
-    assert!(accepts_env_path(".env.é", Some(&rules)).is_err());
-    assert!(accepts_env_path("é/.env.a", Some(&rules)).unwrap());
-
-    let starred = IEnvFileRules {
-        include: Some(vec![".env.*".into()]),
-        ..Default::default()
-    };
-
-    assert!(accepts_env_path(".env.é", Some(&starred)).unwrap());
+    for (path, expected) in [
+        (".env.a", true),
+        (".env.ab", false),
+        (".env.é", true),
+        (".env.😀", true),
+        (".env.e\u{301}", false),
+        (".env.éé", false),
+        ("é/x/.env", true),
+        ("éé/x/.env", false),
+    ] {
+        assert_eq!(
+            accepts_env_path(path, Some(&rules)).unwrap(),
+            expected,
+            "{path}"
+        );
+    }
 }
 
-fn refusable(rules: &IEnvFileRules, path: &str) -> bool {
-    let name = path.rsplit('/').next().unwrap_or_default();
-
+fn refusable(rules: &IEnvFileRules) -> bool {
     [&rules.include, &rules.exclude]
         .into_iter()
         .flatten()
         .flatten()
-        .any(|pattern| {
-            let target = if pattern.contains('/') { path } else { name };
-
-            unsupported_env_pattern(pattern)
-                || (byte_sensitive_env_pattern(pattern) && !target.is_ascii())
-        })
+        .any(|pattern| unsupported_env_pattern(pattern))
 }

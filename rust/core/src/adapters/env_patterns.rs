@@ -3,11 +3,6 @@ pub fn unsupported_env_pattern(pattern: &str) -> bool {
     !supported(pattern)
 }
 
-// fast-glob matches `?` per byte; Bun matches per character.
-pub fn byte_sensitive_env_pattern(pattern: &str) -> bool {
-    pattern.contains('?')
-}
-
 const MAX_LENGTH: usize = 1024;
 const MAX_GROUPS: usize = 10;
 const MAX_ALTERNATIVES: usize = 16;
