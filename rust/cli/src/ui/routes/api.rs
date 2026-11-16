@@ -10,7 +10,7 @@ use std::{path::PathBuf, rc::Rc};
 pub fn options(adapters: &IAdapters) -> ISyncOptions {
     ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: None,
         all: true,
         yes: true,

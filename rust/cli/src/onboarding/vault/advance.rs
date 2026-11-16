@@ -31,7 +31,7 @@ pub(in crate::onboarding) fn advance(
         vault_id: client.options.vault_id,
         options: ISyncOptions {
             unlock: None,
-            now: || 0,
+            now: std::rc::Rc::new(|| 0),
             cwd: None,
             all: false,
             yes: false,

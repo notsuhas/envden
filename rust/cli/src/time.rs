@@ -2,6 +2,7 @@ use chrono::{DateTime, Local, Offset, TimeZone, Utc};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 
 pub type TClock = fn() -> u64;
+pub type TSharedClock = std::rc::Rc<dyn Fn() -> u64>;
 
 pub fn local_time(utc: i64, zone: Option<&str>) -> Result<String> {
     let instant = DateTime::<Utc>::from_timestamp_millis(utc).ok_or_else(invalid)?;

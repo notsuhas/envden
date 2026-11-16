@@ -9,7 +9,7 @@ fn completed_sync_prunes_expired_placement_backups() {
     std::fs::write(&backup, b"previous").unwrap();
     let options = ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: Some(adapters.user_home.clone()),
         all: true,
         yes: true,

@@ -114,7 +114,7 @@ fn opaque_registration_login_retries_tickets_and_window() {
         },
         req_sk: keys.req_sk,
         version: "1.0.0".into(),
-        now: || 0,
+        now: std::rc::Rc::new(|| 0),
         transport: server,
         proof: None,
         unlock: None,

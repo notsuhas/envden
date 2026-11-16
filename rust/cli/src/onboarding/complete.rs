@@ -20,7 +20,7 @@ fn first_run_with(
 ) -> Result<Value> {
     run(ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: std::env::current_dir().ok(),
         all: true,
         yes: false,

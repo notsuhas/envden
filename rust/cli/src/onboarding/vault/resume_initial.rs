@@ -23,7 +23,7 @@ pub(super) fn resume(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
         adapters,
         ISyncOptions {
             unlock: None,
-            now: adapters.now,
+            now: std::rc::Rc::new(adapters.now),
             cwd: None,
             all: true,
             yes: false,

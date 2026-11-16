@@ -25,7 +25,7 @@ fn push_counts_conflicts_outside_selected_repositories() {
     crate::sync::local::conflicts::save_conflicts(home, &[record], 1).unwrap();
     let options = ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: Some(adapters.user_home.clone()),
         all: true,
         yes: true,
@@ -62,6 +62,8 @@ mod upload;
 mod operation;
 
 mod backup_notice;
+
+mod notice_clock;
 
 mod author;
 

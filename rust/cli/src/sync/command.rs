@@ -26,7 +26,7 @@ pub fn sync_options(invocation: &IInvocation<'_>, adapters: &IAdapters) -> ISync
             )
             .map(|_| ())
         })),
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: std::env::current_dir().ok(),
         all: invocation.options.get("all") == Some(&true.into()),
         yes: invocation.options.get("yes") == Some(&true.into()),

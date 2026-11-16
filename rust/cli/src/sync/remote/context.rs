@@ -3,7 +3,7 @@ use crate::{
     client::{IClient, ITransport},
     identity::IDeviceIdentity,
     state::{NOT_SET_UP, repository::load_state},
-    time::TClock,
+    time::TSharedClock,
     vault::{join::checkpoint_material, vault_connection},
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
@@ -20,7 +20,7 @@ pub type TConfirm = Rc<dyn Fn(&[String]) -> Result<bool>>;
 pub type TReport = Rc<dyn Fn(&str)>;
 
 pub struct ISyncOptions {
-    pub now: TClock,
+    pub now: TSharedClock,
     pub unlock: Option<crate::vault::TVaultUnlock>,
     pub cwd: Option<PathBuf>,
     pub all: bool,
@@ -58,7 +58,7 @@ pub fn sync_context(
         })
         .ok_or_else(|| EnvdenError::new(ErrorCode::NotFound, NOT_SET_UP))?;
     let mut connection = vault_connection(adapters, &state, transport)?;
-    connection.client.options.now = options.now;
+    connection.client.options.now = options.now.clone();
     if options.interactive
         && let Some(unlock) = &options.unlock
     {
@@ -99,7 +99,7 @@ mod tests {
         );
         let options = ISyncOptions {
             unlock: None,
-            now: adapters.now,
+            now: std::rc::Rc::new(adapters.now),
             cwd: None,
             all: true,
             yes: true,

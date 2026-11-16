@@ -9,7 +9,7 @@ fn repairs_report_lost_and_restored_paths() {
     let recorded = reports.clone();
     let options = ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: None,
         all: true,
         yes: true,

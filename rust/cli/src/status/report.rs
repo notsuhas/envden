@@ -16,7 +16,7 @@ use std::rc::Rc;
 fn options(adapters: &IAdapters) -> ISyncOptions {
     ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: None,
         all: true,
         yes: false,

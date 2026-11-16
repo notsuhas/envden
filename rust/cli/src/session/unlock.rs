@@ -41,7 +41,7 @@ pub fn unlock_device(
         record: identity.record,
         req_sk: identity.keys.req_sk,
         version: VERSION.into(),
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         transport,
         proof: None,
         unlock: None,

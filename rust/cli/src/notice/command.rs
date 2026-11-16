@@ -55,7 +55,7 @@ pub fn command_notice_with_transport(
             if !refresh || remote.is_none_or(|r| now as f64 - r.checked_at >= 60_000.0) {
                 let options = crate::sync::remote::context::ISyncOptions {
                     unlock: None,
-                    now: adapters.now,
+                    now: std::rc::Rc::new(move || now),
                     cwd: None,
                     all: true,
                     yes: false,

@@ -205,7 +205,7 @@ mod tests {
         ] {
             let options = ISyncOptions {
                 unlock: None,
-                now: adapters.now,
+                now: std::rc::Rc::new(adapters.now),
                 cwd: None,
                 all: true,
                 yes,

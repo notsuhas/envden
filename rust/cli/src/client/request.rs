@@ -1,5 +1,5 @@
 use super::{IHttpRequest, IHttpResponse, ITransport, hello, response_error, retry_busy, text};
-use crate::{time::TClock, version::MIN_SERVER};
+use crate::{time::TSharedClock, version::MIN_SERVER};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use sha2::{Digest, Sha256};
@@ -16,7 +16,7 @@ pub struct IClientOptions {
     pub record: p::IDeviceRecord,
     pub req_sk: [u8; 32],
     pub version: String,
-    pub now: TClock,
+    pub now: TSharedClock,
     pub transport: Rc<dyn ITransport>,
     pub proof: Option<TProof>,
     pub unlock: Option<TUnlock>,

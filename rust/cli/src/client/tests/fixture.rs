@@ -110,7 +110,7 @@ pub(super) fn fixture() -> (IClient, Rc<Fixture>, Rc<RefCell<Vec<u64>>>) {
             record,
             req_sk: keys.req_sk,
             version: "1.0.0".into(),
-            now: || 1000000,
+            now: std::rc::Rc::new(|| 1000000),
             transport: transport.clone(),
             proof: None,
             unlock: None,

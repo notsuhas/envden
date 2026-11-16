@@ -85,7 +85,7 @@ fn epoch_rotation_keeps_old_keys_and_wraps_every_remaining_member() {
         record: identity.record.clone(),
         req_sk: identity.keys.req_sk,
         version: "1.0.0".into(),
-        now: || 123,
+        now: std::rc::Rc::new(|| 123),
         transport: Rc::new(IFixtureTransport {
             keys: server,
             keyring: genesis.keyring.clone(),

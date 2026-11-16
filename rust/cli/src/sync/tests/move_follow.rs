@@ -46,7 +46,7 @@ fn pull_follows_signed_move_before_reconciliation() {
     value.destination = Some(destination);
     let options = ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: Some(adapters.user_home.clone()),
         all: true,
         yes: true,

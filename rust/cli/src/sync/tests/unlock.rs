@@ -14,7 +14,7 @@ fn only_interactive_contexts_install_the_supplied_unlock_callback() {
                 recorded.set(recorded.get() + 1);
                 Ok(())
             })),
-            now: adapters.now,
+            now: std::rc::Rc::new(adapters.now),
             cwd: None,
             all: true,
             yes: true,
@@ -37,7 +37,7 @@ fn interactive_context_does_not_invent_an_unlock_callback() {
     let (_dir, adapters, server, _) = fixture::fixture();
     let options = ISyncOptions {
         unlock: None,
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         cwd: None,
         all: true,
         yes: true,
@@ -53,9 +53,11 @@ fn interactive_context_does_not_invent_an_unlock_callback() {
 #[test]
 fn sync_client_uses_the_supplied_clock() {
     let (_dir, adapters, server, _) = fixture::fixture();
+    let now = std::rc::Rc::new(std::cell::Cell::new(123));
+    let clock = now.clone();
     let options = ISyncOptions {
         unlock: None,
-        now: || 123,
+        now: std::rc::Rc::new(move || clock.get()),
         cwd: None,
         all: true,
         yes: true,
@@ -66,4 +68,7 @@ fn sync_client_uses_the_supplied_clock() {
     };
     let context = sync_context(&adapters, options, server).unwrap();
     assert_eq!((context.client.options.now)(), 123);
+    now.set(456);
+    assert_eq!((context.options.now)(), 456);
+    assert_eq!((context.client.options.now)(), 456);
 }

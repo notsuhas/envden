@@ -20,7 +20,7 @@ pub(crate) fn connection(
         record: identity.record.clone(),
         req_sk: identity.keys.req_sk,
         version: VERSION.into(),
-        now: adapters.now,
+        now: std::rc::Rc::new(adapters.now),
         transport: Rc::new(UreqTransport),
         proof: None,
         unlock: None,

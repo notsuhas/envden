@@ -24,7 +24,7 @@ fn history_holds_lock_through_network_reads() {
     let (_dir, a, server, _) = fixture::fixture();
     let options = ISyncOptions {
         unlock: None,
-        now: a.now,
+        now: std::rc::Rc::new(a.now),
         cwd: None,
         all: true,
         yes: true,
