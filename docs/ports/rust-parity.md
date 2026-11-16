@@ -102,7 +102,7 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 
 ## implementation: behavior-sensitive library helpers
 
-- CLI date formatting stays exact because `when_text` is also written to `state/repair-report-*`, and `local_time` supplies the recovery PDF's Created field. Chrono and chrono-tz already supply calendar and timezone operations.
+- CLI date formatting stays exact because `when_text` is also written to `state/repair-report-*`, and `local_time` supplies the recovery PDF's Created field. Chrono and chrono-tz supply calendar and timezone operations; no crate copies the relative-time rules: chrono-humanize writes `a month` and timeago floors, while the reference counts days on the local wall clock (2 days 11 hours before a DST change in New York reads `3 days ago`) and turns 12 months into `1 year`.
 - Discovery's p-limit equivalent already uses scoped standard-library threads. Keep its limits, result order and traversal barriers because discovered checkouts feed prompts and saved state.
 - Zod equivalents use serde with custom checks. Keep acceptance, rejection, defaults, UTF-16 lengths, safe-integer limits and property order because these decide requests and persisted configuration.
 - Semver parsing stays custom: the reference accepts arbitrary-size decimal components and rejects prerelease/build suffixes. The semver crate's u64 components and broader syntax would change protocol and update decisions.

@@ -31,27 +31,47 @@ pub fn local_time(utc: i64, zone: Option<&str>) -> Result<String> {
 }
 
 pub fn relative_time(utc: i64, now: i64) -> String {
-    let seconds = (utc as f64 - now as f64).abs() / 1000.0;
-    let (size, unit) = if seconds < 60.0 {
-        (1.0, "second")
-    } else if seconds < 3600.0 {
-        (60.0, "minute")
-    } else if seconds < 86400.0 {
-        (3600.0, "hour")
-    } else if seconds < 2_592_000.0 {
-        (86400.0, "day")
-    } else if seconds < 31_536_000.0 {
-        (2_592_000.0, "month")
+    distance(utc, now, &Local)
+}
+
+// Day and longer units count wall-clock time in `zone`, so a DST change does not shift them.
+fn distance<Tz: TimeZone>(utc: i64, now: i64, zone: &Tz) -> String {
+    let (earlier, later) = if utc > now { (now, utc) } else { (utc, now) };
+    let milliseconds = later as f64 - earlier as f64;
+    let minutes = milliseconds / 60_000.0;
+    let wall_minutes = (milliseconds
+        + (offset_millis(zone, later) - offset_millis(zone, earlier)) as f64)
+        / 60_000.0;
+
+    let (count, unit) = if minutes < 1.0 {
+        ((milliseconds / 1000.0).round(), "second")
+    } else if minutes < 60.0 {
+        (minutes.round(), "minute")
+    } else if minutes < 1440.0 {
+        ((minutes / 60.0).round(), "hour")
+    } else if wall_minutes < 43_200.0 {
+        ((wall_minutes / 1440.0).round(), "day")
+    } else if wall_minutes < 525_600.0 {
+        match (wall_minutes / 43_200.0).round() {
+            12.0 => (1.0, "year"),
+            months => (months, "month"),
+        }
     } else {
-        (31_536_000.0, "year")
+        ((wall_minutes / 525_600.0).round(), "year")
     };
-    let count = (seconds / size).round() as u64;
-    let text = format!("{count} {unit}{}", if count == 1 { "" } else { "s" });
+    let text = format!("{count} {unit}{}", if count == 1.0 { "" } else { "s" });
+
     if utc > now {
         format!("in {text}")
     } else {
         format!("{text} ago")
     }
+}
+
+fn offset_millis<Tz: TimeZone>(zone: &Tz, utc: i64) -> i64 {
+    zone.timestamp_millis_opt(utc).single().map_or(0, |date| {
+        i64::from(date.offset().fix().local_minus_utc()) * 1000
+    })
 }
 
 pub fn when_text(utc: i64, now: i64, zone: Option<&str>) -> Result<String> {
@@ -79,6 +99,68 @@ mod tests {
                 .unwrap()
                 .ends_with("GMT+5:30")
         );
+    }
+
+    #[test]
+    fn formats_zone_offsets_as_short_gmt() {
+        let rows = [
+            ("UTC", 1_773_144_000_000, "2026-03-10 12:00 GMT+0"),
+            (
+                "America/St_Johns",
+                1_773_144_000_000,
+                "2026-03-10 09:30 GMT-2:30",
+            ),
+            (
+                "America/New_York",
+                1_785_000_000_000,
+                "2026-07-25 13:20 GMT-4",
+            ),
+            (
+                "Asia/Kathmandu",
+                1_785_000_000_000,
+                "2026-07-25 23:05 GMT+5:45",
+            ),
+            (
+                "Pacific/Chatham",
+                1_773_144_000_000,
+                "2026-03-11 01:45 GMT+13:45",
+            ),
+            ("Etc/GMT+12", 1_773_144_000_000, "2026-03-10 00:00 GMT-12"),
+            (
+                "Pacific/Kiritimati",
+                1_785_000_000_000,
+                "2026-07-26 07:20 GMT+14",
+            ),
+        ];
+
+        for (zone, utc, text) in rows {
+            assert_eq!(local_time(utc, Some(zone)).unwrap(), text);
+        }
+        assert!(local_time(0, Some("Nope/Zone")).is_err());
+    }
+
+    #[test]
+    fn matches_strict_distance_rounding_and_wall_clock_days() {
+        let now = 1_773_144_000_000;
+        let new_york = chrono_tz::America::New_York;
+        let rows = [
+            (0, "0 seconds ago", "0 seconds ago"),
+            (499, "in 0 seconds", "in 0 seconds"),
+            (-500, "1 second ago", "1 second ago"),
+            (-89_999, "1 minute ago", "1 minute ago"),
+            (-5_400_000, "2 hours ago", "2 hours ago"),
+            (-216_000_000, "3 days ago", "3 days ago"),
+            (-212_400_000, "2 days ago", "3 days ago"),
+            (2_592_000_000, "in 1 month", "in 1 month"),
+            (-29_808_000_000, "1 year ago", "1 year ago"),
+            (29_808_000_000, "in 1 year", "in 11 months"),
+            (-31_449_600_000, "1 year ago", "1 year ago"),
+        ];
+
+        for (offset, utc, local) in rows {
+            assert_eq!(distance(now + offset, now, &Utc), utc, "{offset}");
+            assert_eq!(distance(now + offset, now, &new_york), local, "{offset}");
+        }
     }
 }
 
