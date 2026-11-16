@@ -18,7 +18,7 @@ mod preferences;
 pub(crate) mod setup;
 pub use setup::run_setup;
 
-mod join;
+pub(crate) mod join;
 pub use join::run_join;
 
 pub(crate) mod vault;

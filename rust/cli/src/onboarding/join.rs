@@ -26,7 +26,7 @@ use zeroize::Zeroizing;
 pub fn run_join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Value> {
     crate::state::files::private_directory(&adapters.home)?;
     let mut options = options.clone();
-    let rejoin = load_state(&adapters.home)?.is_some_and(|s| s["checkpoint"].is_string());
+    let rejoin = load_state(&adapters.home)?.is_some_and(|s| is_rejoin(&s));
     options["rejoin"] = json!(rejoin);
     let options = &options;
     if !rejoin {
@@ -72,7 +72,7 @@ fn recovery(
     let pending = adapters.home.join("state/kit-join");
     let attempt = json!({"vaultId":vault,"pin":p::base32(&server.pin),"name":name}).to_string();
     let resuming = super::kit_attempt::pending_matches(&pending, &attempt)?;
-    let rejoin = load_state(&adapters.home)?.is_some_and(|s| s["checkpoint"].is_string());
+    let rejoin = load_state(&adapters.home)?.is_some_and(|s| is_rejoin(&s));
     let namespace = if rejoin {
         adapters.home.join("rejoin")
     } else {
@@ -197,3 +197,7 @@ fn require_pin(history: &crate::vault::history::IVaultHistory, pin: &[u8; 32]) -
 #[cfg(test)]
 #[path = "join_tests.rs"]
 mod tests;
+
+pub(crate) fn is_rejoin(state: &Value) -> bool {
+    crate::state::truthy(&state["checkpoint"])
+}
