@@ -22,7 +22,7 @@ func TestUnreadBodyConnection(t *testing.T) {
 		method, path string
 		status       int
 		length       int
-	}{{"POST", "/missing", 404, 1}, {"POST", "/v1/vault", 400, 1}, {"GET", "/v1/status", 400, 1}, {"HEAD", "/v1/status", 404, 1}, {"GET", "/missing", 404, 1}, {"POST", "/large-missing", 404, 262145}} {
+	}{{"POST", "/missing", 404, 1}, {"POST", "/v1/vault", 400, 1}, {"GET", "/v1/status", 400, 1}, {"HEAD", "/v1/status", 400, 1}, {"GET", "/missing", 404, 1}, {"POST", "/large-missing", 404, 262145}} {
 		t.Run(tc.method+tc.path, func(t *testing.T) {
 			t.Parallel()
 			conn, err := net.Dial("tcp", strings.TrimSuffix(strings.TrimPrefix(running.URL, "http://"), "/"))

@@ -40,7 +40,7 @@ func CreateDashboardApp(dashboard Dashboard) http.Handler {
 				return
 			}
 
-			if r.Method != "GET" && !SameOrigin(r.Header.Get("Origin"), r.Host) {
+			if r.Method != "GET" && r.Method != "HEAD" && !SameOrigin(r.Header.Get("Origin"), r.Host) {
 				writeJSON(w, 403, ErrorResponse{errors.Unauthorized, "Cross-origin request refused"})
 
 				return

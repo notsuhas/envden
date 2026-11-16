@@ -57,8 +57,17 @@ func Match(method, path string) *Route {
 	return nil
 }
 
+// HEAD runs the GET route and drops the body; signatures still bind the raw method.
+func RouteMethod(r *http.Request) string {
+	if r.Method == http.MethodHead {
+		return http.MethodGet
+	}
+
+	return r.Method
+}
+
 func RequestRoute(r *http.Request) (*Route, error) {
-	route := Match(r.Method, r.URL.EscapedPath())
+	route := Match(RouteMethod(r), r.URL.EscapedPath())
 	if route == nil {
 		return nil, enverrors.New(enverrors.NotFound, "Unknown route")
 	}

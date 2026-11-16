@@ -7,6 +7,7 @@ import (
 	enverrors "github.com/notsuhas/envden/go/core/errors"
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/vault"
 )
@@ -16,7 +17,7 @@ func (app *App) moveRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 	path := r.URL.EscapedPath()
 	id := auth.Request.VaultId
 	var result any
-	switch r.Method + " " + path {
+	switch middleware.RouteMethod(r) + " " + path {
 	case "POST /v1/move/session":
 		openMove, err := vault.OpenMove(o, auth)
 		if err != nil {

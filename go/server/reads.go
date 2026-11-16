@@ -10,6 +10,7 @@ import (
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"github.com/notsuhas/envden/go/server/access"
 	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/vaultchain"
 )
@@ -33,10 +34,10 @@ func (app *App) readRoute(w http.ResponseWriter, r *http.Request, auth *shared.A
 			parts[i] = decoded
 		}
 	}
-	if r.Method == "PUT" && len(parts) == 4 && parts[2] == "blobs" {
+	if middleware.RouteMethod(r) == "PUT" && len(parts) == 4 && parts[2] == "blobs" {
 		return app.uploadBlob(w, r, auth, body)
 	}
-	if r.Method != "GET" {
+	if middleware.RouteMethod(r) != "GET" {
 		return false, nil
 	}
 	if len(parts) == 4 && (parts[2] == "files" || parts[2] == "keyrings" || parts[2] == "blobs") {

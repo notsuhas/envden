@@ -10,6 +10,7 @@ import (
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/repair"
 	"github.com/notsuhas/envden/go/server/shared"
 )
@@ -34,7 +35,7 @@ func (app *App) importRoute(w http.ResponseWriter, r *http.Request, auth *shared
 				return false, err
 			}
 		}
-		if r.Method == "POST" && (parts[3] == "history" || parts[3] == "chain") {
+		if middleware.RouteMethod(r) == "POST" && (parts[3] == "history" || parts[3] == "chain") {
 			var committed adapters.CommitResult
 			if parts[3] == "chain" {
 				protocolInputResult2, err := protocolInput(encoding.List(manifests.SwapCodec), body)
@@ -65,7 +66,7 @@ func (app *App) importRoute(w http.ResponseWriter, r *http.Request, auth *shared
 
 			return true, nil
 		}
-		if r.Method == "PUT" && len(parts) == 6 && parts[3] == "material" {
+		if middleware.RouteMethod(r) == "PUT" && len(parts) == 6 && parts[3] == "material" {
 			binaryResult, err := shared.Binary(parts[5], 32)
 			if err != nil {
 				return false, err

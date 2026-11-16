@@ -8,6 +8,7 @@ import (
 	"github.com/notsuhas/envden/go/core/adapters"
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/pairing"
 	"github.com/notsuhas/envden/go/server/shared"
 )
@@ -16,7 +17,7 @@ func (app *App) route(w http.ResponseWriter, r *http.Request, auth *shared.Auth,
 	o := app.options
 	path := r.URL.EscapedPath()
 	var result any
-	switch r.Method + " " + path {
+	switch middleware.RouteMethod(r) + " " + path {
 	case "POST /v1/opaque/login/start":
 		parse, err := shared.Parse(wire.LoginStartSchema, body)
 		if err != nil {
@@ -141,7 +142,7 @@ func (app *App) route(w http.ResponseWriter, r *http.Request, auth *shared.Auth,
 			if err != nil {
 				return false, err
 			}
-			if r.Method == "DELETE" && len(parts) == 5 {
+			if middleware.RouteMethod(r) == "DELETE" && len(parts) == 5 {
 				close, err := pairing.Close(o, auth, n)
 				if err != nil {
 					return false, err
@@ -150,7 +151,7 @@ func (app *App) route(w http.ResponseWriter, r *http.Request, auth *shared.Auth,
 				result = close
 			} else if len(parts) == 6 {
 				slot := adapters.MailboxSlot(parts[5])
-				switch r.Method {
+				switch middleware.RouteMethod(r) {
 				case "GET":
 					read, err := pairing.Read(o, auth, n, slot)
 					if err != nil {

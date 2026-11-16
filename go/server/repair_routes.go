@@ -9,6 +9,7 @@ import (
 	wire "github.com/notsuhas/envden/go/core/protocol/codecs/server"
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	authn "github.com/notsuhas/envden/go/server/auth"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/repair"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/vault"
@@ -19,7 +20,7 @@ func (app *App) repairRoute(w http.ResponseWriter, r *http.Request, auth *shared
 	path := r.URL.EscapedPath()
 	id := auth.Request.VaultId
 	var result any
-	switch r.Method + " " + path {
+	switch middleware.RouteMethod(r) + " " + path {
 	case "GET /v1/repair/status":
 		err := authn.RequireRepair(o, auth)
 		if err != nil {

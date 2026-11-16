@@ -36,7 +36,7 @@ func AuthorizeBody(o shared.Options, auth *shared.Auth, r *http.Request) error {
 		if repairLogin {
 			return enverrors.New(enverrors.Unauthorized, "Login expired or consumed")
 		}
-		if r.Method == "GET" {
+		if RouteMethod(r) == "GET" {
 			if err := authorizeRead(o, auth, path); err != nil {
 				return err
 			}
@@ -71,7 +71,7 @@ func AuthorizeBody(o shared.Options, auth *shared.Auth, r *http.Request) error {
 				return err
 			}
 
-		case path == "/v1/move/freeze" || path == "/v1/move/unfreeze" || path == "/v1/move/sk-pub" || path == "/v1/move/period" && r.Method == "GET":
+		case path == "/v1/move/freeze" || path == "/v1/move/unfreeze" || path == "/v1/move/sk-pub" || path == "/v1/move/period" && RouteMethod(r) == "GET":
 			err := authn.RequireGate(o, auth, "fresh")
 			if err != nil {
 				return err
@@ -89,7 +89,7 @@ func AuthorizeBody(o shared.Options, auth *shared.Auth, r *http.Request) error {
 			return err
 		}
 
-	case strings.HasPrefix(path, "/v1/blobs/") && r.Method == "PUT":
+	case strings.HasPrefix(path, "/v1/blobs/") && RouteMethod(r) == "PUT":
 		if vault != nil && vault.Restored != nil {
 			if err := authn.RequireRepair(o, auth); err != nil {
 				return err
@@ -109,13 +109,13 @@ func AuthorizeBody(o shared.Options, auth *shared.Auth, r *http.Request) error {
 			return err
 		}
 
-	case path == "/v1/settings/unlock-period" && r.Method == "PUT" || path == "/v1/pairing/mailboxes":
+	case path == "/v1/settings/unlock-period" && RouteMethod(r) == "PUT" || path == "/v1/pairing/mailboxes":
 		err := authn.RequireGate(o, auth, "fresh")
 		if err != nil {
 			return err
 		}
 
-	case r.Method == "PUT" && strings.HasPrefix(path, "/v1/pairing/mailboxes/"):
+	case RouteMethod(r) == "PUT" && strings.HasPrefix(path, "/v1/pairing/mailboxes/"):
 		parts := strings.Split(path, "/")
 		if len(parts) > 5 && validSlot(parts[5]) {
 			n, _ := strconv.Atoi(parts[4])

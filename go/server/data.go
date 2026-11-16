@@ -14,6 +14,7 @@ import (
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/query"
 	"github.com/notsuhas/envden/go/core/textcase"
+	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/vault"
 )
@@ -48,7 +49,7 @@ func (app *App) commitResponse(w http.ResponseWriter, r *http.Request, result ad
 func (app *App) dataRoute(w http.ResponseWriter, r *http.Request, auth *shared.Auth, body []byte) (bool, error) {
 	o := app.options
 	path := r.URL.EscapedPath()
-	if r.Method == "POST" && (path == "/v1/vault" || path == "/v1/swap") {
+	if middleware.RouteMethod(r) == "POST" && (path == "/v1/vault" || path == "/v1/swap") {
 		swap, err := protocolInput(manifests.SwapCodec, body)
 		if err != nil {
 			return false, err
