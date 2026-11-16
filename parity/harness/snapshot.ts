@@ -116,7 +116,7 @@ export function database(path: string, n: Normalizer) {
   }
 }
 
-export async function capture(c: Context) {
+export async function capture(c: Context, includeFiles = true) {
   const n = new Normalizer(c.root, executablePaths(c.commands, process.argv));
 
   const steps = c.results.map((step) => ({
@@ -125,6 +125,8 @@ export async function capture(c: Context) {
     stdout: n.text(step.stdout),
     stderr: n.text(step.stderr),
   }));
+
+  if (!includeFiles) return JSON.stringify({ steps }, null, 2);
 
   const files: Record<string, unknown> = {};
 

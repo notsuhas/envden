@@ -1,3 +1,5 @@
+import collision from "./scenarios/files/collision.ts";
+import localFileChoice from "./scenarios/onboarding/local-file-choice.ts";
 import rejoin from "./scenarios/onboarding/rejoin.ts";
 import hostHere from "./scenarios/onboarding/host-here.ts";
 import onboardingOptions from "./scenarios/onboarding/options.ts";
@@ -31,6 +33,8 @@ if (
   throw new Error("Host shims require a disposable GitHub runner");
 
 export const scenarios = [
+  collision,
+  localFileChoice,
   rejoin,
   ...(process.env.PARITY_HOST_SHIMS === "1" ? [hostHere] : []),
   onboardingOptions,

@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { realpath, writeFile } from "node:fs/promises";
+import { realpath, writeFile, unlink } from "node:fs/promises";
 import { setup, recoveryJoin } from "../../harness/onboarding.ts";
 import type { IScenario } from "../../harness/types.ts";
 
@@ -31,5 +31,23 @@ export default {
       await c.run("device-b", ["push", "--yes"]);
       await c.run("device-a", ["pull", "--yes"]);
     }
+
+    const checkout = c.get("device-b").checkout;
+    await writeFile(join(checkout, ".env"), "TOKEN=store-edit\n");
+    await unlink(join(checkout, ".env"));
+    await writeFile(join(checkout, ".env"), "TOKEN=detached-edit\n");
+    const detached = c.pty("device-b", ["pull", "--yes"]);
+    await detached.expect(/Keep mine[\s\S]*Take server[\s\S]*Merge/, "\r");
+    await c.finish("device-b", "detached keep mine", detached);
+    await c.run("device-b", ["push", "--yes"]);
+    await c.run("device-a", ["pull", "--yes"]);
+
+    await writeFile(join(c.get("device-a").checkout, ".env"), "TOKEN=aligned-server\n");
+    await writeFile(join(checkout, ".env"), "TOKEN=aligned-local\n");
+    await c.run("device-a", ["push", "--yes"]);
+    await c.run("device-b", ["pull", "--yes"], 3);
+    await writeFile(join(checkout, ".env"), "TOKEN=aligned-server\n");
+    await c.run("device-b", ["pull", "--yes"]);
+    await c.run("device-b", ["resolve", "--list", "--json"]);
   },
 } satisfies IScenario;

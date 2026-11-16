@@ -14,6 +14,7 @@ export interface IDevice {
 }
 
 export interface IScenario {
+  snapshot?: "output";
   name: string;
   roles: string[];
   run: (context: Context) => Promise<void>;

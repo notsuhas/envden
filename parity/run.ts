@@ -41,7 +41,7 @@ async function run(scenario: IScenario, assignment: Record<string, string[]>) {
     await scenario.run(c);
     await c.close();
 
-    return await capture(c);
+    return await capture(c, scenario.snapshot !== "output");
   } finally {
     await c.close();
 
