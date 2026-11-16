@@ -54,6 +54,7 @@ fn run_sync(
             "Without a terminal, push needs --yes to confirm the changes",
         ));
     }
+    crate::settings::refuse_configured_patterns(&adapters.home)?;
     let reports = Rc::new(RefCell::new(Vec::<String>::new()));
     let recorded = reports.clone();
     let report = options.report.take();

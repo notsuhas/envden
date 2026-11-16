@@ -10,6 +10,7 @@ mod join_choice;
 mod move_follow;
 mod notice_clock;
 mod operation;
+mod pattern_preflight;
 mod prune;
 mod regressions;
 mod removal;

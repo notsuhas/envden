@@ -31,7 +31,7 @@ fn refuses_env_file_patterns_it_cannot_match_exactly() {
 
     fs::write(
         temp.path().join("config.json"),
-        r#"{"env-files":{"include":["+(.env)"]}}"#,
+        r#"{"env-files":{"include":["apps/{*,**}"]}}"#,
     )
     .unwrap();
 

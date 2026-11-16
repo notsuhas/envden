@@ -1,39 +1,72 @@
 // fast-glob and Bun.Glob decide these patterns differently, so envden refuses them.
 pub fn unsupported_env_pattern(pattern: &str) -> bool {
+    scan(pattern).is_none_or(|scan| scan.alternatives > MAX_ALTERNATIVES)
+}
+
+// fast-glob matches `?` and classes per byte; Bun matches per character.
+pub fn byte_sensitive_env_pattern(pattern: &str) -> bool {
+    scan(pattern).is_none_or(|scan| scan.byte_sensitive)
+}
+
+// Bun stops expanding after 10 brace groups; fast-glob's work grows with every alternative.
+const MAX_GROUPS: usize = 10;
+const MAX_ALTERNATIVES: usize = 256;
+
+struct IScan {
+    byte_sensitive: bool,
+    alternatives: usize,
+}
+
+fn scan(pattern: &str) -> Option<IScan> {
     let chars: Vec<char> = pattern.chars().collect();
     let path_mode = pattern.contains('/');
-    let mut depth = 0usize;
-    let mut groups = 0usize;
+    let mut groups: Vec<usize> = Vec::new();
+    let mut opened = 0;
+    let mut alternatives = 1usize;
+    let mut byte_sensitive = false;
     let mut index = 0;
 
     while let Some(&current) = chars.get(index) {
         match current {
-            '\\' if index + 1 == chars.len() => return true,
-            '\\' => index += 1,
-            '[' => match class(&chars, index) {
-                Some(class) if !class.unsupported(path_mode) => index = class.end,
-                _ => return true,
-            },
-            '{' => {
-                depth += 1;
-                groups += 1;
+            '\\' => {
+                chars.get(index + 1)?;
+                index += 1;
             }
-            '}' => depth = depth.saturating_sub(1),
-            '.' if depth > 0 && chars.get(index + 1) == Some(&'.') => return true,
-            '(' if index > 0 && matches!(chars[index - 1], '+' | '@' | '*' | '?' | '!') => {
-                return true;
+            '?' => byte_sensitive = true,
+            '[' => {
+                let class = class(&chars, index)?;
+
+                if class.unsupported(path_mode) {
+                    return None;
+                }
+
+                byte_sensitive = true;
+                index = class.end;
+            }
+            '*' if chars.get(index + 1) == Some(&'*') && !groups.is_empty() => return None,
+            '{' => {
+                opened += 1;
+                groups.push(1);
+            }
+            ',' => {
+                if let Some(count) = groups.last_mut() {
+                    *count += 1;
+                }
+            }
+            '}' => {
+                if let Some(count) = groups.pop() {
+                    alternatives = alternatives.saturating_mul(count);
+                }
             }
             _ => {}
         }
         index += 1;
     }
 
-    depth > 0 || groups > 10
-}
-
-// fast-glob matches `?` and classes per byte; Bun matches per character.
-pub fn byte_sensitive_env_pattern(pattern: &str) -> bool {
-    pattern.contains('?') || pattern.contains('[')
+    (groups.is_empty() && opened <= MAX_GROUPS).then_some(IScan {
+        byte_sensitive,
+        alternatives,
+    })
 }
 
 struct IClass<'a> {
@@ -103,8 +136,20 @@ mod tests {
             ".env.[!e]*",
             "config/.env.?",
             ".env.\\*",
+            ".env.\\[team\\]*",
+            ".env.\\+(team)",
+            ".env.+(team)",
+            ".env.{development..local,production}",
         ] {
             assert!(!unsupported_env_pattern(pattern), "{pattern}");
         }
+    }
+
+    #[test]
+    fn escaped_wildcards_are_not_byte_sensitive() {
+        assert!(!byte_sensitive_env_pattern(".env.\\[team\\]*"));
+        assert!(!byte_sensitive_env_pattern(".env.\\?*"));
+        assert!(byte_sensitive_env_pattern(".env.?"));
+        assert!(byte_sensitive_env_pattern(".env.[a-z]"));
     }
 }

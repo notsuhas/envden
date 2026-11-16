@@ -2,10 +2,7 @@ use crate::state::{
     files::{atomic_write, private_directory},
     lock::with_state_lock,
 };
-use envden_core::{
-    adapters::unsupported_env_pattern,
-    errors::{EnvdenError, ErrorCode, Result},
-};
+use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -45,17 +42,7 @@ pub fn parse_config(value: Value) -> Result<Value> {
         }) {
             return Err(invalid());
         }
-        if ["include", "exclude"]
-            .iter()
-            .filter_map(|key| rules[key].as_array())
-            .flatten()
-            .any(|pattern| pattern.as_str().is_some_and(unsupported_env_pattern))
-        {
-            return Err(EnvdenError::new(
-                ErrorCode::InvalidInput,
-                "Unsupported env file pattern",
-            ));
-        }
+        super::patterns::refuse_patterns(rules)?;
         let mut ordered = serde_json::Map::new();
         for key in ["include", "exclude", "extraSkipped"] {
             if let Some(v) = rules.get(key) {

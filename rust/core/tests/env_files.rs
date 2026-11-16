@@ -35,15 +35,16 @@ fn typescript_env_file_rules() {
 
 #[test]
 fn patterns_fast_glob_cannot_match_exactly_fail_closed() {
+    let ten_wide_groups = format!(".env{}", "{,,,,,,,}".repeat(10));
     let patterns = [
         ".env.[a",
         ".env.{a",
         ".env\\",
-        "+(.env)",
-        "@(.env|.env.local)",
-        "!(.env)",
-        ".env.{a..c}",
         ".env.{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}{a,b}",
+        ten_wide_groups.as_str(),
+        "apps/{*,**}",
+        "{*,**}/.env",
+        "**/a{**,}",
         "apps[/]web/.env",
         "apps[!x]web/.env",
         "apps/[^.]*/.env",
@@ -92,6 +93,13 @@ fn byte_wildcards_refuse_non_ascii_names_only() {
     assert!(!accepts_env_path(".env.ab", Some(&rules)).unwrap());
     assert!(accepts_env_path(".env.é", Some(&rules)).is_err());
     assert!(accepts_env_path("é/.env.a", Some(&rules)).unwrap());
+
+    let escaped = IEnvFileRules {
+        include: Some(vec![".env.\\[team\\]*".into()]),
+        ..Default::default()
+    };
+
+    assert!(accepts_env_path(".env.[team]é", Some(&escaped)).unwrap());
 }
 
 fn refusable(rules: &IEnvFileRules, path: &str) -> bool {
