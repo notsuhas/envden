@@ -27,7 +27,9 @@ pub fn should_ask_alias(state: &Value, checkout: &ICheckout, repos: &HashSet<Str
         && !state["aliasAsked"]
             .as_array()
             .is_some_and(|a| a.iter().any(|v| v == &checkout.repo_id))
-        && !state["aliases"][&checkout.repo_id].as_str().is_some_and(|s| !s.is_empty())
+        && !state["aliases"][&checkout.repo_id]
+            .as_str()
+            .is_some_and(|s| !s.is_empty())
         && derive_alias(&state["aliases"], &checkout.repo_id, target) == "assign"
 }
 

@@ -1,17 +1,9 @@
 use crate::{
     adapters::create_adapters,
-    links::{
-        local_only::mark_local_only,
-        place::link_checkout,
-        takeover::{adopt::adopt_group, group::group_own_links},
-    },
-    state::{
-        empty_state,
-        repository::{load_state, save_state},
-    },
+    links::{local_only::mark_local_only, place::link_checkout},
+    state::{empty_state, repository::load_state},
     sync::local::files::{base_path, read_bytes},
 };
-use envden_core::adapters::TPlacementMode;
 use std::{fs, path::Path, process::Command};
 
 fn git(root: &Path, args: &[&str]) {
@@ -104,6 +96,11 @@ fn placement_local_only_and_untrack_preserve_bytes() {
 #[cfg(unix)]
 #[test]
 fn takeover_and_untrack_restore_the_original_foreign_link() {
+    use crate::{
+        links::takeover::{adopt::adopt_group, group::group_own_links},
+        state::repository::save_state,
+    };
+    use envden_core::adapters::TPlacementMode;
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path().join("repo");
     fs::create_dir_all(&root).unwrap();
