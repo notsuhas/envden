@@ -8,6 +8,22 @@ pub fn sanitize_terminal(value: &str) -> String {
     value.chars().filter(|&c| !forbidden(c)).collect()
 }
 
+const MASK: char = '\u{e000}';
+
+// Marks argv control characters so a parser diagnostic's own line breaks can be told apart.
+pub fn mask_parser_arg(arg: &str) -> String {
+    arg.chars()
+        .map(|c| if forbidden(c) { MASK } else { c })
+        .collect()
+}
+
+pub fn sanitize_parser_error(message: &str) -> String {
+    message
+        .chars()
+        .filter(|&c| c == '\n' || !(forbidden(c) || c == MASK))
+        .collect()
+}
+
 pub fn sanitize_console(value: &str) -> String {
     value
         .chars()

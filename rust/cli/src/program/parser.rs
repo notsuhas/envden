@@ -4,6 +4,22 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 
 pub fn parse<'a>(root: &'a ICommand, args: &[String]) -> TParseResult<'a> {
+    use crate::output::{mask_parser_arg, sanitize_parser_error};
+
+    let message = match parse_unsanitized(root, args) {
+        TParseResult::Error(message) => message,
+        result => return result,
+    };
+    let masked: Vec<String> = args.iter().map(|arg| mask_parser_arg(arg)).collect();
+    let message = match parse_unsanitized(root, &masked) {
+        TParseResult::Error(masked) => masked,
+        _ => message,
+    };
+
+    TParseResult::Error(sanitize_parser_error(&message))
+}
+
+fn parse_unsanitized<'a>(root: &'a ICommand, args: &[String]) -> TParseResult<'a> {
     let (args, control) = super::control::control(root, args);
     if let Some(result) = control {
         return result;

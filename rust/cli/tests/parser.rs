@@ -70,3 +70,42 @@ fn unknown_help_targets_print_parent_help_to_stderr() {
         assert!(String::from_utf8_lossy(&output.stderr).contains(usage));
     }
 }
+
+#[test]
+fn parser_errors_keep_their_line_breaks_and_strip_control_bytes_at_every_depth() {
+    use envden_cli::program::{TParseResult, command_tree, parse};
+
+    for (args, expected) in [
+        (
+            vec!["statu"],
+            "error: unknown command 'statu'\n(Did you mean status?)",
+        ),
+        (
+            vec!["\x1b[2Jstatu\nforged"],
+            "error: unknown command '[2Jstatuforged'",
+        ),
+        (
+            vec!["rm", "--yesx", ".env"],
+            "error: unknown option '--yesx'\n(Did you mean --yes?)",
+        ),
+        (
+            vec!["rm", "--x\x1b[31mred", ".env"],
+            "error: unknown option '--x[31mred'",
+        ),
+        (
+            vec!["device", "ls", "--\x1b]0;title\x07"],
+            "error: unknown option '--]0;title'",
+        ),
+        (
+            vec!["shell", "install", "in\x1b[1m\nvalid"],
+            "error: invalid value 'in[1mvalid' for '[shell]'\n  [possible values: zsh, bash, fish, powershell]",
+        ),
+    ] {
+        let args: Vec<String> = args.into_iter().map(String::from).collect();
+        let TParseResult::Error(message) = parse(command_tree(), &args) else {
+            panic!("error expected for {args:?}");
+        };
+
+        assert_eq!(message, expected, "{args:?}");
+    }
+}
