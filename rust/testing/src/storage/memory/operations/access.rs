@@ -87,7 +87,11 @@ impl IMemory {
                 5
             }
         {
-            let strikes = prior.map(|(_, s)| s).unwrap_or(0) + 1;
+            let strikes = prior
+                .filter(|(until, _)| now - until < 86400000)
+                .map(|(_, strikes)| strikes)
+                .unwrap_or(0)
+                + 1;
             d.buckets.insert(
                 key,
                 (

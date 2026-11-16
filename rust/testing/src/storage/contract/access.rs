@@ -64,6 +64,20 @@ pub(super) fn rates(f: &IStorageFixture) {
         db.charge(&[1], &bucket, 900001).unwrap(),
         TRateCharge::Locked { until: 2700000 }
     );
+    for _ in 0..5 {
+        db.charge(&[5], &bucket, 0).unwrap();
+    }
+    let decayed = 900000 + 86400000 + 1;
+    for _ in 0..5 {
+        db.charge(&[5], &bucket, decayed).unwrap();
+    }
+    assert_eq!(
+        db.charge(&[5], &bucket, decayed + 1).unwrap(),
+        TRateCharge::Locked {
+            until: decayed + 900000
+        },
+        "strikes decay one day after the lock expires"
+    );
     let TRateCharge::Charged { receipt } = db
         .charge(&[1], &TRateBucket::Member { device: vec![4] }, 0)
         .unwrap()
