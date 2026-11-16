@@ -83,3 +83,16 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod source_tests {
+    #[test]
+    fn kit_parse_preserves_failure_source() {
+        for text in ["not json", "{}", r#"{"vaultId":"bad","secretKey":"bad"}"#] {
+            let error = super::parse_kit(text).unwrap_err();
+            assert_eq!(error.code, envden_core::errors::ErrorCode::InvalidInput);
+            assert_eq!(error.message, "Not a recovery kit file");
+            assert!(error.source.is_some());
+        }
+    }
+}

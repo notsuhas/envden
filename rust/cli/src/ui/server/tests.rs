@@ -105,3 +105,33 @@ fn request_routes_receive_method_query_and_body() {
         assert_eq!(response.status(),404);
     });
 }
+
+#[test]
+fn rejects_requests_before_polling_the_body() {
+    tokio::runtime::Runtime::new().unwrap().block_on(async {
+        let app = create_dashboard_app(4100, "token".into(), Arc::new(|_| panic!("API called")));
+        for (host, auth, origin, expected) in [
+            ("evil", "Bearer token", "http://127.0.0.1:4100", 421),
+            ("127.0.0.1:4100", "", "http://127.0.0.1:4100", 401),
+            ("127.0.0.1:4100", "Bearer token", "http://evil", 403),
+        ] {
+            let body = http_body_util::Full::new(axum::body::Bytes::from_static(b"{}"))
+                .map_frame(|_| panic!("body polled before guards"));
+            let response = app
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri("/api/push")
+                        .method("POST")
+                        .header("Host", host)
+                        .header("Authorization", auth)
+                        .header("Origin", origin)
+                        .body(Body::new(body))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), expected);
+        }
+    });
+}

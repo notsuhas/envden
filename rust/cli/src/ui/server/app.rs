@@ -50,6 +50,9 @@ pub fn create_request_dashboard_app(port: u16, token: String, api: TRequestApi) 
         let token = token.clone();
         let api = api.clone();
         async move {
+            if let Some(response) = guard(&request, port, &token) {
+                return secure(response);
+            }
             let (parts, body) = request.into_parts();
             let bytes = axum::body::to_bytes(body, usize::MAX)
                 .await
@@ -61,14 +64,7 @@ pub fn create_request_dashboard_app(port: u16, token: String, api: TRequestApi) 
                 body: serde_json::from_slice(&bytes).unwrap_or_default(),
             };
             let request = Request::from_parts(parts, Body::empty());
-            let mut response = respond(&request, port, &token, api, &input);
-            for (name, value) in SECURITY_HEADERS {
-                response.headers_mut().insert(
-                    axum::http::HeaderName::from_bytes(name.as_bytes()).unwrap(),
-                    axum::http::HeaderValue::from_static(value),
-                );
-            }
-            response
+            secure(respond(&request, api, &input))
         }
     }))
 }
@@ -85,25 +81,40 @@ fn error(status: u16, code: &str, message: &str) -> Response<Body> {
     json(status, serde_json::json!({"error":code,"message":message}))
 }
 
-fn respond(
-    request: &Request<Body>,
-    port: u16,
-    token: &str,
-    api: TRequestApi,
-    input: &IApiRequest,
-) -> Response<Body> {
+fn secure(mut response: Response<Body>) -> Response<Body> {
+    for (name, value) in SECURITY_HEADERS {
+        response.headers_mut().insert(
+            axum::http::HeaderName::from_bytes(name.as_bytes()).unwrap(),
+            axum::http::HeaderValue::from_static(value),
+        );
+    }
+    response
+}
+
+fn guard(request: &Request<Body>, port: u16, token: &str) -> Option<Response<Body>> {
     let header = |name| request.headers().get(name).and_then(|v| v.to_str().ok());
     if !allowed_host(header("Host"), port) {
-        return error(421, "INVALID_INPUT", "Unexpected host");
+        return Some(error(421, "INVALID_INPUT", "Unexpected host"));
     }
     let path = request.uri().path();
     if path.starts_with("/api/") {
         if !token_matches(header("Authorization"), token) {
-            return error(401, "UNAUTHORIZED", "Open the link envden ui printed");
+            return Some(error(
+                401,
+                "UNAUTHORIZED",
+                "Open the link envden ui printed",
+            ));
         }
         if request.method() != "GET" && !same_origin(header("Origin"), header("Host")) {
-            return error(403, "UNAUTHORIZED", "Cross-origin request refused");
+            return Some(error(403, "UNAUTHORIZED", "Cross-origin request refused"));
         }
+    }
+    None
+}
+
+fn respond(request: &Request<Body>, api: TRequestApi, input: &IApiRequest) -> Response<Body> {
+    let path = request.uri().path();
+    if path.starts_with("/api/") {
         match api(input) {
             Ok(Some(value)) => return json(200, value),
             Ok(None) => {}
