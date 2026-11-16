@@ -343,6 +343,10 @@ Replaces relying on each runtime's default. Bun closed idle connections after ab
 
 Replaces accepting any pattern Bun.Glob takes. The Go and Rust ports can't reproduce every corner of Bun's matcher, so the same config could sync different files depending on the build. Patterns are now limited to a grammar all three match the same way: an optional leading `!`, non-empty `/` segments, `**` as a whole segment, printable ASCII literals with `*` and `?` (`?` is one character), and flat `{a,b}` groups, at most 10 groups, 16 alternatives and 1024 characters. Anything else fails with "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing.
 
+### Keyring writes ignore the storage quota
+
+The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery kit, resetting the password. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
