@@ -1,8 +1,0 @@
-Usage: envden update [options]
-
-Update envden through the method it was installed with
-
-Options:
-  --check         Check for a release without installing
-  --post-install  Refresh installed integrations
-  -h, --help      display help for command

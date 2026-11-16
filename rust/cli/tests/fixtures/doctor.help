@@ -1,7 +1,0 @@
-Usage: envden doctor [options]
-
-Check key files, symlinks, updates, Tailscale, HTTPS and shell notices
-
-Options:
-  --json      Print the report as JSON
-  -h, --help  display help for command

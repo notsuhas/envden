@@ -1,8 +1,0 @@
-Usage: envden device ls [options]
-
-List devices and the version each last used
-
-Options:
-  --json      Print the result as JSON
-  --verbose   Include device ids
-  -h, --help  display help for command

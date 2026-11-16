@@ -151,6 +151,6 @@ fn reference_copies_and_detached_versions() {
     }
 }
 
-mod remaining;
+mod decisions;
 mod resolution;
 mod sides;

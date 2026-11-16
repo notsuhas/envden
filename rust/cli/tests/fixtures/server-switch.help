@@ -1,9 +1,0 @@
-Usage: envden server switch [options] <server>
-
-Follow a signed move when the old server is unreachable
-
-Arguments:
-  server      Destination server address
-
-Options:
-  -h, --help  display help for command

@@ -2,35 +2,8 @@ use super::{fonts, writer};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::Value;
 
-struct IPen {
-    content: String,
-    resources: String,
-    count: usize,
-}
-
-impl IPen {
-    fn write(&mut self, text: &str, x: f64, y: f64, font: &str, size: f64, muted: bool) {
-        let suffix = fonts::suffix(self.count);
-        self.count += 1;
-        let name = format!("{font}-{suffix}");
-        let reference = match font {
-            "Helvetica" => 5,
-            "Helvetica-Bold" => 6,
-            _ => 7,
-        };
-        self.resources
-            .push_str(&format!("/{name} {reference} 0 R\n"));
-        let color = if muted {
-            "0.42 0.42 0.46"
-        } else {
-            "0.1 0.1 0.12"
-        };
-        self.content.push_str(&format!(
-            "q\nBT\n{color} rg\n/{name} {size} Tf\n24 TL\n1 0 0 1 {x} {y} Tm\n<{}> Tj\nT*\nET\nQ\n",
-            fonts::hex(text)
-        ));
-    }
-}
+use super::pen::IPen;
+use lopdf::content::{Content, Operation};
 
 pub fn render_kit(kit: &Value, now: u64, device: &str) -> Result<Vec<u8>> {
     render_at_zone(kit, now, device, std::env::var("TZ").ok().as_deref())
@@ -39,9 +12,9 @@ pub fn render_kit(kit: &Value, now: u64, device: &str) -> Result<Vec<u8>> {
 fn render_at_zone(kit: &Value, now: u64, device: &str, zone: Option<&str>) -> Result<Vec<u8>> {
     let server = kit["server"].as_str().unwrap_or_default();
     let mut pen = IPen {
-        content: String::new(),
-        resources: String::new(),
-        count: 0,
+        content: Content {
+            operations: Vec::new(),
+        },
     };
     let mut y = 841.89 - 64.0 - 24.0;
     pen.write(
@@ -96,7 +69,20 @@ fn render_at_zone(kit: &Value, now: u64, device: &str, zone: Option<&str>) -> Re
     })
     .collect();
     let height = 20.0 * 2.0 + rows.iter().map(|r| 9.0 + 8.0 + r.2).sum::<f64>() + 18.0 * 2.0;
-    pen.content.push_str(&format!("q\n0.55 0.55 0.6 RG\n1 w\n[] 0 d\n1 0 0 1 64 {} cm\n1 0 0 1 0 0 cm\n1 0 0 1 0 0 cm\n0 0 m\n0 {height} l\n{width} {height} l\n{width} 0 l\nh\nS\nQ\n", top - height));
+    pen.content.operations.extend([
+        Operation::new("RG", vec![0.55.into(), 0.55.into(), 0.6.into()]),
+        Operation::new("w", vec![1.into()]),
+        Operation::new(
+            "re",
+            vec![
+                64.into(),
+                (top - height).into(),
+                width.into(),
+                height.into(),
+            ],
+        ),
+        Operation::new("S", vec![]),
+    ]);
     y = top - 20.0;
     for (label, value, size) in rows {
         y -= 9.0;
@@ -157,34 +143,8 @@ fn render_at_zone(kit: &Value, now: u64, device: &str, zone: Option<&str>) -> Re
         9.0,
         true,
     );
-    writer::pdf(&pen.content, &pen.resources, now)
+    writer::pdf(pen.content, now)
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn exact_pdf_lib_bytes() {
-        for (input, reference) in [
-            (
-                include_str!("../../../../../../parity/fixtures/recovery-pdf/kit.json"),
-                include_bytes!("../../../../../../parity/fixtures/recovery-pdf/kit.pdf").as_slice(),
-            ),
-            (
-                include_str!("../../../../../../parity/fixtures/recovery-pdf/long.json"),
-                include_bytes!("../../../../../../parity/fixtures/recovery-pdf/long.pdf")
-                    .as_slice(),
-            ),
-        ] {
-            let fixture: Value = serde_json::from_str(input).unwrap();
-            let bytes = render_at_zone(
-                &fixture["kit"],
-                fixture["now"].as_u64().unwrap(),
-                fixture["deviceName"].as_str().unwrap(),
-                Some("UTC"),
-            )
-            .unwrap();
-            assert_eq!(bytes, reference);
-        }
-    }
-}
+mod tests;

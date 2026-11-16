@@ -1,8 +1,0 @@
-Usage: envden vault kit replace [options]
-
-Replace a lost kit; needs the master password
-
-Options:
-  --kit-out <file>  Write the new recovery kit as JSON to a private file instead
-                    of a PDF
-  -h, --help        display help for command

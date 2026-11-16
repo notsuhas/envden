@@ -9,14 +9,10 @@ pub struct ICommand {
     pub path: Vec<String>,
     pub aliases: Vec<String>,
     pub description: String,
-    pub usage: String,
-    pub term: String,
-    pub group: String,
     pub action: bool,
     pub hidden: bool,
     pub options: Vec<IOption>,
     pub arguments: Vec<IArgument>,
-    pub help: String,
     pub commands: Vec<ICommand>,
 }
 

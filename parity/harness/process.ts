@@ -1,3 +1,5 @@
+import { promptRecord } from "./terminal/prompts.ts";
+import type { IPrompt } from "./terminal/prompts.ts";
 import { terminalScreen } from "./terminal/screen.ts";
 import { stripVTControlCharacters } from "node:util";
 import type { IResult } from "./types.ts";
@@ -33,6 +35,8 @@ export async function execute(
 
 export class Terminal {
   private raw = "";
+  private prompts: IPrompt[] = [];
+  private args: string[];
   private cursor = 0;
   private wake = () => {};
   private child: Bun.Subprocess;
@@ -40,6 +44,8 @@ export class Terminal {
   private timer: ReturnType<typeof setTimeout>;
 
   constructor(command: string[], env: Record<string, string>, cwd: string) {
+    this.args = command;
+
     this.child = Bun.spawn(command, {
       env,
       cwd,
@@ -74,13 +80,29 @@ export class Terminal {
 
       if (match) {
         this.cursor += match.index + match[0].length;
-        if (send !== undefined) this.send(send);
+
+        if (send !== undefined) {
+          await this.settle();
+          this.prompts.push(promptRecord(terminalScreen(this.raw), match[0], send));
+          this.send(send);
+        }
 
         return match[1] ?? match[0];
       }
 
       await this.idle(pattern);
     }
+  }
+
+  private async settle() {
+    await new Promise<void>((resolve) => {
+      let timer = setTimeout(resolve, 30);
+
+      this.wake = () => {
+        clearTimeout(timer);
+        timer = setTimeout(resolve, 30);
+      };
+    });
   }
 
   private async idle(pattern: string | RegExp) {
@@ -100,7 +122,13 @@ export class Terminal {
     try {
       const code = await this.child.exited;
 
-      return { stdout: terminalScreen(this.raw), stderr: "", code };
+      return {
+        stdout: terminalScreen(this.raw),
+        stderr: "",
+        code,
+        prompts: this.prompts,
+        args: this.args.filter((arg) => arg.startsWith("--")),
+      };
     } finally {
       this.close();
     }

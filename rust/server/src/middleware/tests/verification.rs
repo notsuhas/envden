@@ -107,4 +107,4 @@ fn signing_time_window_is_strict_on_both_edges() {
     }
 }
 
-mod remaining;
+mod signatures;

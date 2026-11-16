@@ -3,9 +3,6 @@
   "path": [],
   "aliases": [],
   "description": "Encrypted whole-file env sync over your private network",
-  "usage": "envden [options] [command]",
-  "term": "envden [options]",
-  "group": "Commands:",
   "action": false,
   "hidden": false,
   "options": [
@@ -37,16 +34,14 @@
     }
   ],
   "arguments": [],
-  "help": "Usage: envden [options] [command]\n\nEncrypted whole-file env sync over your private network\n\nOptions:\n  -V, --version             output the version number\n  -h, --help                display help for command\n\nGet started:\n  setup [options]           Create a vault and configure this device\n  join [options] <server>   Join using a pairing code or recovery kit in your\n                            own terminal\n\nDaily use:\n  status [options]          Show what changed here, what's newer on the server\n                            and what needs attention\n  push [options]            Send your changes to the server\n  pull [options]            Fetch and merge changes from your other devices\n  diff [options]            Show changed key names without values\n  resolve [options] [file]  Keep yours, take the server's, or finish an edited\n                            conflict\n  history [options] [file]  List the versions the server keeps, or restore one\n                            as a local edit\n\nFiles:\n  track [options] [path]    Scan, approve and link checkout env files\n  untrack <path>            Stop tracking a checkout and restore regular env\n                            files\n  local-only <file>         Keep a managed file local to this checkout\n  rm [options] <path>       Remove an env file everywhere on the next push\n  alias <repo> <target>     Share another repo's env files, for example from a\n                            fork\n\nDevices and vault:\n  device                    Add, list, rename and remove devices\n  vault                     Re-key the vault, replace the recovery kit, or\n                            change or reset the password\n  server                    Move, switch or repair the server\n  unlock                    Log in with your master password to restart the\n                            unlock period\n\nMaintenance:\n  config [key] [values...]  Read or change settings\n  doctor [options]          Check key files, symlinks, updates, Tailscale, HTTPS\n                            and shell notices\n  update [options]          Update envden through the method it was installed\n                            with\n  ui [options]              Open a local dashboard for this device\n  agent                     Install the envden agent skill\n  shell                     Manage the shell notice\n  serve [options]           Run the server; ENVDEN_SETUP_TOKEN replaces the\n                            setup token\n  version                   Print the version\n\nCommands:\n  help [command]            display help for command\n",
   "commands": [
     {
       "name": "setup",
-      "path": ["setup"],
+      "path": [
+        "setup"
+      ],
       "aliases": [],
       "description": "Create a vault and configure this device",
-      "usage": "envden setup [options]",
-      "term": "setup [options]",
-      "group": "Get started:",
       "action": true,
       "hidden": false,
       "options": [
@@ -130,7 +125,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Anonymous telemetry (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -143,7 +141,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Daily update check (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -156,7 +157,13 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["zsh", "bash", "fish", "powershell", "none"],
+          "choices": [
+            "zsh",
+            "bash",
+            "fish",
+            "powershell",
+            "none"
+          ],
           "description": "Shell notice (choices: \"zsh\", \"bash\", \"fish\", \"powershell\", \"none\")",
           "hidden": false,
           "conflicts": []
@@ -169,7 +176,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Install the agent skill (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -225,17 +235,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden setup [options]\n\nCreate a vault and configure this device\n\nOptions:\n  --yes                     Take defaults; secrets and checkout approval still\n                            require your terminal\n  --server <url>            Use this server\n  --kit-out <file>          Write the recovery kit as JSON to a private file\n                            instead of a PDF\n  --name <name>             Device name\n  --host-server             Run the envden server on this machine; no setup\n                            token needed\n  --setup-token <token>     Setup token, visible to other processes; use the\n                            prompt in a terminal\n  --telemetry <choice>      Anonymous telemetry (choices: \"on\", \"off\")\n  --update-check <choice>   Daily update check (choices: \"on\", \"off\")\n  --shell <shell>           Shell notice (choices: \"zsh\", \"bash\", \"fish\",\n                            \"powershell\", \"none\")\n  --agent <choice>          Install the agent skill (choices: \"on\", \"off\")\n  --scan-root <path...>     Roots to scan for repos\n  --exclude-root <path...>  Roots to skip\n  --verbose                 List each repo and env file the scan skipped\n  -h, --help                display help for command\n",
       "commands": []
     },
     {
       "name": "join",
-      "path": ["join"],
+      "path": [
+        "join"
+      ],
       "aliases": [],
       "description": "Join using a pairing code or recovery kit in your own terminal",
-      "usage": "envden join [options] <server>",
-      "term": "join [options] <server>",
-      "group": "Get started:",
       "action": true,
       "hidden": false,
       "options": [
@@ -295,7 +303,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Anonymous telemetry (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -308,7 +319,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Daily update check (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -321,7 +335,13 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["zsh", "bash", "fish", "powershell", "none"],
+          "choices": [
+            "zsh",
+            "bash",
+            "fish",
+            "powershell",
+            "none"
+          ],
           "description": "Shell notice (choices: \"zsh\", \"bash\", \"fish\", \"powershell\", \"none\")",
           "hidden": false,
           "conflicts": []
@@ -334,7 +354,10 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": ["on", "off"],
+          "choices": [
+            "on",
+            "off"
+          ],
           "description": "Install the agent skill (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -373,17 +396,15 @@
           "description": "Server address, e.g. envden.your-tailnet.ts.net"
         }
       ],
-      "help": "Usage: envden join [options] <server>\n\nJoin using a pairing code or recovery kit in your own terminal\n\nArguments:\n  server                   Server address, e.g. envden.your-tailnet.ts.net\n\nOptions:\n  --recovery               Paste a recovery secret key and vault ID\n  --recovery-kit <path>    Recovery kit path\n  --name <name>            Device name\n  --yes                    Use default preferences\n  --telemetry <choice>     Anonymous telemetry (choices: \"on\", \"off\")\n  --update-check <choice>  Daily update check (choices: \"on\", \"off\")\n  --shell <shell>          Shell notice (choices: \"zsh\", \"bash\", \"fish\",\n                           \"powershell\", \"none\")\n  --agent <choice>         Install the agent skill (choices: \"on\", \"off\")\n  --resume                 Finish a join that was approved while this command\n                           wasn't running\n  -h, --help               display help for command\n",
       "commands": []
     },
     {
       "name": "status",
-      "path": ["status"],
+      "path": [
+        "status"
+      ],
       "aliases": [],
       "description": "Show what changed here, what's newer on the server and what needs attention",
-      "usage": "envden status [options]",
-      "term": "status [options]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -426,17 +447,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden status [options]\n\nShow what changed here, what's newer on the server and what needs attention\n\nOptions:\n  --json      Machine-readable status\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "push",
-      "path": ["push"],
+      "path": [
+        "push"
+      ],
       "aliases": [],
       "description": "Send your changes to the server",
-      "usage": "envden push [options]",
-      "term": "push [options]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -491,17 +510,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden push [options]\n\nSend your changes to the server\n\nOptions:\n  --json      Print the result as JSON\n  --all       Sync all repos\n  --yes       Confirm clean changes\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "pull",
-      "path": ["pull"],
+      "path": [
+        "pull"
+      ],
       "aliases": [],
       "description": "Fetch and merge changes from your other devices",
-      "usage": "envden pull [options]",
-      "term": "pull [options]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -556,17 +573,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden pull [options]\n\nFetch and merge changes from your other devices\n\nOptions:\n  --json      Print the result as JSON\n  --all       Sync all repos\n  --yes       Confirm clean changes\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "diff",
-      "path": ["diff"],
+      "path": [
+        "diff"
+      ],
       "aliases": [],
       "description": "Show changed key names without values",
-      "usage": "envden diff [options]",
-      "term": "diff [options]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -609,17 +624,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden diff [options]\n\nShow changed key names without values\n\nOptions:\n  --json      Print the result as JSON\n  --all       Include all repos\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "resolve",
-      "path": ["resolve"],
+      "path": [
+        "resolve"
+      ],
       "aliases": [],
       "description": "Keep yours, take the server's, or finish an edited conflict",
-      "usage": "envden resolve [options] [file]",
-      "term": "resolve [options] [file]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -669,7 +682,9 @@
           "negate": false,
           "description": "Keep your version",
           "hidden": false,
-          "conflicts": ["takeServer"]
+          "conflicts": [
+            "takeServer"
+          ]
         },
         {
           "flags": "--take-server",
@@ -705,17 +720,15 @@
           "description": "Conflicted env file"
         }
       ],
-      "help": "Usage: envden resolve [options] [file]\n\nKeep yours, take the server's, or finish an edited conflict\n\nArguments:\n  file           Conflicted env file\n\nOptions:\n  --json         Print the result as JSON\n  --list         List unresolved conflicts\n  --repo <path>  Select a checkout\n  --keep-mine    Keep your version\n  --take-server  Take the server's version\n  -h, --help     display help for command\n",
       "commands": []
     },
     {
       "name": "history",
-      "path": ["history"],
+      "path": [
+        "history"
+      ],
       "aliases": [],
       "description": "List the versions the server keeps, or restore one as a local edit",
-      "usage": "envden history [options] [file]",
-      "term": "history [options] [file]",
-      "group": "Daily use:",
       "action": true,
       "hidden": false,
       "options": [
@@ -729,7 +742,9 @@
           "negate": false,
           "description": "Include every tracked file",
           "hidden": false,
-          "conflicts": ["restore"]
+          "conflicts": [
+            "restore"
+          ]
         },
         {
           "flags": "--restore <version>",
@@ -789,17 +804,15 @@
           "description": "Env file path"
         }
       ],
-      "help": "Usage: envden history [options] [file]\n\nList the versions the server keeps, or restore one as a local edit\n\nArguments:\n  file                 Env file path\n\nOptions:\n  --all                Include every tracked file\n  --restore <version>  Write that version into the checkout without pushing\n  --yes                Confirm the restore\n  --json               Print the result as JSON\n  -h, --help           display help for command\n",
       "commands": []
     },
     {
       "name": "track",
-      "path": ["track"],
+      "path": [
+        "track"
+      ],
       "aliases": [],
       "description": "Scan, approve and link checkout env files",
-      "usage": "envden track [options] [path]",
-      "term": "track [options] [path]",
-      "group": "Files:",
       "action": true,
       "hidden": false,
       "options": [
@@ -849,17 +862,15 @@
           "description": "Checkout or scan root (default: current directory)"
         }
       ],
-      "help": "Usage: envden track [options] [path]\n\nScan, approve and link checkout env files\n\nArguments:\n  path        Checkout or scan root (default: current directory)\n\nOptions:\n  --copy      Place real copies instead of links\n  --verbose   List each repo and env file the scan skipped\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "untrack",
-      "path": ["untrack"],
+      "path": [
+        "untrack"
+      ],
       "aliases": [],
       "description": "Stop tracking a checkout and restore regular env files",
-      "usage": "envden untrack [options] <path>",
-      "term": "untrack <path>",
-      "group": "Files:",
       "action": true,
       "hidden": false,
       "options": [
@@ -885,17 +896,15 @@
           "description": "Checkout root"
         }
       ],
-      "help": "Usage: envden untrack [options] <path>\n\nStop tracking a checkout and restore regular env files\n\nArguments:\n  path        Checkout root\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "local-only",
-      "path": ["local-only"],
+      "path": [
+        "local-only"
+      ],
       "aliases": [],
       "description": "Keep a managed file local to this checkout",
-      "usage": "envden local-only [options] <file>",
-      "term": "local-only <file>",
-      "group": "Files:",
       "action": true,
       "hidden": false,
       "options": [
@@ -921,17 +930,15 @@
           "description": "Managed env file in this checkout"
         }
       ],
-      "help": "Usage: envden local-only [options] <file>\n\nKeep a managed file local to this checkout\n\nArguments:\n  file        Managed env file in this checkout\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "rm",
-      "path": ["rm"],
+      "path": [
+        "rm"
+      ],
       "aliases": [],
       "description": "Remove an env file everywhere on the next push",
-      "usage": "envden rm [options] <path>",
-      "term": "rm [options] <path>",
-      "group": "Files:",
       "action": true,
       "hidden": false,
       "options": [
@@ -981,17 +988,15 @@
           "description": "Env file path"
         }
       ],
-      "help": "Usage: envden rm [options] <path>\n\nRemove an env file everywhere on the next push\n\nArguments:\n  path        Env file path\n\nOptions:\n  --yes       Confirm deletion, including local edits and conflicts\n  --json      Print the result as JSON\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "alias",
-      "path": ["alias"],
+      "path": [
+        "alias"
+      ],
       "aliases": [],
       "description": "Share another repo's env files, for example from a fork",
-      "usage": "envden alias [options] <repo> <target>",
-      "term": "alias <repo> <target>",
-      "group": "Files:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1023,17 +1028,15 @@
           "description": "Repo ID whose env files it uses"
         }
       ],
-      "help": "Usage: envden alias [options] <repo> <target>\n\nShare another repo's env files, for example from a fork\n\nArguments:\n  repo        Repo ID to alias\n  target      Repo ID whose env files it uses\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "device",
-      "path": ["device"],
+      "path": [
+        "device"
+      ],
       "aliases": [],
       "description": "Add, list, rename and remove devices",
-      "usage": "envden device [options] [command]",
-      "term": "device",
-      "group": "Devices and vault:",
       "action": false,
       "hidden": false,
       "options": [
@@ -1052,16 +1055,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden device [options] [command]\n\nAdd, list, rename and remove devices\n\nOptions:\n  -h, --help             display help for command\n\nCommands:\n  add                    Show a pairing code for a new device\n  ls [options]           List devices and the version each last used\n  rename <name>          Rename this device\n  rm [options] <device>  Remove a device and re-key the vault so it can't read\n                         new changes\n  help [command]         display help for command\n",
       "commands": [
         {
           "name": "add",
-          "path": ["device", "add"],
+          "path": [
+            "device",
+            "add"
+          ],
           "aliases": [],
           "description": "Show a pairing code for a new device",
-          "usage": "envden device add [options]",
-          "term": "add",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1080,17 +1082,16 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden device add [options]\n\nShow a pairing code for a new device\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "ls",
-          "path": ["device", "ls"],
+          "path": [
+            "device",
+            "ls"
+          ],
           "aliases": [],
           "description": "List devices and the version each last used",
-          "usage": "envden device ls [options]",
-          "term": "ls [options]",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1133,17 +1134,16 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden device ls [options]\n\nList devices and the version each last used\n\nOptions:\n  --json      Print the result as JSON\n  --verbose   Include device ids\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "rename",
-          "path": ["device", "rename"],
+          "path": [
+            "device",
+            "rename"
+          ],
           "aliases": [],
           "description": "Rename this device",
-          "usage": "envden device rename [options] <name>",
-          "term": "rename <name>",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1169,17 +1169,16 @@
               "description": "New name, unique in the vault"
             }
           ],
-          "help": "Usage: envden device rename [options] <name>\n\nRename this device\n\nArguments:\n  name        New name, unique in the vault\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "rm",
-          "path": ["device", "rm"],
+          "path": [
+            "device",
+            "rm"
+          ],
           "aliases": [],
           "description": "Remove a device and re-key the vault so it can't read new changes",
-          "usage": "envden device rm [options] <device>",
-          "term": "rm [options] <device>",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1229,19 +1228,17 @@
               "description": "Device name or ID"
             }
           ],
-          "help": "Usage: envden device rm [options] <device>\n\nRemove a device and re-key the vault so it can't read new changes\n\nArguments:\n  device            Device name or ID\n\nOptions:\n  --kit-out <file>  Write the new recovery kit as JSON to a private file instead\n                    of a PDF\n  --new-kit         Also replace the recovery kit as part of the removal\n  -h, --help        display help for command\n",
           "commands": []
         }
       ]
     },
     {
       "name": "vault",
-      "path": ["vault"],
+      "path": [
+        "vault"
+      ],
       "aliases": [],
       "description": "Re-key the vault, replace the recovery kit, or change or reset the password",
-      "usage": "envden vault [options] [command]",
-      "term": "vault",
-      "group": "Devices and vault:",
       "action": false,
       "hidden": false,
       "options": [
@@ -1260,16 +1257,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden vault [options] [command]\n\nRe-key the vault, replace the recovery kit, or change or reset the password\n\nOptions:\n  -h, --help      display help for command\n\nCommands:\n  rotate          Re-key the vault so removed devices can't read new changes\n  kit             Manage the recovery kit\n  password        Change or reset the master password\n  help [command]  display help for command\n",
       "commands": [
         {
           "name": "rotate",
-          "path": ["vault", "rotate"],
+          "path": [
+            "vault",
+            "rotate"
+          ],
           "aliases": [],
           "description": "Re-key the vault so removed devices can't read new changes",
-          "usage": "envden vault rotate [options]",
-          "term": "rotate",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1288,17 +1284,16 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden vault rotate [options]\n\nRe-key the vault so removed devices can't read new changes\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "kit",
-          "path": ["vault", "kit"],
+          "path": [
+            "vault",
+            "kit"
+          ],
           "aliases": [],
           "description": "Manage the recovery kit",
-          "usage": "envden vault kit [options] [command]",
-          "term": "kit",
-          "group": "Commands:",
           "action": false,
           "hidden": false,
           "options": [
@@ -1317,16 +1312,16 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden vault kit [options] [command]\n\nManage the recovery kit\n\nOptions:\n  -h, --help         display help for command\n\nCommands:\n  replace [options]  Replace a lost kit; needs the master password\n  help [command]     display help for command\n",
           "commands": [
             {
               "name": "replace",
-              "path": ["vault", "kit", "replace"],
+              "path": [
+                "vault",
+                "kit",
+                "replace"
+              ],
               "aliases": [],
               "description": "Replace a lost kit; needs the master password",
-              "usage": "envden vault kit replace [options]",
-              "term": "replace [options]",
-              "group": "Commands:",
               "action": true,
               "hidden": false,
               "options": [
@@ -1357,19 +1352,18 @@
                 }
               ],
               "arguments": [],
-              "help": "Usage: envden vault kit replace [options]\n\nReplace a lost kit; needs the master password\n\nOptions:\n  --kit-out <file>  Write the new recovery kit as JSON to a private file instead\n                    of a PDF\n  -h, --help        display help for command\n",
               "commands": []
             }
           ]
         },
         {
           "name": "password",
-          "path": ["vault", "password"],
+          "path": [
+            "vault",
+            "password"
+          ],
           "aliases": [],
           "description": "Change or reset the master password",
-          "usage": "envden vault password [options] [command]",
-          "term": "password",
-          "group": "Commands:",
           "action": false,
           "hidden": false,
           "options": [
@@ -1388,16 +1382,16 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden vault password [options] [command]\n\nChange or reset the master password\n\nOptions:\n  -h, --help      display help for command\n\nCommands:\n  change          Change the password; needs the old one and the kit\n  reset           Reset a forgotten password with the kit\n  help [command]  display help for command\n",
           "commands": [
             {
               "name": "change",
-              "path": ["vault", "password", "change"],
+              "path": [
+                "vault",
+                "password",
+                "change"
+              ],
               "aliases": [],
               "description": "Change the password; needs the old one and the kit",
-              "usage": "envden vault password change [options]",
-              "term": "change",
-              "group": "Commands:",
               "action": true,
               "hidden": false,
               "options": [
@@ -1416,17 +1410,17 @@
                 }
               ],
               "arguments": [],
-              "help": "Usage: envden vault password change [options]\n\nChange the password; needs the old one and the kit\n\nOptions:\n  -h, --help  display help for command\n",
               "commands": []
             },
             {
               "name": "reset",
-              "path": ["vault", "password", "reset"],
+              "path": [
+                "vault",
+                "password",
+                "reset"
+              ],
               "aliases": [],
               "description": "Reset a forgotten password with the kit",
-              "usage": "envden vault password reset [options]",
-              "term": "reset",
-              "group": "Commands:",
               "action": true,
               "hidden": false,
               "options": [
@@ -1445,7 +1439,6 @@
                 }
               ],
               "arguments": [],
-              "help": "Usage: envden vault password reset [options]\n\nReset a forgotten password with the kit\n\nOptions:\n  -h, --help  display help for command\n",
               "commands": []
             }
           ]
@@ -1454,12 +1447,11 @@
     },
     {
       "name": "server",
-      "path": ["server"],
+      "path": [
+        "server"
+      ],
       "aliases": [],
       "description": "Move, switch or repair the server",
-      "usage": "envden server [options] [command]",
-      "term": "server",
-      "group": "Devices and vault:",
       "action": false,
       "hidden": false,
       "options": [
@@ -1478,16 +1470,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden server [options] [command]\n\nMove, switch or repair the server\n\nOptions:\n  -h, --help               display help for command\n\nCommands:\n  move [options] [server]  Move the vault to a new server\n  switch <server>          Follow a signed move when the old server is\n                           unreachable\n  repair [options]         After a server restore, re-upload this device's data,\n                           or finish the restore with --finish\n  help [command]           display help for command\n",
       "commands": [
         {
           "name": "move",
-          "path": ["server", "move"],
+          "path": [
+            "server",
+            "move"
+          ],
           "aliases": [],
           "description": "Move the vault to a new server",
-          "usage": "envden server move [options] [server]",
-          "term": "move [options] [server]",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1513,7 +1504,9 @@
               "negate": false,
               "description": "Resume an interrupted move",
               "hidden": false,
-              "conflicts": ["abort"]
+              "conflicts": [
+                "abort"
+              ]
             },
             {
               "flags": "--abort",
@@ -1549,17 +1542,16 @@
               "description": "Destination server address"
             }
           ],
-          "help": "Usage: envden server move [options] [server]\n\nMove the vault to a new server\n\nArguments:\n  server                 Destination server address\n\nOptions:\n  --setup-token <token>  Setup token, visible to other processes; use the prompt\n                         in a terminal\n  --resume               Resume an interrupted move\n  --abort                Abort an unfinished move\n  -h, --help             display help for command\n",
           "commands": []
         },
         {
           "name": "switch",
-          "path": ["server", "switch"],
+          "path": [
+            "server",
+            "switch"
+          ],
           "aliases": [],
           "description": "Follow a signed move when the old server is unreachable",
-          "usage": "envden server switch [options] <server>",
-          "term": "switch <server>",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1585,17 +1577,16 @@
               "description": "Destination server address"
             }
           ],
-          "help": "Usage: envden server switch [options] <server>\n\nFollow a signed move when the old server is unreachable\n\nArguments:\n  server      Destination server address\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "repair",
-          "path": ["server", "repair"],
+          "path": [
+            "server",
+            "repair"
+          ],
           "aliases": [],
           "description": "After a server restore, re-upload this device's data, or finish the restore with --finish",
-          "usage": "envden server repair [options]",
-          "term": "repair [options]",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1662,19 +1653,17 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden server repair [options]\n\nAfter a server restore, re-upload this device's data, or finish the restore with\n--finish\n\nOptions:\n  --repair-token <token>  Repair token; prefer stdin for upload, use a terminal\n                          for --finish\n  --finish                Check every device's upload and finish the restore\n  --without <device...>   Drop unavailable devices; they rejoin as new devices\n  --accept-lost           Accept the newest verified older version of a missing\n                          file\n  -h, --help              display help for command\n",
           "commands": []
         }
       ]
     },
     {
       "name": "unlock",
-      "path": ["unlock"],
+      "path": [
+        "unlock"
+      ],
       "aliases": [],
       "description": "Log in with your master password to restart the unlock period",
-      "usage": "envden unlock [options]",
-      "term": "unlock",
-      "group": "Devices and vault:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1693,17 +1682,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden unlock [options]\n\nLog in with your master password to restart the unlock period\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "config",
-      "path": ["config"],
+      "path": [
+        "config"
+      ],
       "aliases": [],
       "description": "Read or change settings",
-      "usage": "envden config [options] [key] [values...]",
-      "term": "config [key] [values...]",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1735,17 +1722,15 @@
           "description": "New value; placement takes a checkout path and link or copy"
         }
       ],
-      "help": "Usage: envden config [options] [key] [values...]\n\nRead or change settings\n\nArguments:\n  key         telemetry, update-check, agent-merge, auto-approve-worktrees,\n              unlock-period, placement or env-files\n  values      New value; placement takes a checkout path and link or copy\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "doctor",
-      "path": ["doctor"],
+      "path": [
+        "doctor"
+      ],
       "aliases": [],
       "description": "Check key files, symlinks, updates, Tailscale, HTTPS and shell notices",
-      "usage": "envden doctor [options]",
-      "term": "doctor [options]",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1776,17 +1761,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden doctor [options]\n\nCheck key files, symlinks, updates, Tailscale, HTTPS and shell notices\n\nOptions:\n  --json      Print the report as JSON\n  -h, --help  display help for command\n",
       "commands": []
     },
     {
       "name": "update",
-      "path": ["update"],
+      "path": [
+        "update"
+      ],
       "aliases": [],
       "description": "Update envden through the method it was installed with",
-      "usage": "envden update [options]",
-      "term": "update [options]",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1829,17 +1812,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden update [options]\n\nUpdate envden through the method it was installed with\n\nOptions:\n  --check         Check for a release without installing\n  --post-install  Refresh installed integrations\n  -h, --help      display help for command\n",
       "commands": []
     },
     {
       "name": "ui",
-      "path": ["ui"],
+      "path": [
+        "ui"
+      ],
       "aliases": [],
       "description": "Open a local dashboard for this device",
-      "usage": "envden ui [options]",
-      "term": "ui [options]",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -1882,17 +1863,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden ui [options]\n\nOpen a local dashboard for this device\n\nOptions:\n  --port <port>  Port on 127.0.0.1 (default: random)\n  --no-open      Print the link without opening a browser\n  -h, --help     display help for command\n",
       "commands": []
     },
     {
       "name": "agent",
-      "path": ["agent"],
+      "path": [
+        "agent"
+      ],
       "aliases": [],
       "description": "Install the envden agent skill",
-      "usage": "envden agent [options] [command]",
-      "term": "agent",
-      "group": "Maintenance:",
       "action": false,
       "hidden": false,
       "options": [
@@ -1911,16 +1890,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden agent [options] [command]\n\nInstall the envden agent skill\n\nOptions:\n  -h, --help      display help for command\n\nCommands:\n  install         Install or refresh the agent skill\n  help [command]  display help for command\n",
       "commands": [
         {
           "name": "install",
-          "path": ["agent", "install"],
+          "path": [
+            "agent",
+            "install"
+          ],
           "aliases": [],
           "description": "Install or refresh the agent skill",
-          "usage": "envden agent install [options]",
-          "term": "install",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -1939,19 +1917,17 @@
             }
           ],
           "arguments": [],
-          "help": "Usage: envden agent install [options]\n\nInstall or refresh the agent skill\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         }
       ]
     },
     {
       "name": "shell",
-      "path": ["shell"],
+      "path": [
+        "shell"
+      ],
       "aliases": [],
       "description": "Manage the shell notice",
-      "usage": "envden shell [options] [command]",
-      "term": "shell",
-      "group": "Maintenance:",
       "action": false,
       "hidden": false,
       "options": [
@@ -1970,16 +1946,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden shell [options] [command]\n\nManage the shell notice\n\nOptions:\n  -h, --help         display help for command\n\nCommands:\n  install [shell]    Add the out-of-sync notice to your shell config\n  uninstall [shell]  Remove the out-of-sync notice from your shell config\n  help [command]     display help for command\n",
       "commands": [
         {
           "name": "install",
-          "path": ["shell", "install"],
+          "path": [
+            "shell",
+            "install"
+          ],
           "aliases": [],
           "description": "Add the out-of-sync notice to your shell config",
-          "usage": "envden shell install [options] [shell]",
-          "term": "install [shell]",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -2002,21 +1977,25 @@
               "name": "shell",
               "required": false,
               "variadic": false,
-              "choices": ["zsh", "bash", "fish", "powershell"],
+              "choices": [
+                "zsh",
+                "bash",
+                "fish",
+                "powershell"
+              ],
               "description": "Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\", \"powershell\")"
             }
           ],
-          "help": "Usage: envden shell install [options] [shell]\n\nAdd the out-of-sync notice to your shell config\n\nArguments:\n  shell       Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\",\n              \"powershell\")\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         },
         {
           "name": "uninstall",
-          "path": ["shell", "uninstall"],
+          "path": [
+            "shell",
+            "uninstall"
+          ],
           "aliases": [],
           "description": "Remove the out-of-sync notice from your shell config",
-          "usage": "envden shell uninstall [options] [shell]",
-          "term": "uninstall [shell]",
-          "group": "Commands:",
           "action": true,
           "hidden": false,
           "options": [
@@ -2039,23 +2018,26 @@
               "name": "shell",
               "required": false,
               "variadic": false,
-              "choices": ["zsh", "bash", "fish", "powershell"],
+              "choices": [
+                "zsh",
+                "bash",
+                "fish",
+                "powershell"
+              ],
               "description": "Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\", \"powershell\")"
             }
           ],
-          "help": "Usage: envden shell uninstall [options] [shell]\n\nRemove the out-of-sync notice from your shell config\n\nArguments:\n  shell       Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\",\n              \"powershell\")\n\nOptions:\n  -h, --help  display help for command\n",
           "commands": []
         }
       ]
     },
     {
       "name": "serve",
-      "path": ["serve"],
+      "path": [
+        "serve"
+      ],
       "aliases": [],
       "description": "Run the server; ENVDEN_SETUP_TOKEN replaces the setup token",
-      "usage": "envden serve [options]",
-      "term": "serve [options]",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -2122,17 +2104,15 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden serve [options]\n\nRun the server; ENVDEN_SETUP_TOKEN replaces the setup token\n\nOptions:\n  --restored              Start a restored backup in repair-only mode\n  --min-client <version>  Oldest client version to accept\n  --data-dir <path>       Server data directory\n  --port <port>           Localhost port\n  -h, --help              display help for command\n",
       "commands": []
     },
     {
       "name": "version",
-      "path": ["version"],
+      "path": [
+        "version"
+      ],
       "aliases": [],
       "description": "Print the version",
-      "usage": "envden version [options]",
-      "term": "version",
-      "group": "Maintenance:",
       "action": true,
       "hidden": false,
       "options": [
@@ -2151,7 +2131,6 @@
         }
       ],
       "arguments": [],
-      "help": "Usage: envden version [options]\n\nPrint the version\n\nOptions:\n  -h, --help  display help for command\n",
       "commands": []
     }
   ]

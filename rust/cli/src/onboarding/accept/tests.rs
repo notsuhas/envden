@@ -188,4 +188,4 @@ fn acceptance_locks_network_and_second_acceptance_reads_committed_checkpoint() {
     );
 }
 
-mod remaining;
+mod membership;

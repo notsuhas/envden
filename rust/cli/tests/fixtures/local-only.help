@@ -1,9 +1,0 @@
-Usage: envden local-only [options] <file>
-
-Keep a managed file local to this checkout
-
-Arguments:
-  file        Managed env file in this checkout
-
-Options:
-  -h, --help  display help for command

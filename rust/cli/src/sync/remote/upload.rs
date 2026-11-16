@@ -157,3 +157,6 @@ mod places;
 mod seal;
 
 mod retention;
+
+#[cfg(test)]
+mod tests;

@@ -140,4 +140,4 @@ fn cached_blob_corruption_is_refused_before_upload() {
     );
 }
 
-mod remaining;
+mod recovery;

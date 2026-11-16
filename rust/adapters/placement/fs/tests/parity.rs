@@ -165,5 +165,5 @@ fn linked_home_targets_and_exact_replacement_text() {
     assert_eq!(fs::read(original).unwrap(), b"KEEP=1\n");
 }
 
-#[path = "parity/remaining.rs"]
-mod remaining;
+#[path = "parity/paths.rs"]
+mod paths;

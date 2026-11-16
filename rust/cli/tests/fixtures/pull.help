@@ -1,9 +1,0 @@
-Usage: envden pull [options]
-
-Fetch and merge changes from your other devices
-
-Options:
-  --json      Print the result as JSON
-  --all       Sync all repos
-  --yes       Confirm clean changes
-  -h, --help  display help for command

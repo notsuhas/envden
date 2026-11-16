@@ -1,5 +1,6 @@
 mod fonts;
 mod layout;
+mod pen;
 mod report;
 mod save;
 mod writer;

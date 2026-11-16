@@ -1,32 +1,23 @@
 import { expect, test } from "bun:test";
-import { deflateSync } from "node:zlib";
+import { readFileSync } from "node:fs";
 import { pdfText } from "../harness/snapshot/pdf.ts";
 import { Normalizer } from "../harness/normalize.ts";
 
-function fixture(text: string) {
-  const compressed = deflateSync(Buffer.from(text));
+test("PDF comparison extracts fields and text independently of metadata", () => {
+  const bytes = readFileSync(new URL("../fixtures/recovery-pdf/kit.pdf", import.meta.url));
+  const extract = (input: Buffer) => pdfText(input, new Normalizer("/tmp/parity"));
+  const original = extract(bytes);
+  expect(original.pdfText).toContain("VAULT ID");
+  expect(original.pdfText).toContain("SECRET KEY");
+  expect(original.pdfText).toContain("SERVER");
+  expect(original.pdfText).toContain("laptop");
+  expect(original.pdfText).toContain("<secret:1:38>");
 
-  return Buffer.concat([
-    Buffer.from(`%PDF-1.7\n<< /Filter /FlateDecode /Length ${compressed.length} >>\nstream\n`),
-    compressed,
-    Buffer.from("\nendstream\n%%EOF"),
-  ]);
-}
-
-test("PDF comparison inflates text operators and detects changed kit instructions", () => {
-  const n = new Normalizer("/tmp/parity");
-
-  expect(pdfText(fixture("BT <5641554c54> Tj (keep offline) Tj ET"), n)).toEqual({
-    pdfText: "VAULT\nkeep offline",
-  });
-
-  expect(pdfText(fixture("BT (keep online) Tj ET"), n)).not.toEqual(
-    pdfText(fixture("BT (keep offline) Tj ET"), n),
+  expect(extract(Buffer.concat([bytes, Buffer.from("\n% different metadata\n")]))).toEqual(
+    original,
   );
 
-  expect(pdfText(fixture("(kit) Tj\n%15"), n)).toEqual({ pdfText: "kit" });
-
-  expect(() => pdfText(fixture("q Q"), n)).toThrow("no decoded text operators");
+  expect(() => extract(Buffer.from("not a pdf"))).toThrow("PDF text extraction failed");
 });
 
 test("human timestamps and kit filenames normalize without hiding prose changes", () => {

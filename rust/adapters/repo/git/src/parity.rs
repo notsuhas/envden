@@ -153,4 +153,4 @@ fn legacy_git_worktree_listing_falls_back_and_excludes_gone_worktrees() {
     );
 }
 
-mod remaining;
+mod execution;
