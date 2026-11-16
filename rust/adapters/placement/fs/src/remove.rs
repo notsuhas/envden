@@ -11,8 +11,10 @@ impl FsPlacementAdapter {
         before_unlink: impl FnOnce(),
     ) -> Result<()> {
         let relative = paths::relative(&self.root, dest, false)?;
-        if !self.root.exists() {
-            return Ok(());
+        match self.root.symlink_metadata() {
+            Ok(_) => (),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(native::failure(error)),
         }
         let fd = match native::parent(&self.root, &relative, false) {
             Ok(fd) => fd,

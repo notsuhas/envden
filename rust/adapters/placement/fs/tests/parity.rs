@@ -184,3 +184,23 @@ fn missing_store_leaves_regular_copy_detached_in_link_mode() {
         TPlacementState::Detached
     );
 }
+
+#[test]
+#[cfg(unix)]
+fn removal_rejects_dangling_checkout_root() {
+    use envden_core::{adapters::IPlacementAdapter, adapters::TPlacementMode};
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("root");
+    std::os::unix::fs::symlink(temp.path().join("missing"), &root).unwrap();
+    let adapter = envden_adapter_placement_fs::create_fs_placement_adapter(
+        TPlacementMode::Link,
+        &root,
+        None,
+        || 0.0,
+    );
+    assert!(
+        adapter
+            .remove(None, root.join(".env").to_str().unwrap())
+            .is_err()
+    );
+}
