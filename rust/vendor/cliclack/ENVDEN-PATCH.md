@@ -9,6 +9,8 @@ The local changes preserve existing keyboard decisions:
 - Space toggles confirms; list navigation wraps; `a` toggles all checkboxes.
 - Multiselect retains selection order, `i` inverts, and full-width space toggles.
 - Text and password inputs retain Ctrl-B/F/K/U/W editing.
+- Empty optional multiselects wait for Enter or cancellation; empty filtered
+  lists ignore navigation rather than wrapping modulo zero.
 - Terminal eligibility and key reading follow stdin, including redirected output.
 - Progress uses stdout to match the CLI's stdout terminal gate.
 

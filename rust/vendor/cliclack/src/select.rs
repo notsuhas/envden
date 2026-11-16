@@ -135,6 +135,10 @@ impl<T: Clone> PromptInteraction<T> for Select<T> {
             return state;
         }
 
+        if self.filter.items().is_empty() {
+            return State::Active;
+        }
+
         match key {
             Key::ArrowUp | Key::ArrowLeft | Key::Char('k') | Key::Char('h') => {
                 self.cursor =
@@ -309,5 +313,14 @@ mod test {
             "No items added to the list",
             result.unwrap_err().to_string()
         );
+    }
+    #[test]
+    fn empty_filtered_list_ignores_navigation() {
+        let mut select = select_with_items().filter_mode();
+        select.prepare().unwrap();
+        select.filter.set(Vec::new());
+        for key in [Key::ArrowUp, Key::ArrowDown, Key::Char(' ')] {
+            assert!(matches!(select.on(&Event::Key(key)), State::Active));
+        }
     }
 }

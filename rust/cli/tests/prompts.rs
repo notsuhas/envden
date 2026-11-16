@@ -1,5 +1,6 @@
 use envden_cli::output::prompts::{choose, choose_many, consent, input, secret};
 use envden_core::errors::Result;
+#[cfg(unix)]
 use std::process::Command;
 
 #[test]
@@ -85,7 +86,9 @@ cases = [
  ('many', b'\r', 'ANSWER:a,b:END'),
  ('many', b'  \r', 'ANSWER:b,a:END'),
  ('none', b'i\r', 'ANSWER::END'),
- ('empty', b'', 'ANSWER::END'),
+ ('empty', b'\r', 'ANSWER::END'),
+ ('empty', b'\x03', 'ERROR:InvalidInput:2:END'),
+ ('empty', b'\x1b[A\x1b[Bai\r', 'ANSWER::END'),
  ('nochoices', b'', 'ERROR:InvalidInput:2:END'),
  ('none', b'a\r', 'ANSWER::END'),
  ('all', b'a a\r', 'ANSWER:a,b:END'),

@@ -31,9 +31,6 @@ pub fn choose(
 
 pub fn choose_many(message: &str, options: &[(String, String)]) -> Result<Vec<String>> {
     let _terminal = Terminal::open(message)?;
-    if options.is_empty() {
-        return Ok(Vec::new());
-    }
     let mut prompt = cliclack::multiselect(sanitize_terminal(message))
         .required(false)
         .initial_values(options.iter().map(|(value, _)| value.clone()).collect());
