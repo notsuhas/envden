@@ -67,19 +67,11 @@ fn recovery(
     password: &str,
 ) -> Result<Value> {
     let vault_id = p::fixed(&p::unbase32(vault)?)?;
-    if let Some(local) = load_state(&adapters.home)?
-        && local["vaultId"].as_str().is_some_and(|v| v != vault)
-        && local.get("creationPending").is_none()
-    {
-        return Err(EnvdenError::new(
-            ErrorCode::Conflict,
-            "Device is already configured for another vault",
-        ));
-    }
+    super::local_state::join_local_state(&adapters.home, vault)?;
     let server = hello(address, None, &UreqTransport, MIN_SERVER)?;
     let pending = adapters.home.join("state/kit-join");
     let attempt = json!({"vaultId":vault,"pin":p::base32(&server.pin),"name":name}).to_string();
-    let resuming = std::fs::read_to_string(&pending).is_ok_and(|v| v == attempt);
+    let resuming = super::kit_attempt::pending_matches(&pending, &attempt)?;
     let rejoin = load_state(&adapters.home)?.is_some_and(|s| s["checkpoint"].is_string());
     let namespace = if rejoin {
         adapters.home.join("rejoin")
@@ -114,7 +106,7 @@ fn recovery(
                 if rejoin {
                     crate::admin::rejoin::classify::finish_identity(adapters)?;
                 }
-                let _ = std::fs::remove_file(&pending);
+                super::kit_attempt::remove_pending(&pending)?;
                 return Ok(local);
             }
             Err(error) if error.code == ErrorCode::NotMember => {}
@@ -173,7 +165,7 @@ fn recovery(
         &identity,
         (adapters.now)(),
     )?;
-    client.request_bytes("/v1/swap", "POST", &p::encode(&swap)?)?;
+    super::kit_attempt::submit(&client, &swap, &history.state.recovery.obj_pub)?;
     let updated = read_history(&client, &vault_id, None)?;
     if rejoin {
         crate::admin::rejoin::classify::check(adapters, &updated)?;
@@ -188,7 +180,7 @@ fn recovery(
     if rejoin {
         crate::admin::rejoin::classify::finish_identity(adapters)?;
     }
-    let _ = std::fs::remove_file(pending);
+    super::kit_attempt::remove_pending(&pending)?;
     Ok(local)
 }
 

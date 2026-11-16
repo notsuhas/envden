@@ -31,3 +31,4 @@ pub(crate) mod accept;
 
 mod local_state;
 
+mod kit_attempt;

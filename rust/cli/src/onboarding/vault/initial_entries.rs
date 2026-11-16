@@ -64,7 +64,7 @@ pub(super) fn entries(
             continue;
         }
         let context = p::IFileContext {
-            vault_id: vault_id,
+            vault_id,
             epoch: 1,
             file_id,
             version: 1,
