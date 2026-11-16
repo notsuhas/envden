@@ -94,10 +94,10 @@ fn request_routes_receive_method_query_and_body() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     runtime.block_on(async {
         let app=create_request_dashboard_app(4100,"token".into(),Arc::new(|request| {
-            if request.path!="/api/test" {return Ok(None);}
+            if request.path!="/api/devices/rename" {return Ok(None);}
             Ok(Some(serde_json::json!({"method":request.method,"query":request.query,"body":request.body})))
         }));
-        let response=app.clone().oneshot(Request::builder().uri("/api/test?root=%2Fa").method("POST").header("Host","127.0.0.1:4100").header("Origin","http://127.0.0.1:4100").header("Authorization","Bearer token").body(Body::from(r#"{"name":"laptop"}"#)).unwrap()).await.unwrap();
+        let response=app.clone().oneshot(Request::builder().uri("/api/devices/rename?root=%2Fa").method("POST").header("Host","127.0.0.1:4100").header("Origin","http://127.0.0.1:4100").header("Authorization","Bearer token").body(Body::from(r#"{"name":"laptop"}"#)).unwrap()).await.unwrap();
         assert_eq!(response.status(),200);
         let bytes=response.into_body().collect().await.unwrap().to_bytes();
         assert_eq!(&bytes[..],br#"{"method":"POST","query":"root=%2Fa","body":{"name":"laptop"}}"#);
@@ -132,6 +132,40 @@ fn rejects_requests_before_polling_the_body() {
                 .await
                 .unwrap();
             assert_eq!(response.status(), expected);
+        }
+    });
+}
+
+#[test]
+fn routes_without_json_input_do_not_poll_request_bodies() {
+    tokio::runtime::Runtime::new().unwrap().block_on(async {
+        let app = create_dashboard_app(
+            4100,
+            "token".into(),
+            Arc::new(|_| Ok(serde_json::json!({}))),
+        );
+        for (method, path, status) in [
+            ("GET", "/", 200),
+            ("GET", "/api/status", 200),
+            ("POST", "/api/push", 200),
+        ] {
+            let body = http_body_util::Full::new(axum::body::Bytes::from_static(b"{}"))
+                .map_frame(|_| panic!("route has no JSON body input"));
+            let response = app
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .uri(path)
+                        .method(method)
+                        .header("Host", "127.0.0.1:4100")
+                        .header("Authorization", "Bearer token")
+                        .header("Origin", "http://127.0.0.1:4100")
+                        .body(Body::new(body))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), status);
         }
     });
 }

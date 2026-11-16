@@ -54,14 +54,23 @@ pub fn create_request_dashboard_app(port: u16, token: String, api: TRequestApi) 
                 return secure(response);
             }
             let (parts, body) = request.into_parts();
-            let bytes = axum::body::to_bytes(body, usize::MAX)
-                .await
-                .unwrap_or_default();
+            let body = if parts.method == "POST"
+                && matches!(
+                    parts.uri.path(),
+                    "/api/resolve" | "/api/devices/rename" | "/api/history/restore"
+                ) {
+                let bytes = axum::body::to_bytes(body, usize::MAX)
+                    .await
+                    .unwrap_or_default();
+                serde_json::from_slice(&bytes).unwrap_or_default()
+            } else {
+                serde_json::Value::Null
+            };
             let input = IApiRequest {
                 method: parts.method.to_string(),
                 path: parts.uri.path().into(),
                 query: parts.uri.query().unwrap_or_default().into(),
-                body: serde_json::from_slice(&bytes).unwrap_or_default(),
+                body,
             };
             let request = Request::from_parts(parts, Body::empty());
             secure(respond(&request, api, &input))
