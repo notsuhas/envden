@@ -71,6 +71,11 @@ impl IAdapters {
 }
 
 fn real_location(path: &Path) -> PathBuf {
+    let path = if path.as_os_str().is_empty() {
+        Path::new(".")
+    } else {
+        path
+    };
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_owned());
     let absolute = crate::links::takeover::sibling::normalize(&absolute);
     let path = absolute.as_path();
@@ -86,6 +91,14 @@ fn real_location(path: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn empty_home_resolves_to_the_working_directory() {
+        assert_eq!(
+            real_location(Path::new("")),
+            std::env::current_dir().unwrap().canonical_path().unwrap()
+        );
+    }
 
     #[test]
     fn missing_relative_home_resolves_from_the_working_directory() {

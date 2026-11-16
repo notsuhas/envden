@@ -71,3 +71,10 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - TS behaviour: only the root command sets `configureOutput` (`apps/cli/src/program.ts:43`), so Commander writes subcommand errors to stderr unsanitized.
 - Possible improvement: sanitize user-supplied parser values on every command and keep the diagnostic line breaks.
 - Why: escape sequences in arguments can rewrite what the terminal shows. BUG: fix in all implementations.
+
+## CLI aliases: inherited object properties affect aliases
+
+- Scenario: alias `x` to `constructor`, `toString`, `hasOwnProperty` or another inherited object property; alias `__proto__` to `x`.
+- TS behaviour: `deriveAlias` reads inherited properties of the plain `state.aliases` object and rejects those targets as alias chains. Assigning a string to an absent own `__proto__` property invokes the inherited setter, so the command reports success but saves no alias (`apps/cli/src/links/alias.ts`). Own properties shadow inherited properties, including an own `__proto__` loaded from JSON.
+- Possible improvement: use a prototype-free dictionary and check own properties explicitly.
+- Why: repo IDs can collide with object internals, rejecting valid targets or silently discarding an alias. BUG: fix in all implementations.

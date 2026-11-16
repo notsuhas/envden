@@ -1,3 +1,4 @@
+import localStateEdges from "./scenarios/local-state-edges.ts";
 import collision from "./scenarios/files/collision.ts";
 import localFileChoice from "./scenarios/onboarding/local-file-choice.ts";
 import rejoin from "./scenarios/onboarding/rejoin.ts";
@@ -33,6 +34,7 @@ if (
   throw new Error("Host shims require a disposable GitHub runner");
 
 export const scenarios = [
+  localStateEdges,
   collision,
   localFileChoice,
   rejoin,
