@@ -66,6 +66,7 @@ pub fn load_state(home: &Path) -> Result<Option<TLocalState>> {
         let mut value: Value = serde_json::from_str(&text).map_err(|e| {
             EnvdenError::with_source(ErrorCode::InvalidData, "Unreadable local state", e)
         })?;
+        super::collections::revive(&mut value)?;
         let record = value.as_object_mut().ok_or_else(unreadable)?;
         if record.keys().any(|k| !KEYS.contains(&k.as_str()))
             || record.get("format") != Some(&Value::from(1))
@@ -193,5 +194,34 @@ mod header_error_tests {
             let error = load_state(dir.path()).unwrap_err();
             assert_eq!(error.source().unwrap().to_string(), expected);
         }
+    }
+}
+
+#[cfg(test)]
+mod collection_tests {
+    use super::*;
+
+    #[test]
+    fn load_revives_collections_before_validating_state() {
+        let dir = tempfile::tempdir().unwrap();
+        save_state(dir.path(), &super::super::empty_state("test"), 42).unwrap();
+        let path = dir.path().join("state/device.json");
+        let original: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        for tag in [
+            serde_json::json!({"$map":[1]}),
+            serde_json::json!({"$bigint":"no"}),
+        ] {
+            let mut record = original.clone();
+            record["keyring"] = tag;
+            std::fs::write(&path, record.to_string()).unwrap();
+            assert!(load_state(dir.path()).is_err());
+        }
+        let mut record = original;
+        record["keyring"] = serde_json::json!({"$set":["a","a","b"], "ignored":true});
+        std::fs::write(&path, record.to_string()).unwrap();
+        assert_eq!(
+            load_state(dir.path()).unwrap().unwrap()["keyring"],
+            serde_json::json!({"$set":["a","b"]})
+        );
     }
 }

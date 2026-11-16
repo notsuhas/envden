@@ -40,6 +40,7 @@ flate2 = { version = "1", default-features = false, features = ["zlib"] }
 libz-sys = { version = "1", features = ["static"] }
 unicode-width = "0.2.2"
 icu_collator = "2.1"
+num-bigint = "0.4"
 
 [dev-dependencies]
 envden-testing = { path = "../testing" }
