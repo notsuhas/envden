@@ -1,9 +1,12 @@
+#[cfg(unix)]
+use super::support::entry;
 use super::{
     fixture,
-    support::{entry, opts, repo},
+    support::{opts, repo},
 };
 use crate::{links::approval::checkout_value, *};
 use serde_json::json;
+#[cfg(unix)]
 use std::fs;
 
 #[cfg(unix)]

@@ -23,6 +23,25 @@ mod tests {
     use super::*;
     #[test]
     fn written_places_cannot_revert() {
+        for (written, current, expected) in [
+            ([false, false], ["old", "old"], true),
+            ([true, false], ["next", "old"], true),
+            ([true, true], ["next", "next"], true),
+            ([true, false], ["old", "old"], false),
+            ([false, true], ["next", "old"], false),
+            ([false, false], ["edit", "old"], false),
+            ([false, false], ["next", "old"], true),
+        ] {
+            assert_eq!(
+                can_resume(
+                    &[Some("old".into()), Some("old".into())],
+                    &current.map(|value| Some(value.into())),
+                    Some("next"),
+                    &written
+                ),
+                expected
+            );
+        }
         let before = vec![Some("a".into()), None];
         assert!(can_resume(&before, &before, Some("b"), &[false, false]));
         assert!(!can_resume(&before, &before, Some("b"), &[true, false]));
