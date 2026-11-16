@@ -112,3 +112,26 @@ fn pre_command_discovers_and_marks_recovery_join_once() {
         format!(r#"{{"checkedAt":{},"repos":[]}}"#, (adapters.now)())
     );
 }
+
+#[test]
+fn notice_deadline_starts_at_invocation_time() {
+    let (_dir, adapters, server, _token) = fixture();
+    crate::settings::set_config(
+        "update-check",
+        "off",
+        &adapters.home,
+        (adapters.now)(),
+        false,
+    )
+    .unwrap();
+    crate::notice::command::command_notice_with_transport(
+        &adapters,
+        0,
+        &NoUpdates,
+        false,
+        None,
+        false,
+        server.clone(),
+    );
+    assert!(!server.requests.borrow().is_empty());
+}
