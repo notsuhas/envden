@@ -10,7 +10,7 @@ export function withoutPromptBlocks(text: string): string {
   for (let i = 0; i < lines.length; i++) {
     if (dropped.has(i) || conversation(lines[i]!).length === 0) continue;
 
-    const next = plain.findIndex((line, n) => n > i && line.trim() !== "");
+    const next = plain.findIndex((line, n) => n > i && !/^\s*[│┃]\s*$/.test(lines[n]!));
     const answer = next >= 0 && !dropped.has(next) && /^\s+\S/.test(plain[next]!);
 
     if (answer) dropped.add(i).add(next);

@@ -79,3 +79,10 @@ test("only one answer line belongs to a prompt", () => {
     pty("◇ Remove device?\n│ Yes\n│ Removed device-c; 9 files\n"),
   );
 });
+
+test("a blank line ends a prompt block", () => {
+  const kit = (id: string) =>
+    `Recovery kit. Keep it with your master password\n\n  Vault ID:    ${id}\n  Secret key:  EK1-AAAA\n`;
+
+  expect(pty(kit("<VAULT_1>"))).not.toBe(pty(kit("<VAULT_2>")));
+});
