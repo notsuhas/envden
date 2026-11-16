@@ -55,9 +55,12 @@ CLAUDE.md applies, in idiomatic Rust:
 | Server HTTP | `tokio`, `axum`, `hyper` | Hono on `Bun.serve` becomes axum on hyper, with Bun's idle and header timeouts |
 | Server storage | `rusqlite` (bundled SQLite) | same schema, pragmas and on-disk files as `bun:sqlite` |
 | CLI HTTP | `ureq` | the CLI is synchronous; parallel repo checks use threads |
-| Terminal | `crossterm` | raw mode and keys; the bytes written copy `@clack/prompts` 1.9.0 |
-| PDF compression | `libz-sys` (static C zlib) | pdf-lib deflates with pako, which matches C zlib byte for byte; the recovery kit PDF is identical |
+| CLI parsing | `clap` | Commander's commands, options and choices; help and diagnostics are clap's own |
+| Prompts and spinner | `cliclack`, vendored in `rust/vendor/cliclack` with a small patch; `crossterm` for raw mode and terminal size | @clack/prompts' questions, choices, defaults and cancellation; rendering is cliclack's own (`ENVDEN-PATCH.md`) |
+| Recovery kit PDF | `lopdf` with `flate2` | pdf-lib's page, text and fields; the PDF's internal bytes differ |
 | Dates | `chrono`, `chrono-tz` | date-fns formatting |
+| Status page | `humansize`, `chrono-humanize` | pretty-bytes and date-fns relative times on the HTML page |
+| Globs | `globset` | Bun.Glob matching for synchronised files |
 | Processes | `shared_child`, `rustix`, `nix`, `windows-sys` | trusted spawning, lock liveness checks, file access checks and Windows ownership, with no hand-written `unsafe` outside Windows FFI |
 | Errors | `thiserror` | |
 
@@ -67,7 +70,7 @@ Each TS folder has a Rust module at the same relative path, so `apps/cli/src/syn
 
 - Zod schemas in `packages/core/src/protocol` are serde types in `envden-protocol` with the same JSON keys and checks.
 - Adapter interfaces are synchronous traits. The server calls storage behind a mutex, and the CLI uses threads where TS awaits in parallel.
-- Commander and clack are not used: `rust/cli/src/program` and `rust/cli/src/output/prompts` copy their output, help and errors.
+- `rust/cli/src/program` builds the command tree with clap, and `rust/cli/src/output/prompts` asks questions through cliclack. Accepted input, choices and exit codes match; presentation differences are in [rust-parity.md](rust-parity.md).
 - `envden serve` in the CLI calls `envden_server::serve`, as the TS CLI imports `@envden/server`.
 - JS `trim()` strips different characters from Rust's `str::trim`. Use `envden_core::text::js_trim` wherever TS trims.
 
@@ -83,7 +86,6 @@ Each TS folder has a Rust module at the same relative path, so `apps/cli/src/syn
 - `adapters::IAdapters` holds adapters and factories; keep all concrete adapter imports there.
 - `adapters.now` is the injected millisecond clock; `main` owns the system clock.
 - `settings` handles config validation, persistence and rendering; `store::store_path` names files.
-- `ENVDEN_CAPTURE_HELP=1 cargo test -p envden-cli --test help` refreshes fixtures from the TS binary.
 
 ## Decision: functional parity
 
