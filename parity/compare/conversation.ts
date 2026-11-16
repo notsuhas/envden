@@ -70,12 +70,15 @@ export function conversationTurn(text: string, answer: string, previousPrompt?: 
 export function choices(text: string): string[] {
   const lines = stripVTControlCharacters(text).replace(/[│┃]/g, " ").split("\n");
   const labels: string[] = [];
-  const marker = /[●○◉◯▪□■•✓]|\[[ x✓•]\]/;
+  const marker = /[●○◉◯▪□■◻◼•✓]|\[[ x✓•]\]/;
   const selector = lines.find((line) => /^\s*>\s+\S/.test(line));
   const column = selector?.indexOf(">") ?? -1;
 
   for (const line of lines) {
     const plain = presentation(line).trim();
+
+    // key hints (navigate, select, confirm) are presentation, not offered choices
+    if (/↑|↓|\bto navigate\b|\benter\b.*\bconfirm\b|\bspace\b.*\bselect\b/i.test(plain)) continue;
 
     if (/^(?:>\s*)?Yes\s*(?:[/|]\s*|\s+)No$/i.test(plain)) {
       labels.push("Yes", "No");
@@ -83,7 +86,7 @@ export function choices(text: string): string[] {
     }
 
     if (marker.test(line)) {
-      labels.push(...line.split(/[●○◉◯▪□■•✓]|\[[ x✓•]\]/));
+      labels.push(...line.split(/[●○◉◯▪□■◻◼•✓]|\[[ x✓•]\]/));
       continue;
     }
 

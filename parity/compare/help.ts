@@ -8,7 +8,9 @@ function indentOf(line: string): number {
   return line.length - line.trimStart().length;
 }
 
-function signatures(lines: string[]): string[] {
+function signatures(lines: string[], options: boolean): string[] {
+  if (options) return lines.map((line) => line.trim()).filter((line) => line.startsWith("-"));
+
   const rows = lines.filter((line) => /^\s+\S/.test(line));
   const indent = Math.min(...rows.map(indentOf));
 
@@ -17,12 +19,16 @@ function signatures(lines: string[]): string[] {
     .map((line) => line.trim().split(/\s{2,}/)[0]!);
 }
 
-function optionEntries(signature: string): string[] {
-  if (!signature.startsWith("-")) return [];
+// the flags lead the row; the first word that isn't a flag starts the value name or description
+function optionEntries(row: string): string[] {
+  const flags: string[] = [];
 
-  return [...signature.matchAll(/(?:^|[\s,])(--?[\w][\w-]*)/g)].map(
-    (match) => `option:${match[1]}`,
-  );
+  for (const token of row.split(/[\s,]+/)) {
+    if (!/^--?[\w][\w-]*$/.test(token)) break;
+    flags.push(`option:${token}`);
+  }
+
+  return flags;
 }
 
 function commandEntries(signature: string): string[] {
@@ -35,9 +41,9 @@ function sectionEntries(section: string): string[] {
   const [heading = "", ...lines] = section.split("\n");
   if (!HEADING.test(heading) || SKIPPED.test(heading)) return [];
 
-  const entries = OPTIONS.test(heading) ? optionEntries : commandEntries;
+  const options = OPTIONS.test(heading);
 
-  return signatures(lines).flatMap(entries);
+  return signatures(lines, options).flatMap(options ? optionEntries : commandEntries);
 }
 
 export function help(text: string): string[] {

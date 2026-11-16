@@ -119,7 +119,7 @@ func options(values []Option) []huh.Option[string] {
 
 func (t *session) Select(o PromptOptions) (string, error) {
 	value := o.InitialValue
-	err := t.run(huh.NewSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value))
+	err := t.run(huh.NewSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value).Height(fieldHeight(o)))
 	if err == nil {
 		t.submitted(o, selectedLabels(o.Options, []string{value}))
 	}
@@ -129,7 +129,7 @@ func (t *session) Select(o PromptOptions) (string, error) {
 
 func (t *session) Multiselect(o PromptOptions) ([]string, error) {
 	value := append([]string{}, o.InitialValues...)
-	field := huh.NewMultiSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value).Filterable(false)
+	field := huh.NewMultiSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value).Filterable(false).Height(fieldHeight(o))
 	if o.Required {
 		field.Validate(func(v []string) error {
 			if len(v) == 0 {
@@ -157,3 +157,8 @@ func (t *session) Multiselect(o PromptOptions) ([]string, error) {
 }
 
 func (t *session) Spinner() *progress.Spinner { return progress.New(t.input, t.output) }
+
+// every option stays on screen, as the TS prompts show them all without scrolling
+func fieldHeight(o PromptOptions) int {
+	return len(o.Options) + 4
+}
