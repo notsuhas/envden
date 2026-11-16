@@ -89,12 +89,16 @@ pub fn load_state(home: &Path) -> Result<Option<TLocalState>> {
                     .bytes()
                     .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
             {
-                return Err(unreadable());
+                return Err(EnvdenError::new(
+                    ErrorCode::InvalidData,
+                    "Invalid header reference",
+                ));
             }
+            let missing = || EnvdenError::new(ErrorCode::InvalidData, "Missing stored header");
             let header =
-                optional_read(&home.join("state/headers").join(hash))?.ok_or_else(unreadable)?;
+                optional_read(&home.join("state/headers").join(hash))?.ok_or_else(missing)?;
             if format!("{:x}", Sha256::digest(header.as_bytes())) != hash {
-                return Err(unreadable());
+                return Err(missing());
             }
             headers.push(Value::String(header));
         }
@@ -166,5 +170,28 @@ mod tests {
         assert!(load_state(temp.path()).unwrap().is_none());
         atomic_write(&temp.path().join("state/device.json"), b"{}", 0).unwrap();
         assert!(load_state(temp.path()).is_err());
+    }
+}
+
+#[cfg(test)]
+mod header_error_tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn header_restore_preserves_specific_causes() {
+        for (reference, expected) in [
+            ("invalid".to_owned(), "Invalid header reference"),
+            ("0".repeat(64), "Missing stored header"),
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            save_state(dir.path(), &super::super::empty_state("test"), 42).unwrap();
+            let path = dir.path().join("state/device.json");
+            let mut record: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+            record["headerRefs"] = serde_json::json!([reference]);
+            std::fs::write(path, record.to_string()).unwrap();
+            let error = load_state(dir.path()).unwrap_err();
+            assert_eq!(error.source().unwrap().to_string(), expected);
+        }
     }
 }
