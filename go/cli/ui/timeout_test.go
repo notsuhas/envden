@@ -46,7 +46,7 @@ func TestDashboardIdleConnections(t *testing.T) {
 				t.Fatal(err)
 			}
 			_, err = io.Copy(io.Discard, conn)
-			if elapsed := time.Since(start); err != nil || elapsed < 10*time.Second || elapsed > 14*time.Second {
+			if elapsed := time.Since(start); err != nil || elapsed < 9500*time.Millisecond || elapsed > 10500*time.Millisecond {
 				t.Errorf("closed after %v: %v", elapsed, err)
 			}
 			cancel()

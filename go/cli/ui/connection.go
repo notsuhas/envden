@@ -6,14 +6,16 @@ import (
 	"time"
 )
 
+// Keep-alive, request headers and an unread body after a rejection all close after this.
+const idleTimeout = 10 * time.Second
+
 type dashboardListener struct{ net.Listener }
 
 type dashboardConnection struct {
 	net.Conn
-	mu      sync.Mutex
-	timer   *time.Timer
-	started time.Time
-	closed  bool
+	mu     sync.Mutex
+	timer  *time.Timer
+	closed bool
 }
 
 func (l dashboardListener) Accept() (net.Conn, error) {
@@ -22,7 +24,7 @@ func (l dashboardListener) Accept() (net.Conn, error) {
 		return nil, err
 	}
 
-	c := &dashboardConnection{Conn: conn, started: time.Now()}
+	c := &dashboardConnection{Conn: conn}
 	c.touch()
 
 	return c, nil
@@ -38,10 +40,7 @@ func (c *dashboardConnection) touch() {
 		c.timer.Stop()
 	}
 
-	elapsed := time.Since(c.started)
-	// Bun checks its ten-second idle timeout on four-second timer ticks.
-	deadline := (elapsed/(4*time.Second) + 3) * (4 * time.Second)
-	c.timer = time.AfterFunc(deadline-elapsed, func() { _ = c.Close() })
+	c.timer = time.AfterFunc(idleTimeout, func() { _ = c.Close() })
 }
 
 func (c *dashboardConnection) Read(p []byte) (int, error) {

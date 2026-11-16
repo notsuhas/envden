@@ -47,18 +47,15 @@ func TestUnreadBodyConnection(t *testing.T) {
 				t.Fatal(err)
 			}
 			_ = response.Body.Close()
-			_ = conn.SetReadDeadline(time.Now().Add(14 * time.Second))
+			answered := time.Now()
+			_ = conn.SetReadDeadline(answered.Add(11 * time.Second))
 			if extra, err := io.ReadAll(reader); err != nil || len(extra) != 0 {
 				t.Fatalf("connection not closed cleanly: %q %v", extra, err)
 			}
-		})
-	}
-}
 
-func TestConnectionIdleDeadline(t *testing.T) {
-	for _, row := range []struct{ elapsed, want time.Duration }{{0, 12 * time.Second}, {10 * time.Second, 20 * time.Second}, {12 * time.Second, 24 * time.Second}, {600 * time.Second, 612 * time.Second}} {
-		if got := connectionIdleDeadline(row.elapsed); got != row.want {
-			t.Fatalf("%v: %v want %v", row.elapsed, got, row.want)
-		}
+			if waited := time.Since(answered); waited < 9*time.Second || waited > 10500*time.Millisecond {
+				t.Fatalf("closed after %v, want 10s", waited)
+			}
+		})
 	}
 }

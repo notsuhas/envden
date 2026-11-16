@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"net"
-	"time"
 )
 
 type compatibleListener struct{ net.Listener }
@@ -14,7 +13,7 @@ func (l compatibleListener) Accept() (net.Conn, error) {
 		return nil, err
 	}
 
-	return &compatibleConnection{Conn: conn, started: time.Now()}, nil
+	return &compatibleConnection{Conn: conn}, nil
 }
 
 var parserFailure = []byte("HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\n\r\n")

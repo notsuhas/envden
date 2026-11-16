@@ -113,7 +113,7 @@ func Serve(options ServeOptions) (running *Running, err error) {
 
 		listener = listenResult
 	}
-	httpServer := &http.Server{Handler: app, ConnContext: connectionContext, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 10 * time.Second}
+	httpServer := &http.Server{Handler: app, ConnContext: connectionContext, ReadHeaderTimeout: idleTimeout, IdleTimeout: idleTimeout}
 	url := "http://" + listener.Addr().String() + "/"
 	scheduler := options.Scheduler
 	if scheduler == nil {
