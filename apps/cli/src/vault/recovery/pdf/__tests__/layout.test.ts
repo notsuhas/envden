@@ -24,3 +24,10 @@ test("characters the standard fonts lack render as a question mark", async () =>
 
   expect(await pdfText(await renderKit(document))).toContain("laptop ? ???");
 });
+
+test("a server URL wider than the page keeps every character", async () => {
+  const server = `https://${"long-tailnet-name-".repeat(12)}example.ts.net`;
+  const document = kitDocument({ ...kit, server }, new Date(0), "laptop");
+
+  expect((await pdfText(await renderKit(document))).replaceAll(" ", "")).toContain(server);
+});
