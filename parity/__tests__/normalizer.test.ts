@@ -108,3 +108,11 @@ for (const [raw, expected] of [
   test(`terminal cursor and erase semantics: ${JSON.stringify(raw)}`, () => {
     expect(terminalText(raw)).toBe(expected);
   });
+
+test("a hash whose hex holds a clock-like digit run stays one value", () => {
+  const n = new Normalizer();
+  const hash = "88d5c3f7c08f1ef5ab54b5002046b1794769466981f44643a63d8ccd635b3b90";
+
+  expect(n.text(`["${hash}"]`)).toBe(`["${n.bytes(Buffer.from(hash, "hex"))}"]`);
+  expect(n.text('{"unlockedUntil":1794769466981}')).toBe('{"unlockedUntil":<TIME>}');
+});

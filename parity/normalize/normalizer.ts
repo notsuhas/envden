@@ -79,7 +79,7 @@ export class Normalizer {
 
     text = text.replace(/https?:\/\/(?:localhost|127\.0\.0\.1):\d+/g, (s) => this.symbol("URL", s));
     text = text.replace(/\b\d{4}-\d\d-\d\d[T ][\d:.]+Z?\b/g, "<TIME>");
-    text = text.replace(/(?<!\d)1[6-9]\d{11}(?:\.\d+)?(?!\d)/g, "<TIME>");
+    text = text.replace(/(?<!\w)1[6-9]\d{11}(?:\.\d+)?(?!\w)/g, "<TIME>");
     text = text.replace(/\b\d{1,3}-[A-Z0-9]{4}-[A-Z0-9]{4}\b/g, (s) => this.symbol("PAIR", s));
     text = text.replace(/\bEK1-[0-9A-HJKMNP-TV-Z-]+/g, (s) => this.symbol("SECRET", s));
 
