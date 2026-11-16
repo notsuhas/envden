@@ -48,3 +48,10 @@ export async function currentMaterial(context: TAdminContext, history: THistory)
 
   return { key, ring, keys };
 }
+
+export function epochKey(keys: ReadonlyMap<number, Uint8Array>, epoch: number) {
+  const key = keys.get(epoch);
+  if (!key) throw new EnvdenError("INVALID_DATA", "Vault key for an earlier epoch is missing");
+
+  return key;
+}

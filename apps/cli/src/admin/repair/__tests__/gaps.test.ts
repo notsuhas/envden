@@ -62,6 +62,15 @@ test("missing blob names decrypt current and older epochs and preserve missing v
         missingBlobNames(context, history, { missing: [{ ...missing, version: 2n }], lost: [] }),
       ).rejects.toThrow(),
     );
+
+    await Promise.resolve(
+      expect(
+        missingBlobNames(context, history, { missing: [{ ...missing, epoch: 99 }], lost: [] }),
+      ).rejects.toMatchObject({
+        code: "INVALID_DATA",
+        message: "Vault key for an earlier epoch is missing",
+      }),
+    );
   } finally {
     await f.close();
   }
