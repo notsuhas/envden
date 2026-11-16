@@ -1,3 +1,4 @@
+import { semanticOutput, plainTerminal } from "./terminal/semantic.ts";
 import { executablePaths } from "./executables.ts";
 import { pdfText } from "./snapshot/pdf.ts";
 import type { Context } from "./context.ts";
@@ -116,14 +117,31 @@ export function database(path: string, n: Normalizer) {
   }
 }
 
-export async function capture(c: Context, includeFiles = true) {
+export async function capture(c: Context, includeFiles = true, strictOutput = false) {
   const n = new Normalizer(c.root, executablePaths(c.commands, process.argv));
+
+  const names = new Set(c.results.flatMap((step) => step.args ?? []));
 
   const steps = c.results.map((step) => ({
     ...step,
+    args: undefined,
     label: n.text(step.label),
-    stdout: n.text(step.stdout),
-    stderr: n.text(step.stderr),
+    stdout: strictOutput
+      ? n.text(step.stdout)
+      : n.value(semanticOutput(n.text(step.stdout), step.args?.join(" ") ?? step.label, names)),
+    stderr: strictOutput
+      ? n.text(step.stderr)
+      : n.value(semanticOutput(n.text(step.stderr), step.label.replace(/--json\b/g, ""))),
+    ...(step.prompts
+      ? {
+          prompts: step.prompts.map((prompt) => ({
+            question: n.text(plainTerminal(prompt.question)),
+            choices: prompt.choices.map((choice) => n.text(plainTerminal(choice))),
+            selected: prompt.selected.map((choice) => n.text(plainTerminal(choice))),
+            answer: n.text(prompt.answer),
+          })),
+        }
+      : {}),
   }));
 
   if (!includeFiles) return JSON.stringify({ steps }, null, 2);

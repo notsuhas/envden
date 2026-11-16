@@ -1,27 +1,21 @@
-import { inflateSync } from "node:zlib";
+import { spawnSync } from "node:child_process";
 import type { Normalizer } from "../normalize.ts";
 
 export function pdfText(bytes: Buffer, n: Normalizer) {
-  const source = bytes.toString("latin1");
-  const streams: string[] = [];
+  const executable = Bun.which("pdftotext");
+  if (!executable) throw new Error("PDF text extraction requires pdftotext from Poppler");
 
-  for (const match of source.matchAll(/<<(.*?)>>\s*stream\r?\n/gs)) {
-    const length = /\/Length\s+(\d+)\b/.exec(match[1]!);
-    if (!length) throw new Error("PDF stream has no direct length");
+  const result = spawnSync(executable, ["-enc", "UTF-8", "-", "-"], {
+    input: bytes,
+    encoding: "utf8",
+    maxBuffer: 8 * 1024 * 1024,
+  });
 
-    const start = match.index + match[0].length;
-    const raw = bytes.subarray(start, start + Number(length[1]));
+  if (result.error || result.status !== 0)
+    throw new Error("PDF text extraction failed; install pdftotext", { cause: result.error });
 
-    const decoded = /FlateDecode/.test(match[1]!)
-      ? inflateSync(raw).toString("latin1")
-      : raw.toString("latin1");
+  const text = result.stdout.replace(/\s+/g, " ").trim();
+  if (!text) throw new Error("PDF has no extracted text");
 
-    for (const text of decoded.matchAll(/<([0-9a-f]+)>\s*Tj|\(((?:\\.|[^\\)])*)\)\s*Tj/gi)) {
-      streams.push(text[1] ? Buffer.from(text[1], "hex").toString("utf8") : text[2]!);
-    }
-  }
-
-  if (!streams.length) throw new Error("PDF has no decoded text operators");
-
-  return { pdfText: n.text(streams.join("\n")) };
+  return { pdfText: n.text(text) };
 }

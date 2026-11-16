@@ -1,6 +1,6 @@
 # Binary parity
 
-Requires Bun 1.4+, Git and POSIX PTYs. No implementation modules are imported.
+Requires Bun 1.4+, Git, POSIX PTYs and `pdftotext` from Poppler. No implementation modules are imported.
 
 ```sh
 (cd apps/cli && bun run build)
@@ -55,13 +55,17 @@ All command names are maintained in `harness/commands/catalog.ts`, checked again
 
 Piped commands retain separate stdout, stderr and exit status. PTYs merge stdout/stderr by OS design; their stdout is the rendered terminal screen, with cursor moves/erasures applied. Intermediate spinner frames and password-entry repaints disappear, while final prompts, answers and messages remain. Every step asserts an explicit exit code before comparing implementations.
 
-Snapshots include each user home (including checkout/worktree files, kits and shell integrations) and ENVDEN_HOME. Git internals and PowerShell’s nondeterministic runtime cache (`.cache/powershell`) are excluded. Entries retain names, contents, permission bits and symlink targets without following symlinks. SQLite snapshots compare exact schema SQL and every table's rows in insertion order; raw database pages and WAL layout are excluded.
+Terminal output compares semantically by default. ANSI, terminal glyphs and whitespace are discarded; ordered fact tokens retain normalized identities, paths, quoted strings, file names, numbers, named fields and shared outcome words. PTY records also compare each question, offered choices in order and the answer sent. Prompt labels and choices retain their text after styling and whitespace removal. JSON output is parsed and compared exactly after the existing normalizers; help compares the set of listed command and option names.
+
+`--strict-output` restores normalized byte-level stdout/stderr comparison. It works with any `--impl name=path`, including Go binaries. Terminal presentation and notice wording may differ when the extracted facts and outcomes agree. Semantic comparison uses a shared vocabulary, not a general natural-language equivalence check.
+
+File trees and DB snapshots keep their existing exact comparisons after normalization, independent of terminal comparison mode. State and config contents receive no semantic filtering. Snapshots include each user home (including checkout/worktree files, kits and shell integrations) and ENVDEN_HOME. Git internals and PowerShell’s nondeterministic runtime cache (`.cache/powershell`) are excluded. Entries retain names, contents, permission bits and symlink targets without following symlinks. SQLite snapshots compare exact schema SQL and every table's rows in insertion order; raw database pages and WAL layout are excluded.
 
 Declarative text rules live in `harness/normalize.ts`:
 
 - Implementation executable paths become `<EXECUTABLE>`. Temporary roots, including macOS `/private` aliases, become `<ROOT>`.
 - Loopback addresses, UUIDs, pairing codes, 26-character IDs, long hex, tokens and base64url values receive first-appearance placeholders with kind, ordinal and length. Repeats keep the same placeholder within a scenario, across steps and snapshots.
-- PDF content streams are inflated (FlateDecode), hex/literal `Tj` text operators are decoded in stream order, and the usual text normalizers are applied. Decoded kit instructions and secrets compare; compression, PDF metadata and drawing geometry do not. This supports the reference writer's operators, not arbitrary PDF font encodings.
+- PDFs compare extracted text, including vault ID, secret key, server, labels and instructions, after whitespace and the existing random/time/path normalizers. Poppler handles font encodings and text operators across writers. Internal PDF bytes, compression, metadata and drawing geometry may differ. This also applies with `--strict-output`.
 - Human relative times become `<RELATIVE_TIME>`, formatted wall-clock dates become `<TIME>`, and random six-character kit filename suffixes retain identity placeholders.
 - Wall-clock timestamps become `<TIME>`; incidental clock equality is not compared. Filesystem identity tuples become `<FS_IDENTITY>`.
 - JSON objects sort keys. Encoded byte fields and crypto fields keep equality and encoded length. SQLite BLOBs keep byte length and identifier columns also keep equality; opaque binary files keep length and their format byte, while private key files keep length only. Cryptographic validity is exercised by subsequent real CLI commands; opaque bytes are not decrypted by the harness.

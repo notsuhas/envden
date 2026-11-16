@@ -41,7 +41,12 @@ test("PTY waits for prompts and captures an exit", async () => {
 
   try {
     await terminal.expect("Prompt:", "answer\r");
-    expect((await terminal.finish()).code).toBe(0);
+    const result = await terminal.finish();
+    expect(result.code).toBe(0);
+
+    expect(result.prompts).toEqual([
+      { question: "Prompt:", choices: [], selected: [], answer: "answer\r" },
+    ]);
   } finally {
     terminal.close();
   }

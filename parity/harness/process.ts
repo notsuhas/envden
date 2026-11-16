@@ -43,8 +43,8 @@ export class Terminal {
   private decoder = new TextDecoder();
   private timer: ReturnType<typeof setTimeout>;
 
-  constructor(command: string[], env: Record<string, string>, cwd: string) {
-    this.args = command;
+  constructor(command: string[], env: Record<string, string>, cwd: string, args: string[] = []) {
+    this.args = args;
 
     this.child = Bun.spawn(command, {
       env,
@@ -83,6 +83,7 @@ export class Terminal {
 
         if (send !== undefined) {
           await this.settle();
+          this.cursor = this.output().length;
           this.prompts.push(promptRecord(terminalScreen(this.raw), match[0], send));
           this.send(send);
         }
@@ -127,7 +128,7 @@ export class Terminal {
         stderr: "",
         code,
         prompts: this.prompts,
-        args: this.args.filter((arg) => arg.startsWith("--")),
+        args: this.args,
       };
     } finally {
       this.close();

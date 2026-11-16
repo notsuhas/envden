@@ -1,3 +1,4 @@
+import type { IPrompt } from "./terminal/prompts.ts";
 import type { Context } from "./context.ts";
 
 export interface IResult {
@@ -5,6 +6,8 @@ export interface IResult {
   stdout: string;
   stderr: string;
   code: number;
+  prompts?: IPrompt[];
+  args?: string[];
 }
 
 export interface IDevice {

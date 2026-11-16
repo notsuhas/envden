@@ -94,14 +94,14 @@ fi
   async run(role: string, args: string[], expected = 0, input = "") {
     const d = this.get(role);
     const result = await execute([...this.commands[role]!, ...args], d.env, d.checkout, input);
-    this.record(`${role} ${args.join(" ")}`, result, expected);
+    this.record(`${role} ${args.join(" ")}`, { ...result, args }, expected);
 
     return result;
   }
 
   pty(role: string, args: string[]): Terminal {
     const d = this.get(role);
-    const terminal = new Terminal([...this.commands[role]!, ...args], d.env, d.checkout);
+    const terminal = new Terminal([...this.commands[role]!, ...args], d.env, d.checkout, args);
     this.terminals.push(terminal);
 
     return terminal;

@@ -13,9 +13,12 @@ let filter = "";
 
 let mix = false;
 
+let strictOutput = false;
+
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
-  if (arg === "--mix") mix = true;
+  if (arg === "--strict-output") strictOutput = true;
+  else if (arg === "--mix") mix = true;
   else if (arg === "--filter") filter = process.argv[++i] ?? "";
   else if (arg === "--impl") {
     const input = process.argv[++i] ?? "";
@@ -41,7 +44,7 @@ async function run(scenario: IScenario, assignment: Record<string, string[]>) {
     await scenario.run(c);
     await c.close();
 
-    return await capture(c, scenario.snapshot !== "output");
+    return await capture(c, scenario.snapshot !== "output", strictOutput);
   } finally {
     await c.close();
 
