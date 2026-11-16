@@ -3,7 +3,16 @@ use serde_json::Value;
 
 pub(crate) fn conflict(stdout: &str, hostname: &str, port: u16, target: &str) -> Result<bool> {
     let stdout = envden_core::text::js_trim(stdout);
-    let invalid = || EnvdenError::new(ErrorCode::InvalidData, "Invalid Tailscale serve status");
+    let invalid = || {
+        EnvdenError::with_source(
+            ErrorCode::InvalidData,
+            "Invalid Tailscale serve status",
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Invalid Tailscale serve status schema",
+            ),
+        )
+    };
     let mut value: Value = serde_json::from_str(if stdout.is_empty() { "{}" } else { stdout })
         .map_err(|e| {
             EnvdenError::with_source(ErrorCode::InvalidData, "Invalid Tailscale serve status", e)
@@ -123,5 +132,14 @@ mod tests {
                 ErrorCode::InvalidData
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod source_tests {
+    #[test]
+    fn schema_failure_keeps_cause() {
+        let error = super::conflict(r#"{"TCP":null}"#, "host", 80, "target").unwrap_err();
+        assert!(error.source.is_some());
     }
 }
