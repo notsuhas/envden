@@ -18,6 +18,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/network"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
 	serveridentity "github.com/notsuhas/envden/go/server/identity"
 )
@@ -51,11 +52,7 @@ func CreateAdapters(options *AdapterOptions, now func() int64) (Adapters, error)
 
 	home := o.Home
 	if home == "" {
-		var present bool
-		home, present = os.LookupEnv("ENVDEN_HOME")
-		if !present {
-			home = filepath.Join(userHome, ".envden")
-		}
+		home = store.EnvdenHome(os.Getenv("ENVDEN_HOME"), userHome)
 	}
 
 	home, err := files.RealLocation(home)
