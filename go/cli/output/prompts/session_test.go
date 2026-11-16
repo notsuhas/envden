@@ -22,6 +22,15 @@ func TestPromptPTYHelper(t *testing.T) {
 		return
 	}
 	terminal := New(os.Stdin, os.Stdout)
+	if mode == "ahead" {
+		first, err := terminal.Password(PromptOptions{Message: "First password"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		second, err := terminal.Password(PromptOptions{Message: "Second password"})
+		fmt.Printf("RESULT:%s:%s:%v\n", first, second, err)
+		return
+	}
 	if mode == "cancel" {
 		_, err := terminal.Text(PromptOptions{Message: "Cancel this prompt"})
 		fmt.Printf("RESULT:%t\n", IsCancel(err))
@@ -34,6 +43,11 @@ func TestPromptPTYHelper(t *testing.T) {
 		defer func() { _ = control.Close() }()
 		_, _ = io.ReadFull(control, make([]byte, 1))
 		indicator.Stop("Scan finished")
+	}
+	if mode == "left" || mode == "right" || mode == "ctrl-d" {
+		choice, err := terminal.Select(PromptOptions{Message: helperShellTitle, Options: []Option{{Value: "zsh", Label: "zsh"}, {Value: "bash", Label: "bash"}, {Value: "none", Label: "No, skip it"}}})
+		fmt.Printf("RESULT:%s:%v\n", choice, err)
+		return
 	}
 	value, err := terminal.Text(PromptOptions{Message: "Device name", InitialValue: "laptop"})
 	if err != nil {
@@ -71,7 +85,7 @@ func TestPromptPTYHelper(t *testing.T) {
 }
 
 func TestPromptPTY(t *testing.T) {
-	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc"} {
+	for _, mode := range []string{"normal", "spinner", "cancel-ctrl-c", "cancel-esc", "left", "right", "ctrl-d", "ahead"} {
 		t.Run(mode, func(t *testing.T) {
 			helper := mode
 			if strings.HasPrefix(mode, "cancel-") {
@@ -121,7 +135,32 @@ func TestPromptPTY(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			if helper == "cancel" {
+			if mode == "ahead" {
+				expect("First password")
+				send("first\rsecond\r")
+				expect("Second password")
+				send("\r")
+				expect("RESULT:")
+				got, err := reader.ReadString('\n')
+				if err != nil || strings.TrimSpace(got) != "first:second:<nil>" {
+					t.Fatalf("typed-ahead answer lost: %q: %v", got, err)
+				}
+			} else if mode == "left" || mode == "right" || mode == "ctrl-d" {
+				expect("No, skip it")
+				keys, want := "\x1b[C\r", "bash:<nil>"
+				if mode == "left" {
+					keys, want = "\x1b[D\r", "none:<nil>"
+				}
+				if mode == "ctrl-d" {
+					keys = "\x04\x1b[B\r"
+				}
+				send(keys)
+				expect("RESULT:")
+				got, err := reader.ReadString('\n')
+				if err != nil || strings.TrimSpace(got) != want {
+					t.Fatalf("got %q, want %q: %v", got, want, err)
+				}
+			} else if helper == "cancel" {
 				expect("Cancel this prompt")
 				if mode == "cancel-esc" {
 					send("\x1b")

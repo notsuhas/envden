@@ -3,6 +3,7 @@ package command
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 
 func prepare(c *cobra.Command, args []string) ([]string, error) {
 	result := []string{}
+	operands := []string{}
 	var unknown error
 	help := false
 	for i := 0; i < len(args); i++ {
@@ -33,19 +35,23 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 					}
 				}
 			}
-			return append(result, args[i:]...), nil
+			return append(append(append(result, "--"), operands...), args[i+1:]...), nil
 		}
 		if token == "help" && c.HasSubCommands() && unknown == nil && len(result) == 0 {
 			return prepareHelp(c, args[i+1:])
 		}
-		if !strings.HasPrefix(token, "-") {
+		if !maybeOption(token) || (!c.HasSubCommands() && negativeNumber(c, token)) {
 			for _, child := range c.Commands() {
 				if token == child.Name() && unknown == nil && !help {
 					rest, err := prepare(child, args[i+1:])
 					return append(append(result, token), rest...), err
 				}
 			}
-			result = append(result, token)
+			if c.HasSubCommands() {
+				result = append(result, token)
+			} else {
+				operands = append(operands, token)
+			}
 			continue
 		}
 		if c.Version != "" && (token == "--version" || strings.HasPrefix(token, "-V")) {
@@ -97,7 +103,7 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 			}
 		}
 		if v.variadic {
-			for i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+			for i+1 < len(args) && (!maybeOption(args[i+1]) || negativeNumber(c, args[i+1])) {
 				i++
 				result = append(result, "--"+name+"="+args[i])
 			}
@@ -106,5 +112,28 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 	if help {
 		return []string{"--help"}, nil
 	}
+	if len(operands) > 0 {
+		result = append(append(result, "--"), operands...)
+	}
 	return result, unknown
+}
+
+var negativeNumberPattern = regexp.MustCompile(`^-(\d+|\d*\.\d+)([eE][+-]?\d+)?$`)
+
+func maybeOption(arg string) bool {
+	return len(arg) > 1 && arg[0] == '-'
+}
+
+func negativeNumber(c *cobra.Command, arg string) bool {
+	if !negativeNumberPattern.MatchString(arg) {
+		return false
+	}
+	for command := c; command != nil; command = command.Parent() {
+		for digit := '0'; digit <= '9'; digit++ {
+			if command.Flags().ShorthandLookup(string(digit)) != nil {
+				return false
+			}
+		}
+	}
+	return true
 }
