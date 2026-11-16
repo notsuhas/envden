@@ -89,9 +89,6 @@ pub fn ancestry(
                 .filter(|p| intent.targets.contains(p)),
         );
         for path in paths {
-            if std::fs::symlink_metadata(&path).is_ok_and(|m| m.is_symlink()) {
-                continue;
-            }
             if let Some(bytes) = read_bytes(Path::new(&path))? {
                 request_deletion(home, store, false, None, None, now)?;
                 if let Some(report) = &context.options.report {

@@ -64,3 +64,5 @@ mod backup_notice;
 
 mod author;
 
+#[cfg(unix)]
+mod ancestry;
