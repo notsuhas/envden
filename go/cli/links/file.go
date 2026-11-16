@@ -79,7 +79,7 @@ func LinkFile(ctx context.Context, a contracts.Adapters, state *model.State, ite
 			}
 
 			if report != nil {
-				report("envden: removed " + output.SanitizeTerminal(output.HomePath(destination, a.UserHome)) + ", a link to a deleted copy")
+				report("envden: removed " + output.SanitizeTerminal(output.HomePath(destination, output.RealHome(a.UserHome))) + ", a link to a deleted copy")
 			}
 
 			return done, nil
@@ -133,7 +133,7 @@ func LinkFile(ctx context.Context, a contracts.Adapters, state *model.State, ite
 
 	if choice == "skip" {
 		if report != nil {
-			report(fmt.Sprintf("envden: %s differs from the synced copy; skipped", output.SanitizeTerminal(output.HomePath(destination, a.UserHome))))
+			report(fmt.Sprintf("envden: %s differs from the synced copy; skipped", output.SanitizeTerminal(destination)))
 		}
 
 		return done, nil

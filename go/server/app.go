@@ -1,7 +1,9 @@
 package server
 
 import (
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -54,6 +56,18 @@ func CreateApp(options Options, state ...*status.State) (*App, error) {
 }
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	controller := http.NewResponseController(w)
+	_ = controller.EnableFullDuplex()
+	conn, _ := r.Context().Value(connectionKey{}).(*compatibleConnection)
+	if conn != nil {
+		conn.startRequest()
+	}
+
+	body := r.Body
+	if body != nil && body != http.NoBody {
+		r.Body = retainedBody{Reader: body}
+	}
+
 	if strings.EqualFold(r.Header.Get("Expect"), "100-continue") {
 		w.WriteHeader(http.StatusContinue)
 	}
@@ -63,7 +77,19 @@ func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	normalizeRequestURL(r)
 	buffered := newBufferedResponse()
 	app.handleLocked(buffered, r)
+	if r.Body != nil && r.Body != http.NoBody && buffered.header.Get("Content-Length") == "" {
+		buffered.header.Set("Content-Length", strconv.Itoa(len(buffered.body)))
+	}
 	buffered.flush(w)
+	if conn != nil {
+		conn.finishRequest()
+	}
+	if r.Body != nil && r.Body != http.NoBody {
+		_ = controller.Flush()
+		// Finish draining before net/http starts its next background read.
+		_, _ = io.Copy(io.Discard, body)
+		_ = body.Close()
+	}
 }
 
 // State changes run under the request lock; the response is sent after release.

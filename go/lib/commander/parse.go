@@ -22,26 +22,34 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 		}
 	}
 	positional := false
-	unknownOption := ""
+	var unknown []string
+	helpRequested := false
 	supplied := map[string]bool{}
 	for i := 0; i < len(args); i++ {
 		token := args[i]
 		if token == "--" && !positional {
 			positional = true
+			if len(c.Commands) > 0 {
+				if len(unknown) > 0 {
+					unknown = append(unknown, token)
+				} else {
+					result.Args = append(result.Args, token)
+				}
+			}
 			continue
 		}
 		if !positional {
 			if token == "--help" || token == "-h" {
-				_, _ = io.WriteString(c.output(false), c.Help())
-
-				return result, &ExitError{Code: "commander.helpDisplayed"}
+				unknown = append(unknown, token)
+				helpRequested = true
+				continue
 			}
 			if (token == "--version" || token == "-V") && c.VersionText != "" {
 				_, _ = io.WriteString(c.output(false), c.VersionText+"\n")
 
 				return result, &ExitError{Code: "commander.version"}
 			}
-			if token == "help" && len(c.Commands) > 0 {
+			if token == "help" && len(c.Commands) > 0 && len(result.Args) == 0 && len(unknown) == 0 {
 				target := c
 				for _, name := range args[i+1:] {
 					found := false
@@ -60,11 +68,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 
 				return result, &ExitError{Code: "commander.helpDisplayed"}
 			}
-			for _, sub := range c.Commands {
-				if token == sub.CommandName {
-					return sub.Parse(args[i+1:])
-				}
-			}
+
 			if strings.HasPrefix(token, "-") && token != "-" {
 				flag, value, hasValue := token, "", false
 				if strings.HasPrefix(token, "--") {
@@ -92,14 +96,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 					}
 				}
 				if option == nil {
-					if c.UnknownOptions {
-						result.Args = append(result.Args, token)
-						continue
-					}
-
-					if unknownOption == "" {
-						unknownOption = token
-					}
+					unknown = append(unknown, token)
 					continue
 				}
 				o := option
@@ -145,12 +142,36 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 				continue
 			}
 		}
-		result.Args = append(result.Args, token)
+		if len(unknown) > 0 {
+			unknown = append(unknown, token)
+		} else {
+			result.Args = append(result.Args, token)
+		}
 		if c.PassThrough {
 			positional = true
 		}
 	}
-	if len(c.Commands) > 0 && c.action == nil {
+	if len(result.Args) > 0 {
+		for _, sub := range c.Commands {
+			if result.Args[0] == sub.CommandName {
+				return sub.Parse(append(result.Args[1:], unknown...))
+			}
+		}
+	}
+	if helpRequested {
+		_, _ = io.WriteString(c.output(false), c.Help())
+		return result, &ExitError{Code: "commander.helpDisplayed"}
+	}
+	unknownOption := ""
+	if len(unknown) > 0 {
+		unknownOption = unknown[0]
+		if c.UnknownOptions {
+			result.Args = append(result.Args, unknown...)
+			unknownOption = ""
+		}
+	}
+
+	if len(c.Commands) > 0 && c.action == nil && (len(result.Args) > 0 || unknownOption == "") {
 		if len(result.Args) > 0 {
 			name := result.Args[0]
 

@@ -44,6 +44,7 @@ func TestBunNetworkParity(t *testing.T) {
 	}
 	goServer := httptest.NewUnstartedServer(app)
 	goServer.Listener = compatibleListener{goServer.Listener}
+	goServer.Config.ConnContext = connectionContext
 	goServer.Start()
 	defer goServer.Close()
 	config := struct {
@@ -108,6 +109,8 @@ process.on("SIGTERM", () => {
 	}
 	tsAddress := "127.0.0.1:" + strings.TrimSpace(line)
 	goAddress := strings.TrimPrefix(goServer.URL, "http://")
+	compareBunStalledBodies(t, tsAddress, goAddress)
+
 	cases := []string{
 		"HEAD / HTTP/1.1\r\nHost: server\r\n\r\n",
 		"HEAD /v1/head HTTP/1.1\r\nHost: server\r\n\r\n",

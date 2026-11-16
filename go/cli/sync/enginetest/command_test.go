@@ -123,3 +123,18 @@ func TestDiffReportsUnapprovedCheckout(t *testing.T) {
 		}
 	}
 }
+
+func TestUnknownOptionDoesNotRemoveFile(t *testing.T) {
+	f := newFixture(t)
+	path := filepath.Join(f.checkout.Root, ".env")
+
+	for _, args := range [][]string{{"--dry-run", "rm", "--yes", path}, {"rm", "--dry-run", "--yes", path}, {"rm", "--yes=false", path}} {
+		var stdout, stderr bytes.Buffer
+		err := program.Run(f.ctx, f.first, args, program.RunOptions{Stdout: &stdout, Stderr: &stderr, Env: map[string]string{"ENVDEN_NO_UPDATE_CHECK": "1"}})
+		if err == nil || !strings.Contains(stderr.String(), "unknown option") {
+			t.Fatalf("%v: err=%v stderr=%s", args, err, stderr.String())
+		}
+		equal(t, f.read(path), original)
+		equal(t, f.read(f.aStore), original)
+	}
+}
