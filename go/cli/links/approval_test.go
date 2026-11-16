@@ -42,6 +42,7 @@ func TestDeriveAlias(t *testing.T) {
 		want           string
 	}{
 		{"", "b", nil, "invalid"}, {"a", "", nil, "invalid"}, {"a", "a", nil, "invalid"}, {"a", "b", jsonvalue.Object{{Key: "b", Value: "c"}}, "chain"}, {"a", "b", jsonvalue.Object{{Key: "c", Value: "a"}}, "chain"}, {"a", "b", nil, "assign"},
+		{"a", "b", jsonvalue.Object{{Key: "b", Value: ""}}, "chain"}, {"x", "constructor", nil, "assign"}, {"x", "hasOwnProperty", nil, "assign"}, {"x", "toString", nil, "assign"}, {"__proto__", "x", nil, "assign"},
 	} {
 		if got := DeriveAlias(row.aliases, row.source, row.target); got != row.want {
 			t.Fatalf("%+v got %q", row, got)

@@ -15,14 +15,8 @@ func DeriveAlias(aliases jsonvalue.Object, source, target string) string {
 		return "invalid"
 	}
 
-	switch target {
-	case "constructor", "__proto__", "__defineGetter__", "__defineSetter__", "hasOwnProperty", "__lookupGetter__", "__lookupSetter__", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf":
-		if aliases.Get(target) == nil {
-			return "chain"
-		}
-	}
 	for _, f := range aliases {
-		if f.Key == target && f.Value != "" || f.Value == source {
+		if f.Key == target || f.Value == source {
 			return "chain"
 		}
 	}
@@ -48,9 +42,7 @@ func AliasRepo(ctx context.Context, a contracts.Adapters, source, target string)
 			return errors.New(errors.Conflict, "Alias chains are not allowed")
 		}
 
-		if source != "__proto__" {
-			state.Aliases.Set(source, target)
-		}
+		state.Aliases.Set(source, target)
 
 		return store.SaveState(ctx, a.Home, state, a.Timing)
 	})
