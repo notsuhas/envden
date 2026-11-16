@@ -55,21 +55,45 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     print(&if flag("json") {
         terminal_json(&result)
     } else {
-        format!(
-            "Resolved {}{}",
-            result["path"].as_str().unwrap_or_default(),
-            if result["preserved"]
-                .as_array()
-                .is_some_and(|p| !p.is_empty())
-            {
-                format!(
-                    "\nBackups saved in {}",
-                    result["backups"].as_str().unwrap_or_default()
-                )
-            } else {
-                String::new()
-            }
-        )
+        resolved_text(&result)
     });
     Ok(())
+}
+
+fn resolved_text(result: &serde_json::Value) -> String {
+    let mut lines = vec![format!(
+        "Resolved {}",
+        result["path"].as_str().unwrap_or_default()
+    )];
+    lines.extend(
+        result["placementReports"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|v| v.as_str().map(str::to_owned)),
+    );
+    if result["preserved"]
+        .as_array()
+        .is_some_and(|items| !items.is_empty())
+    {
+        lines.push(format!(
+            "Backups saved in {}",
+            result["backups"].as_str().unwrap_or_default()
+        ));
+    }
+    crate::output::sanitize_console(&lines.join("\n"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolved_output_includes_placement_reports_before_backups() {
+        let result = serde_json::json!({"path":".env", "placementReports":["detached checkout skipped", "copy updated"], "preserved":["backup"], "backups":"/backups"});
+        assert_eq!(
+            resolved_text(&result),
+            "Resolved .env\ndetached checkout skipped\ncopy updated\nBackups saved in /backups"
+        );
+    }
 }
