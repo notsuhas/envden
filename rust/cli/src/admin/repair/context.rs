@@ -23,8 +23,8 @@ pub fn repair_context<'a>(
         ));
     }
     let id = p::h("repair-id", &token.0);
-    let stored = stored_history(&context)?;
-    if c::is_reused_repair_token(&id, &stored.state.repair_ids) {
+    let (_, state) = local_chain(&context)?;
+    if c::is_reused_repair_token(&id, &state.repair_ids) {
         return Err(invalid(
             ErrorCode::InvalidData,
             "Repair token was already used",
@@ -42,22 +42,30 @@ pub fn repair_context<'a>(
 }
 
 pub(super) fn stored_history(context: &IAdminContext<'_>) -> Result<IVaultHistory> {
-    let decode = |key: &str| -> Result<Vec<Vec<u8>>> {
-        context.local[key]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .map(|v| binary(v.as_str().unwrap_or_default()))
-            .collect()
-    };
-    let entries = decode("entries")?
-        .iter()
-        .map(|b| p::decode(b))
-        .collect::<Result<Vec<p::ISigned<p::TEntry>>>>()?;
-    let headers = decode("headers")?
-        .iter()
-        .map(|b| p::decode(b))
+    let headers = context.local["headers"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|v| p::decode(&binary(v.as_str().unwrap_or_default())?))
         .collect::<Result<Vec<p::ISigned<p::IManifestHeader>>>>()?;
+    let (entries, state) = local_chain(context)?;
+    Ok(IVaultHistory {
+        entries,
+        headers,
+        state,
+        states: BTreeMap::new(),
+    })
+}
+
+fn local_chain(
+    context: &IAdminContext<'_>,
+) -> Result<(Vec<p::ISigned<p::TEntry>>, c::IDeviceListState)> {
+    let entries = context.local["entries"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|v| p::decode(&binary(v.as_str().unwrap_or_default())?))
+        .collect::<Result<Vec<p::ISigned<p::TEntry>>>>()?;
     let state = match c::verify_chain(&entries)? {
         c::TDeviceListResult::Valid { state } => *state,
         _ => {
@@ -67,12 +75,7 @@ pub(super) fn stored_history(context: &IAdminContext<'_>) -> Result<IVaultHistor
             ));
         }
     };
-    Ok(IVaultHistory {
-        entries,
-        headers,
-        state,
-        states: BTreeMap::new(),
-    })
+    Ok((entries, state))
 }
 
 pub fn cached_bytes(path: &Path) -> Result<Option<Vec<u8>>> {

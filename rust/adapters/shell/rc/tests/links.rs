@@ -21,7 +21,7 @@ fn all_shells_edit_linked_targets_and_keep_private_backups() {
                 Some(&backups),
                 Some(Box::new(|| None)),
             );
-            let rc = adapter.rc_path();
+            let rc = adapter.rc_path().unwrap();
             fs::create_dir_all(Path::new(&rc).parent().unwrap()).unwrap();
             let target = home.path().join("dotfile");
             let original = if install {
@@ -67,7 +67,7 @@ fn edits_through_linked_folders_and_dangling_links() {
     for shell in [TShell::Fish, TShell::Zsh] {
         let home = tempfile::tempdir().unwrap();
         let adapter = create_rc_shell_adapter(shell, home.path(), None, None, None);
-        let rc = std::path::PathBuf::from(adapter.rc_path());
+        let rc = std::path::PathBuf::from(adapter.rc_path().unwrap());
         let dotfiles = home.path().join("dotfiles");
         fs::create_dir(&dotfiles).unwrap();
         fs::create_dir_all(rc.parent().unwrap()).unwrap();

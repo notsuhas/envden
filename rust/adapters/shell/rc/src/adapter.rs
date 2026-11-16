@@ -84,7 +84,7 @@ impl IShellAdapter for RcShellAdapter {
     fn id(&self) -> &str {
         self.shell.name()
     }
-    fn rc_path(&self) -> String {
+    fn rc_path(&self) -> Result<String> {
         let path = if matches!(self.shell, TShell::Powershell) {
             self.profile
                 .get_or_init(|| {
@@ -95,19 +95,19 @@ impl IShellAdapter for RcShellAdapter {
                     } else {
                         None
                     };
-                    detected.unwrap_or_else(|| profile::profile(self.shell, &self.home))
+                    detected.unwrap_or_else(|| profile::powershell_default(&self.home))
                 })
                 .clone()
         } else {
-            profile::profile(self.shell, &self.home)
+            profile::profile(self.shell, &self.home)?
         };
-        path.to_string_lossy().into_owned()
+        Ok(path.to_string_lossy().into_owned())
     }
     fn hook_snippet(&self, binary: &str) -> Result<String> {
         render::render(self.shell, binary, &self.envden_home)
     }
     fn installed(&self) -> Result<bool> {
-        let value = match fs::read(self.rc_path()) {
+        let value = match fs::read(self.rc_path()?) {
             Ok(b) => String::from_utf8_lossy(&b).into_owned(),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
             Err(e) => return Err(edit::failure(e)),
@@ -117,7 +117,7 @@ impl IShellAdapter for RcShellAdapter {
     fn install(&self, binary: &str) -> Result<()> {
         let snippet = self.hook_snippet(binary)?;
         edit::edit(
-            Path::new(&self.rc_path()),
+            Path::new(&self.rc_path()?),
             self.backup.as_deref(),
             |value| {
                 let current = strip(value);
@@ -139,6 +139,6 @@ impl IShellAdapter for RcShellAdapter {
         )
     }
     fn uninstall(&self) -> Result<()> {
-        edit::edit(Path::new(&self.rc_path()), self.backup.as_deref(), strip)
+        edit::edit(Path::new(&self.rc_path()?), self.backup.as_deref(), strip)
     }
 }

@@ -75,7 +75,9 @@ fn bash_selects_login_profiles_and_respects_bashrc_sourcing() {
         let home = tempfile::tempdir().unwrap();
         std::fs::write(home.path().join(file), content).unwrap();
         assert_eq!(
-            create_rc_shell_adapter(TShell::Bash, home.path(), None, None, None).rc_path(),
+            create_rc_shell_adapter(TShell::Bash, home.path(), None, None, None)
+                .rc_path()
+                .unwrap(),
             home.path().join(expected).to_string_lossy()
         );
     }

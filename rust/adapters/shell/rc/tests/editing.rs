@@ -9,11 +9,15 @@ fn crlf_mode_orphans_and_backups() {
     let backup = home.path().join("backups");
     let adapter = create_rc_shell_adapter(TShell::Zsh, home.path(), None, Some(&backup), None);
     let original = b"# >>> envden >>>\r\n# user \xff\r\n";
-    fs::write(adapter.rc_path(), original).unwrap();
-    fs::set_permissions(adapter.rc_path(), fs::Permissions::from_mode(0o440)).unwrap();
+    fs::write(adapter.rc_path().unwrap(), original).unwrap();
+    fs::set_permissions(
+        adapter.rc_path().unwrap(),
+        fs::Permissions::from_mode(0o440),
+    )
+    .unwrap();
     assert!(!adapter.installed().unwrap());
     adapter.install("/opt/envden").unwrap();
-    let installed = fs::read(adapter.rc_path()).unwrap();
+    let installed = fs::read(adapter.rc_path().unwrap()).unwrap();
     assert!(installed.starts_with(original));
     assert!(
         !String::from_utf8_lossy(&installed)
@@ -21,7 +25,7 @@ fn crlf_mode_orphans_and_backups() {
             .contains('\n')
     );
     assert_eq!(
-        fs::metadata(adapter.rc_path())
+        fs::metadata(adapter.rc_path().unwrap())
             .unwrap()
             .permissions()
             .mode()
@@ -29,9 +33,9 @@ fn crlf_mode_orphans_and_backups() {
         0o440
     );
     adapter.install("/opt/envden").unwrap();
-    assert_eq!(fs::read(adapter.rc_path()).unwrap(), installed);
+    assert_eq!(fs::read(adapter.rc_path().unwrap()).unwrap(), installed);
     adapter.uninstall().unwrap();
-    assert_eq!(fs::read(adapter.rc_path()).unwrap(), original);
+    assert_eq!(fs::read(adapter.rc_path().unwrap()).unwrap(), original);
     let entries: Vec<_> = fs::read_dir(backup)
         .unwrap()
         .map(|e| fs::read(e.unwrap().path()).unwrap())

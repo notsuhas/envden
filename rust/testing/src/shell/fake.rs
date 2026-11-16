@@ -1,5 +1,5 @@
 use envden_core::{adapters::*, errors::Result};
-pub type TRcPath = Box<dyn Fn() -> String + Send + Sync>;
+pub type TRcPath = Box<dyn Fn() -> Result<String> + Send + Sync>;
 pub type THookSnippet = Box<dyn Fn(&str) -> Result<String> + Send + Sync>;
 pub type TInstalled = Box<dyn Fn() -> Result<bool> + Send + Sync>;
 pub type TInstall = Box<dyn Fn(&str) -> Result<()> + Send + Sync>;
@@ -28,7 +28,7 @@ impl IShellAdapter for IFakeShellAdapter {
     fn id(&self) -> &str {
         &self.id
     }
-    fn rc_path(&self) -> String {
+    fn rc_path(&self) -> Result<String> {
         self.rc_path
             .as_ref()
             .unwrap_or_else(|| panic!("Unexpected fake operation: shell.rcPath"))()

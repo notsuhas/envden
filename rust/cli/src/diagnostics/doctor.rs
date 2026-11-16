@@ -45,7 +45,7 @@ pub fn doctor(adapters: &IAdapters) -> Result<IDoctorReport> {
         let adapter = adapters.shell(shell);
         shells.push(IShellReport {
             shell: name.into(),
-            path: adapter.rc_path(),
+            path: adapter.rc_path()?,
             installed: adapter.installed()?,
         });
     }

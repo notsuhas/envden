@@ -9,7 +9,7 @@ fn rc_preserves_bytes_and_readonly_attribute_with_private_backup() {
     let backups = home.path().join("backups");
     let adapter =
         create_rc_shell_adapter(TShell::Powershell, home.path(), None, Some(&backups), None);
-    let rc = adapter.rc_path();
+    let rc = adapter.rc_path().unwrap();
     fs::create_dir_all(std::path::Path::new(&rc).parent().unwrap()).unwrap();
     fs::write(&rc, b"# user \xff\r\n").unwrap();
     let original_permissions = fs::metadata(&rc).unwrap().permissions();

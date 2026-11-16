@@ -75,8 +75,8 @@ fn invalid_paths_are_typed_and_profile_resolution_is_lazy() {
         })),
     );
     assert_eq!(calls.load(Ordering::SeqCst), 0);
-    assert_eq!(adapter.rc_path(), path.to_string_lossy());
-    assert_eq!(adapter.rc_path(), path.to_string_lossy());
+    assert_eq!(adapter.rc_path().unwrap(), path.to_string_lossy());
+    assert_eq!(adapter.rc_path().unwrap(), path.to_string_lossy());
     assert_eq!(calls.load(Ordering::SeqCst), 1);
     for binary in ["relative", "/bad\npath"] {
         assert_eq!(

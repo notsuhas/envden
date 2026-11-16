@@ -4,7 +4,7 @@ use std::{fs, path::Path};
 pub fn shell_contract(factory: impl Fn(&str) -> Box<dyn IShellAdapter>) {
     with_directory(|home| {
         let adapter = factory(home.to_str().unwrap());
-        let rc = adapter.rc_path();
+        let rc = adapter.rc_path().unwrap();
         assert!(Path::new(&rc).starts_with(home));
         assert!(!adapter.installed().unwrap());
         fs::create_dir_all(Path::new(&rc).parent().unwrap()).unwrap();

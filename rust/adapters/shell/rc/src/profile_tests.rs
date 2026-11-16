@@ -18,12 +18,12 @@ use std::{
 fn bash_login_profile_matrix() {
     let home = tempfile::tempdir().unwrap();
     assert_eq!(
-        bash(home.path(), "darwin"),
+        bash(home.path(), "darwin").unwrap(),
         home.path().join(".bash_profile")
     );
     fs::write(home.path().join(".bash_profile"), "# user\n").unwrap();
     assert_eq!(
-        bash(home.path(), "darwin"),
+        bash(home.path(), "darwin").unwrap(),
         home.path().join(".bash_profile")
     );
     fs::write(
@@ -31,8 +31,14 @@ fn bash_login_profile_matrix() {
         "source \"$HOME/.bashrc\"\n",
     )
     .unwrap();
-    assert_eq!(bash(home.path(), "darwin"), home.path().join(".bashrc"));
-    assert_eq!(bash(home.path(), "linux"), home.path().join(".bashrc"));
+    assert_eq!(
+        bash(home.path(), "darwin").unwrap(),
+        home.path().join(".bashrc")
+    );
+    assert_eq!(
+        bash(home.path(), "linux").unwrap(),
+        home.path().join(".bashrc")
+    );
     for (file, content, expected) in [
         (".profile", "# user", ".profile"),
         (".bash_login", "# user", ".bash_login"),
@@ -49,6 +55,8 @@ fn bash_login_profile_matrix() {
             ".bashrc",
         ),
         (".bash_profile", "# source ~/.bashrc", ".bash_profile"),
+        (".bash_profile", "source\u{feff}~/.bashrc", ".bashrc"),
+        (".bash_profile", "source\u{85}~/.bashrc", ".bash_profile"),
         (
             ".bash_profile",
             "\u{feff}# source ~/.bashrc",
@@ -58,7 +66,10 @@ fn bash_login_profile_matrix() {
     ] {
         let home = tempfile::tempdir().unwrap();
         fs::write(home.path().join(file), content).unwrap();
-        assert_eq!(bash(home.path(), "darwin"), home.path().join(expected));
+        assert_eq!(
+            bash(home.path(), "darwin").unwrap(),
+            home.path().join(expected)
+        );
     }
 }
 
@@ -95,7 +106,10 @@ fn powershell_runner_and_redirected_profile() {
         None,
         Some(Box::new(move || Some(redirected.clone()))),
     );
-    assert_eq!(adapter.rc_path(), result.unwrap().to_string_lossy());
+    assert_eq!(
+        adapter.rc_path().unwrap(),
+        result.unwrap().to_string_lossy()
+    );
     assert_eq!(
         powershell_with_runner(home.path(), |_, _, _| Err(EnvdenError::new(
             ErrorCode::Internal,
@@ -141,6 +155,7 @@ fn profiles_validate_output_prefer_existing_hook_and_cache_resolution() {
         redirected.replace("redirected", "bad\0path"),
         format!("{redirected}/extra"),
         redirected.replace("redirected", "bad\tpath"),
+        format!("{redirected}\r"),
         home.path().join("../outside.ps1").to_string_lossy().into(),
     ] {
         assert_eq!(
@@ -160,6 +175,26 @@ fn profiles_validate_output_prefer_existing_hook_and_cache_resolution() {
             Some(redirected.clone().into())
         })),
     );
-    assert_eq!(adapter.rc_path(), adapter.rc_path());
+    assert_eq!(adapter.rc_path().unwrap(), adapter.rc_path().unwrap());
     assert_eq!(count.load(Ordering::SeqCst), 1);
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn bash_candidate_errors_are_not_hidden_by_installed_marker() {
+    let home = tempfile::tempdir().unwrap();
+    fs::write(home.path().join(".bashrc"), "# >>> envden >>>\n").unwrap();
+    fs::create_dir(home.path().join(".bash_login")).unwrap();
+    let adapter = create_rc_shell_adapter(TShell::Bash, home.path(), None, None, None);
+    assert!(adapter.installed().is_err());
+}
+
+#[test]
+fn bash_profile_decodes_invalid_utf8_like_node() {
+    let home = tempfile::tempdir().unwrap();
+    fs::write(home.path().join(".profile"), b"\xff# >>> envden >>>").unwrap();
+    assert_eq!(
+        bash(home.path(), "darwin").unwrap(),
+        home.path().join(".profile")
+    );
 }
