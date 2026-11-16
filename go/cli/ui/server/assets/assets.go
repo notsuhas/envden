@@ -1,11 +1,14 @@
 package assets
 
 import (
+	"bytes"
+	"compress/gzip"
 	"embed"
+	"io"
 	"strings"
 )
 
-//go:embed *.html *.js *.css
+//go:embed *.gz
 var bundled embed.FS
 
 type PageAsset struct {
@@ -25,7 +28,7 @@ func PageAssets() (map[string]PageAsset, error) {
 			continue
 		}
 
-		name := e.Name()
+		name := strings.TrimSuffix(e.Name(), ".gz")
 		kind := ""
 		route := "/" + name
 		switch {
@@ -40,12 +43,21 @@ func PageAssets() (map[string]PageAsset, error) {
 			continue
 		}
 
-		body, err := bundled.ReadFile(name)
+		body, err := bundled.ReadFile(e.Name())
 		if err != nil {
 			return nil, err
 		}
 
-		result[route] = PageAsset{body, kind}
+		reader, err := gzip.NewReader(bytes.NewReader(body))
+		if err != nil {
+			return nil, err
+		}
+		decoded, err := io.ReadAll(reader)
+		_ = reader.Close()
+		if err != nil {
+			return nil, err
+		}
+		result[route] = PageAsset{decoded, kind}
 	}
 
 	return result, nil

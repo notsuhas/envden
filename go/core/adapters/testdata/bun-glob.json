@@ -8765,162 +8765,126 @@
     {
       "path": ".env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": ".env.",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": ".env.local",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": ".env.example",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": ".ENV",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": ".envrc",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": ".ENVRC",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": "x/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": "node_modules/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": "NODE_MODULES/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": "src/.env.sample",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": "x/.env.SAMPLE",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": "src/.env\nx",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": "foo/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": "x/foo.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
     {
       "path": "vendor/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": ".git/.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": false
     },
     {
       "path": "foo//.env",
       "rules": {
-        "include": [
-          "*"
-        ]
+        "include": ["*"]
       },
       "want": true
     },
@@ -9179,720 +9143,522 @@
     {
       "path": ".env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": ".env.",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": ".env.local",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": ".env.example",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": ".ENV",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": ".envrc",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": ".ENVRC",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "x/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": "node_modules/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "NODE_MODULES/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "src/.env.sample",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "x/.env.SAMPLE",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": "src/.env\nx",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": "foo/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": "x/foo.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "vendor/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": ".git/.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": false
     },
     {
       "path": "foo//.env",
       "rules": {
-        "include": [
-          "**/.env*"
-        ]
+        "include": ["**/.env*"]
       },
       "want": true
     },
     {
       "path": ".env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": ".env.",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": ".env.local",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": ".env.example",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": ".ENV",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": ".envrc",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": ".ENVRC",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": "x/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": "node_modules/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": "NODE_MODULES/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": "src/.env.sample",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": "x/.env.SAMPLE",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": "src/.env\nx",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": "foo/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": "x/foo.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": "vendor/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": ".git/.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": false
     },
     {
       "path": "foo//.env",
       "rules": {
-        "include": [
-          "*.env",
-          "{.env,.env.*}"
-        ],
-        "exclude": [
-          "*.local"
-        ]
+        "include": ["*.env", "{.env,.env.*}"],
+        "exclude": ["*.local"]
       },
       "want": true
     },
     {
       "path": ".env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": true
     },
     {
       "path": ".env.",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".env.local",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": true
     },
     {
       "path": ".env.example",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".ENV",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".envrc",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".ENVRC",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "x/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": true
     },
     {
       "path": "node_modules/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "NODE_MODULES/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "src/.env.sample",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "x/.env.SAMPLE",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": true
     },
     {
       "path": "src/.env\nx",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "foo/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "x/foo.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "vendor/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".git/.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": "foo//.env",
       "rules": {
-        "extraSkipped": [
-          "FOO"
-        ]
+        "extraSkipped": ["FOO"]
       },
       "want": false
     },
     {
       "path": ".env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": ".env.",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": ".env.local",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": ".env.example",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": ".ENV",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": ".envrc",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": ".ENVRC",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": "x/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": "node_modules/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": "NODE_MODULES/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": "src/.env.sample",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": "x/.env.SAMPLE",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": "src/.env\nx",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": "foo/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": "x/foo.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     },
     {
       "path": "vendor/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": ".git/.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": false
     },
     {
       "path": "foo//.env",
       "rules": {
-        "include": [
-          "!*.example"
-        ]
+        "include": ["!*.example"]
       },
       "want": true
     }

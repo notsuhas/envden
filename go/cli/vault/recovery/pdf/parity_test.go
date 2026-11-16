@@ -27,6 +27,7 @@ func TestPDFLibLiveReference(t *testing.T) {
 		return
 	}
 
+	TestRegenerateReference(t)
 	cmd := exec.Command("bun", "testdata/reference.mjs", "--stdout")
 	cmd.Env = append(os.Environ(), "TZ=UTC")
 	raw, err := cmd.Output()

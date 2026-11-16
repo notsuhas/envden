@@ -6,6 +6,7 @@ import (
 
 	"github.com/notsuhas/envden/go/core/protocol/crypto"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 func SKSeed(secret, vaultID []byte) ([]byte, error) {
@@ -34,7 +35,7 @@ func EncodeSecretKey(secret []byte) (string, error) {
 
 func DecodeSecretKey(text string) ([]byte, error) {
 	return encoding.Try(func() []byte {
-		encoding.RequireValue(strings.HasPrefix(strings.ToUpper(text), "EK1-"), "Invalid secret key prefix")
+		encoding.RequireValue(strings.HasPrefix(textcase.Upper(text), "EK1-"), "Invalid secret key prefix")
 		v := encoding.Must(encoding.Unbase32(strings.ReplaceAll(text[4:], "-", "")))
 		encoding.RequireValue(len(v) == 18, "Invalid secret key length")
 		s := v[:16]

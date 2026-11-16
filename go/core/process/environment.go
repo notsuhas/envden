@@ -3,13 +3,15 @@ package process
 import (
 	"os"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 var allowedNames = map[string]bool{}
 
 func init() {
 	for _, key := range strings.Fields("HOME XDG_CONFIG_HOME USER LOGNAME LANG TERM TMPDIR TMP TEMP SYSTEMROOT SYSTEMDRIVE WINDIR COMSPEC PATHEXT USERPROFILE APPDATA LOCALAPPDATA PROGRAMDATA PROGRAMFILES PROGRAMFILES(X86) HOMEDRIVE HOMEPATH") {
-		allowedNames[strings.ToLower(key)] = true
+		allowedNames[textcase.Lower(key)] = true
 	}
 }
 
@@ -19,13 +21,13 @@ func SanitizedEnvironment(extra, inherited map[string]string, managerBin string)
 	}
 	env := map[string]string{}
 	for key, value := range inherited {
-		lower := strings.ToLower(key)
+		lower := textcase.Lower(key)
 		if allowedNames[lower] || strings.HasPrefix(lower, "lc_") {
 			env[key] = value
 		}
 	}
 	for key, value := range extra {
-		if strings.ToUpper(key) != "PATH" {
+		if textcase.Upper(key) != "PATH" {
 			env[key] = value
 		}
 	}

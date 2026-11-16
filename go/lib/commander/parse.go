@@ -22,6 +22,7 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 		}
 	}
 	positional := false
+	unknownOption := ""
 	supplied := map[string]bool{}
 	for i := 0; i < len(args); i++ {
 		token := args[i]
@@ -65,10 +66,13 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 				}
 			}
 			if strings.HasPrefix(token, "-") && token != "-" {
-				flag, value, hasValue := strings.Cut(token, "=")
+				flag, value, hasValue := token, "", false
+				if strings.HasPrefix(token, "--") {
+					flag, value, hasValue = strings.Cut(token, "=")
+				}
 				var option *Option
 				for _, o := range c.Options {
-					if flag == o.Long || flag == o.Short {
+					if (flag == o.Long || flag == o.Short) && (!hasValue || o.Required || o.Optional) {
 						option = o
 						break
 					}
@@ -93,7 +97,10 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 						continue
 					}
 
-					return result, c.fail("commander.unknownOption", "unknown option '"+flag+"'"+suggest(flag, c.optionNames()))
+					if unknownOption == "" {
+						unknownOption = token
+					}
+					continue
 				}
 				o := option
 				if o.Required || o.Optional {
@@ -170,6 +177,9 @@ func (c *Command) Parse(args []string) (*Invocation, error) {
 				}
 			}
 		}
+	}
+	if unknownOption != "" {
+		return result, c.fail("commander.unknownOption", "unknown option '"+unknownOption+"'"+suggest(unknownOption, c.optionNames()))
 	}
 	for i, a := range c.Arguments {
 		if i >= len(result.Args) {

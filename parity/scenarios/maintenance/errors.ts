@@ -10,6 +10,7 @@ export const errorScenarios: IScenario[] = [
         name: "reject invalid token without TTY",
         run: async (c) => {
           await c.device("c");
+
           const args = [
             "setup",
             "--yes",
@@ -23,6 +24,7 @@ export const errorScenarios: IScenario[] = [
             "--scan-root",
             c.get("c").home,
           ];
+
           await c.cli("c", args, 2);
         },
       },

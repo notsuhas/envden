@@ -25,12 +25,18 @@ func write(t *testing.T, root, path, contents string) {
 func TestRemoteVectors(t *testing.T) {
 	b, e := os.ReadFile("testdata/repo-id-vectors.json")
 	must(t, e)
-	var vectors []struct{ Remote, Hostname, Expected string }
+	var vectors []struct{ Remote, Hostname, Expected, Error string }
 	must(t, json.Unmarshal(b, &vectors))
 	for _, v := range vectors {
 		got, e := normalizeRepoID(v.Remote, v.Hostname)
+		if v.Error != "" {
+			if e == nil || e.Error() != v.Error {
+				t.Errorf("%s: got %q, %v; want %s", v.Remote, got, e, v.Error)
+			}
+			continue
+		}
 		if e != nil || got != v.Expected {
-			t.Fatal(v, got, e)
+			t.Error(v, got, e)
 		}
 	}
 	for _, remote := range []string{"/tmp/repo", "https://host/../", "git@host:../repo", "https://host/a/%2e%2e/b.git", "file:///tmp/repo", "https://host/team/%1brepo", "https://host/team/%E2%80%AErepo", "git@host:team/%1brepo", "git@host:team/%E2%80%AErepo"} {

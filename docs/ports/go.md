@@ -13,6 +13,10 @@ go build -o dist/envden ./cmd/envden
 go test ./...
 ```
 
+Regenerate committed TS reference fixtures with `cd go && ENVDEN_TS_PARITY=1 go test ./... -run TestRegenerateReference -count=1` using the cache settings above; this needs Bun and the installed workspace dependencies.
+
+The dashboard embeds gzipped compiled assets and decompresses them for serving; the asset tests pin the original served bytes.
+
 ## Layout and TS mapping
 
 | Go | TS |

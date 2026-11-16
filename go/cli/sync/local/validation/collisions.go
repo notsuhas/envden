@@ -3,6 +3,7 @@ package validation
 import (
 	"strings"
 
+	"github.com/notsuhas/envden/go/core/textcase"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -18,7 +19,7 @@ func PathCollisions(paths []string, insensitive bool) map[int]bool {
 			key := norm.NFC.String(prefix)
 
 			if insensitive {
-				key = strings.ToLower(key)
+				key = textcase.Lower(key)
 			}
 
 			if previous, ok := spellings[key]; ok && previous != prefix {

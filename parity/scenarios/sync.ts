@@ -49,16 +49,17 @@ function conflict(choice: "edit" | "--keep-mine" | "--take-server"): IScenario {
           if (choice !== "edit") {
             await c.pty("b", ["config", "agent-merge", "on"], []);
             await c.cli("b", ["resolve", choice]);
+
             return;
           }
+
           await c.cli("b", ["resolve"], 2);
           const output = await c.cli("b", ["resolve", "--list", "--json"]);
-          const data: unknown = JSON.parse(output.stdout);
-          if (!Array.isArray(data) || typeof data[0]?.file !== "string")
-            throw new Error("No conflict file");
+          const file = conflictFile(output.stdout);
+
           const contents = "TOKEN=agreed\n";
           c.normalizer.literal(contents);
-          await writeFile(data[0].file, contents);
+          await writeFile(file, contents);
           await c.cli("b", ["resolve"]);
         },
       },
@@ -117,3 +118,12 @@ export const syncScenarios: IScenario[] = [
   conflict("--keep-mine"),
   conflict("--take-server"),
 ];
+
+function conflictFile(stdout: string): string {
+  const data: unknown = JSON.parse(stdout);
+
+  if (!Array.isArray(data) || typeof data[0]?.file !== "string")
+    throw new Error("No conflict file");
+
+  return data[0].file;
+}

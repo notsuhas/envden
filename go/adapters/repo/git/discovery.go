@@ -9,6 +9,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/notsuhas/envden/go/core/adapters"
+	"github.com/notsuhas/envden/go/core/textcase"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -24,7 +25,7 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 	key := func(s string) string {
 		s = norm.NFC.String(s)
 		if insensitive {
-			s = strings.ToLower(s)
+			s = textcase.Lower(s)
 		}
 
 		return s
@@ -120,7 +121,7 @@ func tracked(c adapters.Checkout, path string) (bool, error) {
 	key := norm.NFC.String(path)
 	for _, p := range strings.Split(out, "\x00") {
 		p = norm.NFC.String(p)
-		lowerPath, lowerKey := strings.ToLower(p), strings.ToLower(key)
+		lowerPath, lowerKey := textcase.Lower(p), textcase.Lower(key)
 		if p == key || insensitive && lowerPath == lowerKey {
 			return true, nil
 		}

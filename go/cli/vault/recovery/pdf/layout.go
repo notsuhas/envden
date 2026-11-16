@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type pen struct {
@@ -102,7 +104,7 @@ func RenderKit(document Document, metadataTime int64) ([]byte, error) {
 	y = top - 20
 	for i, row := range document.Fields {
 		y -= 9
-		p.write(strings.ToUpper(row.Label), 84, y, "Helvetica-Bold", 9, true)
+		p.write(textcase.Upper(row.Label), 84, y, "Helvetica-Bold", 9, true)
 		y -= 8 + sizes[i]
 		p.write(row.Value, 84, y, "Courier", sizes[i], false)
 		y -= 18

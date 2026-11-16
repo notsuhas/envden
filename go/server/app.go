@@ -10,6 +10,7 @@ import (
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/requests"
 	"github.com/notsuhas/envden/go/core/protocol/versions"
+	"github.com/notsuhas/envden/go/core/textcase"
 	"github.com/notsuhas/envden/go/server/middleware"
 	"github.com/notsuhas/envden/go/server/shared"
 	"github.com/notsuhas/envden/go/server/status"
@@ -94,7 +95,7 @@ func (app *App) handle(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		hello, err := requests.BuildHello(wire.ServerHello{Challenge: challenge, Host: strings.ToLower(requestHost(r)), ServerSignPub: o.ServerKeys.PublicKey, AppVersion: o.Config.AppVersion, MinClient: o.Config.MinClient, Protocols: []int{1}}, o.ServerKeys.SecretKey)
+		hello, err := requests.BuildHello(wire.ServerHello{Challenge: challenge, Host: textcase.Lower(requestHost(r)), ServerSignPub: o.ServerKeys.PublicKey, AppVersion: o.Config.AppVersion, MinClient: o.Config.MinClient, Protocols: []int{1}}, o.ServerKeys.SecretKey)
 		if err != nil {
 			return err
 		}

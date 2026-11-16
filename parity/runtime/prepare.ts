@@ -11,8 +11,10 @@ export async function prepare(
   outputs: IOutput[],
 ): Promise<void> {
   const transcript = outputs.map((output) => `${output.stdout}\n${output.stderr}`).join("\n");
+
   for (const d of devices) {
     const home = await realpath(d.env.ENVDEN_HOME!).catch(() => d.env.ENVDEN_HOME!);
+
     for (const slot of [
       "device",
       "rejoin/device",
@@ -22,14 +24,18 @@ export async function prepare(
       const hash = createHash("sha256").update(`envden/${home}/${slot}`).digest("hex");
       normalizer.path(hash, `key-slot:${slot}`);
     }
+
     const backupDir = join(home, "conflicts/backups");
     const backups = await readdir(backupDir).catch(() => []);
     const occurrences = new Map<string, number>();
+
     for (const file of backups.sort((a, b) => {
       const left = transcript.indexOf(a);
       const right = transcript.indexOf(b);
+
       if (left !== right && (left >= 0 || right >= 0))
         return (left < 0 ? Infinity : left) - (right < 0 ? Infinity : right);
+
       return a.localeCompare(b);
     })) {
       const bytes = await readFile(join(backupDir, file));
@@ -38,6 +44,7 @@ export async function prepare(
       occurrences.set(hash, ordinal);
       normalizer.path(file, `backup:${hash}:${ordinal}`);
     }
+
     const state = await readFile(join(home, "state/device.json"), "utf8").catch(() => "");
     normalizer.text(state);
   }

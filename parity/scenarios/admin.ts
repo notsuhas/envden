@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { IScenario, IStep } from "./types.ts";
@@ -42,16 +43,8 @@ export const adminScenarios: IScenario[] = [
       {
         name: "change and reset password",
         run: async (c) => {
-          const kit: unknown = JSON.parse(
-            await readFile(join(c.get("a").home, "replacement.json"), "utf8"),
-          );
-          if (
-            typeof kit !== "object" ||
-            kit === null ||
-            !("secretKey" in kit) ||
-            typeof kit.secretKey !== "string"
-          )
-            throw new Error("Invalid recovery kit");
+          const secretKey = await recoveryKey(join(c.get("a").home, "replacement.json"));
+
           await c.pty(
             "a",
             ["vault", "password", "change"],
@@ -59,16 +52,17 @@ export const adminScenarios: IScenario[] = [
               { expect: "Old master password", send: `${password}\r` },
               { expect: "Master password", send: "changed password\r" },
               { expect: "Confirm master password", send: "changed password\r" },
-              { expect: "Recovery secret key", send: `${kit.secretKey}\r` },
+              { expect: "Recovery secret key", send: `${secretKey}\r` },
             ],
           );
+
           await c.pty(
             "a",
             ["vault", "password", "reset"],
             [
               { expect: "Master password", send: `${password}\r` },
               { expect: "Confirm master password", send: `${password}\r` },
-              { expect: "Recovery secret key", send: `${kit.secretKey}\r` },
+              { expect: "Recovery secret key", send: `${secretKey}\r` },
             ],
           );
         },
@@ -122,3 +116,12 @@ export const adminScenarios: IScenario[] = [
     ],
   },
 ];
+
+const recoveryKit = z.object({ secretKey: z.string() });
+
+async function recoveryKey(path: string): Promise<string> {
+  const kit = recoveryKit.safeParse(JSON.parse(await readFile(path, "utf8")));
+  if (!kit.success) throw new Error("Invalid recovery kit");
+
+  return kit.data.secretKey;
+}

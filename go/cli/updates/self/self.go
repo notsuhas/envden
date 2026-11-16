@@ -71,12 +71,7 @@ func update(ctx context.Context, a contracts.Adapters, o Options) (check.Result,
 
 	platform := o.Platform
 	if platform == "" {
-		arch := runtime.GOARCH
-		if arch == "amd64" {
-			arch = "x64"
-		}
-
-		platform = ReleasePlatform(runtime.GOOS, arch, "glibc")
+		platform = currentReleasePlatform(runtime.GOOS, runtime.GOARCH, detectLibcCommand)
 	}
 
 	bytes, e := DownloadUpdate(ctx, a.Fetcher, version.Version, platform)

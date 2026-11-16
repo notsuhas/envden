@@ -1,9 +1,11 @@
+import { output } from "./runtime/process/output.ts";
 import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const reference = resolve(process.argv[2] ?? "apps/cli/dist/envden");
 const directory = await mkdtemp(join(tmpdir(), "parity-tamper-"));
+
 const mutations = [
   ["stdout", 'console.log("deliberately changed output");', "/stdout"],
   ["stderr", 'console.error("deliberately changed error");', "/stderr"],
@@ -20,6 +22,7 @@ const mutations = [
     "evidence.sqlite:db",
   ],
 ];
+
 try {
   for (const [name, mutation, marker] of mutations) {
     if (!name || !mutation || !marker) throw new Error("Invalid mutation");
@@ -42,11 +45,8 @@ try {
       ],
       { stdout: "pipe", stderr: "pipe" },
     );
-    const [stdout, stderr, code] = await Promise.all([
-      new Response(child.stdout).text(),
-      new Response(child.stderr).text(),
-      child.exited,
-    ]);
+    const { stdout, stderr, code } = await output(child);
+
     if (code === 0 || !stderr.includes(marker) || !stderr.includes("@@"))
       throw new Error(`Missed ${name} tampering\n${stdout}\n${stderr}`);
     console.log(`Detected ${name} tampering`);

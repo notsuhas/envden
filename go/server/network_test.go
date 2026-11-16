@@ -60,7 +60,39 @@ func TestBunNetworkParity(t *testing.T) {
 	if err = os.WriteFile(configPath, configBytes, 0600); err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.Command(bun, "parity/network.js", configPath)
+	cmd := exec.Command(bun, "--eval", `import { createApp } from "../../apps/server/src/app.ts";
+import { createAdapters } from "../../apps/server/src/adapters.ts";
+import { readFileSync } from "node:fs";
+
+const config = JSON.parse(readFileSync(process.argv[1], "utf8"));
+const { storage } = createAdapters(config.dir, config.now);
+
+const app = createApp({
+  storage,
+  now: () => config.now,
+  serverKeys: {
+    secretKey: Buffer.from(config.keys.secretKey, "base64"),
+    publicKey: Buffer.from(config.keys.publicKey, "base64"),
+    opaqueSetup: config.keys.opaqueSetup,
+  },
+  config: config.config,
+});
+
+const server = Bun.serve({
+  port: 0,
+  hostname: "127.0.0.1",
+  maxRequestBodySize: 33554432,
+  fetch: app.fetch,
+});
+
+console.log(server.port);
+
+process.on("SIGTERM", () => {
+  server.stop(true);
+  storage.close();
+  process.exit(0);
+});
+`, configPath)
 	out, err := cmd.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)

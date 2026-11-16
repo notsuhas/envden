@@ -85,7 +85,7 @@
     "text": "9.01 PB"
   },
   {
-    "value": 1e+24,
+    "value": 1e24,
     "binary": false,
     "text": "1 YB"
   },
@@ -175,7 +175,7 @@
     "text": "8 PiB"
   },
   {
-    "value": 1e+24,
+    "value": 1e24,
     "binary": true,
     "text": "847 ZiB"
   }

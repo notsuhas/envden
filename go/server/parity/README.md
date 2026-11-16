@@ -3,8 +3,8 @@ The reference corpus records 417 requests from the existing server tests, includ
 From the repository root, regenerate it without changing TypeScript:
 
 ```sh
-bun test --preload ./go/server/parity/capture.js ./apps/server/src
-bun go/server/parity/pack.js
+cd go
+ENVDEN_TS_PARITY=1 go test ./server/parity -run TestRegenerateReference -count=1
 ```
 
 The Go replay uses httptest and compares status, response headers, body, and every database table. Random charge receipt IDs and generated OPAQUE login state are normalized. OPAQUE start responses are checked for message shape and length, since their bytes are random. Storage faults and outstanding body reservations used by the TS tests are recorded and replayed.

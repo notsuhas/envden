@@ -8,6 +8,7 @@ export async function differences(
 ): Promise<string[]> {
   const diffs: string[] = [];
   const directory = await mkdtemp(join(tmpdir(), "envden-diff-"));
+
   try {
     for (const key of [...new Set([...Object.keys(reference), ...Object.keys(candidate)])].sort()) {
       if (reference[key] === candidate[key]) continue;
@@ -15,6 +16,7 @@ export async function differences(
       const b = candidate[key] ?? "<missing>";
       await writeFile(join(directory, "a"), a.endsWith("\n") ? a : `${a}\n`);
       await writeFile(join(directory, "b"), b.endsWith("\n") ? b : `${b}\n`);
+
       const proc = Bun.spawn(
         [
           "diff",
@@ -28,11 +30,13 @@ export async function differences(
         ],
         { stdout: "pipe", stderr: "pipe" },
       );
+
       const [output, error, code] = await Promise.all([
         new Response(proc.stdout).text(),
         new Response(proc.stderr).text(),
         proc.exited,
       ]);
+
       if (code > 1) throw new Error(`diff failed: ${error}`);
       diffs.push(output);
     }

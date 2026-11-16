@@ -7,7 +7,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	whatwg "github.com/nlnwa/whatwg-url/url"
 	"github.com/notsuhas/envden/go/core/errors"
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 type remoteInfo struct {
@@ -40,19 +42,19 @@ func remoteParts(remote string) (remoteInfo, error) {
 				return remoteInfo{}, errors.New(errors.InvalidInput, "Unsafe git remote")
 			}
 		}
-		u, err := url.Parse(remote)
+		u, err := whatwg.Parse(remote)
 		if err != nil {
 			return remoteInfo{}, err
 		}
-		if u.Hostname() == "" || u.RawQuery != "" || u.Fragment != "" {
+		if u.Hostname() == "" || u.Search() != "" || u.Hash() != "" {
 			return remoteInfo{}, invalid
 		}
-		host := u.Hostname()
-		if strings.Contains(host, ":") {
-			host = "[" + host + "]"
+		path, err := url.PathUnescape(u.Pathname())
+		if err != nil {
+			return remoteInfo{}, err
 		}
 
-		return remoteInfo{host, u.Path, u.Scheme == "ssh"}, nil
+		return remoteInfo{u.Hostname(), path, u.Protocol() == "ssh:"}, nil
 	}
 	match := regexp.MustCompile(`^(?:[^@/\s]+@)?(\[[^\]]+\]|[^:/\s]+):(.+)$`).FindStringSubmatch(remote)
 	if match == nil {
@@ -80,13 +82,13 @@ func normalizeRepoID(remote, resolved string) (string, error) {
 	if resolved != "" {
 		host = resolved
 	}
-	host = strings.ToLower(host)
+	host = textcase.Lower(host)
 	path := strings.Trim(p.path, "/")
-	if strings.HasSuffix(strings.ToLower(path), ".git") {
+	if strings.HasSuffix(textcase.Lower(path), ".git") {
 		path = path[:len(path)-4]
 	}
 	if host == "github.com" || host == "gitlab.com" {
-		path = strings.ToLower(path)
+		path = textcase.Lower(path)
 	}
 	if host == "" || path == "" || unsafeText(host+path) || strings.ContainsAny(host, `\/`) || strings.ContainsFunc(host, unicode.IsSpace) || strings.Contains(path, `\`) {
 		return "", invalid

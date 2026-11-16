@@ -3,6 +3,8 @@ package adapters
 import (
 	"regexp"
 	"strings"
+
+	"github.com/notsuhas/envden/go/core/textcase"
 )
 
 var skippedDirectories = map[string]bool{".git": true, "node_modules": true, ".next": true, "dist": true, "build": true, "out": true, "coverage": true, ".turbo": true, ".cache": true, "vendor": true}
@@ -15,17 +17,17 @@ func AcceptsEnvPath(path string, rules EnvFileRules) bool {
 	parts := strings.Split(path, "/")
 	name := parts[len(parts)-1]
 	for _, part := range parts[:len(parts)-1] {
-		lower := strings.ToLower(part)
+		lower := textcase.Lower(part)
 		if skippedDirectories[lower] {
 			return false
 		}
 		for _, extra := range rules.ExtraSkipped {
-			if lower == strings.ToLower(extra) {
+			if lower == textcase.Lower(extra) {
 				return false
 			}
 		}
 	}
-	if strings.EqualFold(name, ".envrc") {
+	if textcase.Lower(name) == ".envrc" {
 		return false
 	}
 	included := defaultEnvName.MatchString(name)

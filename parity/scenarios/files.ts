@@ -77,9 +77,12 @@ export const fileScenarios: IScenario[] = [
               { expect: "Let envden manage it?", send: "y" },
             ],
           );
+
           const target = join(c.get("a").home, "shared.env");
+
           if ((await readlink(join(c.get("a").checkout, ".env"))) === target)
             throw new Error("Foreign symlink was not taken over");
+
           if ((await readFile(target, "utf8")) !== original)
             throw new Error("Takeover changed the shared file");
         },
@@ -89,6 +92,7 @@ export const fileScenarios: IScenario[] = [
         name: "restore original user link",
         run: async (c) => {
           await c.cli("a", ["untrack", c.get("a").checkout]);
+
           if (
             (await readlink(join(c.get("a").checkout, ".env"))) !==
             join(c.get("a").home, "shared.env")

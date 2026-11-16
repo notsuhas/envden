@@ -1,9 +1,10 @@
 import { gatePairing } from "../runtime/pairing-proxy.ts";
 import { join } from "node:path";
-import type { Context } from "../runtime/context.ts";
+import type { TContext } from "../runtime/context.ts";
 import type { IStep } from "./types.ts";
 
 export const password = "correct horse battery staple";
+
 export const preferences = [
   "--telemetry",
   "off",
@@ -14,6 +15,7 @@ export const preferences = [
   "--agent",
   "off",
 ];
+
 export const original = "# parity fixture\nAPI_URL=https://api.example.com\nTOKEN=one\n";
 export const answerPassword = [{ expect: "Master password", send: `${password}\r` }];
 
@@ -33,6 +35,7 @@ export function setup(interactive = false, pairing = false): IStep[] {
       run: async (c) => {
         const s = c.servers.get("main")!;
         const kit = join(c.get("a").home, "kit.json");
+
         const args = interactive
           ? ["setup", "--kit-out", kit, "--name", "device-a"]
           : [
@@ -48,6 +51,7 @@ export function setup(interactive = false, pairing = false): IStep[] {
               kit,
               ...preferences,
             ];
+
         await c.pty("a", args, [
           ...(interactive
             ? [
@@ -77,6 +81,7 @@ export const joinKit: IStep = {
   name: "join with JSON recovery kit",
   run: async (c) => {
     const s = c.servers.get("main")!;
+
     await c.pty(
       "b",
       [
@@ -96,11 +101,12 @@ export const joinKit: IStep = {
 
 export const joinPair: IStep = {
   name: "pair a second device",
-  run: async (c: Context) => {
+  run: async (c: TContext) => {
     const addArgs = ["device", "add"];
     const add = c.terminal("a", addArgs);
     await add.answers(answerPassword);
     const code = await add.expect(/\b(\d{1,3}-[A-Z0-9]{4}-[A-Z0-9]{4})\b/);
+
     const args = [
       "join",
       c.servers.get("main")!.url,
@@ -109,6 +115,7 @@ export const joinPair: IStep = {
       "--yes",
       ...preferences,
     ];
+
     const joining = c.terminal("b", args);
     await joining.answers([{ expect: "Pairing code", send: `${code}\r` }]);
     await add.answers([{ expect: "Add device-b", send: "y" }]);

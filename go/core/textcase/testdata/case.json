@@ -1,0 +1,102 @@
+[
+  {
+    "text": "ΟΣ",
+    "lower": "ος",
+    "upper": "ΟΣ"
+  },
+  {
+    "text": "ΟΣ/.env",
+    "lower": "ος/.env",
+    "upper": "ΟΣ/.ENV"
+  },
+  {
+    "text": "ΟΣΑ",
+    "lower": "οσα",
+    "upper": "ΟΣΑ"
+  },
+  {
+    "text": "ΟΣ́",
+    "lower": "ος́",
+    "upper": "ΟΣ́"
+  },
+  {
+    "text": "ΟΣ́Α",
+    "lower": "οσ́α",
+    "upper": "ΟΣ́Α"
+  },
+  {
+    "text": "Σ",
+    "lower": "σ",
+    "upper": "Σ"
+  },
+  {
+    "text": "İ",
+    "lower": "i̇",
+    "upper": "İ"
+  },
+  {
+    "text": "İ.env",
+    "lower": "i̇.env",
+    "upper": "İ.ENV"
+  },
+  {
+    "text": "i̇",
+    "lower": "i̇",
+    "upper": "İ"
+  },
+  {
+    "text": "ı",
+    "lower": "ı",
+    "upper": "I"
+  },
+  {
+    "text": "ß",
+    "lower": "ß",
+    "upper": "SS"
+  },
+  {
+    "text": "ﬃ",
+    "lower": "ﬃ",
+    "upper": "FFI"
+  },
+  {
+    "text": "և",
+    "lower": "և",
+    "upper": "ԵՒ"
+  },
+  {
+    "text": "ᾀ",
+    "lower": "ᾀ",
+    "upper": "ἈΙ"
+  },
+  {
+    "text": "𐐀",
+    "lower": "𐐨",
+    "upper": "𐐀"
+  },
+  {
+    "text": "K",
+    "lower": "k",
+    "upper": "K"
+  },
+  {
+    "text": "ΣΣ",
+    "lower": "σς",
+    "upper": "ΣΣ"
+  },
+  {
+    "text": "AΣ.A",
+    "lower": "aσ.a",
+    "upper": "AΣ.A"
+  },
+  {
+    "text": "AΣ1",
+    "lower": "aς1",
+    "upper": "AΣ1"
+  },
+  {
+    "text": "AΣ_A",
+    "lower": "aς_a",
+    "upper": "AΣ_A"
+  }
+]

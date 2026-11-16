@@ -1,3 +1,4 @@
+import { output } from "./process/output.ts";
 import { stripVTControlCharacters } from "node:util";
 import { terminalText } from "../normalize/terminal.ts";
 
@@ -6,12 +7,14 @@ export interface IOutput {
   stderr: string;
   code: number;
 }
+
 interface IProcess {
   binary: string;
   args: string[];
   env: Record<string, string>;
   cwd: string;
 }
+
 export interface IAnswer {
   expect: string | RegExp;
   send: string;
@@ -28,6 +31,7 @@ export async function command(options: IProcess): Promise<IOutput> {
           ...options.args,
         ]
       : [options.binary, ...options.args];
+
   const child = Bun.spawn(argv, {
     env: options.env,
     cwd: options.cwd,
@@ -35,15 +39,11 @@ export async function command(options: IProcess): Promise<IOutput> {
     stdout: "pipe",
     stderr: "pipe",
   });
-  const timer = setTimeout(() => child.kill("SIGKILL"), 30000);
-  try {
-    const [stdout, stderr, code] = await Promise.all([
-      new Response(child.stdout).text(),
-      new Response(child.stderr).text(),
-      child.exited,
-    ]);
 
-    return { stdout, stderr, code };
+  const timer = setTimeout(() => child.kill("SIGKILL"), 30000);
+
+  try {
+    return await output(child);
   } finally {
     clearTimeout(timer);
   }
@@ -69,34 +69,49 @@ export class Terminal {
         },
       },
     });
+
     void this.child.exited.then(() => this.wake());
   }
 
   async expect(pattern: string | RegExp): Promise<string> {
-    const re = typeof pattern === "string" ? new RegExp(RegExp.escape(pattern)) : pattern;
+    const re = expression(pattern);
     const signal = AbortSignal.timeout(30000);
+
     while (true) {
       const plain = stripVTControlCharacters(this.raw);
       const match = re.exec(plain.slice(this.cursor));
+
       if (match) {
         this.cursor += match.index + match[0].length;
-        return match[1] ?? match[0];
+
+        return matchedText(match);
       }
-      if (this.child.exitCode !== null || signal.aborted)
-        throw new Error(`Expected ${re}\n${terminalText(this.raw)}`);
-      await new Promise<void>((resolve, reject) => {
-        const abort = () => {
-          this.wake = () => {};
-          reject(new Error(`PTY deadline: ${re}\n${terminalText(this.raw)}`));
-        };
-        this.wake = () => {
-          signal.removeEventListener("abort", abort);
-          resolve();
-        };
-        signal.addEventListener("abort", abort, { once: true });
-        if (signal.aborted) abort();
-      });
+
+      if (this.ended(signal)) throw new Error(`Expected ${re}\n${terminalText(this.raw)}`);
+
+      await this.wait(signal, re);
     }
+  }
+
+  private ended(signal: AbortSignal): boolean {
+    return this.child.exitCode !== null || signal.aborted;
+  }
+
+  private wait(signal: AbortSignal, re: RegExp): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const abort = () => {
+        this.wake = () => {};
+        reject(new Error(`PTY deadline: ${re}\n${terminalText(this.raw)}`));
+      };
+
+      this.wake = () => {
+        signal.removeEventListener("abort", abort);
+        resolve();
+      };
+
+      signal.addEventListener("abort", abort, { once: true });
+      if (signal.aborted) abort();
+    });
   }
 
   async answers(answers: IAnswer[]): Promise<void> {
@@ -108,8 +123,10 @@ export class Terminal {
 
   async finish(): Promise<IOutput> {
     const timer = setTimeout(() => this.child.kill("SIGKILL"), 30000);
+
     try {
       const code = await this.child.exited;
+
       return { stdout: terminalText(this.raw), stderr: "", code };
     } finally {
       clearTimeout(timer);
@@ -121,4 +138,12 @@ export class Terminal {
     this.child.kill("SIGKILL");
     this.child.terminal?.close();
   }
+}
+
+function expression(pattern: string | RegExp): RegExp {
+  return typeof pattern === "string" ? new RegExp(RegExp.escape(pattern)) : pattern;
+}
+
+function matchedText(match: RegExpExecArray): string {
+  return match[1] ?? match[0];
 }

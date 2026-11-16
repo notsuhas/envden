@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import { Context } from "./runtime/context.ts";
+import { createContext, type TContext } from "./runtime/context.ts";
 import { differences } from "./runtime/diff.ts";
 import { moveScenarios } from "./scenarios/move.ts";
 import { errorScenarios } from "./scenarios/maintenance/errors.ts";
@@ -20,7 +20,9 @@ const options = {
   scenarios: new Set<string>(),
   devices: new Map<string, string>(),
 };
+
 const args = process.argv.slice(2);
+
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
   if (arg === "--keep") {
@@ -39,6 +41,7 @@ for (let i = 0; i < args.length; i++) {
     options.devices.set(value.slice(0, separator), resolve(value.slice(separator + 1)));
   } else throw new Error(`Unknown option ${arg}`);
 }
+
 if (!options.reference || !options.candidate)
   throw new Error(
     "Usage: bun parity/run.ts --reference <bin> --candidate <bin> [--scenario <name>] [--keep] [--server-binary <bin>] [--device-binary a=<bin>]",
@@ -54,27 +57,27 @@ const all = [
   ...errorScenarios,
   ...moveScenarios,
 ];
+
 for (const name of options.scenarios)
   if (!all.some((s) => s.name === name)) throw new Error(`Unknown scenario ${name}`);
+
 const selected = all.filter((s) => options.scenarios.size === 0 || options.scenarios.has(s.name));
 const start = performance.now();
+
 let failed = 0;
 
 async function execute(scenario: IScenario, binary: string) {
-  const context = await Context.create(binary, options.server || binary, options.devices);
+  const context = await createContext(binary, serverBinary(binary), options.devices);
   let error: unknown;
+
   try {
-    for (const step of scenario.steps) {
-      try {
-        await step.run(context);
-      } catch (cause) {
-        throw new Error(`${step.name}: ${cause instanceof Error ? cause.message : String(cause)}`);
-      }
-    }
+    await runSteps(scenario, context);
   } catch (cause) {
     error = cause;
   }
+
   let observations: Record<string, string> = {};
+
   try {
     observations = await context.collect();
   } catch (cause) {
@@ -107,7 +110,23 @@ for (const scenario of selected) {
     await candidate.context.cleanup(options.keep);
   }
 }
+
 console.log(
   `${selected.length - failed}/${selected.length} scenarios passed in ${((performance.now() - start) / 1000).toFixed(1)}s`,
 );
+
 process.exitCode = failed ? 1 : 0;
+
+async function runSteps(scenario: IScenario, context: TContext): Promise<void> {
+  for (const step of scenario.steps) {
+    try {
+      await step.run(context);
+    } catch (cause) {
+      throw new Error(`${step.name}: ${cause instanceof Error ? cause.message : String(cause)}`);
+    }
+  }
+}
+
+function serverBinary(binary: string): string {
+  return options.server || binary;
+}

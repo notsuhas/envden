@@ -10,105 +10,15 @@
     false,
     "C"
   ],
-  [
-    "G1 removal outranks an unbased copy",
-    null,
-    null,
-    null,
-    "absent",
-    "A",
-    null,
-    true,
-    null
-  ],
-  [
-    "G2 server bytes cannot hide the store edit",
-    "A",
-    null,
-    null,
-    "B",
-    "B",
-    null,
-    false,
-    "A"
-  ],
-  [
-    "G3 changed store outranks an unbased copy",
-    "A",
-    null,
-    null,
-    "absent",
-    "B",
-    null,
-    false,
-    "A"
-  ],
-  [
-    "an unpushed recorded store remains mine",
-    "A",
-    "A",
-    "B",
-    "C",
-    "C",
-    "B",
-    false,
-    "A"
-  ],
-  [
-    "a copy edit is mine after sync changed the store",
-    "B",
-    "B",
-    "B",
-    "B",
-    "C",
-    "A",
-    false,
-    "C"
-  ],
-  [
-    "a copy based on the store can replace it",
-    "A",
-    "A",
-    "A",
-    "A",
-    "B",
-    "A",
-    false,
-    "B"
-  ],
-  [
-    "an unchanged copy follows the store",
-    "B",
-    "B",
-    "B",
-    "B",
-    "A",
-    "A",
-    false,
-    "B"
-  ],
-  [
-    "a missing copy is restored",
-    "A",
-    "A",
-    "A",
-    "B",
-    null,
-    "A",
-    false,
-    "A"
-  ],
-  [
-    "a missing store is restored from the server",
-    null,
-    "A",
-    "A",
-    "B",
-    null,
-    null,
-    false,
-    "B"
-  ],
+  ["G1 removal outranks an unbased copy", null, null, null, "absent", "A", null, true, null],
+  ["G2 server bytes cannot hide the store edit", "A", null, null, "B", "B", null, false, "A"],
+  ["G3 changed store outranks an unbased copy", "A", null, null, "absent", "B", null, false, "A"],
+  ["an unpushed recorded store remains mine", "A", "A", "B", "C", "C", "B", false, "A"],
+  ["a copy edit is mine after sync changed the store", "B", "B", "B", "B", "C", "A", false, "C"],
+  ["a copy based on the store can replace it", "A", "A", "A", "A", "B", "A", false, "B"],
+  ["an unchanged copy follows the store", "B", "B", "B", "B", "A", "A", false, "B"],
+  ["a missing copy is restored", "A", "A", "A", "B", null, "A", false, "A"],
+  ["a missing store is restored from the server", null, "A", "A", "B", null, null, false, "B"],
   [
     "a missing unpublished store can recover a copy",
     null,
@@ -120,105 +30,15 @@
     false,
     "A"
   ],
-  [
-    "an unchanged copy follows a tombstone",
-    null,
-    "A",
-    "A",
-    "tombstone",
-    "A",
-    "A",
-    false,
-    null
-  ],
-  [
-    "a changed copy survives a tombstone",
-    null,
-    "A",
-    "A",
-    "tombstone",
-    "B",
-    "A",
-    false,
-    "B"
-  ],
-  [
-    "historical unbased bytes adopt the store",
-    "B",
-    "B",
-    "A",
-    "C",
-    "A",
-    null,
-    false,
-    "B"
-  ],
-  [
-    "unbased server bytes adopt an unchanged store",
-    "A",
-    "A",
-    "A",
-    "B",
-    "B",
-    null,
-    false,
-    "A"
-  ],
-  [
-    "unbased differing bytes require a choice",
-    "A",
-    "A",
-    "A",
-    "B",
-    "C",
-    null,
-    false,
-    "C"
-  ],
-  [
-    "a new store edit outranks a based copy edit",
-    "B",
-    "A",
-    "A",
-    "A",
-    "C",
-    "A",
-    false,
-    "B"
-  ],
-  [
-    "a deliberate store revert remains mine",
-    "A",
-    "B",
-    "A",
-    "C",
-    "B",
-    "B",
-    false,
-    "A"
-  ],
-  [
-    "matching copies relink without changing mine",
-    "A",
-    "B",
-    "B",
-    "C",
-    "A",
-    "B",
-    false,
-    "A"
-  ],
-  [
-    "removal survives a live server",
-    null,
-    "A",
-    "A",
-    "B",
-    "C",
-    "A",
-    true,
-    null
-  ],
+  ["an unchanged copy follows a tombstone", null, "A", "A", "tombstone", "A", "A", false, null],
+  ["a changed copy survives a tombstone", null, "A", "A", "tombstone", "B", "A", false, "B"],
+  ["historical unbased bytes adopt the store", "B", "B", "A", "C", "A", null, false, "B"],
+  ["unbased server bytes adopt an unchanged store", "A", "A", "A", "B", "B", null, false, "A"],
+  ["unbased differing bytes require a choice", "A", "A", "A", "B", "C", null, false, "C"],
+  ["a new store edit outranks a based copy edit", "B", "A", "A", "A", "C", "A", false, "B"],
+  ["a deliberate store revert remains mine", "A", "B", "A", "C", "B", "B", false, "A"],
+  ["matching copies relink without changing mine", "A", "B", "B", "C", "A", "B", false, "A"],
+  ["removal survives a live server", null, "A", "A", "B", "C", "A", true, null],
   [
     "a removal the server already holds leaves the extra copy as mine",
     null,
@@ -230,26 +50,6 @@
     true,
     "B"
   ],
-  [
-    "an empty file state stays absent",
-    null,
-    null,
-    null,
-    "absent",
-    null,
-    null,
-    false,
-    null
-  ],
-  [
-    "a changed copy can deliberately revert",
-    "B",
-    "B",
-    "B",
-    "C",
-    "A",
-    "B",
-    false,
-    "A"
-  ]
+  ["an empty file state stays absent", null, null, null, "absent", null, null, false, null],
+  ["a changed copy can deliberately revert", "B", "B", "B", "C", "A", "B", false, "A"]
 ]

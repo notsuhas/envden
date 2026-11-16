@@ -1,6 +1,83 @@
 [
   {
     "width": 40,
+    "args": ["batch", "--required", "x", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open=false'\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["batch", "--required", "x", "--no-open="],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open='\n(Did you mean --no-open?)\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--yes=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=false'\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--yes=true"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=true'\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--yes="],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes='\n(Did you mean --yes?)\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["batch", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["batch", "--no-open="],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--maybe=false"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--maybe="],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--maybe"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 40,
+    "args": ["run", "a", "--maybe", "value"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 40,
     "args": [],
     "stdout": "",
     "stderr": "Usage: demo [options] [command]\n\nA command with grouped help and a long\ndescription which wraps at the\nconfigured terminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which should wrap across multiple lines when the terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
@@ -8,314 +85,280 @@
   },
   {
     "width": 40,
-    "args": [
-      "--help"
-    ],
+    "args": ["--help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long\ndescription which wraps at the\nconfigured terminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which should wrap across multiple lines when the terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "--version"
-    ],
+    "args": ["--version"],
     "stdout": "1.2.3\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "help"
-    ],
+    "args": ["help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long\ndescription which wraps at the\nconfigured terminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which should wrap across multiple lines when the terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "help",
-      "run"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["help", "run"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "--help"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["run", "--help"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "run"
-    ],
+    "args": ["run"],
     "stdout": "",
     "stderr": "error: missing required argument 'file'\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "b"
-    ],
+    "args": ["run", "a", "b"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, b.\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "rnu"
-    ],
+    "args": ["rnu"],
     "stdout": "",
     "stderr": "error: unknown command 'rnu'\n(Did you mean run?)\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--loud"
-    ],
+    "args": ["run", "a", "--loud"],
     "stdout": "",
     "stderr": "error: unknown option '--loud'\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--mode"
-    ],
+    "args": ["run", "a", "--mode"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument missing\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--mode",
-      "bad"
-    ],
+    "args": ["run", "a", "--mode", "bad"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument 'bad' is invalid. Allowed choices are fast, slow.\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--left",
-      "--right"
-    ],
+    "args": ["run", "a", "--left", "--right"],
     "stdout": "",
     "stderr": "error: option '--left' cannot be used with option '--right'\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--mode=fast"
-    ],
+    "args": ["run", "a", "--mode=fast"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--count",
-      "-2"
-    ],
+    "args": ["run", "a", "--count", "-2"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "--",
-      "--x"
-    ],
+    "args": ["run", "--", "--x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "other",
-      "--help"
-    ],
+    "args": ["other", "--help"],
     "stdout": "Usage: demo other [options] [shell]\n\nOther commands\n\nArguments:\n  shell       Shell (choices: \"bash\", \"zsh\", default: \"bash\")\n\nOptions:\n  -h, --help  display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "other"
-    ],
+    "args": ["other"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "other",
-      "wat"
-    ],
+    "args": ["other", "wat"],
     "stdout": "",
     "stderr": "error: command-argument value 'wat' is invalid for argument 'shell'. Allowed choices are bash, zsh.\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--yes",
-      "extra"
-    ],
+    "args": ["run", "a", "--yes", "extra"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, extra.\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "run",
-      "a",
-      "--name",
-      "value"
-    ],
+    "args": ["run", "a", "--name", "value"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "a",
-      "b",
-      "--tag",
-      "x",
-      "y"
-    ],
+    "args": ["batch", "a", "b", "--tag", "x", "y"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--tag",
-      "x"
-    ],
+    "args": ["batch", "--tag", "x"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--help"
-    ],
+    "args": ["batch", "--help"],
     "stdout": "Usage: demo batch [options] [files...]\n\nBatch tasks\n\nArguments:\n  files               Files\n\nOptions:\n  --tag <tags...>     Tags\n  --no-open           Do not open\n  --required <value>  Required value\n  -h, --help          display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--no-open",
-      "file"
-    ],
+    "args": ["batch", "--no-open", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--hidden",
-      "file"
-    ],
+    "args": ["batch", "--hidden", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--required"
-    ],
+    "args": ["batch", "--required"],
     "stdout": "",
     "stderr": "error: option '--required <value>' argument missing\n",
     "code": 1
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--required",
-      "x"
-    ],
+    "args": ["batch", "--required", "x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file"
-    ],
+    "args": ["batch", "--required", "x", "file"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 40,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file",
-      "--tag",
-      "a",
-      "b"
-    ],
+    "args": ["batch", "--required", "x", "file", "--tag", "a", "b"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 80,
+    "args": ["batch", "--required", "x", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open=false'\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["batch", "--required", "x", "--no-open="],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open='\n(Did you mean --no-open?)\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--yes=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=false'\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--yes=true"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=true'\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--yes="],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes='\n(Did you mean --yes?)\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["batch", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["batch", "--no-open="],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--maybe=false"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--maybe="],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--maybe"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 80,
+    "args": ["run", "a", "--maybe", "value"],
     "stdout": "",
     "stderr": "",
     "code": 0
@@ -329,314 +372,280 @@
   },
   {
     "width": 80,
-    "args": [
-      "--help"
-    ],
+    "args": ["--help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long description which wraps at the configured\nterminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which\n                              should wrap across multiple lines when the\n                              terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "--version"
-    ],
+    "args": ["--version"],
     "stdout": "1.2.3\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "help"
-    ],
+    "args": ["help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long description which wraps at the configured\nterminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which\n                              should wrap across multiple lines when the\n                              terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "help",
-      "run"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["help", "run"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "--help"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["run", "--help"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "run"
-    ],
+    "args": ["run"],
     "stdout": "",
     "stderr": "error: missing required argument 'file'\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "b"
-    ],
+    "args": ["run", "a", "b"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, b.\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "rnu"
-    ],
+    "args": ["rnu"],
     "stdout": "",
     "stderr": "error: unknown command 'rnu'\n(Did you mean run?)\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--loud"
-    ],
+    "args": ["run", "a", "--loud"],
     "stdout": "",
     "stderr": "error: unknown option '--loud'\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--mode"
-    ],
+    "args": ["run", "a", "--mode"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument missing\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--mode",
-      "bad"
-    ],
+    "args": ["run", "a", "--mode", "bad"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument 'bad' is invalid. Allowed choices are fast, slow.\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--left",
-      "--right"
-    ],
+    "args": ["run", "a", "--left", "--right"],
     "stdout": "",
     "stderr": "error: option '--left' cannot be used with option '--right'\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--mode=fast"
-    ],
+    "args": ["run", "a", "--mode=fast"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--count",
-      "-2"
-    ],
+    "args": ["run", "a", "--count", "-2"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "--",
-      "--x"
-    ],
+    "args": ["run", "--", "--x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "other",
-      "--help"
-    ],
+    "args": ["other", "--help"],
     "stdout": "Usage: demo other [options] [shell]\n\nOther commands\n\nArguments:\n  shell       Shell (choices: \"bash\", \"zsh\", default: \"bash\")\n\nOptions:\n  -h, --help  display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "other"
-    ],
+    "args": ["other"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "other",
-      "wat"
-    ],
+    "args": ["other", "wat"],
     "stdout": "",
     "stderr": "error: command-argument value 'wat' is invalid for argument 'shell'. Allowed choices are bash, zsh.\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--yes",
-      "extra"
-    ],
+    "args": ["run", "a", "--yes", "extra"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, extra.\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "run",
-      "a",
-      "--name",
-      "value"
-    ],
+    "args": ["run", "a", "--name", "value"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "a",
-      "b",
-      "--tag",
-      "x",
-      "y"
-    ],
+    "args": ["batch", "a", "b", "--tag", "x", "y"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--tag",
-      "x"
-    ],
+    "args": ["batch", "--tag", "x"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--help"
-    ],
+    "args": ["batch", "--help"],
     "stdout": "Usage: demo batch [options] [files...]\n\nBatch tasks\n\nArguments:\n  files               Files\n\nOptions:\n  --tag <tags...>     Tags\n  --no-open           Do not open\n  --required <value>  Required value\n  -h, --help          display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--no-open",
-      "file"
-    ],
+    "args": ["batch", "--no-open", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--hidden",
-      "file"
-    ],
+    "args": ["batch", "--hidden", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--required"
-    ],
+    "args": ["batch", "--required"],
     "stdout": "",
     "stderr": "error: option '--required <value>' argument missing\n",
     "code": 1
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--required",
-      "x"
-    ],
+    "args": ["batch", "--required", "x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file"
-    ],
+    "args": ["batch", "--required", "x", "file"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 80,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file",
-      "--tag",
-      "a",
-      "b"
-    ],
+    "args": ["batch", "--required", "x", "file", "--tag", "a", "b"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 120,
+    "args": ["batch", "--required", "x", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open=false'\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["batch", "--required", "x", "--no-open="],
+    "stdout": "",
+    "stderr": "error: unknown option '--no-open='\n(Did you mean --no-open?)\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--yes=false"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=false'\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--yes=true"],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes=true'\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--yes="],
+    "stdout": "",
+    "stderr": "error: unknown option '--yes='\n(Did you mean --yes?)\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["batch", "--no-open=false"],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["batch", "--no-open="],
+    "stdout": "",
+    "stderr": "error: required option '--required <value>' not specified\n",
+    "code": 1
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--maybe=false"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--maybe="],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--maybe"],
+    "stdout": "",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "width": 120,
+    "args": ["run", "a", "--maybe", "value"],
     "stdout": "",
     "stderr": "",
     "code": 0
@@ -650,314 +659,203 @@
   },
   {
     "width": 120,
-    "args": [
-      "--help"
-    ],
+    "args": ["--help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long description which wraps at the configured terminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which should wrap across multiple lines when\n                              the terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "--version"
-    ],
+    "args": ["--version"],
     "stdout": "1.2.3\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "help"
-    ],
+    "args": ["help"],
     "stdout": "Usage: demo [options] [command]\n\nA command with grouped help and a long description which wraps at the configured terminal width.\n\nOptions:\n  -V, --version               output the version number\n  -h, --help                  display help for command\n\nDaily use:\n  run [options] <file>        Run a task and print a very long description which should wrap across multiple lines when\n                              the terminal is narrow enough.\n\nMaintenance:\n  other [shell]               Other commands\n  batch [options] [files...]  Batch tasks\n\nCommands:\n  help [command]              display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "help",
-      "run"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["help", "run"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "--help"
-    ],
-    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file           Input file\n\nOptions:\n  --yes          Confirm changes\n  --name <name>  Task name\n  --count <n>    Number of tasks\n  --mode <mode>  Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left         Keep left\n  --right        Keep right\n  -h, --help     display help for command\n",
+    "args": ["run", "--help"],
+    "stdout": "Usage: demo run [options] <file>\n\nRun a task and print a very long description which should wrap across multiple\nlines when the terminal is narrow enough.\n\nArguments:\n  file             Input file\n\nOptions:\n  --yes            Confirm changes\n  --maybe [value]  Optional value\n  --name <name>    Task name\n  --count <n>      Number of tasks\n  --mode <mode>    Mode (choices: \"fast\", \"slow\", default: \"slow\")\n  --left           Keep left\n  --right          Keep right\n  -h, --help       display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "run"
-    ],
+    "args": ["run"],
     "stdout": "",
     "stderr": "error: missing required argument 'file'\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "b"
-    ],
+    "args": ["run", "a", "b"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, b.\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "rnu"
-    ],
+    "args": ["rnu"],
     "stdout": "",
     "stderr": "error: unknown command 'rnu'\n(Did you mean run?)\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--loud"
-    ],
+    "args": ["run", "a", "--loud"],
     "stdout": "",
     "stderr": "error: unknown option '--loud'\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--mode"
-    ],
+    "args": ["run", "a", "--mode"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument missing\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--mode",
-      "bad"
-    ],
+    "args": ["run", "a", "--mode", "bad"],
     "stdout": "",
     "stderr": "error: option '--mode <mode>' argument 'bad' is invalid. Allowed choices are fast, slow.\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--left",
-      "--right"
-    ],
+    "args": ["run", "a", "--left", "--right"],
     "stdout": "",
     "stderr": "error: option '--left' cannot be used with option '--right'\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--mode=fast"
-    ],
+    "args": ["run", "a", "--mode=fast"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--count",
-      "-2"
-    ],
+    "args": ["run", "a", "--count", "-2"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "--",
-      "--x"
-    ],
+    "args": ["run", "--", "--x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "other",
-      "--help"
-    ],
+    "args": ["other", "--help"],
     "stdout": "Usage: demo other [options] [shell]\n\nOther commands\n\nArguments:\n  shell       Shell (choices: \"bash\", \"zsh\", default: \"bash\")\n\nOptions:\n  -h, --help  display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "other"
-    ],
+    "args": ["other"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "other",
-      "wat"
-    ],
+    "args": ["other", "wat"],
     "stdout": "",
     "stderr": "error: command-argument value 'wat' is invalid for argument 'shell'. Allowed choices are bash, zsh.\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--yes",
-      "extra"
-    ],
+    "args": ["run", "a", "--yes", "extra"],
     "stdout": "",
     "stderr": "error: too many arguments for 'run'. Expected 1 argument but got 2: a, extra.\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "run",
-      "a",
-      "--name",
-      "value"
-    ],
+    "args": ["run", "a", "--name", "value"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "a",
-      "b",
-      "--tag",
-      "x",
-      "y"
-    ],
+    "args": ["batch", "a", "b", "--tag", "x", "y"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--tag",
-      "x"
-    ],
+    "args": ["batch", "--tag", "x"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--help"
-    ],
+    "args": ["batch", "--help"],
     "stdout": "Usage: demo batch [options] [files...]\n\nBatch tasks\n\nArguments:\n  files               Files\n\nOptions:\n  --tag <tags...>     Tags\n  --no-open           Do not open\n  --required <value>  Required value\n  -h, --help          display help for command\n",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--no-open",
-      "file"
-    ],
+    "args": ["batch", "--no-open", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--hidden",
-      "file"
-    ],
+    "args": ["batch", "--hidden", "file"],
     "stdout": "",
     "stderr": "error: required option '--required <value>' not specified\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--required"
-    ],
+    "args": ["batch", "--required"],
     "stdout": "",
     "stderr": "error: option '--required <value>' argument missing\n",
     "code": 1
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--required",
-      "x"
-    ],
+    "args": ["batch", "--required", "x"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file"
-    ],
+    "args": ["batch", "--required", "x", "file"],
     "stdout": "",
     "stderr": "",
     "code": 0
   },
   {
     "width": 120,
-    "args": [
-      "batch",
-      "--required",
-      "x",
-      "file",
-      "--tag",
-      "a",
-      "b"
-    ],
+    "args": ["batch", "--required", "x", "file", "--tag", "a", "b"],
     "stdout": "",
     "stderr": "",
     "code": 0

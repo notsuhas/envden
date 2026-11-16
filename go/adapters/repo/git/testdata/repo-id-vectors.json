@@ -1,7 +1,16 @@
 [
-  { "remote": "git@GitHub.com:Owner/Repo.git", "expected": "github.com/owner/repo" },
-  { "remote": "ssh://git@GitLab.com/Group/Sub/Repo.git", "expected": "gitlab.com/group/sub/repo" },
-  { "remote": "https://GitHub.com/Owner/Repo.git", "expected": "github.com/owner/repo" },
+  {
+    "remote": "git@GitHub.com:Owner/Repo.git",
+    "expected": "github.com/owner/repo"
+  },
+  {
+    "remote": "ssh://git@GitLab.com/Group/Sub/Repo.git",
+    "expected": "gitlab.com/group/sub/repo"
+  },
+  {
+    "remote": "https://GitHub.com/Owner/Repo.git",
+    "expected": "github.com/owner/repo"
+  },
   {
     "remote": "git@work:Owner/Repo.git",
     "hostname": "github.com",
@@ -15,6 +24,396 @@
     "remote": "https://dev.azure.com/Org/Project/_git/Repo",
     "expected": "dev.azure.com/Org/Project/_git/Repo"
   },
-  { "remote": "ssh://git@HOST.test:2222/Team/Sub/Repo.git", "expected": "host.test/Team/Sub/Repo" },
-  { "remote": "git://HOST.test/Team/Repo.git", "expected": "host.test/Team/Repo" }
+  {
+    "remote": "ssh://git@HOST.test:2222/Team/Sub/Repo.git",
+    "expected": "host.test/Team/Sub/Repo"
+  },
+  {
+    "remote": "git://HOST.test/Team/Repo.git",
+    "expected": "host.test/Team/Repo"
+  },
+  {
+    "remote": "http://bücher.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://xn--bcher-kva.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://BÜCHER.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://faß.de/TEAM/İΟΣ.git",
+    "expected": "xn--fa-hia.de/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://ς.gr/TEAM/İΟΣ.git",
+    "expected": "xn--3xa.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://σ.gr/TEAM/İΟΣ.git",
+    "expected": "xn--4xa.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://İ.example/TEAM/İΟΣ.git",
+    "expected": "xn--i-9bb.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://ＥＸＡＭＰＬＥ.com/TEAM/İΟΣ.git",
+    "expected": "example.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://example.com./TEAM/İΟΣ.git",
+    "expected": "example.com./TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://EXAMPLE.COM../TEAM/İΟΣ.git",
+    "expected": "example.com../TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://%65xample.com/TEAM/İΟΣ.git",
+    "expected": "example.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://%62%C3%BCcher.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://127.1/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://2130706433/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://0x7f000001/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://0177.0.0.1/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://127.0.0.1./TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://[2001:0DB8:0:0:0:0:0:1]/TEAM/İΟΣ.git",
+    "expected": "[2001:db8::1]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://[::ffff:192.0.2.1]/TEAM/İΟΣ.git",
+    "expected": "[::ffff:c000:201]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://a_b.example/TEAM/İΟΣ.git",
+    "expected": "a_b.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://-a.example/TEAM/İΟΣ.git",
+    "expected": "-a.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "http://github.com/TEAM/İΟΣ.git",
+    "expected": "github.com/team/i̇ος"
+  },
+  {
+    "remote": "https://bücher.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://xn--bcher-kva.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://BÜCHER.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://faß.de/TEAM/İΟΣ.git",
+    "expected": "xn--fa-hia.de/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://ς.gr/TEAM/İΟΣ.git",
+    "expected": "xn--3xa.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://σ.gr/TEAM/İΟΣ.git",
+    "expected": "xn--4xa.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://İ.example/TEAM/İΟΣ.git",
+    "expected": "xn--i-9bb.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://ＥＸＡＭＰＬＥ.com/TEAM/İΟΣ.git",
+    "expected": "example.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://example.com./TEAM/İΟΣ.git",
+    "expected": "example.com./TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://EXAMPLE.COM../TEAM/İΟΣ.git",
+    "expected": "example.com../TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://%65xample.com/TEAM/İΟΣ.git",
+    "expected": "example.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://%62%C3%BCcher.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://127.1/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://2130706433/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://0x7f000001/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://0177.0.0.1/TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://127.0.0.1./TEAM/İΟΣ.git",
+    "expected": "127.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://[2001:0DB8:0:0:0:0:0:1]/TEAM/İΟΣ.git",
+    "expected": "[2001:db8::1]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://[::ffff:192.0.2.1]/TEAM/İΟΣ.git",
+    "expected": "[::ffff:c000:201]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://a_b.example/TEAM/İΟΣ.git",
+    "expected": "a_b.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://-a.example/TEAM/İΟΣ.git",
+    "expected": "-a.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "https://github.com/TEAM/İΟΣ.git",
+    "expected": "github.com/team/i̇ος"
+  },
+  {
+    "remote": "ssh://bücher.example/TEAM/İΟΣ.git",
+    "expected": "b%c3%bccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://xn--bcher-kva.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://BÜCHER.example/TEAM/İΟΣ.git",
+    "expected": "b%c3%9ccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://faß.de/TEAM/İΟΣ.git",
+    "expected": "fa%c3%9f.de/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://ς.gr/TEAM/İΟΣ.git",
+    "expected": "%cf%82.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://σ.gr/TEAM/İΟΣ.git",
+    "expected": "%cf%83.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://İ.example/TEAM/İΟΣ.git",
+    "expected": "%c4%b0.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://ＥＸＡＭＰＬＥ.com/TEAM/İΟΣ.git",
+    "expected": "%ef%bc%a5%ef%bc%b8%ef%bc%a1%ef%bc%ad%ef%bc%b0%ef%bc%ac%ef%bc%a5.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://example.com./TEAM/İΟΣ.git",
+    "expected": "example.com./TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://EXAMPLE.COM../TEAM/İΟΣ.git",
+    "expected": "example.com../TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://%65xample.com/TEAM/İΟΣ.git",
+    "expected": "%65xample.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://%62%C3%BCcher.example/TEAM/İΟΣ.git",
+    "expected": "%62%c3%bccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://127.1/TEAM/İΟΣ.git",
+    "expected": "127.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://2130706433/TEAM/İΟΣ.git",
+    "expected": "2130706433/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://0x7f000001/TEAM/İΟΣ.git",
+    "expected": "0x7f000001/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://0177.0.0.1/TEAM/İΟΣ.git",
+    "expected": "0177.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://127.0.0.1./TEAM/İΟΣ.git",
+    "expected": "127.0.0.1./TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://[2001:0DB8:0:0:0:0:0:1]/TEAM/İΟΣ.git",
+    "expected": "[2001:db8::1]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://[::ffff:192.0.2.1]/TEAM/İΟΣ.git",
+    "expected": "[::ffff:c000:201]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://a_b.example/TEAM/İΟΣ.git",
+    "expected": "a_b.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://-a.example/TEAM/İΟΣ.git",
+    "expected": "-a.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "ssh://github.com/TEAM/İΟΣ.git",
+    "expected": "github.com/team/i̇ος"
+  },
+  {
+    "remote": "git://bücher.example/TEAM/İΟΣ.git",
+    "expected": "b%c3%bccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://xn--bcher-kva.example/TEAM/İΟΣ.git",
+    "expected": "xn--bcher-kva.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://BÜCHER.example/TEAM/İΟΣ.git",
+    "expected": "b%c3%9ccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://faß.de/TEAM/İΟΣ.git",
+    "expected": "fa%c3%9f.de/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://ς.gr/TEAM/İΟΣ.git",
+    "expected": "%cf%82.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://σ.gr/TEAM/İΟΣ.git",
+    "expected": "%cf%83.gr/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://İ.example/TEAM/İΟΣ.git",
+    "expected": "%c4%b0.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://ＥＸＡＭＰＬＥ.com/TEAM/İΟΣ.git",
+    "expected": "%ef%bc%a5%ef%bc%b8%ef%bc%a1%ef%bc%ad%ef%bc%b0%ef%bc%ac%ef%bc%a5.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://example.com./TEAM/İΟΣ.git",
+    "expected": "example.com./TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://EXAMPLE.COM../TEAM/İΟΣ.git",
+    "expected": "example.com../TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://%65xample.com/TEAM/İΟΣ.git",
+    "expected": "%65xample.com/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://%62%C3%BCcher.example/TEAM/İΟΣ.git",
+    "expected": "%62%c3%bccher.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://127.1/TEAM/İΟΣ.git",
+    "expected": "127.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://2130706433/TEAM/İΟΣ.git",
+    "expected": "2130706433/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://0x7f000001/TEAM/İΟΣ.git",
+    "expected": "0x7f000001/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://0177.0.0.1/TEAM/İΟΣ.git",
+    "expected": "0177.0.0.1/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://127.0.0.1./TEAM/İΟΣ.git",
+    "expected": "127.0.0.1./TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://[2001:0DB8:0:0:0:0:0:1]/TEAM/İΟΣ.git",
+    "expected": "[2001:db8::1]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://[::ffff:192.0.2.1]/TEAM/İΟΣ.git",
+    "expected": "[::ffff:c000:201]/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://a_b.example/TEAM/İΟΣ.git",
+    "expected": "a_b.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://-a.example/TEAM/İΟΣ.git",
+    "expected": "-a.example/TEAM/İΟΣ"
+  },
+  {
+    "remote": "git://github.com/TEAM/İΟΣ.git",
+    "expected": "github.com/team/i̇ος"
+  },
+  {
+    "remote": "https://github.com/OWNER/İ.git",
+    "expected": "github.com/owner/i̇"
+  },
+  {
+    "remote": "https://gitlab.com/ΟΣ/REPO.git",
+    "expected": "gitlab.com/ος/repo"
+  },
+  {
+    "remote": "git@İ.example:TEAM/ΟΣ.git",
+    "expected": "i̇.example/TEAM/ΟΣ"
+  },
+  {
+    "remote": "https://example.com:443/te%61m/repo.git",
+    "expected": "example.com/team/repo"
+  },
+  {
+    "remote": "https:////example.com/team/repo.git",
+    "expected": "example.com/team/repo"
+  },
+  {
+    "remote": "https://example.com\\team/repo.git",
+    "expected": "example.com/team/repo"
+  },
+  {
+    "remote": "https://256.1/team/repo.git",
+    "error": "Unsafe git remote"
+  },
+  {
+    "remote": "https://%23.example/team/repo.git",
+    "error": "Unsafe git remote"
+  }
 ]

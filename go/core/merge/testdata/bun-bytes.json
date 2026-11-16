@@ -1,9 +1,7 @@
 [
   {
     "op": "parse",
-    "args": [
-      "AEE9MQ=="
-    ],
+    "args": ["AEE9MQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -11,9 +9,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xAA=="
-    ],
+    "args": ["QT0xAA=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -31,9 +27,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0AMQ=="
-    ],
+    "args": ["QT0AMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -51,9 +45,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScA"
-    ],
+    "args": ["QT0nMScA"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax",
@@ -62,9 +54,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2MA"
-    ],
+    "args": ["QT0nMScgI2MA"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -82,9 +72,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xAEI9Mg=="
-    ],
+    "args": ["QT0xAEI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -102,9 +90,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "CUE9MQ=="
-    ],
+    "args": ["CUE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -122,9 +108,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xCQ=="
-    ],
+    "args": ["QT0xCQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -142,9 +126,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0JMQ=="
-    ],
+    "args": ["QT0JMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -162,9 +144,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScJ"
-    ],
+    "args": ["QT0nMScJ"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -182,9 +162,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2MJ"
-    ],
+    "args": ["QT0nMScgI2MJ"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -202,9 +180,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xCUI9Mg=="
-    ],
+    "args": ["QT0xCUI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -222,9 +198,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "CkE9MQ=="
-    ],
+    "args": ["CkE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -242,9 +216,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xCg=="
-    ],
+    "args": ["QT0xCg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -262,9 +234,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0KMQ=="
-    ],
+    "args": ["QT0KMQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -272,9 +242,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScK"
-    ],
+    "args": ["QT0nMScK"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -292,9 +260,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2MK"
-    ],
+    "args": ["QT0nMScgI2MK"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -312,9 +278,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xCkI9Mg=="
-    ],
+    "args": ["QT0xCkI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -339,9 +303,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "C0E9MQ=="
-    ],
+    "args": ["C0E9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -359,9 +321,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xCw=="
-    ],
+    "args": ["QT0xCw=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -379,9 +339,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0LMQ=="
-    ],
+    "args": ["QT0LMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -399,9 +357,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScL"
-    ],
+    "args": ["QT0nMScL"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -419,9 +375,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2ML"
-    ],
+    "args": ["QT0nMScgI2ML"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -439,9 +393,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xC0I9Mg=="
-    ],
+    "args": ["QT0xC0I9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -459,9 +411,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "DEE9MQ=="
-    ],
+    "args": ["DEE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -479,9 +429,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xDA=="
-    ],
+    "args": ["QT0xDA=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -499,9 +447,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0MMQ=="
-    ],
+    "args": ["QT0MMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -519,9 +465,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScM"
-    ],
+    "args": ["QT0nMScM"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -539,9 +483,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2MM"
-    ],
+    "args": ["QT0nMScgI2MM"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -559,9 +501,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xDEI9Mg=="
-    ],
+    "args": ["QT0xDEI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -579,9 +519,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "DUE9MQ=="
-    ],
+    "args": ["DUE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -599,9 +537,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xDQ=="
-    ],
+    "args": ["QT0xDQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -609,9 +545,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0NMQ=="
-    ],
+    "args": ["QT0NMQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -619,9 +553,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScN"
-    ],
+    "args": ["QT0nMScN"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -629,9 +561,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2MN"
-    ],
+    "args": ["QT0nMScgI2MN"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -639,9 +569,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xDUI9Mg=="
-    ],
+    "args": ["QT0xDUI9Mg=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -649,9 +577,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "IEE9MQ=="
-    ],
+    "args": ["IEE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -669,9 +595,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xIA=="
-    ],
+    "args": ["QT0xIA=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -689,9 +613,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0gMQ=="
-    ],
+    "args": ["QT0gMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -709,9 +631,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScg"
-    ],
+    "args": ["QT0nMScg"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -729,9 +649,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2Mg"
-    ],
+    "args": ["QT0nMScgI2Mg"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -749,9 +667,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xIEI9Mg=="
-    ],
+    "args": ["QT0xIEI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -769,9 +685,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "f0E9MQ=="
-    ],
+    "args": ["f0E9MQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -779,9 +693,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xfw=="
-    ],
+    "args": ["QT0xfw=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -799,9 +711,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT1/MQ=="
-    ],
+    "args": ["QT1/MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -819,9 +729,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMSd/"
-    ],
+    "args": ["QT0nMSd/"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax",
@@ -830,9 +738,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2N/"
-    ],
+    "args": ["QT0nMScgI2N/"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -850,9 +756,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xf0I9Mg=="
-    ],
+    "args": ["QT0xf0I9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -870,9 +774,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "hUE9MQ=="
-    ],
+    "args": ["hUE9MQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -880,9 +782,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xhQ=="
-    ],
+    "args": ["QT0xhQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -900,9 +800,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT2FMQ=="
-    ],
+    "args": ["QT2FMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -920,9 +818,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMSeF"
-    ],
+    "args": ["QT0nMSeF"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax",
@@ -931,9 +827,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2OF"
-    ],
+    "args": ["QT0nMScgI2OF"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -951,9 +845,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xhUI9Mg=="
-    ],
+    "args": ["QT0xhUI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -971,9 +863,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "oEE9MQ=="
-    ],
+    "args": ["oEE9MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -991,9 +881,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xoA=="
-    ],
+    "args": ["QT0xoA=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1011,9 +899,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT2gMQ=="
-    ],
+    "args": ["QT2gMQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1031,9 +917,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMSeg"
-    ],
+    "args": ["QT0nMSeg"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1051,9 +935,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2Og"
-    ],
+    "args": ["QT0nMScgI2Og"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1071,9 +953,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0xoEI9Mg=="
-    ],
+    "args": ["QT0xoEI9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1091,9 +971,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "/0E9MQ=="
-    ],
+    "args": ["/0E9MQ=="],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax"
@@ -1101,9 +979,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0x/w=="
-    ],
+    "args": ["QT0x/w=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1121,9 +997,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT3/MQ=="
-    ],
+    "args": ["QT3/MQ=="],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1141,9 +1015,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMSf/"
-    ],
+    "args": ["QT0nMSf/"],
     "result": {
       "kind": "conflict",
       "reason": "unsupported-syntax",
@@ -1152,9 +1024,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0nMScgI2P/"
-    ],
+    "args": ["QT0nMScgI2P/"],
     "result": {
       "kind": "parsed",
       "head": "",
@@ -1172,9 +1042,7 @@
   },
   {
     "op": "parse",
-    "args": [
-      "QT0x/0I9Mg=="
-    ],
+    "args": ["QT0x/0I9Mg=="],
     "result": {
       "kind": "parsed",
       "head": "",
