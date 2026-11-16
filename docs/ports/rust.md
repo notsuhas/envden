@@ -53,7 +53,7 @@ CLAUDE.md applies, in idiomatic Rust:
 | Argon2id | `argon2` | RustCrypto |
 | Zeroizing secrets | `zeroize` | wipes key material on every exit path, where TS calls `fill(0)` |
 | Unicode | `unicode-normalization`, `unicode-general-category`, `unicode-width`, `icu_collator` | NFC/NFKC and the Cc/Cf checks the protocol needs, terminal column widths, and `localeCompare` ordering |
-| Server HTTP | `tokio`, `axum`, `hyper` | Hono on `Bun.serve` becomes axum on hyper, with Bun's idle and header timeouts |
+| Server HTTP | `tokio`, `axum`, `hyper` | Hono on `Bun.serve` becomes axum on hyper, with the shared 10 s idle and header timeouts |
 | Server storage | `rusqlite` (bundled SQLite) | same schema, pragmas and on-disk files as `bun:sqlite` |
 | CLI HTTP | `ureq` | the CLI is synchronous; parallel repo checks use threads |
 | CLI parsing | `clap` | Commander's commands, options and choices; help and diagnostics are clap's own |
@@ -61,7 +61,7 @@ CLAUDE.md applies, in idiomatic Rust:
 | Recovery kit PDF | `lopdf` with `flate2` | pdf-lib's page, text and fields; the PDF's internal bytes differ |
 | Dates | `chrono`, `chrono-tz` | date-fns formatting |
 | Status page | `humansize`, `chrono-humanize` | pretty-bytes and date-fns relative times on the HTML page |
-| Globs | `fast-glob` | Bun.Glob matching for synchronised files; the remaining edge cases are in rust-parity.md |
+| Globs | `fast-glob` | Bun.Glob matching for synchronised files, within the shared pattern grammar (DESIGN § Decisions) |
 | Processes | `shared_child`, `rustix`, `nix`, `windows-sys` | trusted spawning, lock liveness checks, file access checks and Windows ownership, with no hand-written `unsafe` outside Windows FFI |
 | Errors | `thiserror` | |
 
@@ -90,7 +90,7 @@ Each TS folder has a Rust module at the same relative path, so `apps/cli/src/syn
 
 ## Decision: functional parity
 
-TypeScript is the reference until every port passes the parity suite; then it is removed in a separate step. A port must behave the same, bugs included:
+TypeScript is the reference until every port passes the parity suite; then it is removed in a separate step. A port must behave the same; a bug is fixed in every implementation at once:
 
 - Exact: wire bytes, crypto and protocol, server database state, every file written (names, contents, modes, including state and config files), exit codes and error codes, which prompts are asked with their order and choices, and every decision and outcome.
 - Native: terminal presentation (prompt and spinner styling, help layout, the wording of errors and notices, as long as the meaning and facts are the same) and the PDF's internal bytes (its text and fields must match).

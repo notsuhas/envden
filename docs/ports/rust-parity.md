@@ -1,83 +1,6 @@
-# Rust port parity notes
+# Rust port: remaining differences
 
-TS bugs the Rust port copies on purpose, and places where a better option exists but parity wins; each entry names the TS source it was checked against.
-
-## protocol: Device names allow control characters
-
-- Scenario: rename a device to a name containing a newline or tab.
-- TS behaviour: `isDeviceName` rejects Unicode format characters but not control characters (`packages/core/src/protocol/codecs/members/device-name.ts:6`). The string codec rejects them later, when the entry is signed, as `Invalid string` (`encoding/strings.ts:6`), not as the device-name message in `apps/cli/src/admin/devices/rename.ts:40-43`.
-- Possible improvement: reject control characters in `isDeviceName` so the user gets the intended message.
-- Why: the name check and the codec disagree, so the error is generic. BUG: fix in all implementations.
-
-## server: SQLite keyring quota timing
-
-- Scenario: a swap grows keyring state while an active vault is already at its quota.
-- TS behaviour: the quota is checked before keyring state is written (`packages/adapters/storage/sqlite/src/chain/swap-commit.ts:61`, then `:63`), yet keyring bytes count toward usage (`db/quota.ts:15`). The growth commits.
-- Possible improvement: check the quota after state writes, keeping the deletion-only exemption.
-- Why: enforcing it only in Rust would reject swaps the TS server accepts. BUG: fix in all implementations.
-
-## server: HEAD requests to GET endpoints return 404
-
-- Scenario: send HEAD to `/`, `/v1/status` or `/v1/hello`.
-- TS behaviour: routes match on the exact method (`apps/server/src/routes/policy.ts:86`), so HEAD finds none and gets an empty 404, with the status-page security headers where they apply.
-- Possible improvement: serve HEAD on public GET endpoints with the normal headers and no body.
-- Why: HEAD health checks report a healthy server as down. BUG: fix in all implementations.
-
-## server: listening is printed before shutdown handlers exist
-
-- Scenario: send SIGTERM right after the server prints its listening URL.
-- TS behaviour: the URL is printed at `apps/server/src/main.ts:74` and the SIGTERM/SIGINT handlers are installed at `:95-96`. An early signal ends the process with exit 143 and no graceful shutdown.
-- Possible improvement: install the handlers before printing the URL.
-- Why: process managers and fast tests can stop a listening server without closing storage. BUG: fix in all implementations.
-
-## server: status uptime drops months and years
-
-- Scenario: the server has been up for 32 days.
-- TS behaviour: the status page shows `1 day`. `intervalToDuration` splits 32 days into 1 month and 1 day, and the formatter only keeps days, hours and minutes (`apps/server/src/status/page/format.ts:10-17`).
-- Possible improvement: format total elapsed days, or include months and years.
-- Why: long uptimes look much shorter than they are. BUG: fix in all implementations.
-
-## server: idle connection timeout
-
-- Scenario: open a connection and send nothing, or send partial headers.
-- TS behaviour: `Bun.serve` runs with its default 10 s idle timeout (`apps/server/src/main.ts:55-67`), and in practice Bun closes the connection after about 12 s.
-- Possible improvement: none needed; this is timing, not a bug.
-- Why: Rust closes at exactly 10 s. No bytes on the wire differ.
-
-## CLI sync: repair with an absent epoch key
-
-- Scenario: repair needs a file name or recovery blob from an epoch missing from the keyring.
-- TS behaviour: `keys.get(epoch)!` returns `undefined` (`apps/cli/src/admin/repair/lost.ts:56,78`, `completion/names.ts:20`). The fixed-length codec then throws `undefined is not an object (evaluating 'v.length')` in Bun (`packages/core/src/protocol/encoding/binary.ts:71`). Rust returns an error with that message instead of panicking.
-- Possible improvement: check key availability and raise a deliberate protocol error.
-- Why: changing the failure means changing every implementation together. BUG: fix in all implementations.
-
-## CLI pairing: success message names the confirmed device name
-
-- Scenario: confirm `Add mainbook-2?`, then another device takes that name before the approval commits.
-- TS behaviour: the head retry commits the joiner as `mainbook-3`, but the message is built from the name that was confirmed (`apps/cli/src/onboarding/add.ts:70-75,80`, `output/render/devices/devices.ts:28-31`), so it says `Device mainbook-2 added`.
-- Possible improvement: return the committed name from the approval and print that.
-- Why: after a concurrent add the message names a different device than the one added. BUG: fix in all implementations.
-
-## output: root command suggestion line break
-
-- Scenario: `envden statu` compared with `envden device list`.
-- TS behaviour: the root command sanitizes parser errors with `sanitizeTerminal`, which strips every control character including the newline before the suggestion (`apps/cli/src/program.ts:43`, `output/sanitize.ts:3`). Subcommands keep the newline.
-- Possible improvement: keep line breaks in parser diagnostics and sanitize only the user-supplied text.
-- Why: the suggestion runs into the preceding sentence. BUG: fix in all implementations.
-
-## output: nested parser errors pass terminal control bytes
-
-- Scenario: pass an unknown option containing ESC bytes to a subcommand, such as `device ls`.
-- TS behaviour: only the root command sets `configureOutput` (`apps/cli/src/program.ts:43`), so Commander writes subcommand errors to stderr unsanitized.
-- Possible improvement: sanitize user-supplied parser values on every command and keep the diagnostic line breaks.
-- Why: escape sequences in arguments can rewrite what the terminal shows. BUG: fix in all implementations.
-
-## CLI aliases: inherited object properties affect aliases
-
-- Scenario: alias `x` to `constructor`, `toString`, `hasOwnProperty` or another inherited object property; alias `__proto__` to `x`.
-- TS behaviour: `deriveAlias` reads inherited properties of the plain `state.aliases` object and rejects those targets as alias chains. Assigning a string to an absent own `__proto__` property invokes the inherited setter, so the command reports success but saves no alias (`apps/cli/src/links/alias.ts`). Own properties shadow inherited properties, including an own `__proto__` loaded from JSON.
-- Possible improvement: use a prototype-free dictionary and check own properties explicitly.
-- Why: repo IDs can collide with object internals, rejecting valid targets or silently discarding an alias. BUG: fix in all implementations.
+`docs/implementations.md` on `main` is the canonical list of accepted differences between implementations. This file keeps the Rust-specific detail behind those entries: presentation that a maintained Rust crate owns, and library choices that must keep behaviour exact. Bugs found in any implementation are fixed in all of them and are not listed here.
 
 ## presentation: recovery kit PDF serialization
 
@@ -97,8 +20,8 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 
 - Scenario: view uptime or the last-prune date on the server's HTML status page.
 - TS behaviour: date-fns rounds relative times to a single unit and joins uptime units with spaces (`apps/server/src/status/page/format.ts`).
-- Rust behaviour: chrono-humanize 0.2.3 renders precise elapsed units with commas and `and`; chrono 0.4.45 still formats the absolute UTC date and splits uptime into calendar fields.
-- Why: maintained crates own presentation. The absolute date, past/future direction and JSON timestamps stay unchanged; uptime still discards calendar months and years before rendering as documented above.
+- Rust behaviour: uptime matches the reference exactly (total days, then hours and minutes). The last-prune time uses chrono-humanize 0.2.3, which renders precise elapsed units with commas and `and`; chrono 0.4.45 formats the absolute UTC date.
+- Why: maintained crates own presentation. The absolute date, past/future direction and JSON timestamps stay unchanged.
 
 ## implementation: behavior-sensitive library helpers
 
@@ -106,20 +29,19 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 - Discovery's p-limit equivalent already uses scoped standard-library threads. Keep its limits, result order and traversal barriers because discovered checkouts feed prompts and saved state.
 - Zod equivalents use serde with custom checks. Keep acceptance, rejection, defaults, code-point string lengths (zod 4.6.7 counts `😀` as one), safe-integer limits and property order because these decide requests and persisted configuration. validator and garde check fields after typed deserialization, where serde's integer types reject `5.0`, which `z.number().int()` accepts.
 - Semver parsing is envden's own code: the reference accepts arbitrary-size decimal components and rejects prerelease/build suffixes. The semver crate's u64 components and broader syntax would change protocol and update decisions.
-- Glob matching uses fast-glob, which shares Bun.Glob's glob-match lineage; globset treated `!.env.local` and `**/` differently. Patterns outside a grammar where both agree are refused; see "env-file patterns outside the supported grammar" below.
+- Glob matching uses fast-glob, which shares Bun.Glob's glob-match lineage; globset treated `!.env.local` and `**/` differently. Patterns outside the shared grammar (DESIGN § Decisions, "Env-file patterns use one proven grammar") are refused. fast-glob matches per byte, so each non-ASCII code point is mapped to one byte no pattern literal can match, which makes `?` match exactly one code point.
 - localeCompare uses icu_collator's root collation, which matches Bun's fixed en-US collator whatever `LANG` says. Ordering determines discovery choices, takeover operations and writes.
 - English integer plurals use the single `count == 1` rule. This is application wording, not a general Intl implementation; adding ICU plural rules would add no behavior for these inputs.
 - JSON uses serde_json, with a formatter that writes floats through ryu-js as Number#toString does (`100`, where serde_json writes `100.0`). Keep insertion order, whitespace, trailing newlines and tagged collection revival because they determine wire and file bytes; terminal sanitization remains an application policy. serde_json still rejects `1e400` and keeps integers above 2^53 exact, where JSON.parse yields Infinity and rounds; only hand-edited files reach this.
 - ECMAScript whitespace, Buffer-style decoding, BigInt revival, environment-file parsing and protocol encodings stay exact because they affect accepted inputs, merged files, saved state or signed bytes. Their underlying decoding and integer operations already use base64 and num-bigint. The env-file parser is envden's own format; dotenvy would drop `# KEY=v` lines, which merge keeps as inactive entries, and expand `${A}`.
 - No CLI pretty-bytes implementation or additional npm-named library clone was found outside the separately owned parser, prompt and PDF modules. Bundled UI JavaScript remains the frozen reference asset, not a Rust library clone.
 
-
 ## presentation: interactive prompts and notices
 
 - Scenario: enter text or passwords, confirm choices, select checkouts, or display an intro, outro, note, log or cancellation notice.
 - TS behaviour: @clack/prompts renders its own frames, masked characters, spacing and colours on stdout.
-- Rust behaviour: CliClack 0.5.7 renders its native frames and notices on stderr, including its password mask and validation layout. Given the same answers, the same prompts appear in the same order with the same choices and defaults, and Enter, Ctrl-C and Escape submit or cancel with the same outcome and exit code.
-- Keystrokes: key bindings, in-prompt line editing and typed-ahead handling are CliClack's and the console crate's, not readline's. Known differences: Ctrl-U clears the whole line rather than the text before the cursor; Ctrl-B/F/K/D/Y and readline's undo, kill ring and history are not bound; Ctrl-W and Alt word keys follow CliClack's word rules and do nothing in password prompts; Ctrl-P/N move through select lists; space doesn't toggle a confirm; `a`, `i` and Ctrl-A don't select or invert checkboxes; lists stop at the ends instead of wrapping; Escape followed quickly by another key may read as an Alt chord; Ctrl-Z doesn't suspend the process; on Windows, a prompt with both stdout and stderr redirected fails as non-interactive instead of reading the console.
+- Rust behaviour: CliClack 0.5.7 renders its native frames and notices on stderr, including its password mask and validation layout. Given the same answers, the same prompts appear in the same order with the same choices and defaults, and Enter, Ctrl-C, Ctrl-D and Escape submit or cancel with the same outcome and exit code.
+- Keystrokes: key bindings, in-prompt line editing and typed-ahead handling are CliClack's and the console crate's, not readline's. Known differences: Ctrl-U clears the whole line rather than the text before the cursor; Ctrl-B/F/K/Y and readline's undo, kill ring and history are not bound; Ctrl-W and Alt word keys follow CliClack's word rules and do nothing in password prompts; Ctrl-P/N move through select lists; space doesn't toggle a confirm; `a`, `i` and Ctrl-A don't select or invert checkboxes; lists stop at the ends instead of wrapping; Escape followed quickly by another key may read as an Alt chord; Ctrl-Z doesn't suspend the process; on Windows, a prompt with both stdout and stderr redirected fails as non-interactive instead of reading the console.
 - Why: keystroke mechanics are presentation. A maintained prompt crate owns rendering and input; the small patch in `rust/vendor/cliclack/ENVDEN-PATCH.md` changes only what decides a prompt's outcome. The CLI holds raw mode before rendering to prevent password echo.
 
 ## presentation: repository scan spinner
@@ -139,27 +61,6 @@ TS bugs the Rust port copies on purpose, and places where a better option exists
 ## presentation: parser errors and suggestions
 
 - Scenario: pass unknown commands or options, missing or excess arguments, invalid choices or conflicting flags.
-- TS behaviour: Commander 15.1 supplies diagnostics and edit-distance suggestions, with different newline sanitization at the root and nested commands.
-- Rust behaviour: clap 4.6.7 supplies native diagnostics, usage and suggestions; compatibility checks retain accepted inputs, parsed values, validation decisions and exit codes.
+- TS behaviour: Commander 15.1 supplies diagnostics and edit-distance suggestions.
+- Rust behaviour: clap 4.6.7 supplies native diagnostics, usage and suggestions; compatibility checks retain accepted inputs, parsed values, validation decisions and exit codes. Both keep the diagnostic's own line breaks and strip control characters from echoed arguments at every command depth.
 - Why: maintained parsing replaces the custom Commander emulation and suggestion algorithm.
-
-## presentation: long recovery kit instructions
-
-- Scenario: a recovery kit includes a server URL wider than the instructions column.
-- TS behaviour: pdf-lib wraps at spaces, so an unbroken URL extends beyond the page margin.
-- Rust behaviour: long words wrap within the page margins; every character remains in the PDF and the server field remains intact.
-- Why: PDF line wrapping is presentation, and the recovery instructions must remain readable on one page.
-
-## accepted difference: env-file patterns outside the supported grammar
-
-- Scenario: `config env-files` (or a hand-edited `config.json`) sets an include or exclude pattern.
-- TS behaviour: Bun.Glob accepts any pattern and decides by its own rules.
-- Rust behaviour: fast-glob matches only patterns in a grammar where both are known to agree; anything else fails with INVALID_INPUT "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing anything (a config the shared schema rejects still fails with the reference's error). The grammar, ASCII only, at most 1024 characters:
-  - one optional leading `!`;
-  - `/`-separated, non-empty segments;
-  - a segment is exactly `**`, or literals with `*` and `?`, never two `*` in a row;
-  - flat `{a,b}` groups of non-empty literal or `*` options: no nesting, classes, ranges (`..`) or escapes, and a group with a starred option never touches an outside `*`;
-  - at most 10 groups and 16 alternatives in total;
-  - literals are printable ASCII except `*?[]{}\,!()|+@/`.
-  A `?` that meets a non-ASCII file name also fails the command with the same error, since fast-glob matches it per byte. Every pattern the reference's tests and docs use (`.env`, `.env.*`, `.env*`, `*.example`, `secrets.*`, `!.env.example`, `{apps,packages}/**/.env` and so on) is accepted. Within the grammar, decisions match `acceptsEnvPath` with 0 differences over 25M fuzzed rows, 9M of them generated from the grammar itself.
-- Why: chosen over a hand-written port of Bun's matcher. Refusing everything outside a proven grammar keeps every decision Rust makes identical; exotic syntax is refused, never guessed.
