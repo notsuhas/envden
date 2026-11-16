@@ -19,6 +19,15 @@ type Material struct {
 	Keys map[int][]byte
 }
 
+func (m Material) EpochKey(epoch int) ([]byte, error) {
+	key, ok := m.Keys[epoch]
+	if !ok {
+		return nil, errors.New(errors.InvalidData, "Vault key for an earlier epoch is missing")
+	}
+
+	return key, nil
+}
+
 func CurrentMaterial(ctx context.Context, c *Context, h History) (Material, error) {
 	var result Material
 	head := h.Headers[len(h.Headers)-1].Body

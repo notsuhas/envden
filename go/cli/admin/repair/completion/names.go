@@ -20,7 +20,12 @@ func MissingBlobNames(ctx context.Context, c *shared.Context, h shared.History, 
 	names := func(entries []manifests.FileEntry) ([]content.FileName, error) {
 		out := []content.FileName{}
 		for _, e := range entries {
-			n, err := files.OpenFileName(e.Name, material.Keys[e.Epoch], material.Ring.IdKey, files.FileContext{VaultId: c.VaultID, Epoch: e.Epoch, FileId: e.FileId, Version: e.Version})
+			key, err := material.EpochKey(e.Epoch)
+			if err != nil {
+				return nil, err
+			}
+
+			n, err := files.OpenFileName(e.Name, key, material.Ring.IdKey, files.FileContext{VaultId: c.VaultID, Epoch: e.Epoch, FileId: e.FileId, Version: e.Version})
 			if err != nil {
 				return nil, err
 			}

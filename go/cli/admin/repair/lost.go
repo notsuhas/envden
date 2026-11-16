@@ -61,7 +61,12 @@ func FixLost(ctx context.Context, c *shared.Context, h shared.History, current m
 		}
 
 		fc := protocolfiles.FileContext{VaultId: c.VaultID, Epoch: file.Epoch, FileId: file.FileId, Version: file.Version}
-		name, e := protocolfiles.OpenFileName(file.Name, material.Keys[file.Epoch], material.Ring.IdKey, fc)
+		key, e := material.EpochKey(file.Epoch)
+		if e != nil {
+			return e
+		}
+
+		name, e := protocolfiles.OpenFileName(file.Name, key, material.Ring.IdKey, fc)
 		if e != nil {
 			return e
 		}
@@ -87,7 +92,12 @@ func FixLost(ctx context.Context, c *shared.Context, h shared.History, current m
 				old := fc
 				old.Epoch = entry.Epoch
 				old.Version = entry.Version
-				content, e := protocolfiles.OpenFile(box, material.Keys[entry.Epoch], material.Ring.IdKey, old, entry.BlobHash, name)
+				oldKey, e := material.EpochKey(entry.Epoch)
+				if e != nil {
+					return e
+				}
+
+				content, e := protocolfiles.OpenFile(box, oldKey, material.Ring.IdKey, old, entry.BlobHash, name)
 				if e != nil {
 					return e
 				}
