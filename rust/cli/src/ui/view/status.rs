@@ -23,15 +23,15 @@ use std::{path::Path, rc::Rc};
 
 pub fn dashboard_status(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Result<Value> {
     let Some(before) =
-        load_state(&adapters.home)?.filter(|s| s["server"].is_object() && s["vaultId"].is_string())
+        load_state(&adapters.home)?.filter(super::configuration::configured_snapshot)
     else {
         return Ok(json!({"kind":"not-configured"}));
     };
     drop(before);
     let diffs = diff(adapters, options(adapters), transport.clone())?;
     let local = crate::status::local::local_status(adapters, false, transport.as_ref())?;
-    let Some(state) =
-        load_state(&adapters.home)?.filter(|s| s["server"].is_object() && s["vaultId"].is_string())
+    let Some(state) = load_state(&adapters.home)?
+        .filter(|state| super::configuration::configured_local(state, &local))
     else {
         return Ok(json!({"kind":"not-configured"}));
     };
