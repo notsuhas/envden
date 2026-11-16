@@ -23,6 +23,9 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 				return nil, unknown
 			}
 			if c.HasSubCommands() && len(result) == 0 && i+1 < len(args) {
+				if args[i+1] == "help" {
+					return prepareHelp(c, args[i+2:])
+				}
 				for _, child := range c.Commands() {
 					if child.Name() == args[i+1] {
 						rest, err := prepare(child, append([]string{"--"}, args[i+2:]...))
@@ -33,26 +36,7 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 			return append(result, args[i:]...), nil
 		}
 		if token == "help" && c.HasSubCommands() && unknown == nil && len(result) == 0 {
-			target := c
-			path := []string{}
-			for _, name := range args[i+1:] {
-				if !target.HasSubCommands() {
-					break
-				}
-				var found *cobra.Command
-				for _, child := range target.Commands() {
-					if child.Name() == name {
-						found = child
-						break
-					}
-				}
-				if found == nil {
-					return nil, fmt.Errorf("unknown command %q", name)
-				}
-				target = found
-				path = append(path, name)
-			}
-			return append(path, "--help"), nil
+			return prepareHelp(c, args[i+1:])
 		}
 		if !strings.HasPrefix(token, "-") {
 			for _, child := range c.Commands() {

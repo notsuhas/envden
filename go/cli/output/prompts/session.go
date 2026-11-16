@@ -3,6 +3,7 @@ package prompts
 import (
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -49,6 +50,8 @@ func (t *session) run(field huh.Field) error {
 	keys := huh.NewDefaultKeyMap()
 	keys.Quit = key.NewBinding(key.WithKeys("ctrl+c", "ctrl+d", "esc"))
 	keys.Confirm.Toggle = key.NewBinding(key.WithKeys("h", "l", "right", "left", " ", "up", "down"))
+	field = field.WithWidth(80)
+
 	err := huh.NewForm(huh.NewGroup(field)).WithProgramOptions(tea.WithoutSignalHandler()).WithInput(t.input).WithOutput(t.output).
 		WithKeyMap(keys).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
 	if errors.Is(err, huh.ErrUserAborted) {
@@ -75,6 +78,14 @@ func (t *session) text(o PromptOptions, secret bool) (string, error) {
 		field.EchoMode(huh.EchoModePassword)
 	}
 	err := t.run(field)
+	if err == nil {
+		answer := value
+		if secret {
+			answer = strings.Repeat("•", len([]rune(value)))
+		}
+		t.submitted(o, answer)
+	}
+
 	return value, err
 }
 
@@ -87,6 +98,14 @@ func (t *session) Confirm(o PromptOptions) (bool, error) {
 		value = *o.InitialBool
 	}
 	err := t.run(huh.NewConfirm().Title(output.SanitizeTerminal(o.Message)).Value(&value))
+	if err == nil {
+		answer := "No"
+		if value {
+			answer = "Yes"
+		}
+		t.submitted(o, answer)
+	}
+
 	return value, err
 }
 
@@ -101,6 +120,10 @@ func options(values []Option) []huh.Option[string] {
 func (t *session) Select(o PromptOptions) (string, error) {
 	value := o.InitialValue
 	err := t.run(huh.NewSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value))
+	if err == nil {
+		t.submitted(o, selectedLabels(o.Options, []string{value}))
+	}
+
 	return value, err
 }
 
@@ -126,6 +149,10 @@ func (t *session) Multiselect(o PromptOptions) ([]string, error) {
 			result = append(result, o.Value)
 		}
 	}
+	if err == nil {
+		t.submitted(o, selectedLabels(o.Options, result))
+	}
+
 	return result, err
 }
 

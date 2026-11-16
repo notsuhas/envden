@@ -42,5 +42,7 @@ func CreateProgram() *cobra.Command {
 	c.AddCommand(maintenance.ServeCommand())
 	c.AddCommand(maintenance.VersionCommand())
 
+	command.AddHelpCommands(c)
+
 	return c
 }

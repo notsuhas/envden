@@ -14,6 +14,8 @@ import (
 	"github.com/creack/pty"
 )
 
+const helperShellTitle = "Shell choice? It prints a line when you cd into a checkout whose env files need a push or pull"
+
 func TestPromptPTYHelper(t *testing.T) {
 	mode := os.Getenv("ENVDEN_PROMPT_HELPER")
 	if mode == "" {
@@ -49,7 +51,7 @@ func TestPromptPTYHelper(t *testing.T) {
 	}
 	fmt.Printf("SECRET-LENGTH:%d\n", len(secret))
 	initial := false
-	yes, err := terminal.Confirm(PromptOptions{Message: "Add device?", InitialBool: &initial})
+	yes, err := terminal.Confirm(PromptOptions{Message: "Add device? An always-on host is recommended.", InitialBool: &initial})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,11 +59,11 @@ func TestPromptPTYHelper(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	choice, err := terminal.Select(PromptOptions{Message: "Shell choice", Options: []Option{{Value: "zsh", Label: "zsh"}, {Value: "bash", Label: "bash"}}})
+	choice, err := terminal.Select(PromptOptions{Message: helperShellTitle, Options: []Option{{Value: "zsh", Label: "zsh"}, {Value: "bash", Label: "bash"}, {Value: "fish", Label: "fish"}, {Value: "powershell", Label: "PowerShell"}, {Value: "none", Label: "No, skip it"}}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	many, err := terminal.Multiselect(PromptOptions{Message: "Checkouts", Options: []Option{{Value: "first", Label: "first"}, {Value: "second", Label: "second"}}, InitialValues: []string{"first", "second"}})
+	many, err := terminal.Multiselect(PromptOptions{Message: "Checkouts", Options: []Option{{Value: "first", Label: "~/app (.env)"}, {Value: "second", Label: "second"}}, InitialValues: []string{"first", "second"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,20 +137,29 @@ func TestPromptPTY(t *testing.T) {
 				}
 				expect("Device name")
 				send("\r")
+				expect("Device name\r\n  laptop")
 				expect("NAME:laptop")
 				expect("Master password")
 				send("\r")
 				expect("Required")
 				send("secret\r")
+				expect("Master password\r\n  ••••••")
 				expect("SECRET-LENGTH:6")
 				expect("Add device?")
 				send("y")
+				expect("Add device? An always-on host is recommended.\r\n  Yes")
 				expect("Open it now?")
 				send("n")
+				expect("Open it now?\r\n  No")
 				expect("Shell choice")
+				expect("No, skip it")
 				send("\x1b[B\r")
+				expect(helperShellTitle + "\r\n  bash")
 				expect("Checkouts")
+				expect("~/app (.env)")
+				expect("second")
 				send("\r")
+				expect("Checkouts\r\n  ~/app (.env), second")
 				expect("RESULT:true:false:bash:first,second")
 			}
 			if err := cmd.Wait(); err != nil {

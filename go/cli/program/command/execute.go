@@ -89,6 +89,8 @@ func report(c *cobra.Command, err error) error {
 	if !errors.As(err, &exit) {
 		exit = &ExitError{1, err.Error()}
 	}
-	_, _ = fmt.Fprintln(c.ErrOrStderr(), output.SanitizeTerminal(exit.Message))
+	if exit.Message != "" {
+		_, _ = fmt.Fprintln(c.ErrOrStderr(), "error: "+output.SanitizeTerminal(exit.Message))
+	}
 	return exit
 }
