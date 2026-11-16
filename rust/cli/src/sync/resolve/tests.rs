@@ -1,5 +1,8 @@
+#[cfg(unix)]
 use super::*;
+#[cfg(unix)]
 use crate::sync::local::conflicts::record::{IConflictSeed, IConflictSides, record_conflict};
+#[cfg(unix)]
 use std::fs;
 
 #[cfg(unix)]
