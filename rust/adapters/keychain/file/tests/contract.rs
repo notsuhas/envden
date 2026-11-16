@@ -72,3 +72,27 @@ fn persists_long_names_and_fixed_failures() {
     assert_eq!(error.message, "Key storage operation failed");
     assert!(error.source.is_some());
 }
+
+#[test]
+#[cfg(unix)]
+fn owner_only_reads_all_metadata_before_deciding() {
+    use envden_core::adapters::IKeychainAdapter;
+    use std::os::unix::fs::{PermissionsExt, symlink};
+    let home = tempfile::tempdir().unwrap();
+    let directory = home.path().join("state/keys");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
+    symlink(directory.join("absent"), directory.join("dangling")).unwrap();
+    let adapter = envden_adapter_keychain_file::create_file_keychain_adapter(home.path());
+    assert!(adapter.owner_only().is_err());
+}
+
+#[test]
+#[cfg(windows)]
+fn owner_only_does_not_inspect_windows_paths() {
+    use envden_core::adapters::IKeychainAdapter;
+    let home = tempfile::tempdir().unwrap();
+    std::fs::write(home.path().join("state"), "not a directory").unwrap();
+    let adapter = envden_adapter_keychain_file::create_file_keychain_adapter(home.path());
+    assert!(adapter.owner_only().unwrap());
+}

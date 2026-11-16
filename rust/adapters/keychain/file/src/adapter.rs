@@ -4,10 +4,7 @@ use envden_core::{
     errors::{EnvdenError, ErrorCode, Result},
 };
 use sha2::{Digest, Sha256};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 pub struct FileKeychainAdapter {
     directory: PathBuf,
@@ -31,26 +28,7 @@ impl IKeychainAdapter for FileKeychainAdapter {
         "file"
     }
     fn owner_only(&self) -> Result<bool> {
-        let entries = match fs::read_dir(&self.directory) {
-            Ok(entries) => entries,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(true),
-            Err(e) => return Err(files::failure(e)),
-        };
-        let mut paths = vec![self.directory.clone()];
-        for entry in entries {
-            paths.push(entry.map_err(files::failure)?.path());
-        }
-        for path in paths {
-            let _info = fs::metadata(path).map_err(files::failure)?;
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                if _info.permissions().mode() & 0o077 != 0 {
-                    return Ok(false);
-                }
-            }
-        }
-        Ok(true)
+        files::owner_only(&self.directory)
     }
     fn get(&self, name: &str, required: bool) -> Result<Option<Vec<u8>>> {
         let value = files::read(&self.path(name))?;

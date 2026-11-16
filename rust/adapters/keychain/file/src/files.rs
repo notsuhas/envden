@@ -102,3 +102,35 @@ fn permission_failure(error: EnvdenError) -> EnvdenError {
         }
     }
 }
+
+pub(crate) fn owner_only(directory: &Path) -> Result<bool> {
+    if cfg!(windows) {
+        return Ok(true);
+    }
+    let entries = match fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(true),
+        Err(error) => return Err(failure(error)),
+    };
+    let mut paths = vec![directory.to_owned()];
+    for entry in entries {
+        paths.push(entry.map_err(failure)?.path());
+    }
+    let metadata = paths
+        .iter()
+        .map(fs::metadata)
+        .collect::<std::io::Result<Vec<_>>>()
+        .map_err(failure)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        Ok(metadata
+            .iter()
+            .all(|info| info.permissions().mode() & 0o077 == 0))
+    }
+    #[cfg(windows)]
+    {
+        let _ = metadata;
+        Ok(true)
+    }
+}
