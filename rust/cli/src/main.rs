@@ -47,7 +47,7 @@ fn main() {
         }
         TParseResult::Version => print(VERSION),
         TParseResult::Error(message) => {
-            eprintln!("{message}");
+            print_error(&message);
             std::process::exit(1);
         }
         TParseResult::Failure(error) => {
