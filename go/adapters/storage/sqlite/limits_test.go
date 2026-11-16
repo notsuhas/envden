@@ -53,6 +53,28 @@ func TestSwapQuotaRollsBackCreation(t *testing.T) {
 	}
 }
 
+func TestKeyringGrowthOverQuotaRollsBack(t *testing.T) {
+	db := open(t, t.TempDir())
+	v := b(1)
+	check(t, db.ConfigureVault(v, coreadapters.StoredVault{Active: true}, nil, nil))
+	check(t, db.PutBlob(v, b(2), b(3), nil, 0, 0))
+	runSQL(t, db, "UPDATE blob_usage SET size=1073741823")
+	s := storedSwap(1, nil)
+	s.Vault, s.Files = nil, nil
+	s.State = []coreadapters.StateWrite{{Kind: coreadapters.StateKeyring, Key: b(2), Bytes: []byte{1, 2}}}
+	if _, err := db.CommitSwap(v, nil, s, 0); !coreerrors.Is(err, "STORAGE_QUOTA") {
+		t.Fatal(err)
+	}
+
+	keyring, err := db.State(v, coreadapters.StateKeyring, b(2))
+	check(t, err)
+	head, err := db.Head(v)
+	check(t, err)
+	if keyring != nil || head != nil {
+		t.Fatal("keyring growth survived failed commit")
+	}
+}
+
 func TestOverQuotaOperations(t *testing.T) {
 	for _, op := range []string{"remove", "rotate", "files", "blob", "move", "repair"} {
 		t.Run(op, func(t *testing.T) {
@@ -89,7 +111,7 @@ func TestOverQuotaOperations(t *testing.T) {
 				return
 			}
 			_, err := db.CommitSwap(v, nil, s, 0)
-			if op == "files" {
+			if op == "files" || op == "rotate" {
 				if !coreerrors.Is(err, "STORAGE_QUOTA") {
 					t.Fatal(err)
 				}

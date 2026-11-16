@@ -84,6 +84,9 @@ func (s *storage) commitSwap(v, expected []byte, swap adapters.StoredSwap, now i
 				return err
 			}
 		}
+		if err := adapters.WriteCommitState(s, v, swap); err != nil {
+			return err
+		}
 		if adds {
 			vaultUsageResult, err := s.vaultUsage(v)
 			if err != nil {
@@ -92,9 +95,6 @@ func (s *storage) commitSwap(v, expected []byte, swap adapters.StoredSwap, now i
 			if err := s.checkQuota(v, before, vaultUsageResult, 1<<30); err != nil {
 				return err
 			}
-		}
-		if err := adapters.WriteCommitState(s, v, swap); err != nil {
-			return err
 		}
 		if swap.Approver != nil {
 			_, err := s.run("INSERT OR REPLACE INTO approvers VALUES(?,?,?,?)", v, swap.Approver.Device, swap.Approver.Bytes, now+86400000)
