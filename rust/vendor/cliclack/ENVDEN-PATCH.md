@@ -1,25 +1,27 @@
-# CliClack 0.5.7 input compatibility
+# CliClack 0.5.7 patch
 
 Source: https://crates.io/crates/cliclack/0.5.7 (MIT).
 
-The crate still owns terminal input, rendering, password masking and progress.
-The local changes preserve existing keyboard decisions:
+The crate owns rendering, key bindings, line editing, password masking and
+progress. Key handling is CliClack's own; envden patches only what changes a
+prompt's outcome:
 
-- `Input::initial_input` sets editable text, rather than a placeholder default.
-- Space toggles confirms; list navigation wraps; `a` toggles all checkboxes.
-- Multiselect retains selection order, `i` inverts, and full-width space toggles.
-- Text inputs retain Ctrl-B/F/K/U/W editing.
-- Passwords ignore Alt/Ctrl word jumps and retain literal Ctrl-W, matching
-  Clack 1.9.0 PTY results under Bun and Node; other cursor editing stays enabled.
-- Empty optional multiselects wait for Enter or cancellation; empty filtered
-  lists ignore navigation rather than wrapping modulo zero.
-- Redraws preserve unchanged prompt headers so automation sees each question once.
-- Terminal eligibility and key reading follow stdin, including redirected output.
-- Progress uses stdout to match the CLI's stdout terminal gate.
+- `Input::initial_input` sets an editable initial value, so Enter submits the
+  same default the reference prompt shows.
+- Multiselect returns values in the order they were selected, starting from
+  the initial selection.
+- An optional multiselect with no items still waits for Enter or cancellation
+  instead of failing.
+- Select and multiselect ignore keys while a filtered list is empty, instead of
+  indexing an empty list.
+- Prompts gate on stdin being a terminal and read keys from stdin on Unix, so
+  redirected stdout or stderr doesn't block or refuse a prompt. On Windows keys
+  come from the console input through whichever of stderr or stdout is a
+  console; with neither, the prompt fails as non-interactive instead of
+  spinning.
+- Redraws leave unchanged leading lines alone, so a prompt's question is
+  written once.
+- Progress draws on stdout, matching the CLI's stdout terminal gate.
 
-The CLI holds raw mode across each prompt, before its label appears, to prevent
-fast input from echoing passwords between per-key reads. Output processing stays
-enabled so the crate can render ordinary newlines.
-
-`rust/cli/tests/prompts.rs` drives these behaviours through a PTY. Remove the
-patch when upstream exposes equivalent controls, retaining the behaviour tests.
+`rust/cli/tests/prompts.rs` drives these through a PTY. Remove the patch when
+upstream exposes equivalent controls, keeping the behaviour tests.

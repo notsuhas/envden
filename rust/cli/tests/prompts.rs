@@ -27,16 +27,14 @@ fn prompt_fixture() {
         "validation" => input("Fixture prompt", true, None, |s| {
             (s != "ok").then(|| "Try again".into())
         }),
-        "password-edit" => secret("Fixture prompt", |_| None),
         "password" => secret("Fixture prompt", |_| None).map(|s| s.len().to_string()),
-        "yes" | "no" | "toggle" | "cancel" | "escape" => {
+        "yes" | "no" | "cancel" | "escape" => {
             consent("Fixture prompt", case != "no").map(|v| v.to_string())
         }
         "empty" => choose_many("Fixture prompt", &[]).map(|v| v.join(",")),
         "nochoices" => choose("Fixture prompt", &[], None),
         "select" => choose("Fixture prompt", &options, Some("b")),
-        "wrap" => choose("Fixture prompt", &options, None),
-        "many" | "none" | "all" => choose_many("Fixture prompt", &options).map(|v| v.join(",")),
+        "many" => choose_many("Fixture prompt", &options).map(|v| v.join(",")),
         _ => panic!("unknown fixture"),
     };
     #[cfg(unix)]
@@ -61,17 +59,13 @@ fn prompt_fixture() {
 
 #[test]
 #[cfg(unix)]
-fn terminal_answers_preserve_defaults_keys_validation_and_cancellation() {
+fn terminal_answers_preserve_defaults_validation_order_and_cancellation() {
     let script = r#"
 import fcntl, os, pty, re, select, struct, subprocess, sys, termios
 cases = [
  ('initial', b'\r', 'ANSWER:device:END'),
  ('redirected', b'\r', 'ANSWER:device:END'),
  ('edit', b'-two\r', 'ANSWER:device-two:END'),
- ('edit', b'\x15new\r', 'ANSWER:new:END'),
- ('edit', b'\x01my-\x05!\r', 'ANSWER:my-device!:END'),
- ('edit', b'\x01\x06\x0b!\r', 'ANSWER:d!:END'),
- ('edit', b' two \x17!\r', 'ANSWER:device !:END'),
  ('optional', b'\r', 'ANSWER::END'),
  ('validation', b'\rbad\r\x7f\x7f\x7fok\r', 'ANSWER:ok:END'),
  ('password', b'\rsensitive-fixture\r', 'ANSWER:17:END'),
@@ -79,24 +73,15 @@ cases = [
  ('no', b'\r', 'ANSWER:false:END'),
  ('yes', b'n', 'ANSWER:false:END'),
  ('no', b'y', 'ANSWER:true:END'),
- ('toggle', b' \r', 'ANSWER:false:END'),
  ('cancel', b'\x03', 'ERROR:InvalidInput:2:END'),
  ('escape', b'\x1b', 'ERROR:InvalidInput:2:END'),
  ('select', b'\r', 'ANSWER:b:END'),
- ('wrap', b'\x1b[A\r', 'ANSWER:b:END'),
  ('many', b'\r', 'ANSWER:a,b:END'),
  ('many', b'  \r', 'ANSWER:b,a:END'),
- ('none', b'i\r', 'ANSWER::END'),
  ('empty', b'\r', 'ANSWER::END'),
  ('empty', b'\x03', 'ERROR:InvalidInput:2:END'),
- ('empty', b'\x1b[A\x1b[Bai\r', 'ANSWER::END'),
- ('password-edit', b'one two\x17!\r', 'ANSWER:one two\x17!:END'),
- ('password-edit', b'one two\x1bb!\r', 'ANSWER:one two!:END'),
- ('password-edit', b'one two\x1b[1;5D!\r', 'ANSWER:one two!:END'),
- ('password-edit', b'one two\x1b[1;3D!\r', 'ANSWER:one two!:END'),
+ ('empty', b'\x1b[A\x1b[B \r', 'ANSWER::END'),
  ('nochoices', b'', 'ERROR:InvalidInput:2:END'),
- ('none', b'a\r', 'ANSWER::END'),
- ('all', b'a a\r', 'ANSWER:a,b:END'),
  ('progress', b'', 'ANSWER:done:END'),
 ]
 for case, keys, expected in cases:
@@ -130,7 +115,7 @@ for case, keys, expected in cases:
  assert child.wait() == 0, (case, output.decode(errors='replace'))
  text = output.decode(errors='replace')
  assert expected in text, (case, expected, text)
- if case == 'password-edit':
+ if case == 'edit':
   plain = re.sub(r'\x1b\[[0-?]*[ -/]*[@-~]', '', text)
   assert plain.count('◆  Fixture prompt') == 1, plain
  if case == 'progress':

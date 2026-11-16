@@ -141,24 +141,21 @@ impl<T: Clone> PromptInteraction<T> for Select<T> {
 
         match key {
             Key::ArrowUp | Key::ArrowLeft | Key::Char('k') | Key::Char('h') => {
-                self.cursor =
-                    (self.cursor + self.filter.items().len() - 1) % self.filter.items().len();
-
-                if self.cursor >= self.view.start + self.view.height {
-                    self.view.start = self.cursor + 1 - self.view.height;
+                if self.cursor > 0 {
+                    self.cursor -= 1;
                 }
+
                 if self.cursor < self.view.start {
                     self.view.start = self.cursor;
                 }
             }
             Key::ArrowDown | Key::ArrowRight | Key::Char('j') | Key::Char('l') => {
-                self.cursor = (self.cursor + 1) % self.filter.items().len();
+                if self.cursor < self.filter.items().len() - 1 {
+                    self.cursor += 1;
+                }
 
                 if self.cursor >= self.view.start + self.view.height {
                     self.view.start = self.cursor - self.view.height + 1;
-                }
-                if self.cursor < self.view.start {
-                    self.view.start = self.cursor;
                 }
             }
             Key::Enter => {

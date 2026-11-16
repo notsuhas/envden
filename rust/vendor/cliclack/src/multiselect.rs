@@ -167,48 +167,24 @@ impl<T: Clone + Eq> PromptInteraction<Vec<T>> for MultiSelect<T> {
 
         match key {
             Key::ArrowLeft | Key::ArrowUp | Key::Char('k') | Key::Char('h') => {
-                self.cursor =
-                    (self.cursor + self.filter.items().len() - 1) % self.filter.items().len();
-
-                if self.cursor >= self.page.start + self.page.height {
-                    self.page.start = self.cursor + 1 - self.page.height;
+                if self.cursor > 0 {
+                    self.cursor -= 1;
                 }
+
                 if self.cursor < self.page.start {
                     self.page.start = self.cursor;
                 }
             }
             Key::ArrowRight | Key::ArrowDown | Key::Char('j') | Key::Char('l') => {
-                self.cursor = (self.cursor + 1) % self.filter.items().len();
+                if self.cursor < self.filter.items().len() - 1 {
+                    self.cursor += 1;
+                }
 
                 if self.cursor >= self.page.start + self.page.height {
                     self.page.start = self.cursor - self.page.height + 1;
                 }
-                if self.cursor < self.page.start {
-                    self.page.start = self.cursor;
-                }
             }
-            Key::Char('a') => {
-                let all = self.items.iter().all(|item| item.borrow().selected);
-                self.selection_order.clear();
-                for item in &self.items {
-                    let mut item = item.borrow_mut();
-                    item.selected = !all;
-                    if item.selected {
-                        self.selection_order.push(item.value.clone());
-                    }
-                }
-            }
-            Key::Char('i') => {
-                self.selection_order.clear();
-                for item in &self.items {
-                    let mut item = item.borrow_mut();
-                    item.selected = !item.selected;
-                    if item.selected {
-                        self.selection_order.push(item.value.clone());
-                    }
-                }
-            }
-            Key::Char(' ' | '\u{3000}') => {
+            Key::Char(' ') => {
                 let mut item = self.filter.items()[self.cursor].borrow_mut();
                 item.selected = !item.selected;
                 if item.selected {

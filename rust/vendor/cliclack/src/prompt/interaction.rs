@@ -67,6 +67,7 @@ pub trait PromptInteraction<T> {
         if !io::stdin().is_terminal() {
             return Err(io::ErrorKind::NotConnected.into());
         }
+
         term.hide_cursor()?;
         let result = self.interact_on_prepared(term);
         term.show_cursor()?;
@@ -82,8 +83,12 @@ pub trait PromptInteraction<T> {
             let descriptor = io::stdin().as_fd().try_clone_to_owned()?;
             Term::read_write_pair(io::stdin(), std::fs::File::from(descriptor))
         };
+        // Windows reads keys from the console input; any console-attached stream unlocks it.
         #[cfg(not(unix))]
-        let input = term.clone();
+        let input = [Term::stderr(), Term::stdout()]
+            .into_iter()
+            .find(Term::is_term)
+            .ok_or(io::ErrorKind::NotConnected)?;
 
         let mut state = State::Active;
         let mut prev_frame = String::new();
@@ -138,14 +143,6 @@ pub trait PromptInteraction<T> {
                     if let Some(cursor) = self.input() {
                         match key {
                             Key::Char(chr) if !chr.is_ascii_control() => cursor.insert(chr),
-                            Key::Char('\x02') => cursor.move_left(),
-                            Key::Char('\x06') => cursor.move_right(),
-                            Key::Char('\x0b') => {
-                                while cursor.current().is_some() {
-                                    cursor.delete_right();
-                                }
-                            }
-                            Key::Char('\x15') => cursor.clear(),
                             Key::Backspace => cursor.delete_left(),
                             Key::Del => cursor.delete_right(),
                             Key::ArrowLeft => cursor.move_left(),
@@ -159,28 +156,24 @@ pub trait PromptInteraction<T> {
                             Key::Char('\u{17}') if word_editing => cursor.delete_word_to_the_left(),
 
                             // Alt/Ctrl
-                            Key::UnknownEscSeq(ref chars) => {
+                            Key::UnknownEscSeq(ref chars) if word_editing => {
                                 match chars.as_slice() {
                                     // Alt | Ctrl-Backspace
-                                    ['\u{7f}'] if word_editing => cursor.delete_word_to_the_left(),
+                                    ['\u{7f}'] => cursor.delete_word_to_the_left(),
                                     // Alt-ArrowLeft | Alt-b
-                                    ['b'] if word_editing => cursor.move_left_by_word(),
+                                    ['b'] => cursor.move_left_by_word(),
                                     // Alt-ArrowRight | Alt-f
-                                    ['f'] if word_editing => cursor.move_right_by_word(),
+                                    ['f'] => cursor.move_right_by_word(),
                                     // Alt | Ctrl
                                     ['[', '1', ';'] => {
                                         let suffix = [input.read_key_raw()?, input.read_key_raw()?];
                                         match suffix {
                                             // Alt | Ctrl-ArrowLeft
-                                            [Key::Char('3' | '5'), Key::Char('D')]
-                                                if word_editing =>
-                                            {
+                                            [Key::Char('3' | '5'), Key::Char('D')] => {
                                                 cursor.move_left_by_word()
                                             }
                                             // Alt | Ctrl-ArrowRight
-                                            [Key::Char('3' | '5'), Key::Char('C')]
-                                                if word_editing =>
-                                            {
+                                            [Key::Char('3' | '5'), Key::Char('C')] => {
                                                 cursor.move_right_by_word()
                                             }
                                             _ => {}

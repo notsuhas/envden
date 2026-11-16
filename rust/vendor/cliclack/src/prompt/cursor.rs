@@ -159,14 +159,14 @@ impl StringCursor {
 
     /// Deletes the word to the left of the cursor.
     pub fn delete_word_to_the_left(&mut self) {
-        let end = self.cursor;
-        while self.cursor > 0 && self.value[self.cursor - 1].is_whitespace() {
-            self.cursor -= 1;
+        if self.cursor > 0 {
+            let jumps = word_jump_indices(&self.value);
+            let ix = jumps.binary_search(&self.cursor).unwrap_or_else(|x| x);
+            let start = jumps[std::cmp::max(ix - 1, 0)];
+            let end = self.cursor;
+            self.value.drain(start..end);
+            self.cursor = start;
         }
-        while self.cursor > 0 && !self.value[self.cursor - 1].is_whitespace() {
-            self.cursor -= 1;
-        }
-        self.value.drain(self.cursor..end);
     }
 
     /// Clears the cursor, removing all characters.

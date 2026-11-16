@@ -93,15 +93,13 @@ impl PromptInteraction<String> for Password {
     }
 
     fn allow_word_editing(&self) -> bool {
+        // Disallow word editing for password prompts so as not to reveal
+        // password structure.
         false
     }
 
     fn on(&mut self, event: &Event) -> State<String> {
         let Event::Key(key) = event;
-
-        if *key == Key::Char('\x17') {
-            self.input.insert('\x17');
-        }
 
         if let Some(validator) = &self.validate_interactively {
             if let Err(err) = validator(&self.input.to_string()) {
