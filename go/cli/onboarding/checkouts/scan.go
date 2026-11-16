@@ -6,12 +6,12 @@ import (
 	"io"
 
 	"github.com/notsuhas/envden/go/cli/contracts"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/state/model"
 	"github.com/notsuhas/envden/go/cli/state/store"
 	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
 type Eligible struct {
@@ -27,7 +27,7 @@ type Dependencies struct {
 	Finish      func(context.Context, *model.State) error
 }
 
-func Setup(ctx context.Context, a contracts.Adapters, input *model.State, interactive bool, terminal *clack.Terminal, stdout io.Writer, d Dependencies) error {
+func Setup(ctx context.Context, a contracts.Adapters, input *model.State, interactive bool, terminal prompts.ITerminal, stdout io.Writer, d Dependencies) error {
 	return lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
 		state, err := store.LoadState(a.Home)
 		if err != nil {
@@ -73,14 +73,14 @@ func Setup(ctx context.Context, a contracts.Adapters, input *model.State, intera
 				return errors.New(errors.InvalidInput, "Approve checkouts in your own terminal with envden track")
 			}
 
-			options := []clack.Option{}
+			options := []prompts.Option{}
 			initial := []string{}
 			for _, item := range asked {
-				options = append(options, clack.Option{Value: item.Checkout.Root, Label: d.Label(state, item)})
+				options = append(options, prompts.Option{Value: item.Checkout.Root, Label: d.Label(state, item)})
 				initial = append(initial, item.Checkout.Root)
 			}
 
-			roots, err := terminal.Multiselect(clack.PromptOptions{Message: "Sync env files for these checkouts?", Options: options, InitialValues: initial, Required: false})
+			roots, err := terminal.Multiselect(prompts.PromptOptions{Message: "Sync env files for these checkouts?", Options: options, InitialValues: initial, Required: false})
 			if err != nil {
 				return err
 			}

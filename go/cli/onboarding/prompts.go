@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
 type Prompts struct {
-	Terminal    *clack.Terminal
+	Terminal    prompts.ITerminal
 	Interactive bool
 	Stderr      io.Writer
 }
@@ -28,7 +28,7 @@ func (p Prompts) Secret(label string, check func(string) string) (string, error)
 		return "", err
 	}
 
-	return p.Terminal.Password(clack.PromptOptions{Message: output.SanitizeTerminal(label), Validate: func(v string) string {
+	return p.Terminal.Password(prompts.PromptOptions{Message: output.SanitizeTerminal(label), Validate: func(v string) string {
 		if v == "" {
 			return "Required"
 		}
@@ -46,7 +46,7 @@ func (p Prompts) Input(label, initial string, required bool, check func(string) 
 		return "", err
 	}
 
-	return p.Terminal.Text(clack.PromptOptions{Message: output.SanitizeTerminal(label), InitialValue: initial, Validate: func(v string) string {
+	return p.Terminal.Text(prompts.PromptOptions{Message: output.SanitizeTerminal(label), InitialValue: initial, Validate: func(v string) string {
 		if v == "" {
 			if required {
 				return "Required"
@@ -68,5 +68,5 @@ func (p Prompts) Consent(label string, initial bool) (bool, error) {
 		return false, err
 	}
 
-	return p.Terminal.Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(label), InitialBool: &initial})
+	return p.Terminal.Confirm(prompts.PromptOptions{Message: output.SanitizeTerminal(label), InitialBool: &initial})
 }

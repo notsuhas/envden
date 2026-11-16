@@ -4,15 +4,14 @@ import (
 	"fmt"
 
 	"github.com/notsuhas/envden/go/cli/output"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
 type Scan struct {
-	indicator *clack.Spinner
+	indicator *Spinner
 	label     string
 }
 
-func ScanProgress(where string, enabled bool, terminal *clack.Terminal) *Scan {
+func ScanProgress(where string, enabled bool, terminal interface{ Spinner() *Spinner }) *Scan {
 	s := &Scan{}
 	if enabled {
 		s.indicator = terminal.Spinner()

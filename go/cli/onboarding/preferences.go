@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/notsuhas/envden/go/cli/contracts"
+	"github.com/notsuhas/envden/go/cli/output/prompts"
 	"github.com/notsuhas/envden/go/cli/settings"
-	"github.com/notsuhas/envden/go/lib/clack"
 )
 
 type Preferences struct {
@@ -42,7 +42,7 @@ func SetupPreferences(ctx context.Context, a contracts.Adapters, o Preferences, 
 	shell := o.Shell
 	if shell == "" && !o.Yes && p.Interactive {
 		var err error
-		shell, err = p.Terminal.Select(clack.PromptOptions{Message: "Install the shell notice? It prints a line when you cd into a checkout whose env files need a push or pull", Options: []clack.Option{{Value: "zsh", Label: "zsh"}, {Value: "bash", Label: "bash"}, {Value: "fish", Label: "fish"}, {Value: "powershell", Label: "PowerShell"}, {Value: "none", Label: "No, skip it"}}})
+		shell, err = p.Terminal.Select(prompts.PromptOptions{Message: "Install the shell notice? It prints a line when you cd into a checkout whose env files need a push or pull", Options: []prompts.Option{{Value: "zsh", Label: "zsh"}, {Value: "bash", Label: "bash"}, {Value: "fish", Label: "fish"}, {Value: "powershell", Label: "PowerShell"}, {Value: "none", Label: "No, skip it"}}})
 		if err != nil {
 			return err
 		}

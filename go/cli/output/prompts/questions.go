@@ -7,11 +7,8 @@ import (
 	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/notsuhas/envden/go/cli/state"
 	"github.com/notsuhas/envden/go/core/errors"
-	"github.com/notsuhas/envden/go/lib/clack"
 	"golang.org/x/term"
 )
-
-type Option = clack.Option
 
 func Terminal(message string) error {
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
@@ -22,7 +19,7 @@ func Terminal(message string) error {
 }
 
 func answer(value string, err error) (string, error) {
-	if clack.IsCancel(err) {
+	if IsCancel(err) {
 		return "", state.PromptCancelled()
 	}
 
@@ -34,7 +31,7 @@ func Secret(message string, checks ...func(string) string) (string, error) {
 		return "", e
 	}
 
-	return answer(clack.New(os.Stdin, os.Stdout).Password(clack.PromptOptions{Message: output.SanitizeTerminal(message), Validate: func(v string) string {
+	return answer(New(os.Stdin, os.Stdout).Password(PromptOptions{Message: output.SanitizeTerminal(message), Validate: func(v string) string {
 		if v == "" {
 			return "Required"
 		}
@@ -52,7 +49,7 @@ func Input(message string, required bool, initial string, checks ...func(string)
 		return "", e
 	}
 
-	return answer(clack.New(os.Stdin, os.Stdout).Text(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialValue: initial, Validate: func(v string) string {
+	return answer(New(os.Stdin, os.Stdout).Text(PromptOptions{Message: output.SanitizeTerminal(message), InitialValue: initial, Validate: func(v string) string {
 		if v == "" && required {
 			return "Required"
 		}
@@ -70,8 +67,8 @@ func Consent(message string, initial bool) (bool, error) {
 		return false, e
 	}
 
-	v, e := clack.New(os.Stdin, os.Stdout).Confirm(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
-	if clack.IsCancel(e) {
+	v, e := New(os.Stdin, os.Stdout).Confirm(PromptOptions{Message: output.SanitizeTerminal(message), InitialBool: &initial})
+	if IsCancel(e) {
 		e = state.PromptCancelled()
 	}
 
@@ -88,7 +85,7 @@ func Choose(message string, options []Option, initial string) (string, error) {
 		safe[i].Label = output.SanitizeTerminal(safe[i].Label)
 	}
 
-	return answer(clack.New(os.Stdin, os.Stdout).Select(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialValue: initial, Options: safe}))
+	return answer(New(os.Stdin, os.Stdout).Select(PromptOptions{Message: output.SanitizeTerminal(message), InitialValue: initial, Options: safe}))
 }
 
 func ChooseMany(message string, options []Option) ([]string, error) {
@@ -103,8 +100,8 @@ func ChooseMany(message string, options []Option) ([]string, error) {
 		safe[i].Label = output.SanitizeTerminal(safe[i].Label)
 	}
 
-	v, e := clack.New(os.Stdin, os.Stdout).Multiselect(clack.PromptOptions{Message: output.SanitizeTerminal(message), InitialValues: initial, Options: safe})
-	if clack.IsCancel(e) {
+	v, e := New(os.Stdin, os.Stdout).Multiselect(PromptOptions{Message: output.SanitizeTerminal(message), InitialValues: initial, Options: safe})
+	if IsCancel(e) {
 		e = state.PromptCancelled()
 	}
 
