@@ -8,7 +8,7 @@ import (
 
 func promptKeyMap() *huh.KeyMap {
 	keys := huh.NewDefaultKeyMap()
-	keys.Quit = key.NewBinding(key.WithKeys("ctrl+c", "esc"))
+	keys.Quit = key.NewBinding(key.WithKeys("ctrl+c", "esc", "ctrl+d"))
 	keys.Confirm.Toggle = key.NewBinding(key.WithKeys("h", "l", "right", "left", " ", "up", "down"))
 	keys.Select.Up = key.NewBinding(key.WithKeys("up", "left", "k", "h"))
 	keys.Select.Down = key.NewBinding(key.WithKeys("down", "right", "j", "l"))
