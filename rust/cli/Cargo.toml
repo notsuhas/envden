@@ -41,6 +41,7 @@ libz-sys = { version = "1", features = ["static"] }
 unicode-width = "0.2.2"
 
 [dev-dependencies]
+envden-testing = { path = "../testing" }
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
 tempfile = "3"

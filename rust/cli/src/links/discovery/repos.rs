@@ -103,13 +103,7 @@ pub fn discover_repos(
                 let handles: Vec<_> = chunk
                     .iter()
                     .map(|path| {
-                        scope.spawn(move || {
-                            identify(repo, &path.to_string_lossy(), report).map(|c| {
-                                let worktrees = repo.worktrees(&c).unwrap_or_default();
-                                let submodules = repo.submodules(&c).unwrap_or_default();
-                                (c, worktrees, submodules)
-                            })
-                        })
+                        scope.spawn(move || identify(repo, &path.to_string_lossy(), report))
                     })
                     .collect();
                 handles
@@ -118,8 +112,12 @@ pub fn discover_repos(
                     .collect::<Vec<_>>()
             });
             let mut additional = Vec::new();
-            for (checkout, worktrees, submodules) in results {
+            for checkout in results {
                 collected.insert(PathBuf::from(&checkout.root));
+                found.insert(checkout.root.clone(), checkout.clone());
+                progress(found.len());
+                let worktrees = repo.worktrees(&checkout).unwrap_or_default();
+                let submodules = repo.submodules(&checkout).unwrap_or_default();
                 for worktree in worktrees {
                     if !found.contains_key(&worktree) && !excluded(Path::new(&worktree), &excludes)
                     {
@@ -148,8 +146,6 @@ pub fn discover_repos(
                         }
                     }
                 }
-                found.insert(checkout.root.clone(), checkout);
-                progress(found.len());
             }
             for chunk in additional.chunks(8) {
                 let worktrees = thread::scope(|scope| {

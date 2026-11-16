@@ -712,6 +712,7 @@ dependencies = [
  "envden-core",
  "envden-protocol",
  "envden-server",
+ "envden-testing",
  "flate2",
  "http-body-util",
  "libz-sys",
