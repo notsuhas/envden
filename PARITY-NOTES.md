@@ -109,3 +109,15 @@ Possible improvement: find the timing input (likely the checkout identity or a c
 Why: status must not flip on load, and the parity suite needs every scenario to be deterministic.
 
 Bug-in-TS: likely; not yet reproduced on demand
+
+## protocol: "strict" Ed25519 verification is cofactored
+
+Scenario: a signature whose R has a small-order component, for example the order-two point, with a canonical encoding and S < L.
+
+TS behaviour: noble's `verify` with `zip215: false` accepts it, because noble always checks the cofactored equation; the flag only rejects noncanonical encodings. PROTOCOL.md § 1 calls this "strict verification", which reads as cofactorless.
+
+Possible improvement: state the equation in PROTOCOL.md, and decide whether v1 should reject small-order R.
+
+Why: implementations that read "strict" as cofactorless split on which chains are valid. Go now matches noble (`ed25519consensus` plus the canonical-encoding checks), with the reviewer's vector as a test.
+
+Bug-in-TS: no (spec wording)

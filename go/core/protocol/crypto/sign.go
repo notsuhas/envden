@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 
 	"filippo.io/edwards25519"
+	"github.com/hdevalence/ed25519consensus"
 	"github.com/notsuhas/envden/go/core/protocol/encoding"
 	"github.com/notsuhas/envden/go/core/protocol/internal/validation"
 )
@@ -27,7 +28,8 @@ func Verify(pub []byte, label string, message, signature []byte) Verification[bo
 		encoding.B64.Write(signature)
 		r, e := new(edwards25519.Point).SetBytes(signature[:32])
 		encoding.RequireValue(e == nil && bytes.Equal(r.Bytes(), signature[:32]), "Bad signature")
-		encoding.RequireValue(ed25519.Verify(pub, Frame(label, message), signature), "Bad signature")
+		// noble checks the cofactored equation even with zip215 off; the strict encoding checks are above
+		encoding.RequireValue(ed25519consensus.Verify(pub, Frame(label, message), signature), "Bad signature")
 
 		return true
 	})

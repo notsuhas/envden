@@ -49,7 +49,7 @@ A TS folder becomes a Go package with the same name, unless the name is a Go key
 |---|---|---|
 | SHA-256, HMAC, HKDF | Go standard library (`crypto/sha256`, `crypto/hmac`, `crypto/hkdf`) | RFC implementations in the standard library |
 | XChaCha20-Poly1305, Argon2id | `golang.org/x/crypto` | maintained by the Go team |
-| Ed25519 | `crypto/ed25519` plus `filippo.io/edwards25519` for canonical and small-order key checks | the standard library verifies cofactorless and rejects S ≥ L and noncanonical R, like `zip215: false` |
+| Ed25519 | `crypto/ed25519` to sign, `github.com/hdevalence/ed25519consensus` to verify, `filippo.io/edwards25519` for canonical and small-order checks | noble verifies with the cofactored equation even with `zip215: false`, which only makes encodings strict; ed25519consensus checks that equation and S < L, and envden's own checks keep A and R canonical |
 | X25519, HPKE | `crypto/ecdh`, `crypto/hpke` (Go 1.26) | RFC 9180 in the standard library; rejects all-zero shared secrets |
 | OPAQUE | `github.com/bytemare/opaque` v0.18.0, RFC 9807, ristretto255-SHA512, Argon2id KSF with a 16-byte zero salt, `t=3, m=65536, p=4`, 64-byte output | reproduces `@serenity-kit/opaque` 1.1.0 (`opaque-ke` 4) byte for byte against the stored vectors |
 | Unicode normalization | `golang.org/x/text` | |
