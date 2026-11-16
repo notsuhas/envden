@@ -2,10 +2,7 @@ use crate::{
     state::{lock::with_state_lock, repository::save_state},
     sync::local::conflicts::remove_conflict_targets,
 };
-use envden_core::{
-    errors::Result,
-    filesystem::{ICanonicalPath, path_identity},
-};
+use envden_core::{errors::Result, filesystem::path_identity};
 use serde_json::Value;
 use std::{fs, path::Path};
 
@@ -27,7 +24,7 @@ pub fn prune_missing_checkouts(
             let Some(parent) = Path::new(root).parent() else {
                 continue;
             };
-            let Ok(parent) = parent.canonical_path().and_then(|p| path_identity(&p)) else {
+            let Ok(parent) = path_identity(parent) else {
                 continue;
             };
             if approval["rootDevice"]
@@ -57,4 +54,26 @@ pub fn prune_missing_checkouts(
         }
         save_state(home, state, now)
     })
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parent_existence_uses_lstat_even_for_a_dangling_symlink() {
+        let temp = tempfile::tempdir().unwrap();
+        let parent = temp.path().join("unavailable-parent");
+        std::os::unix::fs::symlink(temp.path().join("missing"), &parent).unwrap();
+        let checkout = envden_core::adapters::ICheckout {
+            root: parent.join("checkout").to_string_lossy().into_owned(),
+            git_dir: "/git".into(),
+            repo_id: "host/repo".into(),
+            ..Default::default()
+        };
+        let mut state = crate::state::empty_state("test");
+        state["approved"] = serde_json::json!([crate::links::approval::checkout_value(&checkout)]);
+        prune_missing_checkouts(&temp.path().join("home"), &mut state, &|_| {}, 42).unwrap();
+        assert!(state["approved"].as_array().unwrap().is_empty());
+    }
 }
