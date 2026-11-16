@@ -162,10 +162,25 @@ fn all_6400_reachable_copy_states_match_the_design_reference() {
 fn owning_store_edit_is_independent_of_target_order() {
     for reversed in [false, true] {
         let mut copies: Vec<(&[u8], TBytes)> = vec![(b"B", Some(b"A")), (b"C", None)];
-        if reversed { copies.reverse(); }
+        if reversed {
+            copies.reverse();
+        }
         let result = derive_file_sides(&ISidesInput {
-            store_before_restore: Some(b"A"), recorded: None, previous: None, server: TServer::Absent, pending_removal: false,
-            copies: copies.into_iter().map(|(bytes, base)| ICopy { bytes: Some(bytes), base, tracked: true, link: false, historical: false }).collect(),
+            store_before_restore: Some(b"A"),
+            recorded: None,
+            previous: None,
+            server: TServer::Absent,
+            pending_removal: false,
+            copies: copies
+                .into_iter()
+                .map(|(bytes, base)| ICopy {
+                    bytes: Some(bytes),
+                    base,
+                    tracked: true,
+                    link: false,
+                    historical: false,
+                })
+                .collect(),
         });
         assert_eq!(result.mine, Some(b"A".as_slice()));
     }
