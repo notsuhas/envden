@@ -10,6 +10,8 @@ impl IStorageAdapter for SqliteStorageAdapter {
         let _guard = self.gate.lock();
         let db = self.connection.lock().take();
         if let Some(db) = db {
+            db.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)")
+                .map_err(crate::db::fail)?;
             db.close().map_err(|(_, e)| crate::db::fail(e))?;
         }
         Ok(())

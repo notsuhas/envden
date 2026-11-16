@@ -327,6 +327,10 @@ Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a runni
 
 Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and the store in whatever folder the command ran from. Empty now means unset, so envden uses `~/.envden`, the same as the install scripts.
 
+### A stopped server leaves only its database file
+
+Replaces shutdown that left `envden.sqlite-wal` and `envden.sqlite-shm` behind on macOS only, where Apple's SQLite keeps the write-ahead log by default. Every server now checkpoints with `TRUNCATE` on close, with persistent WAL off, so a stopped server leaves only `envden.sqlite` on every platform. The Rust server uses its bundled SQLite everywhere instead of the system library on macOS.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
