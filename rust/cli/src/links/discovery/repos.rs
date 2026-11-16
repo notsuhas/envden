@@ -5,6 +5,7 @@ use super::{
     parallel::parallel_map,
 };
 use envden_core::adapters::{ICheckout, IRepoAdapter};
+use envden_core::filesystem::ICanonicalPath;
 use std::{
     collections::{HashSet, VecDeque},
     fs,
@@ -51,7 +52,7 @@ pub fn discover_repos(
     while !queue.is_empty() {
         let batch: Vec<_> = (0..32).filter_map(|_| queue.pop_front()).collect();
         let real = parallel_map(&batch, 32, |(path, root)| {
-            Some((path.canonicalize().ok()?, *root))
+            Some((path.canonical_path().ok()?, *root))
         });
         let unseen: Vec<_> = real
             .into_iter()
@@ -112,7 +113,7 @@ fn resolved(path: &Path) -> PathBuf {
 }
 
 fn real_or_resolved(path: &Path) -> PathBuf {
-    path.canonicalize().unwrap_or_else(|_| resolved(path))
+    path.canonical_path().unwrap_or_else(|_| resolved(path))
 }
 
 #[cfg(test)]

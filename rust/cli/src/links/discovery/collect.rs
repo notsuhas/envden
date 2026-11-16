@@ -1,5 +1,6 @@
 use super::{identify::identify, parallel::parallel_map, repos::IRepoSkip};
 use envden_core::adapters::{ICheckout, IRepoAdapter};
+use envden_core::filesystem::ICanonicalPath;
 use std::{
     collections::HashSet,
     fs,
@@ -65,7 +66,7 @@ impl IWalk<'_> {
             })
             .filter(|path| path != Path::new(&checkout.root) && path.starts_with(&checkout.root))
             .collect();
-        let real = parallel_map(&paths, 32, |path| path.canonicalize().ok());
+        let real = parallel_map(&paths, 32, |path| path.canonical_path().ok());
         let unseen: Vec<_> = real.into_iter().filter(|path| self.unseen(path)).collect();
         let checkouts = parallel_map(&unseen, 32, |path| {
             fs::read_dir(path)
