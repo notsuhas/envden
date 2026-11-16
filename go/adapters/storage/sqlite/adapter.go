@@ -65,9 +65,6 @@ func CreateSqliteStorageAdapter(dir string, now int64) (result adapters.Storage,
 		return nil, err
 	}
 
-	if err := applyWALPersistence(conn); err != nil {
-		return nil, err
-	}
 	if err := restrictFiles(dir); err != nil {
 		return nil, err
 	}

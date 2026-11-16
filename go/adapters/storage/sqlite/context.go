@@ -101,11 +101,9 @@ func (s *storage) tx(fn func() error) (err error) {
 func (s *storage) ID() string { return "sqlite" }
 
 func (s *storage) Close() error {
-	if persistsWAL(runtime.GOOS) {
-		// Apple's SQLite empties the kept WAL on close; persistent mode alone would leave its pages
-		if _, err := s.conn.ExecContext(context.Background(), "PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
-			return err
-		}
+	// A stopped server leaves only envden.sqlite, so a backup needs one file.
+	if _, err := s.conn.ExecContext(context.Background(), "PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
+		return err
 	}
 
 	e := s.conn.Close()
