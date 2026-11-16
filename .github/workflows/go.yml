@@ -1,0 +1,128 @@
+name: Go port
+
+on:
+  push:
+    branches: [port/go]
+  pull_request:
+    paths: ["go/**", "parity/**", ".github/workflows/go.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: go-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: go
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.15.0
+          working-directory: go
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - if: runner.os == 'Linux'
+        working-directory: .
+        run: sudo apt-get update && sudo apt-get install -y zsh fish
+      # the sync exploration traces run in their own job below; together they cover every test
+      - run: go test -race -timeout 30m -skip '^TestExploration$' ./...
+
+  exploration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - run: go test -timeout 50m -run '^TestExploration$' ./cli/sync/enginetest
+
+  compile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - run: ./scripts/build-all.sh
+      - run: ls -l dist
+      # signing and publishing stay off for the port; see docs/ports/go.md § Releases
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: envden-go
+          path: go/dist/
+          retention-days: 7
+
+  parity:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+      - working-directory: .
+        run: bun install --frozen-lockfile
+      - name: Build the TypeScript reference
+        working-directory: apps/cli
+        run: bun run build
+      - run: go build -o dist/envden ./cmd/envden
+      # setup requires tailnet HTTPS certificates, so a stand-in tailscale reports them enabled
+      - working-directory: .
+        run: |
+          cat > "$RUNNER_TEMP/tailscale" <<'SCRIPT'
+          #!/bin/sh
+          echo '{"BackendState":"Running","Self":{"DNSName":"ci.example.ts.net."},"CertDomains":["ci.example.ts.net"]}'
+          SCRIPT
+          bin=/usr/local/bin; [ "$RUNNER_OS" = Linux ] && bin=/usr/bin
+          sudo install -m 0755 "$RUNNER_TEMP/tailscale" "$bin/tailscale"
+      - name: Parity suite
+        working-directory: .
+        run: bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden
+      - name: Mixed setups
+        working-directory: .
+        run: |
+          bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden --server-binary go/dist/envden
+          bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden --server-binary apps/cli/dist/envden
+          bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden --device-binary a=apps/cli/dist/envden
+      - name: Unchanged e2e against the Go binary
+        working-directory: .
+        run: bun apps/cli/scripts/e2e.ts go/dist/envden
