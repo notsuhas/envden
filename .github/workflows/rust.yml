@@ -103,6 +103,14 @@ jobs:
       - run: cargo build --release -p envden-cli
       - run: CARGO_TARGET_DIR=target/server cargo build --release -p envden-server --bin envden-serve
       - run: bash scripts/rust/install-tailscale.sh
+      - name: Install pdftotext
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            sudo apt-get update -q && sudo apt-get install -yq poppler-utils
+          else
+            brew install poppler
+          fi
+          pdftotext -v
       - run: mkdir -p parity-logs
       - name: Compare binaries
         run: bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden 2>&1 | tee parity-logs/binaries.log
