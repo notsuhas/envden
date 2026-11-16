@@ -1,0 +1,3211 @@
+# Sync test map
+
+Scope: all registrations under apps/cli/src/sync, plus external tests that call sync, drive its HTTP actions, render its messages, or check its command gates. Other tests in commands/state/vault files that never exercise sync are excluded. Optional deep exploration is included.
+
+Expanded TS registrations collected without executing test bodies. A checked row has a Go counterpart; unchecked rows remain unfinished. Shared table tests cover the named row. Passing verification is recorded separately in the report.
+
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `missing token is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `wrong token is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `rebound host is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `rebound host on the page is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `cross-origin post is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `post without origin is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `rename without a token is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `cross-origin rename is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `history without a token is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `cross-origin restore is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `restore without origin is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `unknown path is refused` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `the page is served with strict headers and no token` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `status names changed keys, never values` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `the unlock expiry recorded by envden unlock shows once the server agrees` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `push and pull call through` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `conflicts list their keys and resolve through the dashboard` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/server/__tests__/app.test.ts :: `no response carried an env value` → `go/cli/sync/enginetest/dashboard_server_test.go: TestDashboardServerSyncFlows`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `history lists versions with devices and key names, never values` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardHistoryVersions`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `history rejects no path` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardHistoryInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `history rejects a relative root` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardHistoryInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `history rejects an extra field` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardHistoryInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `restore rejects no version` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardRestoreInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `restore rejects version zero` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardRestoreInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `restore rejects a fractional version` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardRestoreInputs`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `restore rewrites only the local file and waits for Push` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardRestoreWaitsForPush`
+- [x] apps/cli/src/ui/routes/__tests__/history.test.ts :: `restore refusals come back as errors and leave the file alone` → `go/cli/sync/enginetest/dashboard_history_test.go: TestDashboardRestoreRefusalsPreserveFiles`
+- [x] apps/cli/src/ui/routes/__tests__/rename.test.ts :: `rename rejects an empty body` → `go/cli/sync/enginetest/dashboard_rename_test.go: TestDashboardRenameInputs`
+- [x] apps/cli/src/ui/routes/__tests__/rename.test.ts :: `rename rejects an empty name` → `go/cli/sync/enginetest/dashboard_rename_test.go: TestDashboardRenameInputs`
+- [x] apps/cli/src/ui/routes/__tests__/rename.test.ts :: `rename rejects a huge name` → `go/cli/sync/enginetest/dashboard_rename_test.go: TestDashboardRenameInputs`
+- [x] apps/cli/src/ui/routes/__tests__/rename.test.ts :: `rename rejects an extra field` → `go/cli/sync/enginetest/dashboard_rename_test.go: TestDashboardRenameInputs`
+- [x] apps/cli/src/ui/routes/__tests__/rename.test.ts :: `this device renames itself; taken and invalid names are refused inline` → `go/cli/sync/enginetest/dashboard_rename_test.go: TestDashboardDeviceRename`
+- [x] apps/cli/src/admin/move/__tests__/move.test.ts :: `server move copies to another server` → `go/cli/sync/enginetest/server_move_test.go: TestServerMoveAndOfflinePull`
+- [x] apps/cli/src/admin/move/__tests__/move.test.ts :: `server move resumes after source commit` → `go/cli/sync/enginetest/server_move_test.go: TestServerMoveAndOfflinePull`
+- [x] apps/cli/src/admin/move/__tests__/move.test.ts :: `aborting a prepared move discards the inactive destination and permits a fresh move` → `go/cli/sync/enginetest/server_move_abort_test.go: TestPreparedMoveAbortAllowsFreshMove`
+- [x] apps/cli/src/admin/move/__tests__/move.test.ts :: `stale recovery kit refuses move before consuming destination token` → `go/cli/sync/enginetest/server_move_abort_test.go: TestStaleKitRefusesMoveWithoutConsumingToken`
+- [x] apps/cli/src/admin/repair/__tests__/lost.test.ts :: `accept-lost recovers an older version and offline pull crosses op 11` → `go/cli/sync/enginetest/repair_lost_test.go: TestRepairAcceptLostAndOfflinePull`
+- [x] apps/cli/src/admin/repair/__tests__/lost.test.ts :: `accept-lost marks a file lost and offline pull crosses op 11` → `go/cli/sync/enginetest/repair_lost_test.go: TestRepairAcceptLostAndOfflinePull`
+- [x] apps/cli/src/admin/devices/__tests__/poisoned-name.test.ts :: `a member's unreadable file name blocks neither pull nor its removal` → `go/cli/sync/enginetest/admin_sync_test.go: TestUnreadableMemberFileNameDoesNotBlockPullOrRemoval`
+- [x] apps/cli/src/admin/devices/__tests__/rename.test.ts :: `rename check rejects invalid and taken names and spots no-ops` → `go/cli/admin/devices/rename_test.go: TestRenameCheck`
+- [x] apps/cli/src/admin/devices/__tests__/rename.test.ts :: `a device renames itself and every device sees the new name` → `go/cli/sync/enginetest/admin_sync_test.go: TestDeviceRenamePropagatesThroughSync`
+- [x] apps/cli/src/output/render/sync/__tests__/conflicts.test.ts :: `conflict list names each file, its edit file and saved variants` → `go/cli/sync/enginetest/conflict_output_test.go: TestConflictListNamesEditsAndVariants`
+- [x] apps/cli/src/output/render/sync/__tests__/conflicts.test.ts :: `resolution names the file and where backups went` → `go/cli/sync/enginetest/conflict_output_test.go: TestResolutionNamesFilePlacementAndBackups`
+- [x] apps/cli/src/output/render/sync/__tests__/conflicts.test.ts :: `a conflict notice is one line naming the cause and the next step` → `go/cli/sync/enginetest/conflict_notice_test.go: TestConflictNoticeNamesCauseAndNextStep`
+- [x] apps/cli/src/status/__tests__/report.test.ts :: `status reports local edits, newer server changes and the in-sync state` → `go/cli/sync/enginetest/status_report_test.go: TestStatusTracksEditsRemoteAdvanceAndSync`
+- [x] apps/cli/src/state/__tests__/lock.test.ts :: `sync reclaims the state lock of a killed process` → `go/cli/sync/enginetest/lock_process_test.go: TestKilledSyncLockOwner`
+- [x] apps/cli/src/links/__tests__/prune.test.ts :: `prune preserves unavailable parent volumes: true` → `go/cli/sync/enginetest/link_modes_test.go: TestPrunePreservesUnavailableVolumesAndBases`
+- [x] apps/cli/src/links/__tests__/prune.test.ts :: `prune preserves unavailable parent volumes: false` → `go/cli/sync/enginetest/link_modes_test.go: TestPrunePreservesUnavailableVolumesAndBases`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `placement requires approval, relinks equal detached copies and preserves differing files` → `go/cli/sync/enginetest/link_placement_test.go: TestPlacementApprovalAndDetachedFiles`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `a link into a deleted store is removed instead of tracked` → `go/cli/sync/enginetest/link_placement_test.go: TestLinkIntoDeletedStoreIsRemoved`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `container offers are recorded once per checkout` → `go/cli/sync/enginetest/link_placement_test.go: TestContainerOfferOncePerCheckout`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `copy flags and mode switches preserve checkout bases` → `go/cli/sync/enginetest/link_modes_test.go: TestModeSwitchesPreserveBases`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `unavailable links require explicit copy consent: interactive=false` → `go/cli/sync/enginetest/link_modes_test.go: TestUnavailableLinksNeedExplicitCopyConsent`
+- [x] apps/cli/src/links/__tests__/placement.test.ts :: `unavailable links require explicit copy consent: interactive=true` → `go/cli/sync/enginetest/link_modes_test.go: TestUnavailableLinksNeedExplicitCopyConsent`
+- [x] apps/cli/src/history/__tests__/history.test.ts :: `history lists versions newest first with devices and key names only` → `go/cli/sync/enginetest/history_test.go: TestHistoryVersionsDevicesAndKeysOnly`
+- [x] apps/cli/src/history/__tests__/history.test.ts :: `restore writes an old version locally and the next push publishes it` → `go/cli/sync/enginetest/history_test.go: TestRestoreThenPushPublishesHistory`
+- [x] apps/cli/src/history/__tests__/history.test.ts :: `pruned lists and blobs end the history` → `go/cli/sync/enginetest/history_test.go: TestPrunedHistoryEndsAtMissingListsAndBlobs`
+- [x] apps/cli/src/commands/__tests__/commands.test.ts :: `help lists every command and a fresh home fails each gate with its exit code` → `go/cli/sync/enginetest/command_test.go: TestCommandFreshHomeSyncGates`
+- [x] apps/cli/src/commands/__tests__/commands.test.ts :: `resolution choice undefined undefined` → `go/cli/sync/enginetest/command_test.go: TestCommandResolutionChoices`
+- [x] apps/cli/src/commands/__tests__/commands.test.ts :: `resolution choice true false` → `go/cli/sync/enginetest/command_test.go: TestCommandResolutionChoices`
+- [x] apps/cli/src/commands/__tests__/commands.test.ts :: `resolution choice false true` → `go/cli/sync/enginetest/command_test.go: TestCommandResolutionChoices`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a store edit the server already holds leaves the copy edit as mine` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `G1 removal outranks an unbased copy` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `G2 server bytes cannot hide the store edit` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `G3 changed store outranks an unbased copy` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `an unpushed recorded store remains mine` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a copy edit is mine after sync changed the store` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a copy based on the store can replace it` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `an unchanged copy follows the store` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a missing copy is restored` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a missing store is restored from the server` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a missing unpublished store can recover a copy` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `an unchanged copy follows a tombstone` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a changed copy survives a tombstone` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `historical unbased bytes adopt the store` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `unbased server bytes adopt an unchanged store` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `unbased differing bytes require a choice` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a new store edit outranks a based copy edit` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a deliberate store revert remains mine` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `matching copies relink without changing mine` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `removal survives a live server` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a removal the server already holds leaves the extra copy as mine` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `an empty file state stays absent` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a changed copy can deliberately revert` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestNamedSideScenarios`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `reachable copy states agree with DESIGN and retain local edits` → `go/cli/sync/local/reconciliation/content/sides_test.go: TestReachableCopyStates`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/sides.test.ts :: `a changed store stays mine regardless of target order` → `go/cli/sync/local/reconciliation/content/scenarios_test.go: TestChangedStoreOwnershipIgnoresTargetOrder`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `unchanged current` → `go/cli/sync/local/reconciliation/decision_test.go: TestFileDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `unchanged stale` → `go/cli/sync/local/reconciliation/decision_test.go: TestFileDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `deliberate revert` → `go/cli/sync/local/reconciliation/decision_test.go: TestFileDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `identical concurrent edit` → `go/cli/sync/local/reconciliation/decision_test.go: TestFileDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `divergent deliberate revert` → `go/cli/sync/local/reconciliation/decision_test.go: TestFileDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `copy unchanged follows store` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `copy edit conflicts with unpushed store` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `untracked bytes conflict` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `unbased bytes conflict` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `detached bytes conflict` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `tracked detached revert is an edit` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `tracked detached new bytes are an edit` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `matching detached bytes relink` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `untracked detached bytes require a choice` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `missing copy restores` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `place a/a/true` → `go/cli/sync/local/lineage/versions_test.go: TestPlaceVersions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `place b/a/true` → `go/cli/sync/local/lineage/versions_test.go: TestPlaceVersions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `place b/b/false` → `go/cli/sync/local/lineage/versions_test.go: TestPlaceVersions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `place null/null/true` → `go/cli/sync/local/lineage/versions_test.go: TestPlaceVersions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `place null/a/true` → `go/cli/sync/local/lineage/versions_test.go: TestPlaceVersions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `store edit is mine` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionConflictOwnership`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `pending removal is mine` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionConflictOwnership`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `synced store leaves copy edit as mine` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionConflictOwnership`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `copy already at server does not conflict with unchanged stale store` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionCopyAlreadyAtServer`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/file-decision.test.ts :: `restoring a missing store leaves the copy edit as mine` → `go/cli/sync/local/reconciliation/file_decision_test.go: TestFileDecisionRestoredStoreKeepsCopyMine`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume false,false old,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume true,false next,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume true,true next,next` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume true,false old,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume false,true next,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume false,false edit,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resume.test.ts :: `resume false,false next,old` → `go/cli/sync/local/reconciliation/operation/resume_cases_test.go: TestResumeMatrix`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `explicit keep-mine preserves selected bytes` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `explicit take-server preserves selected bytes` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `take-server keeps the existing default when the server is unchanged` → `go/cli/sync/local/reconciliation/resolution_test.go: TestTakeServerKeepsUnchangedServerDefault`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `merge confirmation false` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `merge confirmation true` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `missing baseline remains a conflict without confirmation` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/resolution.test.ts :: `noninteractive merge never calls confirmation or a chooser` → `go/cli/sync/local/reconciliation/resolution_test.go: TestContentResolution`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"detached":true,"previous":{"0":2}}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"previous":{"0":2}}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"previous":{"0":1}}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"mine":{"0":2}}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"linked":false,"useStore":false}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"linked":false,"useStore":false,"choosing":true}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"repair":true}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `content decision {"repair":true}` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `unchanged server preserves a local edit or deletion` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source link missing false` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source link linked true` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source link linked false` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source link detached true` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source copy missing true` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `store source link relinkable false` → `go/cli/sync/local/reconciliation/decision_test.go: TestStoreSource`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording conflict false false` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording repair-conflict true true` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording detached false false` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording detached true false` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording detached false true` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording write false false` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `conflict recording choose false false` → `go/cli/sync/local/reconciliation/decision_test.go: TestConflictRequirements`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `a tombstone without a base requires a choice before resurrection` → `go/cli/sync/local/reconciliation/decision_test.go: TestContentDecisions`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `observed revert 1 2` → `go/cli/sync/local/reconciliation/decision_test.go: TestObservedRevertCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `observed revert 3 2` → `go/cli/sync/local/reconciliation/decision_test.go: TestObservedRevertCases`
+- [x] apps/cli/src/sync/local/reconciliation/__tests__/decision.test.ts :: `observed revert 1 3` → `go/cli/sync/local/reconciliation/decision_test.go: TestObservedRevertCases`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `unlinked target` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `unchanged link` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `unapproved checkout` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `local only` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `mode changed` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/reconciliation/placement/__tests__/skip.test.ts :: `store changed` → `go/cli/sync/local/reconciliation/placement/skip_test.go: TestTargetSkip`
+- [x] apps/cli/src/sync/local/validation/__tests__/collisions.test.ts :: `later aliases and directory aliases collide` → `go/cli/sync/local/validation/collisions_test.go: TestPathCollisions`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: link` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: link` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: copy` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: copy` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: link+copy` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: link+copy` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: copy+copy` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: copy+copy` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: link+link` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: link+link` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `explicit rm publishes deletion across devices: link+copy+copy` → `go/cli/sync/enginetest/removal_test.go: TestExplicitRemovalAcrossDevices`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `absence never publishes deletion: link+copy+copy` → `go/cli/sync/enginetest/removal_test.go: TestAbsenceNeverPublishesDeletion`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `rm refuses non-interactive removal without explicit confirmation` → `go/cli/sync/enginetest/removal_test.go: TestRemovalNeedsConfirmation`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `confirmed rm discards an existing conflict without recreating it on push` → `go/cli/sync/enginetest/removal_test.go: TestRemovalDiscardsExistingConflict`
+- [x] apps/cli/src/sync/__tests__/removal.test.ts :: `rm of an unpublished file keeps other checkouts' local-only links` → `go/cli/sync/enginetest/local_only_removal_test.go: TestRemovalKeepsOtherLocalOnlyLinks`
+- [x] apps/cli/src/sync/__tests__/first-run.test.ts :: `sync first-run` → `go/cli/sync/enginetest/first_run_test.go: TestSyncFirstRun`
+- [x] apps/cli/src/sync/__tests__/first-run.test.ts :: `tracking after join does not invent an agreed server base` → `go/cli/sync/enginetest/first_run_test.go: TestTrackingAfterJoinHasNoInventedBase`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy+copy: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy+copy: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy+copy: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy+copy: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy+copy: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+link: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+link: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+link: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+link: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+link: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy+copy: agreement` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy+copy: local edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy+copy: remote edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy+copy: same edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `link+copy+copy: divergence` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy edit` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineCopyMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy unchanged` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineCopyMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy remote advance` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineCopyMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy divergent edits` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineCopyMatrix`
+- [x] apps/cli/src/sync/__tests__/matrix.test.ts :: `copy and remote diverge` → `go/cli/sync/enginetest/matrix_test.go: TestFullEngineCopyMatrix`
+- [x] apps/cli/src/sync/__tests__/incremental.test.ts :: `history requests only pages after the verified checkpoint` → `go/cli/sync/enginetest/incremental_test.go: TestHistoryRequestsAfterCheckpoint`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `base paths distinguish copies and fit long paths` → `go/cli/sync/local/files/files_test.go: TestSafeSyncFiles`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `local reads reject symlinks and distinguish missing files` → `go/cli/sync/local/files/files_test.go: TestSafeSyncFiles`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `sync locks nest and release between writers` → `go/cli/sync/enginetest/local_resolution_test.go: TestSyncLocksNestAndRelease`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `repo selection refuses changed remotes and path-prefix siblings` → `go/cli/sync/enginetest/selection_test.go: TestSelectionRefusesChangedRemotesAndPrefixSiblings`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `resolve keep-mine uses recorded snapshots and clears its conflict` → `go/cli/sync/enginetest/local_resolution_test.go: TestResolveRecordedSnapshots`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `resolve take-server uses recorded snapshots and clears its conflict` → `go/cli/sync/enginetest/local_resolution_test.go: TestResolveRecordedSnapshots`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `resolve edit uses recorded snapshots and clears its conflict` → `go/cli/sync/enginetest/local_resolution_test.go: TestResolveRecordedSnapshots`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `backup retention removes only expired backup names` → `go/cli/sync/enginetest/selection_test.go: TestBackupRetentionRecognizesNamesOnly`
+- [x] apps/cli/src/sync/__tests__/local.test.ts :: `all skips recreated checkouts with a track notice` → `go/cli/sync/enginetest/selection_test.go: TestAllSkipsRecreatedCheckoutWithNotice`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `interrupted-receipt copy+copy Btmp Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/interrupted-receipt_copy+copy_Btmp_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `untrack-removal copy+copy Bm Bv1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/untrack-removal_copy+copy_Bm_Bv1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `observed-detached link Be Bl Bd=zz Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/observed-detached_link_Be_Bl_Bd=zz_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `plain-target-delete copy Bdel Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/plain-target-delete_copy_Bdel_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `plain-store-delete link Bstore Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/plain-store-delete_link_Bstore_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `unsent-swap copy Be Bn Ae As Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/unsent-swap_copy_Be_Bn_Ae_As_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `placement-write-kill copy+copy Ae As Bq Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/placement-write-kill_copy+copy_Ae_As_Bq_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `corrupt-receipt copy Bcorrupt Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/corrupt-receipt_copy_Bcorrupt_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `non-init-revert link Be=first Bs Be=second Bs Br=first Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/non-init-revert_link_Be=first_Bs_Be=second_Bs_Br=first_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-then-other copy Be Bx Al Ae As Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-then-other_copy_Be_Bx_Al_Ae_As_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-then-other-link link Be Bx Al Ae As Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-then-other-link_link_Be_Bx_Al_Ae_As_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-revert-fail copy Be Bx Al Ar As Bf Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-revert-fail_copy_Be_Bx_Al_Ar_As_Bf_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-revert-fail-cc copy+copy Be Bx Al Ar As Bf Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-revert-fail-cc_copy+copy_Be_Bx_Al_Ar_As_Bf_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `fail-edit-unplaced copy+copy Ae As Bf Be1 Ar As Bl Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/fail-edit-unplaced_copy+copy_Ae_As_Bf_Be1_Ar_As_Bl_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `fail-edit-unplaced-cl copy+link Ae As Bf0 Be0 Ar As Bl Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/fail-edit-unplaced-cl_copy+link_Ae_As_Bf0_Be0_Ar_As_Bl_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-lost-other copy Bm Bx Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-lost-other_copy_Bm_Bx_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-lost-other-pull copy Bm Bx Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-lost-other-pull_copy_Bm_Bx_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-both copy Bm Am As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-both_copy_Bm_Am_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-both-2 copy Bm Am Bs As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-both-2_copy_Bm_Am_Bs_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `edit-lost-rm copy Be Bx Bm Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/edit-lost-rm_copy_Be_Bx_Bm_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `edit-lost-rm-link link Be Bx Bm Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/edit-lost-rm-link_link_Be_Bx_Bm_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-twice copy Be Bx Al As Be Bx Al As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-twice_copy_Be_Bx_Al_As_Be_Bx_Al_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-twice-edit copy Be Bx Al Ae As Be Bx Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-twice-edit_copy_Be_Bx_Al_Ae_As_Be_Bx_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `dup-history-1 copy Ae=2 As Ar As Bl Ae=2 As Ar As Ae=2 As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/dup-history-1_copy_Ae=2_As_Ar_As_Bl_Ae=2_As_Ar_As_Ae=2_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `dup-history-2 copy Ae=2 As Bl Ar As Ae=2 As Bs Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/dup-history-2_copy_Ae=2_As_Bl_Ar_As_Ae=2_As_Bs_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `dup-history-3 copy Ae=2 As Bl Ar As Br Ae=2 As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/dup-history-3_copy_Ae=2_As_Bl_Ar_As_Br_Ae=2_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `dup-history-4 copy+copy Ae=2 As Bf Ar As Ae=2 As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/dup-history-4_copy+copy_Ae=2_As_Bf_Ar_As_Ae=2_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `dup-history-5 copy Ae=2 As Bl Ar As Bf Ae=2 As Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/dup-history-5_copy_Ae=2_As_Bl_Ar_As_Bf_Ae=2_As_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-single copy Be Bs Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-single_copy_Be_Bs_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-single-link link Be Bs Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-single-link_link_Be_Bs_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-during-pending copy+copy Ae As Bf Br0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-during-pending_copy+copy_Ae_As_Bf_Br0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-during-attempt copy Be Bx Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-during-attempt_copy_Be_Bx_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-during-attempt-link link Be Bx Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-during-attempt-link_link_Be_Bx_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `revert-one-copy-other-stale copy+copy Ae As Bf Br1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/revert-one-copy-other-stale_copy+copy_Ae_As_Bf_Br1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `stale-must-not-push copy Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/stale-must-not-push_copy_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `stale-retrack copy Ae As Bu Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/stale-retrack_copy_Ae_As_Bu_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `fail-retrack copy+copy Ae As Bf Bu Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/fail-retrack_copy+copy_Ae_As_Bf_Bu_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `fail-retrack-other copy+copy Ae As Bf Bu Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/fail-retrack-other_copy+copy_Ae_As_Bf_Bu_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-retrack copy Be Bx Bu Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-retrack_copy_Be_Bx_Bu_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-retrack-revert copy Be Bx Bu Al Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-retrack-revert_copy_Be_Bx_Bu_Al_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-A-revert copy Be Bx Al Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-A-revert_copy_Be_Bx_Al_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-A-revert-cc copy+copy Be Bx Al Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-A-revert-cc_copy+copy_Be_Bx_Al_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-A-revert-cl copy+link Be Bx Al Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-A-revert-cl_copy+link_Be_Bx_Al_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `conflict-resolve-stale copy Ae As Be Bl Ae As Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/conflict-resolve-stale_copy_Ae_As_Be_Bl_Ae_As_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `conflict-keep-then-other copy Ae As Be Bl Ae As Bk Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/conflict-keep-then-other_copy_Ae_As_Be_Bl_Ae_As_Bk_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-conflict-take copy Bm Ae As Bs Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-conflict-take_copy_Bm_Ae_As_Bs_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-conflict-keep copy Bm Ae As Bs Bk Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-conflict-keep_copy_Bm_Ae_As_Bs_Bk_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-then-edit copy Bm Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-then-edit_copy_Bm_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-lost-edit copy Bm Bx Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-lost-edit_copy_Bm_Bx_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-lost-A-pull-edit copy Bm Bx Al Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-lost-A-pull-edit_copy_Bm_Bx_Al_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `rm-fail copy+copy Ae As Bf Bm Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/rm-fail_copy+copy_Ae_As_Bf_Bm_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `A-rm-B-edit copy Am As Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/A-rm-B-edit_copy_Am_As_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `A-rm-B-fail copy+copy Am As Bf Be0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/A-rm-B-fail_copy+copy_Am_As_Bf_Be0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `two-copies-edit copy+copy Be0 Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/two-copies-edit_copy+copy_Be0_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `copy-link-edit copy+link Be0 Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/copy-link-edit_copy+link_Be0_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `cc-lost-edit-other copy+copy Be0 Bx Be1 Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/cc-lost-edit-other_copy+copy_Be0_Bx_Be1_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `cc-fail-lost copy+copy Ae As Bf Be0 Bx Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/cc-fail-lost_copy+copy_Ae_As_Bf_Be0_Bx_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `skip-lost copy+copy Bz1 Be0 Bx By1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/skip-lost_copy+copy_Bz1_Be0_Bx_By1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `skip-ok-control copy+copy Bz1 Be0 Bs By1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/skip-ok-control_copy+copy_Bz1_Be0_Bs_By1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `skip-lost-pull copy+copy Bz1 Be0 Bx By1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/skip-lost-pull_copy+copy_Bz1_Be0_Bx_By1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `skip-lost-A copy+copy Bz1 Be0 Bx By1 Al Ae As Bl Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/skip-lost-A_copy+copy_Bz1_Be0_Bx_By1_Al_Ae_As_Bl_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `link-revert-pending link+copy Ae As Bf1 Br0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/link-revert-pending_link+copy_Ae_As_Bf1_Br0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `link-revert-pending-pull link+copy Ae As Bf1 Br0 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/link-revert-pending-pull_link+copy_Ae_As_Bf1_Br0_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `cc-revert-pending-pull copy+copy Ae As Bf Br0 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/cc-revert-pending-pull_copy+copy_Ae_As_Bf_Br0_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-rm-pull copy Be Bx Bm Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-rm-pull_copy_Be_Bx_Bm_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `lost-rm-A copy Be Bx Bm Al Ae As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/lost-rm-A_copy_Be_Bx_Bm_Al_Ae_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `plain-lost-rm-noedit copy Ae As Bl Be Bx Bm Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/plain-lost-rm-noedit_copy_Ae_As_Bl_Be_Bx_Bm_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `detached-revert link Be Bs Bd Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/detached-revert_link_Be_Bs_Bd_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `detached-revert-pull link Be Bs Bd Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/detached-revert-pull_link_Be_Bs_Bd_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `detached-new link Be Bs Bd=zz Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/detached-new_link_Be_Bs_Bd=zz_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `detached-revert-A link Ae As Bl Bd Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/detached-revert-A_link_Ae_As_Bl_Bd_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `A-detached-revert copy Ae As Ad As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/A-detached-revert_copy_Ae_As_Ad_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be Bf Br Bs copy Be Bf Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be_Bf_Br_Bs_copy_Be_Bf_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be Bf Br Bl copy Be Bf Br Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be_Bf_Br_Bl_copy_Be_Bf_Br_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be0 Bf1 Br0 Bs copy+copy Be0 Bf1 Br0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be0_Bf1_Br0_Bs_copy+copy_Be0_Bf1_Br0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be0 Bf0 Br0 Bs copy+copy Be0 Bf0 Br0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be0_Bf0_Br0_Bs_copy+copy_Be0_Bf0_Br0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be Bl Br Bs copy Be Bl Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be_Bl_Br_Bs_copy_Be_Bl_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be Bf Be Bs copy Be Bf Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be_Bf_Be_Bs_copy_Be_Bf_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Be Bd Bs link Be Bd Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Be_Bd_Bs_link_Be_Bd_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `Ae As Ad As link Ae As Ad As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/Ae_As_Ad_As_link_Ae_As_Ad_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Bs Bf Be As a Bx Al Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Bs_Bf_Be_As_a_Bx_Al_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Be Bl Br a Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Be_Bl_Br_a_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+link Am Be a Bm Bz1 Be1 At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+link_Am_Be_a_Bm_Bz1_Be1_At`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bz1 As Ak Br1 Be Br Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bz1_As_Ak_Br1_Be_Br_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bt Bs Bu Br1 By1 a Ae=2 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bt_Bs_Bu_Br1_By1_a_Ae=2_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Be1 Ae Bs Be1 Bz1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Be1_Ae_Bs_Be1_Bz1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Ae=2 Am r Ae Ar Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Ae=2_Am_r_Ae_Ar_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+link Bt Ak By1 Bz1 Ae Bm Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+link_Bt_Ak_By1_Bz1_Ae_Bm_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bl Bz1 Bs Am Be1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bl_Bz1_Bs_Am_Be1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bk Bd=zz Bz1 Bx Be1 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bk_Bd=zz_Bz1_Bx_Be1_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy a Be1 Ak Bz1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_a_Be1_Ak_Bz1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Am Ae Bk r Be1 Bz1 Bm Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Am_Ae_Bk_r_Be1_Bz1_Bm_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Be Am Be Bs Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Be_Am_Be_Bs_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bs Be1 Bl At Ae Ar Bx Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bs_Be1_Bl_At_Ae_Ar_Bx_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bd Am Bk Bd Bu As As Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bd_Am_Bk_Bd_Bu_As_As_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy r Ae Bz1 Bz1 Ae Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_r_Ae_Bz1_Bz1_Ae_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Am Bs Ax Bd Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Am_Bs_Ax_Bd_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Bd Be Am Bk Am Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Bd_Be_Am_Bk_Am_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Be1 a Ax Bs Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Be1_a_Ax_Bs_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy Ae Bt Bt Bm Br a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy_Ae_Bt_Bt_Bm_Br_a`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Bd As Al Bk a At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Bd_As_Al_Bk_a_At`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Ae=2 Bm Ar Be Bu Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Ae=2_Bm_Ar_Be_Bu_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bl Bz1 Bf Bd Ar Bf0 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bl_Bz1_Bf_Bd_Ar_Bf0_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bd=zz Bz1 Ar Al Bf0 a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bd=zz_Bz1_Ar_Al_Bf0_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bz1 At Bk Ae Be1 Bf Br As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bz1_At_Bk_Ae_Be1_Bf_Br_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy As Bd=zz Bd Bf0 a Bs Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_As_Bd=zz_Bd_Bf0_a_Bs_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bf0 a Bs Bx a Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bf0_a_Bs_Bx_a_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bz1 Bl Be Bf0 Be Ak As Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bz1_Bl_Be_Bf0_Be_Ak_As_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bz1 Br Bl Ae Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bz1_Br_Bl_Ae_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Ae Bk Bs Bu Be Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Ae_Bk_Bs_Bu_Be_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bf As Bf Ae Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bf_As_Bf_Ae_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Br Ae Ae Be Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Br_Ae_Ae_Be_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+link Bx a Ar r Be Am Br Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+link_Bx_a_Ar_r_Be_Am_Br_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Al r Bf0 r a Bf a Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Al_r_Bf0_r_a_Bf_a_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Be Bs Be Bm Am r a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Be_Bs_Be_Bm_Am_r_a`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Ar Bx r Be Bz1 At Bf Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Ar_Bx_r_Be_Bz1_At_Bf_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Bf Ae Am Ae Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Bf_Ae_Am_Ae_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy Bm Bs Am Bl Ar Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy_Bm_Bs_Am_Bl_Ar_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Be Bf Ae Br As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Be_Bf_Ae_Br_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy r Bt Ae Be1 r Ae=2 Bk Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_r_Bt_Ae_Be1_r_Ae=2_Bk_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Be As Ae Bz1 r Bu Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Be_As_Ae_Bz1_r_Bu_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bf Ar Bz1 Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bf_Ar_Bz1_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Bf0 Ar Bz1 r Am Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Bf0_Ar_Bz1_r_Am_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Bd=zz Bd Al Bk Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Bd=zz_Bd_Al_Bk_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy At Bz1 Bf0 a Ae=2 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_At_Bz1_Bf0_a_Ae=2_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy a Ae Bm Ae Bm Br Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy_a_Ae_Bm_Ae_Bm_Br_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy Bt Be At Br r Ae Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy_Bt_Be_At_Br_r_Ae_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+link Al Bu Be At Bz1 Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+link_Al_Bu_Be_At_Bz1_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Be1 Bm By1 Be Ar Bz1 Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Be1_Bm_By1_Be_Ar_Bz1_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Be1 Bm Bz1 Bd Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Be1_Bm_Bz1_Bd_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered copy+copy Al Be Bz1 Bk Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_copy+copy_Al_Be_Bz1_Bk_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link Br Bd Am a Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link_Br_Bd_Am_a_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Bs As Bd=zz Bm Be At Bz1 At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Bs_As_Bd=zz_Bm_Be_At_Bz1_At`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Br Bs Be1 Be Bf Br Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Br_Bs_Be1_Be_Bf_Br_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-targeted.test.ts :: `discovered link+copy Ae=2 Bd a Bs Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/discovered_link+copy_Ae=2_Bd_a_Bs_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/detached.test.ts :: `pull after copying a template preserves detached bytes: true` → `go/cli/sync/enginetest/detached_test.go: TestTemplateDetachedBytes`
+- [x] apps/cli/src/sync/__tests__/detached.test.ts :: `pull after copying a template preserves detached bytes: false` → `go/cli/sync/enginetest/detached_test.go: TestTemplateDetachedBytes`
+- [x] apps/cli/src/sync/__tests__/detached.test.ts :: `each placed file survives an interrupted pull in state` → `go/cli/sync/enginetest/placement_journal_test.go: TestEachPlacedFileSurvivesInterruptedPull`
+- [x] apps/cli/src/sync/__tests__/untrack-removal.test.ts :: `untracking one copy preserves the other checkout's removal` → `go/cli/sync/enginetest/untrack_test.go: TestUntrackingOneCopyPreservesRemoval`
+- [x] apps/cli/src/sync/__tests__/untrack-removal.test.ts :: `untracking a dangling store link removes the owned link` → `go/cli/sync/enginetest/untrack_test.go: TestUntrackDanglingOwnedLink`
+- [x] apps/cli/src/sync/__tests__/untrack-removal.test.ts :: `take-server preserves live server after removal skipped an edited checkout` → `go/cli/sync/enginetest/untrack_test.go: TestTakeServerAfterSkippedRemoval`
+- [x] apps/cli/src/sync/__tests__/attempt-race.test.ts :: `late superseded attempt advances the merge ancestor before retry` → `go/cli/sync/enginetest/attempt_race_test.go: TestLateSupersededAttempt`
+- [x] apps/cli/src/sync/__tests__/attempt-race.test.ts :: `an attempt with a mismatched header is quarantined before a stale push` → `go/cli/sync/enginetest/attempt_race_test.go: TestCorruptAttemptProposal`
+- [x] apps/cli/src/sync/__tests__/attempt-race.test.ts :: `an attempt sequence inconsistent with its proposal cannot be rejected as stale` → `go/cli/sync/enginetest/attempt_race_test.go: TestCorruptAttemptProposal`
+- [x] apps/cli/src/sync/__tests__/race.test.ts :: `sync race` → `go/cli/sync/enginetest/race_test.go: TestSyncRace`
+- [x] apps/cli/src/sync/__tests__/race.test.ts :: `accept refreshes history when a newer head appears` → `go/cli/sync/enginetest/race_test.go: TestAcceptRefreshesNewerHistory`
+- [x] apps/cli/src/sync/__tests__/race.test.ts :: `an expired unlock prompts when interactive and names envden unlock otherwise` → `go/cli/sync/enginetest/race_test.go: TestExpiredUnlock`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `accepted attempt superseded by another device's revert is stale` → `go/cli/sync/enginetest/lineage_test.go: TestSupersededAcceptedAttemptIsStale`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `partially placed server version superseded by a revert is stale; lost base false` → `go/cli/sync/enginetest/lineage_test.go: TestPartiallyPlacedVersionSuperseded`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `partially placed server version superseded by a revert is stale; lost base true` → `go/cli/sync/enginetest/lineage_test.go: TestPartiallyPlacedVersionSuperseded`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `restoring bytes cancels pending removal in copy mode` → `go/cli/sync/enginetest/lineage_test.go: TestRestoringBytesCancelsRemoval`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `restoring bytes cancels pending removal in link mode` → `go/cli/sync/enginetest/lineage_test.go: TestRestoringBytesCancelsRemoval`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `live resolution clears deletion intent before a later missing store` → `go/cli/sync/enginetest/lineage_test.go: TestLiveResolutionClearsDeletionIntent`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `an excluded local edit is held back even when the server is unchanged` → `go/cli/sync/enginetest/held_back_test.go: TestExcludedLocalEditHeldBack`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `lost unpublished link content is reported and remains tracked` → `go/cli/sync/enginetest/lineage_test.go: TestLostUnpublishedLinkRemainsTracked`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `removing an unpublished file only untracks locally` → `go/cli/sync/enginetest/lineage_test.go: TestRemovingUnpublishedOnlyUntracksLocally`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `failed removal never records deletion intent` → `go/cli/sync/enginetest/removal_safety_test.go: TestFailedRemovalNeverRecordsIntent`
+- [x] apps/cli/src/sync/__tests__/lineage.test.ts :: `removal skips copies whose checkout needs approval` → `go/cli/sync/enginetest/removal_safety_test.go: TestRemovalSkipsUnapprovedCopies`
+- [x] apps/cli/src/sync/__tests__/resolution-absence.test.ts :: `missing recorded mine bytes cannot become a deletion choice` → `go/cli/sync/enginetest/guards_test.go: TestMissingRecordedBytesCannotDelete`
+- [x] apps/cli/src/sync/__tests__/resolution-absence.test.ts :: `missing recorded server bytes cannot become a deletion choice` → `go/cli/sync/enginetest/guards_test.go: TestMissingRecordedBytesCannotDelete`
+- [x] apps/cli/src/sync/__tests__/resolution-absence.test.ts :: `resolve leaves a target marked local only after the conflict` → `go/cli/sync/enginetest/origins_test.go: TestResolveLeavesLaterLocalOnlyTarget`
+- [x] apps/cli/src/sync/__tests__/clock-origins.test.ts :: `untrack quarantine survives pruning with the same command clock` → `go/cli/sync/enginetest/guards_test.go: TestUntrackQuarantineClock`
+- [x] apps/cli/src/sync/__tests__/receiving.test.ts :: `receiver filters unsafe env names and continues after placement failures` → `go/cli/sync/enginetest/receiving_test.go: TestReceiverFiltersUnsafeNames`
+- [x] apps/cli/src/sync/__tests__/receiving.test.ts :: `invalid first-run answers report a conflict and continue placing other files` → `go/cli/sync/enginetest/first_run_test.go: TestInvalidFirstRunContinuesOtherFiles`
+- [x] apps/cli/src/sync/__tests__/state-retention.test.ts :: `expired state backups and interrupted writes are removed without losing live records` → `go/cli/sync/enginetest/retention_test.go: TestExpiredStateFilesKeepLiveRecords`
+- [x] apps/cli/src/sync/__tests__/state-retention.test.ts :: `retention skips lock directories at every depth` → `go/cli/sync/enginetest/retention_test.go: TestRetentionSkipsNestedLocks`
+- [x] apps/cli/src/sync/__tests__/state-retention.test.ts :: `a UUID prefix cannot impersonate a retention timestamp` → `go/cli/sync/enginetest/retention_test.go: TestUUIDPrefixIsNotRetentionTimestamp`
+- [x] apps/cli/src/sync/__tests__/rotation.test.ts :: `sync rotation` → `go/cli/sync/enginetest/rotation_test.go: TestSyncRotation`
+- [x] apps/cli/src/sync/__tests__/rotation.test.ts :: `interrupted rotation placement preserves a compatible checkpoint and resumes` → `go/cli/sync/enginetest/rotation_test.go: TestInterruptedRotationPlacement`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `missing link store restores published bytes without uploading deletion` → `go/cli/sync/enginetest/round_six_test.go: TestMissingStoreRestoresPublishedBytes`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `missing copy store restores published bytes without uploading deletion` → `go/cli/sync/enginetest/round_six_test.go: TestMissingStoreRestoresPublishedBytes`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `skipped remote content cannot be overwritten by push` → `go/cli/sync/enginetest/held_back_test.go: TestSkippedRemoteContentCannotOverwrite`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `lost push response acknowledges its own link entry before further edits` → `go/cli/sync/enginetest/round_six_test.go: TestLostResponseAcknowledgesOwnEntry`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `lost push response acknowledges its own copy entry before further edits` → `go/cli/sync/enginetest/round_six_test.go: TestLostResponseAcknowledgesOwnEntry`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `untracking the last conflicting checkout releases the conflict` → `go/cli/sync/enginetest/round_six_test.go: TestUntrackingConflictingCheckout`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `detached link with old content is adopted as an edit` → `go/cli/sync/enginetest/round_six_test.go: TestDetachedOldContentAdopted`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `untracking divergent copy lets remaining link advance` → `go/cli/sync/enginetest/round_six_test.go: TestUntrackingDivergentCopy`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `missing store is restored even when the remaining copy conflicts` → `go/cli/sync/enginetest/round_six_test.go: TestMissingStoreWithConflictingCopy`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `reverting after a conflict preserves the new user action` → `go/cli/sync/enginetest/round_six_test.go: TestRevertAfterConflict`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `push cannot upload a file whose remote change was refused` → `go/cli/sync/enginetest/receiving_test.go: TestPushCannotUploadFailedRemoteChange`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `push cannot upload a file whose remote change was failed` → `go/cli/sync/enginetest/receiving_test.go: TestPushCannotUploadFailedRemoteChange`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `push cannot upload a file whose remote change was conflicted` → `go/cli/sync/enginetest/receiving_test.go: TestPushCannotUploadFailedRemoteChange`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `a missing edited conflict file cannot request deletion` → `go/cli/sync/enginetest/round_six_test.go: TestMissingConflictFileCannotDelete`
+- [x] apps/cli/src/sync/__tests__/round-six.test.ts :: `missing unpublished store never removes its intact based copy` → `go/cli/sync/enginetest/round_six_test.go: TestMissingUnpublishedStoreKeepsCopy`
+- [x] apps/cli/src/sync/__tests__/isolation.test.ts :: `unsafe file does not block its neighbour: published=false` → `go/cli/sync/enginetest/isolation_test.go: TestUnsafeFileDoesNotBlockNeighbour`
+- [x] apps/cli/src/sync/__tests__/isolation.test.ts :: `unsafe file does not block its neighbour: published=true` → `go/cli/sync/enginetest/isolation_test.go: TestUnsafeFileDoesNotBlockNeighbour`
+- [x] apps/cli/src/sync/__tests__/isolation.test.ts :: `keep-mine restores a removed link from its recorded store edit` → `go/cli/sync/enginetest/isolation_test.go: TestKeepMineRestoresRemovedLink`
+- [x] apps/cli/src/sync/__tests__/isolation.test.ts :: `a newly approved copy receives the shared store edit: initial=false` → `go/cli/sync/enginetest/isolation_test.go: TestNewApprovedCopyReceivesStoreEdit`
+- [x] apps/cli/src/sync/__tests__/isolation.test.ts :: `a newly approved copy receives the shared store edit: initial=true` → `go/cli/sync/enginetest/isolation_test.go: TestNewApprovedCopyReceivesStoreEdit`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: historical` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/historical`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untracked-copy` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untracked-copy`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untracked-link` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untracked-link`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untracked-copy-no-yes` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untracked-copy-no-yes`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untracked-link-no-yes` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untracked-link-no-yes`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: missing-base` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/missing-base`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: different-base` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/different-base`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untracked-applied` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untracked-applied`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: missing-copy` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/missing-copy`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: local-sides` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/local-sides`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: removed` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/removed`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: prune-root` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/prune-root`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: untrack-root` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/untrack-root`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: unapproved-deletion` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/unapproved-deletion`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: unapproved` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/unapproved`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: retry` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/retry`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: deletion-side` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/deletion-side`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: edit-content` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/edit-content`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: changed-after-conflict` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/changed-after-conflict`
+- [x] apps/cli/src/sync/__tests__/trust.test.ts :: `target trust: merge-retry` → `go/cli/sync/enginetest/trust_test.go: TestTargetTrust/merge-retry`
+- [x] apps/cli/src/sync/__tests__/exploration/fixtures/__tests__/workers.test.ts :: `aborted batch replaces its slot and shutdown removes every worker directory` → `go/cli/sync/enginetest/exploration_workers_contract_test.go: TestAbortedExplorationReplacesSlotAndCleansDirectories`
+- [x] apps/cli/src/sync/__tests__/exploration/fixtures/__tests__/workers.test.ts :: `workers leave deadlines to the test runner` → `go/cli/sync/enginetest/exploration_workers_contract_test.go: TestExplorationWorkersLeaveDeadlinesToRunner`
+- [x] apps/cli/src/sync/__tests__/exploration/fixtures/__tests__/workers.test.ts :: `replacement must acknowledge readiness` → `go/cli/sync/enginetest/exploration_workers_contract_test.go: TestExplorationReplacementRequiresReady`
+- [x] apps/cli/src/sync/__tests__/exploration/fixtures/__tests__/pull.test.ts :: `injected placement failure still checks a conflict-free pull` → `go/cli/sync/enginetest/exploration_pull_test.go: TestFailedPlacementStillChecksConflictFreePull`
+- [x] apps/cli/src/sync/__tests__/rollback.test.ts :: `sync rollback` → `go/cli/sync/enginetest/rollback_test.go: TestSyncRollback`
+- [x] apps/cli/src/sync/__tests__/rollback.test.ts :: `interrupted placement preserves the accepted rollback floor and resumes` → `go/cli/sync/enginetest/rollback_test.go: TestInterruptedPlacementKeepsRollbackFloor`
+- [x] apps/cli/src/sync/__tests__/alias-local.test.ts :: `alias refuses existing placed files before changing their identity` → `go/cli/sync/enginetest/guards_test.go: TestAliasRefusesPlacedFiles`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+copy Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+copy_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive link+copy Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_link+copy_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link a Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_a_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link r Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_r_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Al Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Al_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bl Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bl_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bs Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bs_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bx Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bx_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bm Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bm_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bk Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bk_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bt Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bt_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bu Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bu_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bdel Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bdel_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bstore Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bstore_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bn Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bn_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bq Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bq_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Btmp Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Btmp_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bcorrupt Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bcorrupt_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br=earlier Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br=earlier_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bd=zz Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bd=zz_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Be1 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Be1_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Br1 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Br1_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bf0 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bf0_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bz1 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bz1_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link By1 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_By1_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bdel` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bdel`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bstore` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bstore`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bn` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bn`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bq` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bq`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Btmp` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Btmp`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bcorrupt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bcorrupt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bv` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bv`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Br=earlier` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Br=earlier`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 By` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_By`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `exhaustive copy+link Bv1 Bv1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/exhaustive_copy+link_Bv1_Bv1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-000 link Bk As Bf Bm Ax Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-000_link_Bk_As_Bf_Bm_Ax_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-001 link Bs Bf Be As a Bx Al Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-001_link_Bs_Bf_Be_As_a_Bx_Al_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-002 link Bf Ar Bk Bd=zz As Br Br Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-002_link_Bf_Ar_Bk_Bd=zz_As_Br_Br_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-003 link Bl Be Be Br Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-003_link_Bl_Be_Be_Br_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-004 copy Bu Ae Bk Bs Bu Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-004_copy_Bu_Ae_Bk_Bs_Bu_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-005 link+copy Bu Be Bt Bx r Bd Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-005_link+copy_Bu_Be_Bt_Bx_r_Bd_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-006 link Bk Bx r As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-006_link_Bk_Bx_r_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-007 link a Bf Ar Bs Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-007_link_a_Bf_Ar_Bs_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-008 copy+link Br Be1 Ar Be Bf Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-008_copy+link_Br_Be1_Ar_Be_Bf_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-009 copy Bm Bk Bf a Bf a Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-009_copy_Bm_Bk_Bf_a_Bf_a_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-010 link+copy Ar As Ax Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-010_link+copy_Ar_As_Ax_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-011 copy+link Bm Be Be Bu Bm Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-011_copy+link_Bm_Be_Be_Bu_Bm_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-012 link Bt Bt r At Ae a At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-012_link_Bt_Bt_r_At_Ae_a_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-013 link+copy Bf a Bx a Ae Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-013_link+copy_Bf_a_Bx_a_Ae_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-014 copy+link Am Be a Bm Bz1 Be1 At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-014_copy+link_Am_Be_a_Bm_Bz1_Be1_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-015 copy Bs Ae As Bm a Bx Al Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-015_copy_Bs_Ae_As_Bm_a_Bx_Al_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-016 link Bm Bk Bf Al Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-016_link_Bm_Bk_Bf_Al_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-017 copy+copy Ax Bu Bs Br Br Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-017_copy+copy_Ax_Bu_Bs_Br_Br_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-018 copy Bm Bs Bt Be Bx r a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-018_copy_Bm_Bs_Bt_Be_Bx_r_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-019 link+copy Bm Bl Bz1 Bk Be1 Ae By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-019_link+copy_Bm_Bl_Bz1_Bk_Be1_Ae_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-020 link Br Bs Bd=zz Bx Ar Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-020_link_Br_Bs_Bd=zz_Bx_Ar_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-021 copy Bm Bx a Bk Bs Bl Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-021_copy_Bm_Bx_a_Bk_Bs_Bl_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-022 link+copy r Bz1 Bt Bk At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-022_link+copy_r_Bz1_Bt_Bk_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-023 link r Br Bk Be Bt Bd=zz Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-023_link_r_Br_Bk_Be_Bt_Bd=zz_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-024 copy Bl Ae=2 Bu Bs Bs Bl Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-024_copy_Bl_Ae=2_Bu_Bs_Bs_Bl_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-025 link+copy Bx As Ar Be1 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-025_link+copy_Bx_As_Ar_Be1_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-026 copy+copy Be1 By1 Bt Ar a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-026_copy+copy_Be1_By1_Bt_Ar_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-027 copy+link Ae Ax Bt By1 Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-027_copy+link_Ae_Ax_Bt_By1_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-028 copy As Bt Bm Ae=2 Bt r Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-028_copy_As_Bt_Bm_Ae=2_Bt_r_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-029 link Bk r Br Bd=zz Ar Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-029_link_Bk_r_Br_Bd=zz_Ar_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-030 copy+link Bf As Be1 Bx Ar Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-030_copy+link_Bf_As_Be1_Bx_Ar_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-031 copy+copy Bz1 As Ak Br1 Be Br Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-031_copy+copy_Bz1_As_Ak_Br1_Be_Br_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-032 copy+copy Bt Bs Bu Br1 By1 a Ae=2 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-032_copy+copy_Bt_Bs_Bu_Br1_By1_a_Ae=2_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-033 link+copy Ak Bu Be1 By1 Bd Bu Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-033_link+copy_Ak_Bu_Be1_By1_Bd_Bu_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-034 link+copy Ae Bx Al Be1 Bf Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-034_link+copy_Ae_Bx_Al_Be1_Bf_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-035 link+copy Bf0 Bx Ar Bl Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-035_link+copy_Bf0_Bx_Ar_Bl_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-036 link Bf a a Bf Bk Bm Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-036_link_Bf_a_a_Bf_Bk_Bm_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-037 link Bd Bd=zz Ae Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-037_link_Bd_Bd=zz_Ae_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-038 copy Bt Bk Bs Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-038_copy_Bt_Bk_Bs_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-039 copy Ae Bk Bu Ax Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-039_copy_Ae_Bk_Bu_Ax_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-040 link+copy Bf Ae Bl Ae Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-040_link+copy_Bf_Ae_Bl_Ae_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-041 copy+copy Be1 Ae Bs Be1 Bz1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-041_copy+copy_Be1_Ae_Bs_Be1_Bz1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-042 copy+link Bm Am Bf Ae Bm Ae At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-042_copy+link_Bm_Am_Bf_Ae_Bm_Ae_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-043 copy Bl Bu Bl Bm Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-043_copy_Bl_Bu_Bl_Bm_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-044 link+copy Ar Bk Bf0 a Bt a Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-044_link+copy_Ar_Bk_Bf0_a_Bt_a_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-045 copy+link Bk Bl a Bx By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-045_copy+link_Bk_Bl_a_Bx_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-046 link Ae=2 Be r Bf Al Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-046_link_Ae=2_Be_r_Bf_Al_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-047 link As Bl Ae=2 Bl Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-047_link_As_Bl_Ae=2_Bl_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-048 link+copy At Bf0 Ae Bx As Bx Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-048_link+copy_At_Bf0_Ae_Bx_As_Bx_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-049 link Bk Bs Bk Br Bk Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-049_link_Bk_Bs_Bk_Br_Bk_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-050 copy+copy Bx By1 Bx a Ar Ar Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-050_copy+copy_Bx_By1_Bx_a_Ar_Ar_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-051 copy r Bu Ax Be Bu Bu Bs Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-051_copy_r_Bu_Ax_Be_Bu_Bu_Bs_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-052 link Bx As Am Ae As Ar Bt Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-052_link_Bx_As_Am_Ae_As_Ar_Bt_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-053 copy Bl Ae Ae a a At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-053_copy_Bl_Ae_Ae_a_a_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-054 copy Bt Br Bt a Bu Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-054_copy_Bt_Br_Bt_a_Bu_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-055 copy+copy Ae Bu Bt Be Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-055_copy+copy_Ae_Bu_Bt_Be_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-056 link Bf r Bx As Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-056_link_Bf_r_Bx_As_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-057 link Ar r Be Bx Al Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-057_link_Ar_r_Be_Bx_Al_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-058 link Bx Ae Ar Bf a Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-058_link_Bx_Ae_Ar_Bf_a_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-059 link Bs Bd Bt Bu Bx As Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-059_link_Bs_Bd_Bt_Bu_Bx_As_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-060 copy+copy Bf r Bt Be Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-060_copy+copy_Bf_r_Bt_Be_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-061 link Ax Bx Be a Bt At Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-061_link_Ax_Bx_Be_a_Bt_At_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-062 link Bd=zz Be Be Bf Al Bm Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-062_link_Bd=zz_Be_Be_Bf_Al_Bm_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-063 link Bk Bd=zz Br Bm Bf Ar Be Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-063_link_Bk_Bd=zz_Br_Bm_Bf_Ar_Be_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-064 link Bk Am Am At Bs Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-064_link_Bk_Am_Am_At_Bs_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-065 copy+link Ar Ae Ax Bz1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-065_copy+link_Ar_Ae_Ax_Bz1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-066 copy+link As Bs Br1 a Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-066_copy+link_As_Bs_Br1_a_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-067 copy Bf Bf As Bu Ak Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-067_copy_Bf_Bf_As_Bu_Ak_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-068 copy+copy Bl Bf r a Be1 Bs a Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-068_copy+copy_Bl_Bf_r_a_Be1_Bs_a_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-069 copy+copy Be Bf r Ar Bk Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-069_copy+copy_Be_Bf_r_Ar_Bk_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-070 link+copy Bk Bs Be1 Ar Bf0 a Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-070_link+copy_Bk_Bs_Be1_Ar_Bf0_a_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-071 copy+copy Ae=2 Am r Ae Ar Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-071_copy+copy_Ae=2_Am_r_Ae_Ar_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-072 link+copy Bk By1 Be Bk Be Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-072_link+copy_Bk_By1_Be_Bk_Be_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-073 copy+link Bt Ak By1 Bz1 Ae Bm Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-073_copy+link_Bt_Ak_By1_Bz1_Ae_Bm_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-074 copy+link Bf0 r Bl Br Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-074_copy+link_Bf0_r_Bl_Br_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-075 copy+link Be1 Be1 Al Ar At Bz1 As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-075_copy+link_Be1_Be1_Al_Ar_At_Bz1_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-076 copy Bl r Bx Bf Bm a Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-076_copy_Bl_r_Bx_Bf_Bm_a_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-077 link+copy At Bx Bd=zz Bs Be1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-077_link+copy_At_Bx_Bd=zz_Bs_Be1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-078 copy+link Bu Bu Bs Bl Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-078_copy+link_Bu_Bu_Bs_Bl_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-079 copy Bt Bs As Bl Bu Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-079_copy_Bt_Bs_As_Bl_Bu_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-080 copy+link Bz1 Ar Ae Be1 Ae Al a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-080_copy+link_Bz1_Ar_Ae_Be1_Ae_Al_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-081 link+copy Bf As Bz1 Bx As Br By1 Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-081_link+copy_Bf_As_Bz1_Bx_As_Br_By1_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-082 link+copy Ae Ar a Bu Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-082_link+copy_Ae_Ar_a_Bu_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-083 copy+copy At Bs Bf Bf a Bs By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-083_copy+copy_At_Bs_Bf_Bf_a_Bs_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-084 copy+link Bx a Ax Bf Al a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-084_copy+link_Bx_a_Ax_Bf_Al_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-085 copy Am Bx Bx Bf Ar Bk Be Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-085_copy_Am_Bx_Bx_Bf_Ar_Bk_Be_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-086 link a Ax Bk Bs a Bt Bs Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-086_link_a_Ax_Bk_Bs_a_Bt_Bs_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-087 link+copy Bl Bz1 Bs Am Be1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-087_link+copy_Bl_Bz1_Bs_Am_Be1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-088 copy+link As Br1 Br a By1 Bl Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-088_copy+link_As_Br1_Br_a_By1_Bl_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-089 link Bs Bk Bl Bl Bk Be As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-089_link_Bs_Bk_Bl_Bl_Bk_Be_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-090 copy Bx Bm Br Ar Be Be Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-090_copy_Bx_Bm_Br_Ar_Be_Be_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-091 link+copy Bt Bd=zz Bk Ar Be By1 Ar Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-091_link+copy_Bt_Bd=zz_Bk_Ar_Be_By1_Ar_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-092 link r Ae r Ae=2 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-092_link_r_Ae_r_Ae=2_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-093 link+copy By1 a Bk Bf0 a a a Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-093_link+copy_By1_a_Bk_Bf0_a_a_a_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-094 copy+copy Al As Bt r Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-094_copy+copy_Al_As_Bt_r_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-095 copy Bs Bl Bu Bf As Be Bm Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-095_copy_Bs_Bl_Bu_Bf_As_Be_Bm_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-096 link+copy Bf0 Ar Bl a Bx Bu a Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-096_link+copy_Bf0_Ar_Bl_a_Bx_Bu_a_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-097 copy+link Be Be1 Bf a Be1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-097_copy+link_Be_Be1_Bf_a_Be1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-098 link+copy Bm r Bk Bx Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-098_link+copy_Bm_r_Bk_Bx_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-099 link+copy Bf a Br1 Ar By1 Be Ak As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-099_link+copy_Bf_a_Br1_Ar_By1_Be_Ak_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-100 copy+link Ae=2 Br1 Al Ak At Ar Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-100_copy+link_Ae=2_Br1_Al_Ak_At_Ar_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-101 link+copy Bx Ae Be Bz1 As By1 As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-101_link+copy_Bx_Ae_Be_Bz1_As_By1_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-102 link a Ae Br Bm Bu As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-102_link_a_Ae_Br_Bm_Bu_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-103 copy+link Ak Be Bx Al As Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-103_copy+link_Ak_Be_Bx_Al_As_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-104 link+copy Bk Bd=zz Bz1 Bx Be1 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-104_link+copy_Bk_Bd=zz_Bz1_Bx_Be1_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-105 link+copy By1 Br Ae Bx Bx As At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-105_link+copy_By1_Br_Ae_Bx_Bx_As_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-106 link Ak Bd=zz Al Bd=zz Bu Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-106_link_Ak_Bd=zz_Al_Bd=zz_Bu_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-107 link+copy Bs r a a Al Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-107_link+copy_Bs_r_a_a_Al_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-108 copy+link Be1 Be Bl Be1 As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-108_copy+link_Be1_Be_Bl_Be1_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-109 link+copy Bf a Bf0 Ar Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-109_link+copy_Bf_a_Bf0_Ar_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-110 link a Bx Ae At Bf Bt r As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-110_link_a_Bx_Ae_At_Bf_Bt_r_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-111 copy+link a Bk Ae=2 Ae Bx Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-111_copy+link_a_Bk_Ae=2_Ae_Bx_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-112 copy+copy Bf a Ae=2 Ax Bs a Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-112_copy+copy_Bf_a_Ae=2_Ax_Bs_a_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-113 copy Br Br Bs Ae=2 Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-113_copy_Br_Br_Bs_Ae=2_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-114 link Bk At Br Ar Bk a Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-114_link_Bk_At_Br_Ar_Bk_a_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-115 link+copy Ar Bs Am Bu Ar Br Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-115_link+copy_Ar_Bs_Am_Bu_Ar_Br_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-116 link Ae Br Bx r Bs Be Be Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-116_link_Ae_Br_Bx_r_Bs_Be_Be_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-117 copy+link By1 Ar Bk Br Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-117_copy+link_By1_Ar_Bk_Br_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-118 link Bs a a Bf Bs Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-118_link_Bs_a_a_Bf_Bs_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-119 link Bs Bk Bt Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-119_link_Bs_Bk_Bt_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-120 copy+link Bk Be Br By1 As Bs By1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-120_copy+link_Bk_Be_Br_By1_As_Bs_By1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-121 link Bu Be Ae=2 Bm Ae Bf r a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-121_link_Bu_Be_Ae=2_Bm_Ae_Bf_r_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-122 link+copy Bf Ar Bf Al Bf Al Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-122_link+copy_Bf_Ar_Bf_Al_Bf_Al_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-123 copy+link Bs Ak Ak Bs Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-123_copy+link_Bs_Ak_Ak_Bs_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-124 copy Bs Bk Be Bm Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-124_copy_Bs_Bk_Be_Bm_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-125 copy+copy As Bs Be Al As Ae=2 Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-125_copy+copy_As_Bs_Be_Al_As_Ae=2_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-126 copy At a Bm Br Ar Bk Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-126_copy_At_a_Bm_Br_Ar_Bk_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-127 copy+copy Al Be1 Br1 By1 At Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-127_copy+copy_Al_Be1_Br1_By1_At_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-128 copy a Ax Br Ae Bx Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-128_copy_a_Ax_Br_Ae_Bx_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-129 copy+copy Bx Bk Br Be Bx As Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-129_copy+copy_Bx_Bk_Br_Be_Bx_As_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-130 copy+copy a Be1 Ak Bz1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-130_copy+copy_a_Be1_Ak_Bz1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-131 copy Bu As Bx a Bk Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-131_copy_Bu_As_Bx_a_Bk_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-132 copy Bu Bl Bx r Be Be Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-132_copy_Bu_Bl_Bx_r_Be_Be_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-133 link+copy a Bs Bs Ak Am As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-133_link+copy_a_Bs_Bs_Ak_Am_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-134 copy+link Bs Ae Ae Be Bs Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-134_copy+link_Bs_Ae_Ae_Be_Bs_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-135 copy Bx Bs Bx As Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-135_copy_Bx_Bs_Bx_As_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-136 link+copy Am Ae Bk r Be1 Bz1 Bm Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-136_link+copy_Am_Ae_Bk_r_Be1_Bz1_Bm_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-137 copy+link r Ak Am Bm Am Bs Bz1 As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-137_copy+link_r_Ak_Am_Bm_Am_Bs_Bz1_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-138 link Bx As Ar Bk Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-138_link_Bx_As_Ar_Bk_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-139 link Al Bx Ae Bd=zz Ax Bu Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-139_link_Al_Bx_Ae_Bd=zz_Ax_Bu_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-140 link As Bx Ar As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-140_link_As_Bx_Ar_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-141 link Bf As Ar Br r Bd Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-141_link_Bf_As_Ar_Br_r_Bd_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-142 copy Br Bx r Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-142_copy_Br_Bx_r_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-143 copy+copy Ae=2 Bk Ar As Bf Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-143_copy+copy_Ae=2_Bk_Ar_As_Bf_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-144 copy Bs Bt Bs Bs Bx r Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-144_copy_Bs_Bt_Bs_Bs_Bx_r_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-145 link Be Am Be Bs Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-145_link_Be_Am_Be_Bs_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-146 link Ar Bd=zz Be Bs Bt Bd Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-146_link_Ar_Bd=zz_Be_Bs_Bt_Bd_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-147 copy+link By1 By1 By1 Be1 Am At Bk Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-147_copy+link_By1_By1_By1_Be1_Am_At_Bk_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-148 link a Bx Bd Bx Ar Bs Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-148_link_a_Bx_Bd_Bx_Ar_Bs_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-149 copy+link Bf a r Bs Bu Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-149_copy+link_Bf_a_r_Bs_Bu_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-150 copy+copy Bs Be1 Bl At Ae Ar Bx Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-150_copy+copy_Bs_Be1_Bl_At_Ae_Ar_Bx_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-151 copy+link Bx a Bz1 a Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-151_copy+link_Bx_a_Bz1_a_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-152 link Bt Bx Al Br Am Bf Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-152_link_Bt_Bx_Al_Br_Am_Bf_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-153 link+copy Br By1 Be At At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-153_link+copy_Br_By1_Be_At_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-154 link Bx Bf a a Bd Bm At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-154_link_Bx_Bf_a_a_Bd_Bm_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-155 copy+copy Ax Bm By1 Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-155_copy+copy_Ax_Bm_By1_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-156 link Bs Bx Bs Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-156_link_Bs_Bx_Bs_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-157 copy Bf As Ar Bf r Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-157_copy_Bf_As_Ar_Bf_r_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-158 copy Ax Ar Bf Al Bk Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-158_copy_Ax_Ar_Bf_Al_Bk_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-159 copy+link Bx Ar Al Ar Br1 Ae Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-159_copy+link_Bx_Ar_Al_Ar_Br1_Ae_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-160 link+copy Be Bs Bx Ar Ax Bs Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-160_link+copy_Be_Bs_Bx_Ar_Ax_Bs_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-161 link+copy Bd Am Bk Bd Bu As As Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-161_link+copy_Bd_Am_Bk_Bd_Bu_As_As_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-162 copy+link By1 Ae=2 Be As Bz1 Ar Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-162_copy+link_By1_Ae=2_Be_As_Bz1_Ar_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-163 copy Bs Ar Bt Bu Bx Bx As Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-163_copy_Bs_Ar_Bt_Bu_Bx_Bx_As_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-164 link Bx As Bx a As Bx Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-164_link_Bx_As_Bx_a_As_Bx_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-165 copy+copy r Ae Bz1 Bz1 Ae Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-165_copy+copy_r_Ae_Bz1_Bz1_Ae_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-166 copy+copy Be1 Bk Bf0 Be1 Al Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-166_copy+copy_Be1_Bk_Bf0_Be1_Al_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-167 link Am Bs Ax Bd Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-167_link_Am_Bs_Ax_Bd_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-168 copy Bx a a Bs Br Be As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-168_copy_Bx_a_a_Bs_Br_Be_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-169 link+copy Bd Be1 By1 Br Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-169_link+copy_Bd_Be1_By1_Br_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-170 copy+link Ae=2 Ae=2 As Bl By1 Bf0 Ar Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-170_copy+link_Ae=2_Ae=2_As_Bl_By1_Bf0_Ar_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-171 copy+copy Bt Br Bk By1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-171_copy+copy_Bt_Br_Bk_By1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-172 link Be Be Ak Bx Al Bl As Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-172_link_Be_Be_Ak_Bx_Al_Bl_As_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-173 copy r Bx r Bl Ak r Bf Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-173_copy_r_Bx_r_Bl_Ak_r_Bf_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-174 copy+copy By1 By1 Be1 Bl Be1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-174_copy+copy_By1_By1_Be1_Bl_Be1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-175 copy+copy Al a Bs Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-175_copy+copy_Al_a_Bs_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-176 link Bd Be Am Bk Am Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-176_link_Bd_Be_Am_Bk_Am_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-177 link+copy Bs Bl Am By1 Ar Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-177_link+copy_Bs_Bl_Am_By1_Ar_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-178 copy Bf r a a Bf Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-178_copy_Bf_r_a_a_Bf_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-179 copy+copy Be Br1 Bx a Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-179_copy+copy_Be_Br1_Bx_a_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-180 link+copy Bf As Br1 Bf0 Ae Br Bd=zz Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-180_link+copy_Bf_As_Br1_Bf0_Ae_Br_Bd=zz_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-181 copy Bf Bx Bs Br a Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-181_copy_Bf_Bx_Bs_Br_a_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-182 link+copy Be1 a Ax Bs Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-182_link+copy_Be1_a_Ax_Bs_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-183 copy+link Am Bs Bs Be1 Bk At At Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-183_copy+link_Am_Bs_Bs_Be1_Bk_At_At_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-184 copy Ae Bt Bt Bm Br a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-184_copy_Ae_Bt_Bt_Bm_Br_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-185 copy+link Ae Bl Bu Bs Br By1 Be Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-185_copy+link_Ae_Bl_Bu_Bs_Br_By1_Be_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-186 link+copy Bx a Bs a Bm a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-186_link+copy_Bx_a_Bs_a_Bm_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-187 copy+copy Bl Ak Al a Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-187_copy+copy_Bl_Ak_Al_a_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-188 copy+copy By1 Bx Bf Ae Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-188_copy+copy_By1_Bx_Bf_Ae_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-189 link+copy Bx Bu Ar Be At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-189_link+copy_Bx_Bu_Ar_Be_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-190 copy+link Bf Ar Bf0 As Al Bz1 As Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-190_copy+link_Bf_Ar_Bf0_As_Al_Bz1_As_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-191 copy+link Bx As At Bk Bz1 Bf0 As Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-191_copy+link_Bx_As_At_Bk_Bz1_Bf0_As_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-192 copy+copy Bk r By1 Ak Bm Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-192_copy+copy_Bk_r_By1_Ak_Bm_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-193 link+copy Bl a Bf Bd=zz Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-193_link+copy_Bl_a_Bf_Bd=zz_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-194 copy Bf Ae Ae Ae Bx Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-194_copy_Bf_Ae_Ae_Ae_Bx_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-195 copy+link Bu Bf0 a r Br Ar Bu Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-195_copy+link_Bu_Bf0_a_r_Br_Ar_Bu_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-196 copy Bk Bk Br Bt Ax a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-196_copy_Bk_Bk_Br_Bt_Ax_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-197 copy Am Ae Ar Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-197_copy_Am_Ae_Ar_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-198 copy a Bm Ax r As Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-198_copy_a_Bm_Ax_r_As_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-199 copy+link Br Bs Be1 Bm Bs Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-199_copy+link_Br_Bs_Be1_Bm_Bs_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-200 copy+copy Br1 Bu Be Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-200_copy+copy_Br1_Bu_Be_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-201 copy Ax Bf Ar Bx Al Be Be Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-201_copy_Ax_Bf_Ar_Bx_Al_Be_Be_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-202 copy+copy Ae Ax As Bf0 Ae a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-202_copy+copy_Ae_Ax_As_Bf0_Ae_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-203 copy+copy a As By1 Ae=2 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-203_copy+copy_a_As_By1_Ae=2_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-204 copy+copy Ae Be Be Bs Ar Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-204_copy+copy_Ae_Be_Be_Bs_Ar_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-205 copy+link By1 Bl Bt Ae At Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-205_copy+link_By1_Bl_Bt_Ae_At_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-206 copy Ar Bs Ae=2 r Bs Bf Bm Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-206_copy_Ar_Bs_Ae=2_r_Bs_Bf_Bm_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-207 copy Ae Ae Br Br Ak Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-207_copy_Ae_Ae_Br_Br_Ak_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-208 link Bm Bx Bx As Bt Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-208_link_Bm_Bx_Bx_As_Bt_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-209 copy Bu Br Ae Bu Bs Bl Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-209_copy_Bu_Br_Ae_Bu_Bs_Bl_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-210 copy+link Bk Be1 Br Bs Ak Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-210_copy+link_Bk_Be1_Br_Bs_Ak_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-211 link Bd As Al Bk a At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-211_link_Bd_As_Al_Bk_a_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-212 copy+copy Br a Bf0 As Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-212_copy+copy_Br_a_Bf0_As_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-213 link+copy a Br1 At Bs Br1 Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-213_link+copy_a_Br1_At_Bs_Br1_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-214 copy+copy Bu Ax Bs By1 At Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-214_copy+copy_Bu_Ax_Bs_By1_At_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-215 copy+copy By1 As Bf Br1 Bu Al Be1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-215_copy+copy_By1_As_Bf_Br1_Bu_Al_Be1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-216 copy Br Bs As Br At Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-216_copy_Br_Bs_As_Br_At_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-217 copy Be r Bf As Be Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-217_copy_Be_r_Bf_As_Be_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-218 link Bf Ae Bk Be Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-218_link_Bf_Ae_Bk_Be_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-219 copy+copy Ae Bk By1 Bf As As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-219_copy+copy_Ae_Bk_By1_Bf_As_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-220 copy Bt Br Ae a Br Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-220_copy_Bt_Br_Ae_a_Br_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-221 copy+copy Be Ar a Ae=2 Ae=2 Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-221_copy+copy_Be_Ar_a_Ae=2_Ae=2_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-222 copy+link Bl Bm Ae Bf Al Ar Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-222_copy+link_Bl_Bm_Ae_Bf_Al_Ar_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-223 copy+copy Ar Be Be1 Bx Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-223_copy+copy_Ar_Be_Be1_Bx_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-224 link Be Br Ae=2 Ae Bl Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-224_link_Be_Br_Ae=2_Ae_Bl_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-225 copy Bl Bt Bf r As Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-225_copy_Bl_Bt_Bf_r_As_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-226 link+copy Bx Ae Bd Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-226_link+copy_Bx_Ae_Bd_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-227 link Bu Bs Ar Bt Be Be Ae Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-227_link_Bu_Bs_Ar_Bt_Be_Be_Ae_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-228 copy+link Ar Ax At Bu Ax Bs a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-228_copy+link_Ar_Ax_At_Bu_Ax_Bs_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-229 copy Bx a Am Bk Bm Bl At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-229_copy_Bx_a_Am_Bk_Bm_Bl_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-230 copy+copy Ae=2 By1 As Bs Bs Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-230_copy+copy_Ae=2_By1_As_Bs_Bs_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-231 copy+copy Br1 As Ae Bf0 r Ae Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-231_copy+copy_Br1_As_Ae_Bf0_r_Ae_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-232 link Bm Br Be r Be As a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-232_link_Bm_Br_Be_r_Be_As_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-233 copy Bs Ae=2 a Ae Bf Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-233_copy_Bs_Ae=2_a_Ae_Bf_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-234 copy+link Ar Br Ax a Bl By1 Bs Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-234_copy+link_Ar_Br_Ax_a_Bl_By1_Bs_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-235 link Br Bx Bf r Bm At Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-235_link_Br_Bx_Bf_r_Bm_At_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-236 link+copy Ax Be Bx a Br1 Be Ar Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-236_link+copy_Ax_Be_Bx_a_Br1_Be_Ar_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-237 link+copy Bt Bf0 As Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-237_link+copy_Bt_Bf0_As_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-238 link+copy Br As a Bd Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-238_link+copy_Br_As_a_Bd_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-239 link Ae Bl Bd=zz As Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-239_link_Ae_Bl_Bd=zz_As_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-240 copy Ax Bx a Bs Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-240_copy_Ax_Bx_a_Bs_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-241 copy Bs Bu Bx Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-241_copy_Bs_Bu_Bx_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-242 copy+copy Bt Bu a Ae=2 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-242_copy+copy_Bt_Bu_a_Ae=2_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-243 copy+link As Be1 Br1 Al Bf Be1 Ar Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-243_copy+link_As_Be1_Br1_Al_Bf_Be1_Ar_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-244 link Bm Bl As a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-244_link_Bm_Bl_As_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-245 link At Bf a Bd=zz As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-245_link_At_Bf_a_Bd=zz_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-246 copy+copy Bs Bs Bt Be As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-246_copy+copy_Bs_Bs_Bt_Be_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-247 copy+copy Ae=2 Bm Ar Be Bu Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-247_copy+copy_Ae=2_Bm_Ar_Be_Bu_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-248 copy+copy As Be1 At Be As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-248_copy+copy_As_Be1_At_Be_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-249 copy Br Be Bu a Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-249_copy_Br_Be_Bu_a_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-250 copy+copy Ar Br Bf a Bm r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-250_copy+copy_Ar_Br_Bf_a_Bm_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-251 link Bt Bs At Bf Bs Bu Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-251_link_Bt_Bs_At_Bf_Bs_Bu_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-252 copy Be r Ar Bu Am Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-252_copy_Be_r_Ar_Bu_Am_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-253 copy Ae Bk Bt Bt Bx Ae Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-253_copy_Ae_Bk_Bt_Bt_Bx_Ae_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-254 link+copy Be Bl Ak Be1 Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-254_link+copy_Be_Bl_Ak_Be1_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-255 copy+link Ae Br Be Ae Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-255_copy+link_Ae_Br_Be_Ae_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-256 copy+copy Ae Br By1 As Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-256_copy+copy_Ae_Br_By1_As_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-257 link+copy Bs At Ae=2 At Br1 Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-257_link+copy_Bs_At_Ae=2_At_Br1_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-258 copy+copy Bl Bs Be1 Be1 Ar r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-258_copy+copy_Bl_Bs_Be1_Be1_Ar_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-259 link Bu Bd Bx As Bt Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-259_link_Bu_Bd_Bx_As_Bt_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-260 link Be Ae Bm At Bd=zz Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-260_link_Be_Ae_Bm_At_Bd=zz_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-261 link Ax Bu As Bl Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-261_link_Ax_Bu_As_Bl_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-262 link Bs a Bs Bl Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-262_link_Bs_a_Bs_Bl_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-263 link+copy Bz1 Bf As Br By1 Be Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-263_link+copy_Bz1_Bf_As_Br_By1_Be_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-264 link Am Bd=zz Bk Ax Bk Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-264_link_Am_Bd=zz_Bk_Ax_Bk_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-265 link+copy Bt a By1 Bx r Be1 Ae Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-265_link+copy_Bt_a_By1_Bx_r_Be1_Ae_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-266 copy+copy By1 Bk Be1 Ae Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-266_copy+copy_By1_Bk_Be1_Ae_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-267 link+copy Al Bf a Bk Al Be Bx Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-267_link+copy_Al_Bf_a_Bk_Al_Be_Bx_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-268 link Bm Bs Ar Br Bx a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-268_link_Bm_Bs_Ar_Br_Bx_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-269 copy+link Bu Bu Ar By1 Bu Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-269_copy+link_Bu_Bu_Ar_By1_Bu_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-270 link Bx a Bm Al Bs Bl Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-270_link_Bx_a_Bm_Al_Bs_Bl_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-271 link+copy Be Bd a Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-271_link+copy_Be_Bd_a_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-272 link+copy Bf0 r Ar Bf0 a Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-272_link+copy_Bf0_r_Ar_Bf0_a_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-273 copy Bt a At Bs Bl Am Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-273_copy_Bt_a_At_Bs_Bl_Am_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-274 copy+link Bt Bk As Am Bx Al Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-274_copy+link_Bt_Bk_As_Am_Bx_Al_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-275 link+copy Bs Bs Br Ar Br1 As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-275_link+copy_Bs_Bs_Br_Ar_Br1_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-276 copy+link Am Al Ax Ax Ae Bx Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-276_copy+link_Am_Al_Ax_Ax_Ae_Bx_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-277 copy+link Bf Be Bs As Be Bs As r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-277_copy+link_Bf_Be_Bs_As_Be_Bs_As_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-278 copy+copy Bm As a Ar r Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-278_copy+copy_Bm_As_a_Ar_r_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-279 copy+link Bf r Br1 Bf0 As Ar Bf Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-279_copy+link_Bf_r_Br1_Bf0_As_Ar_Bf_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-280 copy+link Bs Am Bf0 Bl Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-280_copy+link_Bs_Am_Bf0_Bl_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-281 link+copy Bl Bz1 Bf Bd Ar Bf0 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-281_link+copy_Bl_Bz1_Bf_Bd_Ar_Bf0_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-282 copy Bt Be As Bf Ae Bl Al Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-282_copy_Bt_Be_As_Bf_Ae_Bl_Al_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-283 link+copy Bt r a Bk Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-283_link+copy_Bt_r_a_Bk_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-284 copy+link Be1 Br1 Bz1 Bf0 a r Bs Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-284_copy+link_Be1_Br1_Bz1_Bf0_a_r_Bs_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-285 link+copy Bx Bs Al Am Bf Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-285_link+copy_Bx_Bs_Al_Am_Bf_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-286 copy+copy Al Bf As Be1 Br1 As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-286_copy+copy_Al_Bf_As_Be1_Br1_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-287 link Bk Bl Bm Br Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-287_link_Bk_Bl_Bm_Br_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-288 link+copy Bd=zz Bz1 Ar Al Bf0 a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-288_link+copy_Bd=zz_Bz1_Ar_Al_Bf0_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-289 copy Ax At Bk Bk Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-289_copy_Ax_At_Bk_Bk_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-290 link Bt Bf a Bs Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-290_link_Bt_Bf_a_Bs_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-291 link+copy a Be Ar a Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-291_link+copy_a_Be_Ar_a_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-292 link+copy Bf0 Br Ax r By1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-292_link+copy_Bf0_Br_Ax_r_By1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-293 copy+link Bu Bu As Ae=2 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-293_copy+link_Bu_Bu_As_Ae=2_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-294 copy Bu Bx Ar As Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-294_copy_Bu_Bx_Ar_As_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-295 copy+copy Bm Bf0 As Am a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-295_copy+copy_Bm_Bf0_As_Am_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-296 copy+copy Br Bx a Bf0 Ar As Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-296_copy+copy_Br_Bx_a_Bf0_Ar_As_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-297 copy+copy Ae Be1 Bx Bx Be Be1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-297_copy+copy_Ae_Be1_Bx_Bx_Be_Be1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-298 copy+copy As Bf0 Bu a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-298_copy+copy_As_Bf0_Bu_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-299 copy+link Bt At Ak Ar Ar Bs Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-299_copy+link_Bt_At_Ak_Ar_Ar_Bs_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-300 link Bl Bs Ae Bu Bt Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-300_link_Bl_Bs_Ae_Bu_Bt_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-301 copy+copy Al Ar Br1 Bz1 Bt By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-301_copy+copy_Al_Ar_Br1_Bz1_Bt_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-302 copy+link Bf0 a Bf a Al Bs Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-302_copy+link_Bf0_a_Bf_a_Al_Bs_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-303 link+copy Be1 r Bm Bf0 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-303_link+copy_Be1_r_Bm_Bf0_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-304 link r Bd=zz r Ae Bx Bl Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-304_link_r_Bd=zz_r_Ae_Bx_Bl_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-305 link r Bt Bd Bs a Bu Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-305_link_r_Bt_Bd_Bs_a_Bu_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-306 link+copy Bz1 At Bk Ae Be1 Bf Br As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-306_link+copy_Bz1_At_Bk_Ae_Be1_Bf_Br_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-307 copy+link Be As Bf Al Bz1 Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-307_copy+link_Be_As_Bf_Al_Bz1_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-308 link+copy Bu Be Ae Ax Br Bu Be1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-308_link+copy_Bu_Be_Ae_Ax_Br_Bu_Be1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-309 copy Bf r Ae Bl Bk Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-309_copy_Bf_r_Ae_Bl_Bk_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-310 copy+copy Bx As Bx Ae Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-310_copy+copy_Bx_As_Bx_Ae_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-311 link+copy Bk Bk Ak Ar Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-311_link+copy_Bk_Bk_Ak_Ar_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-312 link a Bx As Ar Bs Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-312_link_a_Bx_As_Ar_Bs_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-313 link a Bs r Bm Bm Bu Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-313_link_a_Bs_r_Bm_Bm_Bu_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-314 copy Bf Ar Bl Ae Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-314_copy_Bf_Ar_Bl_Ae_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-315 copy Bf Bf As a Bf a Bt Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-315_copy_Bf_Bf_As_a_Bf_a_Bt_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-316 copy+copy Bs Be Bf Bm Bs Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-316_copy+copy_Bs_Be_Bf_Bm_Bs_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-317 link Bd=zz Ae=2 As Ak As Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-317_link_Bd=zz_Ae=2_As_Ak_As_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-318 link+copy As Bd=zz Bd Bf0 a Bs Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-318_link+copy_As_Bd=zz_Bd_Bf0_a_Bs_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-319 link+copy As Ak Bf r Bf0 As Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-319_link+copy_As_Ak_Bf_r_Bf0_As_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-320 link+copy Bd At Be Bu Ak Be1 Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-320_link+copy_Bd_At_Be_Bu_Ak_Be1_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-321 link Be Bd=zz Al Bl Bf Bf Al As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-321_link_Be_Bd=zz_Al_Bl_Bf_Bf_Al_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-322 link+copy Ar Bm Bk Ax Ar Ae Bz1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-322_link+copy_Ar_Bm_Bk_Ax_Ar_Ae_Bz1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-323 link+copy By1 Bf0 Bd Ax Bm By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-323_link+copy_By1_Bf0_Bd_Ax_Bm_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-324 copy Bl Bf Br Bk r At Be Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-324_copy_Bl_Bf_Br_Bk_r_At_Be_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-325 copy Bu Br Br Bx Al Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-325_copy_Bu_Br_Br_Bx_Al_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-326 copy+link Bx a As Ae a Be1 Bx Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-326_copy+link_Bx_a_As_Ae_a_Be1_Bx_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-327 copy Ax Bu Ae Be Br Am Bx Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-327_copy_Ax_Bu_Ae_Be_Br_Am_Bx_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-328 copy Bl Be Ak Ar Al Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-328_copy_Bl_Be_Ak_Ar_Al_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-329 copy+link Bs Bl a Br1 Bt a Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-329_copy+link_Bs_Bl_a_Br1_Bt_a_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-330 copy Bx a Ar r Be Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-330_copy_Bx_a_Ar_r_Be_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-331 copy+copy Bf0 a Bs Bx a Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-331_copy+copy_Bf0_a_Bs_Bx_a_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-332 copy Be Bm As Bl Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-332_copy_Be_Bm_As_Bl_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-333 copy Br Bk a Bt Bx Bm Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-333_copy_Br_Bk_a_Bt_Bx_Bm_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-334 copy Be Be Bs Ar Ae=2 Bt Be Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-334_copy_Be_Be_Bs_Ar_Ae=2_Bt_Be_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-335 link Bm Bt Bs a Bd At Bm Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-335_link_Bm_Bt_Bs_a_Bd_At_Bm_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-336 copy+link Ae=2 Bf Ar Bk a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-336_copy+link_Ae=2_Bf_Ar_Bk_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-337 link Ae a Ae=2 Bs Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-337_link_Ae_a_Ae=2_Bs_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-338 copy+copy Be As Be1 Ae=2 Bf0 Al Be1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-338_copy+copy_Be_As_Be1_Ae=2_Bf0_Al_Be1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-339 copy+link Be Bf0 Bf Bu Bs By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-339_copy+link_Be_Bf0_Bf_Bu_Bs_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-340 link Bx Bk Bm Bm As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-340_link_Bx_Bk_Bm_Bm_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-341 copy+copy Bt a Be Ak Bl Bm Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-341_copy+copy_Bt_a_Be_Ak_Bl_Bm_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-342 copy Bm Bt a a As Am Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-342_copy_Bm_Bt_a_a_As_Am_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-343 copy+copy Be1 Be1 Bm As As Bu Be1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-343_copy+copy_Be1_Be1_Bm_As_As_Bu_Be1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-344 copy+copy Bz1 Bl Be Bf0 Be Ak As Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-344_copy+copy_Bz1_Bl_Be_Bf0_Be_Ak_As_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-345 copy Bs Ae Bx Be Ax Be Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-345_copy_Bs_Ae_Bx_Be_Ax_Be_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-346 copy+link Br Bf Ar Bt Bx r Am Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-346_copy+link_Br_Bf_Ar_Bt_Bx_r_Am_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-347 link Bs Bd=zz Bk Bm r Bf a Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-347_link_Bs_Bd=zz_Bk_Bm_r_Bf_a_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-348 copy+copy Bz1 Br Bl Ae Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-348_copy+copy_Bz1_Br_Bl_Ae_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-349 copy+link Ar Bt r Ae Bs Bl Bt Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-349_copy+link_Ar_Bt_r_Ae_Bs_Bl_Bt_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-350 link a Bx r r Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-350_link_a_Bx_r_r_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-351 link+copy Ax Bs Ae Bf r Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-351_link+copy_Ax_Bs_Ae_Bf_r_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-352 copy+copy Br Bf0 Bs Bf Al Ae Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-352_copy+copy_Br_Bf0_Bs_Bf_Al_Ae_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-353 link Ae Bk Bs Bu Be Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-353_link_Ae_Bk_Bs_Bu_Be_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-354 link+copy Ae Am Bt Be1 At r Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-354_link+copy_Ae_Am_Bt_Be1_At_r_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-355 link Al Bd=zz Ar Bf Ar Ae Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-355_link_Al_Bd=zz_Ar_Bf_Ar_Ae_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-356 link+copy Bz1 By1 Am Bx Be Be1 Ax a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-356_link+copy_Bz1_By1_Am_Bx_Be_Be1_Ax_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-357 copy+copy Bk Be1 By1 As Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-357_copy+copy_Bk_Be1_By1_As_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-358 copy Bf Ar a Ae Bs Bf Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-358_copy_Bf_Ar_a_Ae_Bs_Bf_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-359 copy+link Bx Bx Bk By1 Bf0 Bl Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-359_copy+link_Bx_Bx_Bk_By1_Bf0_Bl_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-360 copy+copy Bf As Bf Ae Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-360_copy+copy_Bf_As_Bf_Ae_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-361 link+copy Br Ae Ae Be Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-361_link+copy_Br_Ae_Ae_Be_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-362 copy+copy Al By1 As Bf Al At Bf0 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-362_copy+copy_Al_By1_As_Bf_Al_At_Bf0_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-363 link+copy Bx a Br Ar Bk By1 Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-363_link+copy_Bx_a_Br_Ar_Bk_By1_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-364 link Bf a Bd=zz Bd=zz Ar Bs Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-364_link_Bf_a_Bd=zz_Bd=zz_Ar_Bs_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-365 link a Br a Bx Ae Br Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-365_link_a_Br_a_Bx_Ae_Br_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-366 link Bf Bd Bf Bk Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-366_link_Bf_Bd_Bf_Bk_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-367 link Ae r Bx Al Bd=zz Br Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-367_link_Ae_r_Bx_Al_Bd=zz_Br_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-368 link Bt Ae Ae=2 Bl Ak Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-368_link_Bt_Ae_Ae=2_Bl_Ak_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-369 link Ar Bs Bf Bt Bx Bt Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-369_link_Ar_Bs_Bf_Bt_Bx_Bt_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-370 copy+link Bs Bs Bk Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-370_copy+link_Bs_Bs_Bk_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-371 copy+link a Bu Be Br1 Bf Al Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-371_copy+link_a_Bu_Be_Br1_Bf_Al_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-372 copy+link Bx a Ar r Be Am Br Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-372_copy+link_Bx_a_Ar_r_Be_Am_Br_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-373 link+copy Bf0 a Bf r Ae Bt Be1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-373_link+copy_Bf0_a_Bf_r_Ae_Bt_Be1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-374 copy As Am Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-374_copy_As_Am_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-375 copy+link Ax As Bu Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-375_copy+link_Ax_As_Bu_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-376 copy+copy Bu Bs Bf0 By1 Bt Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-376_copy+copy_Bu_Bs_Bf0_By1_Bt_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-377 copy+link Ar Bz1 Ak Bk Bf0 Ae By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-377_copy+link_Ar_Bz1_Ak_Bk_Bf0_Ae_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-378 copy+copy Bu Be1 Br Bk Br Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-378_copy+copy_Bu_Be1_Br_Bk_Br_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-379 copy+copy Al r Bf0 r a Bf a Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-379_copy+copy_Al_r_Bf0_r_a_Bf_a_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-380 copy Bs Bl Bm Bx As Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-380_copy_Bs_Bl_Bm_Bx_As_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-381 copy+link Bx Ar Bl Bs By1 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-381_copy+link_Bx_Ar_Bl_Bs_By1_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-382 copy+copy Bf r By1 Bs Bu At Bu Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-382_copy+copy_Bf_r_By1_Bs_Bu_At_Bu_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-383 copy+copy Be Bs Be Bf0 a Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-383_copy+copy_Be_Bs_Be_Bf0_a_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-384 copy+link Bx As Bf Ar Bs Br Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-384_copy+link_Bx_As_Bf_Ar_Bs_Br_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-385 link+copy a At Bu Bs Bs Ak Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-385_link+copy_a_At_Bu_Bs_Bs_Ak_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-386 link Bs Bu Bl Be Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-386_link_Bs_Bu_Bl_Be_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-387 link Be Bs Be Bm Am r a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-387_link_Be_Bs_Be_Bm_Am_r_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-388 link+copy Bs Bx a r Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-388_link+copy_Bs_Bx_a_r_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-389 link+copy As Bf As a Am At Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-389_link+copy_As_Bf_As_a_Am_At_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-390 link Bm Bx a Ak r Bk Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-390_link_Bm_Bx_a_Ak_r_Bk_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-391 copy+link a By1 a By1 Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-391_copy+link_a_By1_a_By1_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-392 copy Bx Bs Bs a Bx Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-392_copy_Bx_Bs_Bs_a_Bx_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-393 link+copy Ar Bx r Be Bz1 At Bf Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-393_link+copy_Ar_Bx_r_Be_Bz1_At_Bf_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-394 link+copy Al Bd As Br1 Be1 Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-394_link+copy_Al_Bd_As_Br1_Be1_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-395 link Bf Ae Am Ae Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-395_link_Bf_Ae_Am_Ae_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-396 copy Bm Bs Am Bl Ar Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-396_copy_Bm_Bs_Am_Bl_Ar_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-397 copy Ae Bm Be Be a Be Ae=2 Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-397_copy_Ae_Bm_Be_Be_a_Be_Ae=2_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-398 copy+copy Bf r Al Be r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-398_copy+copy_Bf_r_Al_Be_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-399 link Bl Bt Ax Bf Ae Bf Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-399_link_Bl_Bt_Ax_Bf_Ae_Bf_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-400 copy+copy Bs Bs At By1 Bu Bf0 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-400_copy+copy_Bs_Bs_At_By1_Bu_Bf0_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-401 copy+link As By1 As Bk Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-401_copy+link_As_By1_As_Bk_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-402 link Bf Ar As Bd Bd=zz Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-402_link_Bf_Ar_As_Bd_Bd=zz_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-403 copy+link Bt At By1 By1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-403_copy+link_Bt_At_By1_By1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-404 copy Br At Ae Am Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-404_copy_Br_At_Ae_Am_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-405 link+copy Be Bf Ae Br As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-405_link+copy_Be_Bf_Ae_Br_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-406 copy+link Bs Be1 Bu Bs Bx a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-406_copy+link_Bs_Be1_Bu_Bs_Bx_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-407 link+copy Ar a Bs By1 Bf Ae Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-407_link+copy_Ar_a_Bs_By1_Bf_Ae_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-408 link+copy Bd Bs As By1 r By1 r Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-408_link+copy_Bd_Bs_As_By1_r_By1_r_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-409 copy+copy a Be By1 Bx As r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-409_copy+copy_a_Be_By1_Bx_As_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-410 copy Bs Ar Bf As Bs At Ak Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-410_copy_Bs_Ar_Bf_As_Bs_At_Ak_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-411 copy As Bk Bf Bs Be Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-411_copy_As_Bk_Bf_Bs_Be_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-412 copy Bs Bs Am As Al Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-412_copy_Bs_Bs_Am_As_Al_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-413 copy Bf Bs Bl Ae Bf Ar Bx As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-413_copy_Bf_Bs_Bl_Ae_Bf_Ar_Bx_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-414 copy Bl Bx Bt Bx a As Ar Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-414_copy_Bl_Bx_Bt_Bx_a_As_Ar_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-415 link+copy Br1 Be1 Bm Ax Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-415_link+copy_Br1_Be1_Bm_Ax_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-416 copy Al Ae Bs Bs Ar Ax Bk Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-416_copy_Al_Ae_Bs_Bs_Ar_Ax_Bk_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-417 copy+link Al By1 Bf0 Ar Be Ae Be1 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-417_copy+link_Al_By1_Bf0_Ar_Be_Ae_Be1_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-418 copy+link Bu Bk a Ar Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-418_copy+link_Bu_Bk_a_Ar_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-419 copy+link Be Bz1 a By1 Ak Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-419_copy+link_Be_Bz1_a_By1_Ak_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-420 link Ax Al Bl Bt Bf As Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-420_link_Ax_Al_Bl_Bt_Bf_As_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-421 link+copy a a Be1 By1 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-421_link+copy_a_a_Be1_By1_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-422 copy Bl Bk Be Bx r Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-422_copy_Bl_Bk_Be_Bx_r_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-423 copy+copy Be Ae As Bm Bx Al Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-423_copy+copy_Be_Ae_As_Bm_Bx_Al_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-424 link At Bt a Bs Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-424_link_At_Bt_a_Bs_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-425 copy Al Br Ar Be Bf Al Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-425_copy_Al_Br_Ar_Be_Bf_Al_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-426 link As Bu Be Bu Bt Bs Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-426_link_As_Bu_Be_Bu_Bt_Bs_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-427 copy Bf a Bu Be Br Al Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-427_copy_Bf_a_Bu_Be_Br_Al_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-428 copy Br Ax Be Bx a Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-428_copy_Br_Ax_Be_Bx_a_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-429 copy Bf Bx Bf a Bu Bm Ak Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-429_copy_Bf_Bx_Bf_a_Bu_Bm_Ak_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-430 copy+copy Bf0 Bt Bf Al Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-430_copy+copy_Bf0_Bt_Bf_Al_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-431 link Bx r Ae a a Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-431_link_Bx_r_Ae_a_a_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-432 link Ar Bs Am As Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-432_link_Ar_Bs_Am_As_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-433 link+copy Bk Bs Ae=2 a Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-433_link+copy_Bk_Bs_Ae=2_a_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-434 link+copy r Bt Ae Be1 r Ae=2 Bk Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-434_link+copy_r_Bt_Ae_Be1_r_Ae=2_Bk_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-435 link a Be Bx Ar Bs Ax Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-435_link_a_Be_Bx_Ar_Bs_Ax_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-436 link Bm r Bd Ae Bm Ar Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-436_link_Bm_r_Bd_Ae_Bm_Ar_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-437 copy+link a At By1 By1 Br1 Bf0 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-437_copy+link_a_At_By1_By1_Br1_Bf0_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-438 copy+link Ar Bu Be Bf By1 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-438_copy+link_Ar_Bu_Be_Bf_By1_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-439 copy+link At Br Ax Bs Ae Be Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-439_copy+link_At_Br_Ax_Bs_Ae_Be_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-440 link Ax Ar Bx Bt Ae Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-440_link_Ax_Ar_Bx_Bt_Ae_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-441 link Bk Bl Al Ar Al r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-441_link_Bk_Bl_Al_Ar_Al_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-442 link Be Bf a r r At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-442_link_Be_Bf_a_r_r_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-443 copy Br Ae Be Bf Ae Bu As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-443_copy_Br_Ae_Be_Bf_Ae_Bu_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-444 copy+copy Be As Ae Bz1 r Bu Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-444_copy+copy_Be_As_Ae_Bz1_r_Bu_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-445 copy+link Be Ak Bm By1 Bf0 a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-445_copy+link_Be_Ak_Bm_By1_Bf0_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-446 link Ar Bs a Ak Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-446_link_Ar_Bs_a_Ak_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-447 link+copy Bf Ar Bz1 Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-447_link+copy_Bf_Ar_Bz1_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-448 copy Ae=2 Bu Bs Ae=2 Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-448_copy_Ae=2_Bu_Bs_Ae=2_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-449 link+copy At Be1 Be Br1 Br Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-449_link+copy_At_Be1_Be_Br1_Br_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-450 link+copy a Bs Ae=2 Am Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-450_link+copy_a_Bs_Ae=2_Am_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-451 link Ax Br As Bk Bf Ar Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-451_link_Ax_Br_As_Bk_Bf_Ar_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-452 copy+link By1 Al Bf Bk By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-452_copy+link_By1_Al_Bf_Bk_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-453 copy+copy Bm At Br1 Br1 Bm a Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-453_copy+copy_Bm_At_Br1_Br1_Bm_a_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-454 link+copy Bk As As Bk Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-454_link+copy_Bk_As_As_Bk_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-455 copy+copy Bf0 Ar Bz1 r Am Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-455_copy+copy_Bf0_Ar_Bz1_r_Am_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-456 link Bd=zz Bd Al Bk Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-456_link_Bd=zz_Bd_Al_Bk_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-457 copy+link Bf0 a Be Bx Ar Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-457_copy+link_Bf0_a_Be_Bx_Ar_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-458 link Al Bd=zz Ak Br Bf a Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-458_link_Al_Bd=zz_Ak_Br_Bf_a_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-459 copy+copy Be1 Bx r Be Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-459_copy+copy_Be1_Bx_r_Be_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-460 copy+copy Bt Ae Ae=2 Bl As Al Bs Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-460_copy+copy_Bt_Ae_Ae=2_Bl_As_Al_Bs_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-461 link+copy Bk Bs As Bs As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-461_link+copy_Bk_Bs_As_Bs_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-462 copy+link Be1 Bx Bs Bl Al Bx Ae Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-462_copy+link_Be1_Bx_Bs_Bl_Al_Bx_Ae_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-463 copy Ae As Bx r Bm Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-463_copy_Ae_As_Bx_r_Bm_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-464 copy Be Br As As Bm Bm Br r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-464_copy_Be_Br_As_As_Bm_Bm_Br_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-465 copy Bx Al Bx a Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-465_copy_Bx_Al_Bx_a_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-466 link Be Bd a Bu Bm At Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-466_link_Be_Bd_a_Bu_Bm_At_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-467 copy+link Bl Bs Ae Bf Ae Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-467_copy+link_Bl_Bs_Ae_Bf_Ae_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-468 link Ak Be Bd Ar Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-468_link_Ak_Be_Bd_Ar_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-469 link As Bt Ae=2 Be Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-469_link_As_Bt_Ae=2_Be_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-470 copy Be Bs At Bx As Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-470_copy_Be_Bs_At_Bx_As_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-471 copy+copy Ak Bs Bm Bf0 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-471_copy+copy_Ak_Bs_Bm_Bf0_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-472 copy+link Bf Ar Bt Am Be Br1 Bf r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-472_copy+link_Bf_Ar_Bt_Am_Be_Br1_Bf_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-473 copy+copy By1 Bu As Br1 Bf As Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-473_copy+copy_By1_Bu_As_Br1_Bf_As_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-474 copy+copy Bs Bf By1 At Bu Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-474_copy+copy_Bs_Bf_By1_At_Bu_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-475 copy As Bf Bx Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-475_copy_As_Bf_Bx_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-476 copy+link Bf0 Bl Br Bl r By1 Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-476_copy+link_Bf0_Bl_Br_Bl_r_By1_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-477 link Bu Ax Bm Al Ae Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-477_link_Bu_Ax_Bm_Al_Ae_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-478 copy+link Bx Bx Ae Ar Bz1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-478_copy+link_Bx_Bx_Ae_Ar_Bz1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-479 copy Bf Al Bt Bx Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-479_copy_Bf_Al_Bt_Bx_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-480 copy+copy Be By1 Bt Bt Bk Bs Bf By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-480_copy+copy_Be_By1_Bt_Bt_Bk_Bs_Bf_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-481 link Al Bf Ae Ax Bk As Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-481_link_Al_Bf_Ae_Ax_Bk_As_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-482 link Bs Bx Bu Bm As Bu As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-482_link_Bs_Bx_Bu_Bm_As_Bu_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-483 link+copy a Ar Br1 Bx r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-483_link+copy_a_Ar_Br1_Bx_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-484 copy+copy At Bz1 Bf0 a Ae=2 Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-484_copy+copy_At_Bz1_Bf0_a_Ae=2_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-485 copy Ak At a Bs As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-485_copy_Ak_At_a_Bs_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-486 copy+copy Bf r Bk Bk Ar Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-486_copy+copy_Bf_r_Bk_Bk_Ar_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-487 copy+copy By1 a Ae Bx Ae Bu Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-487_copy+copy_By1_a_Ae_Bx_Ae_Bu_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-488 copy+link Bx Bf As Am As a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-488_copy+link_Bx_Bf_As_Am_As_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-489 copy r Bk Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-489_copy_r_Bk_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-490 copy+link Bl a At Ax a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-490_copy+link_Bl_a_At_Ax_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-491 copy+copy Bf Al Be1 Bu By1 Bx Bf0 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-491_copy+copy_Bf_Al_Be1_Bu_By1_Bx_Bf0_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-492 copy+link Ax Bf Be Be1 r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-492_copy+link_Ax_Bf_Be_Be1_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-493 copy a Ae Bm Ae Bm Br Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-493_copy_a_Ae_Bm_Ae_Bm_Br_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-494 link+copy Ax a Ae=2 Ae Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-494_link+copy_Ax_a_Ae=2_Ae_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-495 copy Bt Be At Br r Ae Al Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-495_copy_Bt_Be_At_Br_r_Ae_Al_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-496 copy Bf r Bt Be Be Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-496_copy_Bf_r_Bt_Be_Be_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-497 link Bd r Bx a Br Bf As Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-497_link_Bd_r_Bx_a_Br_Bf_As_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-498 link+copy Bl As Bx a Ax Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-498_link+copy_Bl_As_Bx_a_Ax_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-499 link+copy Ar Bx As By1 Bs Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-499_link+copy_Ar_Bx_As_By1_Bs_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-500 link+copy Be1 Bs Bl Bu Bt Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-500_link+copy_Be1_Bs_Bl_Bu_Bt_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-501 copy At Be Ax Be Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-501_copy_At_Be_Ax_Be_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-502 link+copy Bf Ae r Br1 Be1 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-502_link+copy_Bf_Ae_r_Br1_Be1_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-503 link+copy Bf0 a Al r Ae r` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-503_link+copy_Bf0_a_Al_r_Ae_r`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-504 copy Bf r a Bk Bs Bx As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-504_copy_Bf_r_a_Bk_Bs_Bx_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-505 copy+copy Be1 Bl By1 Be1 Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-505_copy+copy_Be1_Bl_By1_Be1_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-506 link+copy Bf0 a r a Ae Br Bs Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-506_link+copy_Bf0_a_r_a_Ae_Br_Bs_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-507 link+copy Ak Bs Bu Ak At Bs As Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-507_link+copy_Ak_Bs_Bu_Ak_At_Bs_As_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-508 copy+copy Be Be1 Bt Bt By1 By1 Be Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-508_copy+copy_Be_Be1_Bt_Bt_By1_By1_Be_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-509 copy+copy r Ae=2 Bz1 Bx Ar Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-509_copy+copy_r_Ae=2_Bz1_Bx_Ar_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-510 copy+link Ae Bf As Br1 Ar Bs Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-510_copy+link_Ae_Bf_As_Br1_Ar_Bs_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-511 link+copy Be Bf a Bm Bd Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-511_link+copy_Be_Bf_a_Bm_Bd_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-512 link+copy As Bu Bs Ae Ae=2 Bx Ar Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-512_link+copy_As_Bu_Bs_Ae_Ae=2_Bx_Ar_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-513 copy+link By1 Bx Al Be Bk Ae=2` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-513_copy+link_By1_Bx_Al_Be_Bk_Ae=2`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-514 link+copy Am By1 Ae Be1 a Bs Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-514_link+copy_Am_By1_Ae_Be1_a_Bs_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-515 link Bd As r Be Ar Ak Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-515_link_Bd_As_r_Be_Ar_Ak_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-516 copy+link Bu By1 a Bm By1 Ar Bs Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-516_copy+link_Bu_By1_a_Bm_By1_Ar_Bs_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-517 copy+copy Be r At Bm Be1 Br Ae=2 Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-517_copy+copy_Be_r_At_Bm_Be1_Br_Ae=2_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-518 link a Bf As Bx a Ae=2 Bd Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-518_link_a_Bf_As_Bx_a_Ae=2_Bd_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-519 copy+link Ae a Be1 Be1 r Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-519_copy+link_Ae_a_Be1_Be1_r_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-520 link Bf Ar Bf As Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-520_link_Bf_Ar_Bf_As_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-521 copy+link Al Bu Be At Bz1 Bf As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-521_copy+link_Al_Bu_Be_At_Bz1_Bf_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-522 copy+link Bm Ae Ar Be1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-522_copy+link_Bm_Ae_Ar_Be1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-523 link+copy Be Bx r As Bu Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-523_link+copy_Be_Bx_r_As_Bu_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-524 copy+link Be Ar Bt As Bx Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-524_copy+link_Be_Ar_Bt_As_Bx_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-525 link+copy Bs Be1 Bk Be a Bs Be1 As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-525_link+copy_Bs_Be1_Bk_Be_a_Bs_Be1_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-526 copy+copy Bx Bf Ae Al Ax Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-526_copy+copy_Bx_Bf_Ae_Al_Ax_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-527 link Bs Ar Bd=zz Bx As Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-527_link_Bs_Ar_Bd=zz_Bx_As_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-528 link+copy Be1 Bm By1 Be Ar Bz1 Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-528_link+copy_Be1_Bm_By1_Be_Ar_Bz1_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-529 link+copy Be1 Bm Bz1 Bd Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-529_link+copy_Be1_Bm_Bz1_Bd_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-530 link+copy As Bk By1 r Bx r Ak Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-530_link+copy_As_Bk_By1_r_Bx_r_Ak_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-531 copy Bl Bm Bs Bt Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-531_copy_Bl_Bm_Bs_Bt_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-532 copy+copy Al Be Bz1 Bk Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-532_copy+copy_Al_Be_Bz1_Bk_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-533 copy+copy Bk Be1 Ar a Bf Bx Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-533_copy+copy_Bk_Be1_Ar_a_Bf_Bx_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-534 copy+link By1 Am Ax Al Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-534_copy+link_By1_Am_Ax_Al_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-535 copy+link Bs Am Bf0 a Br1 By1 Br1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-535_copy+link_Bs_Am_Bf0_a_Br1_By1_Br1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-536 copy+link Bl Bs Bx By1 Bf0` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-536_copy+link_Bl_Bs_Bx_By1_Bf0`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-537 copy Bl Be r Bu Be Bs Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-537_copy_Bl_Be_r_Bu_Be_Bs_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-538 copy+link Be1 Ae=2 Br1 By1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-538_copy+link_Be1_Ae=2_Br1_By1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-539 link+copy Al Ax At Bm Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-539_link+copy_Al_Ax_At_Bm_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-540 copy+copy Bs r Bt Bf Bs Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-540_copy+copy_Bs_r_Bt_Bf_Bs_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-541 copy+link Bx Al Ar Am Ae Bf a Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-541_copy+link_Bx_Al_Ar_Am_Ae_Bf_a_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-542 link+copy r As At Ar As Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-542_link+copy_r_As_At_Ar_As_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-543 link+copy Ae Al Br1 Ax As a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-543_link+copy_Ae_Al_Br1_Ax_As_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-544 link+copy Bf Be1 Bs Bu a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-544_link+copy_Bf_Be1_Bs_Bu_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-545 copy Ae=2 At Ak Ax Am Br Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-545_copy_Ae=2_At_Ak_Ax_Am_Br_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-546 link Ax As Bf Ae Bd=zz` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-546_link_Ax_As_Bf_Ae_Bd=zz`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-547 copy+copy Bs As Bu Be Ax By1 By1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-547_copy+copy_Bs_As_Bu_Be_Ax_By1_By1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-548 copy+link Bs Be1 Ae As Br1 Bf Be1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-548_copy+link_Bs_Be1_Ae_As_Br1_Bf_Be1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-549 link+copy Ae Bd=zz Bl Bl Bz1 Am Al Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-549_link+copy_Ae_Bd=zz_Bl_Bl_Bz1_Am_Al_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-550 link Bs Be As Ak Bf a Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-550_link_Bs_Be_As_Ak_Bf_a_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-551 copy+link By1 Bs Ar Ae=2 Be Be1 Bx Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-551_copy+link_By1_Bs_Ar_Ae=2_Be_Be1_Bx_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-552 copy+copy Be1 Bx Al Bt As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-552_copy+copy_Be1_Bx_Al_Bt_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-553 copy+copy Bk By1 Al By1 Bf Be Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-553_copy+copy_Bk_By1_Al_By1_Bf_Be_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-554 copy+copy Bl r As Ae Be1 Bs Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-554_copy+copy_Bl_r_As_Ae_Be1_Bs_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-555 copy+copy Bm Al Be Bl Bu r Br` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-555_copy+copy_Bm_Al_Be_Bl_Bu_r_Br`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-556 copy+copy Ae=2 Ax a Bf0 Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-556_copy+copy_Ae=2_Ax_a_Bf0_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-557 link Bs Be Bf a Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-557_link_Bs_Be_Bf_a_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-558 copy Bs Bu Br Bs Be Bt` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-558_copy_Bs_Bu_Br_Bs_Be_Bt`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-559 link Br Bd Am a Bs Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-559_link_Br_Bd_Am_a_Bs_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-560 copy Bf a As Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-560_copy_Bf_a_As_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-561 copy Bx As Be Be Bu Al Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-561_copy_Bx_As_Be_Be_Bu_Al_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-562 copy+copy Bm Ak Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-562_copy+copy_Bm_Ak_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-563 copy+copy Bt Ak Ar Bx a Bx r Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-563_copy+copy_Bt_Ak_Ar_Bx_a_Bx_r_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-564 copy+link Bx Bf Ar a Bu a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-564_copy+link_Bx_Bf_Ar_a_Bu_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-565 copy+copy At Ae Be Bf Bx Ae Be1 Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-565_copy+copy_At_Ae_Be_Bf_Bx_Ae_Be1_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-566 copy Bt As r Bk Bf Ae Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-566_copy_Bt_As_r_Bk_Bf_Ae_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-567 link+copy Bs As Bd=zz Bm Be At Bz1 At` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-567_link+copy_Bs_As_Bd=zz_Bm_Be_At_Bz1_At`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-568 copy+link Br1 Bf a Bx r Be1 Bs Ax` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-568_copy+link_Br1_Bf_a_Bx_r_Be1_Bs_Ax`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-569 link+copy Bf0 r Be1 Ak Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-569_link+copy_Bf0_r_Be1_Ak_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-570 copy+copy Ar Bt As Bt Bt By1 Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-570_copy+copy_Ar_Bt_As_Bt_Bt_By1_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-571 copy+link Ae Bs By1 By1 a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-571_copy+link_Ae_Bs_By1_By1_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-572 copy Ak As Bk Ar Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-572_copy_Ak_As_Bk_Ar_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-573 link+copy Ax Bd=zz Bd Be1 Bx Bz1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-573_link+copy_Ax_Bd=zz_Bd_Be1_Bx_Bz1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-574 copy Ae Ar Bk Br Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-574_copy_Ae_Ar_Bk_Br_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-575 copy Be Bf r Bl Bm Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-575_copy_Be_Bf_r_Bl_Bm_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-576 link+copy Bs Bx r Bf Al Bt Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-576_link+copy_Bs_Bx_r_Bf_Al_Bt_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-577 link Bf Br Be Bs Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-577_link_Bf_Br_Be_Bs_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-578 copy+copy As Bt By1 By1 Al Ae Bs Am` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-578_copy+copy_As_Bt_By1_By1_Al_Ae_Bs_Am`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-579 copy+link Bf Br1 Bs Bf Bu As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-579_copy+link_Bf_Br1_Bs_Bf_Bu_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-580 copy+link By1 Br1 Bz1 As Ar` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-580_copy+link_By1_Br1_Bz1_As_Ar`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-581 copy+copy Bs Ar Be1 By1 As` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-581_copy+copy_Bs_Ar_Be1_By1_As`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-582 copy+copy Ae By1 a Ae=2 Bx Al Ae Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-582_copy+copy_Ae_By1_a_Ae=2_Bx_Al_Ae_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-583 copy Bt Be Al Bs Bs Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-583_copy_Bt_Be_Al_Bs_Bs_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-584 copy+link Bm Bs Bm Bu Be1 Ae` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-584_copy+link_Bm_Bs_Bm_Bu_Be1_Ae`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-585 copy+copy Ak Ar As Be1 Be1` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-585_copy+copy_Ak_Ar_As_Be1_Be1`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-586 link+copy By1 Bf0 Ar Bd=zz Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-586_link+copy_By1_Bf0_Ar_Bd=zz_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-587 link Bf Ar Bs Bt Bl` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-587_link_Bf_Ar_Bs_Bt_Bl`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-588 link+copy Br Bs Be1 Be Bf Br Bx Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-588_link+copy_Br_Bs_Be1_Be_Bf_Br_Bx_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-589 copy Be Bs Bu Bk Bx Ar Ak` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-589_copy_Be_Bs_Bu_Bk_Bx_Ar_Ak`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-590 copy Bf Ar Bx Be Bs Ar Bu Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-590_copy_Bf_Ar_Bx_Be_Bs_Ar_Bu_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-591 copy+copy Be1 Bm Bm Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-591_copy+copy_Be1_Bm_Bm_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-592 copy+link Bk Ae=2 By1 Ar By1 Bu` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-592_copy+link_Bk_Ae=2_By1_Ar_By1_Bu`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-593 copy+copy Bt a Be1 Bl Ar Bk Bl Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-593_copy+copy_Bt_a_Be1_Bl_Ar_Bk_Bl_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-594 copy+link Br1 Br1 Ar Br Bs` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-594_copy+link_Br1_Br1_Ar_Br_Bs`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-595 copy+copy a As Br1 Bf Be1 Bm` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-595_copy+copy_a_As_Br1_Bf_Be1_Bm`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-596 copy Al Be a Bl As Ar Ar Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-596_copy_Al_Be_a_Bl_As_Ar_Ar_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-597 link Am Br Bk Bf Ae Ar Bu Bd` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-597_link_Am_Br_Bk_Bf_Ae_Ar_Bu_Bd`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-598 link+copy Ae=2 Bd a Bs Bf Al` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-598_link+copy_Ae=2_Bd_a_Bs_Bf_Al`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `seed-1-599 link+copy Ae=2 Am Bz1 Bd=zz Ae By1 As Bk` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/seed-1-599_link+copy_Ae=2_Am_Bz1_Bd=zz_Ae_By1_As_Bk`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy a Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_a_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Be Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Be_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bx Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bx_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy Bf Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy_Bf_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy a Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_a_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Be Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Be_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bx Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bx_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep copy+copy Bf Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_copy+copy_Bf_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link a Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_a_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Be Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Be_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bx Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bx_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link Bf Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link_Bf_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy a Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_a_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Be Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Be_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bx Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bx_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf a Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_a_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Be Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Be_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bx Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bx_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf a a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_a_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf a Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_a_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf a Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_a_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf a Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_a_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Be a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Be_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Be Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Be_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Be Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Be_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Be Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Be_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bx a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bx_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bx Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bx_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bx Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bx_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bx Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bx_Bf`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bf a` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bf_a`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bf Be` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bf_Be`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bf Bx` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bf_Bx`
+- [x] apps/cli/src/sync/__tests__/exploration-generated.test.ts :: `deep link+copy Bf Bf Bf Bf` → `go/cli/sync/enginetest/exploration_test.go: TestExploration/deep_link+copy_Bf_Bf_Bf_Bf`
+- [x] apps/cli/src/sync/__tests__/diff-selection.test.ts :: `diff selection false false false true` → `go/cli/sync/enginetest/guards_test.go: TestDiffSelection`
+- [x] apps/cli/src/sync/__tests__/diff-selection.test.ts :: `diff selection true true false true` → `go/cli/sync/enginetest/guards_test.go: TestDiffSelection`
+- [x] apps/cli/src/sync/__tests__/diff-selection.test.ts :: `diff selection true false false false` → `go/cli/sync/enginetest/guards_test.go: TestDiffSelection`
+- [x] apps/cli/src/sync/__tests__/diff-selection.test.ts :: `diff selection true false false true` → `go/cli/sync/enginetest/guards_test.go: TestDiffSelection`
+- [x] apps/cli/src/sync/__tests__/diff-selection.test.ts :: `diff selection true false true true` → `go/cli/sync/enginetest/guards_test.go: TestDiffSelection`
+- [x] apps/cli/src/sync/__tests__/held-back.test.ts :: `push and status report the same placement reason` → `go/cli/sync/enginetest/held_back_test.go: TestPushAndStatusHeldBackReasons`
+- [x] apps/cli/src/sync/__tests__/held-back.test.ts :: `push and status report the same conflict reason` → `go/cli/sync/enginetest/held_back_test.go: TestPushAndStatusHeldBackReasons`
+- [x] apps/cli/src/sync/__tests__/held-back.test.ts :: `push and status report the same inspection reason` → `go/cli/sync/enginetest/held_back_test.go: TestPushAndStatusHeldBackReasons`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=1, copy=1` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=store, copy=1` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=1, copy=copy` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=store, copy=copy` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=undefined, copy=1` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=true, store=same, copy=same` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=false, store=1, copy=1` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=false, store=store, copy=1` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=false, store=1, copy=copy` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=false, store=store, copy=copy` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `unpublished copy agreement: base=false, store=same, copy=same` → `go/cli/sync/enginetest/agreement_test.go: TestUnpublishedCopyAgreement`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=false, choice=applied` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=false, choice=keep-mine` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=false, choice=take-server` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=false, choice=repair` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=false, choice=untracked-repair` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=true, choice=applied` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=true, choice=keep-mine` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=true, choice=take-server` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=true, choice=repair` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/agreement.test.ts :: `tombstone re-add: copy=true, choice=untracked-repair` → `go/cli/sync/enginetest/tombstone_test.go: TestTombstoneReadd`
+- [x] apps/cli/src/sync/__tests__/detached-observed.test.ts :: `a detached save after an observed link edit is the newest edit` → `go/cli/sync/enginetest/isolation_test.go: TestDetachedSaveIsNewestAfterObservedEdit`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 0: 0` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/0:[0]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 1: 1` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/1:[1]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 2: 2` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/2:[2]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 3: 3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/3:[3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 4: 4` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/4:[4]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 5: 5` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/5:[5]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 6: 6` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/6:[6]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 7: 7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/7:[7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 8: 8` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/8:[8]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 9: 9` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/9:[9]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 10: 10` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/10:[10]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 11: 11` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/11:[11]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 12: 12` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/12:[12]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 13: 13` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/13:[13]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 14: 14` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/14:[14]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 15: 15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/15:[15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 16: 16` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/16:[16]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 17: 17` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/17:[17]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 18: 18` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/18:[18]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 19: 19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/19:[19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 20: 18,1,8,3,6,1,16,7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/20:[18_1_8_3_6_1_16_7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 21: 2,13,16,11,2,5,0,3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/21:[2_13_16_11_2_5_0_3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 22: 14,9,8,7,2,17,4,7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/22:[14_9_8_7_2_17_4_7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 23: 18,5,16,3,2,9,0,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/23:[18_5_16_3_2_9_0_15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 24: 18,13,8,15,10,9,0,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/24:[18_13_8_15_10_9_0_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 25: 2,13,16,11,6,1,4,7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/25:[2_13_16_11_6_1_4_7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 26: 14,5,8,19,6,5,0,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/26:[14_5_8_19_6_5_0_15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 27: 2,17,4,19,10,13,8,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/27:[2_17_4_19_10_13_8_15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 28: 14,17,0,19,2,9,8,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/28:[14_17_0_19_2_9_8_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 29: 14,9,12,7,14,5,0,7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/29:[14_9_12_7_14_5_0_7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 30: 10,1,16,11,14,5,0,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/30:[10_1_16_11_14_5_0_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 31: 2,17,12,19,2,5,16,3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/31:[2_17_12_19_2_5_16_3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 32: 6,1,16,15,2,9,12,3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/32:[6_1_16_15_2_9_12_3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 33: 14,17,16,3,2,1,0,7` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/33:[14_17_16_3_2_1_0_7]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 34: 6,1,16,19,10,9,4,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/34:[6_1_16_19_10_9_4_15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 35: 10,1,16,15,10,17,12,3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/35:[10_1_16_15_10_17_12_3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 36: 10,1,8,19,2,17,0,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/36:[10_1_8_19_2_17_0_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 37: 2,13,0,3,14,17,0,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/37:[2_13_0_3_14_17_0_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 38: 14,9,8,7,18,5,4,11` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/38:[14_9_8_7_18_5_4_11]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 39: 18,1,0,11,14,13,16,19` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/39:[18_1_0_11_14_13_16_19]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 40: 6,13,16,7,2,5,8,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/40:[6_13_16_7_2_5_8_15]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 41: 6,1,8,15,2,5,8,3` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/41:[6_1_8_15_2_5_8_3]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 42: 10,1,8,19,2,17,0,11` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/42:[10_1_8_19_2_17_0_11]`
+- [x] apps/cli/src/sync/__tests__/interleaving.test.ts :: `interleaving 43: 2,5,4,11,10,13,8,15` → `go/cli/sync/enginetest/interleaving_test.go: TestInterleaving/43:[2_5_4_11_10_13_8_15]`
+- [x] apps/cli/src/sync/__tests__/placement.test.ts :: `sync honors copy preference and prunes adapter backups after placement` → `go/cli/sync/enginetest/placement_test.go: TestCopyPreferenceAndBackupPruning`
+- [x] apps/cli/src/sync/__tests__/placement.test.ts :: `pull places env files in a worktree of an approved clone unless the setting is off` → `go/cli/sync/enginetest/placement_test.go: TestWorktreePlacementHonorsSetting`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `failed placement resumes without reverting newer target content` → `go/cli/sync/enginetest/pending_test.go: TestFailedPlacementResumesNewerContent`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `failed placement resumes without reverting newer store content` → `go/cli/sync/enginetest/pending_test.go: TestFailedPlacementResumesNewerContent`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `failed placement resumes without reverting newer none content` → `go/cli/sync/enginetest/pending_test.go: TestFailedPlacementResumesNewerContent`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted store write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted copy-0 write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted copy-1 write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted base-0 write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted base-1 write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted base-store write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `interrupted applied write converges on retry` → `go/cli/sync/enginetest/interrupted_writes_test.go: TestInterruptedWritesConverge`
+- [x] apps/cli/src/sync/__tests__/pending.test.ts :: `resumed placement skips a checkout recreated after the failed pull` → `go/cli/sync/enginetest/resume_targets_test.go: TestResumeSkipsRecreatedCheckout`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `copy push preserves edits: revert` → `go/cli/sync/enginetest/regressions_test.go: TestCopyPushPreservesEdits`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `copy push preserves edits: unpublished` → `go/cli/sync/enginetest/regressions_test.go: TestCopyPushPreservesEdits`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `copy push preserves edits: two copies` → `go/cli/sync/enginetest/regressions_test.go: TestCopyPushPreservesEdits`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `rerunning setup file push leaves remote edits for normal reconciliation` → `go/cli/sync/enginetest/regressions_test.go: TestSetupPushLeavesRemoteEdits`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `newly tracked copy cannot resurrect a server tombstone` → `go/cli/sync/enginetest/regressions_test.go: TestNewCopyCannotResurrectTombstone`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `cancel at detached prompt aborts push` → `go/cli/sync/enginetest/local_resolution_test.go: TestCancelledDetachedPromptAbortsPush`
+- [x] apps/cli/src/sync/__tests__/regressions.test.ts :: `all skips a recreated checkout even when another checkout selects its repo` → `go/cli/sync/enginetest/regressions_test.go: TestAllSkipsRecreatedCheckout`
+- [x] apps/cli/src/sync/__tests__/attempt-names.test.ts :: `attempt scans ignore incomplete atomic writes and unrelated names` → `go/cli/sync/remote/attempt/state/state_test.go: TestAttemptNamesAndCorruption`
+- [x] apps/cli/src/sync/__tests__/attempt-names.test.ts :: `an interrupted attempt quarantine still holds tracked files` → `go/cli/sync/remote/attempt/state/state_test.go: TestAttemptNamesAndCorruption`
+- [x] apps/cli/src/sync/__tests__/conflict-report.test.ts :: `a deletion side is named and every extra local version is saved in one short report` → `go/cli/sync/enginetest/detached_test.go: TestDeletionConflictShortReport`
+- [x] apps/cli/src/sync/__tests__/repair-hazards.test.ts :: `repair hazards survive a scoped pull until a conflict is saved` → `go/cli/sync/enginetest/guards_test.go: TestRepairHazardConsumption`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `corrupt .entry is quarantined and resolvable` → `go/cli/sync/enginetest/corrupt_test.go: TestCorruptRecordsQuarantinedAndResolvable`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `corrupt .pending is quarantined and resolvable` → `go/cli/sync/enginetest/corrupt_test.go: TestCorruptRecordsQuarantinedAndResolvable`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `corrupt .delete is quarantined and resolvable` → `go/cli/sync/enginetest/corrupt_test.go: TestCorruptRecordsQuarantinedAndResolvable`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `corrupt attempt is quarantined and resolvable` → `go/cli/sync/enginetest/corrupt_test.go: TestCorruptRecordsQuarantinedAndResolvable`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `invalid applied state is a named EnvdenError` → `go/cli/sync/enginetest/corrupt_test.go: TestInvalidAppliedStateNamedError`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `untrack cancels removal and tolerates a corrupt pending record` → `go/cli/sync/enginetest/corrupt_test.go: TestUntrackCancelsRemovalWithCorruptPending`
+- [x] apps/cli/src/sync/__tests__/corrupt-state.test.ts :: `untracking one target preserves a shared corrupt-state hold` → `go/cli/sync/enginetest/corrupt_test.go: TestUntrackPreservesSharedCorruptHold`
+- [x] apps/cli/src/sync/__tests__/conflict-origins.test.ts :: `restore preserves the copy edit on mine and real server on theirs` → `go/cli/sync/enginetest/origins_test.go: TestRestorePreservesCopyMineAndRealServer`
+- [x] apps/cli/src/sync/__tests__/conflict-origins.test.ts :: `unpublished local conflicts cannot take a nonexistent server side` → `go/cli/sync/enginetest/origins_test.go: TestUnpublishedConflictCannotTakeNonexistentServer`
+- [x] apps/cli/src/sync/__tests__/notice.test.ts :: `background refresh fetches outside the state lock and locks only to write` → `go/cli/sync/enginetest/notice_test.go: TestBackgroundRefreshDoesNotHoldStateLock`
+- [x] apps/cli/src/sync/__tests__/notice.test.ts :: `foreground commands inspect remote history even while the shell cache is fresh` → `go/cli/sync/enginetest/notice_test.go: TestForegroundInspectsFreshRemoteHistory`
+- [x] apps/cli/src/sync/__tests__/notice.test.ts :: `setup's initial push leaves nothing to pull and a pull settles the remote notice` → `go/cli/sync/enginetest/notice_test.go: TestInitialPushAndPullSettleNotices`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `acknowledgement leaves skipped copy ancestors unchanged` → `go/cli/sync/enginetest/acknowledgement_test.go: TestAcknowledgementSkippedAncestors`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `tracked detached revert is an edit; unpushed store false` → `go/cli/sync/enginetest/acknowledgement_test.go: TestTrackedDetachedRevert`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `tracked detached revert is an edit; unpushed store true` → `go/cli/sync/enginetest/acknowledgement_test.go: TestTrackedDetachedRevert`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `acknowledgement preserves a later removal on push` → `go/cli/sync/enginetest/acknowledgement_test.go: TestAcknowledgementPreservesLaterRemoval`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `acknowledgement preserves a later removal on pull` → `go/cli/sync/enginetest/acknowledgement_test.go: TestAcknowledgementPreservesLaterRemoval`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `pending resume preserves a written copy reverted by the user` → `go/cli/sync/enginetest/acknowledgement_test.go: TestPendingResumePreservesWrittenRevert`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `pending resume preserves a written link reverted by the user` → `go/cli/sync/enginetest/acknowledgement_test.go: TestPendingResumePreservesWrittenRevert`
+- [x] apps/cli/src/sync/__tests__/acknowledgement.test.ts :: `already matching copy records its content before a placement failure` → `go/cli/sync/enginetest/acknowledgement_test.go: TestMatchingCopyRecordsBeforeFailure`
+- [x] apps/cli/src/sync/__tests__/conflict.test.ts :: `sync conflict` → `go/cli/sync/enginetest/conflict_test.go: TestSyncConflict`
+- [x] apps/cli/src/sync/__tests__/lifecycle.test.ts :: `tombstones remove link records and do not require ignore permission` → `go/cli/sync/enginetest/lifecycle_test.go: TestTombstonesRemoveLinks`
+- [x] apps/cli/src/sync/__tests__/lifecycle.test.ts :: `pull adopts an unjournaled store link` → `go/cli/sync/enginetest/lifecycle_test.go: TestAdoptsUnjournaledStoreLink`
+- [x] apps/cli/src/sync/__tests__/lifecycle.test.ts :: `local-only files never appear in remote notices` → `go/cli/sync/enginetest/notice_test.go: TestLocalOnlyFilesAbsentFromRemoteNotices`
+- [x] apps/cli/src/sync/__tests__/lifecycle.test.ts :: `notice failure does not fail a committed push` → `go/cli/sync/enginetest/lifecycle_test.go: TestNoticeFailureDoesNotFailCommittedPush`
+- [x] apps/cli/src/sync/__tests__/lifecycle.test.ts :: `unpublished detached conflicts keep the unpushed store as mine while other files push` → `go/cli/sync/enginetest/conflict_test.go: TestUnpublishedDetachedConflict`
+- [x] apps/cli/src/sync/__tests__/uploads.test.ts :: `two copies of one store upload one blob and retain both bases` → `go/cli/sync/remote/push/upload_test.go: TestTwoCopiesShareUploadAndKeepBothBases`
+- [x] apps/cli/src/sync/__tests__/uploads.test.ts :: `an applied entry uses its cached blob and refetches a missing cache` → `go/cli/sync/enginetest/uploads_test.go: TestAppliedEntryCachesAndRefetchesBlob`
+- [x] apps/cli/src/sync/__tests__/uploads.test.ts :: `push skips an oversized file and reports only its path` → `go/cli/sync/remote/push/size_test.go: TestOversizedUploadOnlyReportsPath`
+- [x] apps/cli/src/vault/__tests__/onboarding.test.ts :: `pairing stores only headers through its approved checkpoint` → `go/cli/sync/enginetest/onboarding_test.go: TestPairingCheckpointAdvancesExactlyOnceOnPull`
+- [x] apps/cli/src/vault/__tests__/onboarding.test.ts :: `setup does not re-record file baselines after another manifest commit` → `go/cli/sync/enginetest/onboarding_test.go: TestInitialPushDoesNotRecordBaselinesAfterOtherCommit`
+
+Mapped: 3203. Pending: 0. Total: 3203.
