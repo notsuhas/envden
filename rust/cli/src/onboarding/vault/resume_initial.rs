@@ -13,7 +13,7 @@ use crate::{
         },
     },
 };
-use envden_core::errors::Result;
+use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use envden_protocol::protocol as p;
 use serde_json::json;
 use std::{path::Path, rc::Rc};
@@ -44,7 +44,7 @@ pub(super) fn resume(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
         if entry.state != 1 {
             return Ok(());
         }
-        let key = &context.keys[&entry.epoch];
+        let key = epoch_key(&context.keys, entry.epoch)?;
         let c = p::IFileContext {
             vault_id: context.vault_id,
             file_id: entry.file_id,
@@ -118,4 +118,25 @@ pub(super) fn resume(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> Res
         write_bytes(&path, Some(&content), (adapters.now)())?;
     }
     Ok(())
+}
+
+fn epoch_key(keys: &std::collections::BTreeMap<u32, [u8; 32]>, epoch: u32) -> Result<&[u8; 32]> {
+    keys.get(&epoch)
+        .ok_or_else(|| EnvdenError::new(ErrorCode::Internal, "Epoch key unavailable"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn missing_epoch_key_returns_internal_error_instead_of_panicking() {
+        let keys = BTreeMap::from([(1, [7; 32])]);
+        assert_eq!(epoch_key(&keys, 1).unwrap(), &[7; 32]);
+
+        let error = epoch_key(&keys, 2).unwrap_err();
+        assert_eq!(error.code, ErrorCode::Internal);
+        assert_eq!(crate::output::error_exit_code(error.code), 1);
+    }
 }
