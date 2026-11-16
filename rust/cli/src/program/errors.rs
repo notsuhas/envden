@@ -20,8 +20,18 @@ pub(super) fn render(root: &ICommand, args: &[String], error: &clap::Error) -> S
             && command.options.iter().any(|option| {
                 option.long.as_deref() == Some(invalid) && !option.required && !option.optional
             });
+        let delimiter = args
+            .iter()
+            .position(|token| token == "--")
+            .unwrap_or(args.len());
+        let operand = args[delimiter..]
+            .iter()
+            .skip(1)
+            .any(|token| token == invalid)
+            && !args[..delimiter].iter().any(|token| token == invalid);
         if (error.kind() == ErrorKind::UnknownArgument || unexpected_flag_value)
             && invalid.starts_with('-')
+            && !operand
         {
             let invalid = token.map_or(invalid.as_str(), String::as_str);
             let candidates = if invalid.starts_with("--") {

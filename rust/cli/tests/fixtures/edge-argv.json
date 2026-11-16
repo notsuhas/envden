@@ -487,5 +487,113 @@
     "arguments": [],
     "options": { "scanRoot": ["--yes"] }
   },
-  { "argv": ["server", "repair", "--without=a", "b"], "kind": "error", "exit": 1 }
+  { "argv": ["server", "repair", "--without=a", "b"], "kind": "error", "exit": 1 },
+  {
+    "argv": ["setup", "--scan-root", "a", "-1"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["setup"],
+    "arguments": [],
+    "options": { "scanRoot": ["a", "-1"] }
+  },
+  {
+    "argv": ["history", "-1"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["history"],
+    "arguments": ["-1"],
+    "options": {}
+  },
+  {
+    "argv": ["history", "-1", "--json"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["history"],
+    "arguments": ["-1"],
+    "options": { "json": true }
+  },
+  { "argv": ["status", "-1"], "kind": "error", "exit": 1, "excess": true },
+  {
+    "argv": ["config", "a", "-1"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["config"],
+    "arguments": ["a", "-1"],
+    "options": {}
+  },
+  {
+    "argv": ["config", "-.5"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["config"],
+    "arguments": ["-.5"],
+    "options": {}
+  },
+  {
+    "argv": ["config", "-1e3"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["config"],
+    "arguments": ["-1e3"],
+    "options": {}
+  },
+  { "argv": ["config", "-1."], "kind": "error", "exit": 1, "offending": "-1.", "suggestions": [] },
+  {
+    "argv": ["untrack", "-1"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["untrack"],
+    "arguments": ["-1"],
+    "options": {}
+  },
+  {
+    "argv": ["join", "-1"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["join"],
+    "arguments": ["-1"],
+    "options": {}
+  },
+  {
+    "argv": ["--json", "help"],
+    "kind": "error",
+    "exit": 1,
+    "offending": "--json",
+    "suggestions": []
+  },
+  {
+    "argv": ["device", "--json", "help"],
+    "kind": "error",
+    "exit": 1,
+    "offending": "--json",
+    "suggestions": []
+  },
+  { "argv": ["device", "ls", "-1"], "kind": "error", "exit": 1, "excess": true },
+  {
+    "argv": ["alias", "-1", "-2"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["alias"],
+    "arguments": ["-1", "-2"],
+    "options": {}
+  },
+  {
+    "argv": ["setup", "--scan-root", "-1", "-2.5e+3", "--name", "x"],
+    "kind": "action",
+    "exit": 0,
+    "path": ["setup"],
+    "arguments": [],
+    "options": { "scanRoot": ["-1", "-2.5e+3"], "name": "x" }
+  },
+  { "argv": ["device", "-1"], "kind": "error", "exit": 1, "offending": "-1", "suggestions": [] },
+  { "argv": ["track", "a", "-1"], "kind": "error", "exit": 1, "excess": true },
+  { "argv": ["status", "-1", "-h"], "kind": "help", "exit": 0, "path": ["status"] },
+  {
+    "argv": ["config", "-0x1"],
+    "kind": "error",
+    "exit": 1,
+    "offending": "-0x1",
+    "suggestions": []
+  },
+  { "argv": ["config", "-١"], "kind": "error", "exit": 1, "offending": "-١", "suggestions": [] }
 ]

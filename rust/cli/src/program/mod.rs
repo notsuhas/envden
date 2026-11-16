@@ -14,6 +14,7 @@ mod validation;
 mod restore;
 
 mod control;
+mod operands;
 
 mod errors;
 mod suggestions;

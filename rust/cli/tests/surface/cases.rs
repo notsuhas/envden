@@ -17,6 +17,8 @@ pub struct ICase {
     path: Option<Vec<String>>,
     arguments: Option<Vec<String>>,
     options: Option<Value>,
+    #[serde(default)]
+    excess: bool,
 }
 
 pub fn read(json: &str) -> Vec<ICase> {
@@ -82,7 +84,10 @@ pub fn assert_parser_cases(cases: Vec<ICase>) {
                     message.trim_end().ends_with(&suffix)
                 }
         });
+        let excess_match = !case.excess
+            || matches!(&result, TParseResult::Error(message) if !message.contains("unknown option"));
         if exit != case.exit
+            || !excess_match
             || !matches
             || !error_facts_match
             || error_code != case.error_code.as_deref()

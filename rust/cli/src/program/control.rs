@@ -1,4 +1,7 @@
-use super::{ICommand, TParseResult};
+use super::{
+    ICommand, TParseResult,
+    operands::{delimit_operands, known_option, negative_number},
+};
 
 pub(super) fn control<'a>(
     root: &'a ICommand,
@@ -17,6 +20,9 @@ pub(super) fn control<'a>(
     let mut short_error = None;
     let mut positional = false;
     let mut operands_only = false;
+    let mut unknown = false;
+    let mut operands = Vec::new();
+    let mut negative = false;
     let mut index = 0;
     while let Some(token) = args.get(index) {
         index += 1;
@@ -75,7 +81,10 @@ pub(super) fn control<'a>(
                     index += 1;
                 }
                 if option.variadic && inline.is_none() {
-                    while let Some(value) = args.get(index).filter(|v| !maybe_option(v)) {
+                    while let Some(value) = args
+                        .get(index)
+                        .filter(|v| !maybe_option(v) || negative_number(v))
+                    {
                         normalized.push(format!("{flag}={value}"));
                         index += 1;
                     }
@@ -97,8 +106,13 @@ pub(super) fn control<'a>(
         if token.starts_with("-h") {
             short_error = Some(token);
         }
-        if !help && !positional && !maybe_option(token) {
-            if token == "help" && !command.commands.is_empty() {
+        let leaf_number = command.commands.is_empty() && negative_number(token);
+        let operand = !maybe_option(token) || leaf_number;
+        if !operand && !known_option(command, token) {
+            unknown = true;
+        }
+        if !help && !positional && operand {
+            if token == "help" && !command.commands.is_empty() && !unknown {
                 let name = args.get(index).filter(|name| !maybe_option(name));
                 let target = name.and_then(|name| {
                     command
@@ -122,7 +136,14 @@ pub(super) fn control<'a>(
                 positional = true;
             }
         }
+        if positional && operand {
+            operands.push(normalized.len());
+            negative |= leaf_number;
+        }
         normalized.push(token.clone());
+    }
+    if negative {
+        normalized = delimit_operands(normalized, &operands);
     }
     let result = if help {
         Some(TParseResult::Help(command, false))
