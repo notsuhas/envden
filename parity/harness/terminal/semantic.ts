@@ -1,3 +1,4 @@
+import { helpNames } from "./help.ts";
 import { jsonOutput } from "./json.ts";
 import type { Normalizer } from "../normalize.ts";
 import { stripVTControlCharacters } from "node:util";
@@ -46,22 +47,6 @@ function quotedFact(token: string, names: ReadonlySet<string>) {
   const parameter = /^\[([a-z][\w-]*)\]$/.exec(quoted)?.[1];
 
   return parameter && names.has(parameter) ? parameter : quoted;
-}
-
-function helpNames(text: string): string[] {
-  const names = new Set(text.match(/--?[a-z][\w-]*/gi) ?? []);
-  let commands = false;
-
-  for (const line of text.split("\n")) {
-    if (/^\s*(?:commands|subcommands):/i.test(line)) commands = true;
-    else if (/^\s*\w[\w ]+:\s*$/.test(line)) commands = false;
-    else if (commands) {
-      const name = /^\s+([a-z][\w-]*)\b/.exec(line)?.[1];
-      if (name) names.add(name);
-    }
-  }
-
-  return [...names].sort();
 }
 
 export function semanticOutput(text: string, label: string, names?: ReadonlySet<string>): unknown {

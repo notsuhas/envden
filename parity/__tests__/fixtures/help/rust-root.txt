@@ -1,0 +1,37 @@
+Encrypted whole-file env sync over your private network
+
+Usage: envden [COMMAND]
+
+Commands:
+  setup       Create a vault and configure this device
+  join        Join using a pairing code or recovery kit in your own terminal
+  status      Show what changed here, what's newer on the server and what needs
+              attention
+  push        Send your changes to the server
+  pull        Fetch and merge changes from your other devices
+  diff        Show changed key names without values
+  resolve     Keep yours, take the server's, or finish an edited conflict
+  history     List the versions the server keeps, or restore one as a local edit
+  track       Scan, approve and link checkout env files
+  untrack     Stop tracking a checkout and restore regular env files
+  local-only  Keep a managed file local to this checkout
+  rm          Remove an env file everywhere on the next push
+  alias       Share another repo's env files, for example from a fork
+  device      Add, list, rename and remove devices
+  vault       Re-key the vault, replace the recovery kit, or change or reset the
+              password
+  server      Move, switch or repair the server
+  unlock      Log in with your master password to restart the unlock period
+  config      Read or change settings
+  doctor      Check key files, symlinks, updates, Tailscale, HTTPS and shell
+              notices
+  update      Update envden through the method it was installed with
+  ui          Open a local dashboard for this device
+  agent       Install the envden agent skill
+  shell       Manage the shell notice
+  serve       Run the server; ENVDEN_SETUP_TOKEN replaces the setup token
+  version     Print the version
+
+Options:
+  -h, --help     Display help
+  -V, --version  Print version

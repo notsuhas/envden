@@ -68,7 +68,7 @@ test("JSON is parsed exactly and help compares command and option sets", () => {
 
   expect(semanticOutput(help, "--help")).toEqual(
     semanticOutput(
-      "Options:\n --json Output\n --help, -h Help\nCommands:\n join Whatever\n setup Other",
+      "Options:\n --json  Output\n --help, -h  Help\nCommands:\n join  Whatever\n setup  Other",
       "--help",
     ),
   );
