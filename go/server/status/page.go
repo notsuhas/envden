@@ -39,12 +39,25 @@ const page = `<!doctype html>
       </body>
     </html> `
 
+// Total days, never calendar months or years, so a long uptime isn't shown short.
 func FormatUptime(seconds int64) string {
 	if seconds < 60 {
 		return "under a minute"
 	}
 
-	return (time.Duration(seconds) * time.Second).Truncate(time.Minute).String()
+	parts := []string{}
+	for _, unit := range []struct {
+		name  string
+		value int64
+	}{{"day", seconds / 86400}, {"hour", seconds % 86400 / 3600}, {"minute", seconds % 3600 / 60}} {
+		if unit.value == 1 {
+			parts = append(parts, "1 "+unit.name)
+		} else if unit.value > 1 {
+			parts = append(parts, fmt.Sprintf("%d %ss", unit.value, unit.name))
+		}
+	}
+
+	return strings.Join(parts, " ")
 }
 
 func FormatWhen(utc string, now int64) string {

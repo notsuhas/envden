@@ -54,7 +54,7 @@ func TestFormats(t *testing.T) {
 	for _, row := range []struct {
 		seconds int64
 		want    string
-	}{{59, "under a minute"}, {3660, "1h1m0s"}, {90000, "25h0m0s"}, {31 * 86400, "744h0m0s"}} {
+	}{{59, "under a minute"}, {3660, "1 hour 1 minute"}, {90000, "1 day 1 hour"}, {2775600, "32 days 3 hours"}, {34560060, "400 days 1 minute"}} {
 		if got := FormatUptime(row.seconds); got != row.want {
 			t.Fatal(got, row.want)
 		}
