@@ -22,6 +22,8 @@ prompt's outcome:
 - Redraws leave unchanged leading lines alone, so a prompt's question is
   written once.
 - Progress draws on stdout, matching the CLI's stdout terminal gate.
+- Ctrl-D, and input reaching end of file, cancel a prompt exactly like
+  Ctrl-C instead of being ignored.
 
 `rust/cli/tests/prompts.rs` drives these through a PTY. Remove the patch when
 upstream exposes equivalent controls, keeping the behaviour tests.

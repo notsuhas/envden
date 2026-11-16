@@ -83,6 +83,14 @@ cases = [
  ('empty', b'\x1b[A\x1b[B \r', 'ANSWER::END'),
  ('nochoices', b'', 'ERROR:InvalidInput:2:END'),
  ('progress', b'', 'ANSWER:done:END'),
+ ('initial', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('optional', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('edit', b'-two\x04', 'ERROR:InvalidInput:2:END'),
+ ('password', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('yes', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('select', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('many', b'\x04', 'ERROR:InvalidInput:2:END'),
+ ('empty', b'\x04', 'ERROR:InvalidInput:2:END'),
 ]
 for case, keys, expected in cases:
  master, slave = pty.openpty()
@@ -96,7 +104,10 @@ for case, keys, expected in cases:
  sent = False
  readers = [master] + ([child.stderr.fileno()] if redirected else [])
  while readers:
-  ready, _, _ = select.select(readers, [], [])
+  ready, _, _ = select.select(readers, [], [], 30)
+  if not ready:
+   child.kill()
+   raise AssertionError((case, keys, 'prompt still waiting', output.decode(errors='replace')))
   for descriptor in ready:
    try:
     data = os.read(descriptor, 65536)

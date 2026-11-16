@@ -130,6 +130,9 @@ pub trait PromptInteraction<T> {
 
                 Ok(Key::CtrlC) => state = State::Cancel,
 
+                // envden: Ctrl-D (EOF) cancels like Ctrl-C.
+                Ok(Key::Char('\x04')) => state = State::Cancel,
+
                 Ok(key) => {
                     // Emacs-style keybindings.
                     let key = match key {
@@ -191,6 +194,9 @@ pub trait PromptInteraction<T> {
 
                 // Legacy handling of Ctrl-C as a cancel event. Might not be needed, but keeping it to be safe.
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => state = State::Cancel,
+
+                // envden: closed input cancels like Ctrl-C instead of failing.
+                Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => state = State::Cancel,
 
                 // Don't handle other errors, just break the loop and propagate
                 // them.

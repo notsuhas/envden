@@ -339,6 +339,10 @@ Replaces timeouts each runtime chose for itself: Bun closed idle connections aft
 
 Replaces each implementation deciding patterns its own way (Bun.Glob for any pattern, a hand port of its matcher, an allowlist). Include and exclude patterns must fit a grammar where the matchers are known to agree: one optional leading `!`; `/`-separated, non-empty segments; a segment is exactly `**`, or literals with `*` and `?`, never two `*` in a row; flat `{a,b}` groups of non-empty literal or `*` options, with no nesting, classes, ranges or escapes, and a starred group never touching an outside `*`; at most 10 groups and 16 alternatives; literals are printable ASCII except `*?[]{}\,!()|+@/`; at most 1024 characters. Anything else fails with `INVALID_INPUT` "Unsupported env file pattern" when the config is saved or read, and push and pull check before writing. Inside the grammar, decisions are Bun.Glob's, and `?` matches exactly one Unicode code point; it no longer fails on a non-ASCII file name.
 
+### Ctrl-D cancels a prompt
+
+Replaces prompts that ignored Ctrl-D or, on an empty prompt, waited forever. Ctrl-D, or input that reaches end of file, now cancels any prompt exactly like Ctrl-C and Escape: the same cancel message and exit code.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
