@@ -14,12 +14,8 @@ mod tests {
             TParseResult::Help(_, false)
         ));
         assert!(matches!(run(&["--version"]), TParseResult::Version));
-        assert!(
-            matches!(run(&["join"]), TParseResult::Error(s) if s.contains("server"))
-        );
-        assert!(
-            matches!(run(&["statu"]), TParseResult::Error(s) if s.contains("statu"))
-        );
+        assert!(matches!(run(&["join"]), TParseResult::Error(s) if s.contains("server")));
+        assert!(matches!(run(&["statu"]), TParseResult::Error(s) if s.contains("statu")));
     }
 }
 
