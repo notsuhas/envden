@@ -88,7 +88,10 @@ fn report_agent_browser_decline_cancel_and_environment() {
             &adapters,
             &mut effects,
         );
-        let report = adapters.home.join("reports/1970-01-01T00-00-00-000Z.md");
+        let report = adapters
+            .home
+            .join("reports")
+            .join("1970-01-01T00-00-00-000Z.md");
         if matches!(choice, "no" | "cancel" | "inside-agent") {
             assert!(!report.exists());
             assert!(effects.printed.is_empty());
