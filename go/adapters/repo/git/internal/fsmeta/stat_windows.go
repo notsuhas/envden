@@ -22,7 +22,7 @@ func PrivateRegular(path string, s os.FileInfo) bool {
 	if e != nil {
 		return false
 	}
-	defer windows.CloseHandle(h)
+	defer func() { _ = windows.CloseHandle(h) }()
 	var i windows.ByHandleFileInformation
 
 	return windows.GetFileInformationByHandle(h, &i) == nil && i.NumberOfLinks == 1

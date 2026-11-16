@@ -16,7 +16,7 @@ func Identity(path string, _ os.FileInfo) (uint64, uint64, string, error) {
 	if e != nil {
 		return 0, 0, "", e
 	}
-	defer windows.CloseHandle(h)
+	defer func() { _ = windows.CloseHandle(h) }()
 	var i windows.ByHandleFileInformation
 	if e = windows.GetFileInformationByHandle(h, &i); e != nil {
 		return 0, 0, "", e

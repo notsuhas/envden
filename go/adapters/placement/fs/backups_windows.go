@@ -60,8 +60,10 @@ func (p *placement) backup(b []byte) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 	_, err = f.Write(b)
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
 
 	return err
 }

@@ -34,6 +34,11 @@ jobs:
         with:
           version: v2.15.0
           working-directory: go
+      # platform-specific files only compile, and so only lint, under their own GOOS
+      - name: golangci-lint (darwin and windows builds)
+        run: |
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
+          for os in darwin windows; do GOOS=$os "$(go env GOPATH)/bin/golangci-lint" run ./...; done
 
   test:
     strategy:

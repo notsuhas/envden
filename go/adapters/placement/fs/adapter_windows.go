@@ -92,7 +92,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 	defer func() {
 		left, _ := lstat(temp)
 		if left != nil && os.SameFile(left, staged) {
-			os.Remove(temp)
+			_ = os.Remove(temp)
 		}
 	}()
 	if err = verifyParents(infos, names); err != nil {
@@ -104,7 +104,7 @@ func (p *placement) Place(store, dest string, prepare func(string) error, replac
 			return err
 		}
 		opened, err := source.Stat()
-		source.Close()
+		_ = source.Close()
 		if err != nil {
 			return err
 		}

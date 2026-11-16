@@ -21,7 +21,7 @@ func validateRC(path string, s os.FileInfo) error {
 }
 
 func sameRC(a, b os.FileInfo) bool {
-	return os.SameFile(a, b) && a.Size() == b.Size() && a.ModTime() == b.ModTime() && reflect.DeepEqual(a.Sys(), b.Sys())
+	return os.SameFile(a, b) && a.Size() == b.Size() && a.ModTime().Equal(b.ModTime()) && reflect.DeepEqual(a.Sys(), b.Sys())
 }
 
 func safeBackup(s os.FileInfo) bool { return s.IsDir() }
@@ -55,7 +55,7 @@ func singleLink(path string) bool {
 	if e != nil {
 		return false
 	}
-	defer windows.CloseHandle(h)
+	defer func() { _ = windows.CloseHandle(h) }()
 	var i windows.ByHandleFileInformation
 
 	return windows.GetFileInformationByHandle(h, &i) == nil && i.NumberOfLinks == 1

@@ -1,6 +1,8 @@
 package lock
 
 import (
+	"errors"
+	"math"
 	"strconv"
 
 	"golang.org/x/sys/windows"
@@ -9,16 +11,20 @@ import (
 func dead(pid int) bool { return windowsStart(pid).Kind == "dead" }
 
 func windowsStart(pid int) Process {
+	if pid < 0 || pid > math.MaxUint32 {
+		return Process{Kind: "unknown"}
+	}
+
 	h, err := windows.OpenProcess(0x1000, false, uint32(pid))
 	if err != nil {
-		if err == windows.ERROR_INVALID_PARAMETER {
+		if errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
 			return Process{Kind: "dead"}
 		}
 
 		return Process{Kind: "unknown"}
 	}
 
-	defer windows.CloseHandle(h)
+	defer func() { _ = windows.CloseHandle(h) }()
 	var creation, exit, kernel, user windows.Filetime
 	if windows.GetProcessTimes(h, &creation, &exit, &kernel, &user) != nil {
 		return Process{Kind: "unknown"}

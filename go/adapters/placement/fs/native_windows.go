@@ -80,5 +80,5 @@ func sameFile(a, b os.FileInfo) bool {
 		return a == nil && b == nil
 	}
 
-	return os.SameFile(a, b) && a.Size() == b.Size() && a.ModTime() == b.ModTime()
+	return os.SameFile(a, b) && a.Size() == b.Size() && a.ModTime().Equal(b.ModTime())
 }
