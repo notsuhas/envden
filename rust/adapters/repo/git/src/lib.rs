@@ -13,7 +13,4 @@ pub use remote::normalize_repo_id;
 mod parity;
 
 #[cfg(test)]
-mod batching_tests;
-
-#[cfg(test)]
-mod whitespace_tests;
+mod tests;

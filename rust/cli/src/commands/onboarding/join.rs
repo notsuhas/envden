@@ -5,7 +5,7 @@ pub fn run(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<()> {
     let address = crate::onboarding::require_server_address(&invocation.arguments[0])?;
     let options = serde_json::to_value(&invocation.options).expect("options");
     let rejoin = crate::state::repository::load_state(&adapters.home)?
-        .is_some_and(|state| crate::onboarding::join::is_rejoin(&state));
+        .is_some_and(|state| crate::onboarding::local_state::is_rejoin(&state));
     let state = crate::onboarding::run_join(adapters, &address, &options)?;
     for line in join_summary(&state, &adapters.user_home, rejoin) {
         println!("{line}");
@@ -67,7 +67,7 @@ mod checkpoint_tests {
     #[test]
     fn empty_checkpoint_uses_fresh_join_summary() {
         let state = serde_json::json!({"checkpoint":""});
-        let rejoin = crate::onboarding::join::is_rejoin(&state);
+        let rejoin = crate::onboarding::local_state::is_rejoin(&state);
         assert!(!rejoin);
     }
 }

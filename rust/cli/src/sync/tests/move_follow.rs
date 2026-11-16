@@ -1,4 +1,5 @@
 use super::*;
+use crate::sync::remote::context::ISyncOptions;
 use crate::{client::text, identity::device_identity, state::repository::load_state};
 use envden_protocol::protocol as p;
 use std::rc::Rc;

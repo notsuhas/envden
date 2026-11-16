@@ -95,5 +95,4 @@ impl SqliteStorageAdapter {
 }
 
 #[cfg(test)]
-#[path = "objects_tests.rs"]
 mod tests;

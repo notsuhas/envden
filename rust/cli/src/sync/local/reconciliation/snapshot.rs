@@ -21,7 +21,7 @@ pub struct ISnapshot {
     pub historical: bool,
 }
 
-pub fn snapshot(
+fn snapshot(
     context: &ISyncContext<'_>,
     target: &IConflictTarget,
     stored: Option<&[u8]>,
@@ -69,4 +69,16 @@ pub fn snapshot(
         link,
         historical,
     })
+}
+
+pub fn snapshots(
+    context: &ISyncContext<'_>,
+    targets: &[IConflictTarget],
+    stored: Option<&[u8]>,
+    previous: Option<&[u8]>,
+) -> Result<Vec<ISnapshot>> {
+    targets
+        .iter()
+        .map(|target| snapshot(context, target, stored, previous))
+        .collect()
 }

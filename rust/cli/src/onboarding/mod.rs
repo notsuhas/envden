@@ -11,14 +11,11 @@ mod checkouts;
 mod scan;
 pub use scan::{ICheckoutOptions, setup_checkouts};
 
-#[cfg(test)]
-mod scan_tests;
-
 mod preferences;
 pub(crate) mod setup;
 pub use setup::run_setup;
 
-pub(crate) mod join;
+mod join;
 pub use join::run_join;
 
 pub(crate) mod vault;
@@ -29,6 +26,6 @@ mod host;
 
 pub(crate) mod accept;
 
-mod local_state;
+pub(crate) mod local_state;
 
 mod kit_attempt;

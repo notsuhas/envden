@@ -4,7 +4,7 @@ use super::{
     operation::resume::{commit_file, resume_file},
     resolution::{IResolutionInput, IResolutionOptions, TResolution, resolve_content},
     sides::{ICopy, ISidesInput, TServer},
-    snapshot::snapshot,
+    snapshot::snapshots,
 };
 use crate::{
     client::text,
@@ -42,10 +42,7 @@ pub fn reconcile_file_with_choice(
     let previous = lineage.previous;
     let stored = lineage.stored;
     let deleting = lineage.deleting;
-    let snapshots = targets
-        .iter()
-        .map(|t| snapshot(context, t, stored.as_deref(), previous.as_deref()))
-        .collect::<Result<Vec<_>>>()?;
+    let snapshots = snapshots(context, targets, stored.as_deref(), previous.as_deref())?;
     let recorded = read_bytes(&base)?;
     let tombstone = entry.is_some_and(|e| matches!(e.state, 2 | 4));
     let decision = derive_file_decision(IFileDecisionInput {

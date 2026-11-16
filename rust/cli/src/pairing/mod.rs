@@ -14,4 +14,4 @@ mod response;
 mod resume;
 
 #[cfg(test)]
-mod lock_tests;
+mod tests;

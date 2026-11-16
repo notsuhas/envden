@@ -152,5 +152,4 @@ pub fn join(adapters: &IAdapters, address: &str, options: &Value) -> Result<Valu
 }
 
 #[cfg(test)]
-#[path = "joiner_tests.rs"]
 mod tests;

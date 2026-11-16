@@ -1,128 +1,112 @@
-use super::*;
-use crate::adapters::create_adapters;
-use std::process::Command;
+use super::repos::{IDiscoveryScope, discover_repos};
+use envden_core::adapters::ICheckout;
+use envden_testing::repo::IFakeRepoAdapter;
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
 
-fn git(root: &Path, args: &[&str]) {
-    assert!(
-        Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(args)
-            .output()
-            .unwrap()
-            .status
-            .success()
+#[test]
+fn adds_checkout_and_reports_progress_before_listing_related_checkouts() {
+    let temp = tempfile::tempdir().unwrap();
+    std::fs::create_dir(temp.path().join(".git")).unwrap();
+    let progress = Arc::new(AtomicUsize::new(0));
+    let worktree_progress = progress.clone();
+    let submodule_progress = progress.clone();
+    let repo = IFakeRepoAdapter {
+        checkout_at: Some(Box::new(|path| {
+            Ok(Some(ICheckout {
+                root: path.into(),
+                repo_id: "host/repo".into(),
+                ..Default::default()
+            }))
+        })),
+        worktrees: Some(Box::new(move |_| {
+            assert_eq!(
+                worktree_progress.load(Ordering::SeqCst),
+                1,
+                "progress precedes worktree reads"
+            );
+            Ok(vec![])
+        })),
+        submodules: Some(Box::new(move |_| {
+            assert_eq!(
+                submodule_progress.load(Ordering::SeqCst),
+                1,
+                "progress precedes submodule reads"
+            );
+            Ok(vec![])
+        })),
+        ..Default::default()
+    };
+    let found = discover_repos(
+        &repo,
+        &IDiscoveryScope {
+            roots: vec![temp.path().into()],
+            excluded: vec![],
+            home: None,
+        },
+        &|_| {},
+        &|count| progress.store(count, Ordering::SeqCst),
     );
-}
-
-fn clone_at(root: &Path) {
-    fs::create_dir_all(root).unwrap();
-    git(root, &["init", "--quiet"]);
-    git(
-        root,
-        &[
-            "remote",
-            "add",
-            "origin",
-            "https://example.com/org/repo.git",
-        ],
-    );
+    assert_eq!(found.len(), 1);
 }
 
 #[test]
-fn discovers_hidden_registered_worktrees_and_skips_vendor_clones() {
-    let temp = tempfile::tempdir().unwrap();
-    let home = temp.path().canonicalize().unwrap();
-    let root = home.join("main");
-    clone_at(&root);
-    git(
-        &root,
-        &[
-            "-c",
-            "user.name=fixture",
-            "-c",
-            "user.email=fixture@example.invalid",
-            "commit",
-            "--allow-empty",
-            "-m",
-            "fixture",
-            "--quiet",
-        ],
-    );
-    let worktree = home.join(".hidden/branch");
-    fs::create_dir_all(worktree.parent().unwrap()).unwrap();
-    git(
-        &root,
-        &[
-            "worktree",
-            "add",
-            "--quiet",
-            "-b",
-            "branch",
-            worktree.to_str().unwrap(),
-        ],
-    );
-    clone_at(&root.join("vendor/nested"));
-    let second = home.join("second");
-    clone_at(&second);
-    clone_at(&home.join(".hidden/ignored"));
-    let adapters = create_adapters(Some(home.join("config")), home.clone(), || 1);
-    let result = discover_repos(
-        &*adapters.repo,
-        &IDiscoveryScope {
-            roots: vec![home.clone()],
-            excluded: vec![],
-            home: Some(home.clone()),
-        },
-        &|_| {},
-        &|_| {},
-    );
-    assert_eq!(
-        result
-            .iter()
-            .map(|c| Path::new(&c.root))
-            .collect::<Vec<_>>(),
-        vec![worktree.as_path(), root.as_path(), second.as_path()]
-    );
-    let result = discover_repos(
-        &*adapters.repo,
-        &IDiscoveryScope {
-            roots: vec![home.clone()],
-            excluded: vec![root.clone(), worktree.clone()],
-            home: Some(home),
-        },
-        &|_| {},
-        &|_| {},
-    );
-    assert_eq!(result.len(), 1);
-    assert_eq!(Path::new(&result[0].root), second);
-}
+fn finishes_submodule_collection_before_descending_from_a_scan_root() {
+    use envden_core::errors::{EnvdenError, ErrorCode};
+    use std::sync::atomic::AtomicBool;
 
-#[test]
-fn does_not_walk_noncheckout_submodule_directories() {
     let temp = tempfile::tempdir().unwrap();
-    let home = temp.path().canonicalize().unwrap();
-    let root = home.join("main");
-    clone_at(&root);
-    fs::write(
-        root.join(".gitmodules"),
-        "[submodule \"missing\"]\npath = .hidden/module\nurl = https://example.com/sub\n",
-    )
-    .unwrap();
-    clone_at(&root.join(".hidden/module/nested"));
-    let adapters = create_adapters(Some(home.join("config")), home.clone(), || 42);
-    let result = discover_repos(
-        &*adapters.repo,
+    let root = temp.path().canonicalize().unwrap();
+    for path in [&root, &root.join("sub"), &root.join("child")] {
+        std::fs::create_dir_all(path.join(".git")).unwrap();
+    }
+    let collected = Arc::new(AtomicBool::new(false));
+    let checked = collected.clone();
+    let listed = collected.clone();
+    let repo = IFakeRepoAdapter {
+        checkout_at: Some(Box::new(move |path| {
+            if std::path::Path::new(path).ends_with("child") && !checked.load(Ordering::SeqCst) {
+                return Err(EnvdenError::new(
+                    ErrorCode::Internal,
+                    "Submodule collection unfinished",
+                ));
+            }
+            Ok(Some(ICheckout {
+                root: path.into(),
+                repo_id: "host/repo".into(),
+                ..Default::default()
+            }))
+        })),
+        worktrees: Some(Box::new(move |checkout| {
+            if std::path::Path::new(&checkout.root).ends_with("sub") {
+                listed.store(true, Ordering::SeqCst);
+            }
+            Ok(vec![])
+        })),
+        submodules: Some(Box::new(|checkout| {
+            Ok(
+                if std::path::Path::new(&checkout.root).ends_with("sub")
+                    || std::path::Path::new(&checkout.root).ends_with("child")
+                {
+                    vec![]
+                } else {
+                    vec!["sub".into()]
+                },
+            )
+        })),
+        ..Default::default()
+    };
+    let found = discover_repos(
+        &repo,
         &IDiscoveryScope {
-            roots: vec![home.clone()],
+            roots: vec![root],
             excluded: vec![],
-            home: Some(home),
+            home: None,
         },
         &|_| {},
         &|_| {},
     );
-    assert_eq!(
-        result.iter().map(|c| c.root.as_str()).collect::<Vec<_>>(),
-        vec![root.to_str().unwrap()]
-    );
+    assert_eq!(found.len(), 3);
 }

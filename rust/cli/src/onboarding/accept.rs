@@ -197,5 +197,4 @@ fn latest_membership(
 }
 
 #[cfg(test)]
-#[path = "accept_tests.rs"]
 mod tests;

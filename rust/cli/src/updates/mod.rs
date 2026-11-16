@@ -12,6 +12,3 @@ pub mod self_update;
 mod tests;
 
 mod deadline;
-
-#[cfg(test)]
-mod lock_tests;

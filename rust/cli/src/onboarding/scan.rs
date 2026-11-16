@@ -106,7 +106,7 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
     Ok(())
 }
 
-pub(super) fn vault_repos(adapters: &IAdapters, state: &Value) -> Result<HashSet<String>> {
+fn vault_repos(adapters: &IAdapters, state: &Value) -> Result<HashSet<String>> {
     if !crate::state::truthy(&state["checkpoint"]) {
         return Ok(HashSet::new());
     }
@@ -131,3 +131,6 @@ pub(super) fn vault_repos(adapters: &IAdapters, state: &Value) -> Result<HashSet
         .map(|entry| entry_name(&context, entry).map(|name| name.repo_id))
         .collect()
 }
+
+#[cfg(test)]
+mod tests;

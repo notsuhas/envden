@@ -1,4 +1,5 @@
 use super::*;
+use crate::sync::{engine::sync, remote::context::ISyncOptions};
 #[test]
 fn completed_sync_prunes_expired_placement_backups() {
     let (_dir, adapters, server, _) = fixture::fixture();

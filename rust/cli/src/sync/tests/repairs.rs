@@ -1,4 +1,5 @@
 use super::*;
+use crate::sync::remote::context::ISyncOptions;
 use envden_protocol::protocol as p;
 use std::{cell::RefCell, rc::Rc};
 

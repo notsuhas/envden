@@ -176,3 +176,5 @@ fn failure_preserves_original_error_and_removes_plaintext() {
     assert_eq!(error.code, ErrorCode::Conflict);
     assert_eq!(fs::read_dir(root).unwrap().count(), 0);
 }
+
+mod ownership;

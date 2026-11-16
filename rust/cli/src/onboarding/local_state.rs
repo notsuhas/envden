@@ -21,3 +21,7 @@ pub(super) fn join_local_state(home: &Path, vault: &str) -> Result<Option<Value>
     }
     Ok(None)
 }
+
+pub(crate) fn is_rejoin(state: &Value) -> bool {
+    crate::state::truthy(&state["checkpoint"])
+}

@@ -135,9 +135,7 @@ fn vault_repos_reloads_sync_context_before_checkpoint_material() {
     let adapters = create_adapters(Some(dir.path().join("home")), dir.path().into(), || 42);
     let state = serde_json::json!({"checkpoint":"invalid"});
     assert_eq!(
-        super::scan::vault_repos(&adapters, &state)
-            .unwrap_err()
-            .message,
+        super::vault_repos(&adapters, &state).unwrap_err().message,
         crate::state::NOT_SET_UP
     );
 }
@@ -147,7 +145,7 @@ fn vault_repos_ignores_empty_checkpoint() {
     let dir = tempfile::tempdir().unwrap();
     let adapters = create_adapters(Some(dir.path().join("home")), dir.path().into(), || 42);
     assert!(
-        super::scan::vault_repos(&adapters, &serde_json::json!({"checkpoint":""}))
+        super::vault_repos(&adapters, &serde_json::json!({"checkpoint":""}))
             .unwrap()
             .is_empty()
     );

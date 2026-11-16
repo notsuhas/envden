@@ -180,5 +180,5 @@ fn first_check_cache_key_order_matches_javascript_mutation() {
     );
 }
 
-#[path = "check_tests.rs"]
-mod check_tests;
+mod check;
+mod lock;

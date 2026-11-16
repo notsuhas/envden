@@ -12,6 +12,6 @@ mod windows;
 mod races;
 
 #[cfg(test)]
-mod profile_tests;
+mod tests;
 
 mod identity;

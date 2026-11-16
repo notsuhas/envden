@@ -116,5 +116,4 @@ fn real_or_resolved(path: &Path) -> PathBuf {
 }
 
 #[cfg(test)]
-#[path = "tests.rs"]
 mod tests;
