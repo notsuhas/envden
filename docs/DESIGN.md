@@ -315,6 +315,10 @@ Accepted costs:
 
 Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
 
+### HEAD follows GET
+
+Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a running server as down. The server and the `envden ui` dashboard now answer HEAD on any GET route with the GET status and headers and no body.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).

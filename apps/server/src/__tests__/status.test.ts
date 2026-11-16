@@ -225,3 +225,22 @@ test("rate limited; bodies and other routes are still refused", async () => {
     f.close();
   }
 });
+
+test("HEAD on a GET route answers like GET with no body", async () => {
+  const f = fixture(keys);
+
+  try {
+    const hello = `/v1/hello?challenge=${text(p.randomBytes(32))}`;
+
+    for (const path of ["/", "/v1/status", hello, "/v1/head", "/v1/devices", "/nope"]) {
+      const get = await f.app.request(path);
+      const head = await f.app.request(path, { method: "HEAD" });
+
+      expect([path, head.status]).toEqual([path, get.status]);
+      expect([...head.headers]).toEqual([...get.headers]);
+      expect(await head.text()).toBe("");
+    }
+  } finally {
+    f.close();
+  }
+});

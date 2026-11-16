@@ -83,8 +83,11 @@ const routes: IRoute[] = [
   { method: "GET", path: /^\/v1\/repair\/(status|reports)$/, limit: 0, policy: "data" },
 ];
 
+// HEAD runs the GET handler and drops the body, so it follows the GET route.
 function matchRoute(method: string, path: string) {
-  return routes.find((route) => route.method === method && route.path.test(path));
+  const routed = method === "HEAD" ? "GET" : method;
+
+  return routes.find((route) => route.method === routed && route.path.test(path));
 }
 
 export function requestRoute(request: Request): IRoute {
