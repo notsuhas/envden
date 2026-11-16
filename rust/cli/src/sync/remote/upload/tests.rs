@@ -1,11 +1,9 @@
 use super::*;
 use crate::client::{IHttpRequest, IHttpResponse, ITransport, binary};
+use crate::sync::fixture;
 use envden_core::errors::{EnvdenError, ErrorCode};
 use serde_json::{Value, json};
 use std::{fs, rc::Rc};
-
-#[path = "../../tests/fixture.rs"]
-mod fixture;
 
 struct Transport {
     inner: Rc<dyn ITransport>,

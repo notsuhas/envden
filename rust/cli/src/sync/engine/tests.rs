@@ -1,4 +1,5 @@
 use super::*;
+use crate::sync::fixture;
 #[cfg(test)]
 mod cases {
     use super::*;
@@ -45,9 +46,6 @@ mod cases {
         }
     }
 }
-
-#[path = "../tests/fixture.rs"]
-mod fixture;
 
 #[cfg(unix)]
 #[test]

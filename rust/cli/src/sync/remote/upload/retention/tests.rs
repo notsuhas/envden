@@ -1,4 +1,5 @@
 use super::*;
+use crate::sync::fixture;
 use serde_json::json;
 
 use crate::{
@@ -11,9 +12,6 @@ use crate::{
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
 use std::{collections::HashSet, fs, rc::Rc};
-
-#[path = "../../../tests/fixture.rs"]
-mod fixture;
 
 struct Transport {
     inner: Rc<dyn ITransport>,

@@ -12,6 +12,10 @@ pub mod resolve;
 pub mod remove;
 
 #[cfg(test)]
+#[path = "tests/fixture.rs"]
+mod fixture;
+
+#[cfg(test)]
 mod tests;
 
 mod repairs;

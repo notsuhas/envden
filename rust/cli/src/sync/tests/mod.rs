@@ -4,7 +4,7 @@ mod attempts;
 mod author;
 mod backup_notice;
 mod cases;
-mod fixture;
+pub(super) use super::fixture;
 mod history_lock;
 mod join_choice;
 mod move_follow;
