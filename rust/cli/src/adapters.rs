@@ -66,11 +66,28 @@ impl IAdapters {
 }
 
 fn real_location(path: &Path) -> PathBuf {
+    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_owned());
+    let absolute = crate::links::takeover::sibling::normalize(&absolute);
+    let path = absolute.as_path();
     if let Ok(real) = path.canonicalize() {
         return real;
     }
     match (path.parent(), path.file_name()) {
         (Some(parent), Some(name)) if parent != path => real_location(parent).join(name),
         _ => path.to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_relative_home_resolves_from_the_working_directory() {
+        let relative = PathBuf::from(format!(".envden-missing-{}/nested", uuid::Uuid::new_v4()));
+        let temp = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(relative.clone()), temp.path().into(), || 42);
+        let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
+        assert_eq!(adapters.home, cwd.join(relative));
     }
 }
