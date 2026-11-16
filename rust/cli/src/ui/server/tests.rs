@@ -169,3 +169,47 @@ fn routes_without_json_input_do_not_poll_request_bodies() {
         }
     });
 }
+
+#[test]
+fn head_answers_like_get_with_no_body_without_an_origin() {
+    tokio::runtime::Runtime::new().unwrap().block_on(async {
+        let app = create_dashboard_app(
+            4100,
+            "token".into(),
+            Arc::new(|_| Ok(serde_json::json!({"devices": []}))),
+        );
+
+        for path in ["/", "/api/devices", "/nope"] {
+            let request = |method| {
+                Request::builder()
+                    .uri(path)
+                    .method(method)
+                    .header("Host", "127.0.0.1:4100")
+                    .header("Authorization", "Bearer token")
+                    .body(Body::empty())
+                    .unwrap()
+            };
+            let get = app.clone().oneshot(request("GET")).await.unwrap();
+            let head = app.clone().oneshot(request("HEAD")).await.unwrap();
+            let get_status = get.status();
+            let mut get_headers = get.headers().clone();
+            let mut head_headers = head.headers().clone();
+
+            get_headers.remove("content-length");
+            let length = head_headers.remove("content-length").unwrap();
+            let body = axum::body::to_bytes(get.into_body(), usize::MAX)
+                .await
+                .unwrap();
+
+            assert_eq!((path, head.status()), (path, get_status));
+            assert_eq!(head_headers, get_headers, "{path}");
+            assert_eq!(length, body.len().to_string().as_str(), "{path}");
+            assert!(
+                axum::body::to_bytes(head.into_body(), usize::MAX)
+                    .await
+                    .unwrap()
+                    .is_empty()
+            );
+        }
+    });
+}

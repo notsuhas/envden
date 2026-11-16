@@ -176,3 +176,46 @@ async fn rate_limits_both_status_routes_together_and_refuses_body() {
         429
     );
 }
+
+#[tokio::test]
+async fn head_on_a_get_route_answers_like_get_with_no_body() {
+    let (_directory, options) = fixture::fixture();
+    let app = create_app(options, Arc::new(Mutex::new(IStatusState::new(0, None)))).unwrap();
+    let hello = format!("/v1/hello?challenge={}", "A".repeat(43));
+
+    for path in [
+        "/",
+        "/v1/status",
+        &hello,
+        "/v1/head",
+        "/v1/devices",
+        "/nope",
+    ] {
+        let request = |method| {
+            Request::builder()
+                .method(method)
+                .uri(path)
+                .body(Body::empty())
+                .unwrap()
+        };
+        let get = app.clone().oneshot(request("GET")).await.unwrap();
+        let head = app.clone().oneshot(request("HEAD")).await.unwrap();
+        let mut get_headers = get.headers().clone();
+        get_headers.remove("content-length");
+
+        assert_eq!((path, head.status()), (path, get.status()));
+
+        let mut headers = head.headers().clone();
+        let length = headers.remove("content-length").unwrap();
+        let body = to_bytes(get.into_body(), usize::MAX).await.unwrap();
+
+        assert_eq!(headers, get_headers, "{path}");
+        assert_eq!(length, body.len().to_string().as_str(), "{path}");
+        assert!(
+            to_bytes(head.into_body(), usize::MAX)
+                .await
+                .unwrap()
+                .is_empty()
+        );
+    }
+}

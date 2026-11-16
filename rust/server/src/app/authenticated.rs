@@ -3,7 +3,11 @@ use crate::http::{encoding::text, policy::request_route};
 use axum::{body::Body, extract::Request, http::Response};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 
-pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<Response<Body>> {
+pub(super) async fn authenticated(
+    state: &AppState,
+    request: Request,
+    head: bool,
+) -> Result<Response<Body>> {
     use crate::{
         middleware::{
             authorize_body,
@@ -29,7 +33,12 @@ pub(super) async fn authenticated(state: &AppState, request: Request) -> Result<
                 .and_then(|v| v.parse::<u64>().ok())
                 .is_some_and(|v| v > 0);
         let route = request_route(parts.method.as_str(), path, has_body)?;
-        let mut auth = verify_headers(&state.options, &parts.method, &parts.uri, &parts.headers)?;
+        let signed = if head {
+            axum::http::Method::HEAD
+        } else {
+            parts.method.clone()
+        };
+        let mut auth = verify_headers(&state.options, &signed, &parts.uri, &parts.headers)?;
         let storage = state.options.storage.as_ref();
         if !storage.has_vault(&auth.request.vault_id)?
             && path != "/v1/vault"

@@ -16,7 +16,15 @@ use envden_protocol::protocol::*;
 
 use super::{authenticated::authenticated, types::AppState};
 
-pub(super) async fn dispatch(State(state): State<AppState>, request: Request) -> Response<Body> {
+pub(super) async fn dispatch(
+    State(state): State<AppState>,
+    mut request: Request,
+) -> Response<Body> {
+    let head = request.method() == axum::http::Method::HEAD;
+    if head {
+        *request.method_mut() = axum::http::Method::GET;
+    }
+
     if request
         .headers()
         .get("content-length")
@@ -33,13 +41,13 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
     }
     let path = request.uri().path().to_owned();
     let method = request.method().as_str().to_owned();
-    let public_status = matches!(request.method().as_str(), "GET" | "HEAD")
-        && matches!(path.as_str(), "/" | "/v1/status");
+    let public_status =
+        request.method() == axum::http::Method::GET && matches!(path.as_str(), "/" | "/v1/status");
     let public = public_status || request.method() == "GET" && path == "/v1/hello";
     let result = if public || !path.starts_with("/v1/") {
         dispatch_inner(&state, &request)
     } else {
-        authenticated(&state, request).await
+        authenticated(&state, request, head).await
     };
     let mut response = result.unwrap_or_else(|error| request_error(&error, &path, &method));
     if public_status {
@@ -54,12 +62,23 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
         response.headers_mut().extend(headers);
     }
 
-    if method == "HEAD" {
-        *response.body_mut() = Body::empty();
+    if head {
+        return without_body(response);
+    }
+
+    response
+}
+
+// HEAD runs the GET route and keeps its headers, including the GET body's length.
+fn without_body(mut response: Response<Body>) -> Response<Body> {
+    use axum::body::HttpBody;
+
+    if let Some(length) = response.body().size_hint().exact() {
         response
             .headers_mut()
-            .insert("content-length", axum::http::HeaderValue::from_static("0"));
+            .insert("content-length", axum::http::HeaderValue::from(length));
     }
+    *response.body_mut() = Body::empty();
 
     response
 }
@@ -67,7 +86,7 @@ pub(super) async fn dispatch(State(state): State<AppState>, request: Request) ->
 fn dispatch_inner(state: &AppState, request: &Request) -> Result<Response<Body>> {
     let path = request.uri().path();
     let method = request.method().as_str();
-    if !path.starts_with("/v1/") && !(path == "/" && matches!(method, "GET" | "HEAD")) {
+    if !path.starts_with("/v1/") && !(path == "/" && method == "GET") {
         return Ok(response(404, "text/plain; charset=UTF-8", "404 Not Found"));
     }
     let has_body = request.headers().contains_key("transfer-encoding")

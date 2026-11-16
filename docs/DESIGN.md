@@ -319,6 +319,10 @@ Replaces a name check that refused only invisible format characters. A newline, 
 
 Replaces a quota check that ran before a swap wrote its keyring state, although keyring bytes count toward usage, so a rotation could push an active vault past its quota. The check now runs after the keyring and state are written in the same transaction; going over fails with `STORAGE_QUOTA` and rolls the whole swap back. A swap that only removes files is still exempt.
 
+### HEAD follows GET
+
+Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a running server as down. The server and the `envden ui` dashboard now answer HEAD on any GET route with the GET status and headers and no body.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).

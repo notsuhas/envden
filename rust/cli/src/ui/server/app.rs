@@ -46,36 +46,69 @@ pub fn create_dashboard_app(port: u16, token: String, api: TApi) -> Router {
 }
 
 pub fn create_request_dashboard_app(port: u16, token: String, api: TRequestApi) -> Router {
-    Router::new().fallback(any(move |request: Request<Body>| {
+    Router::new().fallback(any(move |mut request: Request<Body>| {
         let token = token.clone();
         let api = api.clone();
         async move {
-            if let Some(response) = guard(&request, port, &token) {
-                return secure(response);
+            let head = request.method() == axum::http::Method::HEAD;
+            if head {
+                *request.method_mut() = axum::http::Method::GET;
             }
-            let (parts, body) = request.into_parts();
-            let body = if parts.method == "POST"
-                && matches!(
-                    parts.uri.path(),
-                    "/api/resolve" | "/api/devices/rename" | "/api/history/restore"
-                ) {
-                let bytes = axum::body::to_bytes(body, usize::MAX)
-                    .await
-                    .unwrap_or_default();
-                serde_json::from_slice(&bytes).unwrap_or_default()
+            let response = answer(request, port, &token, api).await;
+
+            if head {
+                without_body(response)
             } else {
-                serde_json::Value::Null
-            };
-            let input = IApiRequest {
-                method: parts.method.to_string(),
-                path: parts.uri.path().into(),
-                query: parts.uri.query().unwrap_or_default().into(),
-                body,
-            };
-            let request = Request::from_parts(parts, Body::empty());
-            secure(respond(&request, api, &input))
+                response
+            }
         }
     }))
+}
+
+async fn answer(
+    request: Request<Body>,
+    port: u16,
+    token: &str,
+    api: TRequestApi,
+) -> Response<Body> {
+    if let Some(response) = guard(&request, port, token) {
+        return secure(response);
+    }
+    let (parts, body) = request.into_parts();
+    let body = if parts.method == "POST"
+        && matches!(
+            parts.uri.path(),
+            "/api/resolve" | "/api/devices/rename" | "/api/history/restore"
+        ) {
+        let bytes = axum::body::to_bytes(body, usize::MAX)
+            .await
+            .unwrap_or_default();
+        serde_json::from_slice(&bytes).unwrap_or_default()
+    } else {
+        serde_json::Value::Null
+    };
+    let input = IApiRequest {
+        method: parts.method.to_string(),
+        path: parts.uri.path().into(),
+        query: parts.uri.query().unwrap_or_default().into(),
+        body,
+    };
+    let request = Request::from_parts(parts, Body::empty());
+    secure(respond(&request, api, &input))
+}
+
+// HEAD runs the GET handler and keeps its headers, including the GET body's length.
+fn without_body(mut response: Response<Body>) -> Response<Body> {
+    use axum::body::HttpBody;
+
+    if let Some(length) = response.body().size_hint().exact() {
+        response
+            .headers_mut()
+            .insert("content-length", axum::http::HeaderValue::from(length));
+    }
+    *response.body_mut() = Body::empty();
+
+    response
 }
 
 fn json(status: u16, body: serde_json::Value) -> Response<Body> {
