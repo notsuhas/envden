@@ -23,13 +23,13 @@ pub(super) fn header(message: &str, state: &str) -> String {
 }
 
 pub fn intro(message: &str) {
-    println!("{}  {}", color("90", "┌"), message);
+    std::println!("{}  {}", color("90", "┌"), message);
 }
 pub fn outro(message: &str) {
-    println!("{}\n{}  {}\n", color("90", "│"), color("90", "└"), message);
+    std::println!("{}\n{}  {}\n", color("90", "│"), color("90", "└"), message);
 }
 pub fn log(message: &str) {
-    println!("{}\n{}  {}", color("90", "│"), color("36", "●"), message);
+    std::println!("{}\n{}  {}", color("90", "│"), color("36", "●"), message);
 }
 pub fn note(message: &str, title: &str) {
     let lines: Vec<_> = std::iter::once("")
@@ -43,7 +43,7 @@ pub fn note(message: &str, title: &str) {
         .unwrap_or(0)
         .max(title.chars().count())
         + 2;
-    println!(
+    std::println!(
         "{}\n{}  {} {}",
         color("90", "│"),
         color("32", "◇"),
@@ -57,16 +57,16 @@ pub fn note(message: &str, title: &str) {
         )
     );
     for line in lines {
-        println!(
+        std::println!(
             "{}  {line}{}{}",
             color("90", "│"),
             " ".repeat(width - line.chars().count()),
             color("90", "│")
         );
     }
-    println!("{}", color("90", &format!("├{}╯", "─".repeat(width + 2))));
+    std::println!("{}", color("90", &format!("├{}╯", "─".repeat(width + 2))));
 }
 
 pub fn cancel(message: &str) {
-    println!("{}  {}\n", color("90", "└"), color("31", message));
+    std::println!("{}  {}\n", color("90", "└"), color("31", message));
 }

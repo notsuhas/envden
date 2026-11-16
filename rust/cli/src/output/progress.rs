@@ -26,7 +26,7 @@ impl IScanProgress {
     }
     pub fn done(&self, count: u64) {
         if self.enabled {
-            println!(
+            std::println!(
                 "\r\x1b[2K◇  Found {count} {} with env files",
                 if count == 1 { "repo" } else { "repos" }
             );

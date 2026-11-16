@@ -1,3 +1,6 @@
+#[macro_use]
+mod console;
+
 pub mod adapters;
 pub mod agent;
 pub mod client;
