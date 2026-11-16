@@ -12,6 +12,16 @@ pub fn abort_move(
     directory: &Path,
     address: Option<&str>,
 ) -> Result<()> {
+    crate::state::lock::with_state_lock(&context.adapters.home, (context.adapters.now)(), || {
+        locked_abort_move(context, directory, address)
+    })
+}
+
+fn locked_abort_move(
+    context: &IAdminContext<'_>,
+    directory: &Path,
+    address: Option<&str>,
+) -> Result<()> {
     let history = current_history(context)?;
     let stored = binary(context.local["server"]["pin"].as_str().unwrap_or(""))?;
     if history.state.server_pin.as_slice() != stored {
@@ -22,6 +32,7 @@ pub fn abort_move(
     }
     if let Some(address) = address.filter(|s| !s.is_empty()) {
         let saved_pin = optional_read(&directory.join("move-pin"))?
+            .filter(|pin| !pin.is_empty())
             .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidData, "Missing move pin"))?;
         let mut options = context.client.options.clone();
         options.address = address.into();
