@@ -55,3 +55,27 @@ test("non-PTY facts retain prompt-looking lines and answers", () => {
     );
   }
 });
+
+for (const [a, b] of [
+  ["Wrong master password. 2 attempts left", "Wrong master password. 7 attempts left"],
+  [
+    "Pairing code expired. Run envden device add on device-a",
+    "Pairing code expired. Run envden device add on device-c",
+  ],
+  ["Not a server address: /tmp/a/x", "Not a server address: /tmp/b/x"],
+] satisfies [string, string][])
+  test(`a message naming a prompt keeps its facts: ${a}`, () => {
+    expect(pty(`${a}\n`)).not.toBe(pty(`${b}\n`));
+  });
+
+test("only one answer line belongs to a prompt", () => {
+  const prompt = "Add device-b?\n  Yes\n";
+
+  expect(pty(`${prompt}  Wrote /tmp/a/kit.pdf\n`)).not.toBe(
+    pty(`${prompt}  Wrote /tmp/b/other.pdf\n`),
+  );
+
+  expect(pty("◇ Remove device?\n│ Yes\n│ Removed device-b; 3 files\n")).not.toBe(
+    pty("◇ Remove device?\n│ Yes\n│ Removed device-c; 9 files\n"),
+  );
+});
