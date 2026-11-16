@@ -81,6 +81,18 @@ fn bigint(text: &str) -> Result<String> {
         Some("0b" | "0B") => (&text[2..], 2),
         _ => (text, 10),
     };
+    let unsigned = if radix == 10 {
+        digits.strip_prefix(['+', '-']).unwrap_or(digits)
+    } else {
+        digits
+    };
+    if unsigned.is_empty()
+        || !unsigned
+            .chars()
+            .all(|digit| digit.is_ascii() && digit.is_digit(radix))
+    {
+        return Err(invalid());
+    }
     num_bigint::BigInt::parse_bytes(digits.as_bytes(), radix)
         .map(|v| v.to_string())
         .ok_or_else(invalid)
@@ -115,6 +127,11 @@ fn invalid() -> EnvdenError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bigint_revival_rejects_digit_separators() {
+        assert!(revive(&mut json!({"$bigint":"1_0"})).is_err());
+    }
 
     #[test]
     fn tags_match_javascript_revival_and_reserialization() {
