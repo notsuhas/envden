@@ -64,7 +64,7 @@ func identity(fd int, name string) (*entryIdentity, error) {
 		return nil, descriptor(err)
 	}
 
-	return &entryIdentity{uint64(st.Dev), st.Ino, st.Size, st.Mtim, st.Ctim}, nil //nolint:gosec // G115: device identity preserves the OS bit pattern, not an arithmetic quantity.
+	return &entryIdentity{uint64(st.Dev), st.Ino, st.Size, st.Mtim, st.Ctim}, nil //nolint:gosec,unconvert // G115: Dev keeps its OS bit pattern; it is int32 on darwin, so the conversion stays.
 }
 
 func sameIdentity(a, b *entryIdentity) bool {

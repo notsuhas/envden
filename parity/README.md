@@ -33,6 +33,8 @@ Real clock values, including fractional filesystem times, become `<TIME>` and du
 
 PTY output is rendered into logical lines: cursor-up, erase-line, carriage-return, colors and redraw sequences update the current line rather than append frames. A carriage-return redraw replaces the whole logical line, dropping leftover spinner suffixes; CRLF retains the completed line. Incomplete spinner frames are discarded; finalized text is retained. PTY stdout and stderr share the terminal stream and are compared together in the stdout observation. Noninteractive commands retain separate streams. Raw PTY bytes are not compared.
 
+Files other tools write while envden runs them, such as PowerShell's startup cache under `~/.cache/powershell`, are compared by presence and mode only, since their bytes change on every run.
+
 Pairing uses a local forwarding proxy that holds slot reads until the matching write completes, and approver reads until the signed swap completes. This removes timing-dependent polling requests and nonce rows without filtering stored DB rows. Move interruption scenarios inject one protocol error at a named boundary, then allow the retry or abort to proceed. These proxies never replace server state or implement protocol operations.
 
 ## Scenarios

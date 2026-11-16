@@ -114,6 +114,8 @@ jobs:
           SCRIPT
           bin=/usr/local/bin; [ "$RUNNER_OS" = Linux ] && bin=/usr/bin
           sudo install -m 0755 "$RUNNER_TEMP/tailscale" "$bin/tailscale"
+      - name: Live comparisons against the TS server and pdf-lib
+        run: ENVDEN_TS_PARITY=1 go test -count=1 -run 'Bun|TypeScriptParity|PDFLibLive' ./server ./cli/vault/recovery/pdf
       - name: Parity suite
         working-directory: .
         run: bun parity/run.ts --reference apps/cli/dist/envden --candidate go/dist/envden

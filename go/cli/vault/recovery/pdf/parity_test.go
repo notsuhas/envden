@@ -22,6 +22,11 @@ func TestPDFLibBytes(t *testing.T) {
 }
 
 func TestPDFLibLiveReference(t *testing.T) {
+	// opt-in like the server's live comparison, since it needs bun and the TS node_modules
+	if os.Getenv("ENVDEN_TS_PARITY") != "1" {
+		return
+	}
+
 	cmd := exec.Command("bun", "testdata/reference.mjs", "--stdout")
 	cmd.Env = append(os.Environ(), "TZ=UTC")
 	raw, err := cmd.Output()

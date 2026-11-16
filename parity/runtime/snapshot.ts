@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { lstat, readFile, readdir, readlink } from "node:fs/promises";
 import { join } from "node:path";
 import type { Normalizer } from "../normalize/normalizer.ts";
+import { isForeignCache } from "./foreign.ts";
 
 function quote(name: string): string {
   return `"${name.replaceAll('"', '""')}"`;
@@ -74,6 +75,10 @@ export async function snapshot(
     }
     if (!stat.isFile()) {
       result[`${name}:type`] = "special";
+      return;
+    }
+    if (isForeignCache(relative)) {
+      result[`${name}:type`] = "foreign-cache";
       return;
     }
     const bytes = await readFile(path);

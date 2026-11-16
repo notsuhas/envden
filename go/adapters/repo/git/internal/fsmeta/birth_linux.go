@@ -16,5 +16,5 @@ func Identity(path string, info os.FileInfo) (uint64, uint64, string, error) {
 		birth = float64(x.Btime.Sec)*1000 + float64(x.Btime.Nsec)/1e6
 	}
 
-	return uint64(s.Dev), s.Ino, strconv.FormatFloat(birth, 'f', -1, 64), nil
+	return s.Dev, s.Ino, strconv.FormatFloat(birth, 'f', -1, 64), nil
 }
