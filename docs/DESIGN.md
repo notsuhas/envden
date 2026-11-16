@@ -315,10 +315,6 @@ Accepted costs:
 
 Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
 
-### Keyring growth counts against the quota in the same commit
-
-Replaces a quota check that ran before a swap wrote its keyring state, although keyring bytes count toward usage, so a rotation could push an active vault past its quota. The check now runs after the keyring and state are written in the same transaction; going over fails with `STORAGE_QUOTA` and rolls the whole swap back. A swap that only removes files is still exempt.
-
 ### HEAD follows GET
 
 Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a running server as down. The server and the `envden ui` dashboard now answer HEAD on any GET route with the GET status and headers and no body.
@@ -346,6 +342,10 @@ Replaces prompts that ignored Ctrl-D or, on an empty prompt, waited forever. Ctr
 ### Server switch logs in at the destination
 
 Replaces a `server switch` that read the new server's history with whatever session the device had. Unlock sessions don't move with the vault, so after a move every other device got "Unlock expired. Run envden unlock", and `unlock` logs in at the old address, which may be gone. Switch now asks for the master password and logs in at the destination itself. Without a terminal it still fails with the unlock message.
+
+### Keyring writes ignore the storage quota
+
+The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery kit, resetting the password. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
 
 ## Not in v1
 
