@@ -4,7 +4,7 @@ use super::{
 };
 use crate::adapters::{IAdapters, create_adapters};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
-use std::sync::Arc;
+use std::{future::IntoFuture, sync::Arc};
 
 pub fn run_dashboard(
     adapters: &IAdapters,
@@ -51,13 +51,21 @@ pub fn run_dashboard(
         if open && !open_browser(&url) {
             println!("Could not open a browser; open the link above.");
         }
-        axum::serve(listener, app)
-            .with_graceful_shutdown(async {
-                interrupted().await;
-            })
+        serve_dashboard(listener, app, interrupted())
             .await
             .map_err(failed)
     })
+}
+
+async fn serve_dashboard(
+    listener: tokio::net::TcpListener,
+    app: axum::Router,
+    stopped: impl std::future::Future<Output = ()> + Send + 'static,
+) -> std::io::Result<()> {
+    tokio::select! {
+        result = axum::serve(listener, app).into_future() => result,
+        _ = stopped => Ok(()),
+    }
 }
 
 fn failed(error: std::io::Error) -> EnvdenError {
@@ -101,5 +109,55 @@ mod tests {
                 "Port must be 1-65535"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod shutdown_tests {
+    use super::*;
+    use tokio::io::AsyncWriteExt;
+
+    #[test]
+    fn stop_finishes_with_a_pending_dashboard_request() {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let entered = Arc::new(tokio::sync::Notify::new());
+                let handler_entered = entered.clone();
+                let app = axum::Router::new().route(
+                    "/wait",
+                    axum::routing::get(move || {
+                        let entered = handler_entered.clone();
+                        async move {
+                            entered.notify_one();
+                            std::future::pending::<&'static str>().await
+                        }
+                    }),
+                );
+                let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+                let address = listener.local_addr().unwrap();
+                let (stop, stopped) = tokio::sync::oneshot::channel();
+                let observed = Arc::new(tokio::sync::Notify::new());
+                let stop_observed = observed.clone();
+                let server = tokio::spawn(serve_dashboard(listener, app, async move {
+                    stopped.await.unwrap();
+                    stop_observed.notify_one();
+                }));
+                let mut client = tokio::net::TcpStream::connect(address).await.unwrap();
+                client
+                    .write_all(b"GET /wait HTTP/1.1\r\nHost: localhost\r\n\r\n")
+                    .await
+                    .unwrap();
+                entered.notified().await;
+                stop.send(()).unwrap();
+                observed.notified().await;
+                assert!(
+                    server.is_finished(),
+                    "dashboard must force stop pending requests"
+                );
+                server.await.unwrap().unwrap();
+            });
     }
 }
