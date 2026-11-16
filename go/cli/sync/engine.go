@@ -10,6 +10,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/links/checkout"
 	"github.com/notsuhas/envden/go/cli/notice"
 	"github.com/notsuhas/envden/go/cli/output"
+	"github.com/notsuhas/envden/go/cli/settings"
 	"github.com/notsuhas/envden/go/cli/state/lock"
 	"github.com/notsuhas/envden/go/cli/sync/local"
 	"github.com/notsuhas/envden/go/cli/sync/local/reconcile"
@@ -67,6 +68,10 @@ func runSync(ctx context.Context, a contracts.Adapters, options Options, pushing
 	err := lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
 		context, err := remote.SyncContext(ctx, a, options, linkAPI(ctx, a))
 		if err != nil {
+			return err
+		}
+
+		if err = settings.RefuseConfiguredPatterns(a.Home); err != nil {
 			return err
 		}
 

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/notsuhas/envden/go/cli/settings"
+	syncer "github.com/notsuhas/envden/go/cli/sync"
 	"github.com/notsuhas/envden/go/cli/sync/local/lineage"
 )
 
@@ -99,4 +100,24 @@ func TestSkippedRemoteContentCannotOverwrite(t *testing.T) {
 	equal(t, f.read(f.aStore), "TOKEN=remote\n")
 	_, err = settings.SetConfig(f.ctx, "env-files", `{"include":[".env",".env.*"],"exclude":[],"extraSkipped":[]}`, f.second.Home, f.second.Timing, false)
 	must(t, err)
+}
+
+func TestUnsupportedPatternRefusedBeforeSyncWrites(t *testing.T) {
+	f := newFixture(t)
+	f.pull(f.second)
+	store := f.state(f.second).Links[0].Store
+	f.write(f.aStore, "TOKEN=remote\n")
+	f.push(f.first)
+	f.write(settings.Paths(f.second.Home).Config, `{"env-files":{"include":["apps/{*,**}"]}}`)
+
+	for _, run := range []func() error{
+		func() error { _, err := syncer.Pull(f.ctx, f.second, f.opts); return err },
+		func() error { _, err := syncer.Push(f.ctx, f.second, f.opts); return err },
+	} {
+		if err := run(); err == nil || err.Error() != "Unsupported env file pattern" {
+			t.Fatal(err)
+		}
+	}
+
+	equal(t, f.read(store), original)
 }

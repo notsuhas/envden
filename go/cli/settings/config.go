@@ -9,6 +9,7 @@ import (
 	"github.com/notsuhas/envden/go/cli/jsonvalue"
 	"github.com/notsuhas/envden/go/cli/state/files"
 	"github.com/notsuhas/envden/go/cli/state/lock"
+	"github.com/notsuhas/envden/go/core/adapters"
 	"github.com/notsuhas/envden/go/core/errors"
 )
 
@@ -22,6 +23,20 @@ type Config struct {
 }
 
 func ParseConfig(data []byte) (Config, error) {
+	c, err := parseSharedConfig(data)
+	if err != nil {
+		return Config{}, err
+	}
+
+	if err = refusePatterns(c); err != nil {
+		return Config{}, err
+	}
+
+	return c, nil
+}
+
+// The schema the reference shares; pattern refusal applies only to configs that pass it.
+func parseSharedConfig(data []byte) (Config, error) {
 	c := Config{UpdateCheck: true, AutoApproveWorktrees: true}
 	var m map[string]json.RawMessage
 	invalid := func() (Config, error) { return Config{}, errors.New(errors.InvalidInput, "Invalid config") }
@@ -102,6 +117,43 @@ func ParseConfig(data []byte) (Config, error) {
 	}
 
 	return c, nil
+}
+
+func refusePatterns(c Config) error {
+	if c.EnvFiles == nil {
+		return nil
+	}
+
+	for _, key := range []string{"include", "exclude"} {
+		patterns, _ := c.EnvFiles.Get(key).([]any)
+		for _, pattern := range patterns {
+			if text, _ := pattern.(string); adapters.UnsupportedEnvPattern(text) {
+				return errors.New(errors.InvalidInput, "Unsupported env file pattern")
+			}
+		}
+	}
+
+	return nil
+}
+
+// RefuseConfiguredPatterns runs before a sync writes; a config the shared schema rejects fails where it always has.
+func RefuseConfiguredPatterns(home string) error {
+	if c, ok := sharedConfigAt(home); ok {
+		return refusePatterns(c)
+	}
+
+	return nil
+}
+
+func sharedConfigAt(home string) (Config, bool) {
+	raw, err := os.ReadFile(Paths(home).Config)
+	if err != nil || !json.Valid(raw) {
+		return Config{}, false
+	}
+
+	c, err := parseSharedConfig(raw)
+
+	return c, err == nil
 }
 
 func ReadConfig(home string) (Config, error) {
