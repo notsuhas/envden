@@ -97,10 +97,10 @@ impl SqliteStorageAdapter {
                             .is_some_and(|h| !prior_blobs.contains(h))
                     })
             });
+            write_commit_state(self, vault, swap)?;
             if adds {
                 self.check_growth(vault, before, self.vault_usage(vault)?, VAULT_QUOTA_BYTES)?;
             }
-            write_commit_state(self, vault, swap)?;
             if let Some(a) = &swap.approver {
                 self.run(
                     "INSERT OR REPLACE INTO approvers VALUES(?,?,?,?)",

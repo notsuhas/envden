@@ -88,7 +88,7 @@ fn over_quota_metadata_operations_and_imports_match_reference() {
                     .code,
                 ErrorCode::StorageQuota
             );
-        } else if operation == "files" {
+        } else if operation == "files" || operation == "rotate" {
             assert_eq!(
                 db.commit_swap(&[1], None, &swap, 0).unwrap_err().code,
                 ErrorCode::StorageQuota
@@ -119,7 +119,7 @@ fn over_quota_metadata_operations_and_imports_match_reference() {
 }
 
 #[test]
-fn preserves_reference_keyring_quota_check_order() {
+fn keyring_growth_over_quota_fails_and_rolls_back() {
     let (dir, db) = support::setup();
     db.configure_vault(&[1], &support::vault(true), &[], None)
         .unwrap();
@@ -135,9 +135,12 @@ fn preserves_reference_keyring_quota_check_order() {
         key: vec![2],
         bytes: Some(vec![2]),
     }]);
+
     assert_eq!(
-        db.commit_swap(&[1], None, &swap, 0).unwrap(),
-        TCommitResult::Committed
+        db.commit_swap(&[1], None, &swap, 0).unwrap_err().code,
+        ErrorCode::StorageQuota
     );
-    assert_eq!(db.vault_usage(&[1]).unwrap(), VAULT_QUOTA_BYTES + 1);
+    assert_eq!(db.vault_usage(&[1]).unwrap(), VAULT_QUOTA_BYTES);
+    assert!(db.head(&[1]).unwrap().is_none());
+    assert!(db.state(&[1], TStateKind::Keyring, &[2]).unwrap().is_none());
 }

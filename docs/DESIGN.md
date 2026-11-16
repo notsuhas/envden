@@ -315,6 +315,10 @@ Accepted costs:
 
 Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
 
+### Keyring growth counts against the quota in the same commit
+
+Replaces a quota check that ran before a swap wrote its keyring state, although keyring bytes count toward usage, so a rotation could push an active vault past its quota. The check now runs after the keyring and state are written in the same transaction; going over fails with `STORAGE_QUOTA` and rolls the whole swap back. A swap that only removes files is still exempt.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
