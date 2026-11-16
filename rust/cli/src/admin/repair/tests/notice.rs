@@ -86,7 +86,7 @@ fn pre_command_discovers_and_marks_recovery_join_once() {
     current.entries.push(entry);
     let result = crate::notice::command::command_notice_with_transport(
         &adapters,
-        &adapters.now,
+        (adapters.now)(),
         &NoUpdates,
         false,
         None,

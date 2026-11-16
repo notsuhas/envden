@@ -37,9 +37,7 @@
   "commands": [
     {
       "name": "setup",
-      "path": [
-        "setup"
-      ],
+      "path": ["setup"],
       "aliases": [],
       "description": "Create a vault and configure this device",
       "action": true,
@@ -125,10 +123,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Anonymous telemetry (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -141,10 +136,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Daily update check (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -157,13 +149,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "zsh",
-            "bash",
-            "fish",
-            "powershell",
-            "none"
-          ],
+          "choices": ["zsh", "bash", "fish", "powershell", "none"],
           "description": "Shell notice (choices: \"zsh\", \"bash\", \"fish\", \"powershell\", \"none\")",
           "hidden": false,
           "conflicts": []
@@ -176,10 +162,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Install the agent skill (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -239,9 +222,7 @@
     },
     {
       "name": "join",
-      "path": [
-        "join"
-      ],
+      "path": ["join"],
       "aliases": [],
       "description": "Join using a pairing code or recovery kit in your own terminal",
       "action": true,
@@ -303,10 +284,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Anonymous telemetry (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -319,10 +297,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Daily update check (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -335,13 +310,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "zsh",
-            "bash",
-            "fish",
-            "powershell",
-            "none"
-          ],
+          "choices": ["zsh", "bash", "fish", "powershell", "none"],
           "description": "Shell notice (choices: \"zsh\", \"bash\", \"fish\", \"powershell\", \"none\")",
           "hidden": false,
           "conflicts": []
@@ -354,10 +323,7 @@
           "optional": false,
           "variadic": false,
           "negate": false,
-          "choices": [
-            "on",
-            "off"
-          ],
+          "choices": ["on", "off"],
           "description": "Install the agent skill (choices: \"on\", \"off\")",
           "hidden": false,
           "conflicts": []
@@ -400,9 +366,7 @@
     },
     {
       "name": "status",
-      "path": [
-        "status"
-      ],
+      "path": ["status"],
       "aliases": [],
       "description": "Show what changed here, what's newer on the server and what needs attention",
       "action": true,
@@ -451,9 +415,7 @@
     },
     {
       "name": "push",
-      "path": [
-        "push"
-      ],
+      "path": ["push"],
       "aliases": [],
       "description": "Send your changes to the server",
       "action": true,
@@ -514,9 +476,7 @@
     },
     {
       "name": "pull",
-      "path": [
-        "pull"
-      ],
+      "path": ["pull"],
       "aliases": [],
       "description": "Fetch and merge changes from your other devices",
       "action": true,
@@ -577,9 +537,7 @@
     },
     {
       "name": "diff",
-      "path": [
-        "diff"
-      ],
+      "path": ["diff"],
       "aliases": [],
       "description": "Show changed key names without values",
       "action": true,
@@ -628,9 +586,7 @@
     },
     {
       "name": "resolve",
-      "path": [
-        "resolve"
-      ],
+      "path": ["resolve"],
       "aliases": [],
       "description": "Keep yours, take the server's, or finish an edited conflict",
       "action": true,
@@ -682,9 +638,7 @@
           "negate": false,
           "description": "Keep your version",
           "hidden": false,
-          "conflicts": [
-            "takeServer"
-          ]
+          "conflicts": ["takeServer"]
         },
         {
           "flags": "--take-server",
@@ -724,9 +678,7 @@
     },
     {
       "name": "history",
-      "path": [
-        "history"
-      ],
+      "path": ["history"],
       "aliases": [],
       "description": "List the versions the server keeps, or restore one as a local edit",
       "action": true,
@@ -742,9 +694,7 @@
           "negate": false,
           "description": "Include every tracked file",
           "hidden": false,
-          "conflicts": [
-            "restore"
-          ]
+          "conflicts": ["restore"]
         },
         {
           "flags": "--restore <version>",
@@ -808,9 +758,7 @@
     },
     {
       "name": "track",
-      "path": [
-        "track"
-      ],
+      "path": ["track"],
       "aliases": [],
       "description": "Scan, approve and link checkout env files",
       "action": true,
@@ -866,9 +814,7 @@
     },
     {
       "name": "untrack",
-      "path": [
-        "untrack"
-      ],
+      "path": ["untrack"],
       "aliases": [],
       "description": "Stop tracking a checkout and restore regular env files",
       "action": true,
@@ -900,9 +846,7 @@
     },
     {
       "name": "local-only",
-      "path": [
-        "local-only"
-      ],
+      "path": ["local-only"],
       "aliases": [],
       "description": "Keep a managed file local to this checkout",
       "action": true,
@@ -934,9 +878,7 @@
     },
     {
       "name": "rm",
-      "path": [
-        "rm"
-      ],
+      "path": ["rm"],
       "aliases": [],
       "description": "Remove an env file everywhere on the next push",
       "action": true,
@@ -992,9 +934,7 @@
     },
     {
       "name": "alias",
-      "path": [
-        "alias"
-      ],
+      "path": ["alias"],
       "aliases": [],
       "description": "Share another repo's env files, for example from a fork",
       "action": true,
@@ -1032,9 +972,7 @@
     },
     {
       "name": "device",
-      "path": [
-        "device"
-      ],
+      "path": ["device"],
       "aliases": [],
       "description": "Add, list, rename and remove devices",
       "action": false,
@@ -1058,10 +996,7 @@
       "commands": [
         {
           "name": "add",
-          "path": [
-            "device",
-            "add"
-          ],
+          "path": ["device", "add"],
           "aliases": [],
           "description": "Show a pairing code for a new device",
           "action": true,
@@ -1086,10 +1021,7 @@
         },
         {
           "name": "ls",
-          "path": [
-            "device",
-            "ls"
-          ],
+          "path": ["device", "ls"],
           "aliases": [],
           "description": "List devices and the version each last used",
           "action": true,
@@ -1138,10 +1070,7 @@
         },
         {
           "name": "rename",
-          "path": [
-            "device",
-            "rename"
-          ],
+          "path": ["device", "rename"],
           "aliases": [],
           "description": "Rename this device",
           "action": true,
@@ -1173,10 +1102,7 @@
         },
         {
           "name": "rm",
-          "path": [
-            "device",
-            "rm"
-          ],
+          "path": ["device", "rm"],
           "aliases": [],
           "description": "Remove a device and re-key the vault so it can't read new changes",
           "action": true,
@@ -1234,9 +1160,7 @@
     },
     {
       "name": "vault",
-      "path": [
-        "vault"
-      ],
+      "path": ["vault"],
       "aliases": [],
       "description": "Re-key the vault, replace the recovery kit, or change or reset the password",
       "action": false,
@@ -1260,10 +1184,7 @@
       "commands": [
         {
           "name": "rotate",
-          "path": [
-            "vault",
-            "rotate"
-          ],
+          "path": ["vault", "rotate"],
           "aliases": [],
           "description": "Re-key the vault so removed devices can't read new changes",
           "action": true,
@@ -1288,10 +1209,7 @@
         },
         {
           "name": "kit",
-          "path": [
-            "vault",
-            "kit"
-          ],
+          "path": ["vault", "kit"],
           "aliases": [],
           "description": "Manage the recovery kit",
           "action": false,
@@ -1315,11 +1233,7 @@
           "commands": [
             {
               "name": "replace",
-              "path": [
-                "vault",
-                "kit",
-                "replace"
-              ],
+              "path": ["vault", "kit", "replace"],
               "aliases": [],
               "description": "Replace a lost kit; needs the master password",
               "action": true,
@@ -1358,10 +1272,7 @@
         },
         {
           "name": "password",
-          "path": [
-            "vault",
-            "password"
-          ],
+          "path": ["vault", "password"],
           "aliases": [],
           "description": "Change or reset the master password",
           "action": false,
@@ -1385,11 +1296,7 @@
           "commands": [
             {
               "name": "change",
-              "path": [
-                "vault",
-                "password",
-                "change"
-              ],
+              "path": ["vault", "password", "change"],
               "aliases": [],
               "description": "Change the password; needs the old one and the kit",
               "action": true,
@@ -1414,11 +1321,7 @@
             },
             {
               "name": "reset",
-              "path": [
-                "vault",
-                "password",
-                "reset"
-              ],
+              "path": ["vault", "password", "reset"],
               "aliases": [],
               "description": "Reset a forgotten password with the kit",
               "action": true,
@@ -1447,9 +1350,7 @@
     },
     {
       "name": "server",
-      "path": [
-        "server"
-      ],
+      "path": ["server"],
       "aliases": [],
       "description": "Move, switch or repair the server",
       "action": false,
@@ -1473,10 +1374,7 @@
       "commands": [
         {
           "name": "move",
-          "path": [
-            "server",
-            "move"
-          ],
+          "path": ["server", "move"],
           "aliases": [],
           "description": "Move the vault to a new server",
           "action": true,
@@ -1504,9 +1402,7 @@
               "negate": false,
               "description": "Resume an interrupted move",
               "hidden": false,
-              "conflicts": [
-                "abort"
-              ]
+              "conflicts": ["abort"]
             },
             {
               "flags": "--abort",
@@ -1546,10 +1442,7 @@
         },
         {
           "name": "switch",
-          "path": [
-            "server",
-            "switch"
-          ],
+          "path": ["server", "switch"],
           "aliases": [],
           "description": "Follow a signed move when the old server is unreachable",
           "action": true,
@@ -1581,10 +1474,7 @@
         },
         {
           "name": "repair",
-          "path": [
-            "server",
-            "repair"
-          ],
+          "path": ["server", "repair"],
           "aliases": [],
           "description": "After a server restore, re-upload this device's data, or finish the restore with --finish",
           "action": true,
@@ -1659,9 +1549,7 @@
     },
     {
       "name": "unlock",
-      "path": [
-        "unlock"
-      ],
+      "path": ["unlock"],
       "aliases": [],
       "description": "Log in with your master password to restart the unlock period",
       "action": true,
@@ -1686,9 +1574,7 @@
     },
     {
       "name": "config",
-      "path": [
-        "config"
-      ],
+      "path": ["config"],
       "aliases": [],
       "description": "Read or change settings",
       "action": true,
@@ -1726,9 +1612,7 @@
     },
     {
       "name": "doctor",
-      "path": [
-        "doctor"
-      ],
+      "path": ["doctor"],
       "aliases": [],
       "description": "Check key files, symlinks, updates, Tailscale, HTTPS and shell notices",
       "action": true,
@@ -1765,9 +1649,7 @@
     },
     {
       "name": "update",
-      "path": [
-        "update"
-      ],
+      "path": ["update"],
       "aliases": [],
       "description": "Update envden through the method it was installed with",
       "action": true,
@@ -1816,9 +1698,7 @@
     },
     {
       "name": "ui",
-      "path": [
-        "ui"
-      ],
+      "path": ["ui"],
       "aliases": [],
       "description": "Open a local dashboard for this device",
       "action": true,
@@ -1867,9 +1747,7 @@
     },
     {
       "name": "agent",
-      "path": [
-        "agent"
-      ],
+      "path": ["agent"],
       "aliases": [],
       "description": "Install the envden agent skill",
       "action": false,
@@ -1893,10 +1771,7 @@
       "commands": [
         {
           "name": "install",
-          "path": [
-            "agent",
-            "install"
-          ],
+          "path": ["agent", "install"],
           "aliases": [],
           "description": "Install or refresh the agent skill",
           "action": true,
@@ -1923,9 +1798,7 @@
     },
     {
       "name": "shell",
-      "path": [
-        "shell"
-      ],
+      "path": ["shell"],
       "aliases": [],
       "description": "Manage the shell notice",
       "action": false,
@@ -1949,10 +1822,7 @@
       "commands": [
         {
           "name": "install",
-          "path": [
-            "shell",
-            "install"
-          ],
+          "path": ["shell", "install"],
           "aliases": [],
           "description": "Add the out-of-sync notice to your shell config",
           "action": true,
@@ -1977,12 +1847,7 @@
               "name": "shell",
               "required": false,
               "variadic": false,
-              "choices": [
-                "zsh",
-                "bash",
-                "fish",
-                "powershell"
-              ],
+              "choices": ["zsh", "bash", "fish", "powershell"],
               "description": "Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\", \"powershell\")"
             }
           ],
@@ -1990,10 +1855,7 @@
         },
         {
           "name": "uninstall",
-          "path": [
-            "shell",
-            "uninstall"
-          ],
+          "path": ["shell", "uninstall"],
           "aliases": [],
           "description": "Remove the out-of-sync notice from your shell config",
           "action": true,
@@ -2018,12 +1880,7 @@
               "name": "shell",
               "required": false,
               "variadic": false,
-              "choices": [
-                "zsh",
-                "bash",
-                "fish",
-                "powershell"
-              ],
+              "choices": ["zsh", "bash", "fish", "powershell"],
               "description": "Shell; asks if omitted (choices: \"zsh\", \"bash\", \"fish\", \"powershell\")"
             }
           ],
@@ -2033,9 +1890,7 @@
     },
     {
       "name": "serve",
-      "path": [
-        "serve"
-      ],
+      "path": ["serve"],
       "aliases": [],
       "description": "Run the server; ENVDEN_SETUP_TOKEN replaces the setup token",
       "action": true,
@@ -2108,9 +1963,7 @@
     },
     {
       "name": "version",
-      "path": [
-        "version"
-      ],
+      "path": ["version"],
       "aliases": [],
       "description": "Print the version",
       "action": true,

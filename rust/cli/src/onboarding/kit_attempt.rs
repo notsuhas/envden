@@ -55,7 +55,7 @@ mod tests {
             &identity,
             "password",
             &crate::client::text(&[0; 192]),
-            &|| 42,
+            42,
         )
         .unwrap();
         struct Offline;

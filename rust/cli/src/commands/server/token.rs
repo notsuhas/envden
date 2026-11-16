@@ -9,7 +9,7 @@ pub fn read_token(kind: p::TTokenKind, value: Option<&str>) -> Result<String> {
             p::TTokenKind::Setup => "Server setup token",
             p::TTokenKind::Repair => "Repair token",
         };
-        return secret(label, |s| {
+        return secret(label, move |s| {
             (!p::is_token(kind, s)).then(|| {
                 format!(
                     "Not a {} token",

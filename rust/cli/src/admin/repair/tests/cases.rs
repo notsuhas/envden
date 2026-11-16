@@ -122,7 +122,7 @@ fn cached_blob_corruption_is_refused_before_upload() {
     crate::state::files::atomic_write(
         &adapters.home.join("state/blobs").join(text(&hash)),
         b"corrupt",
-        &adapters.now,
+        (adapters.now)(),
     )
     .unwrap();
     assert_eq!(
