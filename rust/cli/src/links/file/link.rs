@@ -1,6 +1,6 @@
 use super::{
     base::{copy_base, mode_name},
-    choice::choose_version,
+    choice::{choose_version, read_store},
     existing::relink_existing,
 };
 use crate::{
@@ -60,6 +60,7 @@ pub fn link_file(
             let target =
                 std::path::absolute(destination.parent().unwrap_or(Path::new("/")).join(&link))
                     .map_err(failure)?;
+            let target = crate::links::takeover::sibling::normalize(&target);
             return Ok(Some(IOwnLink {
                 checkout: checkout.clone(),
                 path: path.into(),
@@ -75,7 +76,13 @@ pub fn link_file(
             placement.remove(Some(&store_text), &destination_text)?;
             eprintln!(
                 "envden: removed {}, a link to a deleted copy",
-                sanitize_terminal(&home_path(&destination, &adapters.user_home))
+                sanitize_terminal(&home_path(
+                    &destination,
+                    &adapters
+                        .user_home
+                        .canonicalize()
+                        .unwrap_or_else(|_| adapters.user_home.clone())
+                ))
             );
             return Ok(None);
         }
@@ -87,17 +94,7 @@ pub fn link_file(
         eprintln!("{notice}");
         return Ok(None);
     }
-    let stored = match fs::symlink_metadata(&store) {
-        Ok(meta) if !meta.is_file() || meta.is_symlink() => {
-            return Err(EnvdenError::new(
-                ErrorCode::InvalidData,
-                "Unsafe store file",
-            ));
-        }
-        Ok(_) => Some(fs::read(&store).map_err(failure)?),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
-        Err(e) => return Err(failure(e)),
-    };
+    let stored = read_store(&store, |path| fs::read(path))?;
     let choice = if let Some(stored) = stored {
         if stored == content {
             "store".to_owned()

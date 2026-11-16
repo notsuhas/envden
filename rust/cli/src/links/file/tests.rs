@@ -32,3 +32,29 @@ fn keeps_checkout_link_when_the_store_link_is_dangling() {
     );
     assert_eq!(state["links"].as_array().unwrap().len(), 1);
 }
+
+#[test]
+fn unresolved_foreign_link_target_is_lexically_normalized() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap().join("checkout");
+    fs::create_dir(&root).unwrap();
+    fs::create_dir(root.join("nested")).unwrap();
+    symlink("nested/../missing.env", root.join(".env")).unwrap();
+    let adapters = create_adapters(Some(temp.path().join("home")), temp.path().into(), || 42);
+    let checkout = ICheckout {
+        root: root.to_string_lossy().into_owned(),
+        repo_id: "host/repo".into(),
+        ..Default::default()
+    };
+    let placement = adapters.placement(TPlacementMode::Link, &root);
+    let own = link_file(
+        &adapters,
+        &mut empty_state("test"),
+        &checkout,
+        placement.as_ref(),
+        ".env",
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(own.target, root.join("missing.env").to_string_lossy());
+}
