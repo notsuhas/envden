@@ -1,4 +1,4 @@
-use super::exchange::{put, wait};
+use super::exchange::{put, wait_slot};
 use crate::{
     adapters::IAdapters,
     client::{UreqTransport, binary, hello, text},
@@ -69,7 +69,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
     };
     let client = connection(adapters, address, server.pin, [0; 32], &identity);
     if !resume {
-        with_state_lock(&adapters.home, (adapters.now)(), || {
+        with_state_lock(&adapters.home, &adapters.now, || {
             atomic_write(
                 &adapters.home.join("state/pair-pin"),
                 text(&server.pin).as_bytes(),
@@ -88,14 +88,14 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
             })?;
             let expires = put(&client, mailbox, "KE1", &start.start_login_request)?
                 .min((adapters.now)() + 600_000);
-            with_state_lock(&adapters.home, (adapters.now)(), || {
+            with_state_lock(&adapters.home, &adapters.now, || {
                 atomic_write(
                     &adapters.home.join("state/pair-expiry"),
                     expires.to_string().as_bytes(),
                     (adapters.now)(),
                 )
             })?;
-            let response = wait(
+            let response = wait_slot(
                 &client,
                 &format!("/v1/pairing/mailboxes/{mailbox}/KE2"),
                 adapters.now,
@@ -128,7 +128,7 @@ fn join_inner(adapters: &IAdapters, address: &str, options: &Value) -> Result<Va
                 &keys.send,
                 &p::random_bytes(),
             )?);
-            with_state_lock(&adapters.home, (adapters.now)(), || {
+            with_state_lock(&adapters.home, &adapters.now, || {
                 adapters.keychain.set(&receive, &keys.receive)?;
                 atomic_write(
                     &adapters.home.join("state/pair-joiner"),

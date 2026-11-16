@@ -2,7 +2,12 @@ use crate::{client::IClient, time::TClock};
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::json;
 
-pub(super) fn put(client: &IClient, number: u32, slot: &str, message: &str) -> Result<u64> {
+pub(super) fn put(
+    client: &IClient,
+    number: impl std::fmt::Display,
+    slot: &str,
+    message: &str,
+) -> Result<u64> {
     let value = client
         .request(
             &format!("/v1/pairing/mailboxes/{number}/{slot}"),
@@ -15,6 +20,27 @@ pub(super) fn put(client: &IClient, number: u32, slot: &str, message: &str) -> R
             EnvdenError::with_source(ErrorCode::InvalidData, "Invalid pairing response", cause)
         })?;
     Ok(value.expires_at.max(0) as u64)
+}
+
+pub(super) fn wait_slot(client: &IClient, path: &str, now: TClock, expiry: u64) -> Result<String> {
+    wait(client, path, now, expiry)?;
+    get(client, path)
+}
+
+pub(super) fn get(client: &IClient, path: &str) -> Result<String> {
+    let value = client.request(path, "GET", None)?.json()?;
+    let slot: envden_protocol::protocol::TMailboxSlotResponse = serde_json::from_value(value)
+        .map_err(|cause| {
+            EnvdenError::with_source(ErrorCode::InvalidData, "Invalid pairing response", cause)
+        })?;
+
+    match slot {
+        envden_protocol::protocol::TMailboxSlotResponse::Message { message, .. } => Ok(message),
+        envden_protocol::protocol::TMailboxSlotResponse::Pending { .. } => Err(EnvdenError::new(
+            ErrorCode::NotFound,
+            "Pairing message pending",
+        )),
+    }
 }
 
 pub(super) fn wait(client: &IClient, path: &str, now: TClock, expiry: u64) -> Result<String> {
