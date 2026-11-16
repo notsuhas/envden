@@ -52,6 +52,12 @@ fn parser_matches_reference_binary() {
                 .unwrap()
         };
         let ts = run(&reference);
+        if *args == ["device", "list"] {
+            assert_eq!(
+                String::from_utf8_lossy(&ts.stderr),
+                "error: unknown command 'list'\n(Did you mean ls?)\n"
+            );
+        }
         let rust = run(Path::new(env!("CARGO_BIN_EXE_envden")));
         assert_eq!(
             (
