@@ -19,9 +19,9 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
             .filter(|s| !s.is_empty())
             .ok_or_else(|| invalid("Missing checkpoint material"))
     };
-    let checkpoint = binary(string("checkpoint")?)?;
-    let files = binary(string("files")?)?;
-    let keyring = binary(string("keyring")?)?;
+    for key in ["checkpoint", "files", "keyring", "vaultId"] {
+        string(key)?;
+    }
     let vault_id = p::fixed(&p::unbase32(string("vaultId")?)?)?;
     let headers: Vec<p::ISigned<p::IManifestHeader>> = state["headers"]
         .as_array()
@@ -34,6 +34,13 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
             )?)
         })
         .collect::<Result<_>>()?;
+    let mut header = None;
+    for candidate in &headers {
+        if p::object_hash(candidate, "manifest")?.as_slice() == binary(string("checkpoint")?)? {
+            header = Some(candidate.clone());
+            break;
+        }
+    }
     let entries: Vec<p::ISigned<p::TEntry>> = state["entries"]
         .as_array()
         .ok_or_else(|| invalid("Missing checkpoint material"))?
@@ -45,11 +52,7 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
             )?)
         })
         .collect::<Result<_>>()?;
-    let header = headers
-        .iter()
-        .find(|h| p::object_hash(*h, "manifest").is_ok_and(|h| h.as_slice() == checkpoint))
-        .cloned()
-        .ok_or_else(|| invalid("Missing checkpoint header"))?;
+    let header = header.ok_or_else(|| invalid("Missing checkpoint header"))?;
     let verified = state
         .get("verifiedState")
         .map(decode_verified_state)
@@ -87,7 +90,7 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
     let id_key = p::fixed(&id_key)?;
     let key = p::fixed(&key)?;
     let ring = p::open_keyring(
-        &keyring,
+        &binary(string("keyring")?)?,
         &key,
         &vault_id,
         header.body.epoch,
@@ -106,7 +109,7 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
         keys,
         checkpoint: c::ICheckpoint {
             header,
-            files: p::decode(&files)?,
+            files: p::decode(&binary(string("files")?)?)?,
             state: chain,
             id_key,
         },
@@ -115,4 +118,24 @@ pub fn checkpoint_material(adapters: &IAdapters, state: &Value) -> Result<ICheck
 
 fn invalid(message: &'static str) -> EnvdenError {
     EnvdenError::new(ErrorCode::InvalidData, message)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cached_headers_are_decoded_before_checkpoint_bytes() {
+        let root = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(root.path().into()), root.path().into(), || 42);
+        let state = serde_json::json!({"checkpoint":"!","files":"AQ","keyring":"AQ","vaultId":p::base32(&[1;32]),"headers":[""],"entries":[]});
+        assert_eq!(
+            checkpoint_material(&adapters, &state)
+                .err()
+                .unwrap()
+                .message,
+            "Truncated data"
+        );
+    }
 }

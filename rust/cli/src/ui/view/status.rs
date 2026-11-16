@@ -35,11 +35,12 @@ pub fn dashboard_status(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> 
     else {
         return Ok(json!({"kind":"not-configured"}));
     };
+    let held = super::held::held_files(adapters, &state)?;
     let remote = read_remote_notice(&adapters.home)?
         .map(|r| r.repos)
         .unwrap_or_default();
+    let approvals = checkout_approvals(&state, &|root| adapters.repo.checkout_at(root))?;
     let conflicts = conflict_views(adapters)?;
-    let held = super::held::held_files(adapters, &state)?;
     let probe = match crate::settings::actions::get_unlock_period(adapters, transport) {
         Ok(period) => json!({"kind":"unlocked","period":period.period}),
         Err(e) if e.code == ErrorCode::Locked => json!({"kind":"locked"}),
@@ -50,13 +51,7 @@ pub fn dashboard_status(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> 
     for link in local["links"].as_array().into_iter().flatten() {
         let root = link["root"].as_str().unwrap_or_default();
         let repo = checkout_repo(&state, root);
-        let approval = match adapters.repo.checkout_at(root)? {
-            Some(checkout) => match checkout_approval(&state, &checkout) {
-                "ask" => "needs-approval",
-                v => v,
-            },
-            None => "unavailable",
-        };
+        let approval = approvals.get(root).copied().unwrap_or("needs-approval");
         let changes = diffs
             .iter()
             .find(|d| d["root"] == link["root"] && d["path"] == link["path"]);
@@ -101,6 +96,22 @@ pub fn dashboard_status(adapters: &IAdapters, transport: Rc<dyn ITransport>) -> 
     )
 }
 
+fn checkout_approvals<'a>(state: &'a Value, lookup: &dyn Fn(&str) -> Result<Option<envden_core::adapters::ICheckout>>) -> Result<std::collections::HashMap<&'a str, &'static str>> {
+    let mut approvals = std::collections::HashMap::new();
+    for link in state["links"].as_array().into_iter().flatten() {
+        let root = link["root"].as_str().unwrap_or_default();
+        let approval = match lookup(root)? {
+            Some(checkout) => match checkout_approval(state, &checkout) {
+                "ask" => "needs-approval",
+                v => v,
+            },
+            None => "unavailable",
+        };
+        approvals.insert(root, approval);
+    }
+    Ok(approvals)
+}
+
 fn key_changes(change: &Value) -> Value {
     if change["kind"] == "diff" {
         return json!({"kind":"diff","added":change["added"],"removed":change["removed"],"changed":change["changed"]});
@@ -130,6 +141,18 @@ fn conflict_views(adapters: &IAdapters) -> Result<Vec<Value>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn checkout_approvals_look_up_each_root_once_in_link_order() {
+        let calls = std::cell::RefCell::new(Vec::new());
+        let state = json!({"links":[{"root":"/b"},{"root":"/a"},{"root":"/b"}]});
+        let approvals = checkout_approvals(&state, &|root| {
+            calls.borrow_mut().push(root.to_owned());
+            Ok(None)
+        }).unwrap();
+        assert_eq!(*calls.borrow(), ["/b", "/a"]);
+        assert_eq!(approvals["/b"], "unavailable");
+    }
 
     #[test]
     fn key_changes_omits_empty_conflict_key() {
