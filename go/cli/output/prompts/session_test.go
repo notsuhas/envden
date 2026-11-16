@@ -153,7 +153,8 @@ func TestPromptPTY(t *testing.T) {
 			} else if mode == "paste" {
 				// a pasted line ending in a newline must not wedge the prompt
 				expect("Paste it")
-				send("secret\r")
+				// a multi-line paste answers with its first line, not the lines joined
+				send("secret\rmore\r")
 				expect("RESULT:secret:false")
 				if strings.Contains(transcript.String(), "\x1b[?2004h") {
 					t.Fatal("bracketed paste would turn a pasted newline into part of the answer")

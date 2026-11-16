@@ -43,16 +43,29 @@ func New(input io.Reader, output io.Writer) *session {
 var errCancelled = state.PromptCancelled()
 
 func IsCancel(err error) bool {
-	return errors.Is(err, huh.ErrUserAborted) || errors.Is(err, errCancelled)
+	return errors.Is(err, errCancelled)
 }
 
-func (t *session) run(field huh.Field, programOptions ...tea.ProgramOption) error {
-	err := huh.NewForm(huh.NewGroup(field.WithWidth(80))).WithProgramOptions(append(programOptions, tea.WithoutSignalHandler(), tea.WithoutBracketedPaste())...).WithInput(t.input).WithOutput(t.output).
-		WithWidth(80).WithKeyMap(promptKeyMap()).WithAccessible(false).WithShowHelp(false).WithShowErrors(true).Run()
-	if errors.Is(err, huh.ErrUserAborted) {
+func (t *session) run(field huh.Field, keys ...filter) error {
+	next := filter(unfiltered)
+	if len(keys) > 0 {
+		next = keys[0]
+	}
+
+	form := huh.NewForm(huh.NewGroup(field.WithWidth(80))).WithWidth(80).WithKeyMap(promptKeyMap()).WithShowHelp(false).WithShowErrors(true)
+	// cancel quits normally: bubbletea treats huh's interrupt as a kill and closes the terminal reader under its read loop
+	form.SubmitCmd, form.CancelCmd = tea.Quit, tea.Quit
+
+	program := tea.NewProgram(form, tea.WithInput(t.input), tea.WithOutput(t.output), tea.WithFilter(afterSubmit(next)), tea.WithoutSignalHandler(), tea.WithoutBracketedPaste())
+	if _, err := program.Run(); err != nil {
+		return err
+	}
+
+	if form.State == huh.StateAborted {
 		return errCancelled
 	}
-	return err
+
+	return nil
 }
 
 func (t *session) validate(o PromptOptions) func(string) error {
@@ -125,7 +138,7 @@ func (t *session) Select(o PromptOptions) (string, error) {
 func (t *session) Multiselect(o PromptOptions) ([]string, error) {
 	value := append([]string{}, o.InitialValues...)
 	field := huh.NewMultiSelect[string]().Title(output.SanitizeTerminal(o.Message)).Options(options(o.Options)...).Value(&value).Filterable(false).Height(fieldHeight(o))
-	err := t.run(field, tea.WithFilter(multiselectNavigation(len(o.Options))))
+	err := t.run(field, multiselectNavigation(len(o.Options)))
 	selected := make(map[string]bool, len(value))
 	for _, v := range value {
 		selected[v] = true

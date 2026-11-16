@@ -225,7 +225,7 @@ Bug-in-TS: unknown
 
 Scenario: keys pressed inside a question, rather than the answers they produce.
 
-TS behaviour: clack reads keys through Node's readline. Tab does nothing; `k`, `j`, `h`, `l`, Space and Ctrl-J toggle a yes/no question; `a` selects or clears every checkout and `i` inverts the selection; Ctrl-J clears a text answer; readline's word rules apply to Ctrl-W and Alt-B; Up recalls a rejected answer. Keys typed after Enter in the same terminal read are dropped, and later reads reach the next question. Ctrl-D on an empty line closes readline's input, which wedges the question until the process is interrupted. Go uses huh and bubbletea defaults for all of these: Tab submits the question like Enter, `y`/`n`, arrows, `h`/`l` and Space answer a yes/no question, `x` and Space toggle a checkout, and Ctrl-D never wedges a question. As in TS, bracketed paste is off, so a pasted line ending in a newline submits the text before it.
+TS behaviour: clack reads keys through Node's readline. Tab does nothing; `k`, `j`, `h`, `l`, Space and Ctrl-J toggle a yes/no question; `a` selects or clears every checkout and `i` inverts the selection; Ctrl-J clears a text answer; readline's word rules apply to Ctrl-W and Alt-B; Up recalls a rejected answer. Keys typed after Enter in the same terminal read are dropped, and later reads reach the next question. Ctrl-D on an empty line closes readline's input, which wedges the question until the process is interrupted. Go uses huh and bubbletea defaults for all of these: Tab submits the question like Enter, `y`/`n`, arrows, `h`/`l` and Space answer a yes/no question, `x` and Space toggle a checkout, and Ctrl-D never wedges a question. As in TS, bracketed paste is off and keys after an accepted Enter are dropped, so a pasted line ending in a newline submits the text before it and a multi-line paste answers with its first line. Several letters arriving in one terminal read reach huh as one key, so a pasted `y` plus more letters doesn't answer a yes/no question.
 
 Possible improvement: none for Go. The wedge on Ctrl-D is a TS bug: a prompt should either ignore it or cancel.
 
@@ -237,7 +237,7 @@ Bug-in-TS: yes, for Ctrl-D
 
 Scenario: a user types the next answer while envden is still working, before the next question is drawn.
 
-TS behaviour: readline pauses stdin between questions, so input typed meanwhile waits in the terminal and reaches the next question, except keys that arrived in the same read as the previous Enter. Go reads the terminal only while a question is on screen, so typed-ahead input also waits; bubbletea may consume keys that arrive in the same read as the Enter that ends a question.
+TS behaviour: readline pauses stdin between questions, so input typed meanwhile waits in the terminal and reaches the next question, except keys that arrived in the same read as the previous Enter. Go reads the terminal only while a question is on screen, so typed-ahead input also waits, and it drops keys that arrive after the Enter that ends a question, as TS does within one read. A key that arrives in a later read while the question is still closing can be dropped too.
 
 Possible improvement: none.
 
