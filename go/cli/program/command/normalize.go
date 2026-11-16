@@ -102,7 +102,7 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 				return nil, err
 			}
 		}
-		if v.variadic {
+		if v.variadic && !attached {
 			for i+1 < len(args) && (!maybeOption(args[i+1]) || negativeNumber(c, args[i+1])) {
 				i++
 				result = append(result, "--"+name+"="+args[i])
