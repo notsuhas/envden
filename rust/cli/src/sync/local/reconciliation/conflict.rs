@@ -16,7 +16,10 @@ pub(super) fn record_file_conflict(
     entry: Option<&p::IFileEntry>,
     repair: bool,
 ) -> Result<()> {
-    let author = entry.and_then(|entry| entry_author(context, entry));
+    let author = entry
+        .map(|entry| entry_author(context, entry))
+        .transpose()?
+        .flatten();
     let message = record_conflict(
         &context.adapters.home,
         seed,

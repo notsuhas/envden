@@ -4,21 +4,29 @@ use crate::{
 };
 use envden_protocol::protocol as p;
 
-pub fn entry_author(context: &ISyncContext<'_>, entry: &p::IFileEntry) -> Option<String> {
+pub fn entry_author(
+    context: &ISyncContext<'_>,
+    entry: &p::IFileEntry,
+) -> envden_core::errors::Result<Option<String>> {
     let mut signer = None;
     for header in context.headers.iter().rev() {
         let files = if header.body.files_hash == context.checkpoint.header.body.files_hash {
             context.checkpoint.files.clone()
         } else {
-            let bytes = read_bytes(
+            let Some(bytes) = read_bytes(
                 &context
                     .adapters
                     .home
                     .join("state/file-lists")
                     .join(text(&header.body.files_hash)),
-            )
-            .ok()??;
-            p::decode::<p::IFiles>(&bytes).ok()?
+            )?
+            else {
+                return Ok(None);
+            };
+            let Ok(files) = p::decode::<p::IFiles>(&bytes) else {
+                return Ok(None);
+            };
+            files
         };
         if !files
             .entries
@@ -29,14 +37,16 @@ pub fn entry_author(context: &ISyncContext<'_>, entry: &p::IFileEntry) -> Option
         }
         signer = Some(header.body.signer);
     }
-    let signer = signer?;
+    let Some(signer) = signer else {
+        return Ok(None);
+    };
     if signer == context.identity.record.id {
-        return None;
+        return Ok(None);
     }
-    context
+    Ok(context
         .checkpoint
         .state
         .devices
         .get(&signer)
-        .map(|d| d.name.clone())
+        .map(|device| device.name.clone()))
 }
