@@ -75,3 +75,28 @@ fn remote_reads_rewrites_before_safe_directories() {
         assert_eq!(patterns, ["^url\\..*\\.insteadof$", "^safe\\.directory$"]);
     });
 }
+
+#[test]
+fn checkout_resolves_upstream_before_reading_directory_identity() {
+    use envden_core::adapters::IRepoAdapter;
+    let home = tempfile::tempdir().unwrap();
+    git(home.path(), &["init", "-q"]);
+    git(
+        home.path(),
+        &["remote", "add", "origin", "https://github.com/team/repo"],
+    );
+    git(
+        home.path(),
+        &["remote", "add", "upstream", "git@upstream:team/repo"],
+    );
+    let root = home.path().to_owned();
+    let adapter = crate::create_git_repo_adapter(crate::IGitRepoOptions {
+        home: Some(root.to_string_lossy().into()),
+        resolve_ssh_host: Some(Box::new(move |_| {
+            fs::remove_dir_all(root.join(".git")).unwrap();
+            Ok("github.com".into())
+        })),
+        ..Default::default()
+    });
+    assert!(adapter.checkout_at(home.path().to_str().unwrap()).is_err());
+}

@@ -52,6 +52,11 @@ pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<IC
         .join(js_trim_end(&common))
         .canonical_path()
         .map_err(exec::failure)?;
+    let upstream_repo_id = if remotes.contains(&"upstream") {
+        Some(id(adapter, &root, "upstream")?)
+    } else {
+        None
+    };
     let root = Path::new(&root).canonical_path().map_err(exec::failure)?;
     let directory = path_identity(&git_dir).map_err(exec::failure)?;
     let root_stat = path_identity(&root).map_err(exec::failure)?;
@@ -67,11 +72,7 @@ pub(crate) fn checkout(adapter: &GitRepoAdapter, path: &str) -> Result<Option<IC
             root_stat.birth_ms
         )),
         root_device: Some(root_stat.device),
-        upstream_repo_id: if remotes.contains(&"upstream") {
-            Some(id(adapter, &root, "upstream")?)
-        } else {
-            None
-        },
+        upstream_repo_id,
         registered_worktree: Some(registered(adapter, &root, &git_dir)),
         root,
         repo_id,
