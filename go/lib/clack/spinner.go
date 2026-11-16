@@ -10,6 +10,7 @@ type Spinner struct {
 	mu                sync.Mutex
 	Manual            bool
 	stop              chan struct{}
+	block             *inputBlock
 	terminal          *Terminal
 	message           string
 	frame, tick       int
@@ -37,7 +38,8 @@ func (s *Spinner) Start(message string) {
 	s.tick = 0
 	s.rendered = false
 	s.message = strings.TrimRight(message, ".")
-	s.terminal.write("\x1b[?25l" + s.terminal.style("gray", s.terminal.sym("│", "|")) + "\n")
+	s.block = s.terminal.block(func() { s.Stop("Canceled") })
+	s.terminal.write(s.terminal.style("gray", s.terminal.sym("│", "|")) + "\n")
 	if !s.Manual {
 		s.stop = make(chan struct{})
 		go s.animate(s.stop)
@@ -88,6 +90,8 @@ func (s *Spinner) finish(message string, clear bool) {
 		close(s.stop)
 		s.stop = nil
 	}
+	s.block.stop()
+
 	t := s.terminal
 	if s.rendered {
 		t.write("\x1b[1G\x1b[J")
@@ -95,7 +99,8 @@ func (s *Spinner) finish(message string, clear bool) {
 	if !clear {
 		t.write(t.style("green", t.sym("◇", "o")) + "  " + message + "\n")
 	}
-	t.write("\x1b[?25h")
+	s.block.restore()
+	s.block = nil
 }
 
 func (s *Spinner) animate(stop <-chan struct{}) {

@@ -1,0 +1,32 @@
+[
+  {
+    "keys": ["a", "b", "\r", "é", "😊", "\u001b[D", "", "\t"],
+    "cancel": false,
+    "clear": false,
+    "raw": "\u001b[?25l│\r\na\u001b[1D\u001b[0Kb\u001b[1D\u001b[0K\r\r\n\u001b[1A\u001b[0Ké\u001b[1D\u001b[0K😊\u001b[1D\u001b[0K\u001b[2D\u001b[1D\u001b[0K\u001b[1G\u001b[0J😊\u001b[1G\u001b[1D\u001b[0K\u001b[1G\u001b[0J\t😊\u001b[2G\u001b[1D\u001b[0K◇  Done\r\n\u001b[?25h"
+  },
+  {
+    "keys": ["confirm"],
+    "cancel": false,
+    "clear": false,
+    "raw": "\u001b[?25l│\r\nc\u001b[1Donfirm\u001b[0K◇  Done\r\n\u001b[?25h"
+  },
+  {
+    "keys": ["x"],
+    "cancel": false,
+    "clear": true,
+    "raw": "\u001b[?25l│\r\nx\u001b[1D\u001b[0K\u001b[?25h"
+  },
+  {
+    "keys": ["\u0003"],
+    "cancel": true,
+    "clear": false,
+    "raw": "\u001b[?25l│\r\n\u001b[?25h◇  Canceled\r\n\u001b[?25h"
+  },
+  {
+    "keys": ["\u001b"],
+    "cancel": true,
+    "clear": false,
+    "raw": "\u001b[?25l│\r\n\u001b[?25h◇  Canceled\r\n\u001b[?25h"
+  }
+]
