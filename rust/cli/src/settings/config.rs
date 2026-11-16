@@ -67,10 +67,12 @@ pub fn parse_config(value: Value) -> Result<Value> {
 }
 
 pub fn read_config(home: &Path) -> Result<Value> {
-    match fs::read_to_string(home.join("config.json")) {
-        Ok(s) => parse_config(serde_json::from_str(&s).map_err(|e| {
-            EnvdenError::with_source(ErrorCode::InvalidData, "Unreadable config", e)
-        })?),
+    match fs::read(home.join("config.json")) {
+        Ok(s) => parse_config(
+            serde_json::from_str(&String::from_utf8_lossy(&s)).map_err(|e| {
+                EnvdenError::with_source(ErrorCode::InvalidData, "Unreadable config", e)
+            })?,
+        ),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => parse_config(json!({})),
         Err(e) => Err(EnvdenError::with_source(
             ErrorCode::InvalidData,
@@ -145,6 +147,20 @@ fn invalid() -> EnvdenError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn reads_config_with_utf8_replacement() {
+        let temp = tempfile::tempdir().unwrap();
+        fs::write(
+            temp.path().join("config.json"),
+            b"{\"placement\":{\"bad\xff\":\"copy\"}}",
+        )
+        .unwrap();
+        assert_eq!(
+            read_config(temp.path()).unwrap()["placement"]["bad\u{fffd}"],
+            "copy"
+        );
+    }
+
     #[test]
     fn strict_defaults_and_private_save() {
         let temp = tempfile::tempdir().unwrap();
