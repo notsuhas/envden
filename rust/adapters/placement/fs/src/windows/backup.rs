@@ -29,6 +29,7 @@ pub(super) fn backup_with_restrict(
     now: f64,
     restrict: impl FnOnce(&Path, bool) -> Result<()>,
 ) -> Result<()> {
+    let now = envden_core::text::js_number(now);
     let directory = directory.ok_or_else(|| state::invalid("Backup directory is required"))?;
     let path = crate::paths::absolute(directory);
     let outside = |r: &Path, p: &Path| {

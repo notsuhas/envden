@@ -101,3 +101,46 @@ fn backups_keep_bytes_names_modes_and_prune_only_expired_files() {
     assert!(link.is_symlink());
     assert!(backups.join("unrelated").exists());
 }
+
+#[test]
+fn backup_filenames_use_javascript_number_formatting() {
+    for (now, expected) in [
+        (123.0, "123"),
+        (1_800_000_000_000.0, "1800000000000"),
+        (1e20, "100000000000000000000"),
+        (1e21, "1e+21"),
+        (-0.0, "0"),
+        (1e-7, "1e-7"),
+        (0.000001, "0.000001"),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("checkout");
+        fs::create_dir(&root).unwrap();
+        let store = temp.path().join("store");
+        let dest = root.join(".env");
+        let backups = temp.path().join("backups");
+        fs::write(&store, "A=remote\n").unwrap();
+        fs::write(&dest, "A=local\n").unwrap();
+        let adapter =
+            create_fs_placement_adapter(TPlacementMode::Copy, &root, Some(&backups), move || now);
+        adapter
+            .place(
+                store.to_str().unwrap(),
+                dest.to_str().unwrap(),
+                Some(&|_| Ok(())),
+                None,
+            )
+            .unwrap();
+        let entries: Vec<_> = fs::read_dir(&backups)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .collect();
+        assert_eq!(entries.len(), 1);
+        let name = entries[0].file_name().unwrap().to_str().unwrap();
+        let suffix = name
+            .strip_prefix(&format!(".envden-backup-{expected}-"))
+            .unwrap_or_else(|| panic!("unexpected backup filename: {name}"));
+        assert!(uuid::Uuid::parse_str(suffix).is_ok());
+        assert_eq!(fs::read(&entries[0]).unwrap(), b"A=local\n");
+    }
+}

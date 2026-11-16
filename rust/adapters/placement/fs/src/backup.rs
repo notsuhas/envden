@@ -10,6 +10,7 @@ pub(crate) fn backup(
     contents: &[u8],
     now: f64,
 ) -> Result<()> {
+    let now = envden_core::text::js_number(now);
     let directory = directory
         .ok_or_else(|| EnvdenError::new(ErrorCode::InvalidInput, "Backup directory is required"))?;
     let path = paths::absolute(directory);
