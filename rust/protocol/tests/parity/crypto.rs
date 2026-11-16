@@ -3,10 +3,7 @@ use envden_protocol::protocol::*;
 use serde_json::Value;
 
 fn vector() -> Value {
-    serde_json::from_str(include_str!(
-        "../../../../packages/core/src/protocol/__tests__/vectors/protocol.json"
-    ))
-    .unwrap()
+    serde_json::from_str(include_str!("../fixtures/vectors/protocol.json")).unwrap()
 }
 fn fixed<const N: usize>(v: &Value) -> [u8; N] {
     hex::decode(v.as_str().unwrap())

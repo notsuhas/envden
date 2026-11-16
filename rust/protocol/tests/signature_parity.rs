@@ -12,10 +12,8 @@ struct IVector {
 
 #[test]
 fn signatures_match_noble_strict_cofactored_verification() {
-    let vectors: Vec<IVector> = serde_json::from_str(include_str!(
-        "../../../parity/fixtures/signatures/vectors.json"
-    ))
-    .unwrap();
+    let vectors: Vec<IVector> =
+        serde_json::from_str(include_str!("fixtures/signatures.json")).unwrap();
     for vector in vectors {
         let public = hex::decode(vector.public).unwrap().try_into().unwrap();
         assert_eq!(

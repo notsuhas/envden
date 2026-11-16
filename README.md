@@ -7,12 +7,14 @@
 
 <p align="center">
   <a href="https://github.com/notsuhas/envden/releases"><img alt="Latest release" src="https://shieldcn.dev/github/release/notsuhas/envden.svg?variant=secondary" /></a>
-  <a href="https://github.com/notsuhas/envden/actions/workflows/ci.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
+  <a href="https://github.com/notsuhas/envden/actions/workflows/rust.yml"><img alt="CI status" src="https://shieldcn.dev/github/ci/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="LICENSE"><img alt="License" src="https://shieldcn.dev/github/license/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/stargazers"><img alt="GitHub stars" src="https://shieldcn.dev/github/stars/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="https://github.com/notsuhas/envden/commits/main"><img alt="Last commit" src="https://shieldcn.dev/github/last-commit/notsuhas/envden.svg?variant=secondary" /></a>
   <a href="docs/PROTOCOL.md"><img alt="End-to-end encrypted" src="https://shieldcn.dev/badge/encryption-end--to--end-green.svg?variant=secondary&logo=ri:LockLine" /></a>
 </p>
+
+This branch is the Rust implementation of envden. It behaves exactly like the TypeScript reference on `main`; the published releases still come from `main`.
 
 envden keeps the `.env` files in your repos the same on every machine you work on. It syncs whole files, byte for byte, so comments, order and blank lines survive. Everything is encrypted on your devices before it leaves them, and it syncs through a small server you run yourself on your Tailscale network.
 
@@ -31,9 +33,6 @@ irm https://envden.theclau.de/install.ps1 | iex
 
 # Homebrew
 brew install notsuhas/tap/envden
-
-# npm
-npm i -g envden
 
 # Scoop
 scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
@@ -99,52 +98,39 @@ The server can't read your files or add devices on its own. It can refuse servic
 
 ## Building from source
 
-For contributors. Needs [Bun](https://bun.sh) 1.4.
-
-```sh
-bun install
-bun run --cwd apps/cli build   # writes apps/cli/dist/envden
-```
-
-The server image is built from [apps/server/Dockerfile](apps/server/Dockerfile), and releases are described in [docs/releasing.md](docs/releasing.md).
-
-### With Cargo
-
-The `rust/` workspace builds `envden` with Cargo, using the toolchain pinned in [rust-toolchain.toml](rust-toolchain.toml); `rustup` picks it up on its own.
+Needs Cargo; `rustup` picks up the toolchain pinned in [rust-toolchain.toml](rust-toolchain.toml).
 
 ```sh
 cargo build --release -p envden-cli   # writes target/release/envden
-cargo fmt --all --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
 ```
+
+The server image is built from [packaging/docker/Dockerfile](packaging/docker/Dockerfile), and release builds are described in [docs/releasing.md](docs/releasing.md).
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| `apps/cli` | The `envden` command |
-| `apps/server` | The sync server (Hono on SQLite) |
-| `apps/web` | Website and docs (Next.js, Fumadocs) |
-| `packages/core` | Protocol, crypto, chain validation, merge, adapter interfaces |
-| `packages/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
-| `packages/testing` | Contract tests and fakes for adapters |
-| `rust/` | The CLI, server, protocol and adapters as a Cargo workspace |
-| `docs/` | Design and decisions, protocol spec, terms, adapter guide, release runbook |
+| `rust/cli` | The `envden` command |
+| `rust/server` | The sync server (axum on SQLite) |
+| `rust/core` | Errors, paths, merge, adapter traits |
+| `rust/protocol` | Protocol codecs, crypto, chain validation |
+| `rust/adapters/<kind>/<impl>` | Git, file placement, keychain, shell, Tailscale, SQLite |
+| `rust/testing` | Contract suites and fakes for adapters |
+| `rust/vendor` | Patched `cliclack` and `hpke` |
+| `docs/` | Design and decisions, protocol spec, terms, adapter guide, release notes |
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike and lint enforces package boundaries, file layout, naming and comment limits.
+Read [AGENTS.md](AGENTS.md) first; its rules apply to people and agents alike.
 
 ```sh
-bun run check    # format, lint and type check (Vite+)
-bun test
-bun run fallow   # unused code, cycles, duplication, complexity
+git config core.hooksPath .githooks   # fmt and clippy before each commit
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
 ```
 
-After changing a command's help text, run `bun run docs:cli` to regenerate the CLI reference; a test fails while it's stale.
-
-Adding an adapter: see [docs/adapters.md](docs/adapters.md) or run `bun run new-adapter <kind> <impl>`.
+Adding an adapter: see [docs/adapters.md](docs/adapters.md).
 
 ## License
 

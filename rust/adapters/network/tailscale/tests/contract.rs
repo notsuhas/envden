@@ -115,9 +115,7 @@ fn schema_fallbacks_and_capped_command_errors() {
 
 #[test]
 fn recorded_status_and_capped_serve_failure() {
-    let fixture = include_str!(
-        "../../../../../packages/adapters/network/tailscale/src/__tests__/running.json"
-    );
+    let fixture = include_str!("fixtures/running.json");
     let hint = "Serve is not enabled on your tailnet. To enable, visit: https://login.tailscale.com/f/serve";
     let adapter = create_tailscale_network_adapter(Some(Box::new(move |args| {
         Ok(ICommandResult {

@@ -128,9 +128,7 @@ mod tests {
     use super::*;
     #[test]
     fn vectors() {
-        let vectors = include_str!(
-            "../../../../../packages/adapters/repo/git/src/__tests__/repo-id-vectors.json"
-        );
+        let vectors = include_str!("../tests/fixtures/repo-id-vectors.json");
         let vectors: serde_json::Value = serde_json::from_str(vectors).unwrap();
         for row in vectors.as_array().unwrap() {
             assert_eq!(

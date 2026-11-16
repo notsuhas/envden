@@ -47,7 +47,7 @@ fn approved_checkout_notices_and_sanitized_refresh() {
         let binary = home.join("envden");
         fs::write(&binary, "#!/bin/sh\n[ -z \"${BUN_OPTIONS+x}\" ] && [ -z \"${BUN_BE_BUN+x}\" ] && echo refreshed > \"$ENVDEN_TEST_RESULT\"\n").unwrap();
         fs::set_permissions(&binary, fs::Permissions::from_mode(0o700)).unwrap();
-        let snippet = create_rc_shell_adapter(kind, &home, None, None, None)
+        let snippet = create_rc_shell_adapter(kind, &home, Some(&home.join(".envden")), None, None)
             .hook_snippet(binary.to_str().unwrap())
             .unwrap();
         let script = format!("{snippet}\n_envden_notice\n_envden_notice");
@@ -105,7 +105,7 @@ fn track_offer_and_update_day_caches() {
         fs::write(state.join("track-offers"), format!("{}\n", home.display())).unwrap();
         fs::write(state.join("notice-update"), "envden: update available; run envden update\nenvden: update required; run envden update\nmalicious\x1b[31m\n").unwrap();
         fs::write(state.join("notice"), "").unwrap();
-        let snippet = create_rc_shell_adapter(kind, &home, None, None, None)
+        let snippet = create_rc_shell_adapter(kind, &home, Some(&home.join(".envden")), None, None)
             .hook_snippet("/bin/true")
             .unwrap();
         let first = run(shell, &snippet, &home, &home, &home.join("result"));

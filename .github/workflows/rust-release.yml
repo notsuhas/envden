@@ -71,10 +71,6 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - run: rustup show active-toolchain
       - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version-file: package.json
-      - run: bun install --frozen-lockfile
       - run: rustup target add ${{ matrix.target }}
       - name: Install native musl toolchain
         if: contains(matrix.platform, 'musl')
@@ -92,8 +88,13 @@ jobs:
       - name: Notarize binary
         if: false
         run: echo 'Rust notarization is disabled'
-      - if: ${{ !contains(matrix.platform, 'musl') }}
-        run: bun apps/cli/scripts/smoke.ts dist/${{ matrix.asset }}
+      - name: Smoke binary
+        if: ${{ !contains(matrix.platform, 'musl') }}
+        run: |
+          home=$(mktemp -d)
+          for args in "--version" "--help" "doctor --json"; do
+            HOME="$home" ENVDEN_HOME="$home/envden" ENVDEN_NO_UPDATE_CHECK=1 ENVDEN_TELEMETRY=0 "dist/${{ matrix.asset }}" $args
+          done
       - name: Smoke musl on Alpine
         if: contains(matrix.platform, 'musl')
         run: |
@@ -129,13 +130,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - run: echo 'Rust GitHub release publication is disabled'
-  # npm keeps shipping the TypeScript binaries.
-  npm:
-    if: false
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - run: echo 'Rust npm publication is disabled'
   # The production image keeps shipping the TypeScript binary.
   image:
     if: false

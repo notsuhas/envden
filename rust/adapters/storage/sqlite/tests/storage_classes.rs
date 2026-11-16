@@ -9,25 +9,18 @@ mod support {
 }
 #[path = "support/swap.rs"]
 mod swap;
+#[path = "support/ts_written.rs"]
+mod ts_written;
 use envden_adapter_storage_sqlite::create_sqlite_storage_adapter;
 use envden_core::adapters::*;
 use rusqlite::Connection;
 
 #[test]
-fn sqlite_storage_classes_match_bun() {
+fn sqlite_storage_classes_match_the_typescript_adapter() {
     for ts in [true, false] {
         let dir = tempfile::tempdir().unwrap();
         if ts {
-            let output = std::process::Command::new("bun")
-                .arg(concat!(
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/tests/fixtures/bridge.mjs"
-                ))
-                .arg("write")
-                .arg(dir.path())
-                .output()
-                .unwrap();
-            assert!(output.status.success(), "{output:?}");
+            ts_written::copy_into(dir.path());
         } else {
             let db = create_sqlite_storage_adapter(dir.path(), 0).unwrap();
             db.configure_vault(

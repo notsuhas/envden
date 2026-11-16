@@ -23,28 +23,14 @@ construction stays in `src/adapters.rs`.
 
 ## Verification
 
-Set `CARGO_TARGET_DIR=$PWD/target/server` before building or checking.
-
 ```sh
 cargo fmt -p envden-server --check
 cargo clippy -p envden-server --all-targets --no-deps -- -D warnings
 cargo test -p envden-server
-cargo build -p envden-server --release
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl hybrid=parity/hybrid/envden
-bun parity/hybrid/transport.ts
 ```
 
-The TypeScript reference passes 133 cases, with one Windows-only skip on macOS.
-The Rust server passes 106 tests; table rows and related assertions are grouped.
-Both the TS-vs-TS baseline and the hybrid differential pass all 21 scenarios.
-The raw transport comparison checks ordered, case-sensitive headers and exact
-status lines and body bytes across 17 cases, excluding Date and connection headers.
-It includes the reference's HEAD and 413 responses on fresh and reused connections.
-
-The hybrid launcher uses the release server and delegates other commands to the
-compiled TypeScript CLI. On macOS the SQLite adapter uses Apple's system SQLite,
-matching Bun's checkpoint and persistent WAL/SHM behavior at shutdown.
+The raw HTTP comparison against the TypeScript server (status lines, ordered headers except Date and connection, body bytes) runs in CI from the `main` checkout as `bun parity/transport.ts`.
 
 `create_app_with_budget` permits shared body budgets in concurrency tests.
 Body deadlines use `read_body_with` with an injected clock and scheduler; tests
-expire jobs directly. The preserved HEAD and uptime quirks are in `docs/ports/rust-parity.md`.
+expire jobs directly.

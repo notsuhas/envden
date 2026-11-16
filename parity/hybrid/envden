@@ -1,8 +1,0 @@
-#!/bin/sh
-set -eu
-root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
-if [ "${1-}" = serve ]; then
-  shift
-  exec "$root/target/server/release/envden-serve" "$@"
-fi
-exec "$root/apps/cli/dist/envden" "$@"

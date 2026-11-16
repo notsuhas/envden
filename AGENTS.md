@@ -1,85 +1,84 @@
-# Working on envden
+# Working on envden (Rust)
 
 ## Where things are
 
 - **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`.
-- **Packages:** `packages/core` holds the protocol, merge and adapter interfaces. Each adapter is its own package in `packages/adapters/<kind>/<impl>`. `apps/cli`, `apps/server` and `apps/web` are the apps.
-- **Ports:** read `docs/ports/` before changing behaviour.
-- **Packages are source-only** (`"exports": {".": "./src/index.ts"}`). Relative imports use the `.ts` extension.
+- **Reference:** the TypeScript build on `main` is the reference implementation. This port behaves identically; the parity suite on `main` checks it, and `docs/implementations.md` there lists the accepted differences.
+- **Crates:** one Cargo workspace. `rust/core` holds errors, paths, merge and the adapter traits. `rust/protocol` holds codecs, crypto and the chain. Each adapter is its own crate in `rust/adapters/<kind>/<impl>`. `rust/testing` holds contract suites and fakes. `rust/cli` (binary `envden`) and `rust/server` are the apps. `rust/vendor` holds patched copies of `cliclack` and `hpke`; each has an `ENVDEN-PATCH.md`.
 
 ## Checks
 
 ```sh
-./node_modules/.bin/vp check --fix   # format (Oxfmt), lint (Oxlint), type check (tsgolint)
-bun test
-./node_modules/.bin/fallow           # unused code, cycles, duplication, complexity
+export CARGO_INCREMENTAL=0 CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
 ```
 
-Tests use `bun:test` and live in a `__tests__/` folder next to the code they test, for example `src/protocol/__tests__/encoding.test.ts` for `src/protocol/encoding.ts`. Never put a test file directly beside source files or at a folder's top level. Fixtures and vectors used only by tests go in that `__tests__/` folder too.
+Enable the pre-commit hook (fmt and clippy) once per clone: `git config core.hooksPath .githooks`.
 
 ## Code style
 
-- **No god files.** Each file does one thing: one codec, one helper, one command, one component, so each can be tested on its own. `index.ts` files only re-export; they contain no logic. Split any file that holds unrelated pieces or grows past roughly 200 lines.
-- **Group related files in folders.** A folder's top level holds only its entry points. Everything else sits in folders named after the domain: `commands/device/{add,ls,rm}.ts`, `commands/server/{move,switch,repair}.ts`, `settings/`, `diagnostics/`. Don't encode the group in a filename (`device-add.ts`); make it a folder. Once a folder passes about 8 files, split it into subfolders.
-- **Let code breathe.** Leave a blank line after the imports, between top-level declarations, between class members, before a `return` that follows other statements, and between the logical steps inside a function (setup, work, result). Keep tightly related lines together; separate everything else.
-- **Naming:** interfaces are `I<Name>`, never with a `Props` suffix. Type aliases are `T<Name>`.
-- **Exports:** export only what other files import.
-- **Comments:** one line at most, and only for a non-obvious "why". No JSDoc essays and no legend comments on unions.
-- **Branching:** no IIFEs. Use module-level pure functions.
+- **No god files.** Each file does one thing: one codec, one helper, one command. `mod.rs` and `lib.rs` only declare modules and re-export. Split any file that holds unrelated pieces or grows past roughly 200 lines.
+- **Group related files in folders.** Name folders after the domain: `commands/device/{add,ls,rm}.rs`, not `device_add.rs`. Once a folder passes about 8 files, split it into subfolders.
+- **Let code breathe.** Blank lines between items and between the logical steps inside a function.
+- **Naming:** traits and structs that describe an interface are `I<Name>`, never with a `Props` suffix. Type aliases are `T<Name>`.
+- **Visibility:** `pub` only what other crates use; `pub(crate)` for what other modules use.
+- **Comments:** one line at most, and only for a non-obvious "why". No doc essays and no legend comments on enums.
 - **Decisions:** derive them in pure functions, each with a compact test.
-- **Discriminated returns:** make the falsy fields optional.
 - **No deprecated APIs.**
-- **Crypto:** never hand-roll primitives. Use the pinned libraries in `packages/core`.
-- **React:** components take one `props` parameter and destructure it inside the body. Colours are `rgba()`, never hex.
+- **`unsafe`** is denied workspace-wide. Only Windows FFI may allow it, with a one-line reason.
+- **Crypto:** never hand-roll primitives. Use the pinned crates in `rust/protocol`.
+- **Text:** use `envden_core::text::js_trim` where the protocol trims, not `str::trim`.
 
 ## Commits and reviews
 
-- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, with the summary in lowercase and the imperative mood. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the package: `core`, `cli`, `server`, `web`, `testing`, `tools`, or an adapter such as `adapter-storage-sqlite`. Use `adapters` for a change spanning several adapters. Mark breaking changes with `!`.
-- **Changesets:** add one with `bunx changeset` for any change a user would notice, naming `@envden/cli`. Releases run `bun run release:version`.
-- **Review comments follow [Conventional Comments](https://conventionalcomments.org):** `label (decorations): subject`, using labels such as `issue`, `suggestion`, `nitpick`, `question` and `praise`, and decorations such as `(blocking)` or `(non-blocking)`.
+- **Commits follow [Conventional Commits](https://www.conventionalcommits.org):** `type(scope): summary`, lowercase and imperative. Types are `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci` and `perf`. The scope is the crate with a `rust-` prefix: `rust-cli`, `rust-server`, `rust-core`, `rust-protocol`, `rust-testing`, or an adapter such as `rust-adapter-storage-sqlite`. Use `rust-adapters` for a change spanning several adapters and `rust` for the whole workspace. Mark breaking changes with `!`.
+- **Review comments follow [Conventional Comments](https://conventionalcomments.org):** `label (decorations): subject`.
 
-## Packages and imports
+## Crates and dependencies
 
-- **Import by name.** Another package is `@envden/<name>` or one of its subpath exports, never a relative path into another package's `src`.
-- **Layers:** `core` imports no workspace package. An adapter imports only `@envden/core`, plus `@envden/testing` in tests. Apps import core and adapters. Lint and Fallow boundaries enforce this.
-- **Wiring:** adapters are wired in one file per app, `apps/cli/src/adapters.ts` and `apps/server/src/adapters.ts`. Everything else receives adapters as arguments.
-- **Never branch on which adapter is in use.** Add a capability to the interface and read that.
-- **Moves:** moving a file deletes the old one and updates every importer. No re-export shims.
+- **Layers:** `core` depends on no workspace crate. `protocol` depends only on `core`. An adapter depends only on `core` (and `protocol` where it needs protocol types), plus `testing` as a dev-dependency. Apps depend on core, protocol and adapters.
+- **Wiring:** adapters are constructed in one file per app, `rust/cli/src/adapters.rs` and `rust/server/src/adapters.rs`. Everything else receives them as arguments.
+- **Never branch on which adapter is in use.** Add a capability to the trait and read that.
+- **Moves:** moving a file deletes the old one and updates every user. No re-export shims.
 
 ## Adapters
 
-- One package per implementation at `packages/adapters/<kind>/<impl>`, named `@envden/adapter-<kind>-<impl>`.
-- `src/adapter.ts` exports `create<Impl><Kind>Adapter`, which returns the core `I<Kind>Adapter`. `src/index.ts` re-exports it.
-- Every adapter has `src/__tests__/contract.test.ts` running its kind's suite from `@envden/testing`. A new kind adds its suite there first.
-- Fakes live in `@envden/testing`. A fake throws on any call the test didn't supply.
+- One crate per implementation at `rust/adapters/<kind>/<impl>`, named `envden-adapter-<kind>-<impl>`.
+- `src/adapter.rs` exports `create_<impl>_<kind>_adapter`, returning a type that implements the core `I<Kind>Adapter`.
+- Every adapter has `tests/contract.rs` running its kind's suite from `envden-testing`. A new kind adds its suite there first.
+- Fakes live in `envden-testing`. A fake panics on any call the test didn't supply.
 - Read `docs/adapters.md` before adding one.
 
 ## Errors
 
-- **Expected outcomes are return values:** a discriminated union with a `kind`.
-- **Failures throw `EnvdenError`** with a `code` from `TErrorCode`. The message is fixed text, and the underlying error goes in `cause`.
+- **Expected outcomes are return values:** an enum or `Option`, never an error.
+- **Failures are `EnvdenError`** with an `ErrorCode`. The message is fixed text, and the underlying error goes in `source`.
 - **Never put env file contents, keys, tokens or passwords in a message, log line or error field.** Use a length, count or hash.
-- **Translate once.** The CLI maps `code` to an exit code in `main.ts`, and the server maps it to a status in one `onError`.
+- **No panics on input.** `unwrap` and `expect` only where the invariant is local and obvious.
+- **Translate once.** The CLI maps `code` to an exit code in `main.rs`, and the server maps it to a status in one place.
 
 ## Commands and routes
 
 - A CLI command or server route does three things: parse input, call one function, report the result. Logic lives in that function, so a test can call it without a terminal or a socket.
-- Anything on the wire has one Zod schema in `packages/core/src/protocol`, built at module level, with its type inferred from it. Never declare a shape twice.
+- Anything on the wire has one serde type in `rust/protocol`. Never declare a shape twice.
 
 ## Tests
 
+- **Where:** small pure-function tests sit in a `#[cfg(test)] mod tests` at the bottom of the file. Tests that need a module's private items go in that module's `tests.rs` or `tests/` folder. Tests of a crate's public API go in the crate's `tests/` folder. Never put a test file beside sources under another name (`foo_tests.rs`).
+- **Fixtures** (protocol vectors, recorded tool output, databases written by the reference) live in the crate's `tests/fixtures/`. Tests never read outside their crate or spawn another runtime.
 - **Test what can break:** codecs against vectors, crypto compositions, merge, storage commits, path validation, and whatever a bug fix changed. Skip what types guarantee.
 - **Extend before you add.** Add a row or assertion to an existing test when one fits.
-- **One layer.** Test at the lowest layer that fails. Don't repeat a case per adapter or per command.
 - **Bug fixes** start with a test that fails without the fix.
-- **Time is an argument.** No `Date.now()`, sleeps, polling or per-test timeouts in logic or tests. A flaky test is fixed, not retried.
-- **No `.only`.** A `.skip` needs an issue link on the line above.
-- **Tests never touch the real keychain, the user's home config or a real tailnet.** Use temp dirs and fakes. A real-keychain test is opt-in through an env var.
+- **Time is an argument.** No `SystemTime::now()` outside the one clock at each app's edge, no sleeps or polling in logic or tests.
+- **No `#[ignore]`** without an issue link on the line above.
+- **Tests never touch the real keychain, the user's home config, a real tailnet or a real service manager** (launchd, systemd, schtasks). Use temp dirs and fakes, and pass homes explicitly rather than reading `HOME` or `ENVDEN_HOME`.
 
 ## Suppressions
 
-- Every `oxlint-disable`, `@ts-expect-error` and Fallow ignore says why.
-- Don't add an ignore to `.fallowrc.json` or `vite.config.ts` to get past a check. Fix the code.
+- Every `#[allow(...)]` and `#[expect(...)]` says why on the line above.
+- Don't relax `[workspace.lints]` to get past a check. Fix the code.
 
 ## Docs and work artifacts
 

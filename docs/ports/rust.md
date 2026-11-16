@@ -1,10 +1,10 @@
 # Rust port
 
-The Rust port is a second implementation of envden, functionally identical to the TypeScript one. TypeScript at `v0.3.8` is the reference: where behaviour differs, Rust is wrong, even when it looks better. Differences we'd like to fix go in [rust-parity.md](rust-parity.md), and the fix lands in every implementation together.
+The Rust port is a second implementation of envden, functionally identical to the TypeScript one on `main`, which is the reference: where behaviour differs, Rust is wrong, even when it looks better. `docs/implementations.md` on `main` is the canonical list of accepted differences; [rust-parity.md](rust-parity.md) keeps the Rust-specific notes. A bug found in one implementation is fixed in all of them together.
 
 ## Layout
 
-One Cargo workspace at the repo root. Crates mirror the TS packages:
+One Cargo workspace at the repo root. Crates mirror the TS packages on `main`:
 
 | Crate | Path | TS counterpart |
 |---|---|---|
@@ -35,7 +35,8 @@ CLAUDE.md applies, in idiomatic Rust:
 - Small pure-function tests live in a `#[cfg(test)] mod tests` at the bottom of the file they test.
 - Tests that need a module's private items go in that module's `tests.rs` or `tests/` folder, declared `#[cfg(test)] mod tests;`. That folder is Rust's `__tests__`. Never put a test file beside source files under another name (`foo_tests.rs`).
 - Tests of a crate's public API go in the crate's `tests/` folder.
-- Protocol vectors are read in place from `packages/core/src/protocol/__tests__/vectors/`, so every implementation checks the same JSON.
+- Protocol vectors are copies of `packages/core/src/protocol/__tests__/vectors/` on `main`, kept in `rust/protocol/tests/fixtures/vectors/`. Refresh them when the reference regenerates its vectors.
+- Tests never spawn Bun or read the TypeScript tree; what they need from the reference is recorded under the crate's `tests/fixtures/`.
 - Every TS test case has a Rust counterpart with the same inputs and outcome.
 - Tests never touch the real keychain, home config or tailnet.
 
@@ -94,24 +95,31 @@ TypeScript is the reference until every port passes the parity suite; then it is
 - Exact: wire bytes, crypto and protocol, server database state, every file written (names, contents, modes, including state and config files), exit codes and error codes, which prompts are asked with their order and choices, and every decision and outcome.
 - Native: terminal presentation (prompt and spinner styling, help layout, the wording of errors and notices, as long as the meaning and facts are the same) and the PDF's internal bytes (its text and fields must match).
 
-Ports use maintained libraries instead of copying npm packages byte for byte. Presentation differences are listed in [rust-parity.md](rust-parity.md). The parity suite (`parity/`, [parity.md](parity.md)) compares the exact list byte for byte and the native list by meaning, and `--mix` swaps implementations per role. Protocol vectors stay in `packages/core/src/protocol/__tests__/vectors/`, and every implementation reads them in place. This replaces the earlier rule that ports match terminal output byte for byte, which forced hand-ported copies of commander, clack and pdf-lib.
+Ports use maintained libraries instead of copying npm packages byte for byte. The parity suite on `main` (`parity/`) compares the exact list byte for byte and the native list by meaning, and `--mix` swaps implementations per role. This replaces the earlier rule that ports match terminal output byte for byte, which forced hand-ported copies of commander, clack and pdf-lib.
 
 ## Working rules
 
-- A change to behaviour lands in every implementation in the same PR, and the parity suite stays green. Add a scenario under `parity/scenarios/` for any behaviour it doesn't cover yet.
-- Never make one implementation "better" alone. Record the idea, or a bug found in TS, in [rust-parity.md](rust-parity.md), and fix it everywhere at once.
-- Commit scopes: Rust crates use `rust-` scopes (`rust-cli`, `rust-protocol`); the parity suite uses `parity`.
+- A change to behaviour lands in every implementation, and the parity suite stays green. New scenarios go in `parity/scenarios/` on `main`.
+- Never make one implementation "better" alone. Record the idea, or a bug found in any implementation, and fix it everywhere at once.
+- Commit scopes: Rust crates use `rust-` scopes (`rust-cli`, `rust-protocol`).
 
 ## Checks
 
 ```sh
 cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden
-bun parity/run.ts --impl ts=apps/cli/dist/envden --impl rust=target/release/envden --mix   # mixed servers and devices
-bun apps/cli/scripts/e2e.ts target/release/envden
+cargo build --release -p envden-cli
 ```
 
-Build the TypeScript binary first (`bun run --cwd apps/cli build`). The server's own verification steps are in [rust-server.md](rust-server.md).
+Parity runs in CI (`.github/workflows/rust.yml`): it checks out the `main` commit named in `.parity-reference` into `reference/`, builds the TypeScript binary there, and runs the harness from that checkout against `target/release/envden`:
+
+```sh
+bun parity/run.ts --reference <ts-envden> --candidate <envden>
+bun parity/run.ts --reference <ts-envden> --candidate <envden> --mix
+bun parity/transport.ts --reference <ts-envden> --candidate <envden>
+bun apps/cli/scripts/e2e.ts <envden>
+```
+
+The same commands work locally from a `main` checkout. The server's own notes are in [rust-server.md](rust-server.md).
 
 ## Adding an adapter
 

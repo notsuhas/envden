@@ -6,7 +6,7 @@ fn vector(name: &str) -> Value {
     serde_json::from_slice(
         &std::fs::read(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../packages/core/src/protocol/__tests__/vectors")
+                .join("tests/fixtures/vectors")
                 .join(name),
         )
         .unwrap(),

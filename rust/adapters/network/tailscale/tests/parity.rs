@@ -2,8 +2,7 @@ use envden_adapter_network_tailscale::*;
 use envden_core::adapters::*;
 use std::sync::{Arc, Mutex};
 
-const RUNNING: &str =
-    include_str!("../../../../../packages/adapters/network/tailscale/src/__tests__/running.json");
+const RUNNING: &str = include_str!("fixtures/running.json");
 
 #[test]
 fn recorded_status_and_commands() {

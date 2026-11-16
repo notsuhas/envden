@@ -101,10 +101,8 @@ impl ICodec for SizedByte {
 #[test]
 fn reference_primitive_verification() {
     use ed25519_dalek::{Signature, VerifyingKey};
-    let v: serde_json::Value = serde_json::from_str(include_str!(
-        "../../../../packages/core/src/protocol/__tests__/vectors/known.json"
-    ))
-    .unwrap();
+    let v: serde_json::Value =
+        serde_json::from_str(include_str!("../fixtures/vectors/known.json")).unwrap();
     let ed = &v["ed25519"];
     let public: [u8; 32] = hex::decode(ed["public"].as_str().unwrap())
         .unwrap()

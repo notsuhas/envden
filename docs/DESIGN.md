@@ -17,14 +17,13 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 ## Shape
 
 - **Server**: one Docker container, or `envden serve` on one of the user's devices (launchd / systemd / Windows login service). Stores ciphertext and opaque IDs only. One server per vault, no peer-to-peer (see Decisions). Many vaults per server, one owner each.
-- **Device**: the `envden` CLI, a single Bun-compiled binary for macOS, Linux and Windows. No background daemon.
-- **Stack**: TypeScript monorepo on Bun (see Decisions). `apps/cli`, `apps/server` (+ Dockerfile), `apps/web` (Next.js + Fumadocs), `packages/core` (crypto, protocol, merge, adapter interfaces, `SITE_URL`), `packages/adapters/*`.
-  - Monorepo: Bun workspaces. Tests: `bun test` plus the adapter contract tests (Vite+'s Vitest runs on Node, and the code uses Bun APIs). Format, lint and type check: Vite+ (`vp check`: Oxfmt, Oxlint, tsgolint). Unused code, cycles, duplication and complexity: Fallow. Wire messages validated with Zod.
-  - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
-  - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
-  - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
-  - Releases: GitHub Actions builds every platform binary and the Docker image, uploads the binaries and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
-- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
+- **Device**: the `envden` CLI, a single native Rust binary for macOS, Linux and Windows. No background daemon.
+- **Stack**: a Cargo workspace (see Decisions). `rust/cli` (binary `envden`), `rust/server`, `rust/core` (errors, paths, merge, adapter traits, `SITE_URL`), `rust/protocol` (codecs, crypto, chain), `rust/testing` (contract suites and fakes), `rust/adapters/<kind>/<impl>`.
+  - Checks: `cargo fmt`, `cargo clippy -D warnings`, `cargo test`. Wire messages are serde types with the same keys and checks as the protocol's schemas.
+  - CLI: `clap` for commands and options, `cliclack` (vendored with a small patch) for prompts, keys in owner-only files behind the keychain adapter, git via the `git` command, `ureq` for HTTP.
+  - Server: `axum` on `hyper` and `tokio`. Request signing, rate limits and the setup token run before each handler; tests drive the router with no open port. SQLite via `rusqlite` (bundled).
+  - Releases: GitHub Actions builds every platform binary and uploads them with their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
+- **Crypto libraries**: RustCrypto (`sha2`, `hmac`, `hkdf`, `chacha20poly1305`, `argon2`), `ed25519-dalek` and `ed25519-zebra`, `x25519-dalek`, OPAQUE from `opaque-ke`, HPKE from `hpke` (vendored with a small patch exposing fixed-ephemeral encapsulation). All pinned in `Cargo.lock`, RFC and protocol test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
 
 ## Adapters
 
@@ -37,7 +36,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 | Placement | How files appear in a checkout | Link, copy | — |
 | Shell | Out-of-sync line | zsh, bash, fish, PowerShell | nushell |
 
-Interfaces live in `packages/core`; each adapter is its own package and must pass the shared contract tests. Built into the binary in v1; added by fork or PR. A template, a "write an adapter" docs page and an agent skill for writing adapters ship with the repo. Encryption, the sync protocol and merging are not adapters.
+Traits live in `rust/core`; each adapter is its own crate and must pass the shared contract suite in `rust/testing`. Built into the binary in v1; added by fork or PR. A "write an adapter" guide (`docs/adapters.md`) ships with the repo. Encryption, the sync protocol and merging are not adapters.
 
 ## Crypto
 
@@ -181,7 +180,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 ## Out-of-sync notice
 
 - A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git and never writes to checkouts.
-- The binary is compiled with `.env` and `bunfig.toml` autoload disabled, and the hook calls it as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden` (those variables bypass the compile flags).
+- The hook calls the binary by absolute path as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden`. The native binary ignores those variables; the hook keeps clearing them so the rc block is the same for every implementation.
 - Every `envden` command also reports other out-of-sync repos. `envden status --json` for tools.
 
 ## Agents
@@ -229,7 +228,7 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 
 ## Distribution and site
 
-- Homebrew, `curl | sh`, `irm | iex`, npm (`npm i -g envden`), Scoop. Homebrew and Scoop are published by the release workflow. winget remains manual and may lag a release. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
+- Homebrew, `curl | sh`, `irm | iex`, Scoop. The release workflow here builds and checksums every binary but publishes nothing yet. `envden update` still recognises an npm install made by an earlier build. winget remains manual and may lag a release. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
 - The static site CSP permits inline Next.js bootstrap scripts and component styles; scripts, search, fonts and images otherwise use the same origin.
 - Site `envden.theclau.de` for now, from one `SITE_URL` constant. LLM-friendly docs: `llms.txt`, `llms-full.txt`, raw markdown per page, comparison pages (vs Infisical, dotenv-vault, DotVeil), agent setup page.
 
@@ -241,9 +240,9 @@ When a decision changes, rewrite its entry here and say what it replaced.
 
 Each vault has exactly one authoritative server at a time; devices push and pull only through it. Peer-to-peer (Syncthing-style) was rejected: every device could hold a divergent version with no source of truth, which makes conflicts hard to reason about. Users without a home lab run the server on one of their own devices and move it later with `envden server move`.
 
-### TypeScript on Bun, not Go
+### Rust, matching the TypeScript reference
 
-Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
+envden started as a TypeScript monorepo on Bun (chosen over Go with Tailscale's `tsnet` so the maintainer could audit it). This implementation is a Rust port that behaves identically: same wire bytes, files, prompts, exit codes and decisions, checked against the TypeScript build by the parity suite on `main`. It compiles to one native binary per platform with no runtime. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
 
 
 ### Built-in adapters; crypto, sync and merge are not pluggable
@@ -272,7 +271,7 @@ When envden fails on its own bug in a terminal, it offers to start the user's in
 
 ### The recovery kit is a PDF file
 
-Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses pdf-lib's standard fonts, so nothing is embedded and the compiled binary stays pure JavaScript. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
+Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses the standard PDF fonts (written with `lopdf`), so nothing is embedded. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
 
 ### User files are written through their symlinks
 

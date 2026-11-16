@@ -9,12 +9,12 @@ fn normalized(text: &str) -> String {
 fn one_page_with_reference_text_and_fields() {
     for (input, reference) in [
         (
-            include_str!("../../../../../../../parity/fixtures/recovery-pdf/kit.json"),
-            include_bytes!("../../../../../../../parity/fixtures/recovery-pdf/kit.pdf").as_slice(),
+            include_str!("../../../../../tests/fixtures/recovery-pdf/kit.json"),
+            include_bytes!("../../../../../tests/fixtures/recovery-pdf/kit.pdf").as_slice(),
         ),
         (
-            include_str!("../../../../../../../parity/fixtures/recovery-pdf/long.json"),
-            include_bytes!("../../../../../../../parity/fixtures/recovery-pdf/long.pdf").as_slice(),
+            include_str!("../../../../../tests/fixtures/recovery-pdf/long.json"),
+            include_bytes!("../../../../../tests/fixtures/recovery-pdf/long.pdf").as_slice(),
         ),
     ] {
         let fixture: Value = serde_json::from_str(input).unwrap();
@@ -57,7 +57,7 @@ fn rejects_unencodable_fields_but_replaces_unsupported_device_characters() {
 #[test]
 fn long_instruction_words_fit_within_page_margins() {
     let fixture: Value = serde_json::from_str(include_str!(
-        "../../../../../../../parity/fixtures/recovery-pdf/long.json"
+        "../../../../../tests/fixtures/recovery-pdf/long.json"
     ))
     .unwrap();
     let bytes = render_at_zone(&fixture["kit"], 1_800_000_000_000, "device", Some("UTC")).unwrap();
