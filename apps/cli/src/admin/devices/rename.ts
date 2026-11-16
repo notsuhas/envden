@@ -8,6 +8,7 @@ import { adminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";
 import { adminSwap } from "../shared/swap.ts";
 import { commitAdmin } from "../shared/commit.ts";
+import { DEVICE_NAME_RULE } from "../../identity/name/rule.ts";
 
 export function renameCheck(
   devices: Iterable<p.IDeviceRecord>,
@@ -36,11 +37,7 @@ async function attemptRenameDevice(
   if (check === "unchanged") return { kind: "unchanged" as const };
   if (check === "taken") throw new EnvdenError("INVALID_INPUT", "Another device has that name");
 
-  if (check === "invalid")
-    throw new EnvdenError(
-      "INVALID_INPUT",
-      "Device names are 1-64 bytes with no invisible characters",
-    );
+  if (check === "invalid") throw new EnvdenError("INVALID_INPUT", DEVICE_NAME_RULE);
 
   const entry = p.signObject<p.TEntry>(
     p.EntryCodec,

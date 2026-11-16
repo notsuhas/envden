@@ -26,6 +26,11 @@ test("rename check rejects invalid and taken names and spots no-ops", () => {
     ["", "invalid"],
     ["a".repeat(65), "invalid"],
     ["work​", "invalid"],
+    ["work\nhome", "invalid"],
+    ["work\t", "invalid"],
+    ["\x1b[31mwork", "invalid"],
+    ["work\x7f", "invalid"],
+    ["work\u0085", "invalid"],
   ] as const)
     expect(renameCheck(devices, own.id, name)).toBe(expected);
 });

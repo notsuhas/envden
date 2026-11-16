@@ -311,6 +311,10 @@ Accepted costs:
 - A server restored from backup is a rollback: restored mode trusts member signatures without a password until every member repairs or is dropped, and a file whose newest version no device holds can be lost.
 - A server alone can show different devices different branches; each stops when it sees the other branch but can't detect one it's never shown. A removed device or old recovery key colluding with the server can fork history, and values a removed device already pulled can't be revoked, so envden lists them for rotation.
 
+### Device names refuse control characters
+
+Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
+
 ## Not in v1
 
 Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
