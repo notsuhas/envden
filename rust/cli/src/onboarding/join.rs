@@ -66,8 +66,8 @@ fn recovery(
     secret: &str,
     password: &str,
 ) -> Result<Value> {
-    let vault_id = p::fixed(&p::unbase32(vault)?)?;
     super::local_state::join_local_state(&adapters.home, vault)?;
+    let vault_id = p::fixed(&p::unbase32(vault)?)?;
     let server = hello(address, None, &UreqTransport, MIN_SERVER)?;
     let pending = adapters.home.join("state/kit-join");
     let attempt = json!({"vaultId":vault,"pin":p::base32(&server.pin),"name":name}).to_string();
@@ -193,3 +193,7 @@ fn require_pin(history: &crate::vault::history::IVaultHistory, pin: &[u8; 32]) -
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "join_tests.rs"]
+mod tests;
