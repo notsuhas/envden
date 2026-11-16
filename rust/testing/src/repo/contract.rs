@@ -1,5 +1,5 @@
 use crate::fixtures::with_directory;
-use envden_core::adapters::*;
+use envden_core::{adapters::*, filesystem::ICanonicalPath};
 use std::fs;
 pub struct IRepoFixture {
     pub repo: Box<dyn IRepoAdapter>,
@@ -24,7 +24,8 @@ pub fn repo_contract(factory: impl Fn(&str) -> IRepoFixture) {
         assert!(repo.checkout_at(&outside).unwrap().is_none());
         assert!(
             repo.worktrees(&checkout).unwrap().contains(
-                &fs::canonicalize(&root)
+                &std::path::Path::new(&root)
+                    .canonical_path()
                     .unwrap()
                     .to_str()
                     .unwrap()
