@@ -107,31 +107,33 @@ pub fn dispatch(
     actions: &dyn ICommandActions,
     hooks: &dyn ICommandHooks,
 ) -> Result<()> {
-    let now = (adapters.now)();
-    let roots: Vec<String> = state::repository::load_state(&adapters.home)
-        .ok()
-        .flatten()
-        .and_then(|s| s["approved"].as_array().cloned())
-        .unwrap_or_default()
-        .iter()
-        .filter_map(|v| v["root"].as_str().map(str::to_string))
-        .collect();
-    envden_core::process::set_untrusted_roots(&roots);
-    let json = invocation
-        .options
-        .get("json")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false);
-    if !skips_notices(&invocation.command.name, json) {
-        let _ = hooks.notice(invocation, adapters, now);
-    }
-    let result = actions.run(invocation, adapters);
-    if invocation.command.name != "status"
-        || invocation.options.get("refreshCache") != Some(&serde_json::Value::Bool(true))
-    {
-        hooks.report(invocation, adapters, &result);
-    }
-    result
+    crate::output::counts::with_command_counts(|| {
+        let now = (adapters.now)();
+        let roots: Vec<String> = state::repository::load_state(&adapters.home)
+            .ok()
+            .flatten()
+            .and_then(|s| s["approved"].as_array().cloned())
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|v| v["root"].as_str().map(str::to_string))
+            .collect();
+        envden_core::process::set_untrusted_roots(&roots);
+        let json = invocation
+            .options
+            .get("json")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        if !skips_notices(&invocation.command.name, json) {
+            let _ = hooks.notice(invocation, adapters, now);
+        }
+        let result = actions.run(invocation, adapters);
+        if invocation.command.name != "status"
+            || invocation.options.get("refreshCache") != Some(&serde_json::Value::Bool(true))
+        {
+            hooks.report(invocation, adapters, &result);
+        }
+        result
+    })
 }
 
 fn config(invocation: &IInvocation<'_>, adapters: &IAdapters) -> Result<String> {
