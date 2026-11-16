@@ -1,3 +1,4 @@
+import type { Normalizer } from "../normalize.ts";
 import { stripVTControlCharacters } from "node:util";
 
 const outcomes = new Set(
@@ -59,4 +60,17 @@ export function semanticOutput(text: string, label: string, names?: ReadonlySet<
     return text.trim() ? { json: JSON.parse(text) } : { empty: true };
 
   return facts(text, names);
+}
+
+export function normalizedOutput(
+  text: string,
+  label: string,
+  n: Normalizer,
+  names: ReadonlySet<string>,
+  strict: boolean,
+) {
+  if (strict) return n.text(text);
+  const structured = /(?:^|\s)--(?:json|help)(?:\s|$)/.test(label);
+
+  return n.value(semanticOutput(structured ? text : n.text(text), label, names));
 }

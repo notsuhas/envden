@@ -1,4 +1,4 @@
-import { semanticOutput, plainTerminal } from "./terminal/semantic.ts";
+import { normalizedOutput, plainTerminal } from "./terminal/semantic.ts";
 import { executablePaths } from "./executables.ts";
 import { pdfText } from "./snapshot/pdf.ts";
 import type { Context } from "./context.ts";
@@ -126,12 +126,20 @@ export async function capture(c: Context, includeFiles = true, strictOutput = fa
     ...step,
     args: undefined,
     label: n.text(step.label),
-    stdout: strictOutput
-      ? n.text(step.stdout)
-      : n.value(semanticOutput(n.text(step.stdout), step.args?.join(" ") ?? step.label, names)),
-    stderr: strictOutput
-      ? n.text(step.stderr)
-      : n.value(semanticOutput(n.text(step.stderr), step.label.replace(/--json\b/g, ""))),
+    stdout: normalizedOutput(
+      step.stdout,
+      step.args?.join(" ") ?? step.label,
+      n,
+      names,
+      strictOutput,
+    ),
+    stderr: normalizedOutput(
+      step.stderr,
+      /^\s*[[{]/.test(step.stderr) ? step.label : step.label.replace(/--json\b/g, ""),
+      n,
+      names,
+      strictOutput,
+    ),
     ...(step.prompts
       ? {
           prompts: step.prompts.map((prompt) => ({

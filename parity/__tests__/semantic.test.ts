@@ -96,3 +96,27 @@ test("capture keeps exit codes and prompt order exact; strict output retains pro
   c.results[0]!.code = 1;
   expect(await capture(c, false)).not.toBe(baseline);
 });
+
+test("JSON identity normalization is independent of object key order", async () => {
+  const snapshot = async (stdout: string, stderr = "") => {
+    const c = new Context("/tmp/parity-json", {});
+    c.results.push({ label: "status --json", stdout, stderr, code: 0 });
+
+    return capture(c, false);
+  };
+
+  expect(await snapshot('{"time":1800000000000}')).toBe(await snapshot('{"time":1800000010000}'));
+  expect(await snapshot("", '{"a":1,"b":2}')).toBe(await snapshot("", '{"b":2,"a":1}'));
+  const a = "A".repeat(52);
+  const b = "B".repeat(52);
+  const c = "C".repeat(52);
+  const d = "D".repeat(52);
+
+  expect(await snapshot(JSON.stringify({ a, b }))).toBe(
+    await snapshot(JSON.stringify({ b: d, a: c })),
+  );
+
+  expect(await snapshot(JSON.stringify({ a, b: a }))).not.toBe(
+    await snapshot(JSON.stringify({ a: c, b: d })),
+  );
+});
