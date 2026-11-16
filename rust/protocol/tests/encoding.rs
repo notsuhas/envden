@@ -31,6 +31,15 @@ fn strings_match_js_normalization_and_categories() {
     assert!(norm_pw("").is_err());
     assert!(is_device_name("é"));
     assert!(!is_device_name("\u{200d}"));
+    for name in [
+        "work\nhome",
+        "work\t",
+        "\x1b[31mwork",
+        "work\x7f",
+        "work\u{85}",
+    ] {
+        assert!(!is_device_name(name), "{name:?}");
+    }
     assert!(!is_device_name(&"é".repeat(33)));
 }
 

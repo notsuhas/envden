@@ -7,7 +7,7 @@ use crate::{
         repository::{load_state, save_state},
     },
 };
-use envden_core::errors::Result;
+use envden_core::errors::{EnvdenError, ErrorCode, Result};
 use serde_json::Value;
 
 pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
@@ -53,13 +53,21 @@ pub fn run_setup(adapters: &IAdapters, options: &Value) -> Result<Value> {
 }
 
 pub(crate) fn device_name(adapters: &IAdapters, options: &Value) -> Result<String> {
+    use crate::identity::name::device_name_problem;
     use std::io::IsTerminal;
+
     if let Some(name) = options["name"].as_str() {
+        if let Some(problem) = device_name_problem(name) {
+            return Err(EnvdenError::new(ErrorCode::InvalidInput, problem));
+        }
+
         return Ok(name.into());
     }
     let name = crate::identity::name::suggested_device_name(&adapters.hostname);
     if std::io::stdin().is_terminal() {
-        input("Device name", true, Some(&name), |_| None)
+        input("Device name", true, Some(&name), |value| {
+            device_name_problem(value).map(str::to_owned)
+        })
     } else {
         Ok(name)
     }
@@ -79,5 +87,28 @@ mod tests {
             device_name(&adapters, &serde_json::json!({})).unwrap(),
             crate::identity::name::suggested_device_name(&adapters.hostname)
         );
+    }
+
+    #[test]
+    fn a_given_name_with_a_control_or_invisible_character_fails_before_signing() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters =
+            crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 42);
+
+        for name in ["a\nb", "a\tb", "\x1b[2Jb", "a\u{200b}b", ""] {
+            let error = device_name(&adapters, &serde_json::json!({ "name": name })).unwrap_err();
+
+            assert_eq!(error.code, envden_core::errors::ErrorCode::InvalidInput);
+            assert_eq!(
+                error.message,
+                "Device names are 1-64 bytes with no invisible characters"
+            );
+        }
+
+        assert_eq!(
+            crate::identity::name::device_name_problem("a\nb"),
+            Some("Device names are 1-64 bytes with no invisible characters")
+        );
+        assert_eq!(crate::identity::name::device_name_problem("ab"), None);
     }
 }

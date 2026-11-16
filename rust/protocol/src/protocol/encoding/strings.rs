@@ -38,7 +38,10 @@ pub fn norm_pw(password: &str) -> Result<String> {
 
 pub fn is_device_name(name: &str) -> bool {
     (1..=64).contains(&name.len())
-        && !name
-            .chars()
-            .any(|c| get_general_category(c) == GeneralCategory::Format)
+        && !name.chars().any(|c| {
+            matches!(
+                get_general_category(c),
+                GeneralCategory::Format | GeneralCategory::Control
+            )
+        })
 }

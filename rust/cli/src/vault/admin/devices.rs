@@ -92,7 +92,7 @@ pub fn rename(adapters: &IAdapters, name: &str, transport: Rc<dyn ITransport>) -
                 "invalid" => {
                     return Err(EnvdenError::new(
                         ErrorCode::InvalidInput,
-                        "Device names are 1-64 bytes with no invisible characters",
+                        crate::identity::name::DEVICE_NAME_RULE,
                     ));
                 }
                 _ => {}
@@ -173,7 +173,11 @@ mod tests {
             ([2; 16], "laptop", "taken"),
             ([1; 16], "new", "rename"),
             ([1; 16], "", "invalid"),
-            ([1; 16], "bad\nname", "rename"),
+            ([1; 16], "bad\nname", "invalid"),
+            ([1; 16], "work\t", "invalid"),
+            ([1; 16], "\x1b[31mwork", "invalid"),
+            ([1; 16], "work\x7f", "invalid"),
+            ([1; 16], "work\u{85}", "invalid"),
             ([1; 16], "work\u{200b}", "invalid"),
             (
                 [1; 16],

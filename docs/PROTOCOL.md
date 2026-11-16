@@ -104,11 +104,11 @@ Decoders reject:
 - **File ID** = `MAC(K_id, "file-id", str(repoId) ‖ str(path))`. `path` is relative to the repo root, `/`-separated, NFC, with case preserved. It must be nonempty and contain no `\`, `:`, empty, `.` or `..` segments, or segments ending in a dot or space. Segments must not match the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9` or `LPT1`–`LPT9`, including superscript `¹`, `²`, `³` suffixes, case-insensitively, with or without a dot extension.
 
 ```
-DeviceRecord   { id b16, name str (1–64 bytes, no Unicode Cf characters), encPub b32, objPub b32, reqPub b32 }
+DeviceRecord   { id b16, name str (1–64 bytes, no Unicode Cc or Cf characters), encPub b32, objPub b32, reqPub b32 }
 RecoveryRecord { id b16, encPub b32, objPub b32 }
 ```
 
-Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must be canonical (little-endian u < 2²⁵⁵ − 19, so the top bit is clear) and permit X25519 key agreement with a nonzero shared secret; receivers reject noncanonical and low-order keys when validating records. Device names exclude format characters (zero-width, bidi controls) so two names that look the same are the same.
+Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must be canonical (little-endian u < 2²⁵⁵ − 19, so the top bit is clear) and permit X25519 key agreement with a nonzero shared secret; receivers reject noncanonical and low-order keys when validating records. Device names exclude format characters (zero-width, bidi controls) so two names that look the same are the same, and control characters like any `str`.
 
 ## 4. Wraps and epochs
 
