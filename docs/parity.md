@@ -1,6 +1,16 @@
 # Binary parity
 
-`parity/` runs another implementation's `envden` binary against the TypeScript reference and fails on any observable difference. It is black-box: it drives binaries through argv, a PTY and HTTP, and never imports application code. The harness uses core protocol and chain libraries to sign fixture requests, name shared bases, and validate retained cryptographic objects before normalization.
+`parity/` runs another implementation's `envden` binary against the TypeScript reference and fails on any observable difference. It runs locally, not in CI: each branch's CI tests only its own implementation, and parity is checked before a port change lands.
+
+To compare this checkout with the Go and Rust ports in one go:
+
+```sh
+bash parity/local/run.sh
+```
+
+It builds the TypeScript CLI from the working tree and the ports from `port/go` and `port/rust` (override with `PARITY_GO_REF` and `PARITY_RUST_REF`) inside a throwaway Linux container, then runs every scenario with `--mix --third`, the transport check, the e2e walk and `host-here` against both ports, split across `PARITY_SHARDS` containers (default 4). Logs go to `$TMPDIR/envden-parity/logs`.
+
+The pieces it runs: It is black-box: it drives binaries through argv, a PTY and HTTP, and never imports application code. The harness uses core protocol and chain libraries to sign fixture requests, name shared bases, and validate retained cryptographic objects before normalization.
 
 ```sh
 (cd apps/cli && bun run build)
@@ -12,9 +22,9 @@ bun parity/verify.ts apps/cli/dist/envden
 bun test parity/__tests__
 ```
 
-Every scenario runs once with the reference everywhere, then once per assignment, and each assignment is compared with that reference run. A plain run puts the candidate in every role. `--mix` adds runs that swap the candidate into one role at a time and into all servers or all devices, so it covers a candidate server with reference devices, a reference server with candidate devices, and vaults holding both. `--third` adds a vault where devices a, b and c run the reference, candidate and third binaries, and a run where the third binary serves a reference and a candidate device. Any mismatch, unexpected exit code or step error exits nonzero. `--keep` prints the temporary roots, which hold test passwords and keys. `--shard i/n` runs the i-th of n groups of scenarios, split by typical run time so each shard takes about as long; CI runs them as parallel jobs.
+Every scenario runs once with the reference everywhere, then once per assignment, and each assignment is compared with that reference run. A plain run puts the candidate in every role. `--mix` adds runs that swap the candidate into one role at a time and into all servers or all devices, so it covers a candidate server with reference devices, a reference server with candidate devices, and vaults holding both. `--third` adds a vault where devices a, b and c run the reference, candidate and third binaries, and a run where the third binary serves a reference and a candidate device. Any mismatch, unexpected exit code or step error exits nonzero. `--keep` prints the temporary roots, which hold test passwords and keys. `--shard i/n` runs the i-th of n groups of scenarios, split by typical run time so each shard takes about as long.
 
-`transport.ts` defaults to `--mode semantic`, the correctness gate used by CI. Header names compare case-insensitively and header order does not matter; values, duplicate values and their multiplicity remain significant. Status lines and body bytes still compare, apart from the existing uptime counter mask. Date, Connection and Keep-Alive remain excluded. Stalled requests, malformed-length requests and requests with `Connection: close` compare whether the peer closed.
+`transport.ts` defaults to `--mode semantic`, the correctness gate. Header names compare case-insensitively and header order does not matter; values, duplicate values and their multiplicity remain significant. Status lines and body bytes still compare, apart from the existing uptime counter mask. Date, Connection and Keep-Alive remain excluded. Stalled requests, malformed-length requests and requests with `Connection: close` compare whether the peer closed.
 
 HEAD Content-Length may be zero or the corresponding GET length measured separately from each runtime. Other lengths remain mismatches. Only the three named malformed Content-Length cases (abc, -1 and conflicting lengths), with status 400 and an empty body, permit absent versus zero Content-Length. Duplicate lengths, nonzero lengths, changed security headers, bodies, statuses and close behavior remain failures. `--mode raw` retains the ordered, case-sensitive header diagnostic and does not apply these length exceptions. Neither mode suppresses a failed case.
 
@@ -30,9 +40,9 @@ The CLI resolves `tailscale` only from fixed trusted directories and ignores PAT
 
 - On macOS every envden process runs under `sandbox-exec`, which denies executing every trusted tailscale path that isn't the stand-in, plus `Tailscale.app`. Setuid `/bin/ps`, which the state lock needs, runs outside the sandbox.
 - On Linux there is no sandbox. If a real tailscale sits at a trusted path, every scenario that could run it is skipped.
-- `parity/ci/install-stand-ins.sh` installs a stand-in tailscale, marked with `envden-parity-stand-in`, at the trusted path. It refuses to run unless `CI=true`. With `PARITY_HOST_SHIMS=1` (Linux only) it also installs logging shims for the service tools, which `host-here` needs.
+- `parity/ci/install-stand-ins.sh` installs a stand-in tailscale, marked with `envden-parity-stand-in`, at the trusted path. It refuses to run unless `CI=true`, which the local container sets. With `PARITY_HOST_SHIMS=1` (Linux only) it also installs logging shims for the service tools, which `host-here` needs.
 
-Every `setup` asks tailscale for HTTPS readiness, so every vault scenario needs the stand-in. Without it they are skipped with a printed reason; on a developer Mac with Tailscale installed that leaves the five scenarios that need no vault. Run the full suite in CI or in a disposable Linux container that runs the install script. A scenario named with `--scenario` that gets skipped fails the run.
+Every `setup` asks tailscale for HTTPS readiness, so every vault scenario needs the stand-in. Without it they are skipped with a printed reason; on a developer Mac with Tailscale installed that leaves the five scenarios that need no vault. Run the full suite with `parity/local/run.sh`, which uses a disposable Linux container. A scenario named with `--scenario` that gets skipped fails the run.
 
 ## Comparison
 
@@ -82,7 +92,7 @@ Origin is the port branch each one came from.
 | pairing-secret | rust | wrong secret with the approver waiting, then a fresh code |
 | recovery-pdf | rust | removal with a JSON kit, replacement PDF kit |
 | locked-session | rust | unlock period, exhausted retries, push and pull unlocking a locked session |
-| host-here | rust | `setup --host-server` twice against the host shims; CI only |
+| host-here | rust | `setup --host-server` twice against the host shims; disposable Linux only |
 | devices-vault | both | device list, control-character rename, wrong password, Ctrl-D at a prompt, kit replace, password change and reset, rotate, removal |
 | maintenance | rust | doctor, agent, history and diff variants, HEAD on server routes, `envden ui` GET/HEAD and Ctrl-C |
 | server-move | both | move with a prompted token, nothing to resume or abort, switch after the source stops |
