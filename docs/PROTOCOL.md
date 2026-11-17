@@ -9,7 +9,7 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
 | Hash | SHA-256 | `@noble/hashes` |
 | MAC, KDF | HMAC-SHA-256, HKDF-SHA-256 (RFC 5869) | `@noble/hashes` |
 | Symmetric encryption | XChaCha20-Poly1305 (draft-irtf-cfrg-xchacha), 24-byte nonce | `@noble/ciphers` |
-| Signatures | Ed25519 (RFC 8032), strict verification (`zip215: false`) | `@noble/curves` |
+| Signatures | Ed25519 (RFC 8032), cofactored verification with canonical encodings (`zip215: false`) | `@noble/curves` |
 | Key agreement | X25519 | `@noble/curves` |
 | Key wrapping | HPKE base mode (RFC 9180): DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305 | `@hpke/core`, with `DhkemX25519HkdfSha256` imported from `@hpke/dhkem-x25519` (not the WebCrypto one in `@hpke/core`) and `Chacha20Poly1305` from `@hpke/chacha20poly1305` |
 | Password stretching | Argon2id, m = 65536 KiB, t = 3, p = 4, 32-byte output, `outputType: "binary"` | `hash-wasm` |
@@ -26,6 +26,7 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
   - Ed25519 keys must decode canonically and not be of small order.
   - X25519 keys must be canonical: u < 2²⁵⁵ − 19 with the top bit clear.
   - Ed25519 signatures with a noncanonical R or with S ≥ L are rejected.
+  - An Ed25519 signature (R, S) on M under A is valid when [8][S]B = [8]R + [8][k]A, with k = SHA-512(R ‖ A ‖ M) mod L. This is the cofactored equation, so an R with a small-order component is accepted; that grants no forgery, because A is canonical and not of small order. Implementations must not use the cofactorless check, or they'd split on which chains are valid.
   - HPKE must reject all-zero X25519 shared secrets.
 
 ## 2. Encoding
@@ -104,11 +105,11 @@ Decoders reject:
 - **File ID** = `MAC(K_id, "file-id", str(repoId) ‖ str(path))`. `path` is relative to the repo root, `/`-separated, NFC, with case preserved. It must be nonempty and contain no `\`, `:`, empty, `.` or `..` segments, or segments ending in a dot or space. Segments must not match the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9` or `LPT1`–`LPT9`, including superscript `¹`, `²`, `³` suffixes, case-insensitively, with or without a dot extension.
 
 ```
-DeviceRecord   { id b16, name str (1–64 bytes, no Unicode Cf characters), encPub b32, objPub b32, reqPub b32 }
+DeviceRecord   { id b16, name str (1–64 bytes, no Unicode Cc or Cf characters), encPub b32, objPub b32, reqPub b32 }
 RecoveryRecord { id b16, encPub b32, objPub b32 }
 ```
 
-Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must be canonical (little-endian u < 2²⁵⁵ − 19, so the top bit is clear) and permit X25519 key agreement with a nonzero shared secret; receivers reject noncanonical and low-order keys when validating records. Device names exclude format characters (zero-width, bidi controls) so two names that look the same are the same.
+Receivers recompute every ID from the public keys and reject mismatches. Device and recovery encryption public keys must be canonical (little-endian u < 2²⁵⁵ − 19, so the top bit is clear) and permit X25519 key agreement with a nonzero shared secret; receivers reject noncanonical and low-order keys when validating records. Device names exclude format characters (zero-width, bidi controls) so two names that look the same are the same, and control characters like any `str`.
 
 ## 4. Wraps and epochs
 

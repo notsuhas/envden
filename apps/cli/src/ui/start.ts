@@ -25,6 +25,8 @@ export async function runDashboard(adapters: TAdapters, options: IDashboardOptio
   const assets = await pageAssets(page);
 
   const server = Bun.serve({
+    // Seconds an idle or half-sent connection stays open, the same as envden serve.
+    idleTimeout: 10,
     hostname: "127.0.0.1",
     port: options.port ?? 0,
     fetch: (request) => app.fetch(request),

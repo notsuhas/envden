@@ -22,15 +22,10 @@ export async function testTraces(cases: ITrace[]) {
   await startWorkers();
   afterAll(stopWorkers);
 
-  for (let offset = 0; offset < cases.length; offset += WORKER_COUNT) {
-    const batch = cases.slice(offset, offset + WORKER_COUNT);
+  for (const [index, scenario] of cases.entries()) {
+    const { label, layout, tokens } = scenario;
+    const name = `${label} ${layout.join("+")} ${tokens.join(" ")}`;
 
-    const name = batch
-      .map(({ label, layout, tokens }) => `${label} ${layout.join("+")} ${tokens.join(" ")}`)
-      .join(" | ");
-
-    test(name, async () => {
-      await Promise.all(batch.map(verifyTrace));
-    });
+    test(name, () => verifyTrace(scenario, index % WORKER_COUNT));
   }
 }

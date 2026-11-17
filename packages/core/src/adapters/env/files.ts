@@ -1,5 +1,7 @@
 import { Glob } from "bun";
-import type { IEnvFileRules } from "./repo.ts";
+import { EnvdenError } from "../../errors/index.ts";
+import { supportedEnvPattern } from "./patterns.ts";
+import type { IEnvFileRules } from "../repo.ts";
 
 const skipped = new Set([
   ".git",
@@ -34,5 +36,10 @@ export function acceptsEnvPath(path: string, options: IEnvFileRules = {}) {
 }
 
 function matches(patterns: string[], path: string, name: string) {
-  return patterns.some((pattern) => new Glob(pattern).match(pattern.includes("/") ? path : name));
+  return patterns.some((pattern) => {
+    if (!supportedEnvPattern(pattern))
+      throw new EnvdenError("INVALID_INPUT", "Unsupported env file pattern");
+
+    return new Glob(pattern).match(pattern.includes("/") ? path : name);
+  });
 }

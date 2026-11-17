@@ -68,6 +68,21 @@ test("the page is served with strict headers and no token", async () => {
   expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
 });
 
+test("HEAD answers like GET with no body, without an Origin", async () => {
+  const dashboard = app(fixture.first);
+  const headers = { Host: "127.0.0.1:4100", Authorization: "Bearer test-token" };
+
+  for (const path of ["/", "/api/devices", "/nope"]) {
+    const url = `http://127.0.0.1:4100${path}`;
+    const get = await dashboard.request(url, { headers });
+    const head = await dashboard.request(url, { method: "HEAD", headers });
+
+    expect([path, head.status]).toEqual([path, get.status]);
+    expect([...head.headers]).toEqual([...get.headers]);
+    expect(await head.text()).toBe("");
+  }
+});
+
 test("status names changed keys, never values", async () => {
   await atomicWrite(fixture.aStore, "TOKEN=local-test-value\nNEW=mine-only-secret\n", fixture.now);
   const { response, json } = await send(app(fixture.first), "/api/status");

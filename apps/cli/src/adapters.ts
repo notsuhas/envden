@@ -12,6 +12,7 @@ import { createFileKeychainAdapter } from "@envden/adapter-keychain-file";
 import { createGitRepoAdapter } from "@envden/adapter-repo-git";
 import { createFsPlacementAdapter, pruneBackups } from "@envden/adapter-placement-fs";
 import { createRcShellAdapter } from "@envden/adapter-shell-rc";
+import { envdenHome } from "./state/store/home.ts";
 import { createTailscaleNetworkAdapter } from "@envden/adapter-network-tailscale";
 import { localSetupToken } from "@envden/server";
 import type {
@@ -21,6 +22,7 @@ import type {
   TPlacementMode,
 } from "@envden/core/adapters";
 import { unsuppliedNetwork } from "./network/unsupplied.ts";
+import { unsuppliedHostServer } from "./agent/service/unsupplied.ts";
 
 export function createAdapters(
   options:
@@ -37,7 +39,7 @@ export function createAdapters(
   now: () => number,
 ) {
   const userHome = options?.userHome ?? homedir();
-  const home = realLocation(options?.home ?? process.env.ENVDEN_HOME ?? join(userHome, ".envden"));
+  const home = realLocation(options?.home ?? envdenHome(process.env.ENVDEN_HOME, userHome));
   const executable = stableExecutable(options?.executable ?? process.execPath);
 
   const adapters = {
@@ -75,21 +77,24 @@ export function createAdapters(
     network: options ? (options.network ?? unsuppliedNetwork()) : createTailscaleNetworkAdapter(),
     serverPort: () => chooseServerPort(systemPortProbe),
     localSetupToken: () => localSetupToken(join(home, "server"), now()),
-    hostServer: (port: number) =>
-      installHostService(
-        {
-          platform: process.platform,
-          executable,
-          userHome,
-          home,
-          port,
-          uid: process.getuid?.() ?? 0,
-          write: (path, bytes) => writeThrough(path, bytes, now),
-          run: runServiceCommand,
-          pause: (ms) => Bun.sleep(ms),
-        },
-        now,
-      ),
+    // like network, a real service is installed only when nothing was injected
+    hostServer: options
+      ? unsuppliedHostServer
+      : (port: number) =>
+          installHostService(
+            {
+              platform: process.platform,
+              executable,
+              userHome,
+              home,
+              port,
+              uid: process.getuid?.() ?? 0,
+              write: (path, bytes) => writeThrough(path, bytes, now),
+              run: runServiceCommand,
+              pause: (ms) => Bun.sleep(ms),
+            },
+            now,
+          ),
   };
 
   return adapters;

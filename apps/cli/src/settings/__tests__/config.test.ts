@@ -1,6 +1,6 @@
 import { telemetryEnabled, updateCheckEnabled } from "../privacy.ts";
 import { expect, test } from "bun:test";
-import { mkdtemp, rm, stat } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseConfig, readConfig, setConfig } from "../config.ts";
@@ -70,6 +70,29 @@ test("structured placement and env-file rules persist and reject invalid values"
 
     expect(() => parseConfig({ "env-files": { include: "*" } })).toThrow();
     expect(() => parseConfig({ placement: { "/checkout": "bad" } })).toThrow();
+
+    const unsupported = { code: "INVALID_INPUT", message: "Unsupported env file pattern" };
+    const bad = JSON.stringify({ include: [".env*"], exclude: ["apps[/]web/.env"] });
+
+    await Promise.resolve(
+      expect(setConfig("env-files", bad, home, () => 0)).rejects.toMatchObject(unsupported),
+    );
+
+    expect((await readConfig(home))["env-files"]).toEqual(rules);
+
+    await writeFile(
+      paths(home).config,
+      JSON.stringify({ "env-files": { include: ["apps/{*,**}"] } }),
+    );
+
+    await Promise.resolve(expect(readConfig(home)).rejects.toMatchObject(unsupported));
+    expect(parseConfig({ "env-files": { extraSkipped: ["[a"] } })["env-files"]).toBeDefined();
+
+    for (const config of [
+      { unknown: true, "env-files": { include: ["["] } },
+      { "env-files": { include: ["["] }, telemetry: "bad" },
+    ])
+      expect(() => parseConfig(config)).toThrow("Invalid config");
   } finally {
     await rm(home, { recursive: true, force: true });
   }

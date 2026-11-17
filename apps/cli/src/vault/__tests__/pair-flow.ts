@@ -46,6 +46,7 @@ export async function pairedFlow(
   beforeResume?: (flow: Awaited<ReturnType<typeof vaultFlow>>) => Promise<void>,
   interrupt = false,
   joinerName = "second",
+  whileConfirming?: (flow: Awaited<ReturnType<typeof vaultFlow>>) => Promise<void>,
 ) {
   const flow = await vaultFlow();
   const { root, now, first, second, address, result, fetcher } = flow;
@@ -82,6 +83,7 @@ export async function pairedFlow(
     const pin = binary(result.state.server!.pin);
     const identity = await deviceIdentity(first.keychain, first.home, "first");
 
+    let paired: Awaited<ReturnType<typeof approvePairing>> | undefined;
     let approvalLost = false;
     let joinerLost = false;
     const joinerMessages: string[] = [];
@@ -168,6 +170,7 @@ export async function pairedFlow(
       },
       async (name) => {
         confirmed.push(name);
+        await whileConfirming?.(flow);
 
         return true;
       },
@@ -193,7 +196,10 @@ export async function pairedFlow(
     if (interrupt) {
       await Promise.resolve(expect(pairing).rejects.toMatchObject({ code: "SERVER_UNREACHABLE" }));
       expect(await resumeApproval(first, client, vaultId)).toBe(true);
-    } else expect((await pairing).kind).toBe("paired");
+    } else {
+      paired = await pairing;
+      expect(paired.kind).toBe("paired");
+    }
 
     const devices = await listDevices(first, now);
 
@@ -213,7 +219,7 @@ export async function pairedFlow(
       unconfirmed: false,
     });
 
-    return { ...flow, client, identity, pin, vaultId, confirmed };
+    return { ...flow, client, identity, pin, vaultId, confirmed, paired };
   } catch (error) {
     await flow.cleanup();
     throw error;

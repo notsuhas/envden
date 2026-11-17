@@ -61,7 +61,9 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
           { mode: 0o700 },
         );
 
-        const snippet = createRcShellAdapter(shell, home).hookSnippet(binary);
+        const snippet = createRcShellAdapter(shell, home, join(home, ".envden")).hookSnippet(
+          binary,
+        );
 
         const run = async (cwd: string) => {
           const child = spawnTrusted(
@@ -143,7 +145,10 @@ for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as rea
       );
 
       await writeFile(join(state, "notice"), "");
-      const snippet = createRcShellAdapter(shell, home).hookSnippet("/bin/true");
+
+      const snippet = createRcShellAdapter(shell, home, join(home, ".envden")).hookSnippet(
+        "/bin/true",
+      );
 
       const run = async () => {
         const child = spawnTrusted([shell, "-c", snippet], {

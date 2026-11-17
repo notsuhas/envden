@@ -8,6 +8,8 @@ import { securityHeaders } from "./headers.ts";
 import { allowedHost, sameOrigin } from "./host.ts";
 import { tokenMatches } from "./token.ts";
 
+const safeMethods = new Set(["GET", "HEAD"]);
+
 interface IDashboard {
   adapters: TAdapters;
   now: () => number;
@@ -40,7 +42,10 @@ export function createDashboardApp(dashboard: IDashboard) {
       if (!tokenMatches(c.req.header("Authorization"), token))
         return c.json({ error: "UNAUTHORIZED", message: "Open the link envden ui printed" }, 401);
 
-      if (c.req.method !== "GET" && !sameOrigin(c.req.header("Origin"), c.req.header("Host")))
+      if (
+        !safeMethods.has(c.req.method) &&
+        !sameOrigin(c.req.header("Origin"), c.req.header("Host"))
+      )
         return c.json({ error: "UNAUTHORIZED", message: "Cross-origin request refused" }, 403);
 
       await next();

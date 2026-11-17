@@ -52,7 +52,7 @@ export function createAccess(context: IMemoryContext) {
         [...data.charges.values()].filter((charge) => charge.key === key).length >=
         (bucket.kind === "mailbox" ? 20 : 5)
       ) {
-        const strikes = (prior?.strikes ?? 0) + 1;
+        const strikes = (prior && now - prior.until < 86400000 ? prior.strikes : 0) + 1;
 
         data.buckets.set(key, {
           strikes,
@@ -66,8 +66,9 @@ export function createAccess(context: IMemoryContext) {
       const charge = context.data.charges.get(receipt);
       if (!charge || charge.at <= now - 900000) return false;
       context.data.charges.delete(receipt);
-      const bucket = context.data.buckets.get(charge.key);
-      if (bucket) bucket.until = 0;
+
+      if (context.data.buckets.has(charge.key))
+        context.data.buckets.set(charge.key, { until: 0, strikes: 0 });
 
       return true;
     },

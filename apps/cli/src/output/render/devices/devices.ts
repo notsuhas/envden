@@ -25,8 +25,8 @@ export function pairingText(address: string, code: string) {
   );
 }
 
-export function pairedText(kind: "paired" | "declined", name?: string) {
-  if (kind === "declined") return "Declined";
+export function pairedText(result: { kind: "paired"; name?: string } | { kind: "declined" }) {
+  if (result.kind === "declined") return "Declined";
 
-  return sanitizeConsole(name ? `Device ${name} added` : "Device added");
+  return sanitizeConsole(result.name ? `Device ${result.name} added` : "Device added");
 }

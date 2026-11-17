@@ -1,14 +1,7 @@
-import {
-  PDFDocument,
-  PageSizes,
-  StandardFonts,
-  breakTextIntoLines,
-  rgb,
-  type PDFFont,
-  type PDFPage,
-} from "pdf-lib";
+import { PDFDocument, PageSizes, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
 import type { IKitDocument } from "./model.ts";
+import { wrapText } from "./wrap.ts";
 
 interface IFonts {
   regular: PDFFont;
@@ -109,9 +102,9 @@ function drawInstructions({ page, fonts }: IPen, document: IKitDocument, top: nu
     const text = printable(paragraph, fonts.regular);
     const measure = (part: string) => fonts.regular.widthOfTextAtSize(part, 11);
 
-    for (const line of breakTextIntoLines(text, [" "], width, measure)) {
+    for (const line of wrapText(text, width, measure)) {
       y -= 16;
-      write(page, line.trim(), MARGIN, y, fonts.regular, 11);
+      write(page, line, MARGIN, y, fonts.regular, 11);
     }
 
     y -= 8;

@@ -117,8 +117,8 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - Devices **pin** the server (a hash of its signing key) at setup or join, and store its address separately.
 - History: every manifest and ciphertext version kept for 90 days, and at least the last 20 per file. Deletes are tombstones and outlive history pruning, so an offline device can't bring a deleted file back without an explicit restore. Repair-fix file lists, and the list before each, are kept forever. A list kept for one file's version keeps no other file's ciphertext, and a swap whose list adds no ciphertext and isn't bigger commits even over the storage quota, so deletes always work.
 - **`envden history`** reads only what the server retains: verified headers, the file lists they name and the version blobs, decrypted on the device and shown as key names. History ends where lists or blobs were pruned. Restoring a version writes it locally as an ordinary edit; only a later push publishes it, and agents need `agent-merge` plus `--yes`.
-- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, re-registers the master password on the new server (the user types it), then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint.
-- Backups: file contents are ciphertext, but the data folder also holds the master password's OPAQUE record, which someone could guess passwords against offline. Protect backups like a password database. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then logs in, re-registering the password only if the chain shows a password change or reset after the restored point. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
+- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, re-registers the master password on the new server (the user types it), then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint. `envden server switch <address>` follows the move when the old server is gone; it logs in to the new server first if that server has no unlocked session for the device.
+- Backups: file contents are ciphertext, but the data folder also holds the master password's OPAQUE record, which someone could guess passwords against offline. Protect backups like a password database. A stopped server leaves one file, `envden.sqlite`, on every platform, so copying it is a complete backup. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then logs in, re-registering the password only if the chain shows a password change or reset after the restored point. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
 - **Status page**: `GET /` (and `/v1/status` as JSON) is unsigned, since anyone on the tailnet can open it. It shows only server-wide facts: version, uptime, mode (normal, restored, moved), vault count, total storage, the fullest vault's quota band and the last prune. Nothing per vault. `ENVDEN_STATUS_PAGE=off` turns it off.
 - Laptop-hosted servers are supported; setup recommends an always-on host, since two laptops only sync while the server laptop is awake. An unreachable server never blocks local work; status shows "server unreachable".
 
@@ -310,6 +310,42 @@ Accepted costs:
 - Changing the master password needs the recovery kit, since devices never hold the secret key.
 - A server restored from backup is a rollback: restored mode trusts member signatures without a password until every member repairs or is dropped, and a file whose newest version no device holds can be lost.
 - A server alone can show different devices different branches; each stops when it sees the other branch but can't detect one it's never shown. A removed device or old recovery key colluding with the server can fork history, and values a removed device already pulled can't be revoked, so envden lists them for rotation.
+
+### Device names refuse control characters
+
+Replaces a name check that refused only invisible format characters. A newline, tab or escape in `--name` passed that check and then failed when the device record was signed, with a generic "Invalid string". Setup, join, rejoin and rename now refuse any control character up front with the usual device-name message.
+
+### HEAD follows GET
+
+Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a running server as down. The server and the `envden ui` dashboard now answer HEAD on any GET route with the GET status and headers and no body.
+
+### An empty ENVDEN_HOME means the default home
+
+Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and the store in whatever folder the command ran from. Empty now means unset, so envden uses `~/.envden`, the same as the install scripts.
+
+### Server switch logs in at the destination
+
+Replaces a `server switch` that read the new server's history with whatever session the device had. Unlock sessions don't move with the vault, so after a move every other device got "Unlock expired. Run envden unlock", and `unlock` logs in at the old address, which may be gone. Switch now asks for the master password and logs in at the destination itself. Without a terminal it still fails with the unlock message.
+
+### Ctrl-D cancels a prompt
+
+Replaces leaving Ctrl-D to readline. On an empty answer it closed the input and the question waited forever, so the user had to kill the process. Ctrl-D now cancels any prompt the same way Ctrl-C and Esc do, with the same message and exit code.
+
+### A stopped server leaves one database file
+
+Replaces leaving SQLite's sidecar files to the platform. On macOS, Apple's SQLite kept `envden.sqlite-wal` and `-shm` after shutdown and Linux removed them, so the data folder differed by OS and a backup taken after a stop on macOS needed three files. The server now turns persistent WAL off and runs a truncating checkpoint when it closes the database.
+
+### Connection timeouts are set, not inherited
+
+Replaces relying on each runtime's default. Bun closed idle connections after about 12 seconds, the Go port after 10 and its dashboard never. `envden serve` and the `envden ui` dashboard now set a 10-second idle timeout, which also covers half-sent headers and a rejected request whose body never arrives. Bun checks timeouts every 4 seconds, so it closes such a connection up to 2 seconds late. Body-read deadlines are unchanged.
+
+### Env-file patterns use a fixed grammar
+
+Replaces accepting any pattern Bun.Glob takes. The Go and Rust ports can't reproduce every corner of Bun's matcher, so the same config could sync different files depending on the build. Patterns are now limited to a grammar all three match the same way: an optional leading `!`, non-empty `/` segments, `**` as a whole segment, printable ASCII literals with `*` and `?` (`?` is one character), and flat `{a,b}` groups, at most 10 groups, 16 alternatives and 1024 characters. Anything else fails with "Unsupported env file pattern" when the config is saved or read, and push and pull check it before writing.
+
+### Keyring writes ignore the storage quota
+
+The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery kit, resetting the password. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
 
 ## Not in v1
 

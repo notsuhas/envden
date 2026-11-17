@@ -6,7 +6,7 @@ import * as p from "@envden/core/protocol";
 import { chooseRecoveryCandidate } from "@envden/core/chain";
 import type { THistory } from "../../vault/history.ts";
 import type { TAdminContext } from "../shared/context.ts";
-import { currentMaterial } from "../shared/material.ts";
+import { currentMaterial, epochKey } from "../shared/material.ts";
 import { optionalObject } from "../shared/transfer.ts";
 import { text } from "../../client/encoding.ts";
 import { adminSwap } from "../shared/swap.ts";
@@ -53,7 +53,7 @@ export async function fixLost(
       version: file.version,
     };
 
-    const name = p.openFileName(file.name, keys.get(file.epoch)!, ring.idKey, c);
+    const name = p.openFileName(file.name, epochKey(keys, file.epoch), ring.idKey, c);
     const next = { ...c, epoch: ring.epoch, version: file.version + 1n };
 
     const candidate = chooseRecoveryCandidate({
@@ -75,7 +75,7 @@ export async function fixLost(
 
         const content = p.openFile(
           box,
-          keys.get(entry.epoch)!,
+          epochKey(keys, entry.epoch),
           ring.idKey,
           old,
           entry.blobHash,

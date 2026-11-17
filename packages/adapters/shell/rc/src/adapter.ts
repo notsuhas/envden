@@ -31,7 +31,7 @@ class RcShellAdapter implements IShellAdapter {
   constructor(
     shell: TShell,
     home = homedir(),
-    envdenHome = process.env.ENVDEN_HOME ?? join(home, ".envden"),
+    envdenHome = process.env.ENVDEN_HOME || join(home, ".envden"),
     backupDirectory?: string,
     resolveProfile = () => (home === homedir() ? powerShellProfile() : undefined),
   ) {

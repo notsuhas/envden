@@ -2,7 +2,7 @@ import { EnvdenError } from "@envden/core/errors";
 import { restrictAccessSync } from "@envden/core/process";
 import { syncDirectory } from "./directory.ts";
 import { migrateV1 } from "./migrations/v1.ts";
-import { Database } from "bun:sqlite";
+import { Database, constants } from "bun:sqlite";
 import {
   closeSync,
   fsyncSync,
@@ -33,6 +33,9 @@ export function openDatabase(dataDir: string, now: number): Database {
   const db = new Database(path, { create: true, strict: true });
 
   try {
+    // Apple's SQLite keeps the WAL and SHM files after close unless this is off.
+    db.fileControl(constants.SQLITE_FCNTL_PERSIST_WAL, 0);
+
     db.run(
       "PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;",
     );

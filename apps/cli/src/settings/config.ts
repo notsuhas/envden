@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EnvdenError } from "@envden/core/errors";
+import { supportedEnvPattern } from "@envden/core/adapters";
 import { withStateLock } from "../state/lock/lock.ts";
 import { readFile } from "node:fs/promises";
 import { ensurePaths, paths } from "./paths.ts";
@@ -31,7 +32,30 @@ export function parseConfig(value: unknown) {
   if (!result.success)
     throw new EnvdenError("INVALID_INPUT", "Invalid config", { cause: result.error });
 
+  refusePatterns(result.data["env-files"]);
+
   return result.data;
+}
+
+// Runs before a sync writes; a config the schema rejects fails later, where it always has.
+export async function refuseConfiguredPatterns(home: string) {
+  const text = await readFile(paths(home).config, "utf8").catch(() => undefined);
+  const result = configSchema.safeParse(parsedJson(text));
+
+  if (result.success) refusePatterns(result.data["env-files"]);
+}
+
+function refusePatterns(rules: { include?: string[]; exclude?: string[] } = {}) {
+  if (![...(rules.include ?? []), ...(rules.exclude ?? [])].every(supportedEnvPattern))
+    throw new EnvdenError("INVALID_INPUT", "Unsupported env file pattern");
+}
+
+function parsedJson(text: string | undefined): unknown {
+  try {
+    return text === undefined ? undefined : JSON.parse(text);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function readConfig(home: string) {

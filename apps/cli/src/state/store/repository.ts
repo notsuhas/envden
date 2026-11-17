@@ -4,7 +4,7 @@ import { storeHeaders, restoreHeaders } from "./headers.ts";
 import { withStateLock } from "../lock/lock.ts";
 import { join } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
-import type { ILocalState } from "../model.ts";
+import { aliasMap, type ILocalState } from "../model.ts";
 import { atomicWrite, optionalRead, privateDirectory } from "./files.ts";
 
 const stateKeys = new Set([
@@ -97,7 +97,13 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
       throw new Error("Invalid state");
 
     const { headerRefs, ...record } = value;
-    const state: ILocalState = { ...record, headers: await restoreHeaders(home, headerRefs) };
+
+    const state: ILocalState = {
+      ...record,
+      aliases: aliasMap(record.aliases),
+      headers: await restoreHeaders(home, headerRefs),
+    };
+
     const latest = (await readUpdateCache(home)).latest;
     if (latest) state.latest = latest;
     await restorePlacement(home, state);

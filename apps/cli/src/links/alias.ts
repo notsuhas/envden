@@ -21,7 +21,9 @@ async function lockedAliasRepo(adapters: TAdapters, source: string, target: stri
 
 export function deriveAlias(aliases: Record<string, string>, source: string, target: string) {
   if (!source || !target || source === target) return { kind: "invalid" } as const;
-  if (aliases[target] || Object.values(aliases).includes(source)) return { kind: "chain" } as const;
+
+  if (Object.hasOwn(aliases, target) || Object.values(aliases).includes(source))
+    return { kind: "chain" } as const;
 
   return { kind: "assign" } as const;
 }

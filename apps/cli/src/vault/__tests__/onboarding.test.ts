@@ -51,6 +51,21 @@ test("pairing persists the joiner and numbers a taken name it adopts", async () 
   }
 });
 
+test("pairing reports the name it committed when another device takes the confirmed one", async () => {
+  const { renameDevice } = await import("../../admin/devices/rename.ts");
+
+  const flow = await pairedFlow(undefined, false, "second", async (f) => {
+    await renameDevice(f.first, "second", f.now, f.fetcher);
+  });
+
+  try {
+    expect(flow.confirmed).toEqual(["second"]);
+    expect(flow.paired).toEqual({ kind: "paired", name: "second-2" });
+  } finally {
+    await flow.cleanup();
+  }
+});
+
 test("kit join adopts the history and onboarding completion unlocks joined homes", async () => {
   const flow = await joinedFlow();
 

@@ -4,7 +4,7 @@ import { setUntrustedRoots } from "@envden/core/process";
 import { loadState } from "./state/store/repository.ts";
 import { shellCommand } from "./commands/shell/shell.ts";
 import { untrackCommand } from "./commands/checkouts/untrack.ts";
-import { sanitizeTerminal } from "./output/sanitize.ts";
+import { sanitizeParserError } from "./output/sanitize.ts";
 import { reportTelemetry, commandOutcome } from "./output/telemetry/report.ts";
 import { commandCounts } from "./output/counts.ts";
 import { trackCommand } from "./commands/checkouts/track.ts";
@@ -39,8 +39,7 @@ export function createProgram(now: () => number) {
   const program = new Command()
     .name("envden")
     .description("Encrypted whole-file env sync over your private network")
-    .version(VERSION)
-    .configureOutput({ outputError: (message, write) => write(sanitizeTerminal(message) + "\n") });
+    .version(VERSION);
 
   let active: CommandUnknownOpts | undefined;
 
@@ -105,6 +104,8 @@ export function createProgram(now: () => number) {
     versionCommand,
   ]);
 
+  sanitizeParserErrors(program);
+
   const parse = program.parseAsync.bind(program);
 
   program.parseAsync = async (...args) => {
@@ -131,6 +132,12 @@ export function createProgram(now: () => number) {
 function addGroup(program: Command, heading: string, commands: CommandUnknownOpts[]) {
   program.commandsGroup(heading);
   for (const command of commands) program.addCommand(command);
+}
+
+// Subcommands added with addCommand don't inherit output settings, so each one gets them.
+function sanitizeParserErrors(command: CommandUnknownOpts) {
+  command.configureOutput({ outputError: (message, write) => write(sanitizeParserError(message)) });
+  for (const child of command.commands) sanitizeParserErrors(child);
 }
 
 function reportCommandNotice(notice: Awaited<ReturnType<typeof commandNotice>>) {

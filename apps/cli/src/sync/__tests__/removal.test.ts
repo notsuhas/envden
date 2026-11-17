@@ -45,12 +45,12 @@ for (const modes of layouts) {
     expect((await push(f.second, f.opts)).changed).toBe(0);
   });
 
-  test(`absence never publishes deletion: ${modes.join("+")}`, async () => {
-    const f = await fixture(modes);
-    const { targets } = f;
-    const store = targets[0]!.store;
+  for (const mask of [1, 2, 3, 4, 5, 6, 7])
+    test(`absence never publishes deletion: ${modes.join("+")} mask ${mask}`, async () => {
+      const f = await fixture(modes);
+      const { targets } = f;
+      const store = targets[0]!.store;
 
-    for (const mask of [1, 2, 3, 4, 5, 6, 7]) {
       await removePlaces(f.second.home, targets, mask);
 
       expect((await push(f.second, f.opts)).conflicts).toBe(0);
@@ -63,8 +63,7 @@ for (const modes of layouts) {
 
       await pull(f.first, f.opts);
       expect(await Bun.file(f.aStore).text()).toBe("TOKEN=local-test-value\n");
-    }
-  });
+    });
 }
 
 test("rm refuses non-interactive removal without explicit confirmation", async () => {

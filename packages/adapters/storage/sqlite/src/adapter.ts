@@ -6,6 +6,7 @@ import { createApprovers } from "./pairing/approvers.ts";
 import { createNonces } from "./access/nonces.ts";
 import type { IStorageAdapter } from "@envden/core/adapters";
 import { createContext } from "./db/context.ts";
+import { closeDatabase } from "./db/close.ts";
 import { createVaults } from "./vaults/vaults.ts";
 import { createChain } from "./chain/chain.ts";
 import { createState } from "./vaults/state.ts";
@@ -40,7 +41,7 @@ export function createSqliteStorageAdapter(dataDir: string, now: number): IStora
       return result;
     },
     close() {
-      context.db.close();
+      closeDatabase(context.db);
     },
     ...state,
     ...createDevices(context),

@@ -1,7 +1,10 @@
 import { PromptCancelled } from "../../state/cancelled.ts";
-import { confirm, password, text, select, multiselect } from "@clack/prompts";
+import { confirm, password, text, select, multiselect, updateSettings } from "@clack/prompts";
 import { sanitizeTerminal } from "../sanitize.ts";
 import { EnvdenError } from "@envden/core/errors";
+
+// Ctrl-D cancels like Ctrl-C; unbound, clack waits forever once readline closes on it.
+updateSettings({ aliases: { "\x04": "cancel" } });
 
 type TCheck = (value: string) => string | undefined;
 
