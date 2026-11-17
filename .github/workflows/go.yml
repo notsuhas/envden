@@ -46,7 +46,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-15]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -56,19 +56,19 @@ jobs:
       - if: runner.os == 'Linux'
         working-directory: .
         run: sudo apt-get update && sudo apt-get install -y zsh fish
-      # the sync exploration traces run in their own job below; together they cover every test
-      - run: go test -race -timeout 30m -skip '^TestExploration$' ./...
+      # the sync exploration traces run in their own job below; -race doubles macOS time, so Linux alone runs it
+      - run: go test ${{ runner.os == 'Linux' && '-race' || '' }} -timeout 12m -skip '^TestExploration$' ./...
 
   exploration:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go/go.mod
           cache-dependency-path: go/go.sum
-      - run: go test -timeout 50m -run '^TestExploration$' ./cli/sync/enginetest
+      - run: go test -timeout 12m -run '^TestExploration$' ./cli/sync/enginetest
 
   compile:
     runs-on: ubuntu-24.04
@@ -113,14 +113,25 @@ jobs:
         run: |
           docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:uid=10001,gid=10001,mode=1777 --tmpfs /var/run/tailscale:uid=10001,gid=10001,mode=0700 --entrypoint envden envden:ci --version
 
-  # the reference build and harness live on main, pinned by .parity-reference
+  # the reference build and harness live on main, pinned by .parity-reference; mixed setups run on Linux only
   parity:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        include:
+          - { os: ubuntu-24.04, shard: 1/6 }
+          - { os: ubuntu-24.04, shard: 2/6 }
+          - { os: ubuntu-24.04, shard: 3/6 }
+          - { os: ubuntu-24.04, shard: 4/6 }
+          - { os: ubuntu-24.04, shard: 5/6 }
+          - { os: ubuntu-24.04, shard: 6/6 }
+          - { os: macos-15, shard: 1/4 }
+          - { os: macos-15, shard: 2/4 }
+          - { os: macos-15, shard: 3/4 }
+          - { os: macos-15, shard: 4/4 }
+    name: parity (${{ matrix.os }}, ${{ matrix.shard }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - id: reference
@@ -146,20 +157,19 @@ jobs:
         run: bash parity/ci/install-stand-ins.sh
       - name: Parity suite
         working-directory: reference
-        run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE"
-      - name: Mixed setups
-        working-directory: reference
-        run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --mix
+        run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --shard ${{ matrix.shard }} ${{ runner.os == 'Linux' && '--mix' || '' }}
       - name: Transport
+        if: startsWith(matrix.shard, '1/') && (success() || failure())
         working-directory: reference
         run: bun parity/transport.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --mode semantic
       - name: e2e against the Go binary
+        if: startsWith(matrix.shard, '1/') && (success() || failure())
         working-directory: reference
         run: bun apps/cli/scripts/e2e.ts "$CANDIDATE"
 
   host-here:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - id: reference
