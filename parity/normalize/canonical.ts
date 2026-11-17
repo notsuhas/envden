@@ -1,3 +1,4 @@
+import { authenticatedText } from "./authenticated.ts";
 import { createHash } from "node:crypto";
 import { isLiteralFile } from "./literal.ts";
 
@@ -35,6 +36,8 @@ function render(entries: [string, string][], labels: Map<string, string>): [stri
     .map(([key, value]): [string, string] => {
       const name = substitute(key);
       let text = isLiteralContent(key) ? value : substitute(value);
+
+      if (key.endsWith(":authenticated")) text = authenticatedText(text);
 
       if (key.endsWith(":db")) {
         const tables: { rows: string[] }[] = JSON.parse(text);

@@ -34,7 +34,10 @@ export function conversation(text: string): string[] {
 }
 
 export function promptKeys(text: string): string[] {
-  const plain = presentation(text).toLowerCase();
+  const plain = presentation(text)
+    .toLowerCase()
+    .replace(/\b(restore[^\n]+)\n\s*((?:to\s+)?version[^\n]*\?)/g, "$1 $2");
+
   const tokens = [...plain.matchAll(/[\p{L}\p{N}]+/gu)].filter((token) => !filler.has(token[0]));
   const found: { start: number; end: number; key: string }[] = [];
 
@@ -68,7 +71,7 @@ export function conversationTurn(text: string, answer: string, previousPrompt?: 
   const prompts = conversation(text);
   if (prompts.length > 1 && prompts[0] === previousPrompt) prompts.shift();
 
-  return { prompts, choices: choices(text), answer };
+  return { prompts, choices: prompts.at(-1) === "device name" ? [] : choices(text), answer };
 }
 
 export function choices(text: string): string[] {

@@ -1,3 +1,4 @@
+import { verifyRetained } from "./integrity/collect.ts";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -145,6 +146,7 @@ export async function createContext(bindings: IBindings) {
 
   async function collect(files = true): Promise<Record<string, string>> {
     await shutdown();
+    const verified = files ? await verifyRetained(root) : undefined;
 
     names.push(
       ...(await prepare(
@@ -161,7 +163,11 @@ export async function createContext(bindings: IBindings) {
       ),
     ) as Record<string, string>;
 
-    return files ? { ...observations, ...(await snapshot(root, normalizer)) } : observations;
+    return normalizer.canonicalizer()(
+      files
+        ? { ...observations, ...(await snapshot(root, normalizer, false, verified)) }
+        : observations,
+    );
   }
 
   const cleanup = async (keep: boolean): Promise<void> => {

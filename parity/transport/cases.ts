@@ -8,6 +8,7 @@ export interface ICase {
   // Reference status a case must reach to exercise its branch.
   status?: number;
   stalled?: boolean;
+  empty400?: boolean;
 }
 
 const server = (line: string, headers = "", body = "") =>
@@ -113,5 +114,12 @@ function rust(signed: ReturnType<typeof createRequests>): ICase[] {
 }
 
 export function transportCases(signed: ReturnType<typeof createRequests>): ICase[] {
-  return [...go, ...rust(signed), ...stalled];
+  return [...go, ...rust(signed), ...stalled].map((item) => ({
+    ...item,
+    ...(["go Content-Length abc", "go Content-Length -1", "go conflicting Content-Length"].includes(
+      item.name,
+    )
+      ? { empty400: true, status: 400 }
+      : {}),
+  }));
 }

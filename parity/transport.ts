@@ -1,10 +1,10 @@
-import { isDeepStrictEqual } from "node:util";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { probeIsolation } from "./isolation/probe.ts";
 import { transportCases, type ICase } from "./transport/cases.ts";
-import { observe, reachedStatus } from "./transport/compare.ts";
+import { observationsEqual } from "./transport/semantic.ts";
+import { observe, reachedStatus, headLengths } from "./transport/compare.ts";
 import { createRequests } from "./transport/request.ts";
 import { startPair } from "./transport/servers.ts";
 
@@ -12,8 +12,17 @@ const args = process.argv.slice(2);
 const flag = (name: string) => args[args.indexOf(name) + 1];
 const [reference, candidate] = [flag("--reference"), flag("--candidate")];
 
-if (!reference || !candidate || args.length !== 4)
-  throw new Error("Usage: bun parity/transport.ts --reference <envden> --candidate <envden>");
+const mode = args.includes("--mode") ? flag("--mode") : "semantic";
+
+if (
+  !reference ||
+  !candidate ||
+  !["semantic", "raw"].includes(mode!) ||
+  args.length !== (args.includes("--mode") ? 6 : 4)
+)
+  throw new Error(
+    "Usage: bun parity/transport.ts --reference <envden> --candidate <envden> [--mode semantic|raw]",
+  );
 
 const root = await mkdtemp(join(tmpdir(), "envden-transport-"));
 
@@ -28,11 +37,17 @@ let failed = 0;
 async function check(item: ICase): Promise<string> {
   const [expected, actual] = await Promise.all(pair.ports.map((port) => observe(port, item)));
 
-  if (!reachedStatus(item, expected!)) failed++;
-  else if (isDeepStrictEqual(expected, actual)) return `PASS ${item.name}`;
-  else failed++;
+  const getLengths = mode === "semantic" ? await headLengths(item, pair.ports) : [];
 
-  return `FAIL ${item.name}\nreference: ${JSON.stringify(expected)}\ncandidate: ${JSON.stringify(actual)}`;
+  const matches =
+    reachedStatus(item, expected!) &&
+    observationsEqual(item, [expected!, actual!], mode === "raw", getLengths);
+
+  failed += Number(!matches);
+
+  return matches
+    ? `PASS ${item.name}`
+    : `FAIL ${item.name}\nreference: ${JSON.stringify(expected)}\ncandidate: ${JSON.stringify(actual)}`;
 }
 
 try {
@@ -42,7 +57,7 @@ try {
   for (const line of await Promise.all(cases.filter((c) => c.stalled).map(check)))
     console.log(line);
 
-  console.log(`${cases.length - failed}/${cases.length} raw transport cases passed`);
+  console.log(`${cases.length - failed}/${cases.length} ${mode} transport cases passed`);
 } finally {
   await pair.stop();
   await rm(root, { recursive: true, force: true });

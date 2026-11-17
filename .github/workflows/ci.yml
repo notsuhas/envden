@@ -121,7 +121,7 @@ jobs:
       - run: bash parity/ci/install-stand-ins.sh
       - run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden"
       - if: success() || failure()
-        run: bun parity/transport.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden"
+        run: bun parity/transport.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden" --mode semantic
       - if: success() || failure()
         run: bun parity/verify.ts apps/cli/dist/envden
       # host shims replace service tools, so host-here runs last and only on Linux

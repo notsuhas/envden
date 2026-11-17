@@ -43,7 +43,7 @@ export const localState: IScenario = {
       },
     },
     ...targets.map((target) => cli("b", ["alias", "x", target], known.prototypeAliasTarget)),
-    cli("b", ["alias", "__proto__", "x"]),
+    cli("b", ["alias", "__proto__", "x"], 3),
     cli("b", ["alias", "ordinary", "canonical"]),
   ],
 };

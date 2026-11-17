@@ -14,7 +14,7 @@ describe("normalization", () => {
     expect(n.text(Buffer.from(bytes).toString("hex"))).toBe(first);
     expect(n.text(Buffer.from(bytes).toString("base64url"))).toBe(first);
     expect(n.bytes(new Uint8Array(32))).not.toBe(first);
-    expect(n.hashStructure(bytes)).toContain(first);
+    expect(n.bytes(bytes)).toBe(first);
   });
 
   test("roots, ports, clock, UUIDs and durations vary; ordinary values remain literal", () => {
@@ -138,4 +138,23 @@ test("tagged state bytes normalize even without mixed case", () => {
   expect(n.text(`{"id":{"$bytes":"${id}"},"other":"${id}"}`)).toBe(
     `{"id":{"$bytes":"${n.bytes(Buffer.from(id, "base64url"))}"},"other":"${id}"}`,
   );
+});
+
+test("authenticated collection canonicalization preserves members and references", () => {
+  function observed(wraps: { recipient: number; ct: number }[]) {
+    const normalizer = new Normalizer();
+    const identity = normalizer.bytes(new Uint8Array(32).fill(7));
+
+    return normalizer.canonicalizer()({
+      "state:authenticated": JSON.stringify({ identity, wraps }),
+    });
+  }
+
+  const a = { recipient: 1, ct: 11 };
+  const b = { recipient: 2, ct: 22 };
+  expect(observed([a, b])).toEqual(observed([b, a]));
+  expect(observed([a, b])).not.toEqual(observed([a]));
+  expect(observed([a, b])).not.toEqual(observed([a, b, b]));
+  expect(observed([a, b])).not.toEqual(observed([{ ...a, recipient: 2 }, b]));
+  expect(observed([a, b])).not.toEqual(observed([{ ...a, ct: 22 }, b]));
 });

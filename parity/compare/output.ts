@@ -1,3 +1,4 @@
+import { orderJson } from "../normalize/json.ts";
 import { facts } from "./facts.ts";
 import { help } from "./help.ts";
 import { conversation } from "./conversation.ts";
@@ -10,11 +11,12 @@ export function outputObservation(
   mode: TOutputMode,
   normalize: (text: string) => string,
   names: string[] = [],
+  recordedPrompts: readonly string[] = [],
 ): string {
   if (mode === "json" && text.trim()) {
     const value: unknown = JSON.parse(text);
 
-    return normalize(JSON.stringify(value));
+    return normalize(JSON.stringify(orderJson(value)));
   }
 
   const normalized = normalize(text);
@@ -25,6 +27,8 @@ export function outputObservation(
       mode === "pty" ? withoutPromptBlocks(normalized) : normalized,
       names.map(normalize),
     ),
-    ...(mode === "pty" ? { prompts: conversation(normalized) } : {}),
+    ...(mode === "pty"
+      ? { prompts: conversation(normalized).filter((prompt) => !recordedPrompts.includes(prompt)) }
+      : {}),
   });
 }

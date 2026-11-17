@@ -92,3 +92,27 @@ test("PDF snapshots keep names and modes exact while comparing content", async (
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("PDF library attribution may differ while document metadata remains strict", () => {
+  const a = Buffer.from(
+    pdf("(kit) Tj")
+      .toString("latin1")
+      .replace("/Author (envden)", "/Author (envden) /Creator (pdf-lib) /Producer (pdf-lib)"),
+    "latin1",
+  );
+
+  const b = Buffer.from(
+    pdf("(kit) Tj")
+      .toString("latin1")
+      .replace("/Author (envden)", "/Author (envden) /Producer (envden)"),
+    "latin1",
+  );
+
+  expect(pdfContent(a)).toEqual(pdfContent(b));
+
+  expect(pdfContent(a)).not.toEqual(
+    pdfContent(
+      Buffer.from(b.toString("latin1").replace("/Author (envden)", "/Author (other)"), "latin1"),
+    ),
+  );
+});

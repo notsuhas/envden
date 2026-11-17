@@ -31,7 +31,7 @@ function attempt(wrong: boolean): IStep {
         return;
       }
 
-      await add.answers([{ expect: "Add device-b?", send: "y" }]);
+      await add.answers([{ expect: "Add device-b?", send: "y", choices: ["Yes", "No"] }]);
       await c.finish("a", ["device", "add"], add);
       await joining.answers([syncCheckouts]);
       await c.finish("b", args, joining);

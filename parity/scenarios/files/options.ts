@@ -47,7 +47,13 @@ export const fileOptions: IScenario = {
         await c.pty(
           "a",
           ["history", ".env", "--restore", "1"],
-          [{ expect: /Restore \S*\.env to version 1\?/, send: "y" }],
+          [
+            {
+              expect: /version 1\?[\s┃│]+added API_URL;[\s┃│]+changed TOKEN/,
+              send: "y",
+              choices: ["Yes", "No"],
+            },
+          ],
         );
       },
     },

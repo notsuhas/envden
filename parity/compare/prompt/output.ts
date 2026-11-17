@@ -7,6 +7,9 @@ export function withoutPromptBlocks(text: string): string {
   const plain = lines.map((line) => line.replace(/[│┃]/g, " "));
   const dropped = choiceRows(plain);
 
+  for (const [i, line] of lines.entries())
+    if (/^\s*└\s+Operation cancelled\.\s*$/i.test(line)) dropped.add(i);
+
   for (let i = 0; i < lines.length; i++) {
     if (dropped.has(i) || conversation(lines[i]!).length === 0) continue;
 

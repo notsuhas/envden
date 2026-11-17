@@ -20,7 +20,15 @@ const defaults = [
   "Install the shell notice",
   "Install the agent skill",
   "Sync env files for these checkouts",
-].map((expect) => ({ expect, send: "\r" }));
+].map((expect) => ({
+  expect,
+  send: "\r",
+  ...(expect === "Install the shell notice"
+    ? { choices: ["zsh", "bash", "fish", "PowerShell", "No, skip it"] }
+    : expect !== "Sync env files for these checkouts"
+      ? { choices: ["Yes", "No"] }
+      : {}),
+}));
 
 async function same(c: TContext, device: string, contents: string): Promise<void> {
   if ((await readFile(join(c.get(device).checkout, ".env"), "utf8")) !== contents)
@@ -46,13 +54,13 @@ export const userFlow: IScenario = {
           "a",
           ["setup"],
           [
-            { expect: "Host the server on this machine", send: "\r" },
+            { expect: "Host the server on this machine", send: "\r", choices: ["Yes", "No"] },
             { expect: "Server address", send: `${s.url}\r` },
             { expect: "Server setup token", send: `${s.token}\r` },
             { expect: "Device name", send: "\r" },
             { expect: "Master password", send: `${password}\r` },
             { expect: "Confirm master password", send: `${password}\r` },
-            { expect: "Open it now?", send: "n" },
+            { expect: "Open it now?", send: "n", choices: ["Yes", "No"] },
             ...defaults,
           ],
         );

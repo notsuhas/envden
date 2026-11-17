@@ -1,7 +1,6 @@
 import { mkdir, readFile, readlink, symlink as link, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { TContext } from "../../runtime/context.ts";
-import { cli } from "../steps/cli.ts";
 import { original, setup } from "../steps/onboarding.ts";
 import type { IScenario } from "../types.ts";
 
@@ -35,7 +34,7 @@ export const symlink: IScenario = {
           ["track", c.get("a").checkout],
           [
             { expect: "Sync env files for these checkouts", send: "\r" },
-            { expect: "Let envden manage it?", send: "y" },
+            { expect: "Let envden manage it?", send: "y", choices: ["Yes", "No"] },
           ],
         );
 
@@ -46,7 +45,19 @@ export const symlink: IScenario = {
           throw new Error("Takeover changed the shared file");
       },
     },
-    cli("a", ["status", "--json"]),
+    {
+      name: "approved takeover reports a local change",
+      run: async (c) => {
+        const content = original + "TAKEOVER=changed\n";
+        c.normalizer.literal(content);
+        await writeFile(join(c.get("a").checkout, ".env"), content);
+        const result = await c.cli("a", ["status", "--json"]);
+        const status = JSON.parse(result.stdout) as { files: { state: string }[] };
+
+        if (status.files.length !== 1 || status.files[0]?.state !== "changed")
+          throw new Error("Approved takeover must report changed");
+      },
+    },
     {
       name: "restore original user link",
       run: async (c) => {

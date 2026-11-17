@@ -7,7 +7,12 @@ const identifiers =
   /<[^<>\n]+>(?:[^\s"'`<>]*[\w/])?|https?:\/\/[^\s"'`<>]+|(?:~?\/|\.{1,2}\/)[^\s"'`<>]+|(?<![\w])--?[a-zA-Z][\w-]*|(?<!\w)\.[A-Za-z][\w.-]*|(?<!\w)\.?[\w]+(?:[./@-][\w-]+)+\b|(?<!\w)[+-]?\d+(?:\.\d+)*(?!\w)|\b(?:Dockerfile|Makefile|LICENSE|README)\b|\b(?:[A-Z]+_[A-Z_\d]+|ROLLBACK|FORK|UNAUTHORIZED|LOCKED|CONFLICT|MOVING|INTERNAL|BUSY|(?!ERROR\b|ENVDEN\b|ENABLED\b|EXPIRED\b)E[A-Z]{2,})\b/g;
 
 export function facts(text: string, names: string[] = []): string[] {
-  let remaining = presentation(text);
+  let remaining = presentation(text)
+    .replace(/\bcommand-argument value\b/g, "argument value")
+    .replace(/\bfor (["'])\[([\w-]+)\]\1/g, "for '$2'")
+    .replace(/\bfor \[([\w-]+)\]/g, "for argument '$1'")
+    .replace(/(--[\w-]+) <[^>]+>/g, "$1");
+
   const result: string[] = [];
 
   for (const name of [...new Set(names)].filter(Boolean).sort((a, b) => b.length - a.length)) {

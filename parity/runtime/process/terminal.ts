@@ -1,3 +1,4 @@
+import { choiceExpression } from "./choice.ts";
 import { stripVTControlCharacters } from "node:util";
 import { matchesPrompt } from "../../compare/prompt/match.ts";
 import { conversationTurn } from "../../compare/conversation.ts";
@@ -92,6 +93,9 @@ export class Terminal {
   async answers(answers: IAnswer[]): Promise<void> {
     for (const answer of answers) {
       await this.expect(expression(answer.expect, true), answer.expect);
+
+      for (const choice of answer.choices ?? [])
+        await this.expect(choiceExpression(choice), answer.expect);
 
       const screen = terminalText(this.raw.slice(this.answerCursor));
       const previousPrompt = this.conversation.at(-1)?.prompts.at(-1);

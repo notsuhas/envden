@@ -1,3 +1,4 @@
+import { orderJson } from "../normalize/json.ts";
 import { realpath, readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
@@ -46,8 +47,12 @@ export async function prepare(
     }
 
     const state = await readFile(join(home, "state/device.json"), "utf8").catch(() => "");
-    normalizer.text(state);
-    if (state) collectNames(JSON.parse(state), names);
+
+    if (state) {
+      const value: unknown = orderJson(JSON.parse(state));
+      normalizer.text(JSON.stringify(value));
+      collectNames(value, names);
+    }
   }
 
   return names;

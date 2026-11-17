@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { canonicalize } from "./canonical.ts";
 
 export class Normalizer {
@@ -17,19 +16,14 @@ export class Normalizer {
   }
 
   canonicalizer(): (observations: Record<string, string>) => Record<string, string> {
-    const known = new Set(this.values.values());
-    const counts = new Map(this.counts);
-
     return (observations) =>
       canonicalize(
         observations,
-        [...this.values.values()]
-          .filter((value) => !known.has(value))
-          .map((value) => {
-            const group = value.slice(1, value.lastIndexOf("#"));
+        [...this.values.values()].map((value) => {
+          const group = value.slice(1, value.lastIndexOf("#"));
 
-            return { value, group, first: (counts.get(group) ?? 0) + 1 };
-          }),
+          return { value, group, first: 1 };
+        }),
         [...this.values.values()],
       );
   }
@@ -140,12 +134,6 @@ export class Normalizer {
 
     // oxlint-disable-next-line no-control-regex -- NUL delimits protected fixture and path values.
     return text.replace(/\x00(\d+)\x00/g, (_, n: string) => protectedValues[Number(n)] ?? "");
-  }
-
-  hashStructure(value: Uint8Array, scope?: string): string {
-    const structure = this.bytes(value, scope);
-
-    return `${structure} sha256:${createHash("sha256").update(structure).digest("hex")}`;
   }
 }
 

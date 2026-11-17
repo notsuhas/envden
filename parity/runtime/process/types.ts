@@ -19,6 +19,7 @@ export interface IProcess {
 }
 
 export interface IAnswer {
+  choices?: readonly string[];
   expect: string | RegExp;
   send: string;
 }

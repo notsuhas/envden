@@ -24,7 +24,7 @@ function readFields(
     if (key.kind !== "word" || !key.value.startsWith("/")) continue;
     const value = tokens[++i];
     if (!value) throw new Error("Missing PDF Info field");
-    if (["/CreationDate", "/ModDate", "/ID"].includes(key.value)) continue;
+    if (["/CreationDate", "/ModDate", "/ID", "/Creator", "/Producer"].includes(key.value)) continue;
     const field = fieldValue(tokens, i, objects);
     info[key.value] = field.value;
     i += field.skip;

@@ -46,7 +46,7 @@ export const pairing: IScenario = {
         const joining = c.terminal("b", joinArgs);
 
         await joining.answers([{ expect: "Pairing code", send: `${code}\r` }]);
-        await add.answers([{ expect: "Add device-b?", send: "y" }]);
+        await add.answers([{ expect: "Add device-b?", send: "y", choices: ["Yes", "No"] }]);
         await c.finish("a", ["device", "add"], add);
         await joining.answers([syncCheckouts]);
         await c.finish("b", joinArgs, joining);
@@ -75,7 +75,7 @@ export const pairing: IScenario = {
         await c.pty(
           "a",
           ["device", "rm", "renamed"],
-          [...answerPassword, { expect: "Remove this device?", send: "y" }],
+          [...answerPassword, { expect: "Remove this device?", send: "y", choices: ["Yes", "No"] }],
         );
       },
     },

@@ -27,8 +27,10 @@ const endOfInput: IStep = {
   run: async (c) => {
     const session: Terminal = c.terminal("a", ["unlock"]);
 
-    await session.expect("Master password");
-    if (!(await session.exitsAfter("\x04", 5000))) session.send("\x03");
+    await session.answers([{ expect: "Master password", send: "\x04" }]);
+
+    if (!(await session.exitsAfter("", 5000))) throw new Error("Ctrl-D did not cancel the prompt");
+
     await c.finish("a", ["unlock"], session, known.eofCancels ? 2 : 130);
   },
 };
@@ -75,7 +77,6 @@ export const devicesVault: IScenario = {
     cli("b", ["device", "rename", "evil\x1b[31mname\tb"], known.controlCharacterName),
     cli("b", ["device", "rename", "renamed-b"]),
     unlock,
-    endOfInput,
     {
       name: "replace recovery kit",
       run: async (c) => {
@@ -99,11 +100,13 @@ export const devicesVault: IScenario = {
         await c.pty(
           "a",
           ["device", "rm", "renamed-b", "--new-kit", "--kit-out", out],
-          [...answerPassword, { expect: "Remove this device?", send: "y" }],
+          [...answerPassword, { expect: "Remove this device?", send: "y", choices: ["Yes", "No"] }],
         );
       },
     },
     cli("a", ["device", "ls", "--json"]),
     cli("b", ["push", "--yes"], 1),
+    // Last, so an implementation that differs here still has every earlier step compared.
+    endOfInput,
   ],
 };

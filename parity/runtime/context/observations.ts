@@ -47,12 +47,14 @@ export function observeOutput(
   names: string[],
 ): Record<string, string> {
   const observations: Record<string, string> = {};
+  const recorded = output.conversation ? turns(output.conversation, normalizer) : undefined;
 
   observations[`${prefix}/stdout`] = outputObservation(
     output.stdout,
     mode,
     (text) => normalizer.text(text),
     names,
+    recorded?.flatMap((turn) => turn.prompts),
   );
 
   observations[`${prefix}/stderr`] = outputObservation(
@@ -62,10 +64,7 @@ export function observeOutput(
     names,
   );
 
-  if (output.conversation)
-    observations[`${prefix}/conversation`] = normalizer.text(
-      JSON.stringify(turns(output.conversation, normalizer)),
-    );
+  if (recorded) observations[`${prefix}/conversation`] = normalizer.text(JSON.stringify(recorded));
 
   observations[`${prefix}/exit`] = String(output.code);
 

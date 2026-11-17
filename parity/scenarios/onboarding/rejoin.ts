@@ -23,8 +23,12 @@ function rejoin(mode: "kit" | "pairing"): IStep[] {
           ["device", "rm", "device-b"],
           [
             ...answerPassword,
-            { expect: "Remove this device?", send: "y" },
-            { expect: "Replace the recovery kit in this removal?", send: "\r" },
+            { expect: "Remove this device?", send: "y", choices: ["Yes", "No"] },
+            {
+              expect: "Replace the recovery kit in this removal?",
+              send: "\r",
+              choices: ["Yes", "No"],
+            },
           ],
         );
       },

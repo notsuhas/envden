@@ -127,3 +127,60 @@ test("interchangeable names and symmetric reference cycles canonicalize exactly"
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("state JSON ignores object key order but preserves values and array order", async () => {
+  const root = await mkdtemp(join(tmpdir(), "parity-json-"));
+
+  try {
+    const states = [
+      { format: 1, approved: [{ root: "/repo", identity: "same" }], entries: [1, 2] },
+      { entries: [1, 2], approved: [{ identity: "same", root: "/repo" }], format: 1 },
+      { format: 1, approved: [{ root: "/other", identity: "same" }], entries: [1, 2] },
+      { format: 1, approved: [{ root: "/repo", identity: "same" }], entries: [2, 1] },
+    ];
+
+    const observations: Record<string, string>[] = [];
+
+    for (const [i, state] of states.entries()) {
+      const path = join(root, String(i));
+      await mkdir(path);
+      await writeFile(join(path, "device.json"), JSON.stringify(state));
+      observations.push(await snapshot(path, new Normalizer()));
+    }
+
+    expect(observations[0]).toEqual(observations[1]);
+    expect(observations[0]).not.toEqual(observations[2]);
+    expect(observations[0]).not.toEqual(observations[3]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("preseeded random identifiers preserve roles rather than encounter order", async () => {
+  const root = await mkdtemp(join(tmpdir(), "parity-seeded-"));
+
+  try {
+    const observations: Record<string, string>[] = [];
+
+    for (const [index, tokens] of [
+      ["aa".repeat(32), "bb".repeat(32)],
+      ["dd".repeat(32), "cc".repeat(32)],
+    ].entries()) {
+      const path = join(root, String(index));
+      await mkdir(path);
+
+      await writeFile(
+        join(path, "roles.json"),
+        JSON.stringify({ key: tokens[0], reference: tokens[1] }),
+      );
+
+      const normalizer = new Normalizer();
+      normalizer.text(index === 0 ? tokens.join(" ") : [...tokens].reverse().join(" "));
+      observations.push(await snapshot(path, normalizer));
+    }
+
+    expect(observations[0]).toEqual(observations[1]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

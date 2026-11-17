@@ -1,3 +1,6 @@
+import { verifyRetained } from "./integrity/collect.ts";
+import { semanticJson } from "./integrity/objects.ts";
+import { orderJson } from "../normalize/json.ts";
 import { pdfContent } from "../compare/pdf.ts";
 import { Database } from "bun:sqlite";
 import { lstat, readFile, readdir, readlink } from "node:fs/promises";
@@ -44,7 +47,7 @@ function dump(path: string, normalizer: Normalizer): unknown {
                   ? `NONCE:${normalizer.bytes(device)}`
                   : undefined;
 
-              return [key, "blob", value.length, normalizer.hashStructure(value, scope)];
+              return [key, "blob", value.length, normalizer.bytes(value, scope)];
             }
 
             if (typeof value === "string") return [key, "text", normalizer.text(value)];
@@ -66,7 +69,11 @@ function dump(path: string, normalizer: Normalizer): unknown {
 export async function snapshot(
   root: string,
   normalizer: Normalizer,
+  canonical = true,
+  validated?: Map<string, unknown>,
 ): Promise<Record<string, string>> {
+  const verified = validated ?? (await verifyRetained(root));
+
   const canonicalize = normalizer.canonicalizer();
   const result: Record<string, string> = {};
 
@@ -113,10 +120,21 @@ export async function snapshot(
     } else if (stat.isFile() && path.endsWith(".sqlite")) dump(path, normalizer);
   }
 
+  for (const [path, value] of verified) {
+    const name = normalizer.text(path.slice(root.length + 1).replace(/\/\d+(?=\/|$)/g, "/row"));
+    const key = `${name}:authenticated`;
+    const valueText = normalizer.text(semanticJson(value));
+
+    result[key] = [result[key], valueText]
+      .filter(Boolean)
+      .sort((a, b) => (a! < b! ? -1 : a! > b! ? 1 : 0))
+      .join("\n");
+  }
+
   await seed(root);
   for (const item of (await readdir(root)).sort()) await walk(join(root, item), item);
 
-  return canonicalize(result);
+  return canonical ? canonicalize(result) : result;
 }
 
 async function fileSnapshot(
@@ -136,10 +154,20 @@ async function fileSnapshot(
     bytes.includes(0) ||
     new TextDecoder("utf8", { fatal: false }).decode(bytes).includes("\uFFFD")
   ) {
-    result[`${name}:binary`] = normalizer.hashStructure(bytes);
+    result[`${name}:binary`] = normalizer.bytes(bytes);
   } else {
     const text = bytes.toString("utf8");
 
-    result[`${name}:content`] = isLiteralFile(relative) ? text : normalizer.text(text);
+    result[`${name}:content`] = isLiteralFile(relative)
+      ? text
+      : normalizer.text(path.endsWith(".json") ? jsonText(text) : text);
+  }
+}
+
+function jsonText(text: string): string {
+  try {
+    return JSON.stringify(orderJson(JSON.parse(text)));
+  } catch {
+    return text;
   }
 }

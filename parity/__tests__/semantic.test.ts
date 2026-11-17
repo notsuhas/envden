@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { outputObservation } from "../compare/output.ts";
-import { choices, conversation } from "../compare/conversation.ts";
+import { choices, conversation, conversationTurn } from "../compare/conversation.ts";
 import { facts } from "../compare/facts.ts";
 import { help } from "../compare/help.ts";
 
@@ -221,4 +221,63 @@ test("PTY confirm redraw answers belong to the conversation", () => {
   );
 
   expect(pty(`${prompt}│ NoYes / ○ No\nPushed 2 files`)).toBe(pty(`${prompt}Pushed 2 files`));
+});
+
+test("JSON output compares object members without losing array order or values", () => {
+  const json = (text: string) => outputObservation(text, "json", identity);
+
+  expect(json('{"files":[{"path":".env","state":"changed"}],"configured":true}')).toBe(
+    json('{"configured":true,"files":[{"state":"changed","path":".env"}]}'),
+  );
+
+  expect(json('{"files":[1,2]}')).not.toBe(json('{"files":[2,1]}'));
+  expect(json('{"state":"changed"}')).not.toBe(json('{"state":"held-back"}'));
+});
+
+test("parser decoration preserves the invalid value, argument and numeric bounds", () => {
+  const ts =
+    "error: command-argument value 'invalid' is invalid for argument 'shell'. Allowed choices are zsh, bash.";
+
+  const go = 'error: invalid argument "invalid" for [shell]; allowed choices are zsh, bash';
+  const port = "error: option '--port <port>' argument '-1' is invalid. Expected 0 to 65535.";
+
+  expect(observe(ts)).toBe(observe(go));
+
+  expect(observe(ts)).toBe(
+    observe("error: invalid value 'invalid' for '[shell]'\n  [possible values: zsh, bash]"),
+  );
+
+  expect(observe(ts)).not.toBe(observe(go.replace("[shell]", "[other]")));
+  expect(observe(port)).toBe(observe(port.replace("--port <port>", "--port")));
+  expect(observe(port)).not.toBe(observe(port.replace("65535", "65536")));
+});
+
+test("a text input placeholder is not a menu choice", () => {
+  const turn = conversationTurn("Device name?\n> host123", "\r");
+
+  expect(turn.choices).toEqual([]);
+  expect(conversationTurn("Remove device?\nYes / No", "y").choices).not.toEqual([]);
+});
+
+test("recorded prompt turns do not depend on whether cancellation clears the title", () => {
+  const pty = (text: string) => outputObservation(text, "pty", identity, [], ["master password"]);
+
+  expect(pty("Master password\nCancelled")).toBe(pty("Cancelled"));
+  expect(pty("Cancelled")).not.toBe(pty("Unlocked"));
+  expect(pty("Ready?\nCancelled")).not.toBe(pty("Cancelled"));
+});
+
+test("a prompt cancellation footer is decoration, repeated reports remain facts", () => {
+  const pty = (text: string) => outputObservation(text, "pty", identity);
+
+  expect(pty("└ Operation cancelled.\nCancelled")).toBe(pty("Cancelled"));
+  expect(pty("Cancelled\nCancelled")).not.toBe(pty("Cancelled"));
+});
+
+test("a wrapped restore question retains its path and complete summary", () => {
+  const one = "Restore <PATH:home-a>/app/.env to version 1? added API_URL; changed TOKEN";
+  const wrapped = "┃ Restore <PATH:home-a>/app/.env to\n┃ version 1? added API_URL; changed TOKEN";
+
+  expect(conversation(wrapped)).toEqual(conversation(one));
+  expect(conversation(wrapped)).not.toEqual(conversation(one.replace(".env", ".env.other")));
 });

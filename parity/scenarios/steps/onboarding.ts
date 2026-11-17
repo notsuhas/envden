@@ -104,7 +104,7 @@ export async function pair(c: TContext, device: string, joinArgs: string[] = [])
   const joining = c.terminal(device, args);
 
   await joining.answers([{ expect: "Pairing code", send: `${code}\r` }]);
-  await add.answers([{ expect: `Add device-${device}?`, send: "y" }]);
+  await add.answers([{ expect: `Add device-${device}?`, send: "y", choices: ["Yes", "No"] }]);
   await c.finish("a", addArgs, add);
 
   return { joining, args };

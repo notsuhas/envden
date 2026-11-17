@@ -24,7 +24,7 @@ export const recoveryPdf: IScenario = {
             "--kit-out",
             join(c.get("a").home, "removal.json"),
           ],
-          [...answerPassword, { expect: "Remove this device?", send: "y" }],
+          [...answerPassword, { expect: "Remove this device?", send: "y", choices: ["Yes", "No"] }],
         );
       },
     },
@@ -34,7 +34,7 @@ export const recoveryPdf: IScenario = {
         await c.pty(
           "a",
           ["vault", "kit", "replace"],
-          [...answerPassword, { expect: "Open it now?", send: "n" }],
+          [...answerPassword, { expect: "Open it now?", send: "n", choices: ["Yes", "No"] }],
         );
       },
     },
