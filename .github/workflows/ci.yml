@@ -49,9 +49,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # windows-2025 is off for now: its run passes the 20-minute limit
-        os: [ubuntu-24.04, macos-15]
-        shard: [1/4, 2/4, 3/4, 4/4]
+        # windows-2025 is off for now: its run passes the 20-minute limit; macOS takes 2 shards to stay within 5 macOS runners
+        include:
+          - { os: ubuntu-24.04, shard: 1/4 }
+          - { os: ubuntu-24.04, shard: 2/4 }
+          - { os: ubuntu-24.04, shard: 3/4 }
+          - { os: ubuntu-24.04, shard: 4/4 }
+          - { os: macos-15, shard: 1/2 }
+          - { os: macos-15, shard: 2/2 }
     name: test (${{ matrix.os }}, ${{ matrix.shard }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -105,7 +110,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-24.04, shard: 1/1 }
+          - { os: ubuntu-24.04, shard: 1/2 }
+          - { os: ubuntu-24.04, shard: 2/2 }
           - { os: macos-15, shard: 1/2 }
           - { os: macos-15, shard: 2/2 }
     name: parity (${{ matrix.os }}, ${{ matrix.shard }})
@@ -128,7 +134,7 @@ jobs:
       - if: startsWith(matrix.shard, '1/') && (success() || failure())
         run: bun parity/verify.ts apps/cli/dist/envden
       # host shims replace service tools, so host-here runs last and only on Linux
-      - if: runner.os == 'Linux' && (success() || failure())
+      - if: runner.os == 'Linux' && startsWith(matrix.shard, '1/') && (success() || failure())
         env:
           PARITY_HOST_SHIMS: "1"
         run: |
