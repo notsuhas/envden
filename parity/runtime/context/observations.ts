@@ -24,7 +24,7 @@ function turns(conversation: ITurn[], normalizer: Normalizer) {
   let previous: string | undefined;
 
   return conversation.map(({ screen, answer }) => {
-    const turn = conversationTurn(normalizer.text(screen), answer, previous);
+    const turn = conversationTurn(normalizer.terminal(screen), answer, previous);
 
     previous = turn.prompts.at(-1);
 
@@ -52,7 +52,7 @@ export function observeOutput(
   observations[`${prefix}/stdout`] = outputObservation(
     output.stdout,
     mode,
-    (text) => normalizer.text(text),
+    (text) => (mode === "pty" ? normalizer.terminal(text) : normalizer.text(text)),
     names,
     recorded?.flatMap((turn) => turn.prompts),
   );

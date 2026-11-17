@@ -1,4 +1,5 @@
 import { canonicalize } from "./canonical.ts";
+import { joinWrappedPaths } from "./paths.ts";
 
 export class Normalizer {
   private readonly values = new Map<string, string>();
@@ -42,6 +43,15 @@ export class Normalizer {
 
   bytes(value: Uint8Array, scope?: string): string {
     return this.symbol(`BYTES:${value.length}`, Buffer.from(value).toString("hex"), scope);
+  }
+
+  terminal(value: string): string {
+    return this.text(
+      joinWrappedPaths(
+        value,
+        this.paths.map(([path]) => path),
+      ),
+    );
   }
 
   text(value: string): string {
