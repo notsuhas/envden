@@ -3,11 +3,19 @@ on:
   push:
     branches: [port/rust]
   pull_request:
+    paths:
+      - "rust/**"
+      - "packaging/**"
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - .parity-reference
+      - .github/workflows/rust.yml
 permissions:
   contents: read
 concurrency:
-  group: rust-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: rust-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 env:
   CARGO_INCREMENTAL: "0"
   CARGO_PROFILE_DEV_DEBUG: "0"
@@ -29,7 +37,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-15, windows-2025]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
@@ -49,13 +57,21 @@ jobs:
       - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
       - run: rustup target add aarch64-pc-windows-msvc
       - run: cargo check --workspace --all-targets --target aarch64-pc-windows-msvc
+  # mixed roles run on Linux only
   parity:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        include:
+          - { os: ubuntu-24.04, shard: 1/3 }
+          - { os: ubuntu-24.04, shard: 2/3 }
+          - { os: ubuntu-24.04, shard: 3/3 }
+          - { os: macos-15, shard: 1/3 }
+          - { os: macos-15, shard: 2/3 }
+          - { os: macos-15, shard: 3/3 }
+    name: parity (${{ matrix.os }}, ${{ matrix.shard }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash
@@ -91,28 +107,24 @@ jobs:
       - run: mkdir -p parity-logs
       - name: Compare binaries
         working-directory: reference
-        run: bun parity/run.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/binaries.log"
-      - name: Compare mixed roles
-        if: success() || failure()
-        working-directory: reference
-        run: bun parity/run.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" --mix 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/mixed.log"
+        run: bun parity/run.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" --shard ${{ matrix.shard }} ${{ runner.os == 'Linux' && '--mix' || '' }} 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/binaries.log"
       - name: Compare server transport
-        if: success() || failure()
+        if: startsWith(matrix.shard, '1/') && (success() || failure())
         working-directory: reference
         run: bun parity/transport.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" --mode semantic 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/transport.log"
       - name: CLI end to end
-        if: success() || failure()
+        if: startsWith(matrix.shard, '1/') && (success() || failure())
         working-directory: reference
         run: bun apps/cli/scripts/e2e.ts "$GITHUB_WORKSPACE/target/release/envden" 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/e2e.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
-          name: parity-logs-${{ matrix.os }}
+          name: parity-logs-${{ matrix.os }}-${{ strategy.job-index }}
           path: parity-logs
           if-no-files-found: warn
   host-here:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash
