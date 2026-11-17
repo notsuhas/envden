@@ -278,6 +278,11 @@ test("a wrapped restore question retains its path and complete summary", () => {
   const one = "Restore <PATH:home-a>/app/.env to version 1? added API_URL; changed TOKEN";
   const wrapped = "┃ Restore <PATH:home-a>/app/.env to\n┃ version 1? added API_URL; changed TOKEN";
 
+  const summaryWrapped =
+    "┃ Restore <PATH:home-a>/app/.env to\n┃ version 1? added API_URL;\n┃ changed TOKEN";
+
   expect(conversation(wrapped)).toEqual(conversation(one));
+  expect(conversation(summaryWrapped)).toEqual(conversation(one));
+  expect(conversation(summaryWrapped)).not.toEqual(conversation(one.replace("TOKEN", "OTHER")));
   expect(conversation(wrapped)).not.toEqual(conversation(one.replace(".env", ".env.other")));
 });

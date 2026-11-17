@@ -36,7 +36,8 @@ export function conversation(text: string): string[] {
 export function promptKeys(text: string): string[] {
   const plain = presentation(text)
     .toLowerCase()
-    .replace(/\b(restore[^\n]+)\n\s*((?:to\s+)?version[^\n]*\?)/g, "$1 $2");
+    .replace(/\b(restore[^\n]+)\n\s*((?:to\s+)?version[^\n]*\?)/g, "$1 $2")
+    .replace(/\b(restore[^\n]*\?[^\n]*)\n\s*((?:added|changed|removed)\b[^\n]*)/g, "$1 $2");
 
   const tokens = [...plain.matchAll(/[\p{L}\p{N}]+/gu)].filter((token) => !filler.has(token[0]));
   const found: { start: number; end: number; key: string }[] = [];
