@@ -1,4 +1,4 @@
-import { Database } from "bun:sqlite";
+import { constants, Database } from "bun:sqlite";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
@@ -100,6 +100,9 @@ export async function retainedFixture(
   const db = new Database(join(home, "envden.sqlite"));
 
   try {
+    db.fileControl(constants.SQLITE_FCNTL_PERSIST_WAL, 0);
+    db.run("PRAGMA journal_mode = WAL");
+
     db.run(
       "CREATE TABLE entries (hash BLOB, bytes BLOB); CREATE TABLE headers (hash BLOB, bytes BLOB); CREATE TABLE lists (hash BLOB, bytes BLOB); CREATE TABLE state (kind TEXT, key BLOB, bytes BLOB)",
     );
@@ -118,6 +121,7 @@ export async function retainedFixture(
     db.run("INSERT INTO lists VALUES (?, ?)", [p.H("files", f.files), files]);
     db.run("INSERT INTO state VALUES ('keyring', ?, ?)", [p.H("keyring-blob", f.keyring), keyring]);
   } finally {
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)");
     db.close();
   }
 }

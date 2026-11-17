@@ -2,7 +2,7 @@ import { verifyRetained } from "./integrity/collect.ts";
 import { semanticJson } from "./integrity/objects.ts";
 import { orderJson } from "../normalize/json.ts";
 import { pdfContent } from "../compare/pdf.ts";
-import { Database } from "bun:sqlite";
+import { readDatabase } from "./sqlite/reader.ts";
 import { lstat, readFile, readdir, readlink } from "node:fs/promises";
 import { join } from "node:path";
 import type { Normalizer } from "../normalize/normalizer.ts";
@@ -14,9 +14,7 @@ function quote(name: string): string {
 }
 
 function dump(path: string, normalizer: Normalizer): unknown {
-  const db = new Database(path, { readonly: true, safeIntegers: true });
-
-  try {
+  return readDatabase(path, (db) => {
     const tables = db
       .query<{ name: string; sql: string }, []>(
         "SELECT name, sql FROM sqlite_master WHERE type = 'table' ORDER BY name",
@@ -61,9 +59,7 @@ function dump(path: string, normalizer: Normalizer): unknown {
 
       return { name, sql, rows: rows.map((row) => JSON.stringify(row)).sort() };
     });
-  } finally {
-    db.close();
-  }
+  });
 }
 
 export async function snapshot(

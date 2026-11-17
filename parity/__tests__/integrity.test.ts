@@ -1,6 +1,7 @@
 import { retainedFixture } from "./fixtures/retained.ts";
 
 import { expect, test } from "bun:test";
+import { constants, Database } from "bun:sqlite";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -112,6 +113,34 @@ test("valid re-encryption cannot hide changed plaintext of the same length", asy
     expect(plaintext(left).length).toBeGreaterThan(0);
     expect(plaintext(left)).not.toEqual(plaintext(right));
   } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("collector rejects same-length signature corruption committed only to WAL", async () => {
+  const root = await mkdtemp(join(tmpdir(), "parity-wal-tamper-"));
+  let db: Database | undefined;
+
+  try {
+    await retainedFixture(root, 7, undefined, true);
+    db = new Database(join(root, "envden.sqlite"));
+    db.fileControl(constants.SQLITE_FCNTL_PERSIST_WAL, 0);
+    db.run("PRAGMA wal_autocheckpoint = 0");
+
+    const entry = db
+      .query<{ bytes: Uint8Array }, []>("SELECT bytes FROM entries WHERE rowid = 2")
+      .get()!;
+
+    entry.bytes[entry.bytes.length - 1] = entry.bytes[entry.bytes.length - 1]! ^ 1;
+    db.run("UPDATE entries SET bytes = ? WHERE rowid = 2", [entry.bytes]);
+
+    await Promise.resolve(
+      expect(snapshot(root, new Normalizer())).rejects.toThrow(
+        "Parity integrity validation failed",
+      ),
+    );
+  } finally {
+    db?.close();
     await rm(root, { recursive: true, force: true });
   }
 });

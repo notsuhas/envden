@@ -1,10 +1,9 @@
-import { Database } from "bun:sqlite";
+import type { Database } from "bun:sqlite";
+import { readDatabase } from "../sqlite/reader.ts";
 import type { IRetained } from "./objects.ts";
 
 export function database(path: string, objects: IRetained[]): void {
-  const db = new Database(path, { readonly: true });
-
-  try {
+  readDatabase(path, (db) => {
     const tables = new Set(
       db
         .query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type='table'")
@@ -28,9 +27,7 @@ export function database(path: string, objects: IRetained[]): void {
     }
 
     if (tables.has("state")) stateRows(db, path, objects);
-  } finally {
-    db.close();
-  }
+  });
 }
 
 function stateRows(db: Database, path: string, objects: IRetained[]): void {
