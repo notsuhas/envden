@@ -1,16 +1,16 @@
 # Cross-implementation coverage
 
-## Missing counterparts
+## Not applicable to the ports
 
 - Go and Rust: `NEXT_PUBLIC_POSTHOG_KEY`. This belongs to the Next.js marketing site, which neither port implements.
 - Rust: `ENVDEN_RC_PATH`. TS and Go pass this internal variable to a PowerShell ownership helper; Rust checks Windows ownership through native APIs (`rust/adapters/shell/rc/src/windows.rs`).
 - Go and Rust: `E2E_KEEP`. This controls retention in the TS e2e runner; the ports use the reference runner rather than duplicating it.
 
-No public CLI/server feature below has a missing source counterpart. This is a source inventory, not a claim that every input has been tested across runtimes. Colour overrides are dependency-owned and still need a terminal comparison. B14 remains open.
+The site, reference test runner and ownership-helper variables above do not require port counterparts. No public CLI/server feature below has a missing source counterpart. This is a source inventory, not a claim that every input has been tested across runtimes. Colour overrides are dependency-owned and still need a terminal comparison. The original B14 and B26 causes remain open.
 
 ## Scope and revisions
 
-Paths are relative to the implementation's branch root. TS: `ae59d56694789410878b00d4f0c010b7b04af7aa` (`fix/cross-impl`). Go: read-only worktree scan began at `e070015f19c79d62aa2777d0864aa6af801c57e0` and ended at `67be9e2d3a55348684eec657ece1e56b46fda266`; another agent committed during the scan. Go paths reflect observed source, not an immutable snapshot. Rust: fetched `origin/port/rust`, `10c35bd87232918f29d412d0a4240a19712c5f47`. Port branches can move after this snapshot.
+Paths are relative to each branch root. The local candidates are based on TS `54e6a1b`, Go `f9346ba` and Rust `236516b`. The TypeScript harness candidate combines the TS changes with `bf42550`; Go and Rust remain language-only branches. Source coverage does not establish runtime equivalence.
 
 `H` is `ENVDEN_HOME` or `U/.envden` (empty override means unset). `U` is the user's home. `D` is `serve --data-dir`, normally `H/server`. A port path identifies the implementation or validator, including shared dispatchers. Repeated prompt call sites share a question-template row. File rows include the state format; temporary files are listed separately where they have a distinct pattern. Tests, fixtures and build outputs are excluded from runtime coverage; the environment table explicitly labels build/site/test-only reads.
 
@@ -239,7 +239,7 @@ Paths are relative to the implementation's branch root. TS: `ae59d56694789410878
 | `COMSPEC` | `packages/core/src/process/environment.ts` | `go/core/process/environment.go` | `rust/adapters/repo/git/src/parity.rs` | Trusted-child environment allowlist; PATH is rebuilt. |
 | `CURSOR_AGENT` | `apps/cli/src/report/offer.ts` | `go/cli/report/offer.go` | `rust/cli/src/report/offer.rs` | Suppress bug-report prompt. |
 | `DO_NOT_TRACK` | `apps/cli/src/settings/privacy.ts` | `go/cli/settings/privacy.go` | `rust/cli/src/settings/render.rs` | Explicit environment read. |
-| `E2E_KEEP` | `apps/cli/scripts/e2e.ts` | MISSING | MISSING | Developer-only TS e2e artifact retention; not a shipped port setting. |
+| `E2E_KEEP` | `apps/cli/scripts/e2e.ts` | Not applicable | Not applicable | Developer-only TS e2e artifact retention; not a shipped port setting. |
 | `ENVDEN_HOME` | `apps/cli/src/adapters.ts` | `go/cli/adapters.go` | `rust/cli/src/adapters.rs` | Explicit environment read. |
 | `ENVDEN_INSTALL_METHOD` | `apps/cli/src/updates/install.ts` | `go/cli/updates/install.go` | `rust/cli/src/report/facts.rs` | Explicit environment read. |
 | `ENVDEN_NO_REPORT` | `apps/cli/src/report/offer.ts` | `go/cli/report/offer.go` | `rust/cli/src/report/offer.rs` | Explicit environment read. |
@@ -260,7 +260,7 @@ Paths are relative to the implementation's branch root. TS: `ae59d56694789410878
 | `LC_*` | `packages/core/src/process/environment.ts` | `go/core/process/environment.go` | `rust/core/src/process/environment.rs` | Case-insensitive locale prefix passed to trusted children. |
 | `LOCALAPPDATA` | `packages/core/src/process/environment.ts` | `go/core/process/environment.go` | `rust/core/src/process/environment.rs` | Trusted-child environment allowlist; PATH is rebuilt. |
 | `LOGNAME` | `packages/core/src/process/environment.ts` | `go/core/process/environment.go` | `rust/core/src/process/environment.rs` | Trusted-child environment allowlist; PATH is rebuilt. |
-| `NEXT_PUBLIC_POSTHOG_KEY` | `apps/web/src/instrumentation-client.ts` | MISSING | MISSING | Next.js marketing site build/runtime setting; ports ship CLI/server only. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | `apps/web/src/instrumentation-client.ts` | Not applicable | Not applicable | Next.js marketing site build/runtime setting; ports ship CLI/server only. |
 | `NODE_EXTRA_CA_CERTS` | `apps/cli/src/output/telemetry/background.ts` | `go/cli/output/telemetry/background.go` | `rust/cli/src/output/telemetry.rs` | Forwarded to telemetry child; HTTP/TLS handling belongs to runtime. |
 | `NO_COLOR` | `apps/cli/src/output/prompts/questions.ts` | `go/cli/output/prompts/keys.go` | `rust/cli/src/output/prompts/terminal.rs` | Read by terminal dependencies, not application process.env. Dependency support has not been exercised. |
 | `NO_PROXY` | `apps/cli/src/output/telemetry/background.ts` | `go/cli/output/telemetry/background.go` | `rust/cli/src/output/telemetry.rs` | Forwarded to telemetry child; HTTP/TLS handling belongs to runtime. |
@@ -286,7 +286,7 @@ Paths are relative to the implementation's branch root. TS: `ae59d56694789410878
 | `no_proxy` | `apps/cli/src/output/telemetry/background.ts` | `go/cli/output/telemetry/background.go` | `rust/cli/src/output/telemetry.rs` | Forwarded to telemetry child; HTTP/TLS handling belongs to runtime. |
 | `node_extra_ca_certs` | `apps/cli/src/output/telemetry/background.ts` | `go/cli/output/telemetry/background.go` | `rust/cli/src/output/telemetry.rs` | Forwarded to telemetry child; HTTP/TLS handling belongs to runtime. |
 | `ssl_cert_file` | `apps/cli/src/output/telemetry/background.ts` | `go/cli/output/telemetry/background.go` | `rust/cli/src/output/telemetry.rs` | Forwarded to telemetry child; HTTP/TLS handling belongs to runtime. |
-| `ENVDEN_RC_PATH` | `packages/adapters/shell/rc/src/files/windows.ts` | `go/adapters/shell/rc/stat_windows.go` | MISSING | Internal PowerShell ownership helper input; Rust uses native Windows ownership APIs instead of this variable. |
+| `ENVDEN_RC_PATH` | `packages/adapters/shell/rc/src/files/windows.ts` | `go/adapters/shell/rc/stat_windows.go` | Not applicable | Internal PowerShell ownership helper input; Rust uses native Windows ownership APIs instead of this variable. |
 
 ## Exit codes
 
@@ -591,37 +591,10 @@ These are the accepted differences recorded in the port notes unless marked open
 | Idle timer granularity | `apps/server/src/main.ts` | `go/server/main.go` | `rust/server/src/lifecycle/transport.rs` | Configured idle/header deadlines are 10 s, including ui. Bun checks idle timers periodically: observed close 10–12 s versus Go/Rust 10 s (B21 revision). |
 | Library diagnostic text | `packages/core/src/protocol/codecs/server/http.ts` | `go/core/protocol/codecs/server/schema.go` | `rust/protocol/src/protocol/codecs/server/http.rs` | OPAQUE and schema-library diagnostic wording differs. Go uses bytemare/opaque and INVALID_DATA “Invalid protocol data”; Rust uses serde/custom validation. Acceptance, typed codes and fixed application errors must match. |
 | HPKE test method | `packages/core/src/protocol/epochs/wrap.ts` | `go/core/protocol/codecs/epochs/wrap.go` | `rust/vendor/hpke/ENVDEN-PATCH.md` | Go crypto/hpke cannot inject an ephemeral key: tests open stored wraps and check ephemeral public keys. TS/Rust support deterministic vector reproduction; Rust carries an HPKE patch. Production wrapping always uses fresh randomness. |
-| B14: approval immediately after takeover (open) | `apps/cli/src/links/takeover/adopt.ts` | `go/cli/links/takeover/adopt.go` | `rust/cli/src/links/takeover/adopt.rs` | The plan records a flaky changed-versus-held-back/needs-approval result. No cause found in TS or Go; deterministic timing input and regression proof remain outstanding. Rust was not re-tested here. |
+| B14: approval immediately after takeover (open) | `apps/cli/src/links/takeover/adopt.ts` | `go/cli/links/takeover/adopt.go` | `rust/cli/src/links/takeover/adopt.rs` | The original mixed-run approval failure remains unexplained. A checkout approved by takeover must immediately be eligible for sync; no timing fix is claimed. |
+| Local JSON object member order | `apps/cli/src/state/store/repository.ts` | `go/cli/state/store/repository.go` | `rust/cli/src/state/json.rs` | Rust can serialize object members in a different order. The harness compares parsed object members while preserving values, array order and references; protocol codecs remain unchanged. |
 | Hand-edited JSON extremes | `apps/cli/src/state/store/repository.ts` | `go/cli/state/store/repository.go` | `rust/cli/src/state/json.rs` | Rust notes: serde_json rejects 1e400 and keeps integers above 2^53 exact, while JSON.parse yields Infinity/rounding. Only hand-edited files reach this difference. |
 
-Sources: `docs/ports/go-parity.md` from the Go worktree and `docs/ports/rust-parity.md` from the Rust revision above; B3/B5/B14/B20/B21 revisions from the cross-implementation decision list. Unicode crate versions come from Rust's root `Cargo.lock`; Unicode table declarations were checked in the locally cached crate sources. These sources describe previous parity work; this inventory did not rerun its runtime harness. The plan also leaves B26's load-sensitive nonce count for investigation; no new conclusion is claimed here.
+| B26: nonce-row mismatch under load (open) | `apps/cli/src/notice/fetch.ts` | Not attributed | Not attributed | The original TS-only nonce-count mismatch remains unexplained. Cancelling a best-effort notice can change its authenticated request count, but that mechanism does not establish the incident's cause. |
 
-## How this was built
-
-The TS command list came from the actual Commander tree, not help text. This includes shared onboarding options and the hidden refresh flag. Commander adds help lazily, so help options/commands were expanded separately; the internal telemetry dispatch was found in main.ts.
-
-```sh
-# Baseline and changing port snapshots
-git rev-parse HEAD
-git -C "$GO_WORKTREE" rev-parse HEAD
-git fetch origin
-git rev-parse origin/port/rust
-git ls-tree -r --name-only origin/port/rust rust docs/ports
-git show origin/port/rust:<path>
-
-# Mechanical TS candidates; tests were excluded from the runtime inventory
-rg -n '\.(command|option|addOption|argument)\(|new Command|new Option' apps/cli/src
-rg -n '\.(get|post|put|delete|patch|head|all)\(' apps/server/src apps/cli/src/ui
-rg -n 'export const|z\.object|z\.enum|z\.union|z\.discriminatedUnion' packages/core/src/protocol
-rg -n 'process\.env|Bun\.env|env\.|env\[|ENVDEN_|NO_COLOR|DO_NOT_TRACK|PROXY' apps packages
-rg -n 'writeFile|atomicWrite|rename\(|Bun.write|appendFile|copyFile|symlink\(|open\(' apps/cli/src apps/server/src packages/adapters
-rg -n 'secret\(|input\(|consent\(|choose\(|chooseMany\(|confirm\(|prompt\(' apps/cli/src
-rg -n 'TErrorCode|errorExitCode|process.exit|exitCode' packages/core/src/errors apps/cli/src
-
-# Counterpart searches (Rust files read with git show into a scratch snapshot)
-rg --files "$GO_WORKTREE/go"
-rg -n '<command, flag, question fragment, schema/type or filename>' "$GO_WORKTREE/go" "$RUST_SNAPSHOT/rust"
-rg -n 'unicode-normalization|unicode-general-category|icu_collator' "$RUST_SNAPSHOT/Cargo.lock"
-```
-
-Commander traversal used Bun with `createProgram(() => 0)`, recursively collecting `name()`, `registeredArguments`, `options` (flags, descriptions and hidden bits), and `commands`. It did not parse argv or execute actions. Hono API prefixes were resolved from the mount; every GET gained a separate HEAD row under B3. Schema branches and write targets were followed from each hit. Failed literal searches were retried with port type names, split path segments and shared dispatchers before marking MISSING. Markdown formatting and repository checks use `./node_modules/.bin/vp check --fix`.
+Cryptographic acceptance follows PROTOCOL.md. Presentation differences do not permit different signatures, authorization decisions, decrypted env bytes or stored references.
