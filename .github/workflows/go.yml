@@ -119,12 +119,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-24.04, shard: 1/6 }
-          - { os: ubuntu-24.04, shard: 2/6 }
-          - { os: ubuntu-24.04, shard: 3/6 }
-          - { os: ubuntu-24.04, shard: 4/6 }
-          - { os: ubuntu-24.04, shard: 5/6 }
-          - { os: ubuntu-24.04, shard: 6/6 }
+          - { os: ubuntu-24.04, shard: 1/8 }
+          - { os: ubuntu-24.04, shard: 2/8 }
+          - { os: ubuntu-24.04, shard: 3/8 }
+          - { os: ubuntu-24.04, shard: 4/8 }
+          - { os: ubuntu-24.04, shard: 5/8 }
+          - { os: ubuntu-24.04, shard: 6/8 }
+          - { os: ubuntu-24.04, shard: 7/8 }
+          - { os: ubuntu-24.04, shard: 8/8 }
           - { os: macos-15, shard: 1/4 }
           - { os: macos-15, shard: 2/4 }
           - { os: macos-15, shard: 3/4 }
