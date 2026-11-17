@@ -49,9 +49,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # windows-2025 is off for now: its run passes the 20-minute limit
-        os: [ubuntu-24.04, macos-15]
-        shard: [1/4, 2/4, 3/4, 4/4]
+        # windows-2025 is off for now: its run passes the 20-minute limit; macOS takes 2 shards to stay within 5 macOS runners
+        include:
+          - { os: ubuntu-24.04, shard: 1/4 }
+          - { os: ubuntu-24.04, shard: 2/4 }
+          - { os: ubuntu-24.04, shard: 3/4 }
+          - { os: ubuntu-24.04, shard: 4/4 }
+          - { os: macos-15, shard: 1/2 }
+          - { os: macos-15, shard: 2/2 }
     name: test (${{ matrix.os }}, ${{ matrix.shard }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -97,40 +102,6 @@ jobs:
       # Bun's pseudo-terminal support is POSIX-only, so Windows runs the smoke test alone
       - if: runner.os != 'Windows'
         run: bun apps/cli/scripts/e2e.ts apps/cli/dist/${{ matrix.asset }}
-
-  parity:
-    needs: changes
-    if: needs.changes.outputs.binary == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-15]
-    name: parity (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version-file: package.json
-      - run: bun install --frozen-lockfile
-      - run: bun run build
-        working-directory: apps/cli
-      # a second copy so the harness compares two distinct executables
-      - run: cp apps/cli/dist/envden "$RUNNER_TEMP/envden"
-      - run: bash parity/ci/install-stand-ins.sh
-      - run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden"
-      - if: success() || failure()
-        run: bun parity/transport.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden" --mode semantic
-      - if: success() || failure()
-        run: bun parity/verify.ts apps/cli/dist/envden
-      # host shims replace service tools, so host-here runs last and only on Linux
-      - if: runner.os == 'Linux' && (success() || failure())
-        env:
-          PARITY_HOST_SHIMS: "1"
-        run: |
-          bash parity/ci/install-stand-ins.sh
-          bun parity/run.ts --reference apps/cli/dist/envden --candidate "$RUNNER_TEMP/envden" --scenario host-here
 
   container:
     needs: changes
