@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ func AddArgument(c *cobra.Command, a Argument) {
 			return fmt.Errorf("missing required argument %s", a.Term)
 		}
 		if len(args) > index && len(a.Choices) > 0 && !slices.Contains(a.Choices, args[index]) {
-			return fmt.Errorf("invalid argument %q for %s; allowed choices are %s", args[index], a.Term, strings.Join(a.Choices, ", "))
+			return fmt.Errorf("invalid argument %q for %s; allowed choices are %s", output.SanitizeTerminal(args[index]), a.Term, strings.Join(a.Choices, ", "))
 		}
 		return nil
 	}

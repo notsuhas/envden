@@ -78,8 +78,14 @@ func envFiles(c adapters.Checkout, rules *adapters.EnvFileRules) ([]string, erro
 						return e
 					}
 				}
-			} else if (entry.Type().IsRegular() || entry.Type()&os.ModeSymlink != 0) && adapters.AcceptsEnvPath(path, *rules) && !tracked[key(path)] {
-				files = append(files, path)
+			} else if entry.Type().IsRegular() || entry.Type()&os.ModeSymlink != 0 {
+				accepted, err := adapters.CheckEnvPath(path, *rules)
+				if err != nil {
+					return err
+				}
+				if accepted && !tracked[key(path)] {
+					files = append(files, path)
+				}
 			}
 		}
 

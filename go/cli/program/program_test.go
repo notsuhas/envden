@@ -175,7 +175,7 @@ func TestParserErrorsStripControlBytesAtEveryDepth(t *testing.T) {
 		}
 
 		text := strings.TrimSuffix(stderr.String(), "\n")
-		if text == "" || strings.ContainsFunc(text, func(r rune) bool { return r < 0x20 || r == 0x7f || (r >= 0x80 && r < 0xa0) }) {
+		if text == "" || strings.Contains(text, `\x1b`) || strings.Contains(text, `\n`) || strings.Contains(text, `\u009b`) || strings.ContainsFunc(text, func(r rune) bool { return r < 0x20 || r == 0x7f || (r >= 0x80 && r < 0xa0) }) {
 			t.Errorf("%q: %q", args, stderr.String())
 		}
 	}

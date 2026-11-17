@@ -58,3 +58,20 @@ func TestContinueBeforeRouting(t *testing.T) {
 		t.Fatal(response.StatusCode)
 	}
 }
+
+func TestNormalizedQueryPreservesAuthority(t *testing.T) {
+	for _, row := range []struct{ raw, want string }{
+		{"/a/../v1/head?", "/v1/head"},
+		{"/v1/head?q='", "/v1/head?q=%27"},
+		{"/v1/head?z=%2f&x=a+b&z=%27", "/v1/head?z=%2f&x=a+b&z=%27"},
+	} {
+		r := httptest.NewRequest("GET", "http://original.example:1234"+row.raw, nil)
+		normalizeRequestURL(r)
+		if got := r.URL.RequestURI(); got != row.want {
+			t.Errorf("%s: got %s, want %s", row.raw, got, row.want)
+		}
+		if r.URL.Host != "original.example:1234" || r.Host != "original.example:1234" {
+			t.Fatal("authority changed", r.URL, r.Host)
+		}
+	}
+}

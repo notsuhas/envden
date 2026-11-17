@@ -39,7 +39,7 @@ func Execute(root *cobra.Command, args []string) (*Invocation, error) {
 			var err error
 			if cmd.HasSubCommands() {
 				if len(args) > 0 {
-					err = fmt.Errorf("unknown command %q for %s", args[0], cmd.CommandPath())
+					err = fmt.Errorf("unknown command %q for %s", output.SanitizeTerminal(args[0]), cmd.CommandPath())
 				} else {
 					writer := cmd.OutOrStdout()
 					cmd.SetOut(cmd.ErrOrStderr())

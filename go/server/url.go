@@ -23,6 +23,8 @@ func normalizeRequestURL(r *http.Request) {
 	if err == nil {
 		r.URL.Path = decoded
 		r.URL.RawPath = normalized
+		r.URL.RawQuery = strings.TrimPrefix(parsed.Search(), "?")
+		r.URL.ForceQuery = false
 	}
 }
 

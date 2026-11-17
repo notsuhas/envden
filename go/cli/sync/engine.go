@@ -66,12 +66,12 @@ func runSync(ctx context.Context, a contracts.Adapters, options Options, pushing
 
 	var result Result
 	err := lock.WithStateLock(ctx, a.Home, a.Timing, func(ctx context.Context) error {
-		context, err := remote.SyncContext(ctx, a, options, linkAPI(ctx, a))
-		if err != nil {
+		if err := settings.RefuseConfiguredPatterns(a.Home); err != nil {
 			return err
 		}
 
-		if err = settings.RefuseConfiguredPatterns(a.Home); err != nil {
+		context, err := remote.SyncContext(ctx, a, options, linkAPI(ctx, a))
+		if err != nil {
 			return err
 		}
 

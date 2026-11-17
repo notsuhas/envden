@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/notsuhas/envden/go/cli/output"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +67,7 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 		f := c.Flags().Lookup(name)
 		if f == nil || name == "version" {
 			if unknown == nil {
-				unknown = fmt.Errorf("unknown option %q", token)
+				unknown = fmt.Errorf("unknown option %q", output.SanitizeTerminal(token))
 			}
 			continue
 		}
@@ -77,7 +78,7 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 		}
 		if v.boolean && attached {
 			if unknown == nil {
-				unknown = fmt.Errorf("unknown option %q", token)
+				unknown = fmt.Errorf("unknown option %q", output.SanitizeTerminal(token))
 			}
 			continue
 		}
@@ -91,13 +92,13 @@ func prepare(c *cobra.Command, args []string) ([]string, error) {
 			result[len(result)-1] = "--" + name + "=" + raw
 		}
 		if len(v.spec.Choices) > 0 && !slices.Contains(v.spec.Choices, raw) {
-			return nil, fmt.Errorf("invalid value %q for --%s; allowed choices are %s", raw, name, strings.Join(v.spec.Choices, ", "))
+			return nil, fmt.Errorf("invalid value %q for --%s; allowed choices are %s", output.SanitizeTerminal(raw), name, strings.Join(v.spec.Choices, ", "))
 		}
 		if v.spec.Parse != nil {
 			if _, err := v.spec.Parse(raw); err != nil {
 				var invalid *InvalidArgumentError
 				if errors.As(err, &invalid) {
-					return nil, fmt.Errorf("invalid value %q for --%s: %w", raw, name, err)
+					return nil, fmt.Errorf("invalid value %q for --%s: %w", output.SanitizeTerminal(raw), name, err)
 				}
 				return nil, err
 			}

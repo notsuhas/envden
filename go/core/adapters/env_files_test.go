@@ -37,3 +37,24 @@ func TestBunGlobTable(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckEnvPathShortCircuitsPatterns(t *testing.T) {
+	for _, row := range []struct {
+		path    string
+		rules   EnvFileRules
+		want    bool
+		invalid bool
+	}{
+		{".env", EnvFileRules{Include: []string{"[a]"}}, false, true},
+		{".env", EnvFileRules{Exclude: []string{"[a]"}}, false, true},
+		{".env", EnvFileRules{Include: []string{".env", "[a]"}}, true, false},
+		{".env", EnvFileRules{Include: []string{}, Exclude: []string{"[a]"}}, false, false},
+		{".envrc", EnvFileRules{Include: []string{"[a]"}}, false, false},
+		{"node_modules/.env", EnvFileRules{Include: []string{"[a]"}}, false, false},
+	} {
+		got, err := CheckEnvPath(row.path, row.rules)
+		if got != row.want || (err != nil) != row.invalid {
+			t.Errorf("%s %+v: got %v, %v; want %v invalid=%v", row.path, row.rules, got, err, row.want, row.invalid)
+		}
+	}
+}
