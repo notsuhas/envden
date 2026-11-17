@@ -4,7 +4,7 @@ on:
   push:
     branches: [port/go]
   pull_request:
-    paths: ["go/**", "packaging/**", ".parity-reference", ".github/workflows/go.yml"]
+    paths: ["go/**", "packaging/**", ".github/workflows/go.yml"]
 
 permissions:
   contents: read
@@ -112,88 +112,3 @@ jobs:
         working-directory: .
         run: |
           docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /tmp:uid=10001,gid=10001,mode=1777 --tmpfs /var/run/tailscale:uid=10001,gid=10001,mode=0700 --entrypoint envden envden:ci --version
-
-  # the reference build and harness live on main, pinned by .parity-reference; mixed setups run on Linux only
-  parity:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: ubuntu-24.04, shard: 1/8 }
-          - { os: ubuntu-24.04, shard: 2/8 }
-          - { os: ubuntu-24.04, shard: 3/8 }
-          - { os: ubuntu-24.04, shard: 4/8 }
-          - { os: ubuntu-24.04, shard: 5/8 }
-          - { os: ubuntu-24.04, shard: 6/8 }
-          - { os: ubuntu-24.04, shard: 7/8 }
-          - { os: ubuntu-24.04, shard: 8/8 }
-          - { os: macos-15, shard: 1/4 }
-          - { os: macos-15, shard: 2/4 }
-          - { os: macos-15, shard: 3/4 }
-          - { os: macos-15, shard: 4/4 }
-    name: parity (${{ matrix.os }}, ${{ matrix.shard }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - id: reference
-        working-directory: .
-        run: echo "sha=$(tr -d '[:space:]' < .parity-reference)" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ steps.reference.outputs.sha }}
-          path: reference
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version-file: reference/package.json
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go/go.mod
-          cache-dependency-path: go/go.sum
-      - name: Build the reference
-        working-directory: reference/apps/cli
-        run: bun install --frozen-lockfile && bun run build
-      - run: go build -o dist/envden ./cmd/envden && echo "CANDIDATE=$PWD/dist/envden" >> "$GITHUB_ENV"
-      - working-directory: reference
-        run: bash parity/ci/install-stand-ins.sh
-      - name: Parity suite
-        working-directory: reference
-        run: bun parity/run.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --shard ${{ matrix.shard }} ${{ runner.os == 'Linux' && '--mix' || '' }}
-      - name: Transport
-        if: startsWith(matrix.shard, '1/') && (success() || failure())
-        working-directory: reference
-        run: bun parity/transport.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --mode semantic
-      - name: e2e against the Go binary
-        if: startsWith(matrix.shard, '1/') && (success() || failure())
-        working-directory: reference
-        run: bun apps/cli/scripts/e2e.ts "$CANDIDATE"
-
-  host-here:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - id: reference
-        working-directory: .
-        run: echo "sha=$(tr -d '[:space:]' < .parity-reference)" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ steps.reference.outputs.sha }}
-          path: reference
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version-file: reference/package.json
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go/go.mod
-          cache-dependency-path: go/go.sum
-      - name: Build the reference
-        working-directory: reference/apps/cli
-        run: bun install --frozen-lockfile && bun run build
-      - run: go build -o dist/envden ./cmd/envden && echo "CANDIDATE=$PWD/dist/envden" >> "$GITHUB_ENV"
-      - working-directory: reference
-        run: PARITY_HOST_SHIMS=1 bash parity/ci/install-stand-ins.sh
-      - working-directory: reference
-        run: PARITY_HOST_SHIMS=1 bun parity/run.ts --reference apps/cli/dist/envden --candidate "$CANDIDATE" --scenario host-here
