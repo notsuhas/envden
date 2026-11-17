@@ -22,7 +22,7 @@ pub(crate) mod vault;
 
 mod complete;
 
-mod host;
+pub(crate) mod host;
 
 pub(crate) mod accept;
 

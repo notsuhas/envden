@@ -151,3 +151,77 @@ fn vault_repos_ignores_empty_checkpoint() {
             .is_empty()
     );
 }
+
+#[test]
+fn worktree_notice_probe() {
+    if std::env::var_os("ENVDEN_WORKTREE_NOTICE_PROBE").is_none() {
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().canonical_path().unwrap();
+    let mut adapters = create_adapters(Some(root.join("home")), root.clone(), || 42);
+    let clone = ICheckout {
+        root: root.join("clone").to_string_lossy().into_owned(),
+        git_dir: root.join("clone/.git").to_string_lossy().into_owned(),
+        repo_id: "host/repo".into(),
+        ..Default::default()
+    };
+    let worktree = ICheckout {
+        root: root.join("feature").to_string_lossy().into_owned(),
+        registered_worktree: Some(true),
+        ..clone.clone()
+    };
+    fs::create_dir_all(&clone.git_dir).unwrap();
+    fs::create_dir_all(&worktree.root).unwrap();
+    fs::write(
+        Path::new(&worktree.root).join(".git"),
+        "gitdir: ../clone/.git\n",
+    )
+    .unwrap();
+    fs::write(Path::new(&worktree.root).join(".env"), "A=1\n").unwrap();
+    fs::create_dir_all(&adapters.home).unwrap();
+    fs::write(
+        adapters.home.join("config.json"),
+        r#"{"auto-approve-worktrees":true}"#,
+    )
+    .unwrap();
+    let mut state = empty_state("test");
+    state["approved"] = serde_json::json!([crate::links::approval::checkout_value(&clone)]);
+    save_state(&adapters.home, &state, &adapters.now).unwrap();
+    adapters.repo = Box::new(Repos(vec![clone, worktree.clone()]));
+    setup_checkouts(
+        &adapters,
+        &mut state,
+        &ICheckoutOptions {
+            scan_root: Some(vec![Path::new(&worktree.root).to_owned()]),
+            approve: Some(&|_| Ok(true)),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+}
+
+#[test]
+fn automatic_worktree_approval_stays_on_stderr() {
+    let output = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "onboarding::scan::tests::worktree_notice_probe",
+            "--nocapture",
+        ])
+        .env("ENVDEN_WORKTREE_NOTICE_PROBE", "1")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("Approved worktree"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("Approved worktree"),
+        "stdout={}, stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}

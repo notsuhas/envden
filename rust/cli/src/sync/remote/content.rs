@@ -34,21 +34,6 @@ pub fn readable_entries(context: &ISyncContext<'_>) -> Result<Vec<p::IFileEntry>
 }
 
 pub fn entry_content(context: &ISyncContext<'_>, entry: &p::IFileEntry) -> Result<Option<Vec<u8>>> {
-    read_content(context, entry, true)
-}
-
-pub fn history_content(
-    context: &ISyncContext<'_>,
-    entry: &p::IFileEntry,
-) -> Result<Option<Vec<u8>>> {
-    read_content(context, entry, false)
-}
-
-fn read_content(
-    context: &ISyncContext<'_>,
-    entry: &p::IFileEntry,
-    cache: bool,
-) -> Result<Option<Vec<u8>>> {
     if matches!(entry.state, 2 | 4) {
         return Ok(None);
     }
@@ -89,7 +74,7 @@ fn read_content(
         &entry.blob_hash,
         &name,
     )?;
-    if cache && cached.is_none() {
+    if cached.is_none() {
         atomic_write(&path, &bytes, (context.options.now)())?;
     }
     Ok(Some(file.content))

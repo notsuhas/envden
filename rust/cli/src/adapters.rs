@@ -1,3 +1,6 @@
+mod hosting;
+mod network;
+
 use crate::time::TClock;
 use envden_core::adapters::{
     IKeychainAdapter, INetworkAdapter, IPlacementAdapter, IRepoAdapter, IShellAdapter,
@@ -7,6 +10,9 @@ use envden_core::filesystem::ICanonicalPath;
 use std::path::{Path, PathBuf};
 
 pub struct IAdapters {
+    pub host_server: hosting::THostServer,
+    pub server_port: hosting::TServerPort,
+    pub local_setup_token: hosting::TLocalSetupToken,
     pub home: PathBuf,
     pub user_home: PathBuf,
     pub executable: PathBuf,
@@ -14,15 +20,19 @@ pub struct IAdapters {
     pub now: TClock,
     pub keychain: Box<dyn IKeychainAdapter>,
     pub repo: Box<dyn IRepoAdapter>,
-    pub network: Box<dyn INetworkAdapter>,
+    pub network: std::sync::Arc<dyn INetworkAdapter>,
 }
 
 pub fn create_adapters(home: Option<PathBuf>, user_home: PathBuf, now: TClock) -> IAdapters {
+    let injected = home.is_some();
     let home = home
         .or_else(|| envden_core::paths::envden_home_override(std::env::var_os("ENVDEN_HOME")))
         .unwrap_or_else(|| user_home.join(".envden"));
     let home = real_location(&home);
     IAdapters {
+        host_server: hosting::host_server(injected),
+        server_port: hosting::server_port(injected),
+        local_setup_token: hosting::local_setup_token(injected),
         hostname: hostname::get()
             .map(|name| name.to_string_lossy().into_owned())
             .unwrap_or_default(),
@@ -32,7 +42,7 @@ pub fn create_adapters(home: Option<PathBuf>, user_home: PathBuf, now: TClock) -
         repo: Box::new(envden_adapter_repo_git::create_git_repo_adapter(
             Default::default(),
         )),
-        network: Box::new(envden_adapter_network_tailscale::create_tailscale_network_adapter(None)),
+        network: network::network(injected),
         home,
         user_home,
         executable: std::env::current_exe().unwrap_or_default(),
@@ -108,5 +118,31 @@ mod tests {
         let cwd = std::env::current_dir().unwrap().canonical_path().unwrap();
         assert_eq!(adapters.home, cwd.join(relative));
         assert!(!adapters.home.to_string_lossy().starts_with(r"\\?\"));
+    }
+
+    #[test]
+    fn injected_adapters_never_default_to_real_network() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(Some(dir.path().join("home")), dir.path().into(), || 1);
+        assert_eq!(adapters.network.id(), "unsupplied-network");
+        for result in [
+            adapters.network.status().map(|_| ()),
+            adapters.network.check_https_certificate().map(|_| ()),
+            adapters.network.expose(1234.0).map(|_| ()),
+        ] {
+            assert!(
+                result
+                    .unwrap_err()
+                    .message
+                    .starts_with("Unexpected adapter operation:")
+            );
+        }
+    }
+
+    #[test]
+    fn production_construction_retains_real_network_without_calling_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let adapters = create_adapters(None, dir.path().into(), || 1);
+        assert_eq!(adapters.network.id(), "tailscale");
     }
 }

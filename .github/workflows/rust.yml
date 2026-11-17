@@ -99,7 +99,7 @@ jobs:
       - name: Compare server transport
         if: success() || failure()
         working-directory: reference
-        run: bun parity/transport.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/transport.log"
+        run: bun parity/transport.ts --reference "$PWD/apps/cli/dist/envden" --candidate "$GITHUB_WORKSPACE/target/release/envden" --mode semantic 2>&1 | tee "$GITHUB_WORKSPACE/parity-logs/transport.log"
       - name: CLI end to end
         if: success() || failure()
         working-directory: reference

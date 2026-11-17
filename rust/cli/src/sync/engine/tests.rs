@@ -4,7 +4,7 @@ use crate::sync::fixture;
 #[cfg(test)]
 mod cases {
     use super::*;
-    struct NeverCall;
+    pub(super) struct NeverCall;
     impl ITransport for NeverCall {
         fn fetch(&self, _: crate::client::IHttpRequest) -> Result<crate::client::IHttpResponse> {
             panic!("unconfigured sync must not request the server")
@@ -84,4 +84,30 @@ fn pull_saves_selection_and_two_checkpoints() {
         3,
         "pull must save selection and two reconciliation checkpoints"
     );
+}
+
+#[test]
+fn invalid_patterns_precede_unconfigured_state() {
+    let dir = tempfile::tempdir().unwrap();
+    let adapters =
+        crate::adapters::create_adapters(Some(dir.path().into()), dir.path().into(), || 1);
+    std::fs::write(
+        adapters.home.join("config.json"),
+        r#"{"env-files":{"include":["[ab]"],"exclude":[]}}"#,
+    )
+    .unwrap();
+    let options = ISyncOptions {
+        unlock: None,
+        now: Rc::new(adapters.now),
+        cwd: None,
+        all: true,
+        yes: true,
+        interactive: false,
+        choose: None,
+        confirm: None,
+        report: None,
+    };
+    let error = sync(&adapters, options, Rc::new(cases::NeverCall), false).unwrap_err();
+    assert_eq!(error.code, ErrorCode::InvalidInput);
+    assert_eq!(error.message, "Unsupported env file pattern");
 }

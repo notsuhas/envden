@@ -29,6 +29,10 @@ pub fn run_dashboard(
     let home = adapters.home.clone();
     let user_home = adapters.user_home.clone();
     let now = adapters.now;
+    let network = adapters.network.clone();
+    let host_server = adapters.host_server.clone();
+    let server_port = adapters.server_port.clone();
+    let local_setup_token = adapters.local_setup_token.clone();
     runtime.block_on(async {
         let token = new_token();
         let listener = tokio::net::TcpListener::bind(("127.0.0.1", port.unwrap_or(0.0) as u16))
@@ -39,7 +43,11 @@ pub fn run_dashboard(
             port,
             token.clone(),
             Arc::new(move |request| {
-                let adapters = create_adapters(Some(home.clone()), user_home.clone(), now);
+                let mut adapters = create_adapters(Some(home.clone()), user_home.clone(), now);
+                adapters.network = network.clone();
+                adapters.host_server = host_server.clone();
+                adapters.server_port = server_port.clone();
+                adapters.local_setup_token = local_setup_token.clone();
                 crate::ui::routes::api::api(
                     &adapters,
                     request,

@@ -28,3 +28,7 @@ impl IPortProbe for Probe {
             })
     }
 }
+
+pub(crate) fn choose_port() -> Result<u16> {
+    crate::agent::service::port::choose_server_port(&Probe, None)
+}

@@ -1,4 +1,4 @@
-/* apps/cli/src/ui/page/styles.css */
+/* src/ui/page/styles.css */
 :root {
   --buncss-light: ;
   --buncss-dark: initial;
@@ -542,7 +542,7 @@ th {
   display: none;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .frame {
     width: calc(100% - 3rem);
   }

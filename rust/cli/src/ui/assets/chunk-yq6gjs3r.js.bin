@@ -1,4 +1,54 @@
-// apps/cli/src/ui/page/api.ts
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
+var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  if (mod && typeof mod === "object" || typeof mod === "function") {
+    for (let key of __getOwnPropNames(mod))
+      if (!__hasOwnProp.call(to, key))
+        __defProp(to, key, {
+          get: __accessProp.bind(mod, key),
+          enumerable: true
+        });
+  }
+  if (canCache)
+    cache.set(mod, to);
+  return to;
+};
+var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __returnValue = (v) => v;
+function __exportSetter(name, newValue) {
+  this[name] = __returnValue.bind(null, newValue);
+}
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: __exportSetter.bind(all, name)
+    });
+};
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
+var __jsonParse = (a) => JSON.parse(a);
+var __require = import.meta.require;
+
+// src/ui/page/api.ts
 function createApi(token) {
   return async function call(path, body) {
     const response = await fetch(`/api/${path}`, {
@@ -19,7 +69,7 @@ function errorMessage(json) {
   return json && typeof json === "object" && "message" in json && typeof json.message === "string" ? json.message : "Request failed";
 }
 
-// apps/cli/src/ui/page/render/dom.ts
+// src/ui/page/render/dom.ts
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
   if (props.className)
@@ -57,7 +107,7 @@ function button(text, tone, label, onClick) {
   return node;
 }
 
-// apps/cli/src/ui/page/notice.ts
+// src/ui/page/notice.ts
 function notify(message, error = false) {
   const notice = byId("notice");
   notice.textContent = message;
@@ -83,7 +133,7 @@ async function busy(message, action) {
   }
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/constants.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/constants.js
 var daysInYear = 365.2425;
 var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1000;
 var minTime = -maxTime;
@@ -101,7 +151,7 @@ var secondsInMonth = secondsInYear / 12;
 var secondsInQuarter = secondsInMonth * 3;
 var constructFromSymbol = Symbol.for("constructDateFrom");
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/constructFrom.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/constructFrom.js
 function constructFrom(date, value) {
   if (typeof date === "function")
     return date(value);
@@ -112,18 +162,18 @@ function constructFrom(date, value) {
   return new Date(value);
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/toDate.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/toDate.js
 function toDate(argument, context) {
   return constructFrom(context || argument, argument);
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/defaultOptions.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/defaultOptions.js
 var defaultOptions = {};
 function getDefaultOptions() {
   return defaultOptions;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfWeek.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfWeek.js
 function startOfWeek(date, options) {
   const defaultOptions2 = getDefaultOptions();
   const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
@@ -135,12 +185,12 @@ function startOfWeek(date, options) {
   return _date;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfISOWeek.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfISOWeek.js
 function startOfISOWeek(date, options) {
   return startOfWeek(date, { ...options, weekStartsOn: 1 });
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getISOWeekYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getISOWeekYear.js
 function getISOWeekYear(date, options) {
   const _date = toDate(date, options?.in);
   const year = _date.getFullYear();
@@ -161,7 +211,7 @@ function getISOWeekYear(date, options) {
   }
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
 function getTimezoneOffsetInMilliseconds(date) {
   const _date = toDate(date);
   const utcDate = new Date(Date.UTC(_date.getFullYear(), _date.getMonth(), _date.getDate(), _date.getHours(), _date.getMinutes(), _date.getSeconds(), _date.getMilliseconds()));
@@ -169,20 +219,20 @@ function getTimezoneOffsetInMilliseconds(date) {
   return +date - +utcDate;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/normalizeDates.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/normalizeDates.js
 function normalizeDates(context, ...dates) {
   const normalize = constructFrom.bind(null, context || dates.find((date) => typeof date === "object"));
   return dates.map(normalize);
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfDay.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfDay.js
 function startOfDay(date, options) {
   const _date = toDate(date, options?.in);
   _date.setHours(0, 0, 0, 0);
   return _date;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/differenceInCalendarDays.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/differenceInCalendarDays.js
 function differenceInCalendarDays(laterDate, earlierDate, options) {
   const [laterDate_, earlierDate_] = normalizeDates(options?.in, laterDate, earlierDate);
   const laterStartOfDay = startOfDay(laterDate_);
@@ -192,7 +242,7 @@ function differenceInCalendarDays(laterDate, earlierDate, options) {
   return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfISOWeekYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfISOWeekYear.js
 function startOfISOWeekYear(date, options) {
   const year = getISOWeekYear(date, options);
   const fourthOfJanuary = constructFrom(options?.in || date, 0);
@@ -201,7 +251,7 @@ function startOfISOWeekYear(date, options) {
   return startOfISOWeek(fourthOfJanuary);
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/compareAsc.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/compareAsc.js
 function compareAsc(dateLeft, dateRight) {
   const diff = +toDate(dateLeft) - +toDate(dateRight);
   if (diff < 0)
@@ -211,17 +261,17 @@ function compareAsc(dateLeft, dateRight) {
   return diff;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/isDate.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/isDate.js
 function isDate(value) {
   return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/isValid.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/isValid.js
 function isValid(date) {
   return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/getRoundingMethod.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/getRoundingMethod.js
 function getRoundingMethod(method) {
   return (number) => {
     const round = method ? Math[method] : Math.trunc;
@@ -230,7 +280,7 @@ function getRoundingMethod(method) {
   };
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfYear.js
 function startOfYear(date, options) {
   const date_ = toDate(date, options?.in);
   date_.setFullYear(date_.getFullYear(), 0, 1);
@@ -238,7 +288,7 @@ function startOfYear(date, options) {
   return date_;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
 var formatDistanceLocale = {
   lessThanXSeconds: {
     one: "less than a second",
@@ -322,7 +372,7 @@ var formatDistance = (token, count, options) => {
   return result;
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildFormatLongFn.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildFormatLongFn.js
 function buildFormatLongFn(args) {
   return (options = {}) => {
     const width = options.width ? String(options.width) : args.defaultWidth;
@@ -331,7 +381,7 @@ function buildFormatLongFn(args) {
   };
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatLong.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatLong.js
 var dateFormats = {
   full: "EEEE, MMMM do, y",
   long: "MMMM do, y",
@@ -365,7 +415,7 @@ var formatLong = {
   })
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatRelative.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/formatRelative.js
 var formatRelativeLocale = {
   lastWeek: "'last' eeee 'at' p",
   yesterday: "'yesterday at' p",
@@ -376,7 +426,7 @@ var formatRelativeLocale = {
 };
 var formatRelative = (token, _date, _baseDate, _options) => formatRelativeLocale[token];
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildLocalizeFn.js
 function buildLocalizeFn(args) {
   return (value, options) => {
     const context = options?.context ? String(options.context) : "standalone";
@@ -395,7 +445,7 @@ function buildLocalizeFn(args) {
   };
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/localize.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/localize.js
 var eraValues = {
   narrow: ["B", "A"],
   abbreviated: ["BC", "AD"],
@@ -557,7 +607,7 @@ var localize = {
   })
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildMatchFn.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildMatchFn.js
 function buildMatchFn(args) {
   return (string, options = {}) => {
     const width = options.width;
@@ -593,7 +643,7 @@ function findIndex(array, predicate) {
   return;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
 function buildMatchPatternFn(args) {
   return (string, options = {}) => {
     const matchResult = string.match(args.matchPattern);
@@ -610,7 +660,7 @@ function buildMatchPatternFn(args) {
   };
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/match.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US/_lib/match.js
 var matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
 var parseOrdinalNumberPattern = /\d+/i;
 var matchEraPatterns = {
@@ -729,7 +779,7 @@ var match = {
   })
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/locale/en-US.js
 var enUS = {
   code: "en-US",
   formatDistance,
@@ -742,7 +792,7 @@ var enUS = {
     firstWeekContainsDate: 1
   }
 };
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getDayOfYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getDayOfYear.js
 function getDayOfYear(date, options) {
   const _date = toDate(date, options?.in);
   const diff = differenceInCalendarDays(_date, startOfYear(_date));
@@ -750,14 +800,14 @@ function getDayOfYear(date, options) {
   return dayOfYear;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getISOWeek.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getISOWeek.js
 function getISOWeek(date, options) {
   const _date = toDate(date, options?.in);
   const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
   return Math.round(diff / millisecondsInWeek) + 1;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getWeekYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getWeekYear.js
 function getWeekYear(date, options) {
   const _date = toDate(date, options?.in);
   const year = _date.getFullYear();
@@ -780,7 +830,7 @@ function getWeekYear(date, options) {
   }
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfWeekYear.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/startOfWeekYear.js
 function startOfWeekYear(date, options) {
   const defaultOptions2 = getDefaultOptions();
   const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
@@ -792,21 +842,21 @@ function startOfWeekYear(date, options) {
   return _date;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getWeek.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/getWeek.js
 function getWeek(date, options) {
   const _date = toDate(date, options?.in);
   const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
   return Math.round(diff / millisecondsInWeek) + 1;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/addLeadingZeros.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/addLeadingZeros.js
 function addLeadingZeros(number, targetLength) {
   const sign = number < 0 ? "-" : "";
   const output = Math.abs(number).toString().padStart(targetLength, "0");
   return sign + output;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/lightFormatters.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/lightFormatters.js
 var lightFormatters = {
   y(date, token) {
     const signedYear = date.getFullYear();
@@ -855,7 +905,7 @@ var lightFormatters = {
   }
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/formatters.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/formatters.js
 var dayPeriodEnum = {
   am: "am",
   pm: "pm",
@@ -1394,7 +1444,7 @@ function formatTimezone(offset, delimiter = "") {
   return sign + hours + delimiter + minutes;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/longFormatters.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/format/longFormatters.js
 var dateLongFormatter = (pattern, formatLong2) => {
   switch (pattern) {
     case "P":
@@ -1451,7 +1501,7 @@ var longFormatters = {
   P: dateTimeLongFormatter
 };
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/protectedTokens.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/_lib/protectedTokens.js
 var dayOfYearTokenRE = /^D+$/;
 var weekYearTokenRE = /^Y+$/;
 var throwTokens = ["D", "DD", "YY", "YYYY"];
@@ -1472,7 +1522,7 @@ function message(token, format, input) {
   return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/format.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/format.js
 var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
 var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
 var escapedStringRegExp = /^'([^]*?)'?$/;
@@ -1537,7 +1587,7 @@ function cleanEscapedString(input) {
   return matched[1].replace(doubleQuoteRegExp, "'");
 }
 
-// node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/formatDistanceStrict.js
+// ../../node_modules/.bun/date-fns@4.4.0/node_modules/date-fns/formatDistanceStrict.js
 function formatDistanceStrict(laterDate, earlierDate, options) {
   const defaultOptions2 = getDefaultOptions();
   const locale = options?.locale ?? defaultOptions2.locale ?? enUS;
@@ -1595,7 +1645,7 @@ function formatDistanceStrict(laterDate, earlierDate, options) {
   }
 }
 
-// apps/cli/src/ui/view/guidance/restore.ts
+// src/ui/view/guidance/restore.ts
 function restoreBlock(status) {
   if (status === "local-only")
     return "Local-only files have no history on the server.";
@@ -1606,7 +1656,7 @@ function restoreBlock(status) {
   return;
 }
 
-// apps/cli/src/ui/page/render/chip.ts
+// src/ui/page/render/chip.ts
 var tones = {
   "in-sync": "cold",
   "local-only": "idle",
@@ -1632,7 +1682,7 @@ function quiet(status) {
   return status === "in-sync" || status === "local-only";
 }
 
-// apps/cli/src/ui/page/render/window.ts
+// src/ui/page/render/window.ts
 function windowPane(title, badge, lit, body) {
   const handle = () => el("span", { className: "handle" });
   const hatch = () => el("span", { className: "hatch" });
@@ -1649,7 +1699,7 @@ function windowPane(title, badge, lit, body) {
   ]);
 }
 
-// apps/cli/src/ui/page/render/keys.ts
+// src/ui/page/render/keys.ts
 function keyList(keys) {
   if (!keys)
     return el("span", { className: "muted", text: "-" });
@@ -1665,7 +1715,7 @@ function keyList(keys) {
   return el("span", { className: "keys" }, items);
 }
 
-// apps/cli/src/ui/page/render/history/changes.ts
+// src/ui/page/render/history/changes.ts
 function historyKeys(changes) {
   if (changes === "unknown")
     return el("span", { className: "muted", text: "changes unknown" });
@@ -1686,7 +1736,7 @@ function versionChanges(version) {
   return historyKeys(version.changes);
 }
 
-// apps/cli/src/ui/page/render/history/pane.ts
+// src/ui/page/render/history/pane.ts
 function historyPane(pane, actions) {
   const { root, file, history } = pane;
   const current = history.checkouts.find((checkout) => checkout.root === root)?.version;
@@ -1760,7 +1810,7 @@ function outcomeStrip(file, outcome) {
   ]);
 }
 
-// apps/cli/src/ui/page/render/reveal.ts
+// src/ui/page/render/reveal.ts
 function reveal(target) {
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
@@ -1768,7 +1818,7 @@ function reveal(target) {
   requestAnimationFrame(() => target.dataset.flash = "true");
 }
 
-// apps/cli/src/ui/page/history.ts
+// src/ui/page/history.ts
 function createHistory(call, refresh) {
   let pane;
   const load = (root, path) => call(`history?${new URLSearchParams({ root, path }).toString()}`);
@@ -1834,7 +1884,7 @@ function createHistory(call, refresh) {
   return { open, track };
 }
 
-// apps/cli/src/ui/page/rename.ts
+// src/ui/page/rename.ts
 function createRename(call, refresh) {
   return async function rename(name) {
     let failure;
@@ -1852,7 +1902,7 @@ function createRename(call, refresh) {
   };
 }
 
-// apps/cli/src/ui/page/render/conflicts.ts
+// src/ui/page/render/conflicts.ts
 function renderConflicts(target, conflicts, resolve) {
   if (!conflicts.length) {
     target.replaceChildren(el("p", { className: "empty", text: "No conflicts." }));
@@ -1887,14 +1937,14 @@ function choiceButton(conflict, choice, resolve) {
   return button(text, tone, `${text} for ${conflict.path}`, () => resolve(conflict, choice));
 }
 
-// apps/cli/src/ui/view/summary.ts
+// src/ui/view/summary.ts
 var plural = new Intl.PluralRules("en");
 function syncSummary(kind, changed, conflicts) {
   const noun = plural.select(conflicts) === "one" ? "conflict" : "conflicts";
   return `${kind === "pull" ? "Pulled" : "Pushed"}: ${changed} changed, ${conflicts} ${noun}.`;
 }
 
-// apps/cli/src/ui/page/render/devices/rename.ts
+// src/ui/page/render/devices/rename.ts
 function renameControl(current, rename) {
   const control = el("div", { className: "rename" });
   const closed = () => control.replaceChildren(button("Rename", "quiet", "Rename this device", open));
@@ -1933,7 +1983,7 @@ function renameControl(current, rename) {
   return control;
 }
 
-// apps/cli/src/ui/page/render/devices/list.ts
+// src/ui/page/render/devices/list.ts
 function renderDevices(target, devices, rename) {
   target.replaceChildren(el("ul", { className: "cells", label: "Devices" }, devices.map((device) => el("li", { className: "cell" }, [
     el("h3", { text: device.name }),
@@ -1953,7 +2003,7 @@ function flags(device) {
   ].filter(Boolean).join(" · ") || "member";
 }
 
-// apps/cli/src/ui/view/unlock/text.ts
+// src/ui/view/unlock/text.ts
 var fixed = {
   never: "never expires",
   locked: "locked — run envden unlock in a terminal",
@@ -1968,7 +2018,7 @@ function unlockText(unlock, now, date) {
   return `${date(unlock.until)} (${formatDistanceStrict(unlock.until, now, { addSuffix: true })})`;
 }
 
-// apps/cli/src/ui/page/render/overview.ts
+// src/ui/page/render/overview.ts
 var lights = { reachable: "good", error: "bad" };
 function renderOverview(target, overview, conflicts) {
   const cell = (term, value, attention = false) => el("div", { data: { attention: String(attention) } }, [
@@ -1986,7 +2036,7 @@ function renderOverview(target, overview, conflicts) {
   ]), cell("Vault", [text(overview.vaultId)]), cell("Unlock", [text(unlockText(overview.unlock, overview.checkedAt, (ms) => format(ms, "PP p")))], overview.unlock.kind === "locked"), cell("Pending", [text(String(overview.pending))], overview.pending > 0), cell("Conflicts", [text(String(conflicts))], conflicts > 0));
 }
 
-// apps/cli/src/ui/view/guidance/held.ts
+// src/ui/view/guidance/held.ts
 var guidance = {
   "invalid-state": "invalid sync state; press Pull, then settle any conflict above",
   oversized: "file exceeds 1 MiB; reduce its size before pushing",
@@ -2000,7 +2050,7 @@ function heldGuidance(held) {
   return guidance[held];
 }
 
-// apps/cli/src/ui/page/render/repos.ts
+// src/ui/page/render/repos.ts
 function renderRepos(target, repos, actions) {
   if (!repos.length) {
     target.replaceChildren(el("p", { className: "empty", text: "No tracked env files yet." }));
@@ -2029,7 +2079,7 @@ function statusCell(file, actions) {
   return el("span", { className: "row" }, [chip(file.status), ...hint ? [hint] : []]);
 }
 
-// apps/cli/src/ui/page/main.ts
+// src/ui/page/main.ts
 var call = createApi(location.hash.slice(1));
 var history = createHistory(call, refresh);
 var rename = createRename(call, refresh);

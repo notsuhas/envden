@@ -20,6 +20,9 @@ pub(super) async fn dispatch(
     State(state): State<AppState>,
     mut request: Request,
 ) -> Response<Body> {
+    if let Err(error) = normalize_uri(&mut request) {
+        return request_error(&error, request.uri().path(), request.method().as_str());
+    }
     let head = request.method() == axum::http::Method::HEAD;
     if head {
         *request.method_mut() = axum::http::Method::GET;
@@ -168,4 +171,37 @@ fn dispatch_inner(state: &AppState, request: &Request) -> Result<Response<Body>>
     let _ = route;
 
     Err(EnvdenError::new(ErrorCode::NotFound, "Unknown route"))
+}
+
+fn normalize_uri(request: &mut Request) -> Result<()> {
+    let mut url = url::Url::parse("http://localhost/").expect("static URL");
+    url.set_path(request.uri().path());
+    url.set_query(request.uri().query().filter(|query| !query.is_empty()));
+    let path = &url[url::Position::BeforePath..url::Position::AfterQuery];
+    let mut parts = request.uri().clone().into_parts();
+    parts.path_and_query = Some(path.parse().map_err(|cause| {
+        EnvdenError::with_source(ErrorCode::InvalidInput, "Invalid request path", cause)
+    })?);
+    *request.uri_mut() = axum::http::Uri::from_parts(parts).map_err(|cause| {
+        EnvdenError::with_source(ErrorCode::InvalidInput, "Invalid request path", cause)
+    })?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn path_normalization_preserves_query_and_authority() {
+        let mut request = Request::builder()
+            .uri("http://example.test/v1/%2e%2e/v1/hello?challenge=a%2Fb&x=../head")
+            .body(Body::empty())
+            .unwrap();
+        normalize_uri(&mut request).unwrap();
+        assert_eq!(request.uri().path(), "/v1/hello");
+        assert_eq!(request.uri().query(), Some("challenge=a%2Fb&x=../head"));
+        assert_eq!(request.uri().authority().unwrap().as_str(), "example.test");
+    }
 }

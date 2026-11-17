@@ -3,13 +3,7 @@ use crate::{
     adapters::IAdapters,
     client::ITransport,
     history::{files::select::history_targets, versions::retained::retained},
-    sync::{
-        local::selection::selected_repos,
-        remote::{
-            accept::accept_head,
-            context::{ISyncOptions, sync_context},
-        },
-    },
+    sync::{local::selection::selected_repos, remote::context::ISyncOptions},
 };
 use envden_core::errors::Result;
 use envden_protocol::protocol as p;
@@ -23,22 +17,27 @@ pub fn file_history(
     file: Option<&str>,
 ) -> Result<Value> {
     crate::state::lock::with_state_lock(&adapters.home, &*options.now.clone(), || {
-        let mut context = sync_context(adapters, options, transport)?;
-        let cwd = context
-            .options
+        let mut state = crate::state::require_configured(crate::state::repository::load_state(
+            &adapters.home,
+        )?)?;
+        let cwd = options
             .cwd
             .clone()
             .unwrap_or_else(|| adapters.user_home.clone());
         let repos = selected_repos(
             adapters,
-            &mut context.state,
+            &mut state,
             &crate::history::files::select::selection_directory(&cwd, file),
-            context.options.all,
+            options.all,
             &mut HashSet::new(),
             &|_| {},
         )?;
-        let targets = history_targets(&context.state, &repos, &cwd, file, context.options.all)?;
-        accept_head(&mut context, None, true)?;
+        let targets = history_targets(&state, &repos, &cwd, file, options.all)?;
+        let context = crate::history::versions::source::history_source(
+            adapters,
+            options.now.clone(),
+            transport,
+        )?;
         let mut groups: Vec<Vec<crate::history::files::select::IHistoryTarget>> = Vec::new();
         for target in targets {
             if let Some(group) = groups
@@ -50,11 +49,15 @@ pub fn file_history(
                 groups.push(vec![target]);
             }
         }
+        let ids = groups
+            .iter()
+            .map(|group| p::file_id(&context.id_key, &group[0].repo_id, &group[0].path))
+            .collect::<Result<Vec<_>>>()?;
+        let mut walks = retained(&context, &ids)?;
         let mut files = Vec::new();
-        for group in groups {
+        for (group, id) in groups.into_iter().zip(ids) {
             let first = &group[0];
-            let id = p::file_id(&context.checkpoint.id_key, &first.repo_id, &first.path)?;
-            let (versions, pruned) = retained(&context, id)?;
+            let (versions, pruned) = walks.remove(&p::base32(&id)).unwrap_or_default();
             let contents: Vec<_> = versions.iter().map(|v| v.content.as_deref()).collect();
             let changes = version_changes(&contents, !pruned);
             let mut records = Vec::new();
@@ -66,8 +69,7 @@ pub fn file_history(
                             .unwrap()
                             .to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
                     record["time"] = time.into();
-                    if let Some(device) = context.checkpoint.state.devices.get(&header.body.signer)
-                    {
+                    if let Some(device) = context.history.state.devices.get(&header.body.signer) {
                         record["device"] = device.name.clone().into();
                     } else {
                         record["removedDevice"] = true.into();

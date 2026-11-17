@@ -97,7 +97,7 @@ fn scan(adapters: &IAdapters, state: &mut Value, options: &ICheckoutOptions<'_>)
             &checkout,
             options.approve.unwrap_or(&|_| Ok(true)),
             options.copy,
-            &|message| println!("{message}"),
+            &|message| eprintln!("{message}"),
         )?);
         save_state(&adapters.home, state, &adapters.now)?;
     }

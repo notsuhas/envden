@@ -64,8 +64,8 @@ fn run_sync(
         }
     }));
     with_state_lock(&adapters.home, &*options.now.clone(), || {
-        let mut context = sync_context(adapters, options, transport)?;
         crate::settings::refuse_configured_patterns(&adapters.home)?;
+        let mut context = sync_context(adapters, options, transport)?;
         let local = super::remote::accept::history::local_history(&context)?;
         let mut history =
             crate::vault::history::read_history(&context.client, &context.vault_id, Some(&local))?;

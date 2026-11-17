@@ -1,11 +1,5 @@
-use super::port::Probe;
 use crate::{
-    adapters::IAdapters,
-    agent::service::{
-        port::{choose_server_port, installed_service_port},
-        system::host_server,
-    },
-    output::prompts::consent,
+    adapters::IAdapters, agent::service::port::installed_service_port, output::prompts::consent,
     state::repository::save_state,
 };
 use envden_core::{
@@ -33,12 +27,12 @@ pub(in crate::onboarding) fn host_locally(
         return Ok(None);
     }
     let token = if options["setupToken"].is_null() {
-        envden_server::identity::local_setup_token(&adapters.home.join("server"), (adapters.now)())?
+        (adapters.local_setup_token)(adapters)?
     } else {
         None
     };
-    let port = choose_server_port(&Probe, None)?;
-    host_server(adapters, port)?;
+    let port = (adapters.server_port)()?;
+    (adapters.host_server)(adapters, port)?;
     println!("Server installed on this machine");
     Ok(Some((adapters.network.expose(f64::from(port))?, token)))
 }
@@ -52,11 +46,11 @@ pub(in crate::onboarding) fn rehost(adapters: &IAdapters, state: &mut Value) -> 
         "linux"
     };
     if let Some(port) = installed_service_port(platform, &adapters.user_home, &adapters.home) {
-        host_server(adapters, port)?;
+        (adapters.host_server)(adapters, port)?;
         return Ok(());
     }
-    let port = choose_server_port(&Probe, None)?;
-    host_server(adapters, port)?;
+    let port = (adapters.server_port)()?;
+    (adapters.host_server)(adapters, port)?;
     let exposed = adapters.network.expose(f64::from(port))?;
     if let Some(saved) = state["server"]["address"].as_str()
         && url::Url::parse(saved)
@@ -71,3 +65,6 @@ pub(in crate::onboarding) fn rehost(adapters: &IAdapters, state: &mut Value) -> 
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

@@ -4,13 +4,13 @@ pub fn asset(path: &str) -> Option<(&'static str, &'static [u8])> {
             "text/html;charset=utf-8",
             include_bytes!("../assets/index.html.bin"),
         )),
-        "/chunk-jtq8kjdg.js" => Some((
+        "/chunk-yq6gjs3r.js" => Some((
             "text/javascript;charset=utf-8",
-            include_bytes!("../assets/chunk-jtq8kjdg.js.bin"),
+            include_bytes!("../assets/chunk-yq6gjs3r.js.bin"),
         )),
-        "/chunk-9nqj0wqq.css" => Some((
+        "/chunk-71vsc44b.css" => Some((
             "text/css;charset=utf-8",
-            include_bytes!("../assets/chunk-9nqj0wqq.css.bin"),
+            include_bytes!("../assets/chunk-71vsc44b.css.bin"),
         )),
         _ => None,
     }

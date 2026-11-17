@@ -189,3 +189,24 @@ async fn restored_mode_and_last_prune_are_public() {
         );
     }
 }
+
+#[tokio::test]
+async fn normalized_paths_keep_public_and_authenticated_routes_distinct() {
+    let f = Fixture::new();
+    for (path, status) in [
+        ("/v1/../v1/status", 200),
+        ("/v1/%2e%2E/v1/status?unchanged=%2f", 200),
+        ("/v1/./status", 200),
+        ("/v1/status/../head", 400),
+        ("/other/../v1/head", 400),
+        ("/v1/%252e%252e/status", 404),
+    ] {
+        let response = f
+            .app
+            .clone()
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), status, "{path}");
+    }
+}

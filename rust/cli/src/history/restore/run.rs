@@ -14,10 +14,7 @@ use crate::{
             files::write_bytes,
             selection::selected_repos,
         },
-        remote::{
-            accept::accept_head,
-            context::{ISyncOptions, sync_context},
-        },
+        remote::context::ISyncOptions,
     },
 };
 use envden_core::errors::{EnvdenError, ErrorCode, Result};
@@ -41,21 +38,22 @@ pub fn restore(
         return Err(EnvdenError::new(ErrorCode::InvalidInput, message));
     }
     crate::state::lock::with_state_lock(&adapters.home, &*options.now.clone(), || {
-        let mut context = sync_context(adapters, options, transport)?;
-        let cwd = context
-            .options
+        let mut state = crate::state::require_configured(crate::state::repository::load_state(
+            &adapters.home,
+        )?)?;
+        let cwd = options
             .cwd
             .clone()
             .unwrap_or_else(|| adapters.user_home.clone());
         let repos = selected_repos(
             adapters,
-            &mut context.state,
+            &mut state,
             &selection_directory(&cwd, Some(file)),
             false,
             &mut HashSet::new(),
             &|_| {},
         )?;
-        let targets = history_targets(&context.state, &repos, &cwd, Some(file), false)?;
+        let targets = history_targets(&state, &repos, &cwd, Some(file), false)?;
         let target = &targets[0];
         let managed = target.link.as_ref();
         let store = managed
@@ -88,9 +86,15 @@ pub fn restore(
             path.clone()
         };
         let bytes = current.and_then(|c| c.bytes);
-        accept_head(&mut context, None, true)?;
-        let id = p::file_id(&context.checkpoint.id_key, &target.repo_id, &target.path)?;
-        let (versions, _) = retained(&context, id)?;
+        let context = crate::history::versions::source::history_source(
+            adapters,
+            options.now.clone(),
+            transport,
+        )?;
+        let id = p::file_id(&context.id_key, &target.repo_id, &target.path)?;
+        let (versions, _) = retained(&context, &[id])?
+            .remove(&p::base32(&id))
+            .unwrap_or_default();
         let chosen = versions
             .iter()
             .find(|v| v.entry.version == version)

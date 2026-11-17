@@ -107,3 +107,43 @@ async fn access_errors_precede_malformed_proof() {
         assert_eq!(f.run(request).await, (status, json!({"error": code})));
     }
 }
+
+#[tokio::test]
+async fn signed_query_binding_uses_whatwg_canonical_spelling() {
+    for (wire, canonical) in [
+        ("/v1/head?", "/v1/head"),
+        ("/v1/head?x='", "/v1/head?x=%27"),
+        (
+            "/v1/head?x=%2f&x=a+b&y=%2527",
+            "/v1/head?x=%2f&x=a+b&y=%2527",
+        ),
+    ] {
+        let f = Fixture::new();
+        f.fresh();
+        let accepted = f.request(wire, "GET", &[], &f.member, |r| {
+            r.path_and_query = canonical.into()
+        });
+        assert_eq!(f.run(accepted).await.0, 200, "{wire}");
+        if wire != canonical {
+            let raw = f.request(wire, "GET", &[], &f.member, |_| {});
+            assert_eq!(
+                f.run(raw).await,
+                (401, json!({"error":"UNAUTHORIZED"})),
+                "{wire}"
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn signed_query_binding_keeps_encoding_and_parameter_order() {
+    let f = Fixture::new();
+    f.fresh();
+    let wire = "/v1/head?x=%2f&x=a+b&y=%2527";
+    for spelling in ["/v1/head?x=/&x=a%20b&y=%27", "/v1/head?x=a+b&x=%2f&y=%2527"] {
+        let request = f.request(wire, "GET", &[], &f.member, |r| {
+            r.path_and_query = spelling.into()
+        });
+        assert_eq!(f.run(request).await, (401, json!({"error":"UNAUTHORIZED"})));
+    }
+}
