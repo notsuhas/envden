@@ -2,7 +2,9 @@ export function pathCollisions(paths: readonly string[], insensitive: boolean): 
   const spellings = new Map<string, string>();
   const collisions = new Set<number>();
 
-  for (const [index, path] of paths.entries()) {
+  const ordered = [...paths.entries()].sort((a, b) => (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0));
+
+  for (const [index, path] of ordered) {
     const parts = path.split("/");
 
     for (let length = 1; length <= parts.length; length++) {

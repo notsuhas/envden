@@ -133,6 +133,7 @@ User-owned tool directories remain outside envden's control if the user personal
 - **Approved checkouts**: the first time env files would land in a checkout, envden asks in the terminal. `--yes` doesn't skip it. Every new canonical checkout root or recreated checkout needs approval saved outside the checkout in envden state. A registered worktree of a clone whose own checkout is approved is approved without a prompt on its first `pull`, `push` or `track`, recorded in state with a report line so `untrack` can remove it. That is safe by default because a registered worktree lives in the approved clone's own `.git`, so creating one already needs write access to that clone. Separate clones, recreated checkouts, changed remotes and worktrees of unapproved clones still prompt. `envden config auto-approve-worktrees off` restores the prompt; turning it back on needs a terminal, like `agent-merge`. A changed remote never silently remaps an approved checkout.
 - **Env files**: `.env` and `.env.<name>`, excluding templates (`.example`, `.sample`, `.template`, `.defaults`) and never `.envrc`. Only files git ignores; skips build output folders (`node_modules`, `.next`, `dist`, `build`, …). `envden config env-files '{"include":[".env",".env.*"],"exclude":["*.example","*.sample","*.template","*.defaults"],"extraSkipped":["generated"]}'` replaces the filename include/exclude patterns and adds skipped directory names. Patterns without `/` match basenames; others match checkout-relative paths. Refuses tracked files and always excludes `.envrc`.
 - Before linking, `git check-ignore` must pass, else envden adds the path to the checkout's exclude file (resolved through git, so worktrees work).
+- Case and Unicode aliases are checked in UTF-16 lexical path order within each repo; a later conflicting spelling is held back with its original path.
 - Pulled paths are validated: no `..`, no absolute paths, `lstat` before writing, no following symlinks out of the checkout.
 - Placement uses directory handles on macOS/Linux; Windows or unavailable FFI retains a parent-swap race after the final path check.
 - Replacing a regular file with different bytes first backs it up to `~/.envden/conflicts`, outside the checkout; a backup never becomes checkout content. Equal bytes and existing store links need no backup. Removal refuses unrelated symlinks and unsafe parents.
@@ -236,6 +237,10 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 ## Decisions
 
 When a decision changes, rewrite its entry here and say what it replaced.
+
+### Stable path collision selection
+
+Collision checks use UTF-16 lexical path order, replacing first-seen selection in keyed file-ID order. Fresh vault keys must not change which case or Unicode alias is held back on the same filesystem. Paths retain their original spelling; only the collision comparison normalizes Unicode and, on case-insensitive filesystems, case. Signed file entries remain ordered by file ID.
 
 ### One server per vault, no peer-to-peer
 
