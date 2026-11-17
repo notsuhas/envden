@@ -18,6 +18,8 @@ Every scenario runs once with the reference everywhere, then once per assignment
 
 HEAD Content-Length may be zero or the corresponding GET length measured separately from each runtime. Other lengths remain mismatches. Only the three named malformed Content-Length cases (abc, -1 and conflicting lengths), with status 400 and an empty body, permit absent versus zero Content-Length. Duplicate lengths, nonzero lengths, changed security headers, bodies, statuses and close behavior remain failures. `--mode raw` retains the ordered, case-sensitive header diagnostic and does not apply these length exceptions. Neither mode suppresses a failed case.
 
+The maintenance scenario validates the status JSON schema and compares every field, with the nonnegative integer uptime replaced by a duration marker. Elapsed runtime can cross a digit boundary between runs, so raw response length is not a stable status observation.
+
 `verify.ts` wraps the reference six times, each wrapper changing one channel (stdout, stderr, exit code, file content, file mode, a database row), and fails unless the harness reports each one.
 
 ## Isolation

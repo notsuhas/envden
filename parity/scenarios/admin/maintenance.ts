@@ -1,6 +1,6 @@
 import { known } from "../known.ts";
 import { cli } from "../steps/cli.ts";
-import { request } from "../steps/http.ts";
+import { request, requestStatus } from "../steps/http.ts";
 import { setup } from "../steps/onboarding.ts";
 import type { IScenario } from "../types.ts";
 
@@ -31,7 +31,7 @@ export const maintenance: IScenario = {
       run: async (c) => {
         const url = c.servers.get("main")!.url;
 
-        await request(c, "server status", `${url}/v1/status`);
+        await requestStatus(c, `${url}/v1/status`);
 
         if ((await request(c, "server status", `${url}/v1/status`, "HEAD")) !== known.headStatus)
           throw new Error("HEAD /v1/status changed; update known.headStatus");
