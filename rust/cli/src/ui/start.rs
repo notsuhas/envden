@@ -169,8 +169,8 @@ mod timeout_tests {
     use std::time::Duration;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-    // The server's own tests pin the 10 s value; this checks the dashboard closes such connections at all.
-    async fn closed_within(request: &'static [u8]) -> Option<Duration> {
+    // No timeout around the read: under paused time it races the server's close (server tests pin the 10 s).
+    async fn closed_after(request: &'static [u8]) -> Duration {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let address = listener.local_addr().unwrap();
         tokio::spawn(serve_dashboard(
@@ -189,15 +189,10 @@ mod timeout_tests {
         }
         tokio::time::pause();
         let started = tokio::time::Instant::now();
-
-        let elapsed =
-            tokio::time::timeout(Duration::from_secs(600), client.read_to_end(&mut received))
-                .await
-                .ok()
-                .map(|_| started.elapsed());
+        client.read_to_end(&mut received).await.unwrap();
         tokio::time::resume();
 
-        elapsed
+        started.elapsed()
     }
 
     #[tokio::test]
@@ -206,9 +201,13 @@ mod timeout_tests {
             b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".as_slice(),
             b"POST /api/push HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 1\r\n\r\n".as_slice(),
         ] {
-            let elapsed = closed_within(request).await;
+            let elapsed = closed_after(request).await;
 
-            assert!(elapsed.is_some(), "{}", String::from_utf8_lossy(request));
+            assert!(
+                elapsed <= Duration::from_millis(10_010),
+                "{}: {elapsed:?}",
+                String::from_utf8_lossy(request)
+            );
         }
     }
 }
