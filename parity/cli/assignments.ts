@@ -63,20 +63,23 @@ function mixes(roles: string[], binaries: IBinaries): IAssignment[] {
   return result;
 }
 
-// Mixed runs substitute implementations per role and compare against the all-reference run.
+// Mixed runs add per-role substitutions to the plain run, all compared against one reference run.
 export function assignments(roles: string[], binaries: IBinaries, mix: boolean): IAssignment[] {
   const everywhere = (binary: string) => JSON.stringify(assign(roles, () => binary));
+  const plain = { name: "candidate", roles: assign(roles, () => binaries.candidate) };
 
-  if (!mix) return [{ name: "candidate", roles: assign(roles, () => binaries.candidate) }];
+  if (!mix) return [plain];
 
   const seen = new Set([everywhere(binaries.reference), everywhere(binaries.candidate)]);
 
-  return mixes(roles, binaries).filter((assignment) => {
+  const fresh = mixes(roles, binaries).filter((assignment) => {
     const key = JSON.stringify(assignment.roles);
-    const fresh = !seen.has(key);
+    const unseen = !seen.has(key);
 
     seen.add(key);
 
-    return fresh;
+    return unseen;
   });
+
+  return [plain, ...fresh];
 }

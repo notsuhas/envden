@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { assignments } from "./cli/assignments.ts";
 import { parseRunOptions } from "./cli/options.ts";
+import { inShard } from "./cli/shard.ts";
 import { probeIsolation } from "./isolation/probe.ts";
 import { differences } from "./runner/diff.ts";
 import { execute, type IExecution } from "./runner/execute.ts";
@@ -17,9 +18,18 @@ const hostShims = process.env.PARITY_HOST_SHIMS === "1";
 for (const name of options.scenarios)
   if (!scenarios.some((s) => s.name === name)) throw new Error(`Unknown scenario ${name}`);
 
-const selected = scenarios.filter(
+const requested = scenarios.filter(
   (s) => options.scenarios.length === 0 || options.scenarios.includes(s.name),
 );
+
+const shard =
+  options.shard &&
+  inShard(
+    requested.map((s) => s.name),
+    options.shard,
+  );
+
+const selected = requested.filter((s) => !shard || shard.has(s.name));
 
 const start = performance.now();
 const seconds = (since: number) => `${((performance.now() - since) / 1000).toFixed(1)}s`;
@@ -31,6 +41,9 @@ let compared = 0;
 let refused = 0;
 
 console.log(`tailscale: ${isolation.tailscale}${isolation.deny ? " (sandboxed)" : ""}`);
+
+if (options.shard)
+  console.log(`shard ${options.shard.index}/${options.shard.count}: ${[...shard!].join(", ")}`);
 
 async function report(name: string, baseline: IExecution, run: IExecution, since: number) {
   const errors = [baseline.error, run.error].filter(Boolean).map(message);

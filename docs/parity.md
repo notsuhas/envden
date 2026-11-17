@@ -6,13 +6,13 @@
 (cd apps/cli && bun run build)
 cp apps/cli/dist/envden /tmp/envden-copy
 bun parity/run.ts --reference apps/cli/dist/envden --candidate /tmp/envden-copy [--scenario <name>]... [--keep]
-bun parity/run.ts --reference apps/cli/dist/envden --candidate <envden> --mix [--third <envden>]
+bun parity/run.ts --reference apps/cli/dist/envden --candidate <envden> --mix [--third <envden>] [--shard <i>/<n>]
 bun parity/transport.ts --reference apps/cli/dist/envden --candidate <envden> [--mode semantic|raw]
 bun parity/verify.ts apps/cli/dist/envden
 bun test parity/__tests__
 ```
 
-Every scenario runs once with the reference everywhere, then once per assignment, and each assignment is compared with that reference run. A plain run puts the candidate in every role. `--mix` instead swaps the candidate into one role at a time and into all servers or all devices, so it covers a candidate server with reference devices, a reference server with candidate devices, and vaults holding both. `--third` adds a vault where devices a, b and c run the reference, candidate and third binaries, and a run where the third binary serves a reference and a candidate device. Any mismatch, unexpected exit code or step error exits nonzero. `--keep` prints the temporary roots, which hold test passwords and keys.
+Every scenario runs once with the reference everywhere, then once per assignment, and each assignment is compared with that reference run. A plain run puts the candidate in every role. `--mix` adds runs that swap the candidate into one role at a time and into all servers or all devices, so it covers a candidate server with reference devices, a reference server with candidate devices, and vaults holding both. `--third` adds a vault where devices a, b and c run the reference, candidate and third binaries, and a run where the third binary serves a reference and a candidate device. Any mismatch, unexpected exit code or step error exits nonzero. `--keep` prints the temporary roots, which hold test passwords and keys. `--shard i/n` runs the i-th of n groups of scenarios, split by typical run time so each shard takes about as long; CI runs them as parallel jobs.
 
 `transport.ts` defaults to `--mode semantic`, the correctness gate used by CI. Header names compare case-insensitively and header order does not matter; values, duplicate values and their multiplicity remain significant. Status lines and body bytes still compare, apart from the existing uptime counter mask. Date, Connection and Keep-Alive remain excluded. Stalled requests, malformed-length requests and requests with `Connection: close` compare whether the peer closed.
 

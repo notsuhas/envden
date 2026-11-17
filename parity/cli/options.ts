@@ -1,3 +1,5 @@
+import { type IShard, parseShard } from "./shard.ts";
+
 export interface IRunOptions {
   reference: string;
   candidate: string;
@@ -5,10 +7,11 @@ export interface IRunOptions {
   scenarios: string[];
   keep: boolean;
   mix: boolean;
+  shard?: IShard;
 }
 
 const USAGE =
-  "Usage: bun parity/run.ts --reference <envden> --candidate <envden> [--scenario <name>]... [--keep] [--mix [--third <envden>]]";
+  "Usage: bun parity/run.ts --reference <envden> --candidate <envden> [--scenario <name>]... [--keep] [--mix [--third <envden>]] [--shard <i>/<n>]";
 
 type TSetter = (options: IRunOptions, value: string, absolute: (path: string) => string) => void;
 
@@ -19,6 +22,7 @@ const VALUES: Record<string, TSetter> = {
   "--candidate": (o, v, absolute) => (o.candidate = absolute(v)),
   "--third": (o, v, absolute) => (o.third = absolute(v)),
   "--scenario": (o, v) => o.scenarios.push(v),
+  "--shard": (o, v) => (o.shard = parseShard(v) ?? fail(`Invalid --shard ${v}`)),
 };
 
 function fail(message: string): never {
