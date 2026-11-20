@@ -1,7 +1,7 @@
 pub(super) use super::reclaim::try_reclaim;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{fs, path::Path, process::Command};
+use std::{fs, path::Path};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -54,10 +54,7 @@ pub fn reclaimable(
 }
 
 pub(super) fn process_identity() -> Option<String> {
-    let host = String::from_utf8(Command::new("hostname").output().ok()?.stdout)
-        .ok()?
-        .trim()
-        .to_string();
+    let host = hostname::get().ok()?.to_string_lossy().into_owned();
     #[cfg(target_os = "linux")]
     let (boot, namespace) = (
         fs::read_to_string("/proc/sys/kernel/random/boot_id")
@@ -71,7 +68,7 @@ pub(super) fn process_identity() -> Option<String> {
     );
     #[cfg(target_os = "macos")]
     let (boot, namespace) = {
-        let output = Command::new("/usr/sbin/sysctl")
+        let output = std::process::Command::new("/usr/sbin/sysctl")
             .args(["-n", "kern.boottime"])
             .output()
             .ok()?;
@@ -82,15 +79,17 @@ pub(super) fn process_identity() -> Option<String> {
     };
     #[cfg(windows)]
     let (boot, namespace) = {
-        let output = Command::new("powershell")
-            .args([
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
-            ])
-            .output()
-            .ok()?;
+        let output = std::process::Command::new(
+            envden_core::process::resolve_trusted_executable("powershell").ok()?,
+        )
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
+        ])
+        .output()
+        .ok()?;
         (
             String::from_utf8(output.stdout).ok()?.trim().to_string(),
             String::new(),
