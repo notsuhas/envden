@@ -110,16 +110,7 @@ cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings
 cargo build --release -p envden-cli
 ```
 
-Parity runs in CI (`.github/workflows/rust.yml`): it checks out the `main` commit named in `.parity-reference` into `reference/`, builds the TypeScript binary there, and runs the harness from that checkout against `target/release/envden`:
-
-```sh
-bun parity/run.ts --reference <ts-envden> --candidate <envden>
-bun parity/run.ts --reference <ts-envden> --candidate <envden> --mix
-bun parity/transport.ts --reference <ts-envden> --candidate <envden>
-bun apps/cli/scripts/e2e.ts <envden>
-```
-
-The same commands work locally from a `main` checkout. The server's own notes are in [rust-server.md](rust-server.md).
+Parity runs locally, not in CI: `bash parity/local/run.sh` on `main` builds the TypeScript CLI and this port in throwaway Linux containers and runs the harness, the transport comparison and the e2e script against it. CI on this branch runs only the Rust checks above. The server's own notes are in [rust-server.md](rust-server.md).
 
 ## Adding an adapter
 

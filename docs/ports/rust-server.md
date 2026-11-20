@@ -29,7 +29,7 @@ cargo clippy -p envden-server --all-targets --no-deps -- -D warnings
 cargo test -p envden-server
 ```
 
-The raw HTTP comparison against the TypeScript server (status lines, ordered headers except Date and connection, body bytes) runs in CI from the `main` checkout as `bun parity/transport.ts`.
+The semantic HTTP comparison against the TypeScript server (`parity/transport.ts`, see `docs/parity.md` on `main`) runs locally from a `main` checkout as part of `bash parity/local/run.sh`; `--mode raw` gives the ordered, case-sensitive header diagnostic.
 
 `create_app_with_budget` permits shared body budgets in concurrency tests.
 Body deadlines use `read_body_with` with an injected clock and scheduler; tests
