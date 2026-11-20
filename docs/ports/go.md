@@ -2,7 +2,7 @@
 
 The Go implementation lives in `go/` as one module, `github.com/notsuhas/envden/go`: core, adapters, CLI and server in one binary. The TypeScript implementation on `main` is the reference. Devices running either share one vault and one server, so both must agree on everything that is stored, sent or decided: wire bytes, crypto, server database state, files written (names, contents, modes), exit and error codes, accepted flags and arguments, prompts and their order and choices, and `--json` output. Terminal styling, prompt rendering, help layout, error wording and PDF bytes are native Go and compare by meaning. Remaining differences are in [go-parity.md](go-parity.md).
 
-The parity harness, the transport comparison and the e2e script live on `main` and run against this binary in CI from the commit pinned in `.parity-reference`.
+The parity harness, the transport comparison and the e2e script live on `main` and run against this binary locally with `bash parity/local/run.sh` on `main`. CI on this branch runs only Go's own checks: lint, tests, builds and the container.
 
 ## Rules
 

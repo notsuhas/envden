@@ -6,7 +6,7 @@ This branch holds the Go implementation only. The TypeScript reference, the pari
 
 - **Spec:** `docs/PROTOCOL.md` is the source of truth for anything cryptographic. `docs/DESIGN.md` covers product behaviour and, under Decisions, the choices made and the options rejected. Terms are in `docs/CONTEXT.md`. Releases are in `docs/releasing.md`. Go-specific notes and libraries are in `docs/ports/go.md`; differences from the reference are in `docs/ports/go-parity.md`.
 - **Module:** `go/` is one module, `github.com/notsuhas/envden/go`. `core/` holds the protocol, chain, merge and adapter interfaces. Each adapter is its own package in `adapters/<kind>/<impl>`. Fakes and contract suites are in `testing/`. `cli/` and `server/` are the apps; `cmd/envden` is the one binary.
-- **Parity:** CI checks out the reference commit in `.parity-reference` and runs `main`'s harness against this binary. Recorded fixtures from the reference are in each package's `testdata/`.
+- **Parity:** `bash parity/local/run.sh` on `main` runs `main`'s harness against this binary; CI here runs only Go's own checks. Recorded fixtures from the reference are in each package's `testdata/`.
 
 ## Checks
 
