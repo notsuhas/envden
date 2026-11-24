@@ -125,6 +125,20 @@ envden doctor [options]
 | -------- | ------------------------ |
 | `--json` | Print the report as JSON |
 
+## envden export
+
+Write the env files on this device to one age-encrypted file that age or rage can open without envden.
+
+```sh
+envden export [options]
+```
+
+| Option              | Description                                                          | Default |
+| ------------------- | -------------------------------------------------------------------- | ------- |
+| `--out <file>`      | Where to write the backup                                            |         |
+| `--recipient <key>` | age public key (age1… or age1pq1…) that can open it; repeat for more | []      |
+| `--passphrase`      | Encrypt with a passphrase you type twice instead of a key            |         |
+
 ## envden history
 
 List the versions the server keeps, or restore one as a local edit.

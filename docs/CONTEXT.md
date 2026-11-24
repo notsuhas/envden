@@ -96,6 +96,10 @@ _Avoid_: login, register, enroll
 One file sent once with `envden send` through a temporary public link that anyone can open, with or without envden or a tailnet. Belongs to no vault; it opens once and closes when the sender's command ends.
 _Avoid_: shared vault, team sharing, mailbox, drop
 
+**Export**:
+An age-encrypted file of the env files on one device, written by `envden export` so they open with the stock `age` CLI if envden is gone. Holds only what that device has.
+_Avoid_: dump, archive, vault backup
+
 ## Sync
 
 **Push** / **Pull**:

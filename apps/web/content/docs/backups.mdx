@@ -1,0 +1,37 @@
+---
+title: Backups
+description: Keep an encrypted copy of your env files that opens with the age CLI, without envden.
+---
+
+```sh
+envden export --out ~/envden-backup.age --recipient age1…
+```
+
+`envden export` writes the env files on this device into one encrypted file. You open it with [age](https://age-encryption.org) or [rage](https://github.com/str4d/rage), so you can still get your files back if envden, your server or all your devices are gone.
+
+It covers what this device has: every env file in its store, as it was last pulled or pushed here. Files this device never pulled aren't in it, and neither are [local-only](/docs/placement) files. Run it on the device with the most checkouts, or on each device. It doesn't contact the server and doesn't need the vault unlocked.
+
+## Choose a key
+
+Use exactly one:
+
+- `--recipient age1…`: an age public key, from `age-keygen` or `rage-keygen`. Repeat the option to let several keys open it. Post-quantum `age1pq1…` keys from `age-keygen -pq` work too. Keep the private key somewhere other than this device.
+- `--passphrase`: envden asks for a passphrase twice. It never takes one as an argument, and refuses without a terminal. Use a long one; whoever gets the file can try passphrases offline.
+
+## Open it without envden
+
+`export` prints the file count and the command to open it. It looks like this:
+
+```sh
+age -d -i key.txt ~/envden-backup.age | tar -xf -
+```
+
+Leave out `-i key.txt` for a passphrase; age asks for it. `rage` takes the same options. The files land in the current folder as `<repo>/<path in repo>`, for example `github.com/acme/api/apps/web/.env`, readable by you only, byte for byte as envden had them. A file no checkout on this device uses any more, or every file if envden's own state is damaged, goes under `unplaced/`, in a folder named after a hash of its repo, since envden can't recover the repo's name without your vault keys.
+
+Piping into `tar` keeps an unencrypted copy of the archive off the disk. If you decrypt to a file instead, delete it after extracting.
+
+## What's in the file
+
+- An [age](https://c2sp.org/age) file whose content is a standard tar archive.
+- Nothing about your vault: no keys, no server address, no history.
+- envden writes it readable by you only and never replaces an existing file. It never prints values.
