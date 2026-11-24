@@ -1,30 +1,38 @@
-import { replacementKitOutput } from "../vault/output.ts";
+import { recoveryCodeOutput, requireCodeOutput } from "../../vault/recovery/show.ts";
 import { exposureText } from "../../output/render/devices/devices.ts";
 import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { removeDevice } from "../../admin/devices/remove.ts";
-import { secret, consent } from "../../output/prompts/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 
 export const deviceRmCommand = new Command("rm")
   .description("Remove a device and re-key the vault so it can't read new changes")
   .argument("<device>", "Device name or ID")
+  .option("--new-code", "Also replace the recovery code as part of the removal")
   .option(
-    "--kit-out <file>",
-    "Write the new recovery kit as JSON to a private file instead of a PDF",
+    "--recovery-code-out <file>",
+    "Write a new recovery code to a new private file instead of showing it",
   )
-  .option("--new-kit", "Also replace the recovery kit as part of the removal")
   .action(async (device, options) => {
-    const adapters = createAdapters(undefined, Date.now);
-    const output = replacementKitOutput(adapters, options.kitOut);
+    const target = { path: options.recoveryCodeOut };
+    if (options.newCode) requireCodeOutput(target);
+    const output = recoveryCodeOutput(target);
 
     const result = await removeDevice(
-      adapters,
+      createAdapters(undefined, Date.now),
       device,
-      () => secret("Master password"),
       Date.now,
       fetch,
-      options.newKit,
-      () => consent("This device held recovery keys. Replace the recovery kit in this removal?"),
+      options.newCode,
+      async () => {
+        const replace = await consent(
+          "This device held the recovery key. Replace the recovery code in this removal?",
+        );
+
+        if (replace) requireCodeOutput(target);
+
+        return replace;
+      },
       async (exposure) => {
         console.log(exposureText(exposure));
 
@@ -35,7 +43,7 @@ export const deviceRmCommand = new Command("rm")
 
     console.log(
       result.kind === "finished"
-        ? "Finished an interrupted removal; the recovery kit it showed is now active"
+        ? "Finished an interrupted removal; the recovery code it showed is now the one that works"
         : "Device removed",
     );
   });

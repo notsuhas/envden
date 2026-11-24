@@ -10,8 +10,6 @@ import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
 import { createClient } from "../../client/request.ts";
 import { hello } from "../../client/hello.ts";
-import { login } from "../../session/login.ts";
-import { registerPassword } from "../../session/registration.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
@@ -28,13 +26,11 @@ async function lockedmoveServer(
     token?: string | undefined;
     resume?: boolean | undefined;
     abort?: boolean | undefined;
-    password: string;
     now: () => number;
     fetcher: TFetch;
   },
 ) {
   const context = await adminContext(adapters, options.now, options.fetcher);
-  await login(context.client, context.vaultId, options.password);
   const directory = join(adapters.home, "state");
   const savedAddress = await optionalRead(join(directory, "move-address"));
   let address = options.address ?? savedAddress;
@@ -73,13 +69,12 @@ async function lockedmoveServer(
   await atomicWrite(join(directory, "move-pin"), text(pin), adapters.now);
   let swap: p.ISwap;
 
-  swap = await preparedSwap(context, destination, directory, pin, address, options);
+  swap = await preparedSwap(context, destination, directory, pin, address, options.now);
 
   requireDestination(swap, pin, address);
 
   await context.client.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
   await destination.request("/v1/swap", "POST", p.encode(p.SwapCodec, swap));
-  await login(destination, context.vaultId, options.password);
   await switchServer(adapters, address, options.now, options.fetcher);
   await rm(join(directory, "move-swap.bin"), { force: true });
   await rm(join(directory, "move-address"), { force: true });
@@ -104,7 +99,7 @@ async function preparedSwap(
   directory: string,
   pin: Uint8Array,
   address: string,
-  options: Parameters<typeof lockedmoveServer>[1],
+  now: () => number,
 ) {
   let swap: p.ISwap;
 
@@ -112,12 +107,11 @@ async function preparedSwap(
     swap = p.decode(p.SwapCodec, new Uint8Array(await readFile(join(directory, "move-swap.bin"))));
   } catch (error) {
     if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
-    await context.client.request("/v1/move/sk-pub");
+    await context.client.request("/v1/move/proof-pub");
     await destination.request("/v1/move/session", "POST");
     await context.client.request("/v1/move/freeze", "POST");
     const history = await currentHistory(context);
     await copyServer(context.client, destination, history);
-    await registerPassword(destination, context.vaultId, options.password);
 
     const entry = p.signObject<p.TEntry>(
       p.EntryCodec,
@@ -133,7 +127,7 @@ async function preparedSwap(
       "entry",
     );
 
-    swap = adminSwap(history, context.identity, 10, options.now(), { entries: [entry] });
+    swap = adminSwap(history, context.identity, 10, now(), { entries: [entry] });
 
     await atomicWrite(join(directory, "move-swap.bin"), p.encode(p.SwapCodec, swap), context.now);
   }

@@ -46,18 +46,10 @@ export interface IConflictView {
   mineDeleted: boolean;
 }
 
-export type TUnlock =
-  | { kind: "until"; until: number }
-  | { kind: "never" }
-  | { kind: "locked" }
-  | { kind: "unrecorded" }
-  | { kind: "unknown" };
-
 export interface IOverview {
   vaultId: string;
   server: { address: string; reachability: string };
   deviceName: string;
-  unlock: TUnlock;
   checkedAt: number;
   pending: number;
 }

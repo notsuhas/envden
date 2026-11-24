@@ -47,16 +47,15 @@ export async function setupFlow() {
     const address = running.server.url.toString();
 
     let loseResponse = true;
-    let issuedKey = "";
+    const codes: string[] = [];
 
     const options = {
       address,
       token,
       name: "first",
-      password: "master password",
       now,
-      onKit: async (kit: { secretKey: string }) => {
-        issuedKey = kit.secretKey;
+      onCode: async (code: string) => {
+        codes.push(code);
       },
       fetcher: async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
         const response = await fetcher(input, init);
@@ -82,35 +81,17 @@ export async function setupFlow() {
     }
 
     expect(failed).toBe(true);
+    expect(codes).toEqual([]);
     const pending = await loadState(first.home);
     if (!pending?.creationPending) throw new Error("Missing creation request");
 
-    await Promise.resolve(
-      expect(
-        setupVault(first, {
-          ...options,
-          fetcher,
-          resumeSecretKey: (await import("@envden/core/protocol")).encodeSecretKey(
-            crypto.getRandomValues(new Uint8Array(16)),
-          ),
-        }),
-      ).rejects.toMatchObject({ code: "INVALID_INPUT" }),
-    );
+    const result = await setupVault(first, { ...options, fetcher });
 
-    const result = await setupVault(first, {
-      resumeSecretKey: issuedKey,
-      address,
-      token,
-      name: "first",
-      password: "master password",
-      now,
-      fetcher,
-    });
-
-    expect(result.state.vaultId).toBe(result.kit.vaultId);
     expect(result.state.creationPending).toBeUndefined();
+    expect(codes).toHaveLength(1);
+    const code = codes[0]!;
 
-    return { now, fetcher, first, second, address, token, result, cleanup };
+    return { now, fetcher, first, second, address, token, result, code, cleanup };
   } catch (error) {
     await cleanup();
     throw error;

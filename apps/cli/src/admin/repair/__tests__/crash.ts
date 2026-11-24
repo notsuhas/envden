@@ -18,15 +18,17 @@ export async function checkCrash(
     const fetcher: TFetch = async (input, init) => {
       const path = new URL(input instanceof Request ? input.url : String(input)).pathname;
 
-      if (!failed && crash === "before-close" && path === "/v1/repair/finish") {
+      const close = closing(path, init);
+
+      if (!failed && crash === "before-close" && close) {
         failed = true;
         throw new Error("Crash before close");
       }
 
       const response = await options.fetcher(input, init);
-      if (path === "/v1/repair/finish") closed = true;
+      if (close) closed = true;
 
-      if (!failed && shouldCrashAfter(crash, path, closed)) {
+      if (!failed && shouldCrashAfter(crash, path, close, closed)) {
         failed = true;
         throw new Error("Crash after close");
       }
@@ -45,8 +47,15 @@ export async function checkCrash(
   }
 }
 
-function shouldCrashAfter(crash: TCrash, path: string, closed: boolean) {
-  if (crash === "after-close") return path === "/v1/repair/finish";
+// The repair closes with the op-12 swap, sent through the ordinary swap route.
+function closing(path: string, init?: RequestInit) {
+  if (path !== "/v1/swap" || !(init?.body instanceof Uint8Array)) return false;
+
+  return p.decode(p.SwapCodec, init.body).header.body.op === 12;
+}
+
+function shouldCrashAfter(crash: TCrash, path: string, close: boolean, closed: boolean) {
+  if (crash === "after-close") return close;
 
   return crash === "adoption" && closed && path === "/v1/head";
 }
@@ -57,7 +66,7 @@ export async function checkRestorePoint(
   mode: string,
   crash: string,
 ) {
-  if (mode !== "password" || crash !== "after-close") return;
+  if (mode !== "code" || crash !== "after-close") return;
   const local = (await loadState(adapters.home))!;
 
   await Promise.resolve(

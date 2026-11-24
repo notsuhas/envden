@@ -51,8 +51,7 @@ export function adminSwap(
     files: undefined,
     keyring: undefined,
     envelope: undefined,
-    skPub: undefined,
-    opaqueRecord: undefined,
+    proofPub: undefined,
     approver: undefined,
     ...fields,
   };

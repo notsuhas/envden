@@ -1,4 +1,3 @@
-import { millisecondsInDay } from "date-fns/constants";
 import { sanitizeConsole } from "../sanitize.ts";
 import type { readConfig } from "../../settings/config.ts";
 import type { TSetting } from "../../settings/request.ts";
@@ -6,9 +5,7 @@ import { telemetryEnabled, updateCheckEnabled } from "../../settings/privacy.ts"
 
 type TConfig = Awaited<ReturnType<typeof readConfig>>;
 
-type TLocalSetting = Exclude<TSetting, "unlock-period">;
-
-const LOCAL: TLocalSetting[] = [
+const LOCAL: TSetting[] = [
   "telemetry",
   "update-check",
   "agent-merge",
@@ -21,11 +18,7 @@ export function configText(config: TConfig, env: NodeJS.ProcessEnv = process.env
   return LOCAL.map((key) => settingText(key, config, env)).join("\n");
 }
 
-export function settingText(
-  key: TLocalSetting,
-  config: TConfig,
-  env: NodeJS.ProcessEnv = process.env,
-) {
+export function settingText(key: TSetting, config: TConfig, env: NodeJS.ProcessEnv = process.env) {
   switch (key) {
     case "telemetry":
       return toggleText(key, config.telemetry, telemetryEnabled(config.telemetry, env));
@@ -51,10 +44,6 @@ export function settingText(
         ),
       );
   }
-}
-
-export function unlockPeriodText(period: number | null) {
-  return `unlock-period: ${period === null ? "never" : `${period / millisecondsInDay}d`}`;
 }
 
 function toggleText(key: string, configured: boolean, effective: boolean) {

@@ -1,5 +1,5 @@
 // PROTOCOL § 16 with WebCrypto, so the page needs no library.
-const LABEL = new TextEncoder().encode("envden/v1/share");
+const LABEL = new TextEncoder().encode("envden/v2/share");
 
 const VERSION = 1;
 

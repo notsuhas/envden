@@ -2,8 +2,7 @@ import { PromptCancelled } from "../state/cancelled.ts";
 import { select, isCancel } from "@clack/prompts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import type { ISyncOptions } from "./model.ts";
-import { login } from "../session/login.ts";
-import { consent, secret } from "../output/prompts/questions.ts";
+import { consent } from "../output/prompts/questions.ts";
 
 export function syncOptions(
   options: {
@@ -20,11 +19,6 @@ export function syncOptions(
     fetcher: fetch,
     interactive: !!process.stdin.isTTY,
     confirm: (keys) => consent(`Merge changes to ${keys.join(", ")}?`),
-    unlock: async (client, vaultId) => {
-      await login(client, vaultId, (retry) =>
-        secret(retry ? "Wrong master password. Try again" : "Master password"),
-      );
-    },
     choose: async (path) => {
       const choice = await select({
         message: `Detached file: ${sanitizeTerminal(path)}`,

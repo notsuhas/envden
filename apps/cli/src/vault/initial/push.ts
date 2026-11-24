@@ -69,8 +69,7 @@ async function attemptPushInitialFiles(
     files,
     keyring: undefined,
     envelope: undefined,
-    opaqueRecord: undefined,
-    skPub: undefined,
+    proofPub: undefined,
     approver: undefined,
   };
 

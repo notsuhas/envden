@@ -7,16 +7,15 @@ import { testNetwork } from "@envden/server/testing";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { setupVault } from "../setup.ts";
-import { kitJoin } from "../recovery/kit.ts";
+import { resumeCommittedSetup, setupVault } from "../setup.ts";
+import { recoveryJoin } from "../recovery/join.ts";
 import { loadState, saveState } from "../../state/store/repository.ts";
 
 const fixtureClock = () => 1800000000000;
 
-for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "expired", "write-fails"])
+for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "write-fails"])
   test(`setup cannot commit without keys: ${missing}`, async () => {
-    let timestamp = fixtureClock();
-    const now = () => timestamp;
+    const now = fixtureClock;
     const { network, running, token, home, cleanup } = await freshServer(now);
 
     try {
@@ -34,9 +33,9 @@ for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "expired", 
         address: running.server.url.toString(),
         token,
         name: "third",
-        password: "password",
         now,
         fetcher: network.fetcher,
+        onCode: async () => {},
       };
 
       await Promise.resolve(
@@ -66,7 +65,6 @@ for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "expired", 
       }
 
       await replaceWrongEpoch(missing, originalSet, adapters.home);
-      if (missing === "expired") timestamp += 120001;
       adapters.keychain.set = originalSet;
       const result = await setupVault(adapters, options);
       expect(result.state.creationPending).toBeUndefined();
@@ -78,57 +76,107 @@ for (const missing of ["epoch/1", "id-key", "device", "wrong-epoch", "expired", 
     }
   });
 
-test("setup resumed without the first kit finishes the vault with a new kit", async () => {
+test("a code that fails to reach the user stays pending, without a token, until one is delivered", async () => {
   const { network, running, token, home, cleanup } = await freshServer(fixtureClock);
   const third = home("third");
 
   try {
-    const issued: string[] = [];
-    let lose = true;
+    const shown: string[] = [];
+
+    const delivery = (fails: boolean) => async (code: string) => {
+      shown.push(code);
+      if (fails) throw new Error("code file already exists");
+    };
 
     const options = {
       address: running.server.url.toString(),
       token,
       name: "third",
-      password: "password",
       now: fixtureClock,
-      onKit: async (kit: { secretKey: string }) => {
-        issued.push(kit.secretKey);
-      },
-    };
-
-    const lossy: typeof network.fetcher = async (input, init) => {
-      const response = await network.fetcher(input, init);
-      const path = new URL(input instanceof Request ? input.url : input.toString()).pathname;
-      if (!lose || path !== "/v1/vault") return response;
-      lose = false;
-
-      throw new Error("Lost creation response");
+      fetcher: network.fetcher,
     };
 
     await Promise.resolve(
-      expect(setupVault(third, { ...options, fetcher: lossy })).rejects.toThrow(),
+      expect(setupVault(third, { ...options, onCode: delivery(true) })).rejects.toThrow(
+        "already exists",
+      ),
     );
 
-    const result = await setupVault(third, {
-      ...options,
-      fetcher: network.fetcher,
-      readResumeSecretKey: async () => undefined,
-    });
+    const resume = (fails: boolean) =>
+      resumeCommittedSetup(third, {
+        now: fixtureClock,
+        fetcher: network.fetcher,
+        onCode: delivery(fails),
+      });
 
-    expect(result.state.creationPending).toBeUndefined();
-    expect(issued).toEqual([expect.any(String), result.kit.secretKey]);
+    await Promise.resolve(
+      expect(resume(true)).rejects.toMatchObject({ code: "RECOVERY_CODE_REQUIRED" }),
+    );
 
-    const joined = await kitJoin(home("second"), {
-      ...result.kit,
-      address: options.address,
-      password: "password",
-      name: "second",
+    expect((await loadState(third.home))?.creationPending).toBeDefined();
+
+    const result = await resume(false);
+    expect(result?.state.creationPending).toBeUndefined();
+    expect(shown).toHaveLength(3);
+    expect(await resume(false)).toBeUndefined();
+
+    const join = (name: string, code: string) =>
+      recoveryJoin(home(name), {
+        address: options.address,
+        code,
+        name,
+        now: fixtureClock,
+        fetcher: network.fetcher,
+      });
+
+    for (const lost of shown.slice(0, 2))
+      await Promise.resolve(
+        expect(join("lost", lost)).rejects.toMatchObject({ code: "UNAUTHORIZED" }),
+      );
+
+    expect((await join("new", shown[2]!)).vaultId).toBe(result?.state.vaultId);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a creation that never reached the server isn't resumed without a token", async () => {
+  const { network, running, token, home, cleanup } = await freshServer(fixtureClock);
+  const third = home("third");
+
+  try {
+    const blocked: typeof network.fetcher = async (input, init) => {
+      const path = new URL(input instanceof Request ? input.url : input.toString()).pathname;
+      if (path === "/v1/vault") throw new Error("Before post");
+
+      return network.fetcher(input, init);
+    };
+
+    const options = {
+      address: running.server.url.toString(),
+      token,
+      name: "third",
       now: fixtureClock,
-      fetcher: network.fetcher,
-    });
+    };
 
-    expect(joined.vaultId).toBe(result.kit.vaultId);
+    await Promise.resolve(
+      expect(
+        setupVault(third, { ...options, fetcher: blocked, onCode: async () => {} }),
+      ).rejects.toThrow(),
+    );
+
+    expect(
+      await resumeCommittedSetup(third, {
+        now: fixtureClock,
+        fetcher: network.fetcher,
+        onCode: async () => {},
+      }),
+    ).toBeUndefined();
+
+    expect(
+      (await setupVault(third, { ...options, fetcher: network.fetcher, onCode: async () => {} }))
+        .state.creationPending,
+    ).toBeUndefined();
   } finally {
     await cleanup();
   }
@@ -146,10 +194,9 @@ test("join refuses a foreign committed vault without changing state or keys", as
 
     await Promise.resolve(
       expect(
-        kitJoin(second, {
-          address: f.result.kit.server,
-          ...f.result.kit,
-          password: "old password",
+        recoveryJoin(second, {
+          address: f.result.address,
+          code: f.result.code,
           name: "second",
           now: f.now,
           fetcher: f.fetcher,

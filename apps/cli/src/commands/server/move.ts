@@ -3,7 +3,6 @@ import { readToken } from "../../output/prompts/token.ts";
 import { Command, Option } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { moveServer } from "../../admin/move/run.ts";
-import { secret } from "../../output/prompts/questions.ts";
 import { requireServerAddress } from "../../onboarding/decisions.ts";
 
 export const serverMoveCommand = new Command("move")
@@ -29,7 +28,6 @@ export const serverMoveCommand = new Command("move")
       token: continuing ? options.setupToken : await readToken("setup", options.setupToken),
       resume: options.resume,
       abort: options.abort,
-      password: await secret("Master password"),
       now: Date.now,
       fetcher: fetch,
     });

@@ -12,7 +12,7 @@ test("home paths shorten only inside the home folder", () => {
 
 test("setup and join summaries name the device, server and synced files", () => {
   const state = emptyState("mainbook-2");
-  state.server = { address: "https://envden.example.ts.net", pin: "", protocol: 1 };
+  state.server = { address: "https://envden.example.ts.net", pin: "", protocol: 2 };
 
   const [setup, next] = setupSummary(state, "/home/me");
 

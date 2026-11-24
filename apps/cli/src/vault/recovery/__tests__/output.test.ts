@@ -1,51 +1,71 @@
-import { test, expect } from "bun:test";
+import { test, expect, spyOn } from "bun:test";
 import { mkdtemp, rm, stat, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { writeKit } from "../output.ts";
-import { parseKit } from "../input.ts";
 import * as p from "@envden/core/protocol";
+import { writeRecoveryCode } from "../output.ts";
+import { recoveryCodeOutput, requireCodeOutput } from "../show.ts";
 
-test("private recovery export round trips into join", async () => {
-  const root = await mkdtemp(join(tmpdir(), "envden-kit-"));
-  const path = join(root, "kit.json");
+const code = p.encodeRecoveryCode(new Uint8Array(16));
 
-  const kit = {
-    vaultId: p.base32(new Uint8Array(32)),
-    secretKey: p.encodeSecretKey(new Uint8Array(16)),
-  };
+test("a recovery code file is private, never overwritten, and decodes back", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-code-"));
+  const path = join(root, "code.txt");
 
   try {
-    await writeKit(path, kit);
-    expect(parseKit(await readFile(path, "utf8"))).toEqual(kit);
+    await writeRecoveryCode(path, code);
+    expect(p.decodeRecoveryCode(await readFile(path, "utf8"))).toEqual(new Uint8Array(16));
     expect((await stat(path)).mode & 0o777).toBe(0o600);
+
+    for (const target of [path, join(root, "missing", "code.txt")])
+      await Promise.resolve(
+        expect(writeRecoveryCode(target, code)).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+      );
+
+    expect(await readFile(path, "utf8")).toBe(`${code}\n`);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("kit output preserves an existing kit and explains missing parents", async () => {
-  const home = await mkdtemp(join(tmpdir(), "envden-kit-output-"));
+test("the code is shown once with one confirm, and refused where only an agent would see it", async () => {
+  const log = spyOn(console, "log").mockImplementation(() => {});
+  const questions: string[] = [];
 
   try {
-    const path = join(home, "kit.json");
-    await writeKit(path, { vault: "first" });
+    expect(() => requireCodeOutput({ terminal: false })).toThrow("needs a terminal");
+    const stdout = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    const stdin = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 
-    await Promise.resolve(
-      expect(writeKit(path, { vault: "second" })).rejects.toMatchObject({ code: "INVALID_INPUT" }),
-    );
+    try {
+      Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+      Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: false });
+      expect(() => requireCodeOutput({})).toThrow("needs a terminal");
+    } finally {
+      for (const [stream, saved] of [
+        [process.stdout, stdout],
+        [process.stdin, stdin],
+      ] as const)
+        if (saved) Object.defineProperty(stream, "isTTY", saved);
+        else Reflect.deleteProperty(stream, "isTTY");
+    }
 
-    expect(await Bun.file(path).json()).toEqual({ vault: "first" });
+    expect(() => requireCodeOutput({ terminal: false, path: "/tmp/x" })).not.toThrow();
 
-    await Promise.resolve(
-      expect(writeKit(join(home, "missing", "kit.json"), {})).rejects.toMatchObject({
-        code: "INVALID_INPUT",
-      }),
-    );
+    const ask = (message: string) => {
+      questions.push(message);
 
-    await writeKit(join(home, "new-kit.json"), { vault: "second" });
-    expect(await Bun.file(join(home, "new-kit.json")).json()).toEqual({ vault: "second" });
+      return Promise.resolve(false);
+    };
+
+    await recoveryCodeOutput({ terminal: true, ask }).show(code);
+    const printed = log.mock.calls.map((call) => String(call[0])).join("\n");
+
+    expect(printed).toContain(code);
+    expect(printed).toContain("password manager");
+    expect(printed).toContain("envden vault recovery-code");
+    expect(questions).toEqual(["Stored it?"]);
   } finally {
-    await rm(home, { recursive: true, force: true });
+    log.mockRestore();
   }
 });

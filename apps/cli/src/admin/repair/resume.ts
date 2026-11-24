@@ -11,7 +11,7 @@ import { binary, text } from "../../client/encoding.ts";
 import { adminContext } from "../shared/context.ts";
 import { readHistory } from "../../vault/history.ts";
 import { acceptJoin } from "../../vault/join/accept.ts";
-import { refuseSecretKeyProof } from "@envden/core/chain";
+import { refuseRecoveryProof } from "@envden/core/chain";
 
 export async function saveClose(adapters: TAdapters, swap: p.ISwap) {
   await atomicWrite(
@@ -77,7 +77,7 @@ export async function resumeClose(
   const result = {
     kind: "finished" as const,
     report: await optionalRead(join(adapters.home, "state", `repair-report-${text(repairId)}`)),
-    replaceKit: refuseSecretKeyProof(
+    replaceCode: refuseRecoveryProof(
       history.headers
         .slice(restoredIndex + 1)
         .filter((h) => h.body.seq < swap.header.body.seq)

@@ -3,9 +3,9 @@ import { Command } from "@commander-js/extra-typings";
 import { createAdapters } from "../../adapters.ts";
 import { uploadRepair } from "../../admin/repair/upload.ts";
 import { finishRepair } from "../../admin/repair/finish.ts";
-import { runVaultAdmin } from "../vault/run.ts";
+import { replaceRecoveryCode } from "../vault/recovery-code.ts";
 import { repairText } from "../../output/render/repair.ts";
-import { secret, consent } from "../../output/prompts/questions.ts";
+import { consent } from "../../output/prompts/questions.ts";
 
 export const serverRepairCommand = new Command("repair")
   .description(
@@ -24,7 +24,6 @@ export const serverRepairCommand = new Command("repair")
     if (options.finish) {
       const result = await finishRepair(createAdapters(undefined, Date.now), {
         token,
-        password: await secret("Master password"),
         without: options.without,
         acceptLost: options.acceptLost,
         now: Date.now,
@@ -33,7 +32,7 @@ export const serverRepairCommand = new Command("repair")
 
       console.log(repairText(result));
 
-      await offerReplacementKit(result);
+      await offerReplacementCode(result);
     } else {
       await uploadRepair(createAdapters(undefined, Date.now), token, Date.now);
 
@@ -43,11 +42,11 @@ export const serverRepairCommand = new Command("repair")
     }
   });
 
-async function offerReplacementKit(result: Awaited<ReturnType<typeof finishRepair>>) {
+async function offerReplacementCode(result: Awaited<ReturnType<typeof finishRepair>>) {
   if (
     result.kind === "finished" &&
-    result.replaceKit &&
-    (await consent("Replace the recovery kit now?"))
+    result.replaceCode &&
+    (await consent("Replace the recovery code now?"))
   )
-    await runVaultAdmin(createAdapters(undefined, Date.now), "replace", Date.now);
+    await replaceRecoveryCode(createAdapters(undefined, Date.now), Date.now);
 }

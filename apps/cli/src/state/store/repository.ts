@@ -7,6 +7,9 @@ import { EnvdenError } from "@envden/core/errors";
 import { aliasMap, type ILocalState } from "../model.ts";
 import { atomicWrite, optionalRead, privateDirectory } from "./files.ts";
 
+const OLD_STATE =
+  "This envden home is from envden 0.3, whose vaults this version can't open. Back up your env files, remove the envden home and run envden setup again";
+
 const stateKeys = new Set([
   "format",
   "verifiedState",
@@ -20,7 +23,6 @@ const stateKeys = new Set([
   "entries",
   "keyring",
   "files",
-  "session",
   "approved",
   "links",
   "aliases",
@@ -80,8 +82,11 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
       reviver,
     );
 
+    const format: number = value.format;
+    if (format === 1) throw new EnvdenError("INVALID_DATA", OLD_STATE);
+
     if (
-      value.format !== 1 ||
+      value.format !== 2 ||
       !Array.isArray(value.headerRefs) ||
       !Array.isArray(value.entries) ||
       !Array.isArray(value.approved) ||
@@ -110,6 +115,8 @@ export async function loadState(home: string): Promise<ILocalState | undefined> 
 
     return state;
   } catch (cause) {
+    if (cause instanceof EnvdenError) throw cause;
+
     throw new EnvdenError("INVALID_DATA", "Unreadable local state", { cause });
   }
 }

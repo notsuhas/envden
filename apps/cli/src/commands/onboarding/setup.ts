@@ -12,7 +12,10 @@ export const setupCommand = withPreferences(
     .description("Create a vault and configure this device")
     .option("--yes", "Take defaults; secrets and checkout approval still require your terminal")
     .option("--server <url>", "Use this server")
-    .option("--kit-out <file>", "Write the recovery kit as JSON to a private file instead of a PDF")
+    .option(
+      "--recovery-code-out <file>",
+      "Write the recovery code to a new private file instead of showing it",
+    )
     .option("--name <name>", "Device name")
     .option("--host-server", "Run the envden server on this machine; no setup token needed")
     .option(

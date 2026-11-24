@@ -25,7 +25,7 @@ test("missing blob names decrypt current and older epochs and preserve missing v
   try {
     const before = await adminContext(f.first, f.now);
     const old = await currentMaterial(before, await currentHistory(before));
-    await rotateVault(f.first, "old password", f.now);
+    await rotateVault(f.first, f.now);
     const context = { ...(await adminContext(f.first, f.now)), repairId: new Uint8Array(32) };
     const history = await currentHistory(context);
     const current = await currentMaterial(context, history);

@@ -9,8 +9,8 @@ const messages: Record<TErrorCode, string> = {
   FORK: "Server history conflicts with this device. Run envden server repair",
   NOT_MEMBER: "This device was removed from the vault. Run envden join to rejoin",
   UNAUTHORIZED: "Server rejected this device's signature. Check the system clock and try again",
-  LOCKED: "Unlock expired. Run envden unlock",
-  RECOVERY_KIT_REQUIRED: "Replace the recovery kit first. Run envden vault kit replace",
+  LOCKED: "This device's vault keys are unavailable. Run envden doctor",
+  RECOVERY_CODE_REQUIRED: "Replace the recovery code first. Run envden vault recovery-code",
   STORAGE_QUOTA:
     "Vault storage on the server is full. Remove files with envden rm, or ask the server owner for more space",
   RATE_LIMITED: "Too many attempts. Wait 15 minutes and try again",
@@ -27,14 +27,21 @@ const messages: Record<TErrorCode, string> = {
   BUSY: "Server is busy. Try again in a minute",
 };
 
-const pairingGone: TErrorCode[] = ["NOT_FOUND", "CONFLICT", "UNAUTHORIZED"];
+const joinGone: TErrorCode[] = ["NOT_FOUND", "CONFLICT", "UNAUTHORIZED"];
 
 function serverErrorMessage(code: TErrorCode, path: string): string {
-  if (path.startsWith("/v1/pairing/") && pairingGone.includes(code))
-    return "Pairing code expired or already used. Run envden device add for a new one";
+  if (
+    path.startsWith("/v1/join-requests/") &&
+    path !== "/v1/join-requests/approved" &&
+    joinGone.includes(code)
+  )
+    return "Join request expired, was cancelled, or another device took it. Run envden join again";
 
-  if (path.startsWith("/v1/opaque/login/") && code === "UNAUTHORIZED")
-    return "Login expired or the vault moved. Check the server address and try again";
+  if (path === "/v1/recovery/ticket" && code === "UNAUTHORIZED")
+    return "The server has no vault for that recovery code. If the vault moved, use its current server address";
+
+  if (path === "/v1/recovery/ticket" && code === "RECOVERY_CODE_REQUIRED")
+    return "After a restore the server can't vouch for this recovery code; replace it from a device in the vault";
 
   return messages[code];
 }

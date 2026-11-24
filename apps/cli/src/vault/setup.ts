@@ -1,9 +1,3 @@
-import {
-  resumedKit,
-  lostKitReplacement,
-  BLANK_PASSWORD,
-  type ISetupKit,
-} from "./recovery/pending-kit.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import type { TFetch } from "../client/fetch.ts";
 import * as p from "@envden/core/protocol";
@@ -13,38 +7,31 @@ import { deviceIdentity } from "../identity/device.ts";
 import { hello } from "../client/hello.ts";
 import { createClient } from "../client/request.ts";
 import { text } from "../client/encoding.ts";
-import { registerPassword } from "../session/registration.ts";
-import { recordUnlockWindow } from "../session/window.ts";
 import { emptyState } from "../state/model.ts";
 import { saveState, loadState } from "../state/store/repository.ts";
+import { replaceCode } from "../admin/recovery/replace.ts";
 import { createGenesis } from "./genesis.ts";
 import { createVaultSwap } from "./creation.ts";
 import { VERSION, MIN_SERVER } from "../version.ts";
 
-async function lockedsetupVault(
-  adapters: TAdapters,
-  options: {
-    address: string;
-    token: string;
-    name: string;
-    password: string;
-    now: () => number;
-    fetcher: TFetch;
-    resumeSecretKey?: string;
-    readResumeSecretKey?: () => Promise<string | undefined>;
-    onKit?: (kit: ISetupKit) => Promise<void>;
-  },
-) {
-  const existing = await loadState(adapters.home);
+interface ISetupVault {
+  address: string;
+  token: string;
+  name: string;
+  now: () => number;
+  fetcher: TFetch;
+  onCode: (code: string) => Promise<void>;
+}
 
-  if (existing?.vaultId && !existing.creationPending) {
-    return { state: existing, kit: resumedKit(existing, options) };
-  }
+const LOST_CODE = "Vault created without a recovery code; run envden vault recovery-code";
+
+async function lockedsetupVault(adapters: TAdapters, options: ISetupVault) {
+  const existing = await loadState(adapters.home);
+  if (existing?.vaultId && !existing.creationPending) return { state: existing };
 
   const token = p.decodeToken("setup", options.token);
   await hello(options.address, token.serverPin, options.fetcher, MIN_SERVER);
   const identity = await deviceIdentity(adapters.keychain, adapters.home, options.name);
-
   const pending = await resumableCreation(adapters, existing, identity.record.id);
 
   if (pending) {
@@ -55,65 +42,65 @@ async function lockedsetupVault(
   const material = await createGenesis(identity, token.serverPin, options.now());
   const state = emptyState(options.name);
   state.vaultId = p.base32(material.vaultId);
-  state.server = { address: options.address, pin: text(token.serverPin), protocol: 1 };
+
+  state.server = {
+    address: options.address,
+    pin: text(token.serverPin),
+    protocol: p.PROTOCOL_VERSION,
+  };
 
   state.entries = [material.genesis, material.epoch].map((entry) =>
     text(p.encode(p.signedCodec(p.EntryCodec), entry)),
   );
 
   state.keyring = text(material.keyring);
+  const client = setupClient(options, token, material.vaultId, identity);
+  const code = p.generateRecoveryCode();
 
-  const client = createClient({
+  try {
+    const swap = createVaultSwap(material, identity, code, options.now());
+    const bytes = p.encode(p.SwapCodec, swap);
+    state.creationPending = text(bytes);
+    state.headers = [text(p.encode(p.signedCodec(p.ManifestHeaderCodec), swap.header))];
+    state.files = text(p.encode(p.FilesCodec, swap.files!));
+    state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"));
+    await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
+    await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
+    await saveState(adapters.home, state, adapters.now);
+    await client.request("/v1/vault", "POST", bytes);
+    // Still pending until the code is delivered, so a rerun replaces a code nobody saw.
+    await options.onCode(p.encodeRecoveryCode(code));
+    delete state.creationPending;
+    await saveState(adapters.home, state, adapters.now);
+
+    return { state };
+  } finally {
+    material.recoveryKeys.encSk.fill(0);
+    material.recoveryKeys.objSk.fill(0);
+    code.fill(0);
+  }
+}
+
+export function setupVault(...args: Parameters<typeof lockedsetupVault>) {
+  return withStateLock(args[0].home, () => lockedsetupVault(...args));
+}
+
+function setupClient(
+  options: ISetupVault,
+  token: ReturnType<typeof p.decodeToken>,
+  vaultId: Uint8Array,
+  identity: Awaited<ReturnType<typeof deviceIdentity>>,
+) {
+  return createClient({
     address: options.address,
     pin: token.serverPin,
-    vaultId: material.vaultId,
+    vaultId,
     identity,
     version: VERSION,
     now: options.now,
     fetcher: options.fetcher,
     proof: (request) => p.tokenProof("setup", p.tokenKey("setup", token.secret), request),
   });
-
-  try {
-    const record = await registerPassword(client, material.vaultId, options.password);
-
-    const creation = await createVaultSwap(
-      material,
-      identity,
-      options.password,
-      record,
-      options.now(),
-    );
-
-    const bytes = p.encode(p.SwapCodec, creation.swap);
-    state.creationPending = text(bytes);
-    const kit = { ...creation.kit, server: options.address, masterPassword: BLANK_PASSWORD };
-
-    await options.onKit?.(kit);
-
-    state.headers = [text(p.encode(p.signedCodec(p.ManifestHeaderCodec), creation.swap.header))];
-    state.files = text(p.encode(p.FilesCodec, creation.swap.files!));
-    state.checkpoint = text(p.objectHash(p.ManifestHeaderCodec, creation.swap.header, "manifest"));
-    await adapters.keychain.set(`envden/${adapters.home}/epoch/1`, material.epochKey);
-    await adapters.keychain.set(`envden/${adapters.home}/id-key`, material.idKey);
-    await saveState(adapters.home, state, adapters.now);
-    await client.request("/v1/vault", "POST", bytes);
-    delete state.creationPending;
-    await recordUnlockWindow(client, state);
-    await saveState(adapters.home, state, adapters.now);
-
-    return {
-      state,
-      kit,
-    };
-  } finally {
-    material.recoveryKeys.encSk.fill(0);
-    material.recoveryKeys.objSk.fill(0);
-  }
-}
-
-export function setupVault(...args: Parameters<typeof lockedsetupVault>) {
-  return withStateLock(args[0].home, () => lockedsetupVault(...args));
 }
 
 async function resumableCreation(
@@ -129,38 +116,19 @@ async function resumableCreation(
     epoch && id && matchesPendingKey(state.creationPending, state.vaultId, epoch, deviceId);
 
   return valid
-    ? {
-        state,
-        creationPending: state.creationPending,
-        vaultId: state.vaultId,
-        server: state.server,
-      }
+    ? { state, creationPending: state.creationPending, vaultId: state.vaultId }
     : undefined;
 }
 
+// The device never kept the first code, so a resumed creation replaces it as soon as it commits.
 async function resumeCreation(
   adapters: TAdapters,
-  options: Parameters<typeof lockedsetupVault>[1],
+  options: ISetupVault,
   token: ReturnType<typeof p.decodeToken>,
   identity: Awaited<ReturnType<typeof deviceIdentity>>,
   pending: NonNullable<Awaited<ReturnType<typeof resumableCreation>>>,
 ) {
-  const resumeSecretKey = options.resumeSecretKey ?? (await options.readResumeSecretKey?.());
-
-  const kit = resumeSecretKey
-    ? resumedKit(pending.state, { ...options, resumeSecretKey })
-    : undefined;
-
-  const client = createClient({
-    address: pending.server.address,
-    pin: token.serverPin,
-    vaultId: p.unbase32(pending.vaultId),
-    identity,
-    version: VERSION,
-    now: options.now,
-    fetcher: options.fetcher,
-    proof: (request) => p.tokenProof("setup", p.tokenKey("setup", token.secret), request),
-  });
+  const client = setupClient(options, token, p.unbase32(pending.vaultId), identity);
 
   try {
     await client.request(
@@ -174,12 +142,56 @@ async function resumeCreation(
     return undefined;
   }
 
-  delete pending.state.creationPending;
-  await recordUnlockWindow(client, pending.state);
-  await saveState(adapters.home, pending.state, adapters.now);
-  if (kit) return { state: pending.state, kit };
+  return finishCreation(adapters, options);
+}
 
-  return lostKitReplacement(adapters, options);
+// Creation stays pending until a replacement code is delivered, so every rerun can still deliver one.
+async function finishCreation(
+  adapters: TAdapters,
+  options: Omit<ISetupVault, "address" | "token" | "name">,
+) {
+  await replaceCode(adapters, options.now, options.onCode, options.fetcher).catch(
+    (cause: unknown) => {
+      throw new EnvdenError("RECOVERY_CODE_REQUIRED", LOST_CODE, { cause });
+    },
+  );
+
+  const state = (await loadState(adapters.home))!;
+  delete state.creationPending;
+  await saveState(adapters.home, state, adapters.now);
+
+  return { state };
+}
+
+// A creation that already committed needs no setup token, which it consumed; only a code to deliver.
+export function resumeCommittedSetup(
+  adapters: TAdapters,
+  options: Omit<ISetupVault, "address" | "token" | "name">,
+) {
+  return withStateLock(adapters.home, async () => {
+    const state = await loadState(adapters.home);
+    if (!state?.creationPending || !state.vaultId || !state.server) return undefined;
+    const identity = await deviceIdentity(adapters.keychain, adapters.home, state.deviceName);
+
+    const client = createClient({
+      address: state.server.address,
+      pin: Buffer.from(state.server.pin, "base64url"),
+      vaultId: p.unbase32(state.vaultId),
+      identity,
+      version: VERSION,
+      now: options.now,
+      fetcher: options.fetcher,
+    });
+
+    try {
+      await client.request("/v1/head");
+    } catch (error) {
+      if (error instanceof EnvdenError) return undefined;
+      throw error;
+    }
+
+    return finishCreation(adapters, options);
+  });
 }
 
 function matchesPendingKey(

@@ -17,7 +17,6 @@ export async function syncContext(adapters: TAdapters, options: ISyncOptions) {
     { ...state, server: state.server, vaultId: state.vaultId },
     options.now,
     options.fetcher,
-    options.interactive ? options.unlock : undefined,
   );
 
   return {

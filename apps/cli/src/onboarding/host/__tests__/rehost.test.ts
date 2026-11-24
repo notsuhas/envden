@@ -44,7 +44,7 @@ async function rerun(installed: number | undefined, saved: string) {
 
   const state = emptyState("laptop");
   state.vaultId = "vault";
-  state.server = { address: saved, pin: "pin", protocol: 1 };
+  state.server = { address: saved, pin: "pin", protocol: 2 };
   await saveState(adapters.home, state, clock);
 
   if (installed !== undefined) {

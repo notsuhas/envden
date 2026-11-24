@@ -1,7 +1,7 @@
 import type { IDeviceListState } from "@envden/core/chain";
 
 export interface ILocalState {
-  format: 1;
+  format: 2;
   verifiedState?: IDeviceListState;
   aliasAsked?: string[];
   deviceName: string;
@@ -13,7 +13,6 @@ export interface ILocalState {
   entries: string[];
   keyring?: string;
   files?: string;
-  session?: { unlockedUntil: number | null; freshUntil: number };
   approved: {
     root: string;
     gitDir: string;
@@ -43,7 +42,7 @@ export function aliasMap(aliases: Record<string, string> = {}): Record<string, s
 
 export function emptyState(deviceName: string): ILocalState {
   return {
-    format: 1,
+    format: 2,
     deviceName,
     headers: [],
     entries: [],

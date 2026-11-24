@@ -53,11 +53,13 @@ export async function hello(
   if (p.compareSemver(result.value.appVersion, minServer) < 0)
     throw new EnvdenError("SERVER_TOO_OLD", "Server is too old for this envden. Update the server");
 
-  if (!result.value.protocols.includes(1))
-    throw new EnvdenError(
-      "UPDATE_REQUIRED",
-      "Server has no protocol this envden knows. Update envden",
-    );
+  if (!result.value.protocols.includes(p.PROTOCOL_VERSION))
+    throw result.value.protocols.every((version) => version < p.PROTOCOL_VERSION)
+      ? new EnvdenError("SERVER_TOO_OLD", "Server is too old for this envden. Update the server")
+      : new EnvdenError(
+          "UPDATE_REQUIRED",
+          "Server has no protocol this envden knows. Update envden",
+        );
 
   return { pin: presented, hello: result.value };
 }

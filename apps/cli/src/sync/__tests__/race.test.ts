@@ -95,39 +95,3 @@ test("accept refreshes history when a newer head appears", async () => {
     await f.cleanup();
   }
 });
-
-test("an expired unlock prompts when interactive and names envden unlock otherwise", async () => {
-  const f = await syncFixture();
-  let locked = true;
-  let prompts = 0;
-
-  const lockedUntilLogin: TFetch = async (input, init) => {
-    const url = new URL(input instanceof Request ? input.url : input.toString());
-
-    if (locked && url.pathname !== "/v1/hello")
-      return Response.json({ error: "LOCKED" }, { status: 403 });
-
-    return f.fetcher(input, init);
-  };
-
-  const opts = { ...f.opts, fetcher: lockedUntilLogin };
-
-  try {
-    await Promise.resolve(
-      expect(pull(f.second, { ...opts, interactive: false })).rejects.toMatchObject({
-        code: "LOCKED",
-        message: expect.stringContaining("envden unlock"),
-      }),
-    );
-
-    const unlock = async () => {
-      prompts++;
-      locked = false;
-    };
-
-    expect((await pull(f.second, { ...opts, interactive: true, unlock })).kind).toBe("pulled");
-    expect(prompts).toBe(1);
-  } finally {
-    await f.cleanup();
-  }
-});

@@ -8,6 +8,8 @@ import { basePath, readBytes, same } from "../sync/local/files.ts";
 import { templateChecks } from "../templates/checks.ts";
 import { templateNoticeLines } from "../templates/notice.ts";
 
+export const WAITING_NOTICE = "envden: a device is waiting to join; run envden device approve";
+
 export async function noticeStatus(home: string, state: ILocalState) {
   const repos = new Set<string>();
 
@@ -61,6 +63,8 @@ async function lockedrefreshNotice(
     ...repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`),
     ...templateNoticeLines(await templateChecks(state)).map(sanitizeTerminal),
   ];
+
+  if (remote?.waiting) lines.push(WAITING_NOTICE);
 
   await atomicWrite(
     join(home, "state", "notice"),

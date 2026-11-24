@@ -43,15 +43,15 @@ test("accepted recovery-signed joins report once per event and skip the joining 
 
     await f.joinHome("second");
     const state = await report();
-    expect(output.mock.calls.flat()).toEqual(["envden: second joined with the recovery kit"]);
+    expect(output.mock.calls.flat()).toEqual(["envden: second joined with the recovery code"]);
     await report();
     expect(output.mock.calls).toHaveLength(1);
     await f.joinHome("third");
     const final = await report();
 
     expect(output.mock.calls.flat()).toEqual([
-      "envden: second joined with the recovery kit",
-      "envden: third joined with the recovery kit",
+      "envden: second joined with the recovery code",
+      "envden: third joined with the recovery code",
     ]);
 
     const own = p.decode(
@@ -69,7 +69,7 @@ test("accepted recovery-signed joins report once per event and skip the joining 
       fixtureClock,
     );
 
-    expect(output.mock.calls.flat()).toEqual(["envden: third joined with the recovery kit"]);
+    expect(output.mock.calls.flat()).toEqual(["envden: third joined with the recovery code"]);
   } finally {
     output.mockRestore();
     await f.close();
@@ -120,7 +120,7 @@ test("the next foreground command reports a kit join even with a fresh notice ca
     await f.joinHome("second");
     const { remoteNotice } = await import("../remote.ts");
     await remoteNotice(f.first, { now: f.now, fetcher: f.fetcher, all: true });
-    expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
+    expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery code");
 
     await remoteNotice(f.first, { now: f.now, fetcher: replay, all: true });
 
@@ -132,7 +132,7 @@ test("the next foreground command reports a kit join even with a fresh notice ca
       async (input, init) => {
         printedBeforeRefresh ??= output.mock.calls
           .flat()
-          .includes("envden: second joined with the recovery kit");
+          .includes("envden: second joined with the recovery code");
 
         return replay(input, init);
       },
@@ -141,10 +141,10 @@ test("the next foreground command reports a kit join even with a fresh notice ca
 
     expect(printedBeforeRefresh).toBe(true);
 
-    expect(output.mock.calls.flat()).toContain("envden: second joined with the recovery kit");
+    expect(output.mock.calls.flat()).toContain("envden: second joined with the recovery code");
     output.mockClear();
     await commandNotice(f.first, f.now(), f.fetcher, false);
-    expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery kit");
+    expect(output.mock.calls.flat()).not.toContain("envden: second joined with the recovery code");
   } finally {
     output.mockRestore();
     await f.close();

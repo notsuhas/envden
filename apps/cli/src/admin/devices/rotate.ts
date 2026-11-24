@@ -3,7 +3,6 @@ import { retryHead } from "../../client/retry.ts";
 import * as p from "@envden/core/protocol";
 import type { TAdapters } from "../../adapters.ts";
 import type { TFetch } from "../../client/fetch.ts";
-import { login } from "../../session/login.ts";
 import { adminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";
 import { nextEpoch } from "../shared/epoch.ts";
@@ -12,12 +11,10 @@ import { commitAdmin } from "../shared/commit.ts";
 
 async function attemptRotateVault(
   adapters: TAdapters,
-  password: string,
   now: () => number,
   fetcher: TFetch = adapters.fetcher,
 ) {
   const context = await adminContext(adapters, now, fetcher);
-  await login(context.client, context.vaultId, password);
   const history = await currentHistory(context);
   const { change, keyring } = await nextEpoch(context, history);
 

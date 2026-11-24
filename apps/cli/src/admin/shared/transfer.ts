@@ -41,8 +41,7 @@ export async function historySwaps(
       files: body ? p.decode(p.FilesCodec, body) : undefined,
       keyring: undefined,
       envelope: undefined,
-      skPub: undefined,
-      opaqueRecord: undefined,
+      proofPub: undefined,
       approver: undefined,
     });
 
@@ -90,15 +89,12 @@ export async function copyServer(source: TClient, destination: TClient, history:
     envelope,
   );
 
-  const skPub = await optionalObject(source, "/v1/move/sk-pub");
-  if (!skPub) throw new EnvdenError("INVALID_DATA", "Missing secret key public key");
+  const proofPub = await optionalObject(source, "/v1/move/proof-pub");
+  if (!proofPub) throw new EnvdenError("INVALID_DATA", "Missing recovery proof key");
 
   await destination.request(
-    `/v1/move/material/skPub/${text(p.H("sk-public", skPub))}`,
+    `/v1/move/material/proofPub/${text(p.sha256(proofPub))}`,
     "PUT",
-    skPub,
+    proofPub,
   );
-
-  const period = p.UnlockPeriodSchema.parse(await (await source.request("/v1/move/period")).json());
-  await destination.request("/v1/move/period", "PUT", period);
 }

@@ -1,4 +1,4 @@
-const SECRET_FLAGS = new Set(["--setup-token", "--repair-token", "--recovery-kit"]);
+const SECRET_FLAGS = new Set(["--setup-token", "--repair-token"]);
 
 const PASSWORD_FLAG = /^--?[\w-]*pass/i;
 

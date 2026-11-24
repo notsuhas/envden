@@ -7,6 +7,7 @@ interface ISetupChoices {
   shell?: string;
   agent?: string;
   scanRoot?: string[];
+  recoveryCodeOut?: string;
 }
 
 export function missingSetupFlags(interactive: boolean, choices: ISetupChoices): string[] {
@@ -19,5 +20,6 @@ export function missingSetupFlags(interactive: boolean, choices: ISetupChoices):
     ...(!choices.shell ? ["--shell zsh|bash|fish|powershell|none"] : []),
     ...(!choices.agent ? ["--agent on|off"] : []),
     ...(!choices.scanRoot?.length ? ["--scan-root <path...>"] : []),
+    ...(!choices.recoveryCodeOut ? ["--recovery-code-out <file>"] : []),
   ];
 }

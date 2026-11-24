@@ -9,19 +9,19 @@ import type { TAdminContext } from "../shared/context.ts";
 import { currentHistory } from "../shared/history.ts";
 
 function pendingPath(context: TAdminContext) {
-  return join(context.adapters.home, "state", "kit-replace");
+  return join(context.adapters.home, "state", "code-replace");
 }
 
-export function savePendingKit(context: TAdminContext, swap: p.ISwap) {
+export function savePendingCode(context: TAdminContext, swap: p.ISwap) {
   return atomicWrite(pendingPath(context), text(p.SwapCodec.write(swap)), context.now);
 }
 
-export function clearPendingKit(context: TAdminContext) {
+export function clearPendingCode(context: TAdminContext) {
   return rm(pendingPath(context), { force: true });
 }
 
-// Finishes a kit swap whose response was lost; an uncommitted one is dropped, so its kit never took effect.
-export async function settlePendingKit(context: TAdminContext) {
+// Finishes a code swap whose response was lost; an uncommitted one is dropped, so its code never took effect.
+export async function settlePendingCode(context: TAdminContext) {
   const saved = await optionalRead(pendingPath(context));
   if (!saved) return false;
 
@@ -31,7 +31,7 @@ export async function settlePendingKit(context: TAdminContext) {
   const committed = historyHasHeader(history, hash);
 
   if (committed) await acceptAdmin(context, swap, history);
-  await clearPendingKit(context);
+  await clearPendingCode(context);
 
   return committed;
 }

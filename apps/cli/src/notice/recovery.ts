@@ -64,7 +64,7 @@ export async function printRecoveryJoins(
 
   for (const [id, name] of Object.entries(notices)) {
     if (seen.has(id)) continue;
-    console.error(`envden: ${sanitizeTerminal(name)} joined with the recovery kit`);
+    console.error(`envden: ${sanitizeTerminal(name)} joined with the recovery code`);
     seen.add(id);
   }
 

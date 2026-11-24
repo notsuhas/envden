@@ -8,7 +8,7 @@ import { createFakeRepoAdapter } from "@envden/testing/repo";
 import { createMemoryKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../adapters.ts";
 import { setupVault } from "../../vault/setup.ts";
-import { kitJoin } from "../../vault/recovery/kit.ts";
+import { recoveryJoin } from "../../vault/recovery/join.ts";
 import { linkCheckout } from "../../links/place.ts";
 import { pushInitialFiles } from "../../vault/initial/push.ts";
 import { saveState, loadState } from "../../state/store/repository.ts";
@@ -53,13 +53,17 @@ export async function syncFixture(directory?: string) {
 
     const address = running.server.url.toString();
 
+    let code = "";
+
     const result = await setupVault(first, {
       address,
       token,
       name: "first",
-      password: "master password",
       now,
       fetcher,
+      onCode: async (shown) => {
+        code = shown;
+      },
     });
 
     const checkout = {
@@ -84,15 +88,7 @@ export async function syncFixture(directory?: string) {
       [second, "second"],
       [third, "third"],
     ] as const)
-      await kitJoin(adapters, {
-        address,
-        vaultId: result.kit.vaultId,
-        secretKey: result.kit.secretKey,
-        password: "master password",
-        name,
-        now,
-        fetcher,
-      });
+      await recoveryJoin(adapters, { address, code, name, now, fetcher });
 
     const checkoutB = {
       ...checkout,
@@ -121,15 +117,7 @@ export async function syncFixture(directory?: string) {
       checkout,
       checkoutB,
       aStore: result.state.links[0]!.store,
-      setupOptions: {
-        address,
-        token,
-        name: "first",
-        password: "master password",
-        now,
-        fetcher,
-        resumeSecretKey: result.kit.secretKey,
-      },
+      setupOptions: { address, token, name: "first", now, fetcher, onCode: async () => {} },
       root,
       now,
       cleanup,
