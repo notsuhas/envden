@@ -11,7 +11,7 @@ envden track /path/to/checkout
 
 You can also pass a scan root to find several repos. Without a path, `track` starts in the current directory.
 
-The scan never enters hidden folders like `~/.codex` or `~/.gradle`, dependency folders like `node_modules` or `Pods`, or the folders inside a checkout, where other clones are vendored code. Build output like `target`, `build` or `vendor` is skipped only inside a project, and tool folders like `~/Library`, `~/AppData` or `~/go` only in your home folder. Worktrees and submodules of a checkout it finds are still listed, even when a worktree sits in a hidden folder such as `~/.t3/worktrees`. A scan root you name is always scanned, hidden or not.
+The scan never enters hidden folders like `~/.codex` or `~/.gradle`, dependency folders like `node_modules` or `Pods`, or the folders inside a checkout, where other clones are vendored code. Build output like `target`, `build` or `vendor` is skipped only inside a project, and tool folders like `~/Library`, `~/snap` or `~/go` only in your home folder. Worktrees and submodules of a checkout it finds are still listed, even when a worktree sits in a hidden folder such as `~/.t3/worktrees`. A scan root you name is always scanned, hidden or not.
 
 Repos without a usable git remote are skipped and counted in one line. Add `--verbose` to `setup` or `track` to list each one.
 
