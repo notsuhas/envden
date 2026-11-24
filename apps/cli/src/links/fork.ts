@@ -3,7 +3,10 @@ import type { ILocalState } from "../state/model.ts";
 import type { TAdapters } from "../adapters.ts";
 import { syncContext } from "../sync/remote/context.ts";
 import { entryName, readableEntries } from "../sync/remote/content.ts";
-import { deriveAlias } from "./alias.ts";
+
+function chained(aliases: Record<string, string>, source: string, target: string) {
+  return Object.hasOwn(aliases, target) || Object.values(aliases).includes(source);
+}
 
 export function shouldAskAlias(
   state: ILocalState,
@@ -18,11 +21,12 @@ export function shouldAskAlias(
 
   return (
     !!target &&
+    target !== checkout.repoId &&
     !state.links.some((item) => roots.has(item.root)) &&
     repos.has(target) &&
     !(state.aliasAsked ?? []).includes(checkout.repoId) &&
     !state.aliases[checkout.repoId] &&
-    deriveAlias(state.aliases, checkout.repoId, target).kind === "assign"
+    !chained(state.aliases, checkout.repoId, target)
   );
 }
 

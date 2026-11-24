@@ -17,7 +17,7 @@ The stable identity of a repo, derived on the device from its remote as `host/pa
 _Avoid_: project, repo name, path
 
 **Alias**:
-A user-chosen mapping that makes one Repo ID share env files with another (a fork with its upstream, a moved repo with its old ID).
+A mapping, accepted by the user at the fork prompt, that makes a fork's Repo ID share env files with its upstream.
 _Avoid_: link (that's placement), redirect
 
 **Checkout**:

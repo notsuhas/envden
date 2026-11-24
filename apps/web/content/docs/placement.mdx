@@ -88,15 +88,11 @@ An atomic editor save, `sed -i` or `cp .env.example .env` can replace a symlink 
 
 If it differs, envden marks the checkout detached, keeps both versions and asks you what to do on the next interactive command. The shell notice doesn't repair files.
 
-## Share files with a fork or renamed repo
+## Share files with a fork
 
-When an `upstream` remote already has env files, envden offers to alias the fork. You can also map identities yourself:
+When an `upstream` remote already has env files, envden offers to alias the fork so it shares them. It asks once, and only if no checkout of the fork already has placed files.
 
-```sh
-envden alias github.com/you/fork github.com/org/original
-```
-
-Use the normalized Repo IDs for your repos. If the source repo already has placed files, untrack its checkouts first, then alias and track them again. Success prints `Alias saved`.
+If a checkout's remote changes, for example after a repo is renamed, run `envden untrack <path>` and then `envden track` to approve it under its new Repo ID.
 
 ## Use env files in Docker builds
 

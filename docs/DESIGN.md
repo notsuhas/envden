@@ -138,7 +138,7 @@ User-owned tool directories remain outside envden's control if the user personal
 - Placement uses directory handles on macOS/Linux; Windows or unavailable FFI retains a parent-swap race after the final path check.
 - Replacing a regular file with different bytes first backs it up to `~/.envden/conflicts`, outside the checkout; a backup never becomes checkout content. Equal bytes and existing store links need no backup. Removal refuses unrelated symlinks and unsafe parents.
 - Monorepos: `apps/web/.env` maps to `<repo-id>/apps/web/.env`.
-- Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias, only if no checkout of the fork already has placed files. `envden alias` also fixes renamed or moved repos.
+- Forks: when an `upstream` remote's Repo ID already has envs, ask once to alias, only if no checkout of the fork already has placed files. There is no manual alias command (see Decisions).
 - **Link mode** (default): a symlink into the store. All links to one store file share one base.
 - **Copy mode**: real copies, each with its own base; push detects changes against it, including a revert to any earlier version. Requires explicit consent when symlinks aren't available, and is offered once per checkout, interactively, when its root contains `.devcontainer/`, `docker-compose*.yml` or `Dockerfile`. `envden track --copy` selects it explicitly; `envden config placement <path> link|copy` saves the checkout preference.
 - **Local only**: a checkout can mark a file as deliberately different (e.g. `PORT` per worktree). It becomes a copy that is never pushed or pulled, with no nagging.
@@ -170,7 +170,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 
 - Explicit only. `envden push` / `envden pull` in a checkout act on its repo; `--all` acts on everything in one manifest swap.
 - A push names the manifest head it was based on; the server rejects it if the head moved (compare-and-swap). Requests are retry-safe. Local operations on a store file are serialized with a lock.
-- Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote still requires `envden alias`. Cancelling a reconciliation prompt aborts the command.
+- Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote requires `envden untrack <path>`, then `envden track <path>`. Cancelling a reconciliation prompt aborts the command.
 - An applied server tombstone is an agreed base: newly tracked local content can deliberately re-add the file. A device that has not applied the deletion conflicts instead; resolving that conflict records the agreement.
 - Pull never overwrites unpushed local edits: those go through merge. A backup is kept before overwriting bytes that differ from the applied server version, and reported with the checkout path. Bytes equal to that version are already in server history and get no backup.
 - Each device keeps the ciphertext of files it uses, so it can repair a restored server for those repos. It never fetches other repos' files; their names come from the file list.
@@ -246,6 +246,10 @@ A tracked env file is compared with its template sibling by key name, using the 
 ### Stable path collision selection
 
 Collision checks use UTF-16 lexical path order, replacing first-seen selection in keyed file-ID order. Fresh vault keys must not change which case or Unicode alias is held back on the same filesystem. Paths retain their original spelling; only the collision comparison normalizes Unicode and, on case-insensitive filesystems, case. Signed file entries remain ordered by file ID.
+
+### Aliases come only from the fork prompt
+
+The only way to alias a Repo ID is accepting the fork prompt during `track` or `setup`. This replaced the `envden alias <repo> <target>` command, which also covered renamed or moved repos. A renamed repo is untracked and tracked again under its new Repo ID instead.
 
 ### One server per vault, no peer-to-peer
 
