@@ -25,13 +25,7 @@ export function chooseRecoveryCandidate(input: {
   return { kind: "lost" };
 }
 
-export function repairLoginDecision(
-  headersAfterRestoredHead: readonly IManifestHeader[],
-): "register" | "login" {
-  return headersAfterRestoredHead.some((h) => h.op === 8 || h.op === 9) ? "register" : "login";
-}
-
-export function refuseSecretKeyProof(
+export function refuseRecoveryProof(
   headersAfterRestoredHead: readonly IManifestHeader[],
   envelopeMatchesHead: boolean,
 ): boolean {

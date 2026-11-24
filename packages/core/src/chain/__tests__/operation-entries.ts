@@ -29,7 +29,7 @@ export function operationEntries(
 
   if (op === 6) entries = [f.entry(state, { kind: 3, payload: { change: f.change(state) } })];
 
-  if (op === 7 || op === 9)
+  if (op === 7)
     entries = [
       f.entry(state, {
         kind: 4,

@@ -4,7 +4,7 @@ import type { IStorageAdapter, IStoredSwap } from "../storage.ts";
 export function prepareCommit(
   storage: Pick<
     IStorageAdapter,
-    "setupToken" | "consumeSession" | "mailbox" | "configureVault" | "hasVault"
+    "setupToken" | "consumeSession" | "joinRequest" | "configureVault" | "hasVault"
   >,
   vault: Uint8Array,
   swap: IStoredSwap,
@@ -17,8 +17,8 @@ export function prepareCommit(
     if (!storage.consumeSession(vault, session, now))
       throw new EnvdenError("UNAUTHORIZED", "Session expired or consumed");
 
-  if (swap.closeMailbox !== undefined && !storage.mailbox(vault, swap.closeMailbox, now))
-    throw new EnvdenError("NOT_FOUND", "Mailbox expired or closed");
+  if (swap.closeJoinRequest !== undefined && !storage.joinRequest(swap.closeJoinRequest, now))
+    throw new EnvdenError("NOT_FOUND", "Join request expired or closed");
 
   if (swap.vault) storage.configureVault(vault, swap.vault);
 

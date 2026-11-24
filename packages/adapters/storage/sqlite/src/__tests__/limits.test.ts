@@ -14,7 +14,7 @@ test("rate strikes reset after a quiet period", () => {
   const dir = temp();
   const storage = createSqliteStorageAdapter(dir, 0);
   const vault = new Uint8Array([1]);
-  const bucket = { kind: "non-member" } as const;
+  const bucket = { kind: "recovery" } as const;
 
   try {
     for (let i = 0; i < 5; i++) storage.charge(vault, bucket, 0);
@@ -45,7 +45,7 @@ test("swap quota includes files and rolls back the head", () => {
           header: { seq: 1n, hash, bytes: hash },
           entries: [],
           bodyDigest: hash,
-          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          vault: { active: true, frozen: false, proofRefused: false },
           files: { hash, bytes: hash, versions: [] },
         },
         0,
@@ -83,7 +83,7 @@ test("over quota, a list that only deletes still commits", () => {
         header: { seq: BigInt(seq), hash: b(seq + 10), bytes: b(seq + 10) },
         entries: [],
         bodyDigest: b(seq + 10),
-        vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+        vault: { active: true, frozen: false, proofRefused: false },
         files: { hash: b(seq + 20), bytes: new Uint8Array(8).fill(seq), versions },
       },
       0,
@@ -115,10 +115,10 @@ test("expired charges and strikes are pruned across caller-selected buckets", ()
   try {
     for (let i = 0; i < 100; i++) {
       const device = new Uint8Array([i]);
-      for (let j = 0; j < 20; j++) storage.charge(device, { kind: "mailbox", device }, 0);
+      for (let j = 0; j < 20; j++) storage.charge(device, { kind: "join" }, 0);
     }
 
-    storage.charge(new Uint8Array([255]), { kind: "mailbox" }, 30 * 86400000);
+    storage.charge(new Uint8Array([255]), { kind: "join" }, 30 * 86400000);
     expect(db.query("SELECT COUNT(*) AS count FROM charges").get()).toEqual({ count: 1 });
     expect(db.query("SELECT COUNT(*) AS count FROM buckets").get()).toEqual({ count: 0 });
   } finally {
@@ -138,8 +138,7 @@ for (const operation of ["remove", "rotate", "files", "blob", "move", "repair"] 
     storage.configureVault(vault, {
       active: true,
       frozen: false,
-      skRefused: false,
-      unlockPeriod: null,
+      proofRefused: false,
     });
 
     storage.putBlob(vault, hash, hash);
@@ -177,7 +176,7 @@ for (const operation of ["remove", "rotate", "files", "blob", "move", "repair"] 
                   devices: [
                     {
                       id: hash,
-                      state: { unlockedUntil: 0, freshUntil: 0, clientVersion: "1.0.0" },
+                      state: { clientVersion: "1.0.0" },
                     },
                   ],
                 }

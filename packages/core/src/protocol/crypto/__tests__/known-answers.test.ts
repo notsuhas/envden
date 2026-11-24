@@ -4,7 +4,6 @@ import { hkdf } from "@noble/hashes/hkdf.js";
 import { hmac } from "@noble/hashes/hmac.js";
 import { ed25519, x25519 } from "@noble/curves/ed25519.js";
 import { xchacha20poly1305 } from "@noble/ciphers/chacha.js";
-import { argon2id } from "hash-wasm";
 import { CipherSuite, HkdfSha256 } from "@hpke/core";
 import { DhkemX25519HkdfSha256 } from "@hpke/dhkem-x25519";
 import { Chacha20Poly1305 } from "@hpke/chacha20poly1305";
@@ -48,11 +47,6 @@ test("libsodium XChaCha20 Poly1305 known answer", () => {
       ),
     ),
   ).toBe(v.ct);
-});
-
-test("Argon2 reference implementation known answer without AD", async () => {
-  const { hash, ...params } = vectors.argon2id;
-  expect(await argon2id({ ...params, outputType: "hex" })).toBe(hash);
 });
 
 test("RFC 9180 base X25519 HKDF SHA256 ChaCha20 Poly1305", async () => {

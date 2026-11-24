@@ -8,12 +8,12 @@ export function createSwapCommit(
   context: TContext,
   storage: Pick<
     IStorageAdapter,
-    | "closeMailbox"
+    | "closeJoinRequest"
     | "configureVault"
     | "consumeSession"
     | "hasVault"
     | "head"
-    | "mailbox"
+    | "joinRequest"
     | "putDevice"
     | "setupToken"
     | "writeState"
@@ -141,7 +141,7 @@ function writeFiles(
 
 function writeMetadata(
   context: TContext,
-  storage: Pick<IStorageAdapter, "closeMailbox">,
+  storage: Pick<IStorageAdapter, "closeJoinRequest">,
   vault: Uint8Array,
   swap: IStoredSwap,
   now: number,
@@ -160,7 +160,7 @@ function writeMetadata(
   if (swap.clearRepairReports)
     run("DELETE FROM state WHERE vault=? AND kind='repair-report'", vault);
 
-  if (swap.closeMailbox !== undefined) storage.closeMailbox(vault, swap.closeMailbox);
+  if (swap.closeJoinRequest !== undefined) storage.closeJoinRequest(swap.closeJoinRequest);
   if (swap.setupTokenHash) run("DELETE FROM setup");
 }
 

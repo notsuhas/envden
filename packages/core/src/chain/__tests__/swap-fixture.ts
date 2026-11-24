@@ -68,7 +68,6 @@ export function swapFixture(op: number) {
       state,
       files: oldFiles,
       requestSigner: header.body.signer,
-      repairRegistrationRequired: false,
       missingBlobs: new Set([idForTest(oldEntry.blobHash)]),
       ancestorHeaderHashes: new Set([
         idForTest(objectHash(ManifestHeaderCodec, previous, "manifest")),

@@ -15,7 +15,7 @@ interface IStorageFixture {
 }
 
 const b = (value: number) => new Uint8Array([value]);
-const vault: IStoredVault = { active: true, frozen: false, skRefused: false, unlockPeriod: null };
+const vault: IStoredVault = { active: true, frozen: false, proofRefused: false };
 
 function swap(value: number): IStoredSwap {
   return {
@@ -58,7 +58,7 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
     check("uncommitted blobs expire and obey quota", blobStagingContract);
 
     check("discard removes inactive imports and refuses active vaults", (db) => {
-      const session: ISessionKey = { kind: "login", device: b(2), purpose: "registration" };
+      const session: ISessionKey = { kind: "join-ticket", device: b(2), purpose: "recovery" };
 
       db.commitSwap(
         b(1),
@@ -72,7 +72,7 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       );
 
       db.putSession(b(1), session, b(5), 0);
-      db.putDevice(b(1), b(2), { clientVersion: "1.0.0", freshUntil: 0, unlockedUntil: 0 });
+      db.putDevice(b(1), b(2), { clientVersion: "1.0.0" });
       db.discardInactiveVault(b(1));
       expect(db.hasVault(b(1))).toBe(false);
       expect(db.head(b(1))).toBeUndefined();
@@ -88,14 +88,12 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
         ...swap(1),
         entries: [{ seq: 0n, hash: b(40), bytes: b(41) }],
         files: { hash: b(50), bytes: b(51), versions: [] },
-        state: (["keyring", "envelope", "skPub", "opaqueRecord"] as const).map((kind) => ({
+        state: (["keyring", "envelope", "proofPub"] as const).map((kind) => ({
           kind,
           key: b(0),
           bytes: b(60),
         })),
-        devices: [
-          { id: b(3), state: { unlockedUntil: 100, freshUntil: 50, clientVersion: "1.0.0" } },
-        ],
+        devices: [{ id: b(3), state: { clientVersion: "1.0.0" } }],
       };
 
       db.commitSwap(b(1), undefined, first, 0);
@@ -103,21 +101,17 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       expect(next.head(b(1))).toEqual(b(1));
       expect(next.headers(b(1), 0n, 2n)).toEqual([first.header]);
       expect(next.headers(b(1), 0n, 2n, 0)).toEqual([]);
-      next.capUnlocks(b(1), 70);
-      expect(next.device(b(1), b(3))?.unlockedUntil).toBe(70);
-      next.capUnlocks(b(1), 90);
-      expect(next.device(b(1), b(3))?.unlockedUntil).toBe(70);
       expect(next.header(b(1), b(1))).toEqual(first.header);
       expect(next.entries(b(1), 0n, 1n)).toEqual(first.entries);
       expect(next.fileList(b(1), b(50))).toEqual(b(51));
-      expect(next.state(b(1), "opaqueRecord", b(0))).toEqual(b(60));
-      expect(next.device(b(1), b(3))).toEqual({ ...first.devices[0]!.state, unlockedUntil: 70 });
+      expect(next.state(b(1), "proofPub", b(0))).toEqual(b(60));
+      expect(next.device(b(1), b(3))).toEqual(first.devices[0]!.state);
       expect(next.head(b(2))).toBeUndefined();
     });
 
     check("failed commits roll back all state", (db) => {
       db.configureVault(b(1), vault);
-      const key: ISessionKey = { kind: "login", device: b(2), purpose: "finish" };
+      const key: ISessionKey = { kind: "join-ticket", device: b(2), purpose: "recovery" };
       db.putSession(b(1), key, b(9), 0);
       db.commitSwap(b(1), undefined, swap(1), 0);
 
@@ -131,7 +125,7 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       expect(() => db.commitSwap(b(1), b(1), invalid, 1)).toThrow();
       expect(db.session(b(1), key, 1)).toEqual(b(9));
       expect(db.vault(b(1))?.frozen).toBe(false);
-      expect(db.state(b(1), "opaqueRecord", b(0))).toBeUndefined();
+      expect(db.state(b(1), "proofPub", b(0))).toBeUndefined();
       expect(db.head(b(1))).toEqual(b(1));
     });
 
@@ -145,7 +139,7 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
           active: false,
           frozen: true,
           serverMoved: b(7),
-          skRefused: true,
+          proofRefused: true,
           restored: { repairTokenHash: b(6), restoredHead: b(5), finishProgress: b(4) },
         },
         [
@@ -163,25 +157,19 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
       expect(next.states(b(1), "repair-report")).toEqual([]);
     });
 
-    check("login states expire and are consumed once", (db) => {
-      const key: ISessionKey = { kind: "login", device: b(1), purpose: "unlock" };
-      db.putSession(b(1), key, b(9), 100);
-      expect(db.session(b(1), { ...key, purpose: "kit" }, 101)).toBeUndefined();
-      expect(db.session(b(2), key, 101)).toBeUndefined();
-      expect(db.consumeSession(b(1), key, 120100)).toBeUndefined();
-      db.putSession(b(1), key, b(9), 200);
-      expect(db.consumeSession(b(1), key, 201)).toEqual(b(9));
-      expect(db.consumeSession(b(1), key, 201)).toBeUndefined();
-    });
-
     check("join tickets expire and commit consumes them", (db) => {
-      const key: ISessionKey = { kind: "join-ticket", device: b(1), purpose: "join" };
+      const key: ISessionKey = { kind: "join-ticket", device: b(1), purpose: "recovery" };
       db.putSession(b(1), key, b(9), 0);
+      expect(db.session(b(2), key, 1)).toBeUndefined();
+      expect(db.session(b(1), { ...key, device: b(2) }, 1)).toBeUndefined();
       expect(db.session(b(1), key, 599999)).toEqual(b(9));
       expect(db.session(b(1), key, 600000)).toBeUndefined();
       db.putSession(b(1), key, b(9), 0);
       db.commitSwap(b(1), undefined, { ...swap(1), vault, consumeSessions: [key] }, 1);
       expect(db.session(b(1), key, 2)).toBeUndefined();
+      db.putSession(b(1), key, b(9), 3);
+      expect(db.consumeSession(b(1), key, 4)).toEqual(b(9));
+      expect(db.consumeSession(b(1), key, 4)).toBeUndefined();
     });
 
     check("nonces expire after ten minutes", (db) => {
@@ -193,33 +181,40 @@ export function storageContract(name: string, factory: () => IStorageFixture): v
 
     check("rate limits isolate, refund and double", rateLimitContract);
 
-    check("mailbox numbers and write-once slots", (db) => {
-      const box = db.openMailbox(b(1), b(2), 0);
-      expect(box?.number).toBe(1);
-      expect(db.openMailbox(b(2), b(2), 0)?.number).toBe(2);
-      expect(db.writeMailbox(b(1), 1, "PairJoiner", b(2), 1)).toBe("out-of-order");
-      expect(db.writeMailbox(b(1), 1, "KE1", b(2), 1)).toBe("written");
-      expect(db.writeMailbox(b(1), 1, "KE1", b(2), 1)).toBe("identical");
-      expect(db.writeMailbox(b(1), 1, "KE1", b(3), 1)).toBe("closed");
-      expect(db.openMailbox(b(1), b(2), 1)?.number).toBe(1);
-      expect(db.mailbox(b(1), 1, 600001)).toBeUndefined();
+    check("join request numbers, claims and write-once slots", (db) => {
+      const request = db.openJoinRequest(b(2), b(3), b(4), 0);
+      expect(request).toMatchObject({ number: 1, joiner: b(2), record: b(3), commit: b(4) });
+      expect(db.openJoinRequest(b(5), b(3), b(4), 0)?.number).toBe(2);
+      expect(db.joinRequests(1).map((open) => open.number)).toEqual([1, 2]);
+      expect(db.writeJoinRequest(1, "reveal", b(2), 1)).toBe("out-of-order");
+      const claim = { vault: b(7), device: b(8) };
+      expect(db.writeJoinRequest(1, "offer", b(2), 1, claim)).toBe("written");
+      expect(db.joinRequest(1, 1)?.claim).toEqual(claim);
+      expect(db.writeJoinRequest(1, "offer", b(2), 1, claim)).toBe("identical");
+      expect(db.writeJoinRequest(1, "reveal", b(6), 1)).toBe("written");
+      expect(db.joinRequest(1, 1)?.slots).toEqual({ offer: b(2), reveal: b(6) });
+      expect(db.writeJoinRequest(1, "reveal", b(3), 1)).toBe("closed");
+      expect(db.joinRequest(1, 1)).toBeUndefined();
+      expect(db.openJoinRequest(b(2), b(3), b(4), 1)?.number).toBe(1);
+      expect(db.joinRequest(2, 600000)).toBeUndefined();
+      expect(db.joinRequests(600001)).toEqual([]);
     });
 
-    check("ten mailboxes per vault per rolling hour", (db) => {
+    check("ten join requests per rolling hour", (db) => {
       for (let i = 0; i < 10; i++) {
-        const box = db.openMailbox(b(1), b(2), i);
-        if (box) db.closeMailbox(b(1), box.number);
+        const request = db.openJoinRequest(b(2), b(3), b(4), i);
+        if (request) db.closeJoinRequest(request.number);
       }
 
-      expect(db.openMailbox(b(1), b(2), 100)).toBeUndefined();
-      expect(db.openMailbox(b(1), b(2), 3600000)?.number).toBe(1);
+      expect(db.openJoinRequest(b(2), b(3), b(4), 100)).toBeUndefined();
+      expect(db.openJoinRequest(b(2), b(3), b(4), 3600000)?.number).toBe(1);
     });
 
-    check("pair commit closes mailbox; approver lasts 24h", (db) => {
-      db.openMailbox(b(1), b(2), 0);
-      const update = { ...swap(1), closeMailbox: 1, approver: { device: b(3), bytes: b(9) } };
+    check("approve commit closes the join request; approval lasts 24h", (db) => {
+      db.openJoinRequest(b(2), b(3), b(4), 0);
+      const update = { ...swap(1), closeJoinRequest: 1, approver: { device: b(3), bytes: b(9) } };
       db.commitSwap(b(1), undefined, update, 1);
-      expect(db.mailbox(b(1), 1, 2)).toBeUndefined();
+      expect(db.joinRequest(1, 2)).toBeUndefined();
       expect(db.approver(b(1), b(3), 86400000)).toEqual(b(9));
       expect(db.approver(b(1), b(3), 86400001)).toBeUndefined();
     });

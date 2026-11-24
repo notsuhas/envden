@@ -2,7 +2,7 @@ import { collectGarbage } from "./blobs/garbage.ts";
 import { recoverBlobs } from "./blobs/recovery.ts";
 import { createDevices } from "./access/devices.ts";
 import { createCredentials } from "./access/credentials.ts";
-import { createApprovers } from "./pairing/approvers.ts";
+import { createApprovers } from "./join/approvers.ts";
 import { createNonces } from "./access/nonces.ts";
 import type { IStorageAdapter } from "@envden/core/adapters";
 import { createContext } from "./db/context.ts";
@@ -14,7 +14,7 @@ import { createBlobs } from "./blobs/blobs.ts";
 import { createHistory } from "./chain/history.ts";
 import { createSessions } from "./access/sessions.ts";
 import { createRateLimits } from "./access/rate-limits.ts";
-import { createMailboxes } from "./pairing/mailboxes.ts";
+import { createJoinRequests } from "./join/requests.ts";
 import { createSwapCommit } from "./chain/swap-commit.ts";
 
 export function createSqliteStorageAdapter(dataDir: string, now: number): IStorageAdapter {
@@ -30,7 +30,7 @@ export function createSqliteStorageAdapter(dataDir: string, now: number): IStora
   const state = createState(context);
   const sessions = createSessions(context);
   const vaults = createVaults(context, { ...state, ...createCredentials(context) });
-  const mailboxes = createMailboxes(context);
+  const joinRequests = createJoinRequests(context);
 
   const storage = {
     id: "sqlite",
@@ -50,7 +50,7 @@ export function createSqliteStorageAdapter(dataDir: string, now: number): IStora
     ...createNonces(context),
     ...vaults,
     ...sessions,
-    ...mailboxes,
+    ...joinRequests,
     ...createChain(context),
     ...createBlobs(context),
     ...createHistory(context),

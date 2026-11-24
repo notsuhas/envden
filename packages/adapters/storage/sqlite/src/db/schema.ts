@@ -1,7 +1,7 @@
 import { EnvdenError } from "@envden/core/errors";
 import { restrictAccessSync } from "@envden/core/process";
 import { syncDirectory } from "./directory.ts";
-import { migrateV1 } from "./migrations/v1.ts";
+import { migrateV2 } from "./migrations/v2.ts";
 import { Database, constants } from "bun:sqlite";
 import {
   closeSync,
@@ -64,14 +64,20 @@ function migrateDatabase(db: Database, dataDir: string, existed: boolean) {
     const version =
       db.query<{ user_version: number }, []>("PRAGMA user_version").get()?.user_version ?? 0;
 
-    if (version !== 0 && version !== 1)
+    if (version === 1)
+      throw new EnvdenError(
+        "INVALID_INPUT",
+        "Server database is from envden 0.3 and can't be upgraded; start the server with an empty data folder and run envden setup again",
+      );
+
+    if (version !== 0 && version !== 2)
       throw new EnvdenError("INVALID_INPUT", "Incompatible server database format");
 
-    if (version === 1) return;
+    if (version === 2) return;
 
     if (existed) backupDatabase(db, dataDir, version);
 
-    if (version === 0) migrateV1(db);
+    migrateV2(db);
   }).immediate();
 }
 

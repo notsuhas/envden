@@ -1,63 +1,43 @@
 import { z } from "zod";
-import { OPAQUE_LENGTHS } from "../../opaque/constants.ts";
-import { opaqueMessage } from "../../opaque/message.ts";
 
-const message = (length: number) =>
-  z.string().refine((value) => {
-    try {
-      opaqueMessage(value, length);
+const id = z
+  .string()
+  .length(43)
+  .regex(/^[A-Za-z0-9_-]+$/);
 
-      return true;
-    } catch {
-      return false;
-    }
-  });
+const number = z.number().int().min(1).max(999);
 
-export const LoginStartSchema = z
-  .object({
-    purpose: z.enum(["unlock", "kit"]),
-    message: message(OPAQUE_LENGTHS.startLoginRequest),
-  })
-  .strict();
+export const JoinSlotSchema = z.enum(["offer", "reveal"]);
 
-export const LoginFinishSchema = z
-  .object({
-    purpose: z.enum(["unlock", "kit"]),
-    message: message(OPAQUE_LENGTHS.finishLoginRequest),
-  })
-  .strict();
+export const JoinOpenSchema = z.object({ commit: id }).strict();
 
-export const RegistrationStartSchema = z
-  .object({ message: message(OPAQUE_LENGTHS.registrationRequest) })
-  .strict();
-
-export const RegistrationFinishSchema = z
-  .object({ message: message(OPAQUE_LENGTHS.registrationRecord) })
-  .strict();
-
-export const UnlockPeriodSchema = z
-  .object({
-    period: z.union([z.literal(86400000), z.literal(604800000), z.literal(2592000000), z.null()]),
-  })
-  .strict();
-
-export const MailboxSlotSchema = z.enum(["KE1", "KE2", "KE3", "PairJoiner"]);
-
-export const MailboxWriteSchema = z.object({ message: z.string().max(5462) }).strict();
+export const JoinWriteSchema = z.object({ message: z.string().max(5462) }).strict();
 
 export const MessageResponseSchema = z.object({ message: z.string() }).strict();
 
 export const HelloResponseSchema = z.object({ hello: z.string() }).strict();
 
-export const MailboxOpenedSchema = z
-  .object({ number: z.number().int().min(1).max(999), expiresAt: z.number().int() })
+export const JoinOpenedSchema = z.object({ number, expiresAt: z.number().int() }).strict();
+
+export const JoinRequestsSchema = z
+  .object({
+    requests: z.array(
+      z
+        .object({ number, name: z.string().max(256), commit: id, expiresAt: z.number().int() })
+        .strict(),
+    ),
+  })
   .strict();
 
-export const MailboxSlotResponseSchema = z.union([
+export const JoinSlotResponseSchema = z.union([
   z.object({ message: z.string(), expiresAt: z.number().int() }).strict(),
   z.object({ kind: z.literal("pending"), expiresAt: z.number().int() }).strict(),
 ]);
 
-export const MailboxWriteResponseSchema = z
+export const JoinWriteResponseSchema = z
   .object({ kind: z.enum(["written", "identical"]), expiresAt: z.number().int() })
   .strict();
+
+export const RecoveryTicketSchema = z.object({ proofPub: id }).strict();
+
+export const RecoveryTicketResponseSchema = z.object({ vaultId: id }).strict();

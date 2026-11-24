@@ -4,11 +4,11 @@ import type { IStorageAdapter, IStoredSwap } from "../../storage.ts";
 
 const storage: Pick<
   IStorageAdapter,
-  "setupToken" | "consumeSession" | "mailbox" | "configureVault" | "hasVault"
+  "setupToken" | "consumeSession" | "joinRequest" | "configureVault" | "hasVault"
 > = {
   setupToken: () => undefined,
   consumeSession: () => undefined,
-  mailbox: () => undefined,
+  joinRequest: () => undefined,
   configureVault: () => {},
   hasVault: () => false,
 };
@@ -17,10 +17,12 @@ test("commit preconditions throw typed EnvdenErrors", () => {
   for (const [extra, code] of [
     [{ setupTokenHash: new Uint8Array(32) }, "UNAUTHORIZED"],
     [
-      { consumeSessions: [{ kind: "login", device: new Uint8Array(16), purpose: "test" }] },
+      {
+        consumeSessions: [{ kind: "join-ticket", device: new Uint8Array(16), purpose: "recovery" }],
+      },
       "UNAUTHORIZED",
     ],
-    [{ closeMailbox: 1 }, "NOT_FOUND"],
+    [{ closeJoinRequest: 1 }, "NOT_FOUND"],
     [{}, "INVALID_DATA"],
   ] satisfies [Partial<IStoredSwap>, string][]) {
     const swap: IStoredSwap = {

@@ -57,7 +57,11 @@ describe("SQLite durability", () => {
     }
   });
 
-  for (const version of [-1, 2])
+  for (const [version, message] of [
+    [-1, /Incompatible/],
+    [1, /from envden 0\.3 and can't be upgraded/],
+    [3, /Incompatible/],
+  ] as const)
     test(`refuses incompatible schema ${version} clearly`, () => {
       const dir = temp();
 
@@ -66,7 +70,7 @@ describe("SQLite durability", () => {
         db.run(`PRAGMA user_version=${version}`);
         db.close();
 
-        expect(() => createSqliteStorageAdapter(dir, 0)).toThrow(/Incompatible/);
+        expect(() => createSqliteStorageAdapter(dir, 0)).toThrow(message);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -205,8 +209,7 @@ test("discard commits durable blob garbage and pruning retries failed deletion",
     storage.configureVault(vault, {
       active: false,
       frozen: false,
-      skRefused: false,
-      unlockPeriod: null,
+      proofRefused: false,
     });
 
     storage.putBlob(vault, hash, new Uint8Array([3]));
@@ -234,8 +237,7 @@ test("discard commits durable blob garbage and pruning retries failed deletion",
     storage.configureVault(vault, {
       active: false,
       frozen: false,
-      skRefused: false,
-      unlockPeriod: null,
+      proofRefused: false,
     });
 
     storage.putBlob(vault, hash, new Uint8Array([3]));
@@ -247,13 +249,13 @@ test("discard commits durable blob garbage and pruning retries failed deletion",
   }
 });
 
-test("fresh format one includes every current lookup index", () => {
+test("fresh format two includes every current lookup index", () => {
   const dir = temp();
   const storage = createSqliteStorageAdapter(dir, 0);
   const db = new Database(join(dir, "envden.sqlite"));
 
   try {
-    expect(db.query("PRAGMA user_version").get()).toEqual({ user_version: 1 });
+    expect(db.query("PRAGMA user_version").get()).toEqual({ user_version: 2 });
     expect(readdirSync(dir).filter((name) => name.startsWith("pre-"))).toEqual([]);
 
     for (const [table, column] of [

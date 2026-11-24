@@ -4,12 +4,10 @@ import type { IDeviceListState } from "../devices/state.ts";
 import { check } from "../shared/validation.ts";
 
 export type TAuthorization =
-  | "unlocked"
-  | "mailbox-grant"
+  | "member"
+  | "join-grant"
   | "join-ticket"
-  | "fresh"
-  | "fresh-or-repair-token"
-  | "sk-proof"
+  | "member-or-repair-token"
   | "move-session"
   | "move-import"
   | "repair-token";
@@ -22,11 +20,11 @@ export function operationRequirement(
   onNewServer = false,
 ): TAuthorization {
   const op = header.op;
-  check(Number.isInteger(op) && op >= 1 && op <= 13);
+  check(requirements[op] !== undefined);
   const entry = entries[0]?.body;
-  check(entries.length === ([1, 8, 11].includes(op) ? 0 : 1));
-  const epochChange = [4, 5, 6, 7, 9].includes(op);
-  const envelopeChange = [5, 7, 8, 9].includes(op);
+  check(entries.length === ([1, 11].includes(op) ? 0 : 1));
+  const epochChange = [4, 5, 6, 7].includes(op);
+  const envelopeChange = [5, 7].includes(op);
   const filesChange = [1, 11].includes(op);
   check(header.epoch === previous.epoch + (epochChange ? 1 : 0));
   check(epochChange !== equal(header.keyringHash, previous.keyringHash));
@@ -44,7 +42,7 @@ type TRequirement = (
 ) => TAuthorization;
 
 const requirements: Record<number, TRequirement> = {
-  1: () => "unlocked",
+  1: () => "member",
   2: (header, entry, before) => joinRequirement(header, entry, before, 2),
   3: (header, entry, before) => joinRequirement(header, entry, before, 3),
   4: (_header, entry) => removalRequirement(entry, false),
@@ -52,18 +50,12 @@ const requirements: Record<number, TRequirement> = {
   6: (_header, entry) => {
     check(entry?.kind === 3);
 
-    return "fresh";
+    return "member";
   },
   7: (_header, entry) => {
     check(entry?.kind === 4);
 
-    return "fresh";
-  },
-  8: () => "fresh",
-  9: (_header, entry) => {
-    check(entry?.kind === 4);
-
-    return "sk-proof";
+    return "member";
   },
   10: (_header, entry, _before, onNewServer) => {
     check(entry?.kind === 5);
@@ -79,7 +71,7 @@ const requirements: Record<number, TRequirement> = {
   13: (header, entry) => {
     check(entry?.kind === 7 && equal(header.signer, entry.signer));
 
-    return "unlocked";
+    return "member";
   },
 };
 
@@ -93,11 +85,11 @@ function joinRequirement(
   check(equal(entry.signer, before.recovery.id) === (op === 3));
   if (op === 3) check(equal(header.signer, entry.payload.device.id));
 
-  return op === 2 ? "mailbox-grant" : "join-ticket";
+  return op === 2 ? "join-grant" : "join-ticket";
 }
 
 function removalRequirement(entry: TEntry | undefined, replaceRecovery: boolean): TAuthorization {
   check(entry?.kind === 2 && (entry.payload.newRecovery !== undefined) === replaceRecovery);
 
-  return replaceRecovery ? "fresh" : "fresh-or-repair-token";
+  return replaceRecovery ? "member" : "member-or-repair-token";
 }

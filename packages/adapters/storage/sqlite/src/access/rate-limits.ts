@@ -29,7 +29,7 @@ export function createRateLimits(context: TContext) {
             )
             .get(key)?.count ?? 0;
 
-        if (count >= (bucket.kind === "mailbox" ? 20 : 5)) {
+        if (count >= (bucket.kind === "join" ? 20 : 5)) {
           const strikes = (row && now - row.until < 86400000 ? row.strikes : 0) + 1;
 
           run(
@@ -66,12 +66,5 @@ export function createRateLimits(context: TContext) {
 }
 
 function bucketKey(vault: Uint8Array, bucket: TRateBucket): string {
-  switch (bucket.kind) {
-    case "mailbox":
-      return bucket.device ? `mailbox-writer:${hex(bucket.device)}` : `mailbox:${hex(vault)}`;
-    case "member":
-      return `member:${hex(bucket.device)}`;
-    case "non-member":
-      return `vault:${hex(vault)}`;
-  }
+  return `${bucket.kind}:${hex(vault)}`;
 }

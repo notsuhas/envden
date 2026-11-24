@@ -16,7 +16,7 @@ parentPort?.on("message", (data: { dir: string; index: number; barrier: SharedAr
           header: { seq: 1n, hash: new Uint8Array([data.index + 1]), bytes: new Uint8Array([4]) },
           entries: [],
           bodyDigest: new Uint8Array([data.index + 10]),
-          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          vault: { active: true, frozen: false, proofRefused: false },
         },
         0,
       ),

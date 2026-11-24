@@ -1,12 +1,12 @@
 import { codec, tagged, b32, concat, header } from "../../encoding/binary.ts";
 
-export interface IPairApprover {
+export interface IJoinApproved {
   vaultId: Uint8Array;
   serverPin: Uint8Array;
   manifestHash: Uint8Array;
 }
 
-export const PairApproverCodec = codec<IPairApprover>(
+export const JoinApprovedCodec = codec<IJoinApproved>(
   (r) => {
     tagged(8, r);
 

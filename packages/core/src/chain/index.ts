@@ -18,8 +18,7 @@ export {
 
 export {
   chooseRecoveryCandidate,
-  repairLoginDecision,
-  refuseSecretKeyProof,
+  refuseRecoveryProof,
   isReusedRepairToken,
 } from "./repair/decisions.ts";
 

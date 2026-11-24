@@ -32,7 +32,7 @@ export function createCommit(
 
       writeApprover(context, key, swap, now);
 
-      if (swap.closeMailbox !== undefined) storage.closeMailbox(vault, swap.closeMailbox);
+      if (swap.closeJoinRequest !== undefined) storage.closeJoinRequest(swap.closeJoinRequest);
       if (swap.setupTokenHash) data.setup.delete("token");
       data.digests.add(digest);
       data.heads.set(key, swap.header.hash.slice());

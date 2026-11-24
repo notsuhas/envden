@@ -41,7 +41,7 @@ test("migration replaces an interrupted backup and live requests prune expired s
     expect(backup.query<{ value: number }, []>("SELECT value FROM fixture").get()?.value).toBe(42);
     backup.close();
     utimesSync(join(dir, "pre-1"), 0, 0);
-    const key = { kind: "login", device: new Uint8Array([1]), purpose: "unlock" } as const;
+    const key = { kind: "join-ticket", device: new Uint8Array([1]), purpose: "recovery" } as const;
     storage.putSession(new Uint8Array([1]), key, new Uint8Array([2]), 0);
     const inspect = new Database(path);
     inspect.run("INSERT INTO approvers VALUES(x'01',x'01',x'02',100)");

@@ -7,33 +7,31 @@ import { swapFixture } from "./swap-fixture.ts";
 
 import type { TAuthorization } from "../swaps/operation.ts";
 
-const requirements: TAuthorization[] = [
-  "unlocked",
-  "mailbox-grant",
-  "join-ticket",
-  "fresh-or-repair-token",
-  "fresh",
-  "fresh",
-  "fresh",
-  "fresh",
-  "sk-proof",
-  "move-session",
-  "repair-token",
-  "repair-token",
-  "unlocked",
-];
+const requirements: Record<number, TAuthorization> = {
+  1: "member",
+  2: "join-grant",
+  3: "join-ticket",
+  4: "member-or-repair-token",
+  5: "member",
+  6: "member",
+  7: "member",
+  10: "move-session",
+  11: "repair-token",
+  12: "repair-token",
+  13: "member",
+};
 
-for (let op = 1; op <= 13; op++) {
+for (const op of Object.keys(requirements).map(Number)) {
   test(`op ${op} accepts exact shape and reports authorization`, () => {
     const f = swapFixture(op);
     const result = validateSwap(f.swap, f.context);
     expect(result.kind).toBe("valid");
-    if (result.kind === "valid") expect(result.authorization).toBe(requirements[op - 1]!);
+    if (result.kind === "valid") expect(result.authorization).toBe(requirements[op]!);
   });
 
   test(`op ${op} rejects absent or extra fields, entries, mismatched op and request signer`, () => {
     const f = swapFixture(op);
-    const fields = ["files", "keyring", "envelope", "skPub", "opaqueRecord", "approver"] as const;
+    const fields = ["files", "keyring", "envelope", "proofPub", "approver"] as const;
 
     for (const field of fields) {
       const bad = { ...f.swap };
@@ -52,7 +50,7 @@ for (let op = 1; op <= 13; op++) {
       "invalid",
     );
 
-    const body = { ...f.swap.header.body, op: op === 1 ? 8 : 1 };
+    const body = { ...f.swap.header.body, op: op === 1 ? 6 : 1 };
 
     expect(
       validateSwap(
@@ -149,26 +147,26 @@ test("repair-done requires restoredHead to be an earlier verified header", () =>
 import { EntryCodec, objectHash, equal } from "../../protocol/index.ts";
 import { signedHeader } from "./fixtures.ts";
 
-test("repair-done carries an OPAQUE record exactly when re-registering", () => {
-  const f = swapFixture(12);
-  const registration = { ...f.context, repairRegistrationRequired: true };
-  expect(validateSwap(f.swap, registration).kind).toBe("invalid");
-  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1, 192) }, registration).kind).toBe("valid");
-  expect(validateSwap({ ...f.swap, opaqueRecord: bytes(1, 192) }, f.context).kind).toBe("invalid");
+test("ops 8 and 9 are unassigned", () => {
+  const f = swapFixture(6);
+
+  for (const op of [8, 9]) {
+    const header = signObject(
+      ManifestHeaderCodec,
+      { ...f.swap.header.body, op },
+      f.a.keys.objSk,
+      "manifest",
+    );
+
+    expect(validateSwap({ ...f.swap, header }, f.context).kind).toBe("invalid");
+  }
 });
 
-test("swap optional payloads enforce public key, record and approver shapes", () => {
-  const kit = swapFixture(7);
+test("swap optional payloads enforce public key and approver shapes", () => {
+  const code = swapFixture(7);
 
-  for (const skPub of [bytes(0), Uint8Array.of(1, ...new Uint8Array(31)), bytes(1, 31)])
-    expect(validateSwap({ ...kit.swap, skPub }, kit.context).kind).toBe("invalid");
-
-  const password = swapFixture(8);
-
-  for (const length of [0, 191, 193])
-    expect(
-      validateSwap({ ...password.swap, opaqueRecord: bytes(1, length) }, password.context).kind,
-    ).toBe("invalid");
+  for (const proofPub of [bytes(0), Uint8Array.of(1, ...new Uint8Array(31)), bytes(1, 31)])
+    expect(validateSwap({ ...code.swap, proofPub }, code.context).kind).toBe("invalid");
 
   const pair = swapFixture(2);
   expect(validateSwap({ ...pair.swap, approver: bytes(1, 4096) }, pair.context).kind).toBe("valid");

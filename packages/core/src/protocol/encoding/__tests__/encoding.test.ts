@@ -81,9 +81,6 @@ test("string encoding validates UTF-8, normalization and controls", () => {
     );
 
   for (const value of ["é", "\uFEFFhello"]) expect(p.decode(p.str, p.str.write(value))).toBe(value);
-
-  expect(p.normPw(" Ａ ")).toBe(" A ");
-  expect(() => p.normPw("")).toThrow();
 });
 
 test("Crockford base32 canonical lengths and trailing bits", () => {
@@ -121,7 +118,12 @@ test("semver uses arbitrary precision and digits only", () => {
   }
 });
 
-test("base32 and pairing reject Unicode case folding", () => {
+test("base32 and recovery codes reject Unicode case folding", () => {
+  const code = p.encodeRecoveryCode(new Uint8Array(16).fill(6));
+
+  expect(code).toContain("S");
+  expect(p.decodeRecoveryCode(code.replace("S", "s"))).toEqual(new Uint8Array(16).fill(6));
   expect(() => p.unbase32("ſ0")).toThrow();
-  expect(() => p.normalizePairingCode("1-ſ000-0000")).toThrow();
+  expect(() => p.decodeRecoveryCode(code.replace("S", "ſ"))).toThrow();
+  expect(() => p.decodeRecoveryCode(code.replace("ER1", "ERı"))).toThrow();
 });
