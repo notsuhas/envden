@@ -10,6 +10,7 @@ const LOCAL: TSetting[] = [
   "update-check",
   "agent-merge",
   "auto-approve-worktrees",
+  "auto-pull",
   "placement",
   "env-files",
 ];
@@ -30,6 +31,7 @@ export function settingText(key: TSetting, config: TConfig, env: NodeJS.ProcessE
       );
     case "agent-merge":
     case "auto-approve-worktrees":
+    case "auto-pull":
       return toggleText(key, config[key], config[key]);
     case "placement":
       return listText(

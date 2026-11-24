@@ -101,7 +101,23 @@ Conflicts (run envden resolve --list): web/.env
 
 When nothing is pending it prints one line, such as `In sync: 1 repo, 1 env file. Server reachable.` It shows paths and key names, never values. `--json` lists every tracked file with a `state`.
 
-The shell notice supports `zsh`, `bash`, `fish` and `powershell`. It checks a cache on shell start and `cd`, then prints a line when the checkout is out of sync. A stale cache triggers a background refresh after 60 seconds. The hook doesn't run git or write checkout files, and it doesn't push or pull.
+The shell notice supports `zsh`, `bash`, `fish` and `powershell`. It checks a cache on shell start and `cd`, then prints a line when the checkout is out of sync. A stale cache triggers a background refresh after 60 seconds. The hook doesn't run git or push. A file newer on the server names the device that pushed it and the changed keys, never their values:
+
+```text
+envden: api/.env 2 keys changed on throwbook (STRIPE_KEY, DB_URL); run envden pull
+```
+
+By default the notice only warns. To have the background refresh pull for you:
+
+```sh
+envden config auto-pull on
+```
+
+Auto-pull only takes a newer version when your copy is unchanged since the last sync. If you edited the file, the server deleted it, or it has a conflict, nothing is written and the warning stays until you run `envden pull`. Each file it pulls is reported on your next prompt:
+
+```text
+envden: pulled api/.env (2 keys)
+```
 
 To remove it:
 

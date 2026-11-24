@@ -5,10 +5,11 @@ import * as p from "@envden/core/protocol";
 import type { TSyncContext } from "../../remote/context.ts";
 import { text } from "../../../client/encoding.ts";
 import { same } from "../files.ts";
-import { recordConflict } from "../conflicts.ts";
+import { conflictRecords, recordConflict } from "../conflicts.ts";
 import { deriveFileDecision } from "./file-decision.ts";
 import { resolveContent } from "./resolution.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
+import { deriveFastForward } from "./fast-forward.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
 
@@ -24,6 +25,12 @@ export async function reconcileFile(
 
   const snapshot = await readFileState(context, targets, store, entry);
   const { base, server, stored, snapshots, previous } = snapshot;
+
+  if (
+    context.options.fastForwardOnly &&
+    (await fastForward(context, snapshot, store, entry, repairs)) === "refuse"
+  )
+    return { changed: Number(snapshot.restored), conflicts: 0, held: true };
 
   if (
     await blocksFile(
@@ -67,6 +74,27 @@ export async function reconcileFile(
   }
 
   return applyFile(context, snapshot, store, resolution.next, entry);
+}
+
+async function fastForward(
+  context: TSyncContext,
+  snapshot: Awaited<ReturnType<typeof readFileState>>,
+  store: string,
+  entry: p.IFileEntry | undefined,
+  repairs: ReadonlySet<string>,
+) {
+  const decision = decideFile(snapshot, entry, repairs, false);
+
+  return deriveFastForward({
+    ...decision,
+    previous: snapshot.previous,
+    server: snapshot.server,
+    published: entry !== undefined,
+    tombstone: entry?.state === 2 || entry?.state === 4,
+    conflicted: (await conflictRecords(context.adapters.home)).some(
+      (record) => record.store === store,
+    ),
+  });
 }
 
 async function resolveFileState(

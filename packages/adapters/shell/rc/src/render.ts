@@ -22,6 +22,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     offers: shellQuote(join(state, "track-offers")),
     update: shellQuote(join(state, "notice-update")),
     day: shellQuote(join(state, "update-offered-day")),
+    pulled: shellQuote(join(state, "notice-pulled")),
   };
 
   const command = `env -u BUN_OPTIONS -u BUN_BE_BUN ${shellQuote(binaryPath)} status --refresh-cache`;
@@ -65,6 +66,11 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
     esac
   done 2>/dev/null < ${paths.update}
   if [ "$approved" = 1 ] && [ -f "$cache" ]; then LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"; fi
+  local pulled=${paths.pulled}
+  if [ -f "$pulled" ] && mv -f -- "$pulled" "$pulled.$$" 2>/dev/null; then
+    LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$pulled.$$"
+    rm -f -- "$pulled.$$"
+  fi
   now=$(date +%s)
   modified=$(stat -c %Y "$cache" 2>/dev/null) || modified=$(stat -f %m "$cache" 2>/dev/null) || modified=0
   if [ "$((now - modified))" -gt 60 ]; then
@@ -124,6 +130,11 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   if test "$approved" = 1; and test -f "$cache"
     env LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$cache"
   end
+  set -l pulled ${paths.pulled}
+  if test -f $pulled; and mv -f -- $pulled $pulled.$fish_pid 2>/dev/null
+    env LC_ALL=C tr -cd '\\11\\12\\40-\\176' < $pulled.$fish_pid
+    rm -f -- $pulled.$fish_pid
+  end
   set -l modified (stat -c %Y "$cache" 2>/dev/null; or stat -f %m "$cache" 2>/dev/null; or echo 0)
   if test (math (date +%s) - "$modified") -gt 60
     ${command} </dev/null >/dev/null 2>&1 &
@@ -166,6 +177,12 @@ function global:prompt {
       }
     }
     if ($approved -and (Test-Path -LiteralPath $cache)) { Get-Content -LiteralPath $cache | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host }
+    $pulled = ${psQuote(join(state, "notice-pulled"))}
+    $taken = "$pulled.$PID"
+    if (Test-Path -LiteralPath $pulled) {
+      try { Move-Item -LiteralPath $pulled -Destination $taken -Force -ErrorAction Stop } catch { $taken = $null }
+      if ($taken) { Get-Content -LiteralPath $taken | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host; Remove-Item -LiteralPath $taken -Force -ErrorAction SilentlyContinue }
+    }
     if (!(Test-Path -LiteralPath $cache) -or ((Get-Date) - (Get-Item -LiteralPath $cache).LastWriteTime).TotalSeconds -gt 60) {
       $info = [Diagnostics.ProcessStartInfo]::new(${psQuote(binaryPath)})
       $info.Arguments = 'status --refresh-cache'

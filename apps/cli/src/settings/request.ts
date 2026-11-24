@@ -1,6 +1,13 @@
 import { EnvdenError } from "@envden/core/errors";
 
-const TOGGLES = ["telemetry", "update-check", "agent-merge", "auto-approve-worktrees"] as const;
+const TOGGLES = [
+  "telemetry",
+  "update-check",
+  "agent-merge",
+  "auto-approve-worktrees",
+  "auto-pull",
+] as const;
+
 const SETTINGS = [...TOGGLES, "placement", "env-files"] as const;
 
 export type TSetting = (typeof SETTINGS)[number];

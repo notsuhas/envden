@@ -139,6 +139,7 @@ for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
       );
 
       await writeFile(join(state, "notice"), "");
+      await writeFile(join(state, "notice-pulled"), "envden: pulled api/.env (2 keys)\x1b\n");
 
       const snippet = createRcShellAdapter(shell, home, join(home, ".envden")).hookSnippet(
         "/bin/true",
@@ -160,6 +161,8 @@ for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
       expect(first).toContain("run envden track");
       expect(first).toContain("update available");
       expect(first).not.toContain("malicious");
+      expect(first).toContain("envden: pulled api/.env (2 keys)\n");
+      expect(first).not.toContain("\x1b");
       expect(await run()).toBe("envden: update required; run envden update\n");
     } finally {
       await rm(home, { recursive: true, force: true });

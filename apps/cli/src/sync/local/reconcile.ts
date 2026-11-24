@@ -23,9 +23,14 @@ export async function reconcile(
 ) {
   const applied = await appliedFiles(context.adapters.home);
   const rules = (await readConfig(context.adapters.home))["env-files"];
-  const unpublished = await reconcileUnpublished(context, repos);
+
+  const unpublished = context.options.fastForwardOnly
+    ? { conflicts: 0, failedStores: new Set<string>() }
+    : await reconcileUnpublished(context, repos);
+
   let conflicts = unpublished.conflicts;
   let changed = 0;
+  const placed: { repoId: string; path: string }[] = [];
   const failedStores = unpublished.failedStores;
 
   const collisions = await collisionEntries(context, repos);
@@ -46,7 +51,9 @@ export async function reconcile(
       const targets = await reconciliationTargets(context, repos, name, store);
       if (!targets.length) continue;
       const result = await reconcileFile(context, targets, store, entry, noFastForward, choose);
+      if ("held" in result) continue;
       changed += result.changed;
+      if (result.changed) placed.push({ repoId: name.repoId, path: name.path });
       conflicts += result.conflicts;
     } catch (error) {
       reportPlacementFailure(context, name.path, error);
@@ -62,7 +69,7 @@ export async function reconcile(
 
   await saveAppliedFiles(context.adapters.home, applied, context.options.now);
 
-  return { changed, conflicts, failedStores };
+  return { changed, conflicts, failedStores, placed };
 }
 
 function report(context: TSyncContext, message: string) {
