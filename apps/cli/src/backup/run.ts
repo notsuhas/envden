@@ -63,19 +63,31 @@ export async function exportBackup(
   return { path, files: files.length, missing: missing + sources.length - files.length };
 }
 
-// realpath follows a symlink before `..`, as the kernel does; the state writer also refuses symlinked parents.
+// The state writer refuses symlinked parents, so write to the folder the kernel would reach.
 async function outputPath(cwd: string, out: string): Promise<string> {
   if (out.endsWith("/"))
     throw new EnvdenError("INVALID_INPUT", "Write the backup to a file, not a folder");
 
   const entered = isAbsolute(out) ? out : `${cwd}/${out}`;
 
-  const parent = await realpath(dirname(entered)).catch((cause: unknown) => {
+  const parent = await physicalFolder(dirname(entered)).catch((cause: unknown) => {
     if (!isCode(cause, "ENOENT")) throw cause;
     throw new EnvdenError("NOT_FOUND", "The folder for the backup doesn't exist", { cause });
   });
 
   return join(parent, basename(entered));
+}
+
+// Bun 1.4.0's realpath drops `..` before following symlinks on Linux, so resolve each `..` after what precedes it.
+async function physicalFolder(path: string): Promise<string> {
+  let folder = "/";
+
+  for (const part of path.split("/")) {
+    if (part === "..") folder = dirname(await realpath(folder));
+    else if (part !== "" && part !== ".") folder = join(folder, part);
+  }
+
+  return realpath(folder);
 }
 
 async function storeFiles(store: string): Promise<string[]> {
