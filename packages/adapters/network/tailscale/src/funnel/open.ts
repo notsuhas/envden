@@ -42,7 +42,7 @@ export async function openFunnel(
   if (choice.kind === "taken")
     throw new EnvdenError(
       "INVALID_INPUT",
-      "Tailscale already serves something on ports 10000, 8443 and 443, the only ones Funnel allows. envden send needs one of them free while a link is open; see tailscale serve status",
+      `Tailscale already serves something on every port Funnel allows this device (${choice.ports.join(", ")}). envden send needs one of them free while a link is open; see tailscale serve status`,
     );
 
   return publish(inputs.effects, status.hostname, choice.port, port, path);

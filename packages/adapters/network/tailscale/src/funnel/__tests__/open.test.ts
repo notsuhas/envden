@@ -112,7 +112,8 @@ test("refusals name the fix and start no funnel", async () => {
       "INVALID_INPUT",
       "10000",
     ],
-    [JSON.stringify(running), allTaken, "INVALID_INPUT", "10000, 8443 and 443"],
+    [JSON.stringify(running), allTaken, "INVALID_INPUT", "(10000, 8443, 443)"],
+    [caps("funnel", ports("443")), web("laptop.tail.example:443"), "INVALID_INPUT", "(443)"],
   ] as const) {
     const spawned: string[][] = [];
 
