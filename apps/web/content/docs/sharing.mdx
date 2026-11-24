@@ -40,7 +40,7 @@ Your envden server isn't involved and stays private.
 
 - Tailscale running, logged in and with HTTPS certificates on, as for the rest of envden.
 - **Tailscale Funnel allowed for this device.** If it isn't, `send` stops and shows the line to add under `nodeAttrs` in your tailnet policy file: `{"target": ["autogroup:member"], "attr": ["funnel"]}`. See [Tailscale Funnel](https://tailscale.com/kb/1223/funnel).
-- **One Funnel port free in Tailscale.** Funnel only allows ports 10000, 8443 and 443. `send` uses the first one `tailscale serve status` shows nothing on, and refuses if all three are in use rather than hide a service while the link is open.
+- **One Funnel port free in Tailscale.** Funnel only allows ports 10000, 8443 and 443, and your tailnet policy may allow fewer. `send` uses the first allowed one that `tailscale serve status` shows nothing on, and refuses if every allowed port is in use rather than hide a service while the link is open.
 
 The first time this device uses Funnel, its public address can take up to 10 minutes to appear. `send` waits with a spinner and prints the link only once the address resolves, so you never send a dead link.
 

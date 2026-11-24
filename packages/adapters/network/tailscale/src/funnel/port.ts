@@ -4,21 +4,19 @@ import { funnelAccess } from "./access.ts";
 // Funnel only allows these ports; the least used goes first.
 const FUNNEL_PORTS = [10000, 8443, 443] as const;
 
-type TPortChoice =
-  | { kind: "free"; port: number }
-  | { kind: "denied"; access: "no-funnel" | "port-denied" }
-  | { kind: "taken"; ports: number[] };
+type TAllowedPorts =
+  | { kind: "allowed"; ports: number[] }
+  | { kind: "denied"; access: "no-funnel" | "port-denied" };
 
-export function funnelPort(stdout: string, serve: string): TPortChoice {
-  const allowed = FUNNEL_PORTS.filter((port) => funnelAccess(stdout, port) === "allowed");
+export function allowedFunnelPorts(stdout: string): TAllowedPorts {
+  const ports = FUNNEL_PORTS.filter((port) => funnelAccess(stdout, port) === "allowed");
+  if (ports.length > 0) return { kind: "allowed", ports };
 
-  if (allowed.length === 0) {
-    const access = funnelAccess(stdout, FUNNEL_PORTS[0]);
+  const access = funnelAccess(stdout, FUNNEL_PORTS[0]);
 
-    return { kind: "denied", access: access === "no-funnel" ? access : "port-denied" };
-  }
+  return { kind: "denied", access: access === "no-funnel" ? access : "port-denied" };
+}
 
-  const port = allowed.find((candidate) => !portTaken(serve, candidate));
-
-  return port === undefined ? { kind: "taken", ports: allowed } : { kind: "free", port };
+export function freeFunnelPort(ports: number[], serve: string): number | undefined {
+  return ports.find((port) => !portTaken(serve, port));
 }

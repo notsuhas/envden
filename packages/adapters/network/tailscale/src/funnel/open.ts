@@ -5,7 +5,7 @@ import { accessError } from "./access.ts";
 import { funnelArgs, funnelUp, spawnFunnel, type TFunnelSpawn } from "./child.ts";
 import { lookupPublic, publicName, type TLookup, type TPause } from "./public-name.ts";
 import { failure } from "../command/failure.ts";
-import { funnelPort } from "./port.ts";
+import { allowedFunnelPorts, freeFunnelPort } from "./port.ts";
 
 export interface IFunnelEffects {
   spawn: TFunnelSpawn;
@@ -36,16 +36,18 @@ export async function openFunnel(
   if (status.problem || !status.hostname)
     throw new EnvdenError("INVALID_INPUT", status.problem?.message ?? "Tailscale is not ready");
 
-  const choice = funnelPort(stdout, await inputs.serveStatus());
-  if (choice.kind === "denied") throw accessError(choice.access);
+  const allowed = allowedFunnelPorts(stdout);
+  if (allowed.kind === "denied") throw accessError(allowed.access);
 
-  if (choice.kind === "taken")
+  const funnel = freeFunnelPort(allowed.ports, await inputs.serveStatus());
+
+  if (funnel === undefined)
     throw new EnvdenError(
       "INVALID_INPUT",
-      `Tailscale already serves something on every port Funnel allows this device (${choice.ports.join(", ")}). envden send needs one of them free while a link is open; see tailscale serve status`,
+      `Tailscale already serves something on every port Funnel allows this device (${allowed.ports.join(", ")}). envden send needs one of them free while a link is open; see tailscale serve status`,
     );
 
-  return publish(inputs.effects, status.hostname, choice.port, port, path);
+  return publish(inputs.effects, status.hostname, funnel, port, path);
 }
 
 function publish(

@@ -126,6 +126,18 @@ test("refusals name the fix and start no funnel", async () => {
   }
 });
 
+test("a denied policy is reported without asking for serve status", async () => {
+  const error = await createTailscaleNetworkAdapter(async (args) =>
+    args[0] === "serve"
+      ? { exitCode: 1, stdout: "", stderr: "serve status failed" }
+      : { exitCode: 0, stdout: caps("https"), stderr: "" },
+  )
+    .openPublicShare(8080, "/s/abc")
+    .catch((cause: unknown) => cause);
+
+  expect(error).toMatchObject({ code: "UNAUTHORIZED" });
+});
+
 test("a funnel that stops before it is up rejects with Tailscale's own output", async () => {
   const share = await createTailscaleNetworkAdapter(
     async () => ({ exitCode: 0, stdout: JSON.stringify(running), stderr: "" }),
