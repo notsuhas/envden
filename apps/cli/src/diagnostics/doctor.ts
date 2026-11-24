@@ -30,7 +30,7 @@ export async function doctor(adapters: TAdapters, location: ReturnType<typeof pa
     }),
   );
 
-  const state = await loadState(adapters.home);
+  const state = await loadState(adapters.home).catch(() => undefined);
   const userHome = await realHome(adapters.userHome);
 
   return {
