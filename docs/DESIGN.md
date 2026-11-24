@@ -180,7 +180,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 
 ## Exports
 
-- `envden export --out <file>` writes one file that the stock `age` or `rage` CLI opens, so a person keeps their env files if envden, the server or every device's keys are gone. It reads only this device's store, including files no checkout links to any more. No server request (it skips the notice check too), no unlock, no vault key. Files this device never pulled aren't in it, and the docs say so.
+- `envden export --out <file>` writes one file that the stock `age` or `rage` CLI opens, so a person keeps their env files if envden, the server or every device's keys are gone. It reads only this device's store, including files no checkout links to any more. No server request (it skips the notice check too) and no vault key. Files this device never pulled aren't in it, and the docs say so.
 - **Key.** Either `--recipient` (repeatable; X25519 `age1…` or hybrid `age1pq1…`) or `--passphrase`, never both. The passphrase is typed twice in a terminal and never accepted as an argument or without a terminal.
 - **Layout.** An uncompressed tar inside the age file, `<repo id>/<path in repo>` with files `0600` and folders `0700`, which `tar` on macOS and Linux extracts as is. The summary prints `age -d <file> | tar -xf -`; the two-step `age -d -o x.tar` leaves a plaintext tar readable by others under the usual umask.
 - **Output.** Written atomically with mode `0600`. An existing path is never replaced, even one created mid-export, so a later export never costs an earlier backup. The summary prints the file count; values and names stay out of the terminal, and telemetry gets the command and its outcome only.

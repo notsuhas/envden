@@ -9,7 +9,7 @@ envden export --out ~/envden-backup.age --recipient age1…
 
 `envden export` writes the env files on this device into one encrypted file. You open it with [age](https://age-encryption.org) or [rage](https://github.com/str4d/rage), so you can still get your files back if envden, your server or all your devices are gone.
 
-It covers what this device has: every env file in its store, as it was last pulled or pushed here. Files this device never pulled aren't in it, and neither are [local-only](/docs/placement) files. Run it on the device with the most checkouts, or on each device. It doesn't contact the server and doesn't need the vault unlocked.
+It covers what this device has: every env file in its store, as it was last pulled or pushed here. Files this device never pulled aren't in it, and neither are [local-only](/docs/placement) files. Run it on the device with the most checkouts, or on each device. It doesn't contact the server or use your vault keys.
 
 ## Choose a key
 
