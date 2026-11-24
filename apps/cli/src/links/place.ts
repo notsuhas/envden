@@ -23,7 +23,7 @@ async function lockedlinkCheckout(
   if (approval === "changed")
     throw new EnvdenError(
       "CONFLICT",
-      "Checkout remote changed; run envden untrack, then envden track",
+      "Checkout remote changed; run envden untrack <path>, then envden track <path>",
     );
 
   if (approval === "ask") {

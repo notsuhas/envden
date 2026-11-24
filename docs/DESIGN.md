@@ -170,7 +170,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 
 - Explicit only. `envden push` / `envden pull` in a checkout act on its repo; `--all` acts on everything in one manifest swap.
 - A push names the manifest head it was based on; the server rejects it if the head moved (compare-and-swap). Requests are retry-safe. Local operations on a store file are serialized with a lock.
-- Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote requires `envden untrack`, then `envden track`. Cancelling a reconciliation prompt aborts the command.
+- Missing or recreated checkouts are skipped with a notice to run `envden track`; a changed remote requires `envden untrack <path>`, then `envden track <path>`. Cancelling a reconciliation prompt aborts the command.
 - An applied server tombstone is an agreed base: newly tracked local content can deliberately re-add the file. A device that has not applied the deletion conflicts instead; resolving that conflict records the agreement.
 - Pull never overwrites unpushed local edits: those go through merge. A backup is kept before overwriting bytes that differ from the applied server version, and reported with the checkout path. Bytes equal to that version are already in server history and get no backup.
 - Each device keeps the ciphertext of files it uses, so it can repair a restored server for those repos. It never fetches other repos' files; their names come from the file list.
