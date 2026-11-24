@@ -43,14 +43,7 @@ export function trustedDirectories(
 export function resolveTrustedExecutable(name: string): string {
   if (name === "bun" || name === process.execPath) return process.execPath;
 
-  const candidates = isAbsolute(name)
-    ? [name]
-    : trustedDirectories().flatMap((dir) =>
-        (process.platform === "win32" && !parse(name).ext
-          ? [name, `${name}.exe`, `${name}.com`]
-          : [name]
-        ).map((file) => join(dir, file)),
-      );
+  const candidates = isAbsolute(name) ? [name] : trustedDirectories().map((dir) => join(dir, name));
 
   for (const candidate of candidates) {
     if (!isAbsolute(name) && parse(name).base !== name) break;
@@ -77,7 +70,6 @@ export function trustedOwnerAndMode(
   info: Pick<Stats, "mode" | "uid" | "gid">,
   platform = process.platform,
 ): boolean {
-  if (platform === "win32") return true;
   if ((info.mode & 0o002) !== 0) return false;
 
   if ((info.mode & 0o020) !== 0 && info.gid !== 0 && !(platform === "darwin" && info.gid === 80))
