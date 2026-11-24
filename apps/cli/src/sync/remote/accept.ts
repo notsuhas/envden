@@ -97,6 +97,8 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   }
 
   if (result.kind !== "accepted") throw new EnvdenError("INVALID_DATA", "Invalid manifest history");
+  // Keeps the outgoing list so later lookups can still find which header introduced a version.
+  fileLists.set(text(checkpoint.header.body.filesHash), checkpoint.files);
   context.checkpoint = result.checkpoint;
   const bySeq = new Map(context.headers.map((header) => [header.body.seq, header]));
   for (const header of result.headers) bySeq.set(header.body.seq, header);

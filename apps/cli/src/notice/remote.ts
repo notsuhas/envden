@@ -28,9 +28,7 @@ type TRemoteNotice = z.infer<typeof remoteNoticeSchema>;
 
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
-  const before = context.checkpoint;
   const { fileLists } = await acceptHead(context, undefined, true);
-  fileLists.set(text(before.header.body.filesHash), before.files);
   const result = await pendingRepos(context, fileLists);
   const waiting = (await joinRequests(context.client)).length;
 

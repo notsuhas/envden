@@ -22,7 +22,6 @@ _envden_pulled() {
 }
 _envden_notice() {
   local saved_status=$?
-  _envden_pulled
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical="\${PWD:A}"

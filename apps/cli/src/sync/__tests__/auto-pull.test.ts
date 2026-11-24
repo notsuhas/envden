@@ -50,6 +50,7 @@ test("the shell refresh names changed keys and writes nothing unless auto-pull i
   await atomicWrite(target, "TOKEN=mine\nSTRIPE_KEY=sk_test_never_shown\n", f.now);
   await atomicWrite(f.aStore, "TOKEN=theirs\nSTRIPE_KEY=sk_test_never_shown\n", f.now);
   await push(f.first, f.opts);
+  await rm(join(f.second.home, "state", "file-lists"), { recursive: true, force: true });
   await backgroundRefresh(f);
 
   expect(await readFile(target, "utf8")).toBe("TOKEN=mine\nSTRIPE_KEY=sk_test_never_shown\n");
@@ -58,19 +59,20 @@ test("the shell refresh names changed keys and writes nothing unless auto-pull i
   expect(await cachedNotice(f.second.home)).toContain("1 key changed on first (TOKEN)");
 });
 
-test("auto-pull leaves a file with an unfinished sync record for a manual pull", async () => {
-  const f = await fixture(["copy"]);
-  const target = join(f.targets[0]!.root, ".env");
-  const store = storePath(f.second.home, "github.com/example/project", ".env");
-  const journal = basePath(f.second.home, store) + ".pending";
+for (const record of [".pending", ".entry"])
+  test(`auto-pull leaves a file with an unreadable ${record} record for a manual pull`, async () => {
+    const f = await fixture(["copy"]);
+    const target = join(f.targets[0]!.root, ".env");
+    const store = storePath(f.second.home, "github.com/example/project", ".env");
+    const journal = basePath(f.second.home, store) + record;
 
-  await setConfig("auto-pull", "on", f.second.home, f.now, false);
-  await atomicWrite(f.aStore, "TOKEN=server\n", f.now);
-  await push(f.first, f.opts);
-  await atomicWrite(journal, "interrupted", f.now);
-  await backgroundRefresh(f);
+    await setConfig("auto-pull", "on", f.second.home, f.now, false);
+    await atomicWrite(f.aStore, "TOKEN=server\n", f.now);
+    await push(f.first, f.opts);
+    await atomicWrite(journal, "interrupted", f.now);
+    await backgroundRefresh(f);
 
-  expect(await readFile(target, "utf8")).toBe("TOKEN=local-test-value\n");
-  expect(await optionalRead(journal)).toBe("interrupted");
-  expect(await cachedNotice(f.second.home)).toContain("1 key changed on first (TOKEN)");
-});
+    expect(await readFile(target, "utf8")).toBe("TOKEN=local-test-value\n");
+    expect(await optionalRead(journal)).toBe("interrupted");
+    expect(await cachedNotice(f.second.home)).toContain("1 key changed on first (TOKEN)");
+  });

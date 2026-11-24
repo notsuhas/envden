@@ -40,8 +40,7 @@ export function renderHook(shell: TShell, binaryPath: string, envdenHome: string
   return "$saved_status"
 }
 _envden_notice() {
-  local saved_status=$?
-  _envden_pulled
+  local saved_status=$?${shell === "bash" ? "\n  _envden_pulled" : ""}
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical=${shell === "zsh" ? '"${PWD:A}"' : '"$(pwd -P)"'}

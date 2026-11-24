@@ -139,7 +139,6 @@ for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
       );
 
       await writeFile(join(state, "notice"), "");
-      await writeFile(join(state, "notice-pulled"), "envden: pulled api/.env (2 keys)\x1b\n");
 
       const snippet = createRcShellAdapter(shell, home, join(home, ".envden")).hookSnippet(
         "/bin/true",
@@ -161,15 +160,27 @@ for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
       expect(first).toContain("run envden track");
       expect(first).toContain("update available");
       expect(first).not.toContain("malicious");
-      expect(first).toContain("envden: pulled api/.env (2 keys)\n");
-      expect(first).not.toContain("\x1b");
       expect(await run()).toBe("envden: update required; run envden update\n");
 
-      const pulled = join(state, "notice-pulled");
-      const samePrompt = `${snippet}\nprintf 'envden: pulled web/.env\\n' > '${pulled}'\n_envden_notice`;
-      const child = spawnTrusted([shell, "-c", samePrompt], { cwd: home, stdout: "pipe" });
-      expect(await child.exited).toBe(0);
-      expect(await new Response(child.stdout).text()).toEndWith("envden: pulled web/.env\n");
+      await writeFile(join(state, "notice-pulled"), "envden: pulled api/.env (2 keys)\x1b\n");
+      const prompt = shell === "zsh" ? "_envden_pulled" : "_envden_notice";
+
+      const samePrompt = async () => {
+        const child = spawnTrusted([shell, "-c", `${snippet}\n${prompt}`], {
+          cwd: home,
+          stdout: "pipe",
+        });
+
+        expect(await child.exited).toBe(0);
+
+        return new Response(child.stdout).text();
+      };
+
+      const drained = await samePrompt();
+      expect(drained).toContain("envden: pulled api/.env (2 keys)\n");
+      expect(drained).not.toContain("\x1b");
+
+      expect(await samePrompt()).not.toContain("pulled");
     } finally {
       await rm(home, { recursive: true, force: true });
     }
