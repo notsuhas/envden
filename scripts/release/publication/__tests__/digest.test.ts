@@ -14,20 +14,19 @@ test("release validates the digest before writing its artifact", () => {
   expect(workflow.indexOf(validation!)).toBeLessThan(workflow.indexOf(" > release/IMAGE_DIGEST"));
 });
 
-if (process.platform !== "win32")
-  for (const digest of [
-    "",
-    "sha256:" + "a".repeat(63),
-    "sha256:" + "g".repeat(64),
-    "sha256:" + "a".repeat(64),
-  ])
-    test(`image digest format: ${digest.length}`, () => {
-      expect(validation).toBeDefined();
+for (const digest of [
+  "",
+  "sha256:" + "a".repeat(63),
+  "sha256:" + "g".repeat(64),
+  "sha256:" + "a".repeat(64),
+])
+  test(`image digest format: ${digest.length}`, () => {
+    expect(validation).toBeDefined();
 
-      const result = spawnTrusted("bash", ["-c", validation!], {
-        sync: true,
-        env: { IMAGE_DIGEST: digest },
-      });
-
-      expect(result.exitCode === 0).toBe(digest === "sha256:" + "a".repeat(64));
+    const result = spawnTrusted("bash", ["-c", validation!], {
+      sync: true,
+      env: { IMAGE_DIGEST: digest },
     });
+
+    expect(result.exitCode === 0).toBe(digest === "sha256:" + "a".repeat(64));
+  });

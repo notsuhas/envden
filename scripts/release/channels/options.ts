@@ -15,14 +15,3 @@ export function publicationAction(dryRun: boolean, diff: string) {
 
   return diff.trim() ? "publish" : "unchanged";
 }
-
-export function repositoryFiles(file: string, readme: string | undefined, readmeExists: boolean) {
-  return readme !== undefined && !readmeExists ? [file, "README.md"] : [file];
-}
-
-export function isMissingFile(error: unknown) {
-  if (!(error instanceof Error)) return false;
-  if (!("code" in error)) return false;
-
-  return error.code === "ENOENT";
-}

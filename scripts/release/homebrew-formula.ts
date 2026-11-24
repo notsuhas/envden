@@ -1,3 +1,3 @@
-import { writeChannel } from "./channels/output.ts";
+import { writeHomebrewFormula } from "./channels/output.ts";
 
-await writeChannel("homebrew-formula", process.argv.slice(2));
+await writeHomebrewFormula(process.argv.slice(2));

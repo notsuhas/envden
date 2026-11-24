@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isMissingFile, parseArguments, publicationAction, repositoryFiles } from "../options.ts";
+import { parseArguments, publicationAction } from "../options.ts";
 
 describe("channel arguments", () => {
   test.each([
@@ -20,24 +20,7 @@ describe("channel arguments", () => {
 test.each([
   { dryRun: true, diff: "file", action: "preview" },
   { dryRun: false, diff: " \n", action: "unchanged" },
-  { dryRun: false, diff: "bucket/envden.json\n", action: "publish" },
+  { dryRun: false, diff: "Formula/envden.rb\n", action: "publish" },
 ])("chooses $action", ({ dryRun, diff, action }) => {
   expect(publicationAction(dryRun, diff)).toBe(action);
-});
-
-test.each([
-  { readme: undefined, exists: false, files: ["manifest"] },
-  { readme: "", exists: false, files: ["manifest", "README.md"] },
-  { readme: "install", exists: true, files: ["manifest"] },
-])("chooses files for $readme, existing $exists", ({ readme, exists, files }) => {
-  expect(repositoryFiles("manifest", readme, exists)).toEqual([...files]);
-});
-
-test.each([
-  { error: Object.assign(new Error("missing"), { code: "ENOENT" }), missing: true },
-  { error: Object.assign(new Error("denied"), { code: "EACCES" }), missing: false },
-  { error: new Error("unknown"), missing: false },
-  { error: { code: "ENOENT" }, missing: false },
-])("recognizes missing files: $missing", ({ error, missing }) => {
-  expect(isMissingFile(error)).toBe(missing);
 });
