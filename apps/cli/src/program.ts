@@ -31,6 +31,7 @@ import { agentCommand } from "./commands/agent/agent.ts";
 import { uiCommand } from "./commands/ui/ui.ts";
 import { sendCommand } from "./commands/share/send.ts";
 import { receiveCommand } from "./commands/share/receive.ts";
+import { exportCommand } from "./commands/backup/export.ts";
 
 import { createAdapters } from "./adapters.ts";
 import { commandNotice } from "./notice/command.ts";
@@ -79,7 +80,13 @@ export function createProgram(now: () => number) {
     historyCommand,
   ]);
 
-  addGroup(program, "Files:", [trackCommand, untrackCommand, localOnlyCommand, rmCommand]);
+  addGroup(program, "Files:", [
+    trackCommand,
+    untrackCommand,
+    localOnlyCommand,
+    rmCommand,
+    exportCommand,
+  ]);
 
   addGroup(program, "Share a file once:", [sendCommand, receiveCommand]);
 

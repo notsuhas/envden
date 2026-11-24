@@ -178,6 +178,13 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 - `receive` asks before replacing a file, and refuses without a terminal, before it claims: the link works once, so refusing afterwards would lose the file. It writes through symlinks with mode `0600`.
 - Telemetry gets the command and its outcome only. Bug reports mask everything after `#` in arguments, and errors never carry the link, key or contents.
 
+## Exports
+
+- `envden export --out <file>` writes one file that the stock `age` or `rage` CLI opens, so a person keeps their env files if envden, the server or every device's keys are gone. It reads only this device's store, including files no checkout links to any more. No server request (it skips the notice check too) and no vault key. Files this device never pulled aren't in it, and the docs say so.
+- **Key.** Either `--recipient` (repeatable; X25519 `age1…` or hybrid `age1pq1…`) or `--passphrase`, never both. The passphrase is typed twice in a terminal and never accepted as an argument or without a terminal.
+- **Layout.** An uncompressed tar inside the age file, `<repo id>/<path in repo>` with files `0600` and folders `0700`, which `tar` on macOS and Linux extracts as is. The summary prints `age -d <file> | tar -xf -`; the two-step `age -d -o x.tar` leaves a plaintext tar readable by others under the usual umask.
+- **Output.** Written atomically with mode `0600`. An existing path is never replaced, even one created mid-export, so a later export never costs an earlier backup. The summary prints the file count; values and names stay out of the terminal, and telemetry gets the command and its outcome only.
+
 ## Out-of-sync notice
 
 - A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git and never writes to checkouts.
@@ -380,6 +387,10 @@ The quota is checked before a swap writes keyring state, so it limits file conte
 ### One-off shares use a temporary public link from the sender
 
 Replaces the plan in issue #9: `send` and `receive` through the server's pairing mailbox, for people on the same tailnet only. The usual case is handing a file to someone with no envden and no access to the tailnet, which a mailbox on a private server can't reach. Making the server public was rejected, since it holds every vault's ciphertext and recovery proof keys. Instead the sender's CLI serves the one encrypted file itself and publishes just that path through Tailscale Funnel while the command runs. The costs: the node's name resolves publicly, and Funnel needs a node attribute. AES-256-GCM is used instead of XChaCha20-Poly1305 because the page decrypts with WebCrypto and loads no library. A Node or Bun one-liner for terminal recipients was rejected because decrypting takes more than one line anyone would audit; the page is the zero-install path.
+
+### Exports use age; sync keeps its own format
+
+An export must open without envden, and age is a published format with two independent CLIs, so a backup outlives the project. The sync protocol keeps its own XChaCha20-Poly1305 and HPKE constructions: age can't bind associated data such as the file ID and version, encrypts each file under a fresh file key so an epoch key can't be reused across files, and has no sender authentication, which manifests and device-list entries need. Rejected: a password zip, since ZipCrypto is weak and stock `unzip` can't open AES zips, and a plain tar, which leaves values in the clear. Typage pins `@noble/post-quantum` 0.5, which asks for older `@noble/curves` and `@noble/hashes`; the root `overrides` keep one copy of each at the versions core pins, and the hybrid CCTV vectors pass on them.
 
 ## Not in v1
 

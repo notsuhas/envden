@@ -13,6 +13,7 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
 | Signatures | Ed25519 (RFC 8032), cofactored verification with canonical encodings (`zip215: false`) | `@noble/curves` |
 | Key agreement | X25519 | `@noble/curves` |
 | Key wrapping | HPKE base mode (RFC 9180): DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305 | `@hpke/core`, with `DhkemX25519HkdfSha256` imported from `@hpke/dhkem-x25519` (not the WebCrypto one in `@hpke/core`) and `Chacha20Poly1305` from `@hpke/chacha20poly1305` |
+| Exports (§ 17) | age v1 (C2SP age): X25519, ML-KEM-768 + X25519 hybrid, or scrypt with log₂N = 18 | `age-encryption`, which runs on the pinned `@noble` libraries |
 | Randomness | `crypto.getRandomValues` | Bun |
 | Wordlist | BIP-39 English, 2048 words | vendored as data from `bitcoin/bips` `bip-0039/english.txt`, checked by its SHA-256 |
 
@@ -21,6 +22,7 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
   - RFC vectors: HKDF, HMAC, Ed25519, X25519, HPKE.
   - The draft's XChaCha20-Poly1305 vectors.
   - A low-order X25519 point fed to HPKE must be rejected.
+  - C2SP CCTV age vectors for the X25519, hybrid and scrypt recipients, the header MAC and STREAM.
 - **Key validation.** Public keys are checked on receipt:
   - Ed25519 keys must decode canonically and not be of small order.
   - X25519 keys must be canonical: u < 2²⁵⁵ − 19 with the top bit clear.
@@ -661,3 +663,10 @@ A share hands one file to one person who may have no envden and no tailnet (DESI
 - **Claim.** `GET /s/<id>` returns the page and never consumes the share. `POST /s/<id>/claim` returns the box once: `200` with the bytes, then `410` to anyone after. A claim after the share's lifetime gets `404`. The sender closes the link after the first `200`.
 - **What travels.** Tailscale terminates TLS on the sender's own device, so a Funnel relay sees only TLS traffic. No request carries the key, and the box is AES-GCM ciphertext even inside TLS.
 
+## 17. Exports
+
+An export is a backup that opens with the stock `age` or `rage` CLI, with no envden, server or vault key (DESIGN § Exports).
+
+- **Format.** One age v1 file. Its payload is a POSIX tar (ustar, with PAX headers for long names): one `0700` directory entry per folder, then each env file as `<repo id>/<path in repo>`, mode `0600`, bytes unchanged. A store file no approved checkout links to, or any store file when the state is unreadable, is `unplaced/<store folder>/<path>`, since the folder is a hash of the repo ID. Interrupted-write temp files are left out. Duplicate names and empty, `.` or `..` segments are refused before anything is written.
+- **Recipients.** One or more `age1…` X25519 or `age1pq1…` hybrid recipients, or one scrypt passphrase stanza at age's default work factor. Tag recipients are refused, since they need a hardware plugin to open.
+- **Source.** The store files on this device, read without the state lock or any key.

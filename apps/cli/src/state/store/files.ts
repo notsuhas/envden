@@ -1,5 +1,5 @@
 import { restrictAccess } from "@envden/core/process";
-import { mkdir, open, rename, rm, readFile, lstat } from "node:fs/promises";
+import { mkdir, open, link, rename, rm, readFile, lstat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { placeInRoot } from "@envden/core/paths";
 import { EnvdenError } from "@envden/core/errors";
@@ -16,6 +16,7 @@ export async function atomicWrite(
   path: string,
   bytes: string | Uint8Array,
   now: () => number,
+  replace = true,
 ): Promise<void> {
   const parent = dirname(path);
 
@@ -39,7 +40,8 @@ export async function atomicWrite(
       await file.close();
     }
 
-    await rename(temporary, path);
+    // link fails with EEXIST instead of replacing, so a file created meanwhile survives.
+    await (replace ? rename : link)(temporary, path);
 
     const directory = await open(dirname(path), "r");
 

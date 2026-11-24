@@ -63,6 +63,7 @@ test("help lists every command and a fresh home fails each gate with its exit co
     "rm",
     "send",
     "receive",
+    "export",
     "device",
     "server",
     "serve",

@@ -12,6 +12,7 @@
     "dashboard",
     "vault",
     "sharing",
+    "backups",
     "agents",
     "---Run---",
     "server",
