@@ -18,7 +18,7 @@ export const sendCommand = new Command("send")
     const interactive = !!process.stdin.isTTY;
 
     const path = await chooseSendFile(
-      await loadState(adapters.home),
+      () => loadState(adapters.home),
       { ...(file === undefined ? {} : { file }), cwd: process.cwd(), interactive },
       choose,
     );

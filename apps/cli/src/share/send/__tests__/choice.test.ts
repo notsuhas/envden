@@ -40,6 +40,13 @@ test("candidates are the synced env files of the deepest checkout around the fol
 
 test("a named file wins, one candidate is used, several are asked, and no terminal needs a name", async () => {
   const asked: string[][] = [];
+  let loads = 0;
+
+  const load = async () => {
+    loads++;
+
+    return state;
+  };
 
   const choose = async (_message: string, options: { value: string; label: string }[]) => {
     asked.push(options.map((option) => option.label));
@@ -48,9 +55,10 @@ test("a named file wins, one candidate is used, several are asked, and no termin
   };
 
   const pick = (cwd: string, interactive: boolean, file?: string) =>
-    chooseSendFile(state, { cwd, interactive, ...(file ? { file } : {}) }, choose);
+    chooseSendFile(load, { cwd, interactive, ...(file ? { file } : {}) }, choose);
 
   expect(await pick("/code/app", false, "secrets/.env")).toBe("/code/app/secrets/.env");
+  expect(loads).toBe(0);
   expect(await pick("/code/one", true)).toBe("/code/one/.env");
   expect(await pick("/code/app", true)).toBe("/code/app/.env.local");
   expect(asked).toEqual([[".env", ".env.local"]]);

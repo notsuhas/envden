@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { newShare, shareText } from "@envden/core/protocol";
@@ -34,7 +34,7 @@ test("only a complete https link, or http to this machine, is accepted", () => {
     expect(() => parseShareLink(link)).toThrow("That isn't a complete envden share link");
 });
 
-test("an existing file is replaced only after a yes, asked before the link is used", async () => {
+test("an existing file is replaced only after a yes, and a bad destination fails, before the link is used", async () => {
   const dir = await mkdtemp(join(tmpdir(), "envden-receive-"));
   const claims: string[] = [];
 
@@ -44,12 +44,12 @@ test("an existing file is replaced only after a yes, asked before the link is us
     return new Response(null, { status: 410 });
   };
 
-  const receive = (interactive: boolean, answer: boolean) =>
+  const receive = (interactive: boolean, answer: boolean, out = ".env") =>
     receiveFile(
       { fetcher, now: () => 0 },
       {
         link: `https://node.tail.ts.net:10000/s/${id}#${key}`,
-        out: ".env",
+        out,
         cwd: dir,
         interactive,
         confirm: async () => answer,
@@ -64,6 +64,16 @@ test("an existing file is replaced only after a yes, asked before the link is us
     );
 
     expect((await receive(true, false)).kind).toBe("kept");
+    expect(claims).toEqual([]);
+
+    await mkdir(join(dir, "folder"));
+    await Promise.resolve(expect(receive(true, true, "folder")).rejects.toThrow("not a folder"));
+    await mkdir(join(dir, "locked"), { mode: 0o500 });
+
+    await Promise.resolve(
+      expect(receive(true, true, "locked/.env")).rejects.toThrow("Can't write"),
+    );
+
     expect(claims).toEqual([]);
 
     await Promise.resolve(expect(receive(true, true)).rejects.toThrow("already opened"));

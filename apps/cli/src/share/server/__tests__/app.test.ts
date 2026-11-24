@@ -2,22 +2,16 @@ import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import page from "../../page/index.html";
 import { createShareApp } from "../app.ts";
-import { shareAnswer } from "../lifecycle.ts";
+import { claimAnswer } from "../lifecycle.ts";
 import { sharePage } from "../page.ts";
 
-test("only the first claim before expiry gets the file; viewing never burns it", () => {
-  const fresh = { claimed: false, expiresAt: 1000 };
-  const claimed = { claimed: true, expiresAt: 1000 };
-
-  for (const [action, state, now, kind] of [
-    ["view", fresh, 0, "page"],
-    ["view", claimed, 0, "page"],
-    ["view", fresh, 1000, "page"],
-    ["claim", fresh, 999, "file"],
-    ["claim", fresh, 1000, "expired"],
-    ["claim", claimed, 0, "already-opened"],
+test("only the first claim before expiry gets the file", () => {
+  for (const [claimed, now, kind] of [
+    [false, 999, "file"],
+    [false, 1000, "expired"],
+    [true, 0, "already-opened"],
   ] as const)
-    expect(shareAnswer(action, state, now).kind).toBe(kind);
+    expect(claimAnswer({ claimed, expiresAt: 1000 }, now).kind).toBe(kind);
 });
 
 test("the page is one self-contained document whose CSP pins its inline code", async () => {
@@ -32,7 +26,7 @@ test("the page is one self-contained document whose CSP pins its inline code", a
     expect(csp).toContain(`'sha256-${createHash("sha256").update(body!).digest("base64")}'`);
 });
 
-test("the listener serves the page, hands the file out once, and nothing else", async () => {
+test("viewing never burns the link; the file goes out once, and nothing else is served", async () => {
   const box = new Uint8Array([1, 2, 3]);
   const state = { claimed: false, expiresAt: 1000 };
   let now = 0;

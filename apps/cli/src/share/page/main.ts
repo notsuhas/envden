@@ -1,4 +1,4 @@
-import { decryptShare } from "./decrypt.ts";
+import { decryptShare, linkComplete } from "./decrypt.ts";
 
 const status = element("status");
 const openButton = element<HTMLButtonElement>("open");
@@ -82,7 +82,7 @@ function download() {
   link.remove();
 }
 
-if (!key) {
+if (!linkComplete(key, id)) {
   say(
     "This link is incomplete. Ask the sender for the full link, including the part after #.",
     true,

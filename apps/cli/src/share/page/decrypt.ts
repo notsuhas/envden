@@ -3,12 +3,16 @@ const LABEL = new TextEncoder().encode("envden/v1/share");
 
 const VERSION = 1;
 
-export async function decryptShare(keyText: string, idText: string, box: Uint8Array) {
-  const key = fromBase64Url(keyText);
-  const id = fromBase64Url(idText);
+// Checked before Open is offered, since a claim uses the link up.
+export function linkComplete(keyText: string, idText: string): boolean {
+  return readText(keyText, 32) !== undefined && readText(idText, 16) !== undefined;
+}
 
-  if (key.length !== 32 || id.length !== 16 || box[0] !== VERSION || box.length < 29)
-    throw new Error("Not an envden share");
+export async function decryptShare(keyText: string, idText: string, box: Uint8Array) {
+  const key = readText(keyText, 32);
+  const id = readText(idText, 16);
+
+  if (!key || !id || box[0] !== VERSION || box.length < 29) throw new Error("Not an envden share");
 
   const ad = new Uint8Array(4 + LABEL.length + 1 + id.length);
   new DataView(ad.buffer).setUint32(0, LABEL.length);
@@ -28,11 +32,14 @@ export async function decryptShare(keyText: string, idText: string, box: Uint8Ar
   return new Uint8Array(plain);
 }
 
-function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
-  if (!/^[A-Za-z0-9_-]*$/.test(text)) throw new Error("Not base64url");
+// Strict like the CLI: unpadded base64url of exactly `length` bytes, with no stray trailing bits.
+function readText(text: string, length: number): Uint8Array<ArrayBuffer> | undefined {
+  if (text.length !== Math.ceil((length * 4) / 3) || !/^[A-Za-z0-9_-]*$/.test(text))
+    return undefined;
 
-  const base64 = text.replaceAll("-", "+").replaceAll("_", "/");
   const padding = "=".repeat((4 - (text.length % 4)) % 4);
+  const binary = atob(text.replaceAll("-", "+").replaceAll("_", "/") + padding);
+  const canonical = btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
 
-  return Uint8Array.from(atob(base64 + padding), (char) => char.charCodeAt(0));
+  return canonical === text ? Uint8Array.from(binary, (char) => char.charCodeAt(0)) : undefined;
 }

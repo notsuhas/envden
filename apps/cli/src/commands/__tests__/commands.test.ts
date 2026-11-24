@@ -180,3 +180,14 @@ test("parser errors keep their line breaks and strip control bytes at every dept
     "error: unknown option '--]0;title'\n",
   );
 });
+
+test("parser errors never echo a share link's key", async () => {
+  const link = "https://n.t.ts.net:10000/s/AAAAAAAAAAAAAAAAAAAAAA#dummy-key";
+  const masked = "https://n.t.ts.net:10000/s/AAAAAAAAAAAAAAAAAAAAAA#[redacted]";
+
+  expect(await parserError(["receive", link, "a", "b"])).toBe(
+    `error: too many arguments for 'receive'. Expected 2 arguments but got 3: ${masked}, a, b.\n`,
+  );
+
+  expect(await parserError([link])).toBe(`error: unknown command '${masked}'\n`);
+});

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { shareAnswer, type IShareState } from "./lifecycle.ts";
+import { claimAnswer, type IShareState } from "./lifecycle.ts";
 import type { ISharePage } from "./page.ts";
 
 interface IShareApp {
@@ -36,7 +36,7 @@ export function createShareApp(share: IShareApp) {
     })
     .get(`/s/${id}`, (c) => c.html(page.html))
     .post(`/s/${id}/claim`, (c) => {
-      const answer = shareAnswer("claim", state, now());
+      const answer = claimAnswer(state, now());
 
       if (answer.kind === "already-opened") return c.text("Already opened", 410);
 

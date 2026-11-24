@@ -16,10 +16,14 @@ export function sanitizeConsole(value: string): string {
     .join("");
 }
 
+// A share link carries its key after #.
+const LINK_FRAGMENT = /(\/\/[^\s#',]*)#[^\s',]*/g;
+
 // Commander adds only the trailing newline and a "(Did you mean ...?)" line; the rest can echo argv.
 export function sanitizeParserError(message: string): string {
-  const suggestion = /\n(\(Did you mean [^\n]*\?\))\n$/.exec(message);
-  const text = suggestion ? message.slice(0, suggestion.index) : message.replace(/\n$/, "");
+  const masked = message.replace(LINK_FRAGMENT, "$1#[redacted]");
+  const suggestion = /\n(\(Did you mean [^\n]*\?\))\n$/.exec(masked);
+  const text = suggestion ? masked.slice(0, suggestion.index) : masked.replace(/\n$/, "");
   const lines = suggestion ? [text, suggestion[1]!] : [text];
 
   return lines.map(sanitizeTerminal).join("\n") + "\n";

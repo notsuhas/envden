@@ -26,7 +26,7 @@ export function sendCandidates(state: ILocalState | undefined, cwd: string): str
 }
 
 export async function chooseSendFile(
-  state: ILocalState | undefined,
+  load: () => Promise<ILocalState | undefined>,
   options: IFileChoice,
   choose: TChoose,
 ): Promise<string> {
@@ -35,7 +35,7 @@ export async function chooseSendFile(
   if (!options.interactive)
     throw new EnvdenError("INVALID_INPUT", "Name the file to send when not in a terminal");
 
-  const candidates = sendCandidates(state, options.cwd);
+  const candidates = sendCandidates(await load(), options.cwd);
 
   if (candidates.length === 0)
     throw new EnvdenError("INVALID_INPUT", "No synced env file here. Name the file to send");
