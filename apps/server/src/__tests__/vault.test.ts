@@ -51,27 +51,19 @@ test("create, upload, push, head race and digest retry", async () => {
   }
 });
 
-test("read sets enforce locked, fresh, ticket and secret-key proof", async () => {
+test("read sets allow members, and non-members only with a ticket and not blobs", async () => {
   const f = await vaultFixture();
 
   try {
     await f.initialize();
 
-    f.storage.putDevice(f.vaultId, f.a.record.id, {
-      unlockedUntil: 0,
-      freshUntil: 0,
-      clientVersion: "1.0.0",
-    });
-
-    expect((await f.request("/v1/head")).status).toBe(403);
-    const proof = (r: p.IRequest) => p.Sign(f.sk.objSk, "sk-proof", p.RequestCodec.write(r));
-    expect((await f.request("/v1/head", undefined, f.a, proof)).status).toBe(200);
-    expect((await f.request("/v1/envelope", undefined, f.a, proof)).status).toBe(200);
+    expect((await f.request("/v1/head")).status).toBe(200);
+    expect((await f.request("/v1/envelope")).status).toBe(200);
     expect((await f.request("/v1/head", undefined, f.b)).status).toBe(401);
 
     f.storage.putSession(
       f.vaultId,
-      { kind: "join-ticket", device: f.b.record.id, purpose: "kit" },
+      { kind: "join-ticket", device: f.b.record.id, purpose: "recovery" },
       new Uint8Array([1]),
       f.options.now(),
     );

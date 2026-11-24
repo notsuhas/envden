@@ -6,9 +6,8 @@ import { onError } from "./http/errors.ts";
 import { verification } from "./middleware/verification.ts";
 import { createBodyBudget } from "./middleware/body-budget.ts";
 import { registerHello } from "./routes/hello.ts";
-import { registerOpaque } from "./routes/opaque.ts";
-import { registerPairing } from "./routes/pairing.ts";
-import { registerSettings } from "./routes/settings.ts";
+import { registerJoin } from "./routes/join.ts";
+import { registerRecoveryTicket } from "./routes/ticket.ts";
 import { registerStatus } from "./routes/status.ts";
 import { createStatusState } from "./status/state.ts";
 import type { IStatusState } from "./status/types.ts";
@@ -33,9 +32,8 @@ export function createApp(
     .use("/v1/*", verification(options, reserveBody));
 
   return app
-    .route("/", registerOpaque(new Hono<TServerEnv>(), options))
-    .route("/", registerPairing(new Hono<TServerEnv>(), options))
-    .route("/", registerSettings(new Hono<TServerEnv>(), options))
+    .route("/", registerJoin(new Hono<TServerEnv>(), options))
+    .route("/", registerRecoveryTicket(new Hono<TServerEnv>(), options))
     .route("/", registerVault(new Hono<TServerEnv>(), options))
     .route("/", registerReads(new Hono<TServerEnv>(), options))
     .route("/", registerRecovery(new Hono<TServerEnv>(), options))

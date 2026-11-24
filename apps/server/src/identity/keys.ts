@@ -2,13 +2,7 @@ import { persistIdentity } from "./persist.ts";
 import { mkdir, readFile } from "node:fs/promises";
 import { restrictAccess } from "@envden/core/process";
 import { join } from "node:path";
-import {
-  generateRecoveryKeys as generateServerIdentityKeys,
-  opaqueCreateSetup,
-  opaqueMessage,
-  OPAQUE_LENGTHS,
-  equal,
-} from "@envden/core/protocol";
+import { generateRecoveryKeys as generateServerIdentityKeys, equal } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IServerKeys } from "../http/types.ts";
 import { binary, text } from "../http/encoding.ts";
@@ -29,9 +23,7 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
       !("secretKey" in data) ||
       typeof data.secretKey !== "string" ||
       !("publicKey" in data) ||
-      typeof data.publicKey !== "string" ||
-      !("opaqueSetup" in data) ||
-      typeof data.opaqueSetup !== "string"
+      typeof data.publicKey !== "string"
     )
       throw new EnvdenError("INVALID_DATA", "Invalid server identity");
 
@@ -42,21 +34,16 @@ export async function loadServerKeys(dataDir: string): Promise<IServerKeys> {
     if (!equal(publicKey, derived))
       throw new EnvdenError("INVALID_DATA", "Invalid server identity");
 
-    return {
-      secretKey,
-      publicKey,
-      opaqueSetup: opaqueMessage(data.opaqueSetup, OPAQUE_LENGTHS.serverSetup),
-    };
+    return { secretKey, publicKey };
   } catch (error) {
     if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT"))
       throw error;
   }
 
   const keys = generateServerIdentityKeys();
-  const opaqueSetup = await opaqueCreateSetup();
-  const data = { secretKey: text(keys.objSk), publicKey: text(keys.objPub), opaqueSetup };
+  const data = { secretKey: text(keys.objSk), publicKey: text(keys.objPub) };
   await persistIdentity(dataDir, JSON.stringify(data));
   await restrictAccess(path, false);
 
-  return { secretKey: keys.objSk, publicKey: keys.objPub, opaqueSetup };
+  return { secretKey: keys.objSk, publicKey: keys.objPub };
 }

@@ -5,7 +5,7 @@ import { admitRequest } from "../limit.ts";
 import { deriveServerMode } from "../mode.ts";
 import { createStatusState } from "../state.ts";
 
-const vault: IStoredVault = { active: true, frozen: false, skRefused: false, unlockPeriod: null };
+const vault: IStoredVault = { active: true, frozen: false, proofRefused: false };
 const moved = { ...vault, serverMoved: new Uint8Array(32) };
 
 const restored = {

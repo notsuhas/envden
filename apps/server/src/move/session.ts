@@ -1,9 +1,8 @@
-import { milliseconds } from "date-fns";
 import { equal } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../http/types.ts";
 import { hasProof } from "../auth/token.ts";
-import { requireGate } from "../middleware/gates.ts";
+import { requireMember } from "../middleware/member.ts";
 
 export function openMove(options: IAppOptions, auth: IAuth) {
   if (auth.request.vaultId.every((byte) => byte === 0))
@@ -24,7 +23,7 @@ export function openMove(options: IAppOptions, auth: IAuth) {
   storage.transaction(() => {
     storage.configureVault(
       vaultId,
-      { active: false, frozen: false, skRefused: false, unlockPeriod: milliseconds({ days: 30 }) },
+      { active: false, frozen: false, proofRefused: false },
       [{ kind: "move-session", key: new Uint8Array(), bytes: device }],
       storage.setupToken()!,
     );
@@ -43,12 +42,12 @@ export function requireMove(options: IAppOptions, auth: IAuth) {
 }
 
 export function freezeMove(options: IAppOptions, auth: IAuth, frozen: boolean) {
-  requireGate(options, auth, "fresh");
+  requireMember(auth);
   const { vaultId, device } = auth.request;
   const vault = options.storage.vault(vaultId)!;
 
-  if (frozen && vault.skRefused)
-    throw new EnvdenError("RECOVERY_KIT_REQUIRED", "Replace recovery kit before moving");
+  if (frozen && vault.proofRefused)
+    throw new EnvdenError("RECOVERY_CODE_REQUIRED", "Replace the recovery code before moving");
 
   if (vault.serverMoved) throw new EnvdenError("MOVING", "Move committed");
 

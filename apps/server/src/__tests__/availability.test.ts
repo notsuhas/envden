@@ -1,8 +1,17 @@
 import { createBodyBudget } from "../middleware/body-budget.ts";
 import { expect, test } from "bun:test";
-import { vaultId, fixture, identity, candidate } from "./fixture.ts";
+import * as p from "@envden/core/protocol";
+import { vaultId, fixture, identity } from "./fixture.ts";
+import { text } from "../http/encoding.ts";
 
 type TFixture = ReturnType<typeof fixture>;
+
+// A member write that needs only a body and membership, so its status shows member capacity.
+function memberWrite(f: TFixture) {
+  const hash = p.H("blob", new TextEncoder().encode(JSON.stringify("member")));
+
+  return f.request(`/v1/blobs/${text(hash)}`, "member", { method: "PUT" }).send();
+}
 
 function hold(f: TFixture, path: string, who = f.joiner) {
   let finish = () => {};
@@ -33,8 +42,7 @@ function hold(f: TFixture, path: string, who = f.joiner) {
 }
 
 test("two invalid non-member routes never read or reserve and members remain available", async () => {
-  const f = fixture(await identity());
-  f.fresh();
+  const f = fixture(identity());
   const requests = [hold(f, "/v1/files/vault"), hold(f, "/v1/files/vault")];
 
   try {
@@ -50,27 +58,18 @@ test("two invalid non-member routes never read or reserve and members remain ava
   }
 });
 
-test("public login flood is bounded before reading and cannot consume member capacity", async () => {
+test("public recovery flood is bounded before reading and cannot consume member capacity", async () => {
   const budget = createBodyBudget();
-
-  const fixtures = await Promise.all(
-    Array.from({ length: 9 }, async () => fixture(await identity(), undefined, budget)),
-  );
-
-  const held = fixtures.slice(0, 8).map((f) => hold(f, "/v1/opaque/login/start"));
+  const fixtures = Array.from({ length: 9 }, () => fixture(identity(), budget));
+  const held = fixtures.slice(0, 8).map((f) => hold(f, "/v1/recovery/ticket"));
   const f = fixtures[8]!;
 
   try {
     await Promise.all(held.map((r) => r.reading));
-    const response = await f.request("/v1/opaque/login/start", {}, { who: f.joiner }).send();
+    const response = await f.request("/v1/recovery/ticket", {}, { who: f.joiner }).send();
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "BUSY" });
-    f.fresh();
-
-    expect(
-      (await f.request("/v1/settings/unlock-period", { period: null }, { method: "PUT" }).send())
-        .status,
-    ).toBe(200);
+    expect((await memberWrite(f)).status).toBe(200);
   } finally {
     held.forEach((r) => r.finish());
     await Promise.all(held.map((r) => Promise.resolve(r.response)));
@@ -78,32 +77,16 @@ test("public login flood is bounded before reading and cannot consume member cap
   }
 });
 
-test("public login starts are charged before reading the body", async () => {
-  const f = fixture(await identity());
-  const held = Array.from({ length: 5 }, () => hold(f, "/v1/opaque/login/start", candidate()));
-
-  try {
-    await Promise.all(held.map((r) => r.reading));
-    const response = await f.request("/v1/opaque/login/start", {}, { who: candidate() }).send();
-    expect(response.status).toBe(429);
-  } finally {
-    held.forEach((r) => r.finish());
-    await Promise.all(held.map((r) => Promise.resolve(r.response)));
-    f.close();
-  }
-});
-
 test("bodiless GETs reserve nothing even when both body budgets are full", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
   const member = f.reserveBody(134217728);
   const publicBody = f.reserveBody(1048576, "public");
-  f.fresh();
 
   try {
     expect((await f.request("/v1/devices").send()).status).toBe(200);
 
     expect(
-      (await f.request("/v1/pairing/approver", undefined, { who: f.joiner }).send()).status,
+      (await f.request("/v1/join-requests/approved", undefined, { who: f.joiner }).send()).status,
     ).not.toBe(503);
   } finally {
     member();
@@ -113,12 +96,11 @@ test("bodiless GETs reserve nothing even when both body budgets are full", async
 });
 
 test("two stalled ticket-authorized non-members cannot block members", async () => {
-  const f = fixture(await identity());
-  f.fresh();
+  const f = fixture(identity());
 
   f.storage.putSession(
     vaultId,
-    { kind: "join-ticket", device: f.joiner.record.id, purpose: "kit" },
+    { kind: "join-ticket", device: f.joiner.record.id, purpose: "recovery" },
     new Uint8Array([1]),
     f.options.now(),
   );
@@ -129,10 +111,7 @@ test("two stalled ticket-authorized non-members cannot block members", async () 
     await Promise.all(held.map((r) => r.reading));
     expect((await f.request("/v1/swap", {}, { who: f.joiner }).send()).status).toBe(503);
 
-    expect(
-      (await f.request("/v1/settings/unlock-period", { period: null }, { method: "PUT" }).send())
-        .status,
-    ).toBe(200);
+    expect((await memberWrite(f)).status).toBe(200);
   } finally {
     held.forEach((r) => r.finish());
     await Promise.all(held.map((r) => Promise.resolve(r.response)));

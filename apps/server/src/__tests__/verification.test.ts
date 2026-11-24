@@ -8,8 +8,8 @@ import { nonMemberPolicy } from "../routes/policy.ts";
 
 let keys: IServerKeys;
 
-beforeAll(async () => {
-  keys = await identity();
+beforeAll(() => {
+  keys = identity();
 });
 
 test("hello binds challenge, lowercased host and configured versions", async () => {
@@ -32,14 +32,15 @@ test("hello binds challenge, lowercased host and configured versions", async () 
     ).toBe(true);
 
     expect(hello.body.minClient).toBe("1.0.0");
-    expect(hello.body.protocols).toEqual([1]);
+    expect(hello.body.protocols).toEqual([p.PROTOCOL_VERSION]);
     expect((await f.app.request("/v1/hello?challenge=AA")).status).toBe(400);
   } finally {
     f.close();
   }
 });
 
-const path = "/v1/settings/unlock-period";
+// A member-only write: the body is uploaded as a blob whose hash names the path.
+const path = `/v1/blobs/${text(p.H("blob", new TextEncoder().encode(JSON.stringify({ period: null }))))}`;
 
 for (const [name, mutate, status] of [
   [
@@ -103,8 +104,6 @@ for (const [name, mutate, status] of [
     const f = fixture(keys);
 
     try {
-      f.fresh();
-
       expect(
         (await f.request(path, { period: null }, { method: "PUT", mutate }).send()).status,
       ).toBe(status);
@@ -118,8 +117,6 @@ test("signature, replay, required headers and non-member gating", async () => {
   const f = fixture(keys);
 
   try {
-    f.fresh();
-
     expect(
       (
         await f
@@ -147,54 +144,13 @@ test("signature, replay, required headers and non-member gating", async () => {
   }
 });
 
-test("fresh and unlocked gates enforce boundaries and never period", async () => {
+test("repair proofs bind requests", () => {
   const f = fixture(keys);
 
   try {
-    expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(403);
-    expect((await f.request("/v1/devices").send()).status).toBe(403);
-    f.fresh();
-    const prior = f.storage.device(vaultId, f.member.record.id)!;
-
-    f.storage.putDevice(vaultId, f.member.record.id, {
-      ...prior,
-      unlockedUntil: Number.MAX_SAFE_INTEGER,
-    });
-
-    expect((await f.request(path, { period: 86400000 }, { method: "PUT" }).send()).status).toBe(
-      200,
-    );
-
-    expect(f.storage.vault(vaultId)?.unlockPeriod).toBe(86400000);
-
-    expect(f.storage.device(vaultId, f.member.record.id)!.unlockedUntil).toBeLessThanOrEqual(
-      f.options.now() + 86400000,
-    );
-
-    expect((await f.request(path, { period: 1 }, { method: "PUT" }).send()).status).toBe(400);
-    expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(200);
-    f.advance(10000);
-    expect((await f.request(path, { period: null }, { method: "PUT" }).send()).status).toBe(403);
-    expect((await f.request("/v1/devices").send()).status).toBe(200);
-  } finally {
-    f.close();
-  }
-});
-
-test("SK and repair proofs bind requests and honor refusal", () => {
-  const f = fixture(keys);
-
-  try {
-    const secret = p.randomBytes(16);
-    const pub = p.skPub(secret, vaultId);
-    f.storage.writeState(vaultId, [{ kind: "skPub", key: new Uint8Array(), bytes: pub }]);
     const r = f.request(path).r;
-    const auth = { request: r, member: true, proof: p.signSKProof(secret, vaultId, r) };
-    expect(hasProof(f.options, auth, "sk")).toBe(true);
-    expect(hasProof(f.options, { ...auth, proof: p.randomBytes(64) }, "sk")).toBe(false);
+    const auth = { request: r, member: true, proof: p.randomBytes(64) };
     const vault = f.storage.vault(vaultId)!;
-    f.storage.configureVault(vaultId, { ...vault, skRefused: true });
-    expect(hasProof(f.options, auth, "sk")).toBe(false);
     const repairTokenHash = p.tokenKey("repair", p.randomBytes(20));
 
     f.storage.configureVault(vaultId, {
@@ -213,12 +169,12 @@ test("SK and repair proofs bind requests and honor refusal", () => {
 });
 
 test("non-member policy is closed and method-specific", () => {
-  expect(nonMemberPolicy("POST", "/v1/opaque/login/start")).toBe("kit");
-  expect(nonMemberPolicy("POST", "/v1/opaque/registration/finish")).toBe("registration");
-  expect(nonMemberPolicy("PUT", "/v1/pairing/mailboxes/1/KE1")).toBe("mailbox");
-  expect(nonMemberPolicy("GET", "/v1/pairing/approver")).toBe("approver");
-  expect(nonMemberPolicy("POST", "/v1/pairing/mailboxes")).toBeUndefined();
-  expect(nonMemberPolicy("DELETE", "/v1/pairing/mailboxes/1/KE1")).toBeUndefined();
+  expect(nonMemberPolicy("POST", "/v1/recovery/ticket")).toBe("recovery");
+  expect(nonMemberPolicy("POST", "/v1/join-requests")).toBe("join");
+  expect(nonMemberPolicy("PUT", "/v1/join-requests/1/reveal")).toBe("join");
+  expect(nonMemberPolicy("GET", "/v1/join-requests/approved")).toBe("approver");
+  expect(nonMemberPolicy("GET", "/v1/join-requests")).toBeUndefined();
+  expect(nonMemberPolicy("DELETE", "/v1/join-requests/1/offer")).toBeUndefined();
 });
 
 test("internal failures never expose their message", async () => {

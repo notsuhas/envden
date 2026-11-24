@@ -13,7 +13,7 @@ const statuses = {
   NOT_MEMBER: 403,
   UNAUTHORIZED: 401,
   LOCKED: 403,
-  RECOVERY_KIT_REQUIRED: 409,
+  RECOVERY_CODE_REQUIRED: 409,
   STORAGE_QUOTA: 507,
   RATE_LIMITED: 429,
   CONFLICT: 409,
@@ -46,7 +46,7 @@ export const onError: ErrorHandler = (error, c) => {
     });
 
   const hint =
-    code === "UNAUTHORIZED" && c.req.path.startsWith("/v1/opaque/login/")
+    code === "UNAUTHORIZED" && c.req.path === "/v1/recovery/ticket"
       ? { hint: "The vault may have moved; try the current server address" }
       : {};
 

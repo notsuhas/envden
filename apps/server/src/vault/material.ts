@@ -22,10 +22,7 @@ export function storedSwap(swap: ISwap, digest: Uint8Array): IStoredSwap {
   const state: NonNullable<IStoredSwap["state"]> = [];
   if (swap.keyring) state.push({ kind: "keyring", key: h.keyringHash, bytes: swap.keyring });
   if (swap.envelope) state.push({ kind: "envelope", key: new Uint8Array(), bytes: swap.envelope });
-  if (swap.skPub) state.push({ kind: "skPub", key: new Uint8Array(), bytes: swap.skPub });
-
-  if (swap.opaqueRecord)
-    state.push({ kind: "opaqueRecord", key: new Uint8Array(), bytes: swap.opaqueRecord });
+  if (swap.proofPub) state.push({ kind: "proofPub", key: new Uint8Array(), bytes: swap.proofPub });
 
   return {
     header: {

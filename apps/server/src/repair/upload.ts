@@ -16,9 +16,7 @@ export function uploadHistory(
   const stored = storedSwap(swap, digest);
 
   stored.state = stored.state!.filter(
-    (write) =>
-      write.kind !== "opaqueRecord" &&
-      (!storage.vault(vaultId)?.restored || write.kind !== "skPub"),
+    (write) => !storage.vault(vaultId)?.restored || write.kind !== "proofPub",
   );
 
   const current = storage.head(vaultId);

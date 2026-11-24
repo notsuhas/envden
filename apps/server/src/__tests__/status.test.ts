@@ -9,8 +9,8 @@ import { candidate, fixture, identity, vaultId } from "./fixture.ts";
 
 let keys: IServerKeys;
 
-beforeAll(async () => {
-  keys = await identity();
+beforeAll(() => {
+  keys = identity();
 });
 
 function seedCanary(f: ReturnType<typeof fixture>) {
@@ -47,8 +47,7 @@ function seedCanary(f: ReturnType<typeof fixture>) {
   f.storage.configureVault(id, {
     active: true,
     frozen: false,
-    skRefused: false,
-    unlockPeriod: null,
+    proofRefused: false,
   });
 
   f.storage.putBlob(id, blobHash, blob, undefined, f.options.now());
@@ -71,11 +70,7 @@ function seedCanary(f: ReturnType<typeof fixture>) {
 
   expect(committed.kind).toBe("committed");
 
-  f.storage.putDevice(id, device.record.id, {
-    unlockedUntil: 0,
-    freshUntil: 0,
-    clientVersion: "1.0.0",
-  });
+  f.storage.putDevice(id, device.record.id, { clientVersion: "1.0.0" });
 
   return { id, secrets: [device.record.name, fileId, blobHash, device.record.id] };
 }

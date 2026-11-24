@@ -1,5 +1,4 @@
 import { authorizeOperation } from "./authorization/operation.ts";
-import { requireStagedRecord } from "../auth/staged.ts";
 import type { TAuthorization } from "@envden/core/chain";
 import { type ISwap } from "@envden/core/protocol";
 import type { IStoredSwap } from "@envden/core/adapters";
@@ -11,17 +10,9 @@ export function authorizeSwap(
   swap: ISwap,
   required: TAuthorization,
   stored: IStoredSwap,
-  mailbox?: number,
+  request?: number,
 ) {
-  const { vaultId, device } = auth.request;
-
-  authorizeOperation(options, auth, swap, required, stored, mailbox);
-
-  if (swap.opaqueRecord) {
-    const key = requireStagedRecord(options, vaultId, device, swap.opaqueRecord);
-
-    stored.consumeSessions = [...(stored.consumeSessions ?? []), key];
-  }
+  authorizeOperation(options, auth, swap, required, stored, request);
 }
 
 export { requireRepair } from "./authorization/repair.ts";

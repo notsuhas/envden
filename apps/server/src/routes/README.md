@@ -6,48 +6,50 @@ All routes except hello and status use signed request headers. `Envden-Body-Hash
 |---|---|---|---|
 | GET `/v1/hello?challenge=` | 32-byte challenge | `{ hello }`, signed ServerHello | public |
 | GET `/` and GET `/v1/status` | empty | HTML page, or `{ version, uptimeSeconds, mode, vaults, storageBytes, fullestVault, lastPrune }` | public; 404 when `ENVDEN_STATUS_PAGE=off` |
-| POST `/v1/vault` | binary SwapCodec: op 0, entries `[genesis, entry1]`, empty Files, keyring, envelope, skPub, opaqueRecord; zero expectedHead | `{ kind: "committed" \| "retry-of-committed" }` | setup proof, staged registration |
-| POST `/v1/swap?mailbox=N` | binary SwapCodec; mailbox only for op 2 | `{ kind: "committed" \| "retry-of-committed" }`, or 409 `{ kind: "head-moved", head }` | operation's required authorization |
-| GET `/v1/devices` | empty | `{ devices: [{ id, clientVersion, confirmed }] }` | unlocked member |
+| POST `/v1/vault` | binary SwapCodec: op 0, entries `[genesis, entry1]`, empty Files, keyring, envelope, proofPub; zero expectedHead | `{ kind: "committed" \| "retry-of-committed" }` | setup proof |
+| POST `/v1/swap?request=N` | binary SwapCodec; request only for op 2 | `{ kind: "committed" \| "retry-of-committed" }`, or 409 `{ kind: "head-moved", head }` | operation's required authorization |
+| GET `/v1/devices` | empty | `{ devices: [{ id, clientVersion, confirmed }] }` | member |
 | GET `/v1/head` | empty | binary signed ManifestHeader | read gate |
 | GET `/v1/headers?from=1&to=20` | inclusive decimal sequence range | `{ objects: [base64url signed ManifestHeader] }` | read gate |
 | GET `/v1/entries?from=0&to=20` | inclusive decimal sequence range | `{ objects: [base64url signed Entry] }` | read gate |
-| GET `/v1/files/:hash` | empty | binary Files | read gate; ticket/SK limited to head list |
-| GET `/v1/keyrings/:hash` | empty | raw keyring ciphertext | read gate; ticket/SK limited to current keyring |
-| GET `/v1/envelope` | empty | raw envelope ciphertext | fresh member, ticket or SK proof |
-| GET `/v1/blobs` | empty | `{ objects: [base64url blob hash] }` | unlocked member |
-| GET `/v1/blobs/:hash` | empty | raw ciphertext | unlocked member |
-| PUT `/v1/blobs/:hash` | raw ciphertext, nonempty, at most 16 MiB; H("blob", body) equals hash | `{ kind: "uploaded" }` | unlocked member, repair proof or move owner |
+| GET `/v1/files/:hash` | empty | binary Files | read gate; ticket limited to head list |
+| GET `/v1/keyrings/:hash` | empty | raw keyring ciphertext | read gate; ticket limited to current keyring |
+| GET `/v1/envelope` | empty | raw envelope ciphertext | read gate |
+| GET `/v1/blobs` | empty | `{ objects: [base64url blob hash] }` | member |
+| GET `/v1/blobs/:hash` | empty | raw ciphertext | member |
+| PUT `/v1/blobs/:hash` | raw ciphertext, nonempty, at most 16 MiB; H("blob", body) equals hash | `{ kind: "uploaded" }` | member, repair proof or move owner |
 | POST `/v1/move/session` | empty | `{ kind: "moving" }` | setup proof; retry by session owner |
 | POST `/v1/move/discard` | empty | `{ kind: "unfrozen" }`; consumed setup token stays invalid | move owner |
-| GET `/v1/move/sk-pub` | empty | raw SK public key | fresh member; requires kit replacement if SK proofs are refused |
-| GET `/v1/move/period` | empty | `{ period }` | fresh member |
-| POST `/v1/move/freeze` | empty | `{ kind: "frozen" }` | fresh member; requires kit replacement if SK proofs are refused; records move owner |
-| POST `/v1/move/unfreeze` | empty | `{ kind: "unfrozen" }` | fresh member; refused after op 10 |
+| GET `/v1/move/proof-pub` | empty | raw recovery proof public key | member; requires a code replacement if recovery proofs are refused |
+| POST `/v1/move/freeze` | empty | `{ kind: "frozen" }` | member; requires a code replacement if recovery proofs are refused; records move owner |
+| POST `/v1/move/unfreeze` | empty | `{ kind: "unfrozen" }` | member; refused after op 10 |
 | POST `/v1/move/history` | binary SwapCodec containing each historical header and its entries, in order; start with creation | storage commit result | move owner |
 | POST `/v1/move/chain` | binary `list(SwapCodec)`, ordered history batch | storage commit result | move owner |
-| PUT `/v1/move/material/:kind/:hash` | raw keyring, envelope, skPub or Files (`kind=files`); files must match a stored header | `{ kind: "uploaded" }` | move owner |
-| PUT `/v1/move/period` | `{ period: 86400000 \| 604800000 \| 2592000000 \| null }` | `{ kind: "updated" }` | move owner |
+| PUT `/v1/move/material/:kind/:hash` | raw keyring, envelope, proofPub or Files (`kind=files`); files must match a stored header | `{ kind: "uploaded" }` | move owner |
 | POST `/v1/repair/history` | binary SwapCodec containing each extension header and its entries | storage commit result | repair proof; uploader must be member at extension head |
 | POST `/v1/repair/chain` | binary `list(SwapCodec)`, ordered extension; uploader must be member at final head | storage commit result | repair proof |
 | PUT `/v1/repair/material/:kind/:hash` | same as move material | `{ kind: "uploaded" }` | repair proof |
-| POST `/v1/repair/finish` | `{ kind: "login", purpose: "unlock", message: KE3, swap: base64url SwapCodec }` or `{ kind: "registration", message: registrationRecord, swap }`; swap must be op 12 | commit result | repair proof |
 | GET `/v1/repair/status` | empty | `{ restoredHead, repairId }` | repair proof |
 | PUT `/v1/repair/report` | binary signed RepairReport | `{ kind: "stored" }` | repair proof; report signer must equal request device |
 | GET `/v1/repair/reports` | empty | `{ objects: [base64url signed RepairReport] }` | repair proof |
+| POST `/v1/recovery/ticket` | `{ proofPub }`; `Envden-Proof` is the recovery proof; zero vault ID | `{ vaultId }`, and a join ticket for the requesting device | non-member, rate-limited per vault |
+| POST `/v1/join-requests` | `{ commit }`; zero vault ID | `{ number, expiresAt }` | non-member; 10 openings per hour per server |
+| GET `/v1/join-requests` | empty | `{ requests: [{ number, name, expiresAt }] }`, open and unclaimed only | member |
+| GET/PUT `/v1/join-requests/:number/offer` | `{ message }` (PUT) | `{ message, expiresAt }` or `{ kind: "pending", expiresAt }` | read: the joiner; write: any member while unclaimed, which claims it |
+| GET/PUT `/v1/join-requests/:number/reveal` | `{ message }` (PUT) | as above | read: the claimer; write: the joiner, after the offer |
+| DELETE `/v1/join-requests/:number` | empty | `{ kind: "closed" }` | the joiner or the claimer |
+| GET `/v1/join-requests/approved` | empty | `{ message }`, the JoinApproved | the joined device, by device ID, for 24 hours |
 
-Read gate means unlocked member, or a join ticket/SK proof for its allowed read set. Restored mode replaces all read gates with repair proof and blocks normal writes. Inactive move destinations answer `MOVING` outside import/registration/activation routes. Op 10 on N accepts any imported member forwarding the signed swap, with N's pin.
+Read gate means member, or a join ticket for its allowed read set. Restored mode replaces all read gates with repair proof and blocks normal writes. Inactive move destinations answer `MOVING` outside import/registration/activation routes. Op 10 on N accepts any imported member forwarding the signed swap, with N's pin.
 
-Historical uploads may omit pruned bodies and credential ciphertext. Op-11 lists and their predecessors are required. Re-upload missing lists through `material/files/:hash`. Historical OPAQUE records never replace live credentials. Destination registration is persisted through its move session until activation.
+Historical uploads may omit pruned bodies and credential ciphertext. Op-11 lists and their predecessors are required. Re-upload missing lists through `material/files/:hash`.
 
-OPAQUE routes remain POST `/v1/opaque/{login,registration}/{start,finish}` with the core schemas. Registration finish stages the record. Restored login finish stages verified login authority without unlocking. Submit op 12 with the final finish message through `/v1/repair/finish`, or consume staged finish authority through `/v1/swap`, using the repair proof: it atomically consumes that authority or staged registration, commits the close, unlocks the device and deletes reports. A restarted repair changes the token and invalidates staged finish authority.
+Join request slots are written once; an identical resubmission succeeds and a different one closes the request. Op 2 consumes the claimed request and stores the JoinApproved for 24 hours. Op 12 goes through `/v1/swap` with the repair proof: it commits the close, takes the vault out of restored mode and deletes reports. A restarted repair changes the token.
 
-Pairing remains POST `/v1/pairing/mailboxes`, GET/PUT `/v1/pairing/mailboxes/:number/:slot`, DELETE `/v1/pairing/mailboxes/:number`, and GET `/v1/pairing/approver`. Slot writes use `{ message }`; reads return `{ message }` or `{ kind: "pending" }`. Pair swaps consume the mailbox and persist the encrypted approver for 24 hours.
+Auth and join bodies are capped at 64 KiB, blobs at 16 MiB, and history, material and swaps at 32 MiB. Only exact method and route pairs are admitted. Read routes reject bodies. Content-Length and streamed bytes are checked before buffering. Bodies reserve twice the declared Content-Length, or twice the route cap when absent; streamed bytes cannot exceed that reservation: members have 128 MiB reserved exclusively for them; public recovery and join traffic share 1 MiB with at most eight concurrent bodies. Non-member uploads authorized by setup, join ticket, move or repair proofs use a separate 128 MiB pool with at most two concurrent bodies. Neither pool can consume member capacity. Bodiless requests reserve nothing. A body starts with a 10-second deadline. Each received 32 KiB adds one second to the total deadline, capped at 600 seconds; a declared length alone never extends it. Expiry cancels the stream. Exhaustion returns `BUSY` (503); clients retry twice with 100 ms and 200 ms backoffs. History pages return at most 100 rows and 1 MiB; continue from the last decoded sequence plus one until the page is empty. Blobs, retained file lists, version indexes and keyrings share a 1 GiB quota per vault; a swap whose file list adds no blob and isn't bigger than the current one commits even over it. Uncommitted uploads expire after 24 hours. History pruning runs hourly with a 90-day window and at least 20 versions per file, retaining repair lists permanently. Blobs are kept by version, not by list, so a list retained for one file's version keeps no other file's blob.
 
-GET `/v1/settings/unlock-period` returns `{ period }` using the core `UnlockPeriodSchema`. It requires an unlocked member, no fresh login, and no body or body reservation. PUT on the same route still requires a fresh login. Auth and pairing bodies are capped at 64 KiB, blobs at 16 MiB, and history, material and swaps at 32 MiB. Only exact method and route pairs are admitted. Read routes reject bodies. Content-Length and streamed bytes are checked before buffering. Bodies reserve twice the declared Content-Length, or twice the route cap when absent; streamed bytes cannot exceed that reservation: members have 128 MiB reserved exclusively for them; public login and pairing traffic share 1 MiB with at most eight concurrent bodies. Non-member uploads authorized by setup, join, move or repair proofs use a separate 128 MiB pool with at most two concurrent bodies. Neither pool can consume member capacity. Bodiless requests reserve nothing. Public login and registration starts are rate-limited before reservation. A body starts with a 10-second deadline. Each received 32 KiB adds one second to the total deadline, capped at 600 seconds; a declared length alone never extends it. Expiry cancels the stream. Exhaustion returns `BUSY` (503); clients retry twice with 100 ms and 200 ms backoffs. History pages return at most 100 rows and 1 MiB; continue from the last decoded sequence plus one until the page is empty. Blobs, retained file lists, version indexes and keyrings share a 1 GiB quota per vault; a swap whose file list adds no blob and isn't bigger than the current one commits even over it. Uncommitted uploads expire after 24 hours. History pruning runs hourly with a 90-day window and at least 20 versions per file, retaining repair lists permanently. Blobs are kept by version, not by list, so a list retained for one file's version keeps no other file's blob.
-
-Status is for any tailnet peer with a browser, so it shows only server-wide totals: never a vault ID, device, file, mailbox or per-vault count. `mode` is `restored` if any vault is in restored mode and `moved` once every vault has moved away. `fullestVault` is the quota band of the fullest vault. Both routes share 60 requests a minute across all callers, run no scripts, and send a CSP allowing only the page's hashed inline style, plus `frame-ancestors 'none'`, `nosniff`, `no-referrer` and `no-store`.
+Status is for any tailnet peer with a browser, so it shows only server-wide totals: never a vault ID, device, file, join request or per-vault count. `mode` is `restored` if any vault is in restored mode and `moved` once every vault has moved away. `fullestVault` is the quota band of the fullest vault. Both routes share 60 requests a minute across all callers, run no scripts, and send a CSP allowing only the page's hashed inline style, plus `frame-ancestors 'none'`, `nosniff`, `no-referrer` and `no-store`.
 
 Use a repair chain batch when the uploading device was added after the backup. The batch commits atomically and checks membership at its final head. Coded unknown protocol formats return `SERVER_TOO_OLD` (426).
 
-Rejected mailbox writers consume only their device bucket. Accepted non-member writers also consume a bucket scoped to that mailbox opening. Repair envelopes must match the current head. Successful authentication refunds reset lockout strikes; strikes also reset after 24 hours beyond the last lockout.
+Accepted non-member join writes consume a bucket scoped to that request opening, and rejected writers share a separate one. Repair envelopes must match the current head. A refunded recovery attempt resets lockout strikes; strikes also reset after 24 hours beyond the last lockout.

@@ -11,8 +11,7 @@ export function validCreationMaterial(swap: ISwap): boolean {
     !equal(H("keyring-blob", swap.keyring), h.keyringHash) ||
     !swap.envelope ||
     !equal(H("envelope-blob", swap.envelope), h.envelopeHash) ||
-    !swap.skPub ||
-    !swap.opaqueRecord ||
+    !swap.proofPub ||
     swap.approver
   );
 }

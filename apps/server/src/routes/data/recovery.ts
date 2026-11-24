@@ -1,5 +1,4 @@
 import { discardMove } from "../../move/discard.ts";
-import { finishRepair } from "../../repair/finish.ts";
 import { uploadChain } from "../../repair/batch.ts";
 import type { Hono, Context } from "hono";
 import {
@@ -54,12 +53,6 @@ export function registerRecovery(app: Hono<TServerEnv>, options: IAppOptions) {
     .post("/v1/move/history", historyHandler(options, requireMove, false))
     .post("/v1/repair/chain", historyHandler(options, requireRepair, true))
     .post("/v1/move/chain", historyHandler(options, requireMove, true))
-    .post("/v1/repair/finish", async (c) => {
-      const raw: unknown = await c.req.json();
-      const result = await finishRepair(options, c.get("auth"), raw);
-
-      return c.json(commitResponse(result), result.kind === "head-moved" ? 409 : 200);
-    })
     .get("/v1/repair/status", (c) => {
       const auth = c.get("auth");
       requireRepair(options, auth);

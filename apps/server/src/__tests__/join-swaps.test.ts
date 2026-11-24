@@ -4,7 +4,7 @@ import { vaultFixture } from "./vault-fixture.ts";
 import { membership } from "../vault/chain.ts";
 
 for (const op of [2, 3])
-  test(`op ${op} joins once and assigns unlock without fresh`, async () => {
+  test(`op ${op} joins once with its grant or ticket and consumes it`, async () => {
     const f = await vaultFixture();
 
     try {
@@ -35,14 +35,11 @@ for (const op of [2, 3])
       );
 
       if (op === 2)
-        swap.approver = p.sealPairApprover(
-          {
-            vaultId: f.vaultId,
-            serverPin: p.serverPin(f.options.serverKeys.publicKey),
-            manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
-          },
-          p.randomBytes(32),
-        );
+        swap.approver = p.encode(p.JoinApprovedCodec, {
+          vaultId: f.vaultId,
+          serverPin: p.serverPin(f.options.serverKeys.publicKey),
+          manifestHash: p.objectHash(p.ManifestHeaderCodec, swap.header, "manifest"),
+        });
 
       const who = op === 2 ? f.a : f.b;
       expect((await f.send(swap, who)).status).toBe(401);
@@ -51,53 +48,40 @@ for (const op of [2, 3])
       if (op === 3)
         f.storage.putSession(
           f.vaultId,
-          { kind: "join-ticket", device: f.b.record.id, purpose: "kit" },
+          { kind: "join-ticket", device: f.b.record.id, purpose: "recovery" },
           new Uint8Array([1]),
           f.options.now(),
         );
       else {
-        const box = f.storage.openMailbox(f.vaultId, f.a.record.id, f.options.now())!;
+        const now = f.options.now();
+        const record = p.encode(p.DeviceRecordCodec, f.b.record);
+        const request = f.storage.openJoinRequest(f.b.record.id, record, p.randomBytes(32), now)!;
+        const claim = { vault: f.vaultId, device: f.a.record.id };
+        f.storage.writeJoinRequest(request.number, "offer", p.randomBytes(66), now, claim);
 
-        for (const [slot, length] of [
-          ["KE1", 96],
-          ["KE2", 320],
-          ["KE3", 64],
-          ["PairJoiner", 64],
-        ] as const)
-          f.storage.writeMailbox(
-            f.vaultId,
-            box.number,
-            slot,
-            p.randomBytes(length),
-            f.options.now(),
-          );
+        expect(
+          (await f.send(swap, who, undefined, `${path}?request=${request.number}`)).status,
+        ).toBe(401);
 
-        f.storage.writeState(f.vaultId, [
-          {
-            kind: "mailbox-joiner",
-            key: new Uint8Array([box.number >> 8, box.number & 255]),
-            bytes: f.b.record.id,
-          },
-        ]);
-
-        path += `?mailbox=${box.number}`;
+        f.storage.writeJoinRequest(request.number, "reveal", p.randomBytes(200), now);
+        path += `?request=${request.number}`;
       }
 
       expect((await f.send(swap, who, undefined, path)).status).toBe(200);
       expect(membership(f.storage, f.vaultId, f.b.record.id)).toEqual(f.b.record);
-      expect(f.storage.device(f.vaultId, f.b.record.id)!.freshUntil).toBe(0);
 
-      expect(f.storage.device(f.vaultId, f.b.record.id)!.unlockedUntil).toBeGreaterThan(
-        f.options.now(),
-      );
+      if (op === 2) {
+        expect(f.storage.joinRequests(f.options.now())).toEqual([]);
+        const approved = await f.request("/v1/join-requests/approved", undefined, f.b);
 
-      if (op === 2)
-        expect((await f.request("/v1/pairing/approver", undefined, f.b)).status).toBe(200);
-      else
+        expect(p.MessageResponseSchema.parse(await approved.json()).message).toBe(
+          Buffer.from(swap.approver!).toString("base64url"),
+        );
+      } else
         expect(
           f.storage.session(
             f.vaultId,
-            { kind: "join-ticket", device: f.b.record.id, purpose: "kit" },
+            { kind: "join-ticket", device: f.b.record.id, purpose: "recovery" },
             f.options.now(),
           ),
         ).toBeUndefined();

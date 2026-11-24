@@ -1,6 +1,5 @@
 import { prepareMove } from "./move.ts";
 import { validateForCommit } from "./validate.ts";
-import { refundRegistration } from "../../auth/staged.ts";
 import type { IFiles } from "@envden/core/protocol";
 import { base32, equal, type ISwap } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
@@ -15,7 +14,7 @@ export function commit(
   auth: IAuth,
   swap: ISwap,
   digest: Uint8Array,
-  mailbox?: number,
+  request?: number,
 ) {
   const { storage, now } = options;
   const { vaultId } = auth.request;
@@ -40,25 +39,16 @@ export function commit(
   if (vault.restored && ![4, 11, 12].includes(swap.header.body.op))
     throw new EnvdenError("RESTORED_MODE", "Repair required");
 
-  authorizeSwap(options, auth, swap, result.authorization, stored, mailbox);
+  authorizeSwap(options, auth, swap, result.authorization, stored, request);
 
   requireUploadedBlobs(files, swap, available);
 
   if (swap.header.body.op === 12) closeRepair(options, auth, swap, stored);
-  if (swap.skPub) stored.vault = { ...vault, skRefused: false };
+  if (swap.proofPub) stored.vault = { ...vault, proofRefused: false };
 
   prepareMove(options, auth, swap, stored, result.state.serverPin);
 
-  const registrant = vault.active
-    ? auth.request.device
-    : storage.state(vaultId, "move-session", new Uint8Array());
-
-  const committed = storage.commitSwap(vaultId, swap.expectedHead, stored, now());
-
-  if (committed.kind === "committed" && registrant && (swap.opaqueRecord || !vault.active))
-    refundRegistration(options, vaultId, registrant);
-
-  return committed;
+  return storage.commitSwap(vaultId, swap.expectedHead, stored, now());
 }
 
 function requireUploadedBlobs(files: IFiles, swap: ISwap, available: Set<string>) {
