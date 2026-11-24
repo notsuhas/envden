@@ -723,7 +723,7 @@ Daily checks cache their result in `~/.envden/state`. A failed lookup never bloc
 A share hands one file to one person who may have no envden and no tailnet (DESIGN § Shares). It has nothing to do with a vault: no vault key, device key or server is involved.
 
 - **Secrets.** The sender draws a 16-byte share ID and a 32-byte key from the CSPRNG for each share. Both travel as unpadded base64url; decoders reject padding, other alphabets and nonzero trailing bits.
-- **Link.** `https://<node>:10000/s/<id>#<key>`. The key sits in the fragment, which browsers never send in a request, so neither Tailscale nor the sender's listener sees it.
+- **Link.** `https://<node>[:<port>]/s/<id>#<key>`, where the port is whichever Funnel port the sender found free. The key sits in the fragment, which browsers never send in a request, so neither Tailscale nor the sender's listener sees it.
 - **Box.** `u8 1 ‖ random nonce(12) ‖ AES-256-GCM(key, nonce, plaintext, AD)` with `AD = ctx("share") ‖ u8 1 ‖ b16 id`. The plaintext is the file's bytes, at most 1 MiB. Binding the ID means a box served under another share's link doesn't open, and the version byte appears in both the box and the AD. AES-GCM replaces XChaCha20-Poly1305 here only because WebCrypto has no XChaCha20.
 - **Claim.** `GET /s/<id>` returns the page and never consumes the share. `POST /s/<id>/claim` returns the box once: `200` with the bytes, then `410` to anyone after. A claim after the share's lifetime gets `404`. The sender closes the link after the first `200`.
 - **What travels.** Tailscale terminates TLS on the sender's own device, so a Funnel relay sees only TLS traffic. No request carries the key, and the box is AES-GCM ciphertext even inside TLS.

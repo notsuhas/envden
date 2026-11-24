@@ -1,11 +1,11 @@
 import { setTimeout as delay } from "node:timers/promises";
 import { EnvdenError } from "@envden/core/errors";
 import type { INetworkStatus, IPublicShare } from "@envden/core/adapters";
-import { portTaken } from "../serve/taken.ts";
-import { accessError, funnelAccess } from "./access.ts";
+import { accessError } from "./access.ts";
 import { funnelArgs, funnelUp, spawnFunnel, type TFunnelSpawn } from "./child.ts";
 import { lookupPublic, publicName, type TLookup, type TPause } from "./public-name.ts";
 import { failure } from "../command/failure.ts";
+import { funnelPort } from "./port.ts";
 
 export interface IFunnelEffects {
   spawn: TFunnelSpawn;
@@ -18,9 +18,6 @@ interface IFunnelInputs {
   serveStatus: () => Promise<string>;
   effects?: Partial<IFunnelEffects>;
 }
-
-// The least used of the three ports Funnel allows.
-const FUNNEL_PORT = 10000;
 
 const SHARE_PATH = /^(\/[A-Za-z0-9_-]+)+$/;
 
@@ -39,26 +36,27 @@ export async function openFunnel(
   if (status.problem || !status.hostname)
     throw new EnvdenError("INVALID_INPUT", status.problem?.message ?? "Tailscale is not ready");
 
-  const access = funnelAccess(stdout, FUNNEL_PORT);
-  if (access !== "allowed") throw accessError(access, FUNNEL_PORT);
+  const choice = funnelPort(stdout, await inputs.serveStatus());
+  if (choice.kind === "denied") throw accessError(choice.access);
 
-  if (portTaken(await inputs.serveStatus(), FUNNEL_PORT))
+  if (choice.kind === "taken")
     throw new EnvdenError(
       "INVALID_INPUT",
-      `Tailscale already serves something on port ${FUNNEL_PORT}, which envden send needs while a link is open. See it with tailscale serve status`,
+      "Tailscale already serves something on ports 10000, 8443 and 443, the only ones Funnel allows. envden send needs one of them free while a link is open; see tailscale serve status",
     );
 
-  return publish(inputs.effects, status.hostname, port, path);
+  return publish(inputs.effects, status.hostname, choice.port, port, path);
 }
 
 function publish(
   effects: Partial<IFunnelEffects> = {},
   host: string,
+  funnel: number,
   port: number,
   path: string,
 ): IPublicShare {
   const { spawn = spawnFunnel, lookup = lookupPublic, pause = sleep } = effects;
-  const child = spawn(funnelArgs(FUNNEL_PORT, port, path));
+  const child = spawn(funnelArgs(funnel, port, path));
   const closing = new AbortController();
   let closed = false;
   void child.exited.then(() => closing.abort());
@@ -70,7 +68,7 @@ function publish(
     });
 
   return {
-    url: `https://${host}:${FUNNEL_PORT}${path}`,
+    url: `https://${host}${funnel === 443 ? "" : `:${funnel}`}${path}`,
     ready: funnelUp(child).then(name),
     ended: child.exited.then(() => undefined),
     close: async () => {

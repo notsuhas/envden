@@ -12,7 +12,12 @@ const states: Record<string, unknown> = {
 
 const taken = {
   TCP: { "8080": { TCPForward: "127.0.0.1:22" } },
-  Web: { "laptop.tail.example:10000": { Handlers: { "/": { Proxy: "http://127.0.0.1:3000" } } } },
+  Web: Object.fromEntries(
+    [10000, 8443, 443].map((port) => [
+      `laptop.tail.example:${port}`,
+      { Handlers: { "/": { Proxy: "http://127.0.0.1:3000" } } },
+    ]),
+  ),
 };
 
 networkContract("Tailscale", (scenario) =>

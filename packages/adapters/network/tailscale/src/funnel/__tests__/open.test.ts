@@ -56,24 +56,63 @@ test("the funnel runs in the foreground for the share path only", async () => {
   await share.close();
 });
 
-test("refusals name the fix and start no funnel", async () => {
-  const web = (host: string) => ({
-    Web: { [host]: { Handlers: { "/": { Proxy: "http://127.0.0.1:3000" } } } },
-  });
+const web = (...hosts: string[]) => ({
+  Web: Object.fromEntries(
+    hosts.map((host) => [host, { Handlers: { "/": { Proxy: "http://127.0.0.1:3000" } } }]),
+  ),
+});
 
+const allTaken = web(
+  "laptop.tail.example:10000",
+  "laptop.tail.example:8443",
+  "laptop.tail.example:443",
+);
+
+test("the funnel takes the first allowed port nothing serves", async () => {
+  for (const [status, serve, args, url] of [
+    [
+      caps("funnel", ports("443,8443,10000")),
+      web("laptop.tail.example:10000"),
+      "--https=8443",
+      ":8443/s/abc",
+    ],
+    [caps("funnel", ports("443")), {}, "--https=443", "laptop.tail.example/s/abc"],
+  ] as const) {
+    const spawned: string[][] = [];
+    const share = await adapter(status, serve, spawned).openPublicShare(8080, "/s/abc");
+
+    expect(spawned[0]?.[1]).toBe(args);
+    expect(share.url).toEndWith(url);
+    expect(await share.ready).toBe("public");
+    await share.close();
+  }
+});
+
+test("refusals name the fix and start no funnel", async () => {
   for (const [status, serve, code, message] of [
     [caps("https"), {}, "UNAUTHORIZED", '{"target": ["autogroup:member"], "attr": ["funnel"]}'],
-    [caps("funnel", ports("443")), {}, "UNAUTHORIZED", "isn't allowed on port 10000"],
+    [
+      caps("funnel", ports("9000")),
+      {},
+      "UNAUTHORIZED",
+      "isn't allowed on ports 10000, 8443 or 443",
+    ],
     [JSON.stringify({ ...running, CertDomains: [] }), {}, "INVALID_INPUT", "Enable HTTPS"],
     [JSON.stringify({ ...running, BackendState: "Stopped" }), {}, "INVALID_INPUT", "isn't running"],
-    [JSON.stringify(running), web("laptop.tail.example:10000"), "INVALID_INPUT", "port 10000"],
-    [JSON.stringify(running), { TCP: { "10000": { HTTPS: true } } }, "INVALID_INPUT", "port 10000"],
+    [caps("funnel", ports("10000")), web("laptop.tail.example:10000"), "INVALID_INPUT", "10000"],
     [
-      JSON.stringify(running),
+      caps("funnel", ports("10000")),
+      { TCP: { "10000": { HTTPS: true } } },
+      "INVALID_INPUT",
+      "10000",
+    ],
+    [
+      caps("funnel", ports("10000")),
       { Foreground: { session: web("other:10000") } },
       "INVALID_INPUT",
-      "port 10000",
+      "10000",
     ],
+    [JSON.stringify(running), allTaken, "INVALID_INPUT", "10000, 8443 and 443"],
   ] as const) {
     const spawned: string[][] = [];
 

@@ -39,7 +39,7 @@ function inRange(range: string, port: number): boolean {
   return bounds[0]! <= port && port <= bounds.at(-1)!;
 }
 
-export function accessError(access: Exclude<TFunnelAccess, "allowed">, port: number) {
+export function accessError(access: Exclude<TFunnelAccess, "allowed">) {
   if (access === "no-funnel")
     return new EnvdenError(
       "UNAUTHORIZED",
@@ -48,6 +48,6 @@ export function accessError(access: Exclude<TFunnelAccess, "allowed">, port: num
 
   return new EnvdenError(
     "UNAUTHORIZED",
-    `Tailscale Funnel isn't allowed on port ${port} for this device. See https://tailscale.com/kb/1223/funnel`,
+    "Tailscale Funnel isn't allowed on ports 10000, 8443 or 443 for this device. See https://tailscale.com/kb/1223/funnel",
   );
 }
