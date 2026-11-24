@@ -4,6 +4,8 @@ import { join } from "node:path";
 import type { TAdapters } from "../adapters.ts";
 import { homePath, realHome } from "../output/home-path.ts";
 import { ensurePaths, type paths } from "../settings/paths.ts";
+import { loadState } from "../state/store/repository.ts";
+import { templateChecks } from "../templates/checks.ts";
 
 export async function doctor(adapters: TAdapters, location: ReturnType<typeof paths>) {
   await ensurePaths(location.home);
@@ -28,9 +30,12 @@ export async function doctor(adapters: TAdapters, location: ReturnType<typeof pa
     }),
   );
 
+  const state = await loadState(adapters.home).catch(() => undefined);
+  const userHome = await realHome(adapters.userHome);
+
   return {
     keys: {
-      location: homePath(adapters.home, await realHome(adapters.userHome)),
+      location: homePath(adapters.home, userHome),
       ownerOnly: await adapters.keychain.ownerOnly(),
     },
     symlinks,
@@ -38,5 +43,9 @@ export async function doctor(adapters: TAdapters, location: ReturnType<typeof pa
     tailscale: await adapters.network.status(),
     https: await adapters.network.checkHttpsCertificate(),
     shells,
+    templates: (state ? await templateChecks(state) : []).map((check) => ({
+      ...check,
+      location: homePath(join(check.root, check.path), userHome),
+    })),
   };
 }

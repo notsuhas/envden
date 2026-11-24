@@ -48,6 +48,16 @@ test("notice lists approved changed repos without reading values into output", a
 
     state.links[0]!.localOnly = true;
     expect(await noticeStatus(home, state)).toEqual([]);
+
+    const root = join(home, "repo");
+    await atomicWrite(join(root, ".env"), "A=secret-a\n", fixtureClock);
+    await atomicWrite(join(root, ".env.example"), "A=\nSTRIPE_KEY=sk_example\n", fixtureClock);
+    state.links[0] = { root, path: ".env", store, mode: "copy", localOnly: true };
+    await refreshNotice(home, state, async () => false, fixtureClock);
+
+    expect(await cachedNotice(home)).toBe(
+      "envden: repo/.env missing STRIPE_KEY (from .env.example)\n",
+    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }

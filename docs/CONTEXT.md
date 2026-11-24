@@ -8,6 +8,10 @@ Self-hosted sync for whole .env files across a person's devices, over a private 
 A `.env` or `.env.<name>` file belonging to a repo, synced byte-for-byte as a whole file (comments, order, blank lines). Templates (`.env.example` etc.) and `.envrc` are not env files.
 _Avoid_: secret, variable, key
 
+**Template**:
+A committed sibling of an env file that lists the keys it should have, named after it with `.example`, `.sample`, `.template` or `.defaults` added. envden compares key names against it and never syncs it.
+_Avoid_: example file, sample env
+
 **Repo ID**:
 The stable identity of a repo, derived on the device from its remote as `host/path`. All checkouts with the same Repo ID share env files. Never sent to the server.
 _Avoid_: project, repo name, path

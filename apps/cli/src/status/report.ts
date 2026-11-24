@@ -8,6 +8,7 @@ import { heldBackFiles } from "../sync/local/lineage/held-back.ts";
 import { deriveFileState, type TFileState } from "./file-state.ts";
 import { localStatus } from "./local.ts";
 import { remoteFiles } from "./remote.ts";
+import { templateChecks, type ITemplateCheck } from "../templates/checks.ts";
 
 type TLink = Awaited<ReturnType<typeof localStatus>>["links"][number];
 
@@ -23,6 +24,7 @@ interface IStatusFile {
   state: TFileState;
   reason?: string;
   keys?: { added: string[]; removed: string[]; changed: string[] };
+  template?: { file: string; missing: string[]; extra: string[] };
 }
 
 interface IFacts {
@@ -30,6 +32,7 @@ interface IFacts {
   changes: Awaited<ReturnType<typeof diff>>;
   heldBack: Awaited<ReturnType<typeof heldBackFiles>>;
   remote: IRemoteFile[];
+  templates: ITemplateCheck[];
 }
 
 export async function statusReport(adapters: TAdapters) {
@@ -41,7 +44,8 @@ export async function statusReport(adapters: TAdapters) {
   const changes = await diff(adapters, { now: adapters.now, fetcher: adapters.fetcher, all: true });
   const heldBack = await heldBackFiles(adapters);
   const remote = local.server === "reachable" ? await remoteFiles(adapters) : undefined;
-  const facts = { state, changes, heldBack, remote: remote ?? [] };
+  const templates = await templateChecks(state);
+  const facts = { state, changes, heldBack, remote: remote ?? [], templates };
 
   return {
     configured: true as const,
@@ -61,6 +65,10 @@ function linkFile(link: TLink, facts: IFacts): IStatusFile {
   const change = facts.changes.find((item) => item.root === link.root && item.path === link.path);
   const held = facts.heldBack.find((item) => item.path === join(link.root, link.path));
 
+  const template = facts.templates.find(
+    (item) => item.root === link.root && item.path === link.path,
+  );
+
   const state = deriveFileState({
     localOnly: link.localOnly,
     conflict: link.conflict,
@@ -78,6 +86,9 @@ function linkFile(link: TLink, facts: IFacts): IStatusFile {
     ...(state === "held-back" && held ? { reason: held.reason } : {}),
     ...(change?.differs && change.kind === "diff"
       ? { keys: { added: change.added, removed: change.removed, changed: change.changed } }
+      : {}),
+    ...(template
+      ? { template: { file: template.template, missing: template.missing, extra: template.extra } }
       : {}),
   };
 }

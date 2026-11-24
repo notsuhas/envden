@@ -6,7 +6,9 @@ import { terminalJson } from "../../output/sanitize.ts";
 import { doctorText } from "../../output/render/doctor.ts";
 
 export const doctorCommand = new Command("doctor")
-  .description("Check key files, symlinks, updates, Tailscale, HTTPS and shell notices")
+  .description(
+    "Check key files, symlinks, updates, Tailscale, HTTPS, shell notices and env file templates",
+  )
   .option("--json", "Print the report as JSON")
   .action(async (options) => {
     const adapters = createAdapters(undefined, Date.now);

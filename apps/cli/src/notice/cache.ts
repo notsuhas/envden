@@ -5,6 +5,8 @@ import { join } from "node:path";
 import type { ILocalState } from "../state/model.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { basePath, readBytes, same } from "../sync/local/files.ts";
+import { templateChecks } from "../templates/checks.ts";
+import { templateNoticeLines } from "../templates/notice.ts";
 
 export async function noticeStatus(home: string, state: ILocalState) {
   const repos = new Set<string>();
@@ -55,10 +57,14 @@ async function lockedrefreshNotice(
   const remote = await readRemoteNotice(home);
   const repos = [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])];
 
+  const lines = [
+    ...repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`),
+    ...templateNoticeLines(await templateChecks(state)).map(sanitizeTerminal),
+  ];
+
   await atomicWrite(
     join(home, "state", "notice"),
-    repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`).join("\n") +
-      (repos.length ? "\n" : ""),
+    lines.join("\n") + (lines.length ? "\n" : ""),
     now,
   );
 }

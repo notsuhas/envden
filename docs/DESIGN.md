@@ -184,6 +184,7 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 - A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git and never writes to checkouts.
 - The binary is compiled with `.env` and `bunfig.toml` autoload disabled, and the hook calls it as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden` (those variables bypass the compile flags).
 - Every `envden` command also reports other out-of-sync repos. `envden status --json` for tools.
+- The cache also names keys a tracked env file lacks compared with its template sibling (`.env` against `.env.example`, then `.sample`, `.template`, `.defaults`): `envden: api/.env missing STRIPE_KEY, DB_URL (from .env.example)`, at most three names and a count. Extra keys appear only in `status` and `doctor`.
 
 ## Agents
 
@@ -237,6 +238,10 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 ## Decisions
 
 When a decision changes, rewrite its entry here and say what it replaced.
+
+### Template checks compare key names only, locally
+
+A tracked env file is compared with its template sibling by key name, using the merge parser with duplicates allowed. A key commented out in the template is optional, so it is neither missing nor extra. No template, or one the parser can't read, means no report. Values never leave the comparison, including in `--json`. Missing keys reach the shell line because they break the app; extra keys are often deliberate local settings, so they stay in `status` and `doctor` to keep the shell quiet. Nothing is sent to the server.
 
 ### Stable path collision selection
 
