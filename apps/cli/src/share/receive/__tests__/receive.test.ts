@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { newShare, shareText } from "@envden/core/protocol";
@@ -68,11 +68,13 @@ test("an existing file is replaced only after a yes, and a bad destination fails
 
     await mkdir(join(dir, "folder"));
     await Promise.resolve(expect(receive(true, true, "folder")).rejects.toThrow("not a folder"));
-    await mkdir(join(dir, "locked"), { mode: 0o500 });
+    await mkdir(join(dir, "locked"));
+    await writeFile(join(dir, "locked", ".env"), "KEEP=1\n");
+    await symlink(join(dir, "locked", ".env"), join(dir, "linked.env"));
+    await chmod(join(dir, "locked"), 0o500);
 
-    await Promise.resolve(
-      expect(receive(true, true, "locked/.env")).rejects.toThrow("Can't write"),
-    );
+    for (const out of ["locked/.env", "linked.env", "locked/sub/.env"])
+      await Promise.resolve(expect(receive(true, true, out)).rejects.toThrow("Can't write"));
 
     expect(claims).toEqual([]);
 
@@ -80,6 +82,7 @@ test("an existing file is replaced only after a yes, and a bad destination fails
     expect(claims).toHaveLength(1);
     expect(await readFile(join(dir, ".env"), "utf8")).toBe("KEEP=1\n");
   } finally {
+    await chmod(join(dir, "locked"), 0o700).catch(() => {});
     await rm(dir, { recursive: true, force: true });
   }
 });

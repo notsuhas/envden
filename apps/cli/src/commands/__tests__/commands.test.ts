@@ -190,4 +190,8 @@ test("parser errors never echo a share link's key", async () => {
   );
 
   expect(await parserError([link])).toBe(`error: unknown command '${masked}'\n`);
+
+  expect(await parserError(["receive", link.replace("//", ""), "a", "b"])).toBe(
+    `error: too many arguments for 'receive'. Expected 2 arguments but got 3: ${masked.replace("//", "")}, a, b.\n`,
+  );
 });

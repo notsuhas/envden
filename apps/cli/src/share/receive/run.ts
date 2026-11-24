@@ -1,10 +1,11 @@
 import { constants } from "node:fs";
 import { access, lstat, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { EnvdenError } from "@envden/core/errors";
+import { EnvdenError, isEnvdenError } from "@envden/core/errors";
 import { openShare } from "@envden/core/protocol";
 import type { TAdapters } from "../../adapters.ts";
-import { writeThrough } from "../../agent/write-through.ts";
+import { linkTarget } from "../../agent/write-through.ts";
+import { atomicWrite } from "../../state/store/files.ts";
 import { parseShareLink } from "./link.ts";
 
 interface IReceiveOptions {
@@ -26,7 +27,7 @@ export async function receiveFile(
   const path = resolve(options.cwd, options.out);
 
   // Decided before claiming: the link works once, so a refusal afterwards would lose the file.
-  if (await occupied(path)) {
+  if ((await lstat(path).catch(missing)) !== undefined) {
     if (!options.interactive)
       throw new EnvdenError(
         "INVALID_INPUT",
@@ -36,8 +37,9 @@ export async function receiveFile(
     if (!(await options.confirm(`Replace ${path}?`))) return { kind: "kept" as const, path };
   }
 
+  const target = await writableTarget(path);
   const box = await claimBox(adapters.fetcher, claim);
-  await writeThrough(path, openShare(share, box), adapters.now);
+  await atomicWrite(target, openShare(share, box), adapters.now);
 
   return { kind: "saved" as const, path };
 }
@@ -71,23 +73,22 @@ async function claimBox(fetcher: TAdapters["fetcher"], claim: string): Promise<U
   return box;
 }
 
-// Something is at `path`; anything but a file there, or an unwritable folder, fails before the claim.
-async function occupied(path: string): Promise<boolean> {
-  const entry = await lstat(path).catch(missing);
-  const target = entry && (await stat(path).catch(missing));
+// Resolves links and creates the folder now, so an unwritable destination fails before the claim.
+async function writableTarget(path: string): Promise<string> {
+  try {
+    const target = await linkTarget(path);
+    const info = await stat(target).catch(missing);
 
-  if (target && !target.isFile())
-    throw new EnvdenError("INVALID_INPUT", "Save to a file, not a folder");
+    if (info && !info.isFile())
+      throw new EnvdenError("INVALID_INPUT", "Save to a file, not a folder");
 
-  await access(dirname(path), constants.W_OK).catch(writable);
+    await access(dirname(target), constants.W_OK);
 
-  return entry !== undefined;
-}
-
-// A folder that doesn't exist yet is created on write.
-function writable(cause: unknown): void {
-  if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return;
-  throw new EnvdenError("INVALID_INPUT", "Can't write to that folder", { cause });
+    return target;
+  } catch (cause) {
+    if (isEnvdenError(cause)) throw cause;
+    throw new EnvdenError("INVALID_INPUT", "Can't write to that folder", { cause });
+  }
 }
 
 function missing(cause: unknown): undefined {
