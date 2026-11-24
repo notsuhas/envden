@@ -1,6 +1,6 @@
-# envden protocol v1
+# envden protocol v2
 
-The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages/core/protocol` follows this document; if they disagree, the code is wrong. Every rule here has a test vector or a test case (§ 14). Revised after three rounds of adversarial review by Codex (GPT-6.1 Sol) and Claude Fable 5.2.
+The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages/core/protocol` follows this document; if they disagree, the code is wrong. Every rule here has a test vector or a test case (§ 14). Revised after three rounds of adversarial review by Codex (GPT-6.1 Sol) and Claude Fable 5.2. v2 replaced the master password, OPAQUE and the typed pairing code with a recovery code (§ 8) and word approval (§ 12); v1 data can't be read.
 
 ## 1. Primitives
 
@@ -13,15 +13,13 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
 | Signatures | Ed25519 (RFC 8032), cofactored verification with canonical encodings (`zip215: false`) | `@noble/curves` |
 | Key agreement | X25519 | `@noble/curves` |
 | Key wrapping | HPKE base mode (RFC 9180): DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305 | `@hpke/core`, with `DhkemX25519HkdfSha256` imported from `@hpke/dhkem-x25519` (not the WebCrypto one in `@hpke/core`) and `Chacha20Poly1305` from `@hpke/chacha20poly1305` |
-| Password stretching | Argon2id, m = 65536 KiB, t = 3, p = 4, 32-byte output, `outputType: "binary"` | `hash-wasm` |
-| PAKE | OPAQUE (RFC 9807), the library's ristretto255 suite | `@serenity-kit/opaque` (`await ready` before any call) |
 | Randomness | `crypto.getRandomValues` | Bun |
+| Wordlist | BIP-39 English, 2048 words | vendored as data from `bitcoin/bips` `bip-0039/english.txt`, checked by its SHA-256 |
 
 - **Pinning.** Every library version is pinned exactly.
 - **Test vectors in CI.** CI checks the pinned libraries against known-answer vectors:
   - RFC vectors: HKDF, HMAC, Ed25519, X25519, HPKE.
   - The draft's XChaCha20-Poly1305 vectors.
-  - Argon2id: known-answer tests from the reference implementation. hash-wasm has no associated-data input, so the RFC 9106 vectors can't run.
   - A low-order X25519 point fed to HPKE must be rejected.
 - **Key validation.** Public keys are checked on receipt:
   - Ed25519 keys must decode canonically and not be of small order.
@@ -54,14 +52,14 @@ Decoders reject:
 - lists that should be sorted but are unsorted or have duplicates
 - invalid UTF-8, non-NFC strings and control characters
 
-**Labels.** `ctx(label)` = `str("envden/v1/" ‖ label)`. Every hash, signature, MAC, KDF and AEAD in envden starts with a distinct label, so no output can be reused in another role.
+**Labels.** `ctx(label)` = `str("envden/v2/" ‖ label)`. Every hash, signature, MAC, KDF and AEAD in envden starts with a distinct label, so no output can be reused in another role.
 
 - `H(label, m)` = SHA-256(`ctx(label)` ‖ `u64 len(m)` ‖ m)
 - `Sign(sk, label, m)` = Ed25519(sk, `ctx(label)` ‖ `u64 len(m)` ‖ m)
 - `MAC(k, label, m)` = HMAC-SHA-256(k, `ctx(label)` ‖ `u64 len(m)` ‖ m)
 - `KDF(ikm, salt, label, extra)` = HKDF-SHA-256(ikm, salt, `ctx(label)` ‖ extra, 32 bytes)
 
-**Signed objects** are `body ‖ b64 signature`. The body starts with `u8 type ‖ u8 version`, and every version in v1 is `1`. Vault objects (entry, manifest, repair report) end their body with `signer b16` in every future version too, so a reader can check the signature of a version it can't parse (§ 10 Unknown data). The signature is `Sign(sk, type label, body)`. The object's hash is `H("hash/" ‖ type label, body ‖ signature)`.
+**Signed objects** are `body ‖ b64 signature`. The body starts with `u8 type ‖ u8 version`, and every version in v2 is `1`. Vault objects (entry, manifest, repair report) end their body with `signer b16` in every future version too, so a reader can check the signature of a version it can't parse (§ 10 Unknown data). The signature is `Sign(sk, type label, body)`. The object's hash is `H("hash/" ‖ type label, body ‖ signature)`.
 
 | Tag | Type label | Protection |
 |---|---|---|
@@ -71,16 +69,15 @@ Decoders reject:
 | `0x04` | `keyring` | encrypted |
 | `0x05` | `envelope` | encrypted |
 | `0x06` | `file` | encrypted |
-| `0x07` | `pair-joiner` | encrypted in the pairing channel |
-| `0x08` | `pair-approver` | encrypted in the pairing channel |
+| `0x07` | `join-reveal` | bound by the join commit and the words (§ 12) |
+| `0x08` | `join-approved` | checked against the chain (§ 12) |
 | `0x09` | `request` | signed by a device's request key |
 | `0x0A` | `server-hello` | signed by the server key |
 | `0x0B` | `repair-report` | signed by a device's object key |
+| `0x0C` | `join-offer` | bound by the words (§ 12) |
 | `0x0D` | `file-name` | encrypted |
 
-**Text forms.** `b32(x)` is Crockford base32, uppercase, with no padding. Decoders uppercase their input and reject non-zero trailing bits. Integers inside text (mailbox numbers) are decimal with no leading zeros.
-
-**Passwords.** `normPw(p)` = NFKC(p) as a JS string, with no trimming. It's rejected if empty. OPAQUE takes that string; Argon2id takes `utf8(normPw(p))`.
+**Text forms.** `b32(x)` is Crockford base32, uppercase, with no padding. Decoders uppercase their input and reject non-zero trailing bits. Integers inside text (join request numbers) are decimal with no leading zeros.
 
 ## 3. Keys and identifiers
 
@@ -89,14 +86,13 @@ Decoders reject:
 | Device encryption key | X25519 | device setup | that device's key files |
 | Device object key | Ed25519 | device setup | that device's key files |
 | Device request key | Ed25519 | device setup | that device's key files; separate so a request signature never counts as a vault object |
-| Recovery encryption key | X25519 | vault creation, kit replacement, password reset | the password envelope; held in memory only while creating, joining with the kit, replacing the kit, or changing or resetting the password |
+| Recovery encryption key | X25519 | vault creation, recovery code replacement | the recovery envelope; held in memory only while creating, joining with the recovery code, or replacing the code |
 | Recovery object key | Ed25519 | same | same |
 | Epoch key `K_e` | 32 random bytes | each new epoch | HPKE-wrapped to members; older ones in the keyring |
 | ID key `K_id` | 32 random bytes | vault creation, never rotated | the keyring |
-| Secret key `SK` | 16 random bytes | vault creation, kit replacement | recovery kit only |
-| SK key | Ed25519 from `KDF(SK, vaultId, "sk-sign", empty)` | with `SK` | derived when needed; the server stores only `skPub` |
+| Recovery code `RC` | 16 random bytes | vault creation, recovery code replacement | the user only: shown once, never stored by a device |
+| Proof key | Ed25519 from seed `KDF(RC, empty, "recovery-proof-key", empty)` | with `RC` | derived when needed; the server stores only `proofPub` |
 | Server signing key | Ed25519 | first server start | server data folder |
-| Server OPAQUE setup | `server.createSetup()` | first server start | server data folder |
 
 - **Device ID** = first 16 bytes of `H("device-id", encPub ‖ objPub ‖ reqPub)`.
 - **Recovery ID** = first 16 bytes of `H("recovery-id", encPub ‖ objPub)`.
@@ -149,7 +145,7 @@ Entry (0x01) {
 | Kind | Payload | Signer |
 |---|---|---|
 | `0` genesis | `serverPin b32, device DeviceRecord, recovery RecoveryRecord, vaultNonce b32, createdAt time` | the first device |
-| `1` add-device | `device DeviceRecord, wrap Wrap` | a device (pairing) or the recovery key (kit join) |
+| `1` add-device | `device DeviceRecord, wrap Wrap` | a device (word approval) or the recovery key (recovery join) |
 | `2` remove-device | `device b16, newRecovery opt<RecoveryRecord>, change EpochChange` | a device other than the one removed |
 | `3` new-epoch | `change EpochChange` | a device |
 | `4` replace-recovery | `recovery RecoveryRecord, change EpochChange` | a device |
@@ -181,7 +177,7 @@ Entry `e` is valid against state `S` only if:
    - **repair-done**: `repairId` isn't in `S.repairIds`. Applying it adds `repairId` to `S.repairIds`.
    - **rename-device**: the device is a member and is the signer. The name follows the `DeviceRecord` rules and is unique among devices, so it can't be the device's current name. Applying it changes only that device's name; the ID doesn't cover the name, and keys and epoch are unchanged.
 
-A recovery-signed add-device is a kit join. A device-signed one is a pairing. There's no separate field for this, so the signer can't lie about which it was.
+A recovery-signed add-device is a recovery join. A device-signed one is a word approval. There's no separate field for this, so the signer can't lie about which it was.
 
 ## 6. Manifests
 
@@ -207,7 +203,7 @@ FileName (0x0D) { type, version, repoId str, path str }
 - **Deleting** a file writes a new version with state 2 and `blobHash` = zeros. **Restoring** it writes a new live version. Decoders reject a live entry (state 1 or 3) whose `blobHash` is zeros, and a tombstone (state 2 or 4) whose `blobHash` isn't.
 - **`name`** is the file's `FileName`, padded and encrypted like a file blob (§ 7) with key `KDF(K_e, vaultId, "file-name-key", fileId)` and AD `ctx("file-name")` ‖ vaultId ‖ `u32 epoch` ‖ fileId ‖ `u64 version`, using the entry's epoch. Every changed entry gets a fresh `name`. A reader decrypts it and recomputes `fileId` from it. This is how a device learns which file IDs belong to its repos without fetching their blobs.
 - File IDs are never dropped from the list, so tombstones outlive history pruning.
-- **Who held the recovery key.** The signer of any header that changes `envelopeHash`, plus every kit-joined device, held the recovery private key in memory. Devices compute this set from history.
+- **Who held the recovery key.** The signer of any header that changes `envelopeHash`, plus every recovery-joined device, held the recovery private key in memory. Devices compute this set from history.
 
 **Swap.** A swap is one compare-and-swap, the only way anything becomes visible:
 
@@ -215,28 +211,28 @@ FileName (0x0D) { type, version, repoId str, path str }
 Swap {
   expectedHead b32,
   entries list<Entry>, header ManifestHeader, files opt<Files>,
-  keyring opt<blob>, envelope opt<blob>, skPub opt<b32>, opaqueRecord opt<bytes>,
-  approver opt<bytes>       // op 2 only: the encrypted PairApprover (§ 12)
+  keyring opt<blob>, envelope opt<blob>, proofPub opt<b32>,
+  approver opt<bytes>       // op 2 only: the JoinApproved (§ 12)
 }
 ```
 
 Each swap is exactly one operation, named by `header.op`, so every reader knows which row a header claims. The server rejects any other combination of entries and fields. `files` is present exactly when the files change.
 
-| `op` | New entries | Files change | Keyring | Envelope | `skPub` | `opaqueRecord` | Authorization (§ 11) |
-|---|---|---|---|---|---|---|---|
-| 1 push | none | yes | — | — | — | — | unlocked |
-| 2 pair | one device-signed add-device | no | — | — | — | — | that mailbox's grant |
-| 3 kit join | one recovery-signed add-device for the ticket's device | no | — | — | — | — | join ticket |
-| 4 remove | one remove-device without `newRecovery` | no | yes | — | — | — | fresh; or the repair token in restored mode (§ 13) |
-| 5 remove + new kit | one remove-device with `newRecovery` | no | yes | yes | yes | — | fresh |
-| 6 rotate | one new-epoch | no | yes | — | — | — | fresh |
-| 7 replace kit | one replace-recovery | no | yes | yes | yes | — | fresh |
-| 8 change password | none | no | — | yes | — | yes | fresh |
-| 9 reset password | one replace-recovery | no | yes | yes | — | yes | `SK` proof |
-| 10 server moved | one server-moved | no | — | — | — | — | O: the move session; N: it extends N's imported head with N's pin (§ 13) |
-| 11 repair fix | none | only to states 3 and 4, and only for live entries whose blob the server lacks | — | — | — | — | repair token, restored mode only (§ 13) |
-| 12 repair done | one repair-done | no | — | — | — | when re-registering | repair token, restored mode only, committed together with the finishing login (§ 13) |
-| 13 rename | one rename-device signed by `header.signer` | no | — | — | — | — | unlocked |
+| `op` | New entries | Files change | Keyring | Envelope | `proofPub` | Authorization (§ 11) |
+|---|---|---|---|---|---|---|
+| 1 push | none | yes | — | — | — | member |
+| 2 approve | one device-signed add-device | no | — | — | — | that join request's grant |
+| 3 recovery join | one recovery-signed add-device for the ticket's device | no | — | — | — | join ticket |
+| 4 remove | one remove-device without `newRecovery` | no | yes | — | — | member; or the repair token in restored mode (§ 13) |
+| 5 remove + new code | one remove-device with `newRecovery` | no | yes | yes | yes | member |
+| 6 rotate | one new-epoch | no | yes | — | — | member |
+| 7 replace code | one replace-recovery | no | yes | yes | yes | member |
+| 10 server moved | one server-moved | no | — | — | — | O: the move session; N: it extends N's imported head with N's pin (§ 13) |
+| 11 repair fix | none | only to states 3 and 4, and only for live entries whose blob the server lacks | — | — | — | repair token, restored mode only (§ 13) |
+| 12 repair done | one repair-done | no | — | — | — | repair token, restored mode only (§ 13) |
+| 13 rename | one rename-device signed by `header.signer` | no | — | — | — | member |
+
+Ops 8 and 9 are unassigned, and a header naming either is invalid.
 
 - **Unchanged parts.** Apart from what the operation changes, the header's `epoch`, `keyringHash` and `envelopeHash` are unchanged. "Files change: no" means `filesHash` is unchanged.
 - **Commit.** The server checks all of these, then commits everything in one database transaction:
@@ -283,7 +279,7 @@ Each swap is exactly one operation, named by `header.op`, so every reader knows 
   - a malicious server acknowledging two different swaps on the same head and showing each to different devices, which keeps them apart. Each device detects the fork as soon as it sees the other branch.
 
   envden stops, shows both sides and offers no override. The documented fix is to create a new vault from a trusted device's store.
-- **No longer a member**: the server rejects the device as a non-member. The device can't read the chain, so it says only that the server reports it removed, and that `envden join` will check why. The join grants reads, and the device classifies the chain against its stored headers before it adopts anything: before the kit-join swap, or, when pairing, at § 12 step 13 before taking the checkpoint. A pairing that aborts there leaves an orphan (§ 12).
+- **No longer a member**: the server rejects the device as a non-member. The device can't read the chain, so it says only that the server reports it removed, and that `envden join` will check why. The join grants reads, and the device classifies the chain against its stored headers before it adopts anything: before the recovery-join swap, or, in a word approval, at § 12 step 7 before taking the checkpoint. A word approval that aborts there leaves an orphan (§ 12).
   - **Removed**: the chain descends from its checkpoint and contains a remove-device for it. envden names who removed it and when.
   - **Dropped by a repair**: the chain leaves its stored headers at some point, after that point it contains a repair-done entry whose `restoredHead` is a header before that point, and the device's old ID is not a member at the new head. Either the new chain removes it after the split, or its own add-device lies in its stored headers after the split. This happens after `--without`, or to a device added after the backup that didn't repair.
     - A repair-done is just a signed entry, so it proves no restore. A former member is a device or recovery record that its stored chain removed or replaced by its checkpoint. If one is a member at the new head, or signed any header or entry after the split, the chain is a fork. That includes an honest repair that kept a device removed after the backup, so such a repair also drops that device with `--without`.
@@ -308,59 +304,26 @@ File (0x06) { type, version, repoId str, path str, content blob (≤ 1 MiB) }
 
   The repo ID and path inside the file must also equal the entry's decrypted `name`.
 
-## 8. Password envelope and secret key
+## 8. Recovery envelope
 
 ```
-pwKey  = Argon2id(utf8(normPw(password)), salt, m=65536, t=3, p=4, len=32)
-envKey = KDF(pwKey ‖ SK, vaultId, "envelope-key", empty)
+envKey = KDF(RC, vaultId, "recovery-envelope-key", empty)
 Envelope (0x05) { type, version, vaultId b32, recoveryEncSk b32, recoveryObjSk b32, checkpoint b32, sealedAt time }
-blob = u8 1 ‖ salt(16) ‖ nonce(24) ‖ XChaCha20-Poly1305(envKey, nonce, Envelope, AD = ctx("envelope") ‖ vaultId)
+blob = u8 1 ‖ nonce(24) ‖ XChaCha20-Poly1305(envKey, nonce, Envelope, AD = ctx("envelope") ‖ vaultId)
 envelopeHash = H("envelope-blob", blob)
-skPub = public key of Ed25519 seed KDF(SK, vaultId, "sk-sign", empty)
 ```
 
-- **Salt.** The salt is fresh every time the envelope is sealed.
-- **Checkpoint.** `checkpoint` is the `expectedHead` of the swap that installs the envelope: the header it builds on, or zeros at vault creation. The swap's own header names the envelope by `envelopeHash`. That's how a kit-recovered device finds and verifies the envelope, and it avoids a circular hash.
-- **When it's sealed**: only in the swap operations that carry an envelope (§ 6): creation, remove + new kit, replace kit, change password and reset password. Devices never hold `SK`, so they can't reseal it at any other time. The checkpoint is therefore the rollback floor for a kit-recovered device (DESIGN § Decisions).
-- **`skPub`.** The server stores only the public key, so nothing it holds, including backups, can produce an `SK` proof (§ 10). It's installed at creation and with a new kit, and a server move copies it.
-- **Secret key text**: `EK1-` ‖ `b32(SK ‖ first 2 bytes of H("sk-check", SK))`, in groups of five. The checksum catches typos before anything is sent.
-- **Recovery kit** prints:
-  - the secret key
-  - the vault ID (`b32`)
-  - the server address at print time, as a hint only (§ 13, Join with the kit)
-  - a blank line for the master password
+- **No stretching.** `RC` is 128 bits from the CSPRNG, so HKDF alone is enough. A stolen server database holds the envelope and `proofPub`; opening either means guessing `RC`, about 2¹²⁷ tries on average.
+- **Checkpoint.** `checkpoint` is the `expectedHead` of the swap that installs the envelope: the header it builds on, or zeros at vault creation. The swap's own header names the envelope by `envelopeHash`. That's how a recovery-joined device finds and verifies the envelope, and it avoids a circular hash.
+- **When it's sealed**: only in the swap operations that carry an envelope (§ 6): creation, remove + new code and replace code. Devices never keep `RC`, so they can't reseal it at any other time. The checkpoint is therefore the rollback floor for a recovery-joined device (DESIGN § Decisions).
 
-## 9. OPAQUE
+## 9. Recovery code
 
-**Constants.** `KS = { "argon2id-custom": { memory: 65536, iterations: 3, parallelism: 4 } }`. This equals the library's current default. It's passed explicitly so a change to the default can't silently break logins.
-
-**Call map** for `@serenity-kit/opaque` 1.1.0. Only these calls are used, with exactly these parameters:
-
-| Step | Call |
-|---|---|
-| Register, client | `client.startRegistration({ password })`, then `client.finishRegistration({ password, registrationResponse, clientRegistrationState, identifiers, keyStretching: KS })` |
-| Register, server | `server.createRegistrationResponse({ serverSetup, userIdentifier, registrationRequest })` |
-| Log in, client | `client.startLogin({ password })`, then `client.finishLogin({ clientLoginState, loginResponse, password, identifiers, keyStretching: KS })`. This returns `undefined` on a wrong password. |
-| Log in, server | `server.startLogin({ serverSetup, registrationRecord, startLoginRequest, userIdentifier, identifiers })`, then `server.finishLogin({ serverLoginState, finishLoginRequest, identifiers })` |
-
-**Identifiers and passwords.** These are JS strings, passed as-is.
-
-| Use | `userIdentifier` (credential ID) | `identifiers.client` | `identifiers.server` | `password` |
-|---|---|---|---|---|
-| Unlock and kit join | `b32(vaultId)` | `envden/v1/unlock/` ‖ `b32(vaultId)` | `envden/v1/unlock-server` | `normPw(master password)` |
-| Pairing | `envden/v1/pair` | `envden/v1/pair/joiner` | `envden/v1/pair/` ‖ `b32(serverPin)` ‖ `/` ‖ mailbox | the 8 normalized code characters |
-
-**Rules:**
-- **Message encoding.** Registration and login messages, records, states and session keys are base64url strings. The protocol uses their decoded bytes. Every message has the fixed length of the library's RFC 9807 ristretto255 configuration. These lengths are written into the code and checked by vectors.
-- **Shape checks.** Servers and devices check each message's length and encoding before every library call. A malformed input can leak WASM memory until a fixed library release is pinned.
-- **Server login state** is kept server-side, keyed by (vault, device ID, purpose). It expires in 2 minutes and is consumed once. It's never accepted from a client. `KE1` and `KE3` must come from the same device ID.
-- **Registration start** is authorized, and counted against the rate limiter, by exactly one of:
-  - a setup-token proof, only for a vault ID the server doesn't have: creation, or the move session's import
-  - a fresh login: change password
-  - an `SK` proof: reset password
-  - a repair-token proof: re-registration at the end of a repair (§ 13)
-- **Server move.** A new server has a different OPAQUE setup, so a move always re-registers.
-- **Vectors.** The library takes no injected randomness. Its test vectors therefore store the client and server states with `KE1`/`KE2`, and test the two finish calls.
+- **Text**: `ER1-` ‖ `b32(RC ‖ first 2 bytes of H("recovery-code-check", RC))`, in groups of five joined by `-`, so 29 characters follow the prefix.
+- **Input** is normalized: uppercased, spaces and dashes removed, `O` read as `0`, and `I`/`L` read as `1`. It must start with `ER1`, the rest must decode to exactly 18 bytes with zero trailing bits, and the checksum must match. The checksum catches a typo before anything is sent; it misses one with probability 2⁻¹⁶.
+- **Proof key.** `proofPub` is the Ed25519 public key of seed `KDF(RC, empty, "recovery-proof-key", empty)`. The server stores only `proofPub`, so nothing it holds, including backups, can produce a recovery proof (§ 10). It's installed at creation and with each new code, and a server move copies it.
+- **Why the proof key has no vault ID.** The user keeps only the code, so the server finds the vault by `proofPub`, which therefore can't depend on the vault ID. Each code is 128 fresh random bits, so its proof key is unique without a salt. The envelope key still binds the vault ID.
+- **Shown once.** A device shows the code when it creates the vault or replaces the code, and keeps no copy.
 
 ## 10. Server identity, requests and proofs
 
@@ -383,7 +346,7 @@ Request (0x09) { type, version, serverPin b32, vaultId b32 (zeros if none), meth
 The server rejects a request if:
 - the signature doesn't verify
 - `R.serverPin` isn't its own pin
-- the vault is unknown, except on creation and import
+- the vault is unknown, except on creation, import, a recovery ticket and the joiner's side of a join request
 - `|time − now|` is 300 seconds or more
 - `(device, nonce)` was seen in the last 10 minutes. A nonce is kept for exactly 10 minutes, so it outlives every time its request could be accepted.
 - the device isn't a member at the server's current device-list head, except on the non-member endpoints below
@@ -392,22 +355,22 @@ The server rejects a request if:
 
 | Endpoint | Allowed with |
 |---|---|
-| Vault creation and its registration | a setup-token proof |
-| Move import and its registration | the move session (§ 13) |
-| Kit login | rate limit only. If it fails, the error adds that the vault may have moved, so the user can try the current server's address. |
+| Vault creation | a setup-token proof |
+| Move import | the move session (§ 13) |
+| Recovery ticket | a recovery proof, rate-limited (§ 11). If no vault on the server has that `proofPub`, the error adds that the vault may have moved, so the user can try the current server's address. |
 | Read the device list, the manifest headers, the head file list, keyrings and the envelope | the join ticket, until it's used |
-| Kit-join swap | the join ticket |
-| Joiner side of a pairing mailbox | the mailbox number |
-| Fetch its `PairApprover` | the joiner's device ID, within 24 hours (§ 12) |
+| Recovery-join swap | the join ticket |
+| Open a join request, read its offer, write its reveal, cancel it | the request number, from the device that opened it (§ 12) |
+| Fetch its `JoinApproved` | the joiner's device ID, within 24 hours (§ 12) |
 
 **Proofs** go in `Envden-Proof`:
 - **Setup token**: `MAC(H("setup-token", secret), "token-proof", R)`.
 - **Repair token**: `MAC(H("repair-token", secret), "repair-proof", R)`.
-- **Secret key**: `Sign(skSk, "sk-proof", R)`, verified under `skPub`. After a restore, the server may refuse `SK` proofs until the kit is replaced (§ 13).
+- **Recovery code**: `Sign(proofSk, "recovery-proof", R)`, verified under the `proofPub` named in the request body (§ 9). `R` holds a fresh nonce, the time, the server pin and the joiner's device ID, so it serves as the server's challenge: the server's nonce and time checks stop a replay, and the proof can't be moved to another device. After a restore, the server may refuse recovery proofs until the code is replaced (§ 13).
 
-The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `skPub`. Token proofs are recomputed and compared in constant time.
+The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `proofPub`. Token proofs are recomputed and compared in constant time.
 
-**Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only, with no leading zeros except the single digit `0`. `protocols` lists the protocol versions the server speaks, sorted; v1 is `[1]`.
+**Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only, with no leading zeros except the single digit `0`. `protocols` lists the protocol versions the server speaks, sorted; this document is `[2]`. A client refuses a server that doesn't list its version: "update the server" when every listed version is lower, "update envden" otherwise.
 - The server rejects a request whose `clientVersion` is below `minClient` with `426`. The 426 body is unsigned, so the client runs hello again and trusts only the signed `minClient`. If that's above the latest GitHub release (§ 15), it reports "the server requires a version that doesn't exist" instead of "update envden".
 - The server records each device's last `clientVersion`.
 - The client refuses a server whose `appVersion` is below the client's built-in `minServer`.
@@ -415,7 +378,7 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `s
 - Version checks aren't a security boundary. A client that lies about its version only hurts its own user.
 - **New formats.** Each new entry kind, op, or type version names the release that first reads it.
   - Signed types: the server accepts one only if `minClient` is at least that release.
-  - Encrypted types (keyring, envelope, file, file name, pairing messages): the server can't see them, so the writer checks the signed hello's `minClient` before writing one.
+  - Types the server doesn't parse (keyring, envelope, file, file name, join messages): the writer checks the signed hello's `minClient` before writing one.
   - A server that receives a format it doesn't know, including in a repair upload, answers "update the server".
 - **Unknown data.** A client classifies data from the server in this order:
   1. Compare headers and entries byte for byte with the ones it stored. A mismatch is a rollback or fork (§ 6), whatever the version.
@@ -429,139 +392,116 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `s
 - One token is active at a time, and starting `envden serve` with `ENVDEN_SETUP_TOKEN` set replaces it. It's valid only for creating or importing a vault ID the server doesn't have.
 - It's consumed when that vault is committed. A retried creation or import with the same body digest returns success.
 
-## 11. Unlock, fresh login and limits
+## 11. Authorization and limits
 
-The server stores the unlock period per vault (1d, 7d, 30d or never; default 30d), and `unlockedUntil` and `freshUntil` per device.
+There are no passwords, logins or unlock windows. A member's signed request (§ 10) is its authorization, and the server checks membership against its current device-list head on every request.
 
-- **Login.** A successful OPAQUE login sets `unlockedUntil = now + period` and `freshUntil = now + 10 min`.
-- **Reading the window.** An unlocked member reads its own `unlockedUntil` (null when the period is never) and `freshUntil` from `GET /v1/unlock-window`. Devices record it after setup and every join.
-- **Unlocked.** Pull, push and blob endpoints, and the rename swap, require `now < unlockedUntil`, unless the period is never. A name is only a label, so renaming needs no fresh login.
-- **Fresh login** (`now < freshUntil`) is required for:
-  - opening a pairing mailbox
-  - the remove, rotate, replace-kit and change-password swaps
-  - starting a server move, and freezing or unfreezing a server
-  - changing the unlock period
-  - reading the envelope as a member
-- **Mailbox grant.** Opening a mailbox doesn't extend `freshUntil`. The open mailbox authorizes exactly one pair swap from the device that opened it. That grant lasts until the mailbox's 10-minute exchange window ends. When the swap commits, the new device gets the approver's `unlockedUntil` and no fresh window.
-- **Kit join.** A successful kit login gives the candidate device a join ticket: server-side state keyed by (vault, candidate device ID), not a bearer value. The ticket is bound to (vault, candidate device ID), lasts 10 minutes and is used once. It allows the reads listed in § 10 and exactly one kit-join swap, signed by that candidate. After the swap, the device is unlocked for one period, with no fresh window.
-- **SK proof.** An `SK` proof authorizes exactly one reset-password swap. It also authorizes the reads needed to build it, even if the device is locked: the headers and entries from the device's checkpoint to the head, the head's file list, the keyring and the envelope. It bypasses `unlockedUntil` and `freshUntil` for those requests only.
+- **Member.** Pull, push, blobs, reading the envelope, listing and claiming join requests, the push, rename, remove, rotate and replace-code swaps, and starting, freezing or unfreezing a server move all need a member's signature and nothing more. A lost or stolen device keeps this until another device removes it (§ 13).
+- **Join request grant.** Claiming a join request (§ 12) binds it to the claiming device and its vault. That device may then make exactly one approve swap, adding the device that opened the request, until the request's 10-minute window ends.
+- **Join ticket.** A recovery proof (§ 10) gives the candidate device a join ticket: server-side state keyed by (vault, candidate device ID), not a bearer value. It lasts 10 minutes and is used once. It allows the reads listed in § 10 and exactly one recovery-join swap, signed by that candidate.
 - **Rate limits.**
-  - Every OPAQUE login start counts as a failure, and a successful finish refunds it. That's because each `KE2` allows one offline guess, with or without `KE3`. Registration starts count the same way, with a refund only when the registration record is committed by creation, move activation or a swap.
-  - Members have one bucket per device ID. Non-members (kit login) have one bucket per vault.
-  - Each bucket allows 5 failures per 15 minutes, then a doubling lockout up to 24 hours. A stolen device can lock only itself out, and strangers can lock only the kit path.
-  - Pairing mailboxes have their own limits (§ 12).
+  - Only failed recovery proofs count. A valid proof is never refused by a lockout and never counts, so knowing `proofPub` (a former member may have it) can't lock out the holder of the code.
+  - Attempts naming a vault's `proofPub` share that vault's bucket; attempts naming no known `proofPub` share one server-wide bucket.
+  - Each bucket allows 5 failures per 15 minutes, then a doubling lockout up to 24 hours.
+  - Join requests have their own limits (§ 12).
 
-These rules hold only against an honest server (DESIGN § Unlock and expiry).
+## 12. Word approval
 
-## 12. Pairing
+A is a device already in the vault, B is the device joining, S is the server.
 
-**Code.** The code is `m-XXXX-XXXX`.
-- `m` is the mailbox number: the smallest free integer from 1 to 999 among the server's open mailboxes.
-- `XXXX-XXXX` is 8 random Crockford base32 characters, which is 40 bits.
-- Input is normalized: uppercased, dashes and spaces removed, `O` read as `0`, and `I`/`L` read as `1`. If a separator follows the mailbox group, that group fixes the mailbox boundary and exactly 8 code characters must follow after normalization. For compact input, the last 8 characters are the secret. In either form the remaining mailbox must be 1–999 with no leading zeros; all secret characters must be Crockford base32. Other input is rejected.
+**Messages.** None of them is secret or encrypted.
 
-**Flow.** A is the approving device, B is the joiner, S is the server.
+```
+nJ, nA       = 32 random bytes each, from B and from A
+commit       = H("join/commit", serverPin ‖ DeviceRecord ‖ nJ)
+JoinOffer    (0x0C) { type, version, vaultId b32, nonce b32 }            // A → B, nonce = nA
+JoinReveal   (0x07) { type, version, device DeviceRecord, nonce b32 }   // B → A, nonce = nJ
+JoinApproved (0x08) { type, version, vaultId b32, serverPin b32, manifestHash b32 }
+words        = H("join/words", vaultId ‖ serverPin ‖ DeviceRecord ‖ nJ ‖ nA)
+```
 
-1. **A** needs a fresh login. It opens a mailbox at S and gets `m`.
-2. **A** registers the code entirely locally:
-   - a throwaway `server.createSetup()`
-   - client start, server response and client finish, using the pairing identifiers
+`DeviceRecord` is B's record as encoded in § 3, including the name it asks for. The words are the first 33 bits of `words`, read big-endian as three 11-bit indexes into the BIP-39 English wordlist (§ 1), joined by spaces.
 
-   A keeps only the throwaway setup and the record, and shows the code.
-3. **B** runs `envden join <server>`:
-   - does hello and remembers that pin
-   - generates its device keys and stores them in its key files
-   - asks for the code
-   - posts `KE1` to mailbox `m`
-4. **S** stores `KE1` in the mailbox's `KE1` slot (see Server rules).
-5. **A** fetches `KE1`, marks the code used before doing anything else, and posts `KE2`.
-6. **B** runs `client.finishLogin`. If it returns `undefined`, the code was wrong: B stops and tells the user to make a new code. Otherwise B posts `KE3`.
-7. **A** runs `server.finishLogin`. On failure, A closes the mailbox. On success, A erases the code, its throwaway setup and the record.
-8. **Channel keys.**
-   - `k_BA = KDF(sessionKey, empty, "pair/joiner-to-approver", empty)`
-   - `k_AB` is the same with label `pair/approver-to-joiner`
-   - Each side stores the keys it needs in its key files until pairing ends, then erases them along with `sessionKey`.
-9. **Messages.** Each message is `u8 1 ‖ random nonce(24) ‖ XChaCha20-Poly1305(key, nonce, plaintext, AD = empty)`. Each is encrypted once, stored, and resent byte-for-byte on retry of the same attempt. If A's pair swap loses the compare-and-swap, A rebuilds the add-device entry (with a new wrap if the epoch moved), the header and the `PairApprover`, with a fresh nonce.
-10. **B → A**: `PairJoiner (0x07) { type, version, device DeviceRecord }`. A recomputes the ID and checks that the keys are unused. If the name is taken, A appends `-2`, `-3`, … to the first free one, shortening the name to stay within 64 bytes. The ID doesn't cover the name, so the record stays valid.
-11. **A** asks "Add *name*? [y/N]" with that name. On yes, before the exchange window ends, A makes the pair swap. On a rebuild after a lost compare-and-swap, A picks the name again and re-checks the 64-device limit. It carries a device-signed add-device with B's wrap of the current epoch key.
-12. **A → B**: `PairApprover (0x08) { type, version, vaultId b32, serverPin b32, manifestHash b32 }`, naming the manifest that committed B. A can't know that hash before signing, so `manifestHash` is the hash of the swap's own header, which A computes before submitting. The encrypted message rides in the swap's `approver` field, so S stores it atomically with the commit, keyed by B's device ID, for 24 hours. A stores its swap and resubmits it unchanged if interrupted.
-13. **B** fetches it by its device ID, with `envden join --resume` if it was interrupted. Since B is now a member, ordinary signed requests work. B checks, in order:
-    1. `serverPin` equals the pin from its hello, else it aborts.
+**Flow.**
+
+1. **B** runs `envden join <server>`. It does hello and remembers the pin, generates its device keys and `nJ`, and opens a join request at S with `commit`. S gives the request a number `m` and keeps B's device ID, the commit, and B's `DeviceRecord` from the request headers as a display hint only.
+2. **A** runs `envden device approve`. It lists the open, unclaimed requests on S with their commits, and the user picks one. A sends `JoinOffer` with its vault ID and a fresh `nA`, which claims the request for A and A's vault (§ 11). A must hold the commit before it sends `nA`; a commit learned afterwards could be made to fit any reveal.
+3. **B** reads the offer, sends `JoinReveal`, and shows the words. It asks whether the approving device shows the same words. On no, B cancels the request and stops.
+4. **A** reads the reveal and checks, in order:
+   1. The revealed record and nonce open the commit A listed; otherwise the exchange was tampered with, and A cancels the request and stops.
+   2. The record's ID matches its keys, and the keys are unused in the vault.
+   3. It shows the words and asks "*name* wants to join. Words: *tiger lamp river*. Do they match the other screen? [y/N]". On no, A cancels the request.
+5. **A**, on yes and before the window ends, makes the approve swap (op 2) naming request `m`. It carries a device-signed add-device with B's wrap of the current epoch key. If the name is taken, A appends `-2`, `-3`, … to the first free one, shortening the name to stay within 64 bytes; the ID doesn't cover the name, so the record stays valid. On a rebuild after a lost compare-and-swap, A picks the name again, re-checks the 64-device limit, and wraps the epoch key again if the epoch moved.
+6. **A → B**: `JoinApproved`, naming the manifest that committed B. A can't know that hash before signing, so `manifestHash` is the hash of the swap's own header, which A computes before submitting. It rides in the swap's `approver` field, so S stores it atomically with the commit, keyed by B's device ID, for 24 hours. A stores its swap and resubmits it unchanged if interrupted.
+7. **B**, if its user said yes, fetches `JoinApproved` by its device ID, with `envden join --resume` if it was interrupted. B is now a member, so ordinary signed requests work. `JoinApproved` isn't trusted on its own; B checks, in order:
+    1. `serverPin` equals the pin from its hello and `vaultId` equals the offer's, else it aborts.
     2. It fetches the device list. `hash(genesis) = vaultId`, and the list is valid up to the header's `listHead` (§ 5).
-    3. It fetches the header for `manifestHash` and verifies its signature against that state. B's add-device is in the list.
+    3. It fetches the header for `manifestHash` and verifies its signature against that state. B's add-device, with B's own keys, is in the list.
     4. It checks its wrap, the key commit and the keyring.
     5. It fetches that header's file list and checks it against `filesHash`, then fetches the earlier headers and entries (§ 6 Repair material).
     6. If B is rejoining, it classifies the chain (§ 6 No longer a member) and aborts on a rollback or fork.
 
-    That header becomes B's checkpoint, and B takes its name from its committed add-device. B never treats itself as a member without a valid `PairApprover`.
+    That header becomes B's checkpoint, and B takes its name from its committed add-device. B never treats itself as a member without a `JoinApproved` that passes these checks.
 
 **Server rules.**
-- Mailbox messages are at most 4 KiB.
-- A mailbox has four slots, each written once: `KE1` and `KE3` from B, `KE2` from A, then `PairJoiner` from B, accepted only after `KE3`. An identical resubmission returns success. A different message for a filled slot closes the mailbox.
-- Slots are writable only within 10 minutes of opening. The mailbox, and its number, are freed when the pair swap commits, or at the 10-minute mark if none did. `PairApprover` lives on separately, keyed by device ID.
-- A vault can open at most 10 mailboxes per hour. Non-member mailbox writes are limited to 20 per 15 minutes per source device ID and per mailbox number, with a doubling lockout up to 24 hours.
+- Join request messages are at most 4 KiB.
+- A request has three slots, each written once: `commit` from B when it opens the request, `offer` from a member of a vault on S, then `reveal` from B, accepted only after `offer`. An identical resubmission returns success. A different message for a filled slot closes the request.
+- Members of any vault on S can list open, unclaimed requests: number, display name, commit and expiry. Only B may read the offer and write the reveal, and only the claiming device may read the reveal. Either may cancel. Approving checks that the added device is the one that opened the request.
+- Slots are writable only within 10 minutes of opening. The request, and its number (the smallest free integer from 1 to 999), are freed when the approve swap commits, when either side cancels it, or at the 10-minute mark. `JoinApproved` lives on separately, keyed by device ID.
+- S accepts at most 10 new join requests per hour. Non-member writes to a request are limited to 20 per 15 minutes, with a doubling lockout up to 24 hours; rejected writers count in a separate bucket, so they can't use up the joiner's.
 
-**Orphans.** If A commits but B never receives `PairApprover` in time, B shows up in `envden device list` as never confirmed. The user removes it with `envden device rm` and pairs again with fresh keys.
+**Orphans.** If A commits but B never receives `JoinApproved` in time, or B's user said no after A's said yes, B shows up in `envden device ls` as never confirmed. The user removes it with `envden device rm` and joins again with fresh keys.
 
-**What a bad server gets.** It can relay or block messages. It gets one online guess against A's code by posing as B, and one against B's input by posing as A. Each guess succeeds with probability 2⁻⁴⁰, and nothing it sees can be checked offline.
+**What an attacker gets.** S can relay, block or rewrite any message. Any device that reaches S can open requests, and a member of another vault on S can claim a request first. None of this reveals a secret, and each comparison of words gives the attacker one online guess:
+- **A fake joiner**, to get its keys added: it commits to its record and nonce before A picks `nA`, so the words A shows for it are uniformly random to it. They match the words on B's screen with probability 2⁻³³.
+- **A fake approver**, to pull B into a vault it controls, where B would push its env files: it must send `vaultId` and `nA` while `nJ` is hidden behind B's commit, so B's words are uniformly random to it. They match A's with probability 2⁻³³.
+- **Both at once**, a server in the middle: whichever transcript it completes last has words it can't steer, so the bound stays 2⁻³³.
+
+Every failed guess shows the user two different sets of words. Both screens ask because each question protects a different side: A's protects the vault, and B's protects the joiner's env files.
 
 ## 13. Flows
 
 **Create a vault** (first device D):
 1. Hello against the setup token's pin.
-2. Generate D's keys, the recovery keys, `SK`, `K_id`, `K_1` and `vaultNonce`.
+2. Generate D's keys, the recovery keys, `RC`, `K_id`, `K_1` and `vaultNonce`.
 3. Sign genesis and entry 1: new-epoch for epoch 1, wrapped to D and to recovery. Build keyring 1. Store all of it locally.
-4. Register OPAQUE with a token proof.
-5. Seal the envelope with `checkpoint` = zeros, and compute `skPub`.
-6. Build manifest 1 (no files, `envelopeHash` set) and store it.
-7. Send one creation request with a token proof: genesis, entry 1, manifest 1, keyring, envelope, `skPub` and `opaqueRecord`.
-8. Print the recovery kit.
+4. Seal the envelope with `checkpoint` = zeros, and compute `proofPub`.
+5. Build manifest 1 (no files, `envelopeHash` set) and store it.
+6. Send one creation request with a token proof: genesis, entry 1, manifest 1, keyring, envelope and `proofPub`.
+7. Show the recovery code once.
 
-**Join with the kit** (new device B):
-1. The user gives the server address; the kit's address is only a hint. B does hello and remembers the presented pin.
-2. B logs in with OPAQUE as a non-member, with `userIdentifier = b32(vaultId)` and the vault ID from the kit. Success returns a join ticket.
-3. B reads the device list. `hash(genesis)` must equal the kit's vault ID, and the chain must be valid. If the list's current `serverPin` differs from the hello pin, the vault has moved: B reconnects to the last `newAddress` and starts again.
+D never stores `RC`, and creation counts as finished only once a code has reached the user. If it's interrupted, a rerun resubmits the stored request (or, if the vault already committed, skips it) and replaces the code at once (below), since the user may never have seen the first one.
+
+**Join with the recovery code** (new device B, no other device at hand):
+1. The user gives the server address and the code. B checks the code's checksum, does hello and remembers the presented pin.
+2. B requests a join ticket with a recovery proof (§ 10). Success returns the vault ID.
+3. B reads the device list. `hash(genesis)` must equal that vault ID, and the chain must be valid. If the list's current `serverPin` differs from the hello pin, the vault has moved: B stops and names the last `newAddress`, where the user starts again.
 4. B reads the head header and the envelope. The envelope's hash must equal the head's `envelopeHash`.
 5. B derives `envKey`, decrypts the envelope, and checks that its recovery keys match the list's current recovery record.
 6. The head must descend from the envelope's `checkpoint`. This is checked through headers only, because older file lists may be pruned.
 7. If B is rejoining, it classifies the chain (§ 6 No longer a member) and aborts on a rollback or fork.
-8. B unwraps recovery's wrap of the current epoch. Recovery signs add-device for B with a fresh wrap, numbering B's name as in § 12 step 10 if it's taken.
-9. B makes the kit-join swap with the ticket. Then B erases the recovery keys.
-10. Every other device prints "*B* joined with the recovery kit" on its next command.
+8. B unwraps recovery's wrap of the current epoch. Recovery signs add-device for B with a fresh wrap, numbering B's name as in § 12 step 5 if it's taken.
+9. B makes the recovery-join swap with the ticket. Then B erases the recovery keys.
+10. Every other device prints "*B* joined with the recovery code" on its next command.
 
-**Remove a device** (fresh): a remove-device with a new epoch, wrapped to the remaining members.
-- envden recommends replacing the recovery key in the same entry (remove + new kit) when the removed device ever held the recovery key (§ 6).
+**Remove a device** (any member): a remove-device with a new epoch, wrapped to the remaining members.
+- envden recommends replacing the recovery code in the same entry (remove + new code) when the removed device ever held the recovery key (§ 6).
 - Otherwise, erasure of the recovery key from memory is trusted.
 
-**Replace the recovery kit** (kit lost, password known, fresh):
-1. Generate new recovery keys and a new `SK`.
-2. Make the replace-kit swap: replace-recovery with a new epoch, a new envelope and a new `skPub`.
-3. Print the new kit.
-
-**Change the password** (old password and kit in hand, fresh):
-1. Read the envelope, decrypt it with the old password and `SK`, and register the new password.
-2. Make the change-password swap: the envelope resealed with the same recovery keys and `SK`, and the new `opaqueRecord`.
-
-The kit stays valid.
-
-**Reset a forgotten password** (a member device and the kit):
-1. The device proves `SK` and reads what it needs (§ 11).
-2. It generates new recovery keys and registers the new password with the `SK` proof.
-3. It makes the reset-password swap: replace-recovery with a new epoch, the envelope sealed with the new password, the same `SK` and the new recovery keys, and the new `opaqueRecord`.
-
-The printed kit stays valid, because `SK` is unchanged.
+**Replace the recovery code** (any member):
+1. Generate new recovery keys and a new `RC`.
+2. Make the replace-code swap: replace-recovery with a new epoch, a new envelope and a new `proofPub`.
+3. Show the new code once, before the swap is sent. The swap is kept locally; a rerun finishes it if it committed and discards it if not.
 
 **Server move** (device D, old server O, new server N):
-1. D logs in fresh on O. The typed password stays in memory until step 5.
-2. D does hello against N's setup-token pin. It opens a move session on N with a token proof: N consumes the token and creates an inactive vault bound to D's device ID and the vault ID. The session survives restarts.
-3. D starts a move on O (fresh). O records D's move session and freezes: it then rejects every swap except D's server-moved swap. Any member with a fresh login can unfreeze O, which voids the move. O refuses to unfreeze once it has committed the server-moved swap.
-4. D reads everything from O and uploads it to N's session:
+1. D does hello against N's setup-token pin. It opens a move session on N with a token proof: N consumes the token and creates an inactive vault bound to D's device ID and the vault ID. The session survives restarts.
+2. D starts a move on O. O records D's move session and freezes: it then rejects every swap except D's server-moved swap. Any member can unfreeze O, which voids the move. O refuses to unfreeze once it has committed the server-moved swap.
+3. D reads everything from O and uploads it to N's session:
    - every header, entry, body and blob
-   - the keyrings, the envelope and `skPub`
-   - the unlock period
+   - the keyrings, the envelope and `proofPub`
 
-   N verifies the whole chain from genesis and every blob hash. D registers the password on N through the session.
-5. D builds one server-moved swap (`newPin` = N's pin, `newAddress` = N's address) and stores it locally. It submits the swap to O, which then turns permanently read-only, and then to N. N accepts only a server-moved swap that extends its imported head with `newPin` = its own pin, signed by a member, from any member. Then it activates the vault and closes the session. Each submission is idempotent.
+   N verifies the whole chain from genesis and every blob hash.
+4. D builds one server-moved swap (`newPin` = N's pin, `newAddress` = N's address) and stores it locally. It submits the swap to O, which then turns permanently read-only, and then to N. N accepts only a server-moved swap that extends its imported head with `newPin` = its own pin, signed by a member, from any member. Then it activates the vault and closes the session. Each submission is idempotent.
 
 **Resuming and aborting.**
 - `envden server move --resume` continues from any step. That includes after O has committed and N hasn't: D resubmits its stored swap to N.
@@ -596,19 +536,14 @@ The printed kit stays valid, because `SK` is unchanged.
    4. **`--accept-lost`.** It makes one op-11 swap covering every lost file:
       - **Recovered (state 3).** The device takes the newest older version whose `blobHash` is in a file list matching the `filesHash` of a verified header, and whose blob the server has. It stops searching at a tombstone, and at any version whose file list it can't get, since that list might hide a newer tombstone. It decrypts the version and writes it as a new version in the current epoch, showing that version's date first.
       - **Lost (state 4).** If no such version exists, it writes a tombstone.
-   5. **Password and close.** The user types the password. The device decides from the chain, not from the envelope, which may have been re-uploaded:
-      - If any op 8 or 9 lies after `restoredHead`, the restored OPAQUE record is stale, so the device re-registers the password with the token proof.
-      - Otherwise it logs in normally with the token proof.
-      - The server enforces the same rule.
-   6. **Commit.** The device submits the op-12 swap, with the `repairId` and `restoredHead`, together with the finish of that login or registration. On committing op 12, and only then, the server checks that `restoredHead` equals its recorded value; repair-done entries from earlier repairs, met in uploads or a move import, aren't compared. In one transaction the server commits both, takes the vault out of restored mode, consumes the token and deletes the reports.
-3. **Kit after a repair.**
-   - If any op 5 or 7 lies after `restoredHead`, the server's `skPub` is stale.
-   - If the server's envelope doesn't match the head's `envelopeHash`, the kit can't open the vault.
+   5. **Commit.** The device submits the op-12 swap, with the `repairId` and `restoredHead`. On committing op 12, and only then, the server checks that `restoredHead` equals its recorded value; repair-done entries from earlier repairs, met in uploads or a move import, aren't compared. In one transaction the server commits it, takes the vault out of restored mode, consumes the token and deletes the reports.
+3. **Recovery code after a repair.**
+   - If any op 5 or 7 lies after `restoredHead`, the server's `proofPub` is stale.
+   - If the server's envelope doesn't match the head's `envelopeHash`, the code can't open the vault.
 
-   In either case the server refuses `SK` proofs until the next kit replacement, a flag kept in its database. While set, the server refuses move freeze and SK public-key export. envden asks the user to replace the kit now, using the fresh login it just made.
-4. The unlock period may have reverted, so envden shows it for the user to confirm.
+   In either case the server refuses recovery proofs until the next code replacement, a flag kept in its database. While set, the server refuses move freeze and `proofPub` export. envden asks the user to replace the code now.
 
-**What restored mode trusts.** Only someone holding the repair token, meaning the operator, can act in restored mode. During that window it accepts member signatures without a password, which weakens only the honest-server guarantees (expiry and fresh login). Everything uploaded is signed and verified like any other history.
+**What restored mode trusts.** Only someone holding the repair token, meaning the operator, can act in restored mode, and every request still needs a member's signature. Everything uploaded is signed and verified like any other history.
 
 **Downgrades.** Once a release writes a new format, older releases can't read that history. A downgrade is supported only before any new-format data exists. Restoring a `pre-<version>` copy never rolls back a device's checkpoint or stored headers, which live outside the store (DESIGN § Updates).
 
@@ -621,15 +556,15 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - rejection of every malformed case in § 2
   - padding checks
   - `b32` trailing bits
-  - NFC and `normPw`
+  - NFC
 - **Derivations**:
   - device, recovery and server-pin IDs
   - file IDs, including path-normalization cases
   - file, keyring and envelope keys
-  - `skPub`, setup-token, repair-token and `SK` proofs
+  - `proofPub`, setup-token, repair-token and recovery proofs
   - file-name boxes
-  - the secret-key text and checksum
-  - pairing-code normalization and the pairing identifiers
+  - the recovery-code text, its normalization, and a typo the checksum rejects
+  - the join commit and the words, and the wordlist's SHA-256
 - **Encryption**:
   - file, keyring and envelope blobs at fixed nonces
   - a share opened by an independent AES-GCM and by the page's WebCrypto code, and refused under another ID, key or version, or with any flipped byte
@@ -669,23 +604,23 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - a version decrease
   - a recovery-only signer
   - an envelope change without an allowed operation
-- **Pairing**:
-  - stored-state vectors for both finish calls
-  - a wrong code
-  - a second `KE1`
-  - a pin mismatch
-  - a resumed `PairApprover` after a lost first fetch
-  - an identical `KE1` resubmitted after a lost response, and a different one closing the mailbox
-  - `PairJoiner` before and after `KE3`
+- **Word approval**:
+  - the same words on both sides, and different words when the record, either nonce, the vault ID or the pin changes
+  - a reveal that doesn't open the commit (rejected)
+  - a second offer, and a reveal before the offer
+  - an identical reveal resubmitted after a lost response, and a different one closing the request
+  - a joiner or approver answering no, and an expired request
+  - a pin or vault ID mismatch in `JoinApproved`
+  - a resumed `JoinApproved` after a lost first fetch
   - an orphaned device
 - **Flows**, as an end-to-end test against a real server:
   - create
-  - pair
-  - kit join after a server move
+  - word approval
+  - recovery join, including after a server move
   - remove with `newRecovery`
-  - password change, and reset with only a device and the kit
+  - recovery code replacement
   - a server move crashing at every step, including between the two step-5 submissions
-  - repair after a restore that predates a new device, a password change and a kit replacement
+  - repair after a restore that predates a new device and a code replacement
   - repair where no surviving device uses one repo, with and without `--accept-lost`
   - repair without the token; a removed device that is a member at the restored head
   - a report replayed from an earlier repair (wrong `repairId`)
@@ -693,22 +628,20 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - a dropped device, and a device joined after the backup, rejoining
   - two vaults on one restored server finishing independently
   - a reissued repair token whose `repairId` is already in the chain
-  - a password change, and a kit replacement, after the backup point, with the newer envelope re-uploaded
+  - a code replacement after the backup point, with the newer envelope re-uploaded
   - a removed device offered a rejoin on a pre-join head (must abort)
   - a restore of a backup taken mid-repair (keeps `restoredHead`)
   - a device still a member on its branch, told it was removed, with a repair-done on the other branch (must abort)
   - a removed device and the server forking from before its removal, removing a device and adding a repair-done (must abort), directly or through a device it adds
   - a server move after a repair, and a second restore whose uploads cross an earlier repair-done
-  - a pairing rejoin that aborts and leaves an orphan
+  - a word-approval rejoin that aborts and leaves an orphan
   - an op 12 whose `restoredHead` isn't on the chain (devices reject), and one on the chain but not the recorded value (server rejects)
   - `--without` with a missing live blob still referenced
   - `--finish` with an unreported member, and with `--without`
   - a server withholding a blob that a report lists
   - an older version offered for recovery that no verified file list names
   - a crash at every step of `--finish`
-  - reset from a locked device several headers behind
   - a server move where D disappears before and after O commits
-  - a member lockout attempt from a stolen device
 - **Versions**: a client below `minClient` gets `426` and re-checks the signed hello; a server below `minServer` is refused; a new entry kind is rejected while `minClient` is too low; an unknown entry kind with a valid signature reports "update required", and one with a bad signature reports "invalid data".
 - **Repo ID** normalization (DESIGN § Store).
 
