@@ -3,7 +3,10 @@ export const SECURITY_POINTS = [
     tag: "ciphertext",
     text: "Files are encrypted on your device. The server only sees ciphertext and opaque IDs.",
   },
-  { tag: "OPAQUE", text: "Your master password never leaves your machine (OPAQUE)." },
+  {
+    tag: "three words",
+    text: "A device joins only with your recovery code, or when both screens show the same three words and you say yes.",
+  },
   { tag: "device keys", text: "Each device has its own keys. Remove one and the keys rotate." },
   {
     tag: "approval",

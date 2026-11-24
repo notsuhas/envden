@@ -12,7 +12,7 @@ export function Agents() {
           Every worktree gets the env. <Accent>You say yes once.</Accent>
         </>
       }
-      body="Coding agents open worktrees all day, and each one needs the env. Approved checkouts of a repo share one file, and a worktree of an approved clone gets it on its first sync. Agents can check status and sync when you ask, but only you can approve a checkout or type the master password."
+      body="Coding agents open worktrees all day, and each one needs the env. Approved checkouts of a repo share one file, and a worktree of an approved clone gets it on its first sync. Agents can check status and sync when you ask, but only you can approve a checkout or a new device, or see the recovery code."
     >
       <AgentsDemo />
       <ul className="den-cells border-t border-den-line sm:grid-cols-3">

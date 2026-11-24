@@ -1,17 +1,9 @@
 ---
 title: Join and manage devices
-description: Pair a machine, rename it or remove one you no longer use.
+description: Add a machine by comparing words, rename it or remove one you no longer use.
 ---
 
-## Pair a new device
-
-On a device already in the vault, run:
-
-```sh
-envden device add
-```
-
-Enter your master password. envden shows a single-use code such as `3-K7QF-2MXP`, valid for 10 minutes. Keep this terminal open.
+## Add a new device
 
 On the new device, run:
 
@@ -19,19 +11,37 @@ On the new device, run:
 envden join https://envden.your-tailnet.ts.net
 ```
 
-Use your server's address and enter the pairing code. envden suggests your hostname without its domain as the device name; edit it at the prompt or pass `--name`. Without a terminal it takes the suggestion. If another device already has that name, envden adds `-2`, `-3` and so on. On the existing device, confirm the new device's name. The new device checks that it reached the same server your other device uses, and stays unlocked for as long as that device has left.
+Use your server's address. envden suggests your hostname without its domain as the device name; edit it at the prompt or pass `--name`. Then it waits for approval. Nothing else is typed.
 
-If the join stops after the code was accepted, run `envden join <server> --resume` to finish it. The approval stays on the server for 24 hours. If there's nothing to resume, `--resume` stops at once; start again with a new code.
-
-## Join with your recovery kit
-
-If another device isn't available, use your master password and kit:
+On a device already in the vault, run:
 
 ```sh
-envden join https://envden.your-tailnet.ts.net --recovery-kit /path/to/kit.json
+envden device approve
 ```
 
-Or use `--recovery` to enter the recovery secret key and vault ID yourself. Other devices report the recovery-kit join on their next command.
+You don't need to remember this: commands on that device, and the shell line, say `a device is waiting to join` while a request is open. If several devices are waiting, pick one, or pass the number shown.
+
+Both screens then show the same three words, such as `tiger lamp river`. The approving device asks:
+
+```text
+laptop wants to join. Words: tiger lamp river. Do they match the other screen? (y/N)
+```
+
+The new device asks whether its words match too. Answer yes on both only if the words are the same. If another device already has the name, envden adds `-2`, `-3` and so on. A request expires after 10 minutes, and a no on either screen cancels it.
+
+The words are how envden knows the device you're adding is the one on your other screen. Someone else on your network, or a tampered server, gets one guess per attempt, and its words match yours about once in eight billion tries. If the words differ, answer no.
+
+If the new device stops after you confirmed, run `envden join <server> --resume` to finish. The approval stays on the server for 24 hours.
+
+## Join with your recovery code
+
+If every device is lost, use the recovery code that setup showed you:
+
+```sh
+envden join https://envden.your-tailnet.ts.net --recovery
+```
+
+Enter the device name and the code. envden checks the code for typos before it sends anything. Other devices report the recovery join on their next command. Remove your lost devices afterwards, as below.
 
 ## Approve checkouts on the new machine
 
@@ -39,17 +49,13 @@ Every clone needs approval on this machine. A worktree of an approved clone is a
 
 If the filesystem can't create symlinks, envden asks for consent before using copies.
 
-## Unlock a device
-
-A device needs your master password once per unlock period, 30 days by default. Run `envden unlock` when pushes and pulls stop. See [Manage the vault](/docs/vault#unlock-a-device) for the period and its limits.
-
 ## Rename this device
 
 ```sh
 envden device rename work-laptop
 ```
 
-This renames the device you run it on; no other device can rename it. If another device already has the name, the command fails; pick another. It needs no password while the device is unlocked, and every device lists the new name.
+This renames the device you run it on; no other device can rename it. If another device already has the name, the command fails; pick another. Every device lists the new name.
 
 ## Remove a device
 
@@ -63,17 +69,17 @@ envden device rm old-laptop
 The list marks this device with `*` and shows the envden version each device last used:
 
 ```text
-* mainbook  this device · v0.3.2 · has held the recovery keys
-  laptop-b  v0.3.2
+* mainbook  this device · v0.4.0 · has held the recovery keys
+  laptop-b  v0.4.0
   old-mac   not confirmed yet
 ```
 
 Add `--verbose` for device IDs or `--json` for the raw data.
 
-Removal asks for your password, reports the file and key names the device could read, and asks for confirmation. Later pushes use a new encryption key that the removed device never gets. Success prints `Device removed`.
+Removal reports the file and key names the device could read and asks for confirmation. Later pushes use a new encryption key that the removed device never gets. Success prints `Device removed`.
 
-Rotate the exposed credentials at their providers. Removing a device cannot erase files or keys it already has. Use `--new-kit` to replace the recovery kit in the same removal.
+A lost or stolen device keeps syncing until you remove it, so remove it from another device as soon as you can. Rotate the exposed credentials at their providers: removing a device can't erase files or keys it already has. Use `--new-code` to replace the recovery code in the same removal; envden offers it when the removed device ever held the recovery keys.
 
 ## Manage vault keys and recovery
 
-Rotating keys, replacing the recovery kit and changing or resetting the master password are on [Manage the vault](/docs/vault).
+Rotating keys and replacing the recovery code are on [Manage the vault](/docs/vault).

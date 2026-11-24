@@ -13,7 +13,7 @@ export function Install() {
           Up and running in <Accent>a few minutes</Accent>.
         </>
       }
-      body="You need Docker or envden serve on a machine you own, Tailscale with HTTPS certificates turned on, a master password, and a safe place for the recovery kit you print at setup."
+      body="You need Docker or envden serve on a machine you own, Tailscale with HTTPS certificates turned on, and a password manager for the recovery code setup shows you once."
     >
       <div className="den-dots border-t border-den-line p-3 sm:p-6 lg:p-8">
         <InstallWindow />

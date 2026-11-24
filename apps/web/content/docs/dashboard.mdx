@@ -9,7 +9,7 @@ envden ui
 
 `envden ui` starts a small dashboard for the device you run it on and opens it in your browser. It shows:
 
-- the vault, server, this device's name and its unlock state: when it expires, that it never does, or that it's locked and needs `envden unlock` in a terminal
+- the vault, server and this device's name
 - each repo, its checkouts and their env files, with status (in sync, local changes, remote changes, conflict, detached, local only, held back), link or copy placement, and which keys differ. A conflicted file links to its pane under Conflicts.
 - conflicts, with the keys that differ and buttons to keep yours or take the server's
 - the vault's devices
@@ -18,7 +18,7 @@ Pull and Push work like `envden pull --all --yes` and `envden push --all --yes`:
 
 **History** on a file lists its retained versions like `envden history`: version, time, device, the key names each version added, changed or removed, which one the checkout matches, and whether older versions were pruned. **Restore as local edit** asks once in the page, then writes that version to this device's file like `envden history <file> --restore <version>`, backing up the current one first. Nothing reaches the server until you press Push. Local-only, detached and conflicted files can't be restored, and neither can a version that deleted the file.
 
-**Rename** on this device's card renames it like `envden device rename`. Only this device can be renamed here. Adding or removing devices, the recovery kit and the master password stay in the terminal.
+**Rename** on this device's card renames it like `envden device rename`. Only this device can be renamed here. Approving or removing devices and the recovery code stay in the terminal.
 
 Press Ctrl-C to stop it. Nothing keeps running afterwards.
 

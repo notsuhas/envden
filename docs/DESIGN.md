@@ -8,10 +8,11 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 
 ## Threat model
 
-- **Server**: untrusted for confidentiality and integrity. It may read, drop, replay, reorder or forge anything it stores or relays. It can always deny service, and it can choose not to enforce unlock expiry. A server colluding with a removed device or an old recovery key can fork history, and a server alone can show different devices different branches (each device stops as soon as it sees the other branch); both residuals are documented.
+- **Server**: untrusted for confidentiality and integrity. It may read, drop, replay, reorder or forge anything it stores or relays. It can always deny service, and it can keep serving a device that was removed (that device still can't read new epochs). A server colluding with a removed device or an old recovery key can fork history, and a server alone can show different devices different branches (each device stops as soon as it sees the other branch); both residuals are documented.
 - **Network**: the network adapter (Tailscale in v1) is transport only. envden trusts no identity it reports.
 - **Devices**: trusted while they're members. A removed device keeps whatever it already pulled; envden can't revoke that and says so.
-- **Lost or stolen device**: after its unlock expires, it can't fetch anything new. Files already on disk are protected by OS login and disk encryption, not by envden.
+- **Lost or stolen device**: it keeps fetching and decrypting until another device removes it with `envden device rm`, which starts a new epoch it can't read. There is no unlock expiry. Files already on disk are protected by OS login and disk encryption, not by envden.
+- **Stolen server database or backup**: holds ciphertext, the recovery envelope and the recovery proof key. Opening either needs the recovery code, which is 128 random bits, so it can't be brute-forced.
 - **Checkouts**: not automatically trusted. A folder claiming a repo's remote doesn't get secrets until the user approves it once.
 
 ## Shape
@@ -24,7 +25,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
   - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
   - Releases: GitHub Actions builds every platform binary and the Docker image, uploads one `.tar.gz` archive per platform and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
-- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
+- **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The BIP-39 English wordlist is vendored as data. The envden protocol that composes them (device list, manifest, wraps, word approval) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
 
 ## Adapters
 
@@ -46,12 +47,12 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 ### Keys and signatures
 
 - **Device keys**: each device has an X25519 key pair (encryption), an Ed25519 key pair for vault objects, and a separate Ed25519 key pair for server requests. Held via the keychain adapter, in owner-only files under `ENVDEN_HOME`, like SSH keys in `~/.ssh`.
-- **Signatures are domain-separated**: every signature covers `label ‖ length-prefixed bytes`, with one label per object type (device-list entry, manifest, request, server hello). Requests bind the server pin, method, path, body hash, time and a nonce. Secrets (setup token, secret key) are never sent; requests carry a MAC over the signed request instead.
+- **Signatures are domain-separated**: every signature covers `label ‖ length-prefixed bytes`, with one label per object type (device-list entry, manifest, request, server hello). Requests bind the server pin, method, path, body hash, time and a nonce. Secrets (setup token, recovery code) are never sent; requests carry a MAC or signature over the signed request instead.
 - **Epoch keys**: the vault key has generations. Each epoch has a random 256-bit key. New writes use the newest epoch; old data is never re-encrypted. Older epoch keys live in a keyring encrypted under the newest; the keyring's hash is in the manifest.
 - **Wraps**: an epoch key is wrapped to each member with HPKE base mode (RFC 9180), info = vault ID ‖ epoch ‖ recipient. The wraps live inside the signed device-list entry that creates the epoch (or adds the device), with a key commitment each recipient checks.
 - **ID key**: a separate, non-rotating key used only to make opaque IDs, kept in the keyring. Rotating epochs never renames anything on the server.
-- **Recovery key pair**: X25519 + Ed25519, stored only inside the password envelope. It is a vault member that can receive epoch keys and can sign only "add device" (which is how a kit join is recognised; there's no flag to fake).
-- **Secret key**: random, generated at vault creation, printed in the recovery kit, never stored on any device.
+- **Recovery key pair**: X25519 + Ed25519, stored only inside the recovery envelope. It is a vault member that can receive epoch keys and can sign only "add device" (which is how a recovery join is recognised; there's no flag to fake).
+- **Recovery code**: 128 random bits, generated at vault creation, shown once, never stored on any device.
 
 ### Vault creation
 
@@ -64,7 +65,7 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - **Manifest**: a signed header (operation, previous manifest's hash, device-list head, epoch, keyring hash, hash of the file list) plus the file list (every file ID with its version, epoch, ciphertext hash and encrypted name; deleted files stay as tombstones).
 - **One commit point**: a device-list entry takes effect only through a manifest swap naming it, done as one compare-and-swap. A push uploads ciphertext first, then swaps. If two devices race, the loser re-signs on the new head. A crash before the swap leaves nothing visible.
 - **Accepting a manifest**: it must descend from the device's checkpoint by hash chain, be signed by a member at its device-list head, and never move the head or the epoch backwards. A branch that doesn't descend is a fork, whatever its counter (including a different manifest at the same number): envden stops and shows both sides. Manifest headers are never pruned, so descent can always be checked.
-- **Freshness**: each device keeps the last manifest head it accepted. A paired device inherits the approver's checkpoint. A kit-recovered device starts from the envelope's checkpoint (below).
+- **Freshness**: each device keeps the last manifest head it accepted. A word-approved device inherits the approver's checkpoint. A recovery-joined device starts from the envelope's checkpoint (below).
 
 ### Files
 
@@ -72,42 +73,29 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - The Repo ID and path travel encrypted in the file list and inside each file, so a device knows which files are its repos' without downloading the others; it recomputes the file ID to check them.
 - **Opaque IDs**: file ID = HMAC(ID key, Repo ID ‖ path), so the same path in different repos doesn't correlate. The server still sees rough sizes, timing, device count and device names (the device list is signed, not encrypted); docs say so.
 
-### Password envelope and recovery
+### Recovery code and envelope
 
-- Envelope key = HKDF(Argon2id(master password, fresh salt per seal, fixed v1 parameters) ‖ secret key), labelled `envelope-key`.
-- The envelope contains the recovery key pair, the vault ID and the manifest it builds on; the manifest that installs it names its hash. It's sealed only in the same swap as vault creation, a password change or reset, or a recovery-key replacement, since devices never hold the secret key. The kit prints the vault ID and the server address (a hint; the real server pin comes from the verified device list, so a kit survives a server move).
-- **Changing the master password** needs the old password and the recovery kit (to reseal the envelope). **Forgot the password** but have a device and the kit: reset it with the kit (new recovery keys, new epoch, same kit). **Lost the kit** but know the password: replace the recovery key, which prints a new kit.
-- **Recovery kit**: a one-page PDF with the vault ID, secret key and server, saved to `~/Downloads` (or home) with owner-only permissions, never overwriting an earlier kit. The terminal shows only its path. It has no space for the master password, since a kit with the password opens the vault on its own; the docs say to store it like a passport. If the PDF can't be written, the kit is printed instead.
-- **Join with the kit**: the server releases the envelope only after an OPAQUE login with the master password, rate-limited separately from members' logins so strangers can't lock members out. The device decrypts it, verifies the device list from genesis to head, and checks its recovery key is the current recovery member. The recovery key signs "add device" for it. Every other device shows "*laptop* joined with the recovery kit" on its next command.
-- **Replacing the recovery key** (lost kit): needs a fresh password login. It starts a new epoch, and the new envelope replaces the old one in the same swap. The new kit is shown before the swap is sent, and the swap is kept locally; a rerun finishes it if it committed and discards it if not. With both password and kit lost, the user creates a new vault from a device's local store.
+- **Recovery code**: `ER1-` and 29 Crockford base32 characters in groups of five, with a 16-bit checksum that catches typos before anything is sent. Setup shows it once in the terminal with one line, "store this in your password manager; it's the only way back if you lose every device", and one confirmation. Nothing is written to disk unless `--recovery-code-out` names a new private file, for scripts.
+- **Envelope key** = HKDF(recovery code, vault ID), labelled `recovery-envelope-key`. No Argon2id: the code is 128 random bits, so stretching adds nothing.
+- The envelope contains the recovery key pair, the vault ID and the manifest it builds on; the manifest that installs it names its hash. It's sealed only in the swap that creates the vault or replaces the code, since devices never keep the code.
+- **Proof key**: an Ed25519 key derived from the code alone, labelled `recovery-proof-key`. The server stores only its public half and finds the vault by it, so the user needs nothing but the server address and the code.
+- **Join with the recovery code** (`envden join <server> --recovery`, every device lost): the device signs its request with the proof key, gets a one-use join ticket, fetches the envelope, verifies the device list from genesis to head, and checks its recovery key is the current recovery member. The recovery key signs "add device" for it. Every other device shows "*laptop* joined with the recovery code" on its next command. Failed attempts are rate-limited per vault; a valid proof is never locked out.
+- **Replacing the code** (`envden vault recovery-code`, from any member): new recovery keys, a new epoch, a new envelope and a new proof key in one swap. The new code is shown before the swap is sent, and the swap is kept locally; a rerun finishes it if it committed and discards it if not. With every device and the code lost, the user creates a new vault from a device's local store.
 
-### Pairing (join with a pairing code)
+### Word approval (join from another device)
 
-- `envden device add` asks for the master password, then shows a code like `3-K7QF-2MXP`. The `3` is a public mailbox number; `K7QF-2MXP` (~40 bits, no lookalike characters) stays secret. Valid for at most 10 minutes, capped by each device even if the server advertises a longer window.
-- The new device runs `envden join <server>` and types the code. The two run OPAQUE through the server. The old device does OPAQUE registration with the code entirely locally and plays the OPAQUE server. It marks the code used before answering the first login attempt, answers only that one, and erases its state when it finishes or expires.
-- Pairing and unlock use different OPAQUE identifiers, since the library has no context parameter. The pairing identifiers include the server pin and mailbox number.
-- After login, one encrypted message each way, under a key per direction derived from the OPAQUE session key:
-  - new → old: device name and public keys.
-  - old asks "Add *throwbook*? [y/N]". On yes it commits the "add device" entry, which carries the new device's wrap of the current epoch key. If the name is taken, old numbers it (`throwbook-2`) and the new device adopts the committed name.
-  - old → new: vault ID, server pin and the manifest that committed it, re-sent until it arrives. No keys travel in the channel; the new device verifies everything from the server against these, and never counts itself a member without this message.
-- Waiting for the other device does not hold the local state lock. A timeout after login preserves the join exchange for `envden join --resume`; approval retrieval has its separate 24-hour window. A timeout before login clears the incomplete exchange and requires a new pairing code.
-- The joiner aborts if the received pin doesn't match the server it dialled.
-- A bad server can only relay or block, and gets one live guess at the code against each side.
-- **Library**: `@serenity-kit/opaque`, pinned (at least 1.1.1 once published; it fixes a WASM memory leak on malformed input; until then, validate message shapes before calling it). It returns the session key on both sides and supports fully local registration (verified in the 1.1.0 type definitions). Audit coverage: NCC reviewed `opaque-ke` v0.5.0 against draft-03 (2021). 7ASecurity's audit of the wrapper ran in 2023, announced 2024, with the version not confirmed. 1.0.0 moved to `opaque-ke` 4.0.0, which its maintainers say matches RFC 9807. Re-check before release.
+- The new device runs `envden join <server>` and types nothing but its name. It opens a join request on the server carrying a commitment to its keys and a random nonce.
+- Any device in the vault runs `envden device approve`; the pre-command notice and the shell line say when a device is waiting. It sends its own nonce and the vault ID, then the new device reveals its keys and nonce, and the approver checks they open the commitment.
+- Both screens show the same three words from the BIP-39 list, derived from the vault ID, the server pin, the new device's record and both nonces. The approver asks "*laptop* wants to join. Words: tiger lamp river. Do they match the other screen? [y/N]", and the new device asks the same. On yes from both, the approver commits "add device" with the new device's wrap of the current epoch key, numbering a taken name (`laptop-2`), and the new device verifies everything from the server and adopts the committed name.
+- Requests expire after 10 minutes. Either side answering no, or a commitment that doesn't open, cancels the request. Waiting doesn't hold the local state lock; `envden join --resume` collects an approval made while the new device wasn't running.
+- The new device commits before the approver picks its nonce, and the approver's nonce is fixed before the reveal, so a server or another device on the network gets one online guess per attempt: a 2⁻³³ chance that its words match the user's screen. Every failed guess shows mismatched words.
 
-### Unlock and expiry
+### Renaming and removing devices
 
-- Each vault has an OPAQUE registration of the master password on the server (password only; the server never sees it). Stretching parameters are set explicitly, at least as strong as the envelope's Argon2id.
-- A device must log in with the master password at least once per its unlock period: 1d, 7d, 30d (default) or never. The server refuses that device's pulls and pushes after the period until it logs in again. A paired device inherits the approver's remaining window, not a fresh one.
-- `envden device rename <name>` renames the device it runs on. Only a device can rename itself, the name must be free (no auto-numbering, since the user picked it), and an unlocked device is enough because a name is only a label.
-- Sensitive actions need a fresh password login even inside the window: adding or removing a device, rotating, replacing the recovery key, changing the password or unlock period, moving the server, and reading the envelope. Each sync carries exactly one kind of change, and the server checks it has the matching permission.
-- **Limits, stated in the docs**: expiry relies on an honest server. A hacked server can keep serving a stolen device, and expiry means nothing if the stolen laptop is the server. Files already on disk are protected by OS login and disk encryption, not envden. A hacked server can guess passwords offline against its OPAQUE record; that alone doesn't open the vault, which also needs the secret key.
-
-### Removing a device
-
-- `envden device rm` asks for the master password, then commits "remove device" and a new epoch in one manifest swap. The new epoch key is wrapped to the remaining devices and the recovery key. Nothing is re-encrypted.
+- `envden device rename <name>` renames the device it runs on. Only a device can rename itself, and the name must be free (no auto-numbering, since the user picked it).
+- `envden device rm` lists what the device could read and asks to confirm, then commits "remove device" and a new epoch in one manifest swap. The new epoch key is wrapped to the remaining devices and the recovery key. Nothing is re-encrypted.
 - Offline devices pick up the new epoch on their next pull and rebase pending edits onto it.
-- If the removed device ever held the recovery key in memory (created the vault, joined with the kit, replaced the kit, or changed or reset the password; envden works this out from history), envden recommends replacing the recovery key in the same step (one epoch, new kit). Otherwise it trusts that the key was erased.
+- If the removed device ever held the recovery key in memory (created the vault, joined with the recovery code, or replaced the code; envden works this out from history), envden recommends replacing the recovery code in the same step (one epoch, new code). Otherwise it trusts that the key was erased.
 - The removed device can decrypt any ciphertext from its epochs that it obtains, including history it never pulled, and can test guessed file names with the ID key. envden lists every file and key name up to that epoch so the user can rotate those credentials.
 
 ## Server
@@ -117,8 +105,8 @@ Exact constructions, encodings and test vectors go in `PROTOCOL.md`, written and
 - Devices **pin** the server (a hash of its signing key) at setup or join, and store its address separately.
 - History: every manifest and ciphertext version kept for 90 days, and at least the last 20 per file. Deletes are tombstones and outlive history pruning, so an offline device can't bring a deleted file back without an explicit restore. Repair-fix file lists, and the list before each, are kept forever. A list kept for one file's version keeps no other file's ciphertext, and a swap whose list adds no ciphertext and isn't bigger commits even over the storage quota, so deletes always work.
 - **`envden history`** reads only what the server retains: verified headers, the file lists they name and the version blobs, decrypted on the device and shown as key names. History ends where lists or blobs were pruned. Restoring a version writes it locally as an ordinary edit; only a later push publishes it, and agents need `agent-merge` plus `--yes`.
-- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, re-registers the master password on the new server (the user types it), then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint. `envden server switch <address>` follows the move when the old server is gone; it logs in to the new server first if that server has no unlocked session for the device.
-- Backups: file contents are ciphertext, but the data folder also holds the master password's OPAQUE record, which someone could guess passwords against offline. Protect backups like a password database. A stopped server leaves one file, `envden.sqlite`, on every platform, so copying it is a complete backup. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then logs in, re-registering the password only if the chain shows a password change or reset after the restored point. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
+- **`envden server move`**: opens a move session on the new server (setup token), freezes the old one (any member can unfreeze it before the switch), copies and verifies everything, including the recovery proof key, then commits a "server moved" device-list entry (old pin, new pin, new address) on the old server, which turns read-only, and the same on the new one. Every step can resume after a crash, from any member if the moving device is lost; it can abort until the final commit. The entry is signed by a member device, never by a server. Devices that see it switch, remember it, and never accept the old server again, even if it's restored from a backup. A device accepts the new server only if its manifest descends from the local checkpoint. `envden server switch <address>` follows the move when the old server is gone, with ordinary signed requests.
+- Backups: everything in the data folder is ciphertext or public keys; the recovery envelope and proof key need the 128-bit recovery code, so a stolen backup can't be brute-forced. A stopped server leaves one file, `envden.sqlite`, on every platform, so copying it is a complete backup. Docs include a tested restore: `envden serve --restored` prints a repair token per vault and accepts nothing but repairs. Each device runs `envden server repair` with the token, re-uploading its newer signed history and its repos' files. `--finish` checks every device's signed report itself and needs every device to have repaired or be dropped (`--without`; it rejoins later as a new device, keeping its local files), then closes the repair. If the recovery code changed after the restored point, the server can't vouch for it, so envden asks to replace it. Run `--restored` once by hand, not from the service definition: rerunning it mints a new token, which voids reports made with the old one. A backup taken mid-move is unfrozen, which voids that move; an unfinished move destination and a vault that moved away aren't put in restored mode. A file whose newest version no device holds is listed by name; with `--accept-lost` it goes back to the newest verified older version, or is marked lost, and every device reports it.
 - **Status page**: `GET /` (and `/v1/status` as JSON) is unsigned, since anyone on the tailnet can open it. It shows only server-wide facts: version, uptime, mode (normal, restored, moved), vault count, total storage, the fullest vault's quota band and the last prune. Nothing per vault. `ENVDEN_STATUS_PAGE=off` turns it off.
 - Laptop-hosted servers are supported; setup recommends an always-on host, since two laptops only sync while the server laptop is awake. An unreachable server never blocks local work; status shows "server unreachable".
 
@@ -147,7 +135,7 @@ User-owned tool directories remain outside envden's control if the user personal
 
 ## Sync
 
-A device must leave its current vault before pairing with another. There is no leave/reset command yet: back up env files, remove the local envden home, then join. Remove the old device from the old vault separately.
+A device must leave its current vault before joining another. There is no leave/reset command yet: back up env files, remove the local envden home, then join. Remove the old device from the old vault separately.
 
 `envden rm <path>` removes one tracked env file from all local targets and the store, backs up content and conflicts, and publishes a tombstone on the next push. It asks for confirmation including discarding local edits; non-interactive use requires `--yes`. Removal intent is written only after local removals succeed and names the server entry and the targets actually removed. Surviving skipped targets do not cancel that intent when approved later. Changed entries require confirmation through conflict resolution. Untracking removes that checkout from the intent; it cancels and reports removal only when no tracked checkout remains for the store. Restoring bytes in a removed target or the store cancels pending removal and reports it; resolving to live content clears intent. Unpublished removal only untracks locally. Checkouts needing approval are skipped and reported. Missing store files and targets are restored, never interpreted as deletion. Only explicit removal or resolution choosing a deletion side may publish a tombstone.
 
@@ -201,22 +189,22 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 
 - `envden agent install` puts one skill in `~/.agents/skills/envden/` (the shared format most coding agents read) and links it into `~/.claude/skills/` for Claude Code.
 - Setup is agent-drivable like `t3 up`: every question has a flag, `--yes` takes defaults, and with no terminal and missing choices envden stops and lists the flags it needs. `envden status --json` and `envden doctor --json` report state.
-- Agents never handle secrets or approvals: for the master password, a pairing code or approving a checkout, envden tells the agent to ask the user to run the step in their own terminal.
+- Agents never handle secrets or approvals: for the recovery code, comparing join words or approving a checkout, envden tells the agent to ask the user to run the step in their own terminal.
 - Non-interactive pushes require `--yes`. Conflict resolution with `--keep-mine` or `--take-server` requires a terminal unless `agent-merge` is on. Conflicts are never auto-resolved for an agent; with `envden config agent-merge on`, the skill may help edit the conflict file (a convention, not a security boundary).
 - Docs have a "Set up envden with your agent" page with one prompt to paste.
-- **`envden ui`** is a local dashboard, not a daemon: it starts only from a terminal, so an agent can't use it to bypass terminal gates, listens on 127.0.0.1 for one run, and needs that run's random token from the printed link. It refuses foreign `Host` headers and cross-origin writes and shows key names only. Pull, push and conflict resolution take the state lock per action, like the CLI; actions that need the master password stay in the terminal.
+- **`envden ui`** is a local dashboard, not a daemon: it starts only from a terminal, so an agent can't use it to bypass terminal gates, listens on 127.0.0.1 for one run, and needs that run's random token from the printed link. It refuses foreign `Host` headers and cross-origin writes and shows key names only. Pull, push and conflict resolution take the state lock per action, like the CLI; approving a device and showing a recovery code stay in the terminal.
 
 ## Setup
 
-- **Home lab first**: `docker run` with a Tailscale auth key and a data volume; the logs print a setup token. Then `envden setup` on a laptop: takes the token through a terminal prompt (token flags remain available but are visible to other processes), pins the server, creates the vault (master password, recovery kit), asks about telemetry and update checks, offers the shell line and agent skill, discovers repos, asks you to approve them, links and pushes.
-- Re-running setup leaves existing edits for normal pull/push reconciliation. Initial-push recovery records bases only for this device's sequence-2 push when every included file still matches locally. A resumed creation must have both vault keys, and checks the recovery kit issued for that pending vault before resubmitting. If that kit is lost, it commits the vault and replaces the kit at once. Missing keys restart creation with a new kit before any upload.
+- **Home lab first**: `docker run` with a Tailscale auth key and a data volume; the logs print a setup token. Then `envden setup` on a laptop: takes the token through a terminal prompt (token flags remain available but are visible to other processes), pins the server, asks for the device name, creates the vault and shows its recovery code once, asks about telemetry and update checks, offers the shell line and agent skill, discovers repos, asks you to approve them, links and pushes.
+- Re-running setup leaves existing edits for normal pull/push reconciliation. Initial-push recovery records bases only for this device's sequence-2 push when every included file still matches locally. A resumed creation must have both vault keys; it resubmits the stored request and then replaces the recovery code at once, since the device never kept the first one and the user may never have seen it. Creation stays pending until a code is delivered, and a creation that already committed resumes without the consumed setup token. Missing keys restart creation before any upload.
 - **Laptop first**: `envden setup` finds no server and offers to run one here as a login service. Later `envden server move`.
-- **Other devices**: `envden join <server>` with a pairing code, or master password + recovery kit. A committed local vault cannot be replaced by joining another vault; an abandoned creation can.
+- **Other devices**: `envden join <server>`, approved from a device already in the vault by comparing words, or `envden join <server> --recovery` with the recovery code. A committed local vault cannot be replaced by joining another vault; an abandoned creation can.
 - **Device name**: `--name` wins. Otherwise the hostname without its domain (`.local`, `.lan`, …) is suggested: a terminal shows it pre-filled to accept or edit, and runs without a terminal take it as is. A name already in the vault gets `-2`, `-3`, … when the device is added.
 - **Repo discovery**: walk the chosen scan roots (default: home folder; add or remove roots) for `.git` directories. The walk never enters hidden folders, dependency folders (`node_modules`, `Pods`, `venv`, …) or the folders inside a found checkout, since nested clones there are vendored code. Build output (`target`, `build`, `dist`, `vendor`) is skipped only inside a project folder (one with `.git`, `package.json`, `Cargo.toml` and the like), and home-level tool and media folders (`Library`, `snap`, `go`, `miniconda3`, `Movies`, …) only directly in the home folder, so `~/target/svc` or `~/Work/go` is still found. A folder is judged by its own name, so a link `~/code -> ~/.projects` is walked. A `.git` folder git can't identify (a stray `git init` in `~/code`) doesn't stop the walk. Hidden folders hold tool state (`~/.codex`, `~/.gradle`), not projects; a hidden scan root is still walked. Worktrees come from `git worktree list` (skipping prunable ones; newline output on git before 2.36, which lacks `-z`), so agent worktrees under `~/.t3` or `~/.codex` are found without walking those folders; submodules come from git's own parse of `.gitmodules`. A repo whose worktrees or submodules can't be listed is still found and never stops the scan. A TTY shows a spinner with a running count. Skipped repos are counted in one line, `--verbose` lists them. Warns that macOS may ask for folder access. Shows repos with env files as a checklist to approve. Later, the shell line offers once to track a repo it missed.
 - Links unavailable: setup tries to create a symlink; if that fails, it explains and offers copy mode with explicit consent.
 
-Setup, server move and repair completion require a terminal for secret prompts; piping a token cannot complete them. Repair uploads accept a token on stdin. `--kit-out` writes the kit as JSON instead of a PDF, for scripts and `join --recovery-kit`. Replacement kits written with it are not printed unless the file write fails, in which case the kit is printed so it can be saved.
+A recovery code is shown only in a terminal, never where only an agent would see it; without one, setup and code replacement need `--recovery-code-out <file>`, which writes the code to a new owner-only file and never overwrites. Join approval and `join --recovery` need a terminal. Tokens can be piped on stdin.
 
 ## Updates
 
@@ -227,7 +215,7 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 - **`envden update`** uses the install method recorded by the installer: `brew upgrade`, or, for the script install, an archive download checked against the hash in `SHA256SUMS` from the same release tag, a successful no-op if it isn't newer, and swapped in atomically. The binary is read from the archive in memory; any file, link or directory other than the `envden` file and `LICENSE`, including paths with `..`, fails the update, and neither the archive nor its contents may pass 256 MiB. It then refreshes the shell line, the agent skill and, on a laptop server, restarts the service. `envden update --check` only reports and runs even when automatic checks are disabled. Downloads allow up to 30 minutes; the new binary must run before replacement. A failed post-install restores the old binary.
 - **Update check.** Once a day the CLI resolves the latest stable GitHub release and caches the result in `~/.envden/state` (PROTOCOL § 15). Setup asks once, default on; `envden config update-check off` and `ENVDEN_NO_UPDATE_CHECK=1` turn it off. Failed lookups only appear in status and doctor output. The shell line shows "update available" at most once a day and "update required" when the server refuses sync, until a successful authenticated request clears it. A minimum above the latest release is reported without a persistent update notice.
 - **Security releases.** A server can raise its signed `minClient` to require clients to update before syncing. Update downloads rely on GitHub and TLS for integrity.
-- **Data migrations.** Server database migrations save a `pre-<version>` backup before changing an existing database. Backups expire after 30 days, since they hold the OPAQUE record. The server refuses incompatible database formats. The CLI's local state must match the current strict format; it has no migration or automatic backup mechanism and rejects other formats as "Unreadable local state".
+- **Data migrations.** Server database migrations save a `pre-<version>` backup before changing an existing database. Backups expire after 30 days, since they hold vault data. The server refuses incompatible database formats. The CLI's local state must match the current strict format; it has no migration or automatic backup mechanism and rejects other formats as "Unreadable local state".
 - **Devices.** `envden device ls` shows each device's last-seen version. `envden status --json` reports `update.available` and `update.required`. Agents may run `envden update --check` but ask the user before updating.
 - Protocol v2, if ever needed, ships as a server that speaks both; the hello lists supported versions, and a client never drops below the highest it has used with a vault.
 
@@ -306,9 +294,19 @@ Replaces a backup, and a printed line, before every overwrite. Each clean pull p
 
 When envden fails on its own bug in a terminal, it offers to start the user's installed coding agent (Claude Code, Codex or Gemini CLI) on a redacted report, or to open a pre-filled GitHub issue. An agent can read the logs and envden's source and find a cause before anything is filed, which a stack trace alone can't. It runs from the user's PATH with their environment, outside the trusted-process rule, because the user picked it. Rejected: uploading crash reports, since there is no envden backend and telemetry carries no raw errors; filing issues from envden through the GitHub API, which needs a token and skips the user's review. The offer only covers error codes the user can't fix, and never appears without a terminal, inside an agent, or with `ENVDEN_NO_REPORT=1`.
 
-### The recovery kit is a PDF file
+### One recovery code replaces the master password and kit
 
-Replaces printing the secret key to the terminal, with a prompt that waited until the user said it was saved. Terminal text ends up in scrollback, logs and screen shares. A PDF like 1Password's Emergency Kit can be printed straight away, and the terminal shows only its path. The PDF uses pdf-lib's standard fonts, so nothing is embedded and the compiled binary stays pure JavaScript. Rejected: an HTML kit, which prints inconsistently across browsers; a PDF alongside `--kit-out`, since that flag is the scripted path and shouldn't drop files into Downloads.
+Replaces a master password registered on the server with OPAQUE, a secret key printed in a PDF recovery kit, and unlock periods with fresh-login gates. Setup asked for a password twice and produced a PDF to file away, and every new device, unlock and sensitive action asked for the password again, for a tool that syncs `.env` files. Now setup makes one recovery code: 128 bits from the CSPRNG, typed as `ER1-` and grouped base32 with a checksum. Because it's that strong, HKDF seals the envelope (no Argon2id), and the server keeps only the public half of a proof key derived from it. Everything a fresh login used to gate needs a member's signature instead, and the recovery path needs a proof of the code. The proof key isn't salted with the vault ID, because the server must find the vault from the code alone.
+
+Accepted costs: there's no unlock expiry, so a stolen device keeps syncing until another device removes it (expiry only ever held against an honest server); and the code opens the vault on its own, so it belongs in a password manager. Rejected: keeping a password just for unlocking, which keeps the cost for little gain; a memorable passphrase, which a stolen database could guess offline.
+
+### The recovery code is shown once in the terminal
+
+Replaces a PDF recovery kit saved to Downloads, with only its path in the terminal. The code is one line meant for a password manager, so a PDF was a detour and one more file to delete. Setup prints it once with a single confirmation and writes nothing; `--recovery-code-out` writes a new owner-only file for scripts. Without a terminal, envden refuses to show it, so an agent never sees it. Accepted cost: terminal text can stay in scrollback. Rejected: keeping pdf-lib and its fonts for one line of text.
+
+### New devices join by comparing three words
+
+Replaces a typed pairing code checked with OPAQUE. The new device runs `envden join <server>` and types nothing; any device in the vault runs `envden device approve`. The new device commits to its keys and a nonce before the approver sends its own nonce, then reveals them, so neither side can steer the three BIP-39 words both screens show: a server or a racing device gets one online guess, matching with probability 2⁻³³. Both screens ask: the approver's question protects the vault, and the new device's protects its own env files from being pushed into a vault a server made. Join requests are server-wide because the new device knows only the server; a member of another vault there can see a request's display name and claim it, which at worst blocks that join. Rejected: approving without words, which lets anyone on the network join; asking only on the approver, which lets a server pull the new device into its own vault; a QR code, which needs a camera; a server-issued code, since the server is untrusted.
 
 ### User files are written through their symlinks
 
@@ -322,30 +320,25 @@ Replaces skipping a user's `.env` symlink with one stderr line per file. Users s
 
 Replaces keys in the OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager) with a `0600` file fallback and `ENVDEN_KEYCHAIN` to choose. Every envden update is a new binary, so macOS asked "envden wants to use your confidential information" for each key after each upgrade, which looks like malware in a tool that handles `.env` files. The keychain added little: the synced `.env` files are plaintext on disk anyway, and once a user clicks "Always Allow", any process running as that user can run envden to read the keys. Keys are now owner-only files under `ENVDEN_HOME`, the same threat model as `~/.ssh`, and `envden doctor` fails if other users can read them. Rejected: keeping the keychain as an opt-in, which doubled the storage paths to test for a protection the plaintext files already undo.
 
-### Device keys, signed device list, key epochs, OPAQUE pairing
+### Device keys, signed device list, key epochs
 
-Each device has its own keys, membership is a member-signed hash-chained log that takes effect only through the signed manifest swap, removal starts a new epoch instead of re-encrypting, and the secret key lives only in the recovery kit (see [Crypto](#crypto)). Rejected:
+Each device has its own keys, membership is a member-signed hash-chained log that takes effect only through the signed manifest swap, removal starts a new epoch instead of re-encrypting, and the recovery code lives only with the user (see [Crypto](#crypto)). Rejected:
 
 - **age for file encryption** (first draft): no associated data, so a malicious server can swap or replay files and they still decrypt, and anyone holding a recipient can create valid files.
 - **One shared secret key on every device, Tailscale identity as auth**: Tailscale headers name the user, not the device, are empty for tagged devices, and can be forged by local processes on a laptop-hosted server.
 - **Device list served by the server**: the server could add its own key or hand out a fake vault key.
 - **Re-encrypting everything on removal**: renames every ID, rewrites append-only history and leaves mixed keys after a crash, and the removed device already saw the old data.
-- **Secret key stored on devices**: every removal would have to rotate it, silently invalidating printed kits.
+- **Recovery code stored on devices**: every removal would have to replace it, silently invalidating the one the user stored.
 - **Pairing link copied between devices**: clumsy to move between machines.
 - **Server-issued pairing code** (as T3 Code does): envden's server is untrusted and could swap in its own key.
-- **Long typed code (~100 bits) with HMAC instead of a PAKE**: safe but too long to type. An 8-character code without a PAKE can be brute-forced offline by a hijacked server within the pairing window.
-- **Writing CPace ourselves**: security-critical protocol code we'd have to maintain.
-- **Unlock expiry enforced only by the CLI**: cosmetic, since a thief need never run the CLI.
-- **`@cloudflare/opaque-ts` as a fallback**: last published 2022 against draft 07.
+- **Long typed code (~100 bits) with HMAC**: safe but too long to type; comparing words needs no typing.
 
 Accepted costs:
 
-- OPAQUE library audit coverage is partial and doesn't cover the pinned release (see [Pairing](#pairing-join-with-a-pairing-code)). The composition around the libraries is envden's own protocol and needs its own review.
-- A kit-recovered device detects rollbacks only past the checkpoint sealed in the envelope.
-- Unlock expiry holds against a thief, not a compromised server, and the server's OPAQUE record allows offline password guessing (the secret key is still needed).
-- Devices that held the recovery private key in memory are trusted to have erased it unless the kit is replaced when they're removed.
-- Changing the master password needs the recovery kit, since devices never hold the secret key.
-- A server restored from backup is a rollback: restored mode trusts member signatures without a password until every member repairs or is dropped, and a file whose newest version no device holds can be lost.
+- The composition around the libraries is envden's own protocol and needs its own review.
+- A recovery-joined device detects rollbacks only past the checkpoint sealed in the envelope.
+- Devices that held the recovery private key in memory are trusted to have erased it unless the code is replaced when they're removed.
+- A server restored from backup is a rollback: restored mode accepts repairs from members holding the repair token until every member repairs or is dropped, and a file whose newest version no device holds can be lost.
 - A server alone can show different devices different branches; each stops when it sees the other branch but can't detect one it's never shown. A removed device or old recovery key colluding with the server can fork history, and values a removed device already pulled can't be revoked, so envden lists them for rotation.
 
 ### Device names refuse control characters
@@ -360,9 +353,9 @@ Replaces a 404 for HEAD on every route. Health checks that send HEAD saw a runni
 
 Replaces treating an empty `ENVDEN_HOME` as a path, which put state, keys and the store in whatever folder the command ran from. Empty now means unset, so envden uses `~/.envden`, the same as the install scripts.
 
-### Server switch logs in at the destination
+### Server switch needs no login
 
-Replaces a `server switch` that read the new server's history with whatever session the device had. Unlock sessions don't move with the vault, so after a move every other device got "Unlock expired. Run envden unlock", and `unlock` logs in at the old address, which may be gone. Switch now asks for the master password and logs in at the destination itself. Without a terminal it still fails with the unlock message.
+Replaces a switch that asked for the master password and logged in at the destination, because unlock sessions didn't move with the vault. With no unlock left, a member's signature is enough on any server holding the vault, so switch verifies the signed move from its checkpoint and saves the new address.
 
 ### Ctrl-D cancels a prompt
 
@@ -382,7 +375,7 @@ Replaces accepting any pattern Bun.Glob takes. The Go and Rust ports can't repro
 
 ### Keyring writes ignore the storage quota
 
-The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery kit, resetting the password. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
+The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery code. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
 
 ### One-off shares use a temporary public link from the sender
 

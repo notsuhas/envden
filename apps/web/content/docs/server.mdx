@@ -39,9 +39,9 @@ Start the destination server and read its setup token. From an existing member d
 envden server move https://new-envden.your-tailnet.ts.net
 ```
 
-Enter the destination setup token and master password when prompted. This requires a terminal; piping the token cannot complete the secret prompts. `--setup-token <token>` also works, but other processes can see it.
+Enter the destination setup token when prompted, or pipe it on stdin. `--setup-token <token>` also works, but other processes can see it.
 
-The move freezes the old server, copies and verifies the vault, registers your password on the destination, and records a signed move. The old server becomes read-only. Success prints `Move complete`.
+The move freezes the old server, copies and verifies the vault, including the key your recovery code is checked against, and records a signed move. The old server becomes read-only. Success prints `Move complete`.
 
 Resume an interrupted move or abort before the final switch:
 
@@ -62,7 +62,7 @@ envden server switch https://new-envden.your-tailnet.ts.net
 
 ## Backups
 
-Back up the server data volume. It contains ciphertext and the server's password record. Someone with that record can test password guesses offline, so protect the backup like a password database. A password guess alone doesn't decrypt the recovery envelope; it also needs the recovery secret key.
+Back up the server data volume. It holds ciphertext and public keys. The recovery envelope in it opens only with your 128-bit recovery code, so a stolen backup can't be brute-forced.
 
 Keep device checkpoint state separate from store backups. Rolling back a device's checkpoints would remove its record of accepted history.
 
@@ -98,7 +98,7 @@ When every device has uploaded, finish from one device:
 envden server repair --finish
 ```
 
-Enter the repair token and master password in a terminal; piping the token cannot complete the secret prompts. The finishing device verifies the signed reports itself. It stops if a member hasn't repaired or if the newest version of a file is unavailable.
+Enter the repair token at the prompt, or pipe it on stdin. The finishing device verifies the signed reports itself. It stops if a member hasn't repaired or if the newest version of a file is unavailable.
 
 ### Drop an unavailable device
 

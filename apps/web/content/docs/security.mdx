@@ -19,11 +19,13 @@ A worktree registered in an approved clone's own `.git` is approved without aski
 
 Pulled paths are checked for traversal and symlinks escaping the checkout. Placement uses directory handles on macOS and Linux when FFI is available.
 
-## Protect your password and recovery kit
+## Protect your recovery code
 
-The master password and a random secret key protect the recovery envelope. Argon2id derives password material; the random secret key is in your kit and isn't saved on devices. Recovery requires both. Password login uses OPAQUE.
+The recovery code is 128 random bits. It seals the recovery envelope on the server and proves to the server that you hold it; the server keeps only a public key derived from it. No device stores the code, so keep it in your password manager. With it, anyone can open the vault, so treat it like that password manager's own master key. If it may have leaked, replace it from a device: see [Manage the vault](/docs/vault).
 
-Print the kit PDF or keep it somewhere safe and separate from your devices, then delete the file. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
+## New devices are approved by comparing words
+
+A new device joins only when a device already in the vault approves it and both screens show the same three words. The new device commits to its keys before the approving device picks its random value, so neither the server nor another device on your network can choose words to match yours. Each attempt is one guess, right about once in eight billion tries, and you see every wrong guess as mismatched words. Both screens ask, because each protects a side: the approving screen keeps strangers out of your vault, and the new screen keeps the new device from joining a vault someone else made.
 
 Local store files use `0600` permissions and directories use `0700`.
 
@@ -36,14 +38,14 @@ envden doesn't use the OS keychain. Your synced env files are plaintext on disk 
 ## What envden can't protect against
 
 - A compromised member device can read the files and keys it has access to. Removing it doesn't erase downloaded files or prevent decryption of older ciphertext with keys it kept. Rotate exposed credentials after removal.
-- Files already on disk depend on your OS login and disk encryption. Unlock expiry only limits new server access, and a malicious server can ignore it. A stolen laptop hosting the server can bypass expiry too.
+- A lost or stolen device keeps syncing until another device removes it with `envden device rm`. Files already on disk depend on your OS login and disk encryption.
 - The server can deny service or show devices separate branches of history. A device stops when it sees the other branch. A server colluding with a removed device or an old recovery key can fork history.
 - Encryption doesn't hide rough file sizes, timing, device count or device names from the server.
-- A stolen server password record permits offline password guessing. A correct guess still needs the kit's secret key to open the recovery envelope. Protect server backups like a password database.
+- Answering yes to words you didn't compare defeats the check. Only approve a device you're adding yourself.
 - When FFI is unavailable, a local process can race a parent-directory replacement after the final path check.
 
 ## Cryptographic implementation
 
-The protocol uses pinned versions of `@noble/ciphers`, `@noble/curves`, `@noble/hashes`, `hash-wasm`, `@serenity-kit/opaque` and `@hpke/*`. envden's protocol combines these primitives; its encodings and test vectors are in [PROTOCOL.md](https://github.com/notsuhas/envden/blob/main/docs/PROTOCOL.md).
+The protocol uses pinned versions of `@noble/ciphers`, `@noble/curves`, `@noble/hashes` and `@hpke/*`, and the BIP-39 English wordlist. envden's protocol combines these primitives; its encodings and test vectors are in [PROTOCOL.md](https://github.com/notsuhas/envden/blob/main/docs/PROTOCOL.md).
 
 The [threat model](https://github.com/notsuhas/envden/blob/main/docs/DESIGN.md#threat-model) describes the trust assumptions behind these protections.

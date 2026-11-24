@@ -41,11 +41,12 @@ export function Features() {
           preview={<ShellPreview />}
         />
         <FeatureCell
-          title="Add a machine with a code."
+          title="Add a machine by comparing words."
           body={
             <>
-              Run <code className="font-mono text-den-ink">envden device add</code> on a machine
-              that's already in, type its one-time code on the new one, and approve.
+              Run <code className="font-mono text-den-ink">envden join</code> on the new machine and{" "}
+              <code className="font-mono text-den-ink">envden device approve</code> on one that's
+              already in. Both show the same three words; say yes on both.
             </>
           }
           preview={<PairPreview />}
@@ -61,8 +62,8 @@ export function Features() {
           preview={<LayoutPreview />}
         />
         <FeatureCell
-          title="Keep a recovery kit."
-          body="Print it at setup and store it like a passport. With your master password, it gets a new machine in when you've lost the others."
+          title="Keep one recovery code."
+          body="Setup shows it once. Put it in your password manager; it gets a new machine in when you've lost the others."
           preview={<RecoveryPreview />}
         />
       </div>

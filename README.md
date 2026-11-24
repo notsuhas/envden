@@ -53,7 +53,7 @@ Replace `tskey-auth-...` with a Tailscale auth key. The server joins your tailne
 **On your first laptop:**
 
 ```sh
-envden setup --server https://envden.<tailnet>.ts.net   # paste the setup token, choose a master password, print the recovery kit
+envden setup --server https://envden.<tailnet>.ts.net   # paste the setup token, then store the recovery code it shows
 ```
 
 No home server? `envden setup --host-server` runs the server on this laptop instead, with no token to paste.
@@ -61,8 +61,8 @@ No home server? `envden setup --host-server` runs the server on this laptop inst
 **On every other device:**
 
 ```sh
-envden device add     # on a device that's already set up: shows a pairing code
-envden join <server>  # on the new device: type the code
+envden join <server>    # on the new device: shows three words
+envden device approve  # on a device that's already set up: check the same words, say yes
 ```
 
 **Day to day:**
@@ -82,12 +82,12 @@ Every command and flag is in the [CLI reference](https://envden.theclau.de/docs/
 
 - Your env files live in `~/.envden/store`, and each checkout links to its file, so every clone and worktree shares one copy.
 - Nothing syncs in the background. `push` and `pull` merge edits per key and leave real conflicts for you.
-- The server stores only ciphertext and opaque IDs. A master password and a recovery kit protect the vault.
-- `envden agent install` lets coding agents check status while you keep the passwords and approvals.
+- The server stores only ciphertext and opaque IDs. Each device has its own keys; one recovery code, kept in your password manager, gets you back in if you lose every device.
+- `envden agent install` lets coding agents check status while you keep the recovery code and approvals.
 
 ## Security
 
-The server can't read your files or add devices on its own. It can refuse service or ignore unlock expiry, and a lost device keeps whatever it already pulled. See [Security](https://envden.theclau.de/docs/security) for the model, [DESIGN.md](docs/DESIGN.md#threat-model) for the threat model and [PROTOCOL.md](docs/PROTOCOL.md) for the cryptography. To report a vulnerability, see [SECURITY.md](docs/SECURITY.md).
+The server can't read your files or add devices on its own. It can refuse service. A lost device keeps syncing until you remove it from another device, and keeps whatever it already pulled. See [Security](https://envden.theclau.de/docs/security) for the model, [DESIGN.md](docs/DESIGN.md#threat-model) for the threat model and [PROTOCOL.md](docs/PROTOCOL.md) for the cryptography. To report a vulnerability, see [SECURITY.md](docs/SECURITY.md).
 
 ## Building from source
 

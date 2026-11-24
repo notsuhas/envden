@@ -17,7 +17,7 @@ export const START_PATHS: { href: string; title: string; body: string; glyph: TG
   {
     href: `${DOCS_ROUTE}/joining-devices`,
     title: "Add a device",
-    body: "Join with a pairing code, or with your recovery kit.",
+    body: "Approve it from a device you have by comparing words, or use your recovery code.",
     glyph: "desktop",
   },
   {
