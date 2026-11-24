@@ -20,12 +20,6 @@ export async function processStart(
   read = (path: string) => readFile(path, "utf8"),
 ): Promise<TProcess> {
   try {
-    if (platform === "win32") {
-      const { windowsStart } = await import("./windows.ts");
-
-      return windowsStart(pid);
-    }
-
     let startedAt: string | undefined;
 
     if (platform === "linux") {
@@ -68,15 +62,6 @@ export async function processIdentity(): Promise<string | undefined> {
         .match(/sec\s*=\s*(\d+),\s*usec\s*=\s*(\d+)/)
         ?.slice(1)
         .join(":");
-    } else if (process.platform === "win32" && !boot) {
-      boot = (
-        await exec("powershell", [
-          "-NoProfile",
-          "-NonInteractive",
-          "-Command",
-          "(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().Ticks",
-        ])
-      ).stdout.trim();
     }
 
     if (!boot) return undefined;

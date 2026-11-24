@@ -16,17 +16,16 @@ test("server signing key and OPAQUE setup persist privately", async () => {
     chmodSync(dir, 0o755);
     chmodSync(join(dir, "identity.json"), 0o644);
     const second = await loadServerKeys(dir);
-    if (process.platform !== "win32") expect(statSync(dir).mode & 0o777).toBe(0o700);
+    expect(statSync(dir).mode & 0o777).toBe(0o700);
     expect(second).toEqual(first);
 
-    if (process.platform !== "win32")
-      expect(statSync(join(dir, "identity.json")).mode & 0o777).toBe(0o600);
+    expect(statSync(join(dir, "identity.json")).mode & 0o777).toBe(0o600);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test("the identity folder and key are restricted with the shared ACL helper", async () => {
+test("the identity folder and key are restricted with the shared permissions helper", async () => {
   const processes = await import("@envden/core/process");
   const restricted: [string, boolean | undefined][] = [];
 
@@ -36,7 +35,7 @@ test("the identity folder and key are restricted with the shared ACL helper", as
     },
   );
 
-  const dir = mkdtempSync(join(tmpdir(), "envden-identity-acl-"));
+  const dir = mkdtempSync(join(tmpdir(), "envden-identity-permissions-"));
 
   try {
     await loadServerKeys(dir);
@@ -48,24 +47,6 @@ test("the identity folder and key are restricted with the shared ACL helper", as
     rmSync(dir, { recursive: true, force: true });
   }
 });
-
-test.skipIf(process.platform !== "win32")(
-  "on Windows the identity folder and key inherit no access from their parent",
-  async () => {
-    const { execTrustedSync } = await import("@envden/core/process");
-    const dir = mkdtempSync(join(tmpdir(), "envden-identity-windows-"));
-
-    try {
-      await loadServerKeys(dir);
-      await loadServerKeys(dir);
-
-      for (const path of [dir, join(dir, "identity.json")])
-        expect(execTrustedSync("icacls", [path])).not.toContain("(I)");
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  },
-);
 
 test("a local host gets a fresh setup token until a vault exists", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-local-"));
@@ -169,9 +150,7 @@ test("identity publication syncs the file before publication and then the direct
       },
     });
 
-    expect(events).toEqual(
-      process.platform === "win32" ? ["file", "publish"] : ["file", "publish", "directory"],
-    );
+    expect(events).toEqual(["file", "publish", "directory"]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

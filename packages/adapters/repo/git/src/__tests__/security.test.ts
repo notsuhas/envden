@@ -24,19 +24,15 @@ test("discovery skips submodules and nested clones, lists the user's own links a
     "160000,1111111111111111111111111111111111111111,nested",
   );
 
-  if (process.platform !== "win32") {
-    await symlink(join(root, "missing"), join(root, ".env.dangling"));
-    await symlink(join("nested", ".env"), join(root, ".env.shared"));
-  }
+  await symlink(join(root, "missing"), join(root, ".env.dangling"));
+  await symlink(join("nested", ".env"), join(root, ".env.shared"));
 
   const warnings: string[] = [];
   const original = console.error;
   console.error = (line: string) => warnings.push(line);
 
   try {
-    expect(await adapter.envFiles(checkout)).toEqual(
-      process.platform === "win32" ? [] : [".env.dangling", ".env.shared"],
-    );
+    expect(await adapter.envFiles(checkout)).toEqual([".env.dangling", ".env.shared"]);
   } finally {
     console.error = original;
   }

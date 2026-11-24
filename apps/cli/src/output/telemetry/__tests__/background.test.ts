@@ -6,11 +6,6 @@ test("the background sender re-runs envden itself, compiled or from source", () 
     selfCommand(["/usr/local/bin/envden", "/$bunfs/root/envden"], "/usr/local/bin/envden"),
   ).toEqual(["/usr/local/bin/envden", "telemetry-send"]);
 
-  expect(selfCommand(["C:\\envden.exe", "B:\\~BUN\\root\\envden.exe"], "C:\\envden.exe")).toEqual([
-    "C:\\envden.exe",
-    "telemetry-send",
-  ]);
-
   expect(selfCommand(["/bin/bun", "/repo/apps/cli/src/main.ts"], "/bin/bun")).toEqual([
     "/bin/bun",
     "/repo/apps/cli/src/main.ts",

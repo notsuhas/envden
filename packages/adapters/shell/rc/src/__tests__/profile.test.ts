@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { createRcShellAdapter } from "../adapter.ts";
 import { powerShellProfile } from "../files/powershell-profile.ts";
 
-test("PowerShell profile resolution uses trusted runner and redirected Documents", () => {
-  const redirected = join(tmpdir(), "OneDrive", "Documents", "Microsoft.PowerShell_profile.ps1");
+test("PowerShell profile resolution uses the trusted runner and a redirected profile", () => {
+  const redirected = join(tmpdir(), "xdg", "powershell", "Microsoft.PowerShell_profile.ps1");
   const calls: string[] = [];
 
   const path = powerShellProfile((name, args, options) => {
@@ -20,12 +20,10 @@ test("PowerShell profile resolution uses trusted runner and redirected Documents
       "$PROFILE.CurrentUserCurrentHost",
     ]);
 
-    if (name === "pwsh") throw new Error("missing");
-
-    return redirected + "\r\n";
+    return redirected + "\n";
   }, tmpdir());
 
-  expect(calls).toEqual(["pwsh", "powershell"]);
+  expect(calls).toEqual(["pwsh"]);
   expect(path).toBe(redirected);
 
   expect(
@@ -45,7 +43,7 @@ test("PowerShell validates profile paths and resolves once per adapter", () => {
   const adapter = createRcShellAdapter("powershell", tmpdir(), undefined, undefined, () => {
     calls++;
 
-    return join(tmpdir(), "Documents", "Microsoft.PowerShell_profile.ps1");
+    return join(tmpdir(), "powershell", "Microsoft.PowerShell_profile.ps1");
   });
 
   expect(adapter.rcPath()).toBe(adapter.rcPath());
@@ -53,15 +51,15 @@ test("PowerShell validates profile paths and resolves once per adapter", () => {
   expect(powerShellProfile(() => join(tmpdir(), "..", "outside.ps1"), tmpdir())).toBeUndefined();
 });
 
-test("PowerShell prefers an existing envden hook over the first executable", () => {
+test("PowerShell prefers the default profile when it already holds the envden hook", () => {
   const home = mkdtempSync(join(tmpdir(), "envden-profile-"));
-  const modern = join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1");
-  const legacy = join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1");
+  const reported = join(home, "xdg", "powershell", "Microsoft.PowerShell_profile.ps1");
+  const fallback = join(home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1");
 
   try {
-    mkdirSync(join(home, "Documents", "WindowsPowerShell"), { recursive: true });
-    writeFileSync(legacy, "# >>> envden >>>");
-    expect(powerShellProfile((name) => (name === "pwsh" ? modern : legacy), home)).toBe(legacy);
+    mkdirSync(join(home, ".config", "powershell"), { recursive: true });
+    writeFileSync(fallback, "# >>> envden >>>");
+    expect(powerShellProfile(() => reported, home)).toBe(fallback);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

@@ -8,22 +8,7 @@ for (const [executable, stable] of [
     "/home/linuxbrew/.linuxbrew/bin/envden",
   ],
   ["/opt/homebrew/opt/envden/bin/envden", "/opt/homebrew/bin/envden"],
-  [
-    "C:\\Users\\me\\scoop\\apps\\envden\\0.2.0\\envden.exe",
-    "C:\\Users\\me\\scoop\\apps\\envden\\current\\envden.exe",
-  ],
-  [
-    "C:\\Users\\me\\scoop\\apps\\envden\\current\\envden.exe",
-    "C:\\Users\\me\\scoop\\apps\\envden\\current\\envden.exe",
-  ],
-  [
-    "/usr/local/lib/node_modules/envden/bin/envden",
-    "/usr/local/lib/node_modules/envden/bin/envden",
-  ],
-  [
-    "C:\\Users\\me\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Envden_1\\envden.exe",
-    "C:\\Users\\me\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Envden_1\\envden.exe",
-  ],
+  ["/home/me/.envden/bin/envden", "/home/me/.envden/bin/envden"],
 ])
   test(`stable executable for ${executable}`, () => {
     expect(stableExecutable(executable!)).toBe(stable!);

@@ -15,27 +15,26 @@ test("installer marker is at home root and selects the manual command", async ()
       kind: "script",
     });
 
-    for (const [method, command] of [
-      ["brew", ["brew", "upgrade", "envden"]],
-      ["npm", ["npm", "i", "-g", "envden@latest"]],
-      ["scoop", ["scoop", "update", "envden"]],
-      ["winget", ["winget", "upgrade", "envden"]],
-    ] as const) {
+    await atomicWrite(join(root, "install-method"), "brew", fixtureClock);
+
+    expect(await installMethod(root)).toEqual({
+      kind: "manager",
+      command: ["brew", "upgrade", "envden"],
+    });
+
+    for (const method of ["unknown", "npm", "scoop", "winget"]) {
       await atomicWrite(join(root, "install-method"), method, fixtureClock);
-      expect(await installMethod(root)).toEqual({ kind: "manager", command: [...command] });
+
+      await Promise.resolve(
+        expect(installMethod(root)).rejects.toMatchObject({ code: "INVALID_INPUT" }),
+      );
     }
-
-    await atomicWrite(join(root, "install-method"), "unknown", fixtureClock);
-
-    await Promise.resolve(
-      expect(installMethod(root)).rejects.toMatchObject({ code: "INVALID_INPUT" }),
-    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("manager detection recognizes Homebrew prefixes and WinGet package paths", async () => {
+test("manager detection recognizes Homebrew prefixes", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-detection-"));
 
   try {
@@ -47,14 +46,6 @@ test("manager detection recognizes Homebrew prefixes and WinGet package paths", 
         kind: "manager",
         command: ["brew", "upgrade", "envden"],
       });
-
-    expect(
-      await installMethod(
-        root,
-        undefined,
-        "C:\\Users\\me\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Envden.Envden_1\\envden.exe",
-      ),
-    ).toEqual({ kind: "manager", command: ["winget", "upgrade", "envden"] });
   } finally {
     await rm(root, { recursive: true, force: true });
   }

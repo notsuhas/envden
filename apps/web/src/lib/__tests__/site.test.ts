@@ -11,15 +11,11 @@ describe("ENVDEN_VERSION", () => {
     expect(docs).toContain(`\n${ENVDEN_VERSION}\n`);
   });
 
-  test("follows the cli, server and npm release versions", async () => {
+  test("follows the cli and server release versions", async () => {
     for (const path of ["cli", "server"]) {
       const manifest = Bun.file(new URL(`../../../../${path}/package.json`, import.meta.url));
 
       expect((await manifest.json()).version).toBe(ENVDEN_VERSION);
     }
-
-    const npm = Bun.file(new URL("../../../../../packaging/npm/package.json", import.meta.url));
-
-    expect((await npm.json()).version).toBe(ENVDEN_VERSION);
   });
 });

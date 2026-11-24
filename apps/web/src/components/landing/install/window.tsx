@@ -15,8 +15,7 @@ export function InstallWindow() {
           <InstallCell chip="Install">
             <CommandBox name="install" />
             <p className="text-sm text-den-muted">
-              One binary for macOS, Linux and Windows. The server is the same binary, or a Docker
-              image.
+              One binary for macOS and Linux. The server is the same binary, or a Docker image.
             </p>
           </InstallCell>
           <InstallCell chip="Setup">

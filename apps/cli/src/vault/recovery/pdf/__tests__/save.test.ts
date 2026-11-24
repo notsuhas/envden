@@ -17,7 +17,7 @@ test("kit PDFs are private and never overwrite an earlier kit", async () => {
     expect(first).toBe(join(root, "envden Recovery Kit GAV85N.pdf"));
     expect(second).toBe(join(root, "envden Recovery Kit GAV85N (2).pdf"));
     expect(await Bun.file(first).text()).toStartWith("%PDF-");
-    if (process.platform !== "win32") expect((await stat(first)).mode & 0o777).toBe(0o600);
+    expect((await stat(first)).mode & 0o777).toBe(0o600);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

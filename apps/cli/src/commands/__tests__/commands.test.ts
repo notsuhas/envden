@@ -15,7 +15,6 @@ async function run(args: string[], home: string, env: Record<string, string | un
     env: {
       ...env,
       HOME: home,
-      USERPROFILE: home,
       ENVDEN_HOME: home,
       ENVDEN_TELEMETRY: "0",
       ENVDEN_NO_UPDATE_CHECK: "1",

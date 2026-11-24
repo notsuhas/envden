@@ -9,9 +9,7 @@
   "scripts": {
     "build": "bun build --define __ENVDEN_TELEMETRY_KEY__=\"$(bun -e 'process.stdout.write(JSON.stringify(process.env.ENVDEN_TELEMETRY_KEY ?? \"\"))')\" --compile --no-compile-autoload-dotenv --no-compile-autoload-bunfig ./src/main.ts --outfile dist/envden",
     "build:all": "bun scripts/build-all.ts",
-    "release:checksums": "bun ../../scripts/release/checksums.ts",
-    "packaging:npm:install": "node ../../packaging/npm/install.js",
-    "packaging:npm:smoke": "node ../../packaging/npm/bin/launch.js --version"
+    "release:checksums": "bun ../../scripts/release/checksums.ts"
   },
   "dependencies": {
     "@clack/prompts": "1.9.0",

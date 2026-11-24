@@ -40,7 +40,7 @@ test("copy prepares its exclusion before writing and replaces a leftover for thi
     store,
     destination,
     undefined,
-    { platform: process.platform, libc: undefined },
+    { libc: undefined },
     async (path) => {
       expect(path).toBe(temporary);
     },

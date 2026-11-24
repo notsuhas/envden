@@ -24,7 +24,7 @@ async function update(
   if (method.kind === "manager")
     return managerUpdate(method.command, options.binary, options.confirm, options.run);
 
-  if (["bun", "node", "bun.exe", "node.exe"].includes(basename(options.binary)))
+  if (["bun", "node"].includes(basename(options.binary)))
     throw new EnvdenError("INVALID_INPUT", "Self-update requires the installed envden binary");
 
   const bytes = await downloadUpdate(options.fetcher, VERSION, currentReleasePlatform()).catch(
@@ -39,7 +39,6 @@ async function update(
   await replaceBinary(
     options.binary,
     bytes,
-    process.platform === "win32",
     options.run ? (path) => options.run!([path, "--version"]) : undefined,
     () => postInstall(options.binary, options.run),
     adapters.now,

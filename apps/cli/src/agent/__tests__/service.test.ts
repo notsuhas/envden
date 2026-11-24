@@ -33,10 +33,6 @@ test("login service definitions quote paths and start at login", () => {
     serviceDefinition("linux", "/bin/envden", "/data", "/log\nUser=root", 4783),
   ).toThrow();
 
-  expect(
-    serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 4783).content,
-  ).toContain("LogonTrigger");
-
   expect(() => serviceDefinition("other", "", "", "", 4783)).toThrow();
 });
 
@@ -72,31 +68,30 @@ test("service installer writes and enables through supplied effects", async () =
   ]);
 });
 
-for (const platform of ["darwin", "win32"])
-  test(`${platform} service install stops before replacing`, async () => {
-    const commands: string[][] = [];
+test("darwin service install stops before replacing", async () => {
+  const commands: string[][] = [];
 
-    for (let pass = 0; pass < 2; pass++)
-      await installHostService(
-        {
-          platform,
-          executable: "/bin/envden",
-          userHome: "/test",
-          home: "/test/envden",
-          port: 4783,
-          uid: 1,
-          write: async () => {},
-          run: async (args) => {
-            commands.push(args);
-          },
-          pause: async () => {},
+  for (let pass = 0; pass < 2; pass++)
+    await installHostService(
+      {
+        platform: "darwin",
+        executable: "/bin/envden",
+        userHome: "/test",
+        home: "/test/envden",
+        port: 4783,
+        uid: 1,
+        write: async () => {},
+        run: async (args) => {
+          commands.push(args);
         },
-        fixtureClock,
-      );
+        pause: async () => {},
+      },
+      fixtureClock,
+    );
 
-    expect(commands[0]?.[1]).toBe(platform === "darwin" ? "bootout" : "/End");
-    expect(commands[1]?.[1]).toBe(platform === "darwin" ? "bootstrap" : "/Create");
-  });
+  expect(commands[0]?.[1]).toBe("bootout");
+  expect(commands[1]?.[1]).toBe("bootstrap");
+});
 
 test("launchd bootstrap retries while the old job is still unloading", async () => {
   const commands: string[][] = [];
@@ -138,7 +133,7 @@ for (const platform of ["darwin", "linux"])
     const userHome = await mkdtemp(join(tmpdir(), "envden-service-"));
 
     try {
-      const path = serviceFile(platform, userHome, join(userHome, ".envden"))!;
+      const path = serviceFile(platform, userHome)!;
       const dotfiles = join(userHome, "dotfiles", "services");
       await mkdir(dotfiles, { recursive: true });
       await mkdir(dirname(dirname(path)), { recursive: true });
@@ -182,21 +177,10 @@ test("the hosted server keeps its port, or takes a free one instead of another a
   expect(await chooseServerPort(probe(false, true))).toBe(4783);
   expect(await chooseServerPort(probe(false, false))).toBe(51234);
 
-  for (const platform of ["darwin", "linux", "win32"])
+  for (const platform of ["darwin", "linux"])
     expect(
       installedPort(serviceDefinition(platform, "/bin/envden", "/data", "/log", 51234).content),
     ).toBe(51234);
 
   expect(installedPort("no port here")).toBeUndefined();
-});
-
-// Task Scheduler's defaults skip the task on battery, stop it when unplugged and kill it after 72 hours
-test("the Windows task keeps the server running on battery, without a time limit, and restarts it", () => {
-  const settings = /<Settings>(.*)<\/Settings>/.exec(
-    serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 4783).content,
-  )?.[1];
-
-  expect(settings).toBe(
-    "<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><ExecutionTimeLimit>PT0S</ExecutionTimeLimit><RestartOnFailure><Interval>PT1M</Interval><Count>999</Count></RestartOnFailure>",
-  );
 });

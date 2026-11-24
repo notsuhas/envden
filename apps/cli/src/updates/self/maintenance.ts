@@ -7,7 +7,7 @@ import { DEFAULT_SERVER_PORT } from "../../agent/service/port.ts";
 import { installedServicePort } from "../../agent/service/installed.ts";
 
 export async function refreshInstallation(adapters: TAdapters, platform = process.platform) {
-  const service = serviceFile(platform, adapters.userHome, adapters.home);
+  const service = serviceFile(platform, adapters.userHome);
 
   const tasks: (() => Promise<void>)[] = [
     async () => {
@@ -18,8 +18,7 @@ export async function refreshInstallation(adapters: TAdapters, platform = proces
       // Rewriting the definition moves a service off a binary path the upgrade removed.
       if (service && (await present(service)))
         await adapters.hostServer(
-          (await installedServicePort(platform, adapters.userHome, adapters.home)) ??
-            DEFAULT_SERVER_PORT,
+          (await installedServicePort(platform, adapters.userHome)) ?? DEFAULT_SERVER_PORT,
         );
     },
     ...(["zsh", "bash", "fish", "powershell"] as const).map((shell) => async () => {

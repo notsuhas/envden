@@ -1,9 +1,6 @@
-import { z } from "zod";
 import { isSemver } from "@envden/core/protocol";
 import { parseSha256Sums } from "@envden/core/release";
 import { targets, assetName } from "../../../apps/cli/scripts/targets.ts";
-
-const npmTemplateSchema = z.looseObject({ version: z.string(), private: z.literal(true) });
 
 export function validateVersion(version: string): string {
   if (!isSemver(version)) {
@@ -52,11 +49,4 @@ export function renderTemplate(
 
     return value;
   });
-}
-
-export function renderNpmPackage(template: string, version: string): string {
-  const manifest = npmTemplateSchema.safeParse(JSON.parse(template));
-  if (!manifest.success) throw new Error("Expected a private npm package template with a version");
-
-  return `${JSON.stringify({ ...manifest.data, version: validateVersion(version) }, null, 2)}\n`;
 }

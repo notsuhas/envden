@@ -1,9 +1,0 @@
-PackageIdentifier: notsuhas.envden
-PackageVersion: "{{VERSION}}"
-PackageLocale: en-US
-Publisher: notsuhas
-PackageName: envden
-License: MIT
-ShortDescription: Self-hosted encrypted environment sync
-ManifestType: defaultLocale
-ManifestVersion: 1.9.0

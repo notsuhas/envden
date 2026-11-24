@@ -11,7 +11,7 @@ export async function remove(
   root: string,
   storePath: string | undefined,
   checkoutPath: string,
-  runtime = { platform: process.platform, libc },
+  runtime = { libc },
 ) {
   const path = checkoutRelative(root, checkoutPath);
 

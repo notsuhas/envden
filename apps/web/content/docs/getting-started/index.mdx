@@ -5,21 +5,15 @@ description: Install the CLI and choose where to run your server.
 
 ## Install the CLI
 
-Choose one method. The CLI runs on macOS, Linux and Windows.
+Choose one method. The CLI runs on macOS and Linux.
 
-### macOS and Linux
+### Install script
 
 ```sh
 curl -fsSL https://envden.theclau.de/install.sh | sh
 ```
 
-### Windows PowerShell
-
-```powershell
-irm https://envden.theclau.de/install.ps1 | iex
-```
-
-These scripts and later script-installed updates check the binary against `SHA256SUMS` from the same release. Integrity rests on GitHub and TLS.
+This script and later script-installed updates check the binary against `SHA256SUMS` from the same release. Integrity rests on GitHub and TLS.
 
 ### Homebrew
 
@@ -27,24 +21,9 @@ These scripts and later script-installed updates check the binary against `SHA25
 brew install notsuhas/tap/envden
 ```
 
-### npm
+Binaries for each platform, with `SHA256SUMS`, are also on the [releases page](https://github.com/notsuhas/envden/releases).
 
-```sh
-npm i -g envden
-```
-
-If your package manager disables install scripts, run `envden` and follow its printed `node .../install.js` command to finish installation.
-
-### Scoop
-
-```powershell
-scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
-scoop install notsuhas/envden
-```
-
-winget is published manually and may lag a release.
-
-Set `ENVDEN_VERSION` to `latest` or a stable `vX.Y.Z` tag. Both scripts accept `ENVDEN_INSTALL_DIR` to choose the binary directory and `ENVDEN_HOME` to choose the state directory.
+For the install script, set `ENVDEN_VERSION` to `latest` or a stable `vX.Y.Z` tag. It also accepts `ENVDEN_INSTALL_DIR` to choose the binary directory and `ENVDEN_HOME` to choose the state directory.
 
 Check the installation:
 

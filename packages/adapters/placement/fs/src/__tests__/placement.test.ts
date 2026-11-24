@@ -1,4 +1,3 @@
-import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { rejects } from "node:assert/strict";
 import { expect, test } from "bun:test";
 import {
@@ -28,33 +27,30 @@ test("placement rejects Unicode format characters without creating the path", as
   expect(await readdir(checkout)).toEqual([]);
 });
 
-test.skipIf(process.platform === "win32")(
-  "reject escaping parent and destination symlinks without touching targets",
-  async () => {
-    const { root, checkout, store } = await setup();
-    const adapter = createFsPlacementAdapter("copy", checkout, undefined, () => 1800000000000);
-    const outside = join(root, "outside");
-    await mkdir(outside);
-    await symlink(outside, join(checkout, "apps"));
+test("reject escaping parent and destination symlinks without touching targets", async () => {
+  const { root, checkout, store } = await setup();
+  const adapter = createFsPlacementAdapter("copy", checkout, undefined, () => 1800000000000);
+  const outside = join(root, "outside");
+  await mkdir(outside);
+  await symlink(outside, join(checkout, "apps"));
 
-    await rejects(
-      adapter.place(store, join(checkout, "apps/.env"), async () => {}),
-      /parent/,
-    );
+  await rejects(
+    adapter.place(store, join(checkout, "apps/.env"), async () => {}),
+    /parent/,
+  );
 
-    await symlink(store, join(checkout, ".env"));
-    const unrelated = join(root, "unrelated");
-    await writeFile(unrelated, "keep");
+  await symlink(store, join(checkout, ".env"));
+  const unrelated = join(root, "unrelated");
+  await writeFile(unrelated, "keep");
 
-    await rejects(
-      adapter.place(unrelated, join(checkout, ".env"), async () => {}),
-      /unrelated/,
-    );
+  await rejects(
+    adapter.place(unrelated, join(checkout, ".env"), async () => {}),
+    /unrelated/,
+  );
 
-    expect(await readFile(store, "utf8")).toBe("A=secret\n");
-    await rejects(adapter.place(store, join(checkout, "../escape"), async () => {}));
-  },
-);
+  expect(await readFile(store, "utf8")).toBe("A=secret\n");
+  await rejects(adapter.place(store, join(checkout, "../escape"), async () => {}));
+});
 
 for (const mode of ["copy", "link"] as const)
   test(`${mode} backups stay outside checkout, are private, and skip equal contents`, async () => {
@@ -72,10 +68,8 @@ for (const mode of ["copy", "link"] as const)
     expect(await readFile(backup, "utf8")).toBe("LOCAL=keep\n");
     expect(await readdir(checkout)).toEqual([".env"]);
 
-    if (process.platform !== "win32") {
-      expect((await lstat(backups)).mode & 0o777).toBe(0o700);
-      expect((await lstat(backup)).mode & 0o777).toBe(0o600);
-    }
+    expect((await lstat(backups)).mode & 0o777).toBe(0o700);
+    expect((await lstat(backup)).mode & 0o777).toBe(0o600);
 
     await unlink(destination);
     await writeFile(destination, "A=secret\n");
@@ -111,13 +105,11 @@ test("pruning uses caller time and keeps recent, unrelated and symlink entries",
   await utimes(join(backups, old), 4000000, 4000000);
   await utimes(join(backups, recent), 0, 0);
 
-  if (process.platform !== "win32") {
-    const alias = ".envden-backup-0-33333333-3333-3333-3333-333333333333";
-    await symlink(join(backups, old), join(backups, alias));
-    await pruneBackups(backups, 4000000000);
-    expect((await lstat(join(backups, alias))).isSymbolicLink()).toBe(true);
-    await unlink(join(backups, alias));
-  }
+  const alias = ".envden-backup-0-33333333-3333-3333-3333-333333333333";
+  await symlink(join(backups, old), join(backups, alias));
+  await pruneBackups(backups, 4000000000);
+  expect((await lstat(join(backups, alias))).isSymbolicLink()).toBe(true);
+  await unlink(join(backups, alias));
 
   await pruneBackups(backups, 4000000000);
   expect((await readdir(backups)).sort()).toEqual([recent, "keep"].sort());
@@ -130,7 +122,6 @@ test("remove refuses unrelated links, unsafe parents and directories", async () 
   await adapter.remove(undefined, join(checkout, "missing/.env"));
   await mkdir(join(checkout, "folder"));
   await rejects(adapter.remove(undefined, join(checkout, "folder")));
-  if (process.platform === "win32") return;
   await symlink(root, join(checkout, "escape"));
   await rejects(adapter.remove(store, join(checkout, "escape/store")));
   await symlink(store, join(checkout, ".env"));
@@ -153,7 +144,7 @@ test("parent identity rejects replacement directories even without symlinks", as
   await rejects(verifyParents(snapshot, destination), /changed/);
 });
 
-test.skipIf(process.platform === "win32")("copy placement uses private POSIX modes", async () => {
+test("copy placement uses private POSIX modes", async () => {
   const { checkout, store } = await setup();
   const destination = join(checkout, "nested", ".env");
 
@@ -166,24 +157,6 @@ test.skipIf(process.platform === "win32")("copy placement uses private POSIX mod
   for (const file of [store, destination]) expect((await lstat(file)).mode & 0o777).toBe(0o600);
   expect((await lstat(join(checkout, "nested"))).mode & 0o777).toBe(0o700);
 });
-
-test.skipIf(process.platform !== "win32")(
-  "copy placement restricts Windows file ACLs",
-  async () => {
-    const { checkout, store } = await setup();
-    const destination = join(checkout, ".env");
-
-    await createFsPlacementAdapter("copy", checkout, undefined, () => 1800000000000).place(
-      store,
-      destination,
-      async () => {},
-    );
-
-    for (const file of [store, destination]) {
-      expect(execFileSync("icacls", [file])).not.toContain("(I)");
-    }
-  },
-);
 
 test("inspection reports a regular file beside a missing store as detached", async () => {
   const { checkout, store } = await setup();

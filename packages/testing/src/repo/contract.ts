@@ -43,7 +43,7 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
         const checkout = await requireCheckout(repo, root);
         await writeFile(join(root, ".gitignore"), ".env\n");
         await writeFile(join(root, ".env"), "A=1");
-        const names = process.platform === "win32" ? [] : ["aux", "a:b", "trail "];
+        const names = ["aux", "a:b", "trail "];
 
         for (const name of [...names, "unreadable"]) {
           await mkdir(join(root, name));
@@ -53,13 +53,12 @@ export function repoContract(name: string, factory: (root: string) => Promise<IR
         const blocked = join(root, "unreadable");
 
         try {
-          if (process.platform !== "win32") await chmod(blocked, 0);
+          await chmod(blocked, 0);
           const files = await repo.envFiles(checkout);
           expect(files).toContain(".env");
           for (const name of names) expect(files).not.toContain(`${name}/.env`);
 
-          if (process.platform !== "win32" && process.getuid?.() !== 0)
-            expect(files).not.toContain("unreadable/.env");
+          if (process.getuid?.() !== 0) expect(files).not.toContain("unreadable/.env");
         } finally {
           await chmod(blocked, 0o700);
         }

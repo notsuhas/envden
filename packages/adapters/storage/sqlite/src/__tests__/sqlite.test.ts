@@ -183,10 +183,10 @@ test("startup repairs existing directory, database and sidecar modes", () => {
     chmodSync(join(dir, "envden.sqlite"), 0o644);
     chmodSync(join(dir, "identity.json"), 0o644);
     const reopened = createSqliteStorageAdapter(dir, 0);
-    if (process.platform !== "win32") expect(statSync(dir).mode & 0o777).toBe(0o700);
+    expect(statSync(dir).mode & 0o777).toBe(0o700);
 
     for (const name of ["identity.json", "envden.sqlite", "envden.sqlite-wal", "envden.sqlite-shm"])
-      if (process.platform !== "win32") expect(statSync(join(dir, name)).mode & 0o777).toBe(0o600);
+      expect(statSync(join(dir, name)).mode & 0o777).toBe(0o600);
 
     reopened.close();
   } finally {

@@ -7,15 +7,6 @@ export const INSTALL_CHANNELS = [
   { id: "macos", label: "macOS", commands: [SHELL, BREW] },
   { id: "linux", label: "Linux", commands: [SHELL, BREW] },
   {
-    id: "windows",
-    label: "Windows",
-    commands: [
-      `irm ${SITE_URL}/install.ps1 | iex`,
-      "scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket; scoop install notsuhas/envden",
-    ],
-  },
-  { id: "npm", label: "npm", commands: ["npm i -g envden"] },
-  {
     id: "docker",
     label: "Docker",
     commands: [
@@ -26,8 +17,6 @@ export const INSTALL_CHANNELS = [
 ];
 
 export function defaultChannel(userAgent: string): number {
-  if (/windows/iu.test(userAgent)) return 2;
-
   if (/linux/iu.test(userAgent) && !/android/iu.test(userAgent)) return 1;
 
   return 0;

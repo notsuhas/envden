@@ -2,12 +2,7 @@ import { join, dirname, resolve } from "node:path";
 import { EnvdenError } from "@envden/core/errors";
 import { optionalRead } from "../state/store/files.ts";
 
-const managers = {
-  brew: ["brew", "upgrade", "envden"],
-  npm: ["npm", "i", "-g", "envden@latest"],
-  scoop: ["scoop", "update", "envden"],
-  winget: ["winget", "upgrade", "envden"],
-};
+const BREW_UPGRADE = ["brew", "upgrade", "envden"];
 
 export async function installMethod(home: string, recorded?: string, binary = process.execPath) {
   const detected = detectedMethod(binary, home);
@@ -17,15 +12,9 @@ export async function installMethod(home: string, recorded?: string, binary = pr
     recorded ??
     process.env.ENVDEN_INSTALL_METHOD ??
     (await optionalRead(join(home, "install-method"))) ??
-    detectedMethod(binary, home);
+    detected;
 
-  if (
-    value !== "script" &&
-    value !== "brew" &&
-    value !== "npm" &&
-    value !== "scoop" &&
-    value !== "winget"
-  )
+  if (value !== "script" && value !== "brew")
     throw new EnvdenError(
       "INVALID_INPUT",
       "Install method is unknown; reinstall using your installer",
@@ -33,15 +22,11 @@ export async function installMethod(home: string, recorded?: string, binary = pr
 
   return value === "script"
     ? { kind: "script" as const }
-    : { kind: "manager" as const, command: managers[value] };
+    : { kind: "manager" as const, command: BREW_UPGRADE };
 }
 
 function detectedMethod(binary: string, home: string) {
-  const normalized = binary.replaceAll("\\", "/");
-
-  if (/\/Cellar\/envden\//.test(normalized)) return "brew";
-
-  if (/\/Microsoft\/WinGet\/(Packages|Links)\//i.test(normalized)) return "winget";
+  if (/\/Cellar\/envden\//.test(binary)) return "brew";
 
   return resolve(dirname(binary)) === resolve(home, "bin") ? "script" : undefined;
 }

@@ -56,8 +56,8 @@
   "supportEntry": [
     "apps/cli/scripts/{build-all,cli-reference,e2e,smoke,targets}.ts",
     "scripts/ci/changes.ts",
-    "scripts/release/{checksums,homebrew-formula,scoop-manifest,npm-package,publish-channels}.ts",
-    "scripts/release/publication/{run,npm}.ts",
+    "scripts/release/{checksums,homebrew-formula,publish-channels}.ts",
+    "scripts/release/publication/run.ts",
     "tools/test-temp/preload.ts"
   ]
 }

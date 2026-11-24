@@ -39,7 +39,7 @@ The per-device home folder that holds the real env files for every repo, plus th
 _Avoid_: cache, local vault
 
 **Placement**:
-How a store file appears in a checkout: **link mode** (a symlink into the store, the default) or **copy mode** (a real copy, for places without symlinks: locked-down Windows, containers, sandboxes).
+How a store file appears in a checkout: **link mode** (a symlink into the store, the default) or **copy mode** (a real copy, for places without symlinks: containers, sandboxes).
 _Avoid_: materialize, fallback mode
 
 **Base**:

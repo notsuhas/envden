@@ -12,7 +12,6 @@
         "oxlint": "1.93.0",
         "typescript": "7.0.2",
         "vite-plus": "1.6.0",
-        "zod": "4.6.7",
       },
     },
     "apps/cli": {

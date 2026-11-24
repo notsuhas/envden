@@ -11,7 +11,7 @@ import { RELEASE_REPOSITORY } from "../github.ts";
 import { runUpdateCheck } from "../run.ts";
 import { currentReleasePlatform } from "../self/platform.ts";
 import { selfUpdate } from "../self.ts";
-import { replaceBinary, cleanupOldBinary } from "../replace.ts";
+import { replaceBinary } from "../replace.ts";
 
 const fixtureClock = () => 1800000000000;
 
@@ -40,8 +40,7 @@ for (const valid of [true, false])
     });
 
     const build = new TextEncoder().encode("new binary");
-    const platform = currentReleasePlatform();
-    const asset = `envden-${platform}${platform.startsWith("windows-") ? ".exe" : ""}`;
+    const asset = `envden-${currentReleasePlatform()}`;
 
     try {
       await atomicWrite(join(adapters.home, "install-method"), "script", fixtureClock);
@@ -53,7 +52,7 @@ for (const valid of [true, false])
         run: async (command) => {
           expect(command).toEqual(
             command[1] === "--version"
-              ? [binary + ".envden-new" + (process.platform === "win32" ? ".exe" : ""), "--version"]
+              ? [binary + ".envden-new", "--version"]
               : [binary, "update", "--post-install"],
           );
         },
@@ -113,105 +112,69 @@ test("fresh update check does not configure a vault", async () => {
   }
 });
 
-test("Windows replacement keeps the old executable for next-start cleanup", async () => {
-  const root = await mkdtemp(join(tmpdir(), "envden-exe-"));
+test("replacement refuses an unstartable binary and restores after failed post-install", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-replace-"));
+  const binary = join(root, "envden");
 
   try {
-    const binary = join(root, "envden.exe");
     await atomicWrite(binary, "old", fixtureClock);
 
-    await replaceBinary(
-      binary,
-      new TextEncoder().encode("new"),
-      true,
-      async () => {},
-      undefined,
-      fixtureClock,
+    await Promise.resolve(
+      expect(
+        replaceBinary(
+          binary,
+          new TextEncoder().encode("bad"),
+          async () => {
+            throw new Error("cannot start");
+          },
+          undefined,
+          fixtureClock,
+        ),
+      ).rejects.toThrow(),
     );
 
-    expect(await readFile(binary, "utf8")).toBe("new");
-    expect(await readFile(binary + ".envden-old", "utf8")).toBe("old");
-    await cleanupOldBinary(binary, true);
-    expect(await Bun.file(binary + ".envden-old").exists()).toBe(false);
+    expect(await readFile(binary, "utf8")).toBe("old");
+
+    await Promise.resolve(
+      expect(
+        replaceBinary(
+          binary,
+          new TextEncoder().encode("new"),
+          async () => {},
+          async () => {
+            throw new Error("post-install failed");
+          },
+          fixtureClock,
+        ),
+      ).rejects.toThrow(),
+    );
+
+    expect(await readFile(binary, "utf8")).toBe("old");
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-for (const windows of [false, true])
-  test(`replacement refuses an unstartable binary and restores after failed post-install: ${windows}`, async () => {
-    const root = await mkdtemp(join(tmpdir(), "envden-replace-"));
-    const binary = join(root, "envden");
+test("backup failure cleans staged binary", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-backup-"));
+  const binary = join(root, "envden");
 
-    try {
-      await atomicWrite(binary, "old", fixtureClock);
+  try {
+    await atomicWrite(binary, "old", fixtureClock);
+    await mkdir(binary + ".envden-old");
 
-      await Promise.resolve(
-        expect(
-          replaceBinary(
-            binary,
-            new TextEncoder().encode("bad"),
-            windows,
-            async () => {
-              throw new Error("cannot start");
-            },
-            undefined,
-            fixtureClock,
-          ),
-        ).rejects.toThrow(),
-      );
+    await Promise.resolve(
+      expect(
+        replaceBinary(binary, new Uint8Array([1]), async () => {}, undefined, fixtureClock),
+      ).rejects.toThrow(),
+    );
 
-      expect(await readFile(binary, "utf8")).toBe("old");
-
-      await Promise.resolve(
-        expect(
-          replaceBinary(
-            binary,
-            new TextEncoder().encode("new"),
-            windows,
-            async () => {},
-            async () => {
-              throw new Error("post-install failed");
-            },
-            fixtureClock,
-          ),
-        ).rejects.toThrow(),
-      );
-
-      expect(await readFile(binary, "utf8")).toBe("old");
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  });
-
-for (const windows of [false, true])
-  test(`backup failure cleans staged binary: ${windows}`, async () => {
-    const root = await mkdtemp(join(tmpdir(), "envden-backup-"));
-    const binary = join(root, "envden");
-
-    try {
-      await atomicWrite(binary, "old", fixtureClock);
-      await mkdir(binary + ".envden-old");
-
-      await Promise.resolve(
-        expect(
-          replaceBinary(
-            binary,
-            new Uint8Array([1]),
-            windows,
-            async () => {},
-            undefined,
-            fixtureClock,
-          ),
-        ).rejects.toThrow(),
-      );
-
-      expect(await readFile(binary, "utf8")).toBe("old");
-      expect((await readdir(root)).some((name) => name.includes("envden-new"))).toBe(false);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  });
+    expect(await readFile(binary, "utf8")).toBe("old");
+    expect((await readdir(root)).some((name) => name.includes("envden-new"))).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
 test("concurrent updates refuse the second before downloading", async () => {
   const root = await mkdtemp(join(tmpdir(), "envden-concurrent-update-"));

@@ -56,8 +56,7 @@ async function rerun(installed: number | undefined, saved: string) {
       installed,
     );
 
-    const text = process.platform === "win32" ? Buffer.from(content, "utf16le") : content;
-    await atomicWrite(serviceFile(process.platform, root, adapters.home)!, text, clock);
+    await atomicWrite(serviceFile(process.platform, root)!, content, clock);
   }
 
   try {

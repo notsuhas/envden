@@ -148,7 +148,7 @@ function global:prompt {
   if ($changed) {
     $offered = ${psQuote(join(state, "track-offered"))}
     foreach ($root in @(Get-Content -LiteralPath ${psQuote(join(state, "track-offers"))} -ErrorAction SilentlyContinue)) {
-      if ($root -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($root.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })))) {
+      if ($root -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($root.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::Ordinal))) {
         if (@(Get-Content -LiteralPath $offered -ErrorAction SilentlyContinue) -cnotcontains $root) {
           Write-Host 'envden: env files found; run envden track'
           Add-Content -LiteralPath $offered -Value $root

@@ -91,7 +91,7 @@ A new capability is an interface change, so it also needs a contract case and a 
 - **Secrets in errors.** Throw `EnvdenError` with a `code` and fixed message text, and put the underlying error in `cause`. Never put env file contents, keys, tokens or passwords in a message, a log line or an error field. That includes command output you would otherwise echo. Use a length, count or hash.
 - **Expected outcomes are not errors.** "Not found" and "not ready" are return values. Throw only for failures.
 - **Fail closed.** When a check can't be made, refuse. A network adapter that can't read its status reports not ready, and `expose` rejects. Placement refuses a path outside the checkout. A keychain that can't confirm a deletion throws.
-- **Windows paths.** Build paths with `node:path`, never by joining strings with `/`. Symlinks may be unavailable, and file modes mean nothing there: private files need ACLs.
+- **Paths.** Build paths with `node:path`, never by joining strings with `/`. Symlinks may be unavailable, so check before relying on them.
 - **Paths from outside.** A path that arrived from the server or a repo is input. Reject `..` and absolute paths, `lstat` before writing, and don't follow symlinks out of the checkout.
 - **Commands.** Run external tools with an argument array, never through a shell string. Take the runner as an argument so tests can replace it.
 - **Repeats.** Install, remove and delete run twice must leave the same result as once.

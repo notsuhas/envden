@@ -29,7 +29,7 @@ export async function installHostService(
     options.port,
   );
 
-  const path = serviceFile(options.platform, options.userHome, options.home)!;
+  const path = serviceFile(options.platform, options.userHome)!;
 
   if (definition.kind === "launchd") {
     await options.write(path, definition.content, now);
@@ -42,16 +42,11 @@ export async function installHostService(
       () => options.run(["launchctl", "bootstrap", `gui/${options.uid}`, path]),
       options.pause,
     );
-  } else if (definition.kind === "systemd") {
+  } else {
     await options.write(path, definition.content, now);
     await options.run(["systemctl", "--user", "daemon-reload"]);
     await options.run(["systemctl", "--user", "enable", "envden.service"]);
     await options.run(["systemctl", "--user", "restart", "envden.service"]);
-  } else {
-    await options.write(path, new Uint8Array(Buffer.from(definition.content, "utf16le")), now);
-    await options.run(["schtasks", "/End", "/TN", "envden"]).catch(() => {});
-    await options.run(["schtasks", "/Create", "/TN", "envden", "/XML", path, "/F"]);
-    await options.run(["schtasks", "/Run", "/TN", "envden"]);
   }
 
   return { log, path };

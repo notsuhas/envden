@@ -201,11 +201,11 @@ test("home-level tool folders and build output are skipped only where they are t
   expect(
     await scanned([
       "go/pkg/mod/github.com/x",
-      "AppData/Local/x",
+      "Library/Caches/x",
       "snap/app/x",
       "miniconda3/pkgs/x",
       "Work/go/app",
-      "Work/AppData",
+      "Work/Library",
       "target/svc",
       "dist/site",
       "Work/proj/package.json",
@@ -215,7 +215,7 @@ test("home-level tool folders and build output are skipped only where they are t
       "Work/rust/target/dep",
       "Work/app/node_modules/dep",
     ]),
-  ).toEqual(["Work/AppData", "Work/go/app", "dist/site", "target/svc"]);
+  ).toEqual(["Work/Library", "Work/go/app", "dist/site", "target/svc"]);
 });
 
 // a home with dozens of repos is identified several at a time, never more than the cap

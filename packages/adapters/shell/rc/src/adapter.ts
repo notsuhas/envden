@@ -53,9 +53,7 @@ class RcShellAdapter implements IShellAdapter {
       case "powershell":
         return (this.profile ??=
           this.resolveProfile() ??
-          (process.platform === "win32"
-            ? join(this.home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1")
-            : join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1")));
+          join(this.home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1"));
     }
   }
 

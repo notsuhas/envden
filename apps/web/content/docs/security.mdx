@@ -25,11 +25,11 @@ The master password and a random secret key protect the recovery envelope. Argon
 
 Print the kit PDF or keep it somewhere safe and separate from your devices, then delete the file. Writing the password on it makes the kit sufficient to open the vault. See [Manage the vault](/docs/vault).
 
-Local store files use `0600` permissions and directories use `0700`, with ACLs on Windows.
+Local store files use `0600` permissions and directories use `0700`.
 
 ## Where device keys are kept
 
-Device keys are private files in `~/.envden/state/keys`, like SSH keys in `~/.ssh`. Each file is `0600` in a `0700` folder, with ACLs on Windows, so only your user can read them. `envden doctor` fails if that changes.
+Device keys are private files in `~/.envden/state/keys`, like SSH keys in `~/.ssh`. Each file is `0600` in a `0700` folder, so only your user can read them. `envden doctor` fails if that changes.
 
 envden doesn't use the OS keychain. Your synced env files are plaintext on disk already, and any program running as you could ask the keychain for the keys by running envden. A keychain would add prompts after every update without adding protection. Full-disk encryption protects the key files the same way it protects your env files.
 
@@ -40,7 +40,7 @@ envden doesn't use the OS keychain. Your synced env files are plaintext on disk 
 - The server can deny service or show devices separate branches of history. A device stops when it sees the other branch. A server colluding with a removed device or an old recovery key can fork history.
 - Encryption doesn't hide rough file sizes, timing, device count or device names from the server.
 - A stolen server password record permits offline password guessing. A correct guess still needs the kit's secret key to open the recovery envelope. Protect server backups like a password database.
-- On Windows, or when FFI is unavailable, a local process can race a parent-directory replacement after the final path check.
+- When FFI is unavailable, a local process can race a parent-directory replacement after the final path check.
 
 ## Cryptographic implementation
 

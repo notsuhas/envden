@@ -15,7 +15,7 @@ export async function downloadUpdate(
 
   if (compareSemver(latest, running) <= 0) return { kind: "current" as const };
 
-  const name = `envden-${platform}${platform.startsWith("windows-") ? ".exe" : ""}`;
+  const name = `envden-${platform}`;
 
   const sums = await fetcher(releaseAssetUrl(latest, "SHA256SUMS"), {
     redirect: "follow",

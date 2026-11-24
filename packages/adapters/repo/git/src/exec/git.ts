@@ -41,7 +41,6 @@ export async function gitSession(root: string, config: TConfigEntry[] = []) {
           GIT_OPTIONAL_LOCKS: "0",
           GIT_PAGER: "cat",
           GIT_CONFIG_NOSYSTEM: "1",
-          // git reads /dev/null as an empty file on every platform, Git for Windows included
           GIT_CONFIG_GLOBAL: "/dev/null",
           ...configEnvironment(config),
         },

@@ -5,7 +5,7 @@ import { saveState } from "../../state/store/repository.ts";
 
 // Tailscale and every device saved the installed port, so a rerun keeps it
 export async function rehostServer(adapters: TAdapters, state: ILocalState) {
-  const installed = await installedServicePort(process.platform, adapters.userHome, adapters.home);
+  const installed = await installedServicePort(process.platform, adapters.userHome);
 
   if (installed !== undefined) {
     await adapters.hostServer(installed);

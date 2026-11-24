@@ -1,7 +1,5 @@
 export function releasePlatform(platform: string, arch: string, glibc?: string) {
-  const os = platform === "win32" ? "windows" : platform;
-
-  return `${os}-${arch}${platform === "linux" && !glibc ? "-musl" : ""}`;
+  return `${platform}-${arch}${platform === "linux" && !glibc ? "-musl" : ""}`;
 }
 
 export function currentReleasePlatform() {

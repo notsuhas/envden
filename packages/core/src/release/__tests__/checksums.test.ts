@@ -5,10 +5,10 @@ const a = "a".repeat(64);
 const b = "B".repeat(64);
 
 test("reads text and binary entries with either line ending", () => {
-  expect(parseSha256Sums(`${a}  envden-linux-x64\r\n${b} *envden-windows-x64.exe\n`)).toEqual(
+  expect(parseSha256Sums(`${a}  envden-linux-x64\r\n${b} *envden-linux-arm64\n`)).toEqual(
     new Map([
       ["envden-linux-x64", a],
-      ["envden-windows-x64.exe", "b".repeat(64)],
+      ["envden-linux-arm64", "b".repeat(64)],
     ]),
   );
 });

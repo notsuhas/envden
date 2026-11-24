@@ -13,17 +13,12 @@ import { placeInRoot } from "@envden/core/paths";
 import { EnvdenError } from "@envden/core/errors";
 import { openParent, writeAt } from "../native/directory.ts";
 import { libc } from "../native/libc.ts";
-import { spawnTrusted } from "@envden/core/process";
-import { userInfo } from "node:os";
 
 export function backupContents(
   root: string,
   directory: string | undefined,
   contents: Uint8Array,
-  runtime = {
-    libc,
-    spawn: (args: string[]) => spawnTrusted("icacls", args, { sync: true }).exitCode,
-  },
+  runtime = { libc },
   now: () => number,
 ) {
   if (!directory) throw new EnvdenError("INVALID_INPUT", "Backup directory is required");
@@ -48,15 +43,6 @@ export function backupContents(
       throw new EnvdenError("INVALID_INPUT", "Unsafe backup directory");
 
     chmodSync(path, 0o700);
-
-    const result = runtime.spawn([
-      path,
-      "/inheritance:r",
-      "/grant:r",
-      `${userInfo().username}:(OI)(CI)F`,
-    ]);
-
-    if (result !== 0) throw new EnvdenError("INVALID_INPUT", "Could not restrict backup access");
 
     writeFileSync(join(path, name), contents, { flag: "wx", mode: 0o600 });
   }
