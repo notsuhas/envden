@@ -11,10 +11,10 @@ import { installMethod } from "../install.ts";
 
 const fixtureClock = () => 1800000000000;
 
-test("release assets distinguish musl, glibc and Windows", () => {
+test("release assets distinguish musl and glibc", () => {
   expect(releasePlatform("linux", "arm64")).toBe("linux-arm64-musl");
   expect(releasePlatform("linux", "x64", "2.36")).toBe("linux-x64");
-  expect(releasePlatform("win32", "x64")).toBe("windows-x64");
+  expect(releasePlatform("darwin", "arm64")).toBe("darwin-arm64");
 });
 
 test("installer environment precedes a stale marker", async () => {
@@ -129,50 +129,6 @@ test("refresh rewrites an installed service and hooks with the stable Homebrew p
     expect(services).toBe(2);
     expect(adapters.executable).toBe("/opt/homebrew/bin/envden");
     expect(new Set(hooks)).toEqual(new Set(["/opt/homebrew/bin/envden"]));
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-// the installer writes the task definition as UTF-16LE, which schtasks expects
-test("refresh keeps the port of a Windows task definition", async () => {
-  const { serviceDefinition } = await import("../../agent/service/generate.ts");
-  const root = await mkdtemp(join(tmpdir(), "envden-refresh-task-"));
-
-  try {
-    const adapters = createAdapters(
-      { home: join(root, "home"), userHome: root, keychain: createMemoryKeychainAdapter([]) },
-      fixtureClock,
-    );
-
-    const ports: number[] = [];
-
-    adapters.hostServer = async (port) => {
-      ports.push(port);
-
-      return { log: "", path: "" };
-    };
-
-    adapters.shell = () => ({
-      id: "test",
-      installed: async () => false,
-      install: async () => {},
-      uninstall: async () => {},
-      rcPath: () => "",
-      hookSnippet: () => "",
-    });
-
-    const { content } = serviceDefinition("win32", "C:\\envden.exe", "C:\\data", "C:\\log", 51234);
-
-    await atomicWrite(
-      join(adapters.home, "envden-task.xml"),
-      Buffer.from(content, "utf16le"),
-      fixtureClock,
-    );
-
-    await refreshInstallation(adapters, "win32");
-
-    expect(ports).toEqual([51234]);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

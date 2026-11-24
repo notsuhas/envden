@@ -41,14 +41,12 @@ export async function atomicWrite(
 
     await rename(temporary, path);
 
-    if (process.platform !== "win32") {
-      const directory = await open(dirname(path), "r");
+    const directory = await open(dirname(path), "r");
 
-      try {
-        await directory.sync();
-      } finally {
-        await directory.close();
-      }
+    try {
+      await directory.sync();
+    } finally {
+      await directory.close();
     }
   } finally {
     await rm(temporary, { force: true });

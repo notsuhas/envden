@@ -4,7 +4,6 @@ import { boundedFetch } from "./fetch.ts";
 import { cacheOffers } from "./offers.ts";
 import { runUpdateCheck } from "../updates/run.ts";
 import { updateStatus } from "../updates/status.ts";
-import { cleanupOldBinary } from "../updates/replace.ts";
 import { withStateLock } from "../state/lock/lock.ts";
 import { sanitizeTerminal } from "../output/sanitize.ts";
 import { sep, resolve } from "node:path";
@@ -20,7 +19,6 @@ async function lockedcommandNotice(
   refresh = false,
   cwd?: string,
 ) {
-  await cleanupOldBinary(process.execPath, process.platform === "win32");
   const state = await loadState(adapters.home);
   if (!state) return { repos: [], update: await updateStatus(adapters.home) };
 

@@ -32,8 +32,7 @@ export async function installAgent(userHome: string, now: () => number): Promise
   await mkdir(dirname(link), { recursive: true });
 
   // Codex reads ~/.agents/skills itself; ~/.claude/skills often links to that same folder
-  if (!(await lstat(link).catch(missing)))
-    await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
+  if (!(await lstat(link).catch(missing))) await symlink(target, link, "dir");
   else if ((await realpath(link).catch(missing)) !== (await realpath(target)))
     throw new EnvdenError("CONFLICT", "~/.claude/skills/envden already holds a different skill");
 }

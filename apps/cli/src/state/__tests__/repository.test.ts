@@ -19,11 +19,9 @@ test("atomic state stays private and replaces old bytes", async () => {
     await saveState(home, state, fixtureClock);
     expect(await loadState(home)).toEqual(state);
 
-    if (process.platform !== "win32")
-      expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
+    expect((await stat(join(home, "state"))).mode & 0o777).toBe(0o700);
 
-    if (process.platform !== "win32")
-      expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
+    expect((await stat(join(home, "state", "device.json"))).mode & 0o777).toBe(0o600);
   } finally {
     await rm(home, { recursive: true, force: true });
   }
@@ -95,7 +93,7 @@ test("atomic writes preserve permissions on directories envden does not own", as
   try {
     await chmod(root, 0o755);
     await atomicWrite(join(root, "service"), "configuration", fixtureClock);
-    if (process.platform !== "win32") expect((await stat(root)).mode & 0o777).toBe(0o755);
+    expect((await stat(root)).mode & 0o777).toBe(0o755);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

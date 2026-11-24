@@ -32,13 +32,11 @@ test("local reads reject symlinks and distinguish missing files", async () => {
   try {
     await atomicWrite(join(home, "file"), "secret", fixtureClock);
 
-    if (process.platform !== "win32") {
-      await symlink(join(home, "file"), join(home, "link"));
+    await symlink(join(home, "file"), join(home, "link"));
 
-      await Promise.resolve(
-        expect(readBytes(join(home, "link"))).rejects.toMatchObject({ code: "INVALID_DATA" }),
-      );
-    }
+    await Promise.resolve(
+      expect(readBytes(join(home, "link"))).rejects.toMatchObject({ code: "INVALID_DATA" }),
+    );
 
     expect(await readBytes(join(home, "missing"))).toBeUndefined();
   } finally {

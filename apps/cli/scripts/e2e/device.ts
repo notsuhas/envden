@@ -26,7 +26,6 @@ export async function createDevice(root: string, name: string, env?: string): Pr
     checkout,
     env: {
       HOME: home,
-      USERPROFILE: home,
       XDG_CONFIG_HOME: join(home, ".config"),
       ENVDEN_HOME: join(root, name, "envden"),
       ENVDEN_NO_UPDATE_CHECK: "1",

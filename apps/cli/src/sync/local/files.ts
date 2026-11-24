@@ -39,14 +39,12 @@ export async function writeBytes(
   if (bytes === undefined) {
     await rm(path, { force: true });
 
-    if (process.platform !== "win32") {
-      const directory = await open(dirname(path), "r");
+    const directory = await open(dirname(path), "r");
 
-      try {
-        await directory.sync();
-      } finally {
-        await directory.close();
-      }
+    try {
+      await directory.sync();
+    } finally {
+      await directory.close();
     }
   } else await atomicWrite(path, bytes, now);
 }

@@ -15,7 +15,6 @@ export async function persistIdentity(dataDir: string, data: string, io = fs): P
 
   try {
     await io.link(temporary, join(dataDir, "identity.json"));
-    if (process.platform === "win32") return;
     const directory = await io.open(dataDir, "r");
 
     try {

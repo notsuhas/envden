@@ -1,5 +1,5 @@
 import { spawnTrusted } from "@envden/core/process";
-import { mkdtemp, mkdir, writeFile, rm, symlink, readFile, stat } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, delimiter } from "node:path";
 import { test, expect, spyOn } from "bun:test";
@@ -14,18 +14,6 @@ for (const [manager, binary, installer, replacement] of [
     "/opt/homebrew/bin/envden",
   ],
   ["brew", "/usr/local/bin/envden", "/usr/local/bin/brew", "/usr/local/bin/envden"],
-  [
-    "scoop",
-    "C:/Users/me/scoop/apps/envden/1/envden.exe",
-    "C:/Users/me/scoop/shims/scoop.cmd",
-    "C:/Users/me/scoop/shims/envden.exe",
-  ],
-  [
-    "winget",
-    "C:/Users/me/AppData/Local/Microsoft/WinGet/Packages/Envden_1/envden.exe",
-    "C:/Users/me/AppData/Local/Microsoft/WindowsApps/winget.exe",
-    "C:/Users/me/AppData/Local/Microsoft/WinGet/Links/envden.exe",
-  ],
 ])
   test(`${manager} pins installer and replacement without PATH`, async () => {
     const calls: string[][] = [];
@@ -64,150 +52,78 @@ test("an unpinned manager prints the manual command and executes nothing", async
 
   try {
     expect(
-      await managerUpdate(["npm", "i", "-g", "envden@latest"], "/checkout/envden", async () => {
+      await managerUpdate(["brew", "upgrade", "envden"], "/checkout/envden", async () => {
         throw new Error("must not ask");
       }),
     ).toEqual({ kind: "manual" });
 
-    expect(output.mock.calls.flat()).toContainEqual(
-      expect.stringContaining("npm i -g envden@latest"),
-    );
+    expect(output.mock.calls.flat()).toContainEqual(expect.stringContaining("brew upgrade envden"));
   } finally {
     output.mockRestore();
   }
 });
 
-for (const manager of ["brew", "npm", "scoop", "winget"]) {
-  test(`${manager} children exclude checkout interpreters and injected options`, async () => {
-    const root = await mkdtemp(join(tmpdir(), "envden-manager-"));
-    const before = { ...process.env };
+test("brew children exclude checkout interpreters and injected options", async () => {
+  const root = await mkdtemp(join(tmpdir(), "envden-manager-"));
+  const before = { ...process.env };
 
-    try {
-      const marker = join(root, "executed");
+  try {
+    const marker = join(root, "executed");
 
-      const checkout = join(root, "checkout");
-      await mkdir(join(checkout, ".git"), { recursive: true });
+    const checkout = join(root, "checkout");
+    await mkdir(join(checkout, ".git"), { recursive: true });
 
-      await writeFile(join(checkout, "node"), `#!/bin/sh\necho compromised > "${marker}"\n`, {
-        mode: 0o755,
-      });
+    await writeFile(join(checkout, "node"), `#!/bin/sh\necho compromised > "${marker}"\n`, {
+      mode: 0o755,
+    });
 
-      process.env.PATH = `${checkout}${delimiter}${before.PATH}`;
-      process.env.NODE_OPTIONS = "--require=checkout";
-      process.env.BUN_OPTIONS = "--preload=checkout";
-      process.env.npm_config_prefix = root;
-      process.env.HOMEBREW_BASH_COMMAND = join(root, "payload.sh");
-      process.env.NODE_PATH = root;
-      process.env.GIT_EXEC_PATH = root;
-      process.env.NPM_CONFIG_USERCONFIG = join(root, "npmrc");
-      const bin = process.platform === "win32" ? join(root, "npm") : join(root, "prefix", "bin");
-      const node = join(bin, process.platform === "win32" ? "node.exe" : "node");
-      await mkdir(bin, { recursive: true });
-      await symlink(process.execPath, node);
+    process.env.PATH = `${checkout}${delimiter}${before.PATH}`;
+    process.env.NODE_OPTIONS = "--require=checkout";
+    process.env.BUN_OPTIONS = "--preload=checkout";
+    process.env.npm_config_prefix = root;
+    process.env.HOMEBREW_BASH_COMMAND = join(root, "payload.sh");
+    process.env.NODE_PATH = root;
+    process.env.GIT_EXEC_PATH = root;
 
-      const cli =
-        process.platform === "win32"
-          ? join(bin, "node_modules", "npm", "bin", "npm-cli.js")
-          : join(root, "prefix", "lib", "node_modules", "npm", "bin", "npm-cli.js");
+    let calls = 0;
 
-      await mkdir(join(cli, ".."), { recursive: true });
-      await writeFile(cli, "process.exit(0)");
+    await managerUpdate(
+      ["brew", "upgrade", "envden"],
+      "/opt/homebrew/bin/envden",
+      async () => true,
+      async (_args, env, managerBin) => {
+        calls++;
+        expect(managerBin).toBeTruthy();
+        if (!env) throw new Error("Expected sanitized environment");
 
-      const binaries: Record<string, string> = {
-        brew: "/opt/homebrew/bin/envden",
-        npm: join(bin, "envden"),
-        scoop: "C:/Users/me/scoop/apps/envden/1/envden.exe",
-        winget: "C:/Users/me/AppData/Local/Microsoft/WinGet/Links/envden.exe",
-      };
+        expect(
+          Object.keys(env).some((key) =>
+            /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(key),
+          ),
+        ).toBe(false);
 
-      let calls = 0;
+        expect(env.PATH).not.toContain(checkout);
 
-      await managerUpdate(
-        [manager, "upgrade", "envden"],
-        binaries[manager]!,
-        async () => true,
-        async (args, env, managerBin) => {
-          calls++;
-          // The npm launcher needs the pinned Node directory on PATH during post-install.
-          expect(managerBin).toBeTruthy();
-          expect(env).toBeDefined();
-          if (!env) throw new Error("Expected sanitized environment");
+        // brew keeps the user's config so taps trusted with `brew trust` still load
+        expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeUndefined();
 
-          expect(
-            Object.keys(env ?? {}).some((key) =>
-              /^(node_options|bun_options|npm_config_.*|homebrew_.*|node_path|git_.*)$/i.test(key),
-            ),
-          ).toBe(false);
+        await spawnTrusted(["bun", "--version"], {
+          env,
+          stdout: "ignore",
+          stderr: "ignore",
+        }).exited;
+      },
+    );
 
-          expect(env?.PATH).not.toContain(checkout);
+    expect(calls).toBe(2);
+    expect(await Bun.file(marker).exists()).toBe(false);
+  } finally {
+    process.env = before;
+    await rm(root, { recursive: true, force: true });
+  }
+});
 
-          // brew keeps the user's config so taps trusted with `brew trust` still load
-          if (manager === "brew") expect(env.HOMEBREW_XDG_CONFIG_HOME).toBeUndefined();
-
-          if (manager === "npm" && calls === 1) {
-            expect(args.slice(0, 2).map((path) => path.replaceAll("\\", "/"))).toEqual(
-              [node, cli].map((path) => path.replaceAll("\\", "/")),
-            );
-
-            const config = args[args.indexOf("--userconfig") + 1]!;
-            expect(await readFile(config, "utf8")).toBe("");
-            await expectPrivateMode(config, 0o600);
-            expect(args).not.toContain("--ignore-scripts");
-            expect(await spawnTrusted(args.slice(0, 2), { env }).exited).toBe(0);
-          } else {
-            await spawnTrusted(["bun", "--version"], {
-              env,
-              stdout: "ignore",
-              stderr: "ignore",
-            }).exited;
-          }
-        },
-      );
-
-      expect(calls).toBe(2);
-      expect(await Bun.file(marker).exists()).toBe(false);
-    } finally {
-      process.env = before;
-      await rm(root, { recursive: true, force: true });
-    }
-  });
-}
-
-for (const missing of ["node", "cli"]) {
-  test(`npm refuses when the pinned ${missing} is missing`, async () => {
-    const root = await mkdtemp(join(tmpdir(), "envden-npm-missing-"));
-    const output = spyOn(console, "error").mockImplementation(() => {});
-
-    try {
-      const bin = join(root, "bin");
-      const cli = join(root, "lib", "node_modules", "npm", "bin", "npm-cli.js");
-      await mkdir(bin, { recursive: true });
-      await mkdir(join(cli, ".."), { recursive: true });
-
-      if (missing === "cli") await symlink(process.execPath, join(bin, "node"));
-      else await writeFile(cli, "process.exit(0)");
-
-      const result = await managerUpdate(
-        ["npm", "i", "-g", "envden@latest"],
-        join(bin, "envden"),
-        async () => {
-          throw new Error("Must not ask or execute");
-        },
-      );
-
-      expect(result).toEqual({ kind: "manual" });
-
-      expect(output.mock.calls.flat()).toContainEqual(
-        expect.stringContaining("npm i -g envden@latest"),
-      );
-    } finally {
-      output.mockRestore();
-      await rm(root, { recursive: true, force: true });
-    }
-  });
-}
-
-for (const variable of ["HOME", process.platform === "win32" ? "TEMP" : "TMPDIR"])
+for (const variable of ["HOME", "TMPDIR"])
   test(`manager updates refuse checkout ${variable} before consent or execution`, async () => {
     const root = await mkdtemp(join(tmpdir(), "envden-home-"));
     const before = process.env[variable];
@@ -229,7 +145,7 @@ for (const variable of ["HOME", process.platform === "win32" ? "TEMP" : "TMPDIR"
         `,
           ],
           {
-            env: { TMPDIR: join(root, "home"), TEMP: join(root, "home"), TMP: join(root, "home") },
+            env: { TMPDIR: join(root, "home") },
           },
         );
 
@@ -244,31 +160,25 @@ for (const variable of ["HOME", process.platform === "win32" ? "TEMP" : "TMPDIR"
 
       process.env[variable] = join(root, "home");
 
-      for (const manager of ["brew", "npm"]) {
-        expect(
-          await managerUpdate(
-            [manager, "upgrade", "envden"],
-            "/opt/homebrew/bin/envden",
-            async () => {
-              throw new Error("must not ask");
-            },
-            async () => {
-              throw new Error("must not execute");
-            },
-          ),
-        ).toEqual({ kind: "manual" });
+      expect(
+        await managerUpdate(
+          ["brew", "upgrade", "envden"],
+          "/opt/homebrew/bin/envden",
+          async () => {
+            throw new Error("must not ask");
+          },
+          async () => {
+            throw new Error("must not execute");
+          },
+        ),
+      ).toEqual({ kind: "manual" });
 
-        expect(output.mock.calls.flat()).toContainEqual(
-          expect.stringContaining(`${manager} upgrade envden`),
-        );
-      }
+      expect(output.mock.calls.flat()).toContainEqual(
+        expect.stringContaining("brew upgrade envden"),
+      );
     } finally {
       process.env[variable] = before;
       output.mockRestore();
       await rm(root, { recursive: true, force: true });
     }
   });
-
-async function expectPrivateMode(path: string, mode: number) {
-  if (process.platform !== "win32") expect((await stat(path)).mode & 0o777).toBe(mode);
-}

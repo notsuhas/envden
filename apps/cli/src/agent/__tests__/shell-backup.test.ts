@@ -28,7 +28,7 @@ test("CLI shell wiring backs up rc files in private conflicts storage", async ()
     expect(backups).toHaveLength(1);
     const backup = join(adapters.home, "conflicts", backups[0]!);
     expect(await readFile(backup, "utf8")).toBe(original);
-    if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
+    expect((await stat(backup)).mode & 0o777).toBe(0o600);
     await manageShell(adapters, "uninstall", "zsh");
     expect(await readFile(join(root, ".zshrc"), "utf8")).toBe(original);
   } finally {

@@ -38,7 +38,7 @@ async function relevantFiles(home: string, userHome: string) {
     join(home, "server.log"),
     `${join(home, "state")}${sep}`,
     join(home, "config.json"),
-    serviceFile(process.platform, userHome, home),
+    serviceFile(process.platform, userHome),
   ].filter((path) => path !== undefined);
 
   return Promise.all(paths.map(async (path) => ({ path, exists: await exists(path) })));

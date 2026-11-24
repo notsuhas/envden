@@ -19,7 +19,6 @@ const homeLevel = new Set([
   "Pictures",
   "Music",
   "Movies",
-  "AppData",
   "snap",
   "go",
   "miniconda3",

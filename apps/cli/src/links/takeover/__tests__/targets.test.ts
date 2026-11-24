@@ -8,33 +8,30 @@ import { offerTakeover } from "../offer.ts";
 import { fixture } from "./fixture.ts";
 
 // 1Password serves local .env files as named pipes; reading one blocks while holding the state lock
-test.skipIf(process.platform === "win32")(
-  "a link to a named pipe is never offered or opened",
-  async () => {
-    const f = await fixture();
+test("a link to a named pipe is never offered or opened", async () => {
+  const f = await fixture();
 
-    try {
-      const pipe = join(f.root, "op.env");
-      execTrustedSync("mkfifo", [pipe]);
-      const state = emptyState("test");
-      const checkout = await f.checkout("app", "host/app", pipe);
-      const links = await linkCheckout(f.adapters, state, checkout, async () => true);
-      const questions: string[] = [];
+  try {
+    const pipe = join(f.root, "op.env");
+    execTrustedSync("mkfifo", [pipe]);
+    const state = emptyState("test");
+    const checkout = await f.checkout("app", "host/app", pipe);
+    const links = await linkCheckout(f.adapters, state, checkout, async () => true);
+    const questions: string[] = [];
 
-      const left = await offerTakeover(f.adapters, state, links, false, async (question) => {
-        questions.push(question);
+    const left = await offerTakeover(f.adapters, state, links, false, async (question) => {
+      questions.push(question);
 
-        return true;
-      });
+      return true;
+    });
 
-      expect(questions).toEqual([]);
-      expect(left).toHaveLength(1);
-      expect(await readlink(join(checkout.root, ".env"))).toBe(pipe);
-    } finally {
-      await f.close();
-    }
-  },
-);
+    expect(questions).toEqual([]);
+    expect(left).toHaveLength(1);
+    expect(await readlink(join(checkout.root, ".env"))).toBe(pipe);
+  } finally {
+    await f.close();
+  }
+});
 
 test("a link to another env file in the same checkout is left alone and keeps working", async () => {
   const f = await fixture([".env", ".env.development"]);
