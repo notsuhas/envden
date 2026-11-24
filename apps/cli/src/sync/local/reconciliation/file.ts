@@ -10,8 +10,11 @@ import { deriveFileDecision } from "./file-decision.ts";
 import { resolveContent } from "./resolution.ts";
 import { consumeRepair } from "../../remote/repairs.ts";
 import { deriveFastForward } from "./fast-forward.ts";
+import { quietStore } from "./operation/quiet.ts";
 
 type TTarget = TSyncContext["state"]["links"][number];
+
+const HELD = { changed: 0, conflicts: 0, held: true } as const;
 
 export async function reconcileFile(
   context: TSyncContext,
@@ -21,16 +24,16 @@ export async function reconcileFile(
   repairs: ReadonlySet<string>,
   choose?: Parameters<typeof resolveContent>[5],
 ) {
+  const fastForwardOnly = context.options.fastForwardOnly;
+  if (fastForwardOnly && !(await quietStore(context.adapters.home, store))) return HELD;
+
   await resumeFile(context, store);
 
   const snapshot = await readFileState(context, targets, store, entry);
   const { base, server, stored, snapshots, previous } = snapshot;
 
-  if (
-    context.options.fastForwardOnly &&
-    (await fastForward(context, snapshot, store, entry, repairs)) === "refuse"
-  )
-    return { changed: Number(snapshot.restored), conflicts: 0, held: true };
+  if (fastForwardOnly && (await fastForward(context, snapshot, store, entry, repairs)) === "refuse")
+    return HELD;
 
   if (
     await blocksFile(
@@ -87,6 +90,7 @@ async function fastForward(
 
   return deriveFastForward({
     ...decision,
+    copies: snapshot.snapshots,
     previous: snapshot.previous,
     server: snapshot.server,
     published: entry !== undefined,

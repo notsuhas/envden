@@ -164,6 +164,12 @@ for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
       expect(first).toContain("envden: pulled api/.env (2 keys)\n");
       expect(first).not.toContain("\x1b");
       expect(await run()).toBe("envden: update required; run envden update\n");
+
+      const pulled = join(state, "notice-pulled");
+      const samePrompt = `${snippet}\nprintf 'envden: pulled web/.env\\n' > '${pulled}'\n_envden_notice`;
+      const child = spawnTrusted([shell, "-c", samePrompt], { cwd: home, stdout: "pipe" });
+      expect(await child.exited).toBe(0);
+      expect(await new Response(child.stdout).text()).toEndWith("envden: pulled web/.env\n");
     } finally {
       await rm(home, { recursive: true, force: true });
     }

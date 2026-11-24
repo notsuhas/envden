@@ -8,6 +8,8 @@ import { commandNotice } from "../../notice/command.ts";
 import { cachedNotice } from "../../notice/cache.ts";
 import { setConfig } from "../../settings/config.ts";
 import { atomicWrite, optionalRead } from "../../state/store/files.ts";
+import { storePath } from "../../store/path.ts";
+import { basePath } from "../local/files.ts";
 
 const fixture = createSharedFixture();
 
@@ -21,6 +23,8 @@ test("the shell refresh names changed keys and writes nothing unless auto-pull i
   const target = join(f.targets[0]!.root, ".env");
   const pulled = join(f.second.home, "state", "notice-pulled");
 
+  await atomicWrite(f.aStore, "TOKEN=server\n", f.now);
+  await push(f.first, f.opts);
   await atomicWrite(f.aStore, "TOKEN=server\nSTRIPE_KEY=sk_test_never_shown\n", f.now);
   await push(f.first, f.opts);
   // A freshly joined device has no saved file lists, only its checkpoint.
@@ -51,5 +55,22 @@ test("the shell refresh names changed keys and writes nothing unless auto-pull i
   expect(await readFile(target, "utf8")).toBe("TOKEN=mine\nSTRIPE_KEY=sk_test_never_shown\n");
   expect(await optionalRead(pulled)).toBeUndefined();
   expect(await conflictRecords(f.second.home)).toEqual([]);
+  expect(await cachedNotice(f.second.home)).toContain("1 key changed on first (TOKEN)");
+});
+
+test("auto-pull leaves a file with an unfinished sync record for a manual pull", async () => {
+  const f = await fixture(["copy"]);
+  const target = join(f.targets[0]!.root, ".env");
+  const store = storePath(f.second.home, "github.com/example/project", ".env");
+  const journal = basePath(f.second.home, store) + ".pending";
+
+  await setConfig("auto-pull", "on", f.second.home, f.now, false);
+  await atomicWrite(f.aStore, "TOKEN=server\n", f.now);
+  await push(f.first, f.opts);
+  await atomicWrite(journal, "interrupted", f.now);
+  await backgroundRefresh(f);
+
+  expect(await readFile(target, "utf8")).toBe("TOKEN=local-test-value\n");
+  expect(await optionalRead(journal)).toBe("interrupted");
   expect(await cachedNotice(f.second.home)).toContain("1 key changed on first (TOKEN)");
 });

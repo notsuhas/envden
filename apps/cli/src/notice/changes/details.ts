@@ -26,9 +26,9 @@ export async function changedFile(
   entry: p.IFileEntry,
   name: { repoId: string; path: string },
   applied: string | undefined,
-  before?: TSyncContext["checkpoint"],
+  known?: ReadonlyMap<string, p.IFiles>,
 ): Promise<TChangedFile> {
-  const device = await entryAuthor(context, entry, before).catch(() => undefined);
+  const device = await entryAuthor(context, entry, known).catch(() => undefined);
 
   return {
     repoId: name.repoId,

@@ -113,7 +113,7 @@ By default the notice only warns. To have the background refresh pull for you:
 envden config auto-pull on
 ```
 
-Auto-pull only takes a newer version when your copy is unchanged since the last sync. If you edited the file, the server deleted it, or it has a conflict, nothing is written and the warning stays until you run `envden pull`. Each file it pulls is reported on your next prompt:
+Auto-pull only takes a newer version when your copy is unchanged since the last sync. If you edited or deleted the file, the server deleted it, or it has a conflict, nothing is written and the warning stays until you run `envden pull`. Files new to this device also wait for `envden pull`. Each file it pulls is reported on your next prompt:
 
 ```text
 envden: pulled api/.env (2 keys)

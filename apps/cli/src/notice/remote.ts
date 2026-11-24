@@ -29,8 +29,9 @@ type TRemoteNotice = z.infer<typeof remoteNoticeSchema>;
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
   const before = context.checkpoint;
-  await acceptHead(context, undefined, true);
-  const result = await pendingRepos(context, before);
+  const { fileLists } = await acceptHead(context, undefined, true);
+  fileLists.set(text(before.header.body.filesHash), before.files);
+  const result = await pendingRepos(context, fileLists);
   const waiting = (await joinRequests(context.client)).length;
 
   await withStateLock(adapters.home, async () => {
@@ -56,7 +57,7 @@ export async function settleRemoteNotice(context: TSyncContext) {
   );
 }
 
-async function pendingRepos(context: TSyncContext, before?: TSyncContext["checkpoint"]) {
+async function pendingRepos(context: TSyncContext, known?: ReadonlyMap<string, p.IFiles>) {
   const applied = await appliedFiles(context.adapters.home);
   const rules = (await readConfig(context.adapters.home))["env-files"];
 
@@ -76,7 +77,7 @@ async function pendingRepos(context: TSyncContext, before?: TSyncContext["checkp
       acceptsEnvPath(name.path, rules) &&
       receivesFile(context.state, name)
     )
-      files.push(await changedFile(context, entry, name, previous, before));
+      files.push(await changedFile(context, entry, name, previous, known));
   }
 
   const repos = [...new Set(files.map((file) => file.repoId))];

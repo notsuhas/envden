@@ -5,7 +5,7 @@ type TBytes = Uint8Array | undefined;
 interface IFastForward {
   action: { kind: string; next?: TBytes };
   local: { kind: string };
-  mine: TBytes;
+  copies: readonly { mode: "link" | "copy"; status: string; bytes: TBytes; base: TBytes }[];
   previous: TBytes;
   server: TBytes;
   published: boolean;
@@ -15,13 +15,24 @@ interface IFastForward {
   conflicted: boolean;
 }
 
-// Auto-pull writes only when every local copy still holds what the last sync left there.
+// Auto-pull writes only a newer live version over copies that each still hold their last-synced bytes.
 export function deriveFastForward(input: IFastForward): "pull" | "refuse" {
-  const untouched = same(input.mine, input.previous) || same(input.mine, input.server);
-
-  const clean =
+  const newer =
     input.published &&
     !input.tombstone &&
+    input.previous !== undefined &&
+    !same(input.server, input.previous);
+
+  const untouched =
+    input.copies.length > 0 &&
+    input.copies.every(
+      (copy) =>
+        (copy.mode === "copy" || copy.status === "linked") &&
+        copy.bytes !== undefined &&
+        same(copy.bytes, copy.base),
+    );
+
+  const clean =
     !input.detached &&
     !input.repair &&
     !input.conflicted &&
@@ -29,5 +40,5 @@ export function deriveFastForward(input: IFastForward): "pull" | "refuse" {
     input.action.kind === "write" &&
     same(input.action.next, input.server);
 
-  return clean && untouched ? "pull" : "refuse";
+  return newer && untouched && clean ? "pull" : "refuse";
 }
