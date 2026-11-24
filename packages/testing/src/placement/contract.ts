@@ -47,40 +47,17 @@ export function placementContract(
         await writeFile(store, "NEW=1");
         await writeFile(unrelated, "KEEP=1");
 
-        let linked = true;
+        await symlink(unrelated, destination);
+        await rejects(adapter.place(store, destination, async () => {}));
+        await rejects(adapter.place(store, destination, async () => {}, join(root, "other")));
+        expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
+        await adapter.place(store, destination, async () => {}, unrelated);
+        expect(await adapter.inspect(store, destination)).toBe("linked");
+        expect(await readFile(destination, "utf8")).toBe("NEW=1");
+        expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
+        await rm(destination);
 
-        try {
-          await symlink(unrelated, destination);
-        } catch (error) {
-          if (
-            !(
-              error instanceof Error &&
-              "code" in error &&
-              process.platform === "win32" &&
-              error.code === "EPERM"
-            )
-          )
-            throw error;
-
-          linked = false;
-        }
-
-        if (linked) {
-          await rejects(adapter.place(store, destination, async () => {}));
-          await rejects(adapter.place(store, destination, async () => {}, join(root, "other")));
-          expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
-          await adapter.place(store, destination, async () => {}, unrelated);
-          expect(await adapter.inspect(store, destination)).toBe("linked");
-          expect(await readFile(destination, "utf8")).toBe("NEW=1");
-          expect(await readFile(unrelated, "utf8")).toBe("KEEP=1");
-          await rm(destination);
-        }
-
-        await symlink(
-          root,
-          join(checkout, "parent"),
-          process.platform === "win32" ? "junction" : "dir",
-        );
+        await symlink(root, join(checkout, "parent"), "dir");
 
         await rejects(adapter.place(store, join(checkout, "parent", ".env"), async () => {}));
         await writeFile(destination, "OLD=1");

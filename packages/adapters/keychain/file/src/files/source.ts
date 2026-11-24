@@ -12,7 +12,7 @@ export async function readKeyFile(path: string): Promise<Uint8Array | undefined>
   if (!file) return undefined;
 
   try {
-    if (process.platform !== "win32" && (await file.stat()).mode & 0o077)
+    if ((await file.stat()).mode & 0o077)
       throw new EnvdenError("INVALID_DATA", "Key file is accessible to other users");
 
     return new Uint8Array(await file.readFile());
@@ -58,7 +58,6 @@ function missing(error: unknown) {
 }
 
 async function syncDirectory(path: string) {
-  if (process.platform === "win32") return;
   const directory = await open(path, "r");
 
   try {

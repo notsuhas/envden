@@ -21,7 +21,7 @@ export async function place(
   storePath: string,
   checkoutPath: string,
   backupDirectory: string | undefined,
-  runtime = { platform: process.platform, libc },
+  runtime = { libc },
   prepareTemporary: ((path: string) => Promise<void>) | undefined,
   now: () => number,
   replacingLink?: string,
@@ -102,7 +102,7 @@ export async function place(
     if (staged?.dev !== current.dev || staged.ino !== current.ino)
       throw new EnvdenError("CONFLICT", "Staged file changed");
 
-    // Windows: parent replacement after this check remains possible.
+    // Without native calls, parent replacement after this check remains possible.
     await rename(temporary, destination);
   } finally {
     const leftover = await statOrMissing(temporary);

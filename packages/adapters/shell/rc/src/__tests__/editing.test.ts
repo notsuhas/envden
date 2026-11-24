@@ -123,8 +123,7 @@ test("rc install preserves non-UTF-8 bytes, mode and CRLF without duplicate bloc
     expect(current.toString().match(/# >>> envden >>>/g)).toHaveLength(1);
     expect(current.toString().replaceAll("\r\n", "")).not.toContain("\n");
 
-    if (process.platform !== "win32")
-      expect((await stat(adapter.rcPath())).mode & 0o777).toBe(0o640);
+    expect((await stat(adapter.rcPath())).mode & 0o777).toBe(0o640);
 
     await adapter.uninstall();
     expect(await readFile(adapter.rcPath())).toEqual(original);

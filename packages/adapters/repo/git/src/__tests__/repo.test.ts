@@ -128,26 +128,23 @@ test("a forged git file is not a registered worktree", async () => {
 });
 
 // git ignores a symlinked .gitignore, so envden ignores through info/exclude and leaves the dotfile alone
-test.skipIf(process.platform === "win32")(
-  "a .gitignore linked into dotfiles is never written",
-  async () => {
-    const root = await repo();
-    const checkout = (await adapter.checkoutAt(root))!;
-    const shared = join(root, "..", `${basename(root)}-gitignore`);
-    roots.push(shared);
-    await writeFile(shared, "node_modules\n");
-    await symlink(shared, join(root, ".gitignore"));
+test("a .gitignore linked into dotfiles is never written", async () => {
+  const root = await repo();
+  const checkout = (await adapter.checkoutAt(root))!;
+  const shared = join(root, "..", `${basename(root)}-gitignore`);
+  roots.push(shared);
+  await writeFile(shared, "node_modules\n");
+  await symlink(shared, join(root, ".gitignore"));
 
-    await adapter.ensureIgnored(checkout, ".env");
+  await adapter.ensureIgnored(checkout, ".env");
 
-    expect(await adapter.isIgnored(checkout, ".env")).toBe(true);
-    expect((await lstat(join(root, ".gitignore"))).isSymbolicLink()).toBe(true);
-    expect(await readFile(shared, "utf8")).toBe("node_modules\n");
-    expect(await readFile(join(root, ".git", "info", "exclude"), "utf8")).toContain("\n/.env\n");
-  },
-);
+  expect(await adapter.isIgnored(checkout, ".env")).toBe(true);
+  expect((await lstat(join(root, ".gitignore"))).isSymbolicLink()).toBe(true);
+  expect(await readFile(shared, "utf8")).toBe("node_modules\n");
+  expect(await readFile(join(root, ".git", "info", "exclude"), "utf8")).toContain("\n/.env\n");
+});
 
-test.skipIf(process.platform === "win32")("exclude refuses symlink files and parents", async () => {
+test("exclude refuses symlink files and parents", async () => {
   const root = await repo();
   const checkout = await adapter.checkoutAt(root);
   if (!checkout) throw new Error("No checkout");

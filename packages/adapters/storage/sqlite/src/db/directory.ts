@@ -1,7 +1,6 @@
 import { closeSync, fsyncSync, openSync } from "node:fs";
 
 export function syncDirectory(path: string): void {
-  if (process.platform === "win32") return;
   const fd = openSync(path, "r");
 
   try {

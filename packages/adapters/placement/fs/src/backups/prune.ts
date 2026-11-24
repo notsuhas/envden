@@ -26,14 +26,14 @@ export async function pruneBackups(dir: string, now: number, maxAgeDays = 30): P
       if (!match || Number(match[1]) >= cutoff) continue;
 
       if (fd !== undefined) pruneAt(fd, name);
-      else await pruneWindows(join(dir, name));
+      else await pruneFallback(join(dir, name));
     }
   } finally {
     if (fd !== undefined) closeSync(fd);
   }
 }
 
-async function pruneWindows(path: string) {
+async function pruneFallback(path: string) {
   const stat = await statOrMissing(path);
 
   if (stat?.isFile() && !stat.isSymbolicLink())

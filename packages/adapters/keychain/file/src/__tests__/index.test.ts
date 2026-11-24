@@ -1,6 +1,5 @@
 import { rejects } from "node:assert/strict";
 import { EnvdenError } from "@envden/core/errors";
-import { execTrustedSync as execFileSync } from "@envden/core/process";
 import { expect, test } from "bun:test";
 import { chmod, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -27,13 +26,11 @@ test("keys are owner-only files that survive a new adapter", () =>
       new Uint8Array([0, 255, 128]),
     );
 
-    if (process.platform !== "win32") {
-      const directory = join(home, "state", "keys");
-      expect((await stat(directory)).mode & 0o777).toBe(0o700);
+    const directory = join(home, "state", "keys");
+    expect((await stat(directory)).mode & 0o777).toBe(0o700);
 
-      for (const file of await readdir(directory))
-        expect((await stat(join(directory, file))).mode & 0o777).toBe(0o600);
-    }
+    for (const file of await readdir(directory))
+      expect((await stat(join(directory, file))).mode & 0o777).toBe(0o600);
   }));
 
 test("file keys with long names fit in one path component", () =>
@@ -55,7 +52,7 @@ test("a required key that isn't stored fails closed", () =>
   }));
 
 for (const target of ["file", "directory"] as const)
-  test.skipIf(process.platform === "win32")(`a ${target} readable by others is reported`, () =>
+  test(`a ${target} readable by others is reported`, () =>
     withHome(async (home) => {
       const adapter = createFileKeychainAdapter({ home });
       await adapter.set("key", new Uint8Array([1]));
@@ -70,8 +67,7 @@ for (const target of ["file", "directory"] as const)
         await Promise.resolve(
           expect(adapter.get("key")).rejects.toMatchObject({ code: "INVALID_DATA" }),
         );
-    }),
-  );
+    }));
 
 test("key storage failures use a fixed typed message", () =>
   withHome(async (home) => {
@@ -80,15 +76,3 @@ test("key storage failures use a fixed typed message", () =>
     await rejects(adapter.set("key", new Uint8Array([1])), EnvdenError);
     await rejects(adapter.set("key", new Uint8Array([1])), /Key storage operation failed/);
   }));
-
-test.skipIf(process.platform !== "win32")("key files drop inherited Windows ACL entries", () =>
-  withHome(async (home) => {
-    await createFileKeychainAdapter({ home }).set("key", new Uint8Array([1]));
-    const directory = join(home, "state", "keys");
-
-    for (const file of await readdir(directory)) {
-      const acl = execFileSync("icacls", [join(directory, file)]);
-      expect(acl).not.toContain("(I)");
-    }
-  }),
-);

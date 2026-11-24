@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { createRcShellAdapter } from "../index.ts";
 
 for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
-  test.skipIf(process.platform === "win32")(`${shell} hook snapshot`, () => {
+  test(`${shell} hook snapshot`, () => {
     const adapter = createRcShellAdapter(shell, "/home/test", "/home/test/.envden");
     const snippet = adapter.hookSnippet("/opt/envden's bin/envden");
     expect(snippet).toMatchSnapshot();
@@ -32,11 +32,8 @@ for (const shell of ["zsh", "bash", "fish", "powershell"] as const) {
   });
 }
 
-for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as readonly (
-  | "bash"
-  | "zsh"
-)[]) {
-  test.skipIf(process.platform === "win32" || !Bun.which(shell))(
+for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[]) {
+  test.skipIf(!Bun.which(shell))(
     `${shell} prints only inside an approved checkout and sanitizes refresh`,
     async () => {
       const home = await realpath(await mkdtemp(join(tmpdir(), "envden-hook-")));
@@ -126,10 +123,7 @@ test("PowerShell gates notices on a directory change", () => {
   expect(snippet).toContain("if ($changed)");
 });
 
-for (const shell of (process.platform === "win32" ? [] : ["bash", "zsh"]) as readonly (
-  | "bash"
-  | "zsh"
-)[])
+for (const shell of ["bash", "zsh"] as readonly ("bash" | "zsh")[])
   test(`${shell} caches track offers and update days`, async () => {
     const home = await realpath(await mkdtemp(join(tmpdir(), "envden-offer-")));
     const { mkdir } = await import("node:fs/promises");
@@ -179,7 +173,7 @@ test("PowerShell doubles all single quote delimiters in paths", () => {
 });
 
 test("bash hook preserves the exit status for following prompt commands", async () => {
-  if (process.platform === "win32" || !Bun.which("bash")) return;
+  if (!Bun.which("bash")) return;
   const home = await mkdtemp(join(tmpdir(), "envden-status-"));
 
   try {
@@ -202,10 +196,4 @@ test("fish escapes backslashes and quotes in paths and avoids fish 3.5 builtins"
   expect(snippet).toContain("'/tmp/a\\\\\\';echo INJECTED;#' status --refresh-cache");
   expect(snippet).toContain("'/tmp/h\\\\\\'o/state/notice'");
   expect(snippet).not.toContain("path dirname");
-});
-
-test("PowerShell refresh arguments work on Windows PowerShell 5.1", () => {
-  const snippet = createRcShellAdapter("powershell").hookSnippet(join(tmpdir(), "envden"));
-  expect(snippet).toContain("$info.Arguments = 'status --refresh-cache'");
-  expect(snippet).not.toContain("ArgumentList");
 });

@@ -4,45 +4,36 @@ import { homedir } from "node:os";
 import { isAbsolute, basename, join } from "node:path";
 import { start } from "../markers.ts";
 
-export function powerShellProfile(
-  run = execTrustedSync,
-  home = homedir(),
-  platform = process.platform,
-): string | undefined {
-  const candidates: string[] = [];
+export function powerShellProfile(run = execTrustedSync, home = homedir()): string | undefined {
+  const reported = reportedProfile(run);
+  const fallback = join(home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1");
 
-  for (const shell of ["pwsh", "powershell"]) {
-    try {
-      const path = run(
-        shell,
-        ["-NoProfile", "-NonInteractive", "-Command", "$PROFILE.CurrentUserCurrentHost"],
-        { timeout: 5000 },
-      ).replace(/\r?\n$/, "");
+  return [reported, fallback].find((path) => path !== undefined && hasHook(path)) ?? reported;
+}
 
-      if (
-        isAbsolute(path) &&
-        basename(path) === "Microsoft.PowerShell_profile.ps1" &&
-        !Array.from(path).some((character) => {
-          const code = character.charCodeAt(0);
+function reportedProfile(run: typeof execTrustedSync) {
+  try {
+    const path = run(
+      "pwsh",
+      ["-NoProfile", "-NonInteractive", "-Command", "$PROFILE.CurrentUserCurrentHost"],
+      { timeout: 5000 },
+    ).replace(/\r?\n$/, "");
 
-          return code < 32 || (code >= 127 && code <= 159);
-        })
-      )
-        candidates.push(path);
-    } catch {
-      continue;
-    }
+    if (
+      isAbsolute(path) &&
+      basename(path) === "Microsoft.PowerShell_profile.ps1" &&
+      !Array.from(path).some((character) => {
+        const code = character.charCodeAt(0);
+
+        return code < 32 || (code >= 127 && code <= 159);
+      })
+    )
+      return path;
+  } catch {
+    return undefined;
   }
 
-  const defaults =
-    platform === "win32"
-      ? [
-          join(home, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1"),
-          join(home, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1"),
-        ]
-      : [join(home, ".config", "powershell", "Microsoft.PowerShell_profile.ps1")];
-
-  return [...candidates, ...defaults].find(hasHook) ?? candidates[0];
+  return undefined;
 }
 
 function hasHook(path: string) {

@@ -53,7 +53,7 @@ export function openDatabase(dataDir: string, now: number): Database {
   }
 }
 
-// a Windows ACL inherited from the parent may let other users read the vault data
+// SQLite creates its files under the process umask, which may let other users read the vault data
 function restrictFiles(dataDir: string, names: string[]) {
   for (const name of names)
     if (existsSync(join(dataDir, name))) restrictAccessSync(join(dataDir, name), false);

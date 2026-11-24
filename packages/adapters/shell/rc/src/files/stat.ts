@@ -1,6 +1,5 @@
 import { lstat, type FileHandle } from "node:fs/promises";
 import { EnvdenError } from "@envden/core/errors";
-import { verifyWindowsOwner } from "./windows.ts";
 
 export async function rcStat(file: FileHandle, resolved: string) {
   const opened = await file.stat();
@@ -11,16 +10,10 @@ export async function rcStat(file: FileHandle, resolved: string) {
   if (opened.dev !== stat.dev || opened.ino !== stat.ino)
     throw new EnvdenError("CONFLICT", "Shell configuration changed during editing");
 
-  if (process.platform === "win32") await verifyWindowsOwner(resolved);
-
   return stat;
 }
 
 function validateRc(stat: Awaited<ReturnType<typeof lstat>>) {
-  if (
-    !stat.isFile() ||
-    stat.nlink !== 1 ||
-    (process.platform !== "win32" && stat.uid !== process.getuid?.())
-  )
+  if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== process.getuid?.())
     throw new EnvdenError("INVALID_INPUT", "Unsafe shell configuration file");
 }

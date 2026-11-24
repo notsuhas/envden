@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { setup } from "./fixture.ts";
 import { place } from "../operations/place.ts";
 
-const fallback = { platform: "win32" as const, libc: undefined };
+const fallback = { libc: undefined };
 
 test("fallback replaces a user's link only when given its exact text", async () => {
   const { root, checkout, store } = await setup();

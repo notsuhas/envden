@@ -42,8 +42,8 @@ for (const shell of ["zsh", "bash", "fish", "powershell"] as const)
         expect(names[0]).toMatch(/^\.envden-backup-[0-9a-f-]{36}$/);
         const backup = join(backups, names[0]!);
         expect(await readFile(backup, "utf8")).toBe(original);
-        if (process.platform !== "win32") expect((await stat(backup)).mode & 0o777).toBe(0o600);
-        if (process.platform !== "win32") expect((await stat(backups)).mode & 0o777).toBe(0o700);
+        expect((await stat(backup)).mode & 0o777).toBe(0o600);
+        expect((await stat(backups)).mode & 0o777).toBe(0o700);
       } finally {
         await rm(home, { recursive: true, force: true });
       }
