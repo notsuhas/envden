@@ -13,6 +13,7 @@ test("injected adapters without a network adapter refuse every network call", as
     () => adapters.network.status(),
     () => adapters.network.checkHttpsCertificate(),
     () => adapters.network.expose(4783),
+    () => adapters.network.openPublicShare(4783, "/s/id"),
   ])
     await Promise.resolve(expect(call()).rejects.toThrow("No network adapter was supplied"));
 });

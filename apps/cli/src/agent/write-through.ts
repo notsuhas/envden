@@ -14,7 +14,8 @@ export async function writeThrough(
   await atomicWrite(await linkTarget(path), bytes, now);
 }
 
-async function linkTarget(path: string): Promise<string> {
+// The real file a write to `path` replaces; creates its folder if missing.
+export async function linkTarget(path: string): Promise<string> {
   let current = resolve(path);
 
   for (let hops = 0; hops < MAX_LINKS; hops++) {

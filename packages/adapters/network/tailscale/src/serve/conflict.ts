@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { EnvdenError } from "@envden/core/errors";
 
-const serveSchema = z.object({
+const configSchema = z.object({
   TCP: z.record(z.string(), z.object({ TCPForward: z.string().optional() })).optional(),
   Web: z
     .record(
@@ -11,7 +11,12 @@ const serveSchema = z.object({
     .optional(),
 });
 
-function parseServe(stdout: string) {
+// Each running foreground `tailscale serve` or `funnel` keeps its own config here.
+const serveSchema = configSchema.extend({
+  Foreground: z.record(z.string(), configSchema).optional(),
+});
+
+export function parseServe(stdout: string) {
   try {
     return serveSchema.parse(JSON.parse(stdout.trim() || "{}") ?? {});
   } catch (cause) {

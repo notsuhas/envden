@@ -11,5 +11,7 @@ export function createFakeNetworkAdapter(
       operations.checkHttpsCertificate?.bind(operations) ??
       unexpected("network.checkHttpsCertificate"),
     expose: operations.expose?.bind(operations) ?? unexpected("network.expose"),
+    openPublicShare:
+      operations.openPublicShare?.bind(operations) ?? unexpected("network.openPublicShare"),
   };
 }

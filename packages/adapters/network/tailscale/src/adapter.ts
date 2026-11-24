@@ -3,10 +3,13 @@ import { EnvdenError } from "@envden/core/errors";
 import { parseStatus } from "./status/parse.ts";
 import { tailscaleProblem } from "./status/problem.ts";
 import { serveConflict } from "./serve/conflict.ts";
+import { failure } from "./command/failure.ts";
+import { openFunnel, type IFunnelEffects } from "./funnel/open.ts";
 import type {
   INetworkAdapter,
   INetworkProblem,
   INetworkStatus,
+  IPublicShare,
   THttpsCheck,
 } from "@envden/core/adapters";
 
@@ -17,8 +20,6 @@ interface ICommandResult {
 }
 
 type TRunner = (args: string[]) => Promise<ICommandResult>;
-
-const STDERR_LIMIT = 500;
 
 async function run(args: string[]): Promise<ICommandResult> {
   const child = spawnTrusted("tailscale", args, { stdout: "pipe", stderr: "pipe" });
@@ -42,32 +43,32 @@ function unavailable(kind: INetworkProblem["kind"]): INetworkStatus {
   };
 }
 
-// Tailscale's own output holds the next step, such as the link to enable Serve.
-function failure(summary: string, stderr: string, cause?: unknown) {
-  const detail = stderr.trim().slice(0, STDERR_LIMIT);
-
-  return new EnvdenError("INTERNAL", detail ? `${summary}: ${detail}` : summary, { cause });
-}
-
 class TailscaleAdapter implements INetworkAdapter {
   readonly id = "tailscale";
 
   private readonly runner: TRunner;
 
-  constructor(runner: TRunner = run) {
+  private readonly funnel: Partial<IFunnelEffects>;
+
+  constructor(runner: TRunner = run, funnel: Partial<IFunnelEffects> = {}) {
     this.runner = runner;
+    this.funnel = funnel;
   }
 
   async status(): Promise<INetworkStatus> {
-    const result = await this.runner(["status", "--json"]).catch(() => undefined);
-    if (!result) return unavailable("not-installed");
+    return (await this.readStatus()).status;
+  }
 
-    if (result.exitCode !== 0) return unavailable("not-running");
+  private async readStatus() {
+    const result = await this.runner(["status", "--json"]).catch(() => undefined);
+    if (!result) return { status: unavailable("not-installed"), stdout: "" };
+
+    if (result.exitCode !== 0) return { status: unavailable("not-running"), stdout: "" };
 
     try {
-      return parseStatus(result.stdout);
+      return { status: parseStatus(result.stdout), stdout: result.stdout };
     } catch {
-      return unavailable("unreadable");
+      return { status: unavailable("unreadable"), stdout: "" };
     }
   }
 
@@ -111,8 +112,22 @@ class TailscaleAdapter implements INetworkAdapter {
 
     return `https://${status.hostname}:${port}`;
   }
+
+  openPublicShare(port: number, path: string): Promise<IPublicShare> {
+    const inputs = {
+      status: () => this.readStatus(),
+      serveStatus: () =>
+        this.command(["serve", "status", "--json"], "Tailscale serve status failed"),
+      effects: this.funnel,
+    };
+
+    return openFunnel(inputs, port, path);
+  }
 }
 
-export function createTailscaleNetworkAdapter(runner?: TRunner): INetworkAdapter {
-  return new TailscaleAdapter(runner);
+export function createTailscaleNetworkAdapter(
+  runner?: TRunner,
+  funnel?: Partial<IFunnelEffects>,
+): INetworkAdapter {
+  return new TailscaleAdapter(runner, funnel);
 }

@@ -26,6 +26,10 @@ test.each([
     ["--master-passphrase=p", "y"],
     ["--master-passphrase=[redacted]", "[redacted]"],
   ],
+  [
+    ["receive", "https://n.t.ts.net:10000/s/abc#KEY", ".env"],
+    ["receive", "https://n.t.ts.net:10000/s/abc#[redacted]", ".env"],
+  ],
 ])("%p", (input, expected) => {
   expect(maskArguments(input)).toEqual(expected);
 });

@@ -61,7 +61,7 @@ _Avoid_: sidecar, merge file
 ## Vaults and access
 
 **Vault**:
-One person's encrypted collection of env files. A server can hold many vaults. v1 has no sharing.
+One person's encrypted collection of env files. A server can hold many vaults. v1 has no vault sharing; a share (below) is separate.
 _Avoid_: account, workspace, project
 
 **Server**:
@@ -99,6 +99,10 @@ _Avoid_: pairing link, invite, token
 **Join**:
 A new device becoming part of a vault, either with a pairing code from an existing device or with the master password and recovery kit.
 _Avoid_: login, register, enroll
+
+**Share**:
+One file sent once with `envden send` through a temporary public link that anyone can open, with or without envden or a tailnet. Belongs to no vault; it opens once and closes when the sender's command ends.
+_Avoid_: shared vault, team sharing, mailbox, drop
 
 ## Sync
 

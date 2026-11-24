@@ -1,0 +1,53 @@
+---
+title: Send a file once
+description: Hand an env file to someone outside your tailnet with a one-time link they open in a browser.
+---
+
+```sh
+envden send
+```
+
+`envden send` gives one file to one person, who doesn't need envden or access to your tailnet. Run it in a checkout and it picks that checkout's synced env file, asking which one if there are several. Name any other file with `envden send path/to/.env`; without a terminal the file must be named.
+
+It prints a link like this and waits:
+
+```text
+https://laptop.your-tailnet.ts.net:10000/s/VH2_nyAOXrMl7yJ7yB784g#Hr7Dg18zuB9IN4…
+```
+
+Send the whole link, including the part after `#`. The recipient opens it in any browser and presses **Open the file**. The page decrypts the file in their browser and shows it with **Copy** and **Download as .env** buttons. Once they open it, your terminal says `Claimed, link closed` and the link stops working.
+
+If they have envden, they can save it straight to a file instead:
+
+```sh
+envden receive '<link>'            # saves to .env
+envden receive '<link>' .env.local
+```
+
+`receive` asks before replacing a file and writes it readable by you only.
+
+## When the link closes
+
+The link works once and closes when `envden send` ends:
+
+- the first time someone opens the file
+- after 10 minutes, or the minutes you pass with `--ttl` (1 to 60)
+- when you press Ctrl-C, or on any error
+
+Your envden server isn't involved and stays private.
+
+## What you need
+
+- Tailscale running, logged in and with HTTPS certificates on, as for the rest of envden.
+- **Tailscale Funnel allowed for this device.** If it isn't, `send` stops and shows the line to add under `nodeAttrs` in your tailnet policy file: `{"target": ["autogroup:member"], "attr": ["funnel"]}`. See [Tailscale Funnel](https://tailscale.com/kb/1223/funnel).
+- **One Funnel port free in Tailscale.** Funnel only allows ports 10000, 8443 and 443, and your tailnet policy may allow fewer. `send` uses the first allowed one that `tailscale serve status` shows nothing on, and refuses if every allowed port is in use rather than hide a service while the link is open.
+
+The first time this device uses Funnel, its public address can take up to 10 minutes to appear. `send` waits with a spinner and prints the link only once the address resolves, so you never send a dead link.
+
+## What's public, and what isn't
+
+- While `send` runs, the internet can reach one path on your device: `/s/<id>` on one Funnel port, with an unguessable ID. Nothing else on the machine is exposed, and the path disappears when `send` ends.
+- Your device's `ts.net` name becomes publicly resolvable. It's already listed in public certificate logs once HTTPS certificates are on.
+- The file is encrypted on your device. The key is the part of the link after `#`, which browsers never send to a server, so Tailscale and envden's listener never see it.
+- **The link is the key.** Whoever opens it first gets the file. Send it over a channel you trust, and send a new one if it may have leaked. Opening the page doesn't use up the link, only pressing **Open the file** does, so chat link previews don't burn it.
+- envden's telemetry records only that `send` or `receive` ran and whether it worked. The link, key and file never appear in telemetry, error messages or bug reports.

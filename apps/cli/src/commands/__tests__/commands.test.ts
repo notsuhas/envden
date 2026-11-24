@@ -61,6 +61,8 @@ test("help lists every command and a fresh home fails each gate with its exit co
     "diff",
     "resolve",
     "rm",
+    "send",
+    "receive",
     "device",
     "server",
     "serve",
@@ -176,5 +178,24 @@ test("parser errors keep their line breaks and strip control bytes at every dept
 
   expect(await parserError(["device", "ls", "--\x1b]0;title\x07"])).toBe(
     "error: unknown option '--]0;title'\n",
+  );
+});
+
+test("parser errors never echo a share link's key", async () => {
+  const link = "https://n.t.ts.net:10000/s/AAAAAAAAAAAAAAAAAAAAAA#dummy-key";
+  const masked = "https://n.t.ts.net:10000/s/AAAAAAAAAAAAAAAAAAAAAA#[redacted]";
+
+  expect(await parserError(["receive", link, "a", "b"])).toBe(
+    `error: too many arguments for 'receive'. Expected 2 arguments but got 3: ${masked}, a, b.\n`,
+  );
+
+  expect(await parserError([link])).toBe(`error: unknown command '${masked}'\n`);
+
+  expect(await parserError([link.replace("#", "#\t")])).toBe(
+    `error: unknown command '${masked}'\n`,
+  );
+
+  expect(await parserError(["receive", link.replace("//", ""), "a", "b"])).toBe(
+    `error: too many arguments for 'receive'. Expected 2 arguments but got 3: ${masked.replace("//", "")}, a, b.\n`,
   );
 });

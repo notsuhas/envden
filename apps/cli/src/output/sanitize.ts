@@ -16,11 +16,17 @@ export function sanitizeConsole(value: string): string {
     .join("");
 }
 
+// A share link carries its key after #, in whatever form the URL was typed.
+const FRAGMENT = /#[^\s',]*/g;
+
 // Commander adds only the trailing newline and a "(Did you mean ...?)" line; the rest can echo argv.
 export function sanitizeParserError(message: string): string {
   const suggestion = /\n(\(Did you mean [^\n]*\?\))\n$/.exec(message);
   const text = suggestion ? message.slice(0, suggestion.index) : message.replace(/\n$/, "");
   const lines = suggestion ? [text, suggestion[1]!] : [text];
 
-  return lines.map(sanitizeTerminal).join("\n") + "\n";
+  // Masked after the controls go: URL parsing drops tabs and line breaks inside a link too.
+  return (
+    lines.map((line) => sanitizeTerminal(line).replace(FRAGMENT, "#[redacted]")).join("\n") + "\n"
+  );
 }

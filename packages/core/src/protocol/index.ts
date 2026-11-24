@@ -61,6 +61,8 @@ export * from "./proofs/text.ts";
 export * from "./proofs/tokens.ts";
 export * from "./requests/hello.ts";
 export * from "./requests/sign.ts";
+export * from "./share/box.ts";
+export * from "./share/text.ts";
 export * from "./versions/semver.ts";
 
 export * from "./codecs/server/http.ts";

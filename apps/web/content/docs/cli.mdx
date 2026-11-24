@@ -204,6 +204,19 @@ envden push [options]
 | `--all`  | Sync all repos           |
 | `--yes`  | Confirm clean changes    |
 
+## envden receive
+
+Save a file someone sent with envden send.
+
+```sh
+envden receive [options] <link> [file]
+```
+
+| Argument | Description                          | Default |
+| -------- | ------------------------------------ | ------- |
+| `<link>` | The link from envden send, in quotes |         |
+| `[file]` | Where to save it                     | ".env"  |
+
 ## envden resolve
 
 Keep yours, take the server's, or finish an edited conflict.
@@ -240,6 +253,22 @@ envden rm [options] <path>
 | -------- | ----------------------------------------------------- |
 | `--yes`  | Confirm deletion, including local edits and conflicts |
 | `--json` | Print the result as JSON                              |
+
+## envden send
+
+Send a file once through a temporary public link that needs no envden to open.
+
+```sh
+envden send [options] [file]
+```
+
+| Argument | Description                                             |
+| -------- | ------------------------------------------------------- |
+| `[file]` | File to send (default: this checkout's synced env file) |
+
+| Option            | Description                        | Default |
+| ----------------- | ---------------------------------- | ------- |
+| `--ttl <minutes>` | Minutes the link stays open (1-60) | "10"    |
 
 ## envden serve
 

@@ -1,5 +1,13 @@
 {
   "BackendState": "Running",
-  "Self": { "HostName": "laptop", "DNSName": "laptop.tail.example." },
+  "Self": {
+    "HostName": "laptop",
+    "DNSName": "laptop.tail.example.",
+    "CapMap": {
+      "funnel": null,
+      "https": null,
+      "https://tailscale.com/cap/funnel-ports?ports=443,8443,10000": null
+    }
+  },
   "CertDomains": ["laptop.tail.example"]
 }
