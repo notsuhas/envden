@@ -233,6 +233,26 @@ test("unchanged member versions do not write device state", async () => {
   }
 });
 
+test("fetching a join approval doesn't confirm the device, its next request does", async () => {
+  const f = fixture(keys);
+  const put = spyOn(f.storage, "putDevice");
+
+  const newer = (r: p.IRequest) => {
+    r.clientVersion = "1.1.0";
+  };
+
+  try {
+    await f.request("/v1/join-requests/approved", undefined, { mutate: newer }).send();
+    expect(put).not.toHaveBeenCalled();
+
+    await f.request("/v1/head", undefined, { mutate: newer }).send();
+    expect(put).toHaveBeenCalled();
+  } finally {
+    put.mockRestore();
+    f.close();
+  }
+});
+
 test("rejected unknown devices do not record nonces", async () => {
   const f = fixture(keys);
   const remember = spyOn(f.storage, "rememberNonce");

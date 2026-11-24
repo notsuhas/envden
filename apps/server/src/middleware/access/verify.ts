@@ -36,7 +36,12 @@ export function verifyAccess(
 
   const state = storage.device(request.vaultId, request.device);
 
-  if (member && state?.clientVersion !== request.clientVersion)
+  // Fetching JoinApproved, even too late, isn't confirmation; the joiner's next request is.
+  if (
+    member &&
+    pathname !== "/v1/join-requests/approved" &&
+    state?.clientVersion !== request.clientVersion
+  )
     storage.putDevice(request.vaultId, request.device, { clientVersion: request.clientVersion });
 
   verifyVaultMode(options, c.get("auth"), pathname);
