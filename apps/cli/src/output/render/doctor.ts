@@ -1,4 +1,5 @@
 import { sanitizeConsole } from "../sanitize.ts";
+import { templateLine } from "./template.ts";
 import type { doctor } from "../../diagnostics/doctor.ts";
 
 type TReport = Awaited<ReturnType<typeof doctor>>;
@@ -21,6 +22,7 @@ export function doctorText(report: TReport) {
     ...(shells.length
       ? shells.map((shell) => pass(`Shell notice: ${shell.shell} (${shell.path})`))
       : [warn("Shell notice: not installed; run envden shell install")]),
+    ...report.templates.map((check) => warn(templateLine(check.location, check.template, check))),
   ];
 
   return sanitizeConsole(lines.join("\n"));

@@ -3,6 +3,10 @@ import { EnvdenError } from "../../errors/index.ts";
 import { supportedEnvPattern } from "./patterns.ts";
 import type { IEnvFileRules } from "../repo.ts";
 
+export const TEMPLATE_SUFFIXES = ["example", "sample", "template", "defaults"];
+
+const templatePattern = new RegExp(`\\.(?:${TEMPLATE_SUFFIXES.join("|")})$`);
+
 const skipped = new Set([
   ".git",
   "node_modules",
@@ -29,9 +33,7 @@ export function acceptsEnvPath(path: string, options: IEnvFileRules = {}) {
     !parts.slice(0, -1).some((part) => skip.has(part.toLowerCase())) &&
     name.toLowerCase() !== ".envrc" &&
     (options.include ? matches(options.include, path, name) : /^\.env(?:\..+)?$/.test(name)) &&
-    !(options.exclude
-      ? matches(options.exclude, path, name)
-      : /\.(example|sample|template|defaults)$/.test(name))
+    !(options.exclude ? matches(options.exclude, path, name) : templatePattern.test(name))
   );
 }
 

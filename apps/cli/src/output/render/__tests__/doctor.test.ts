@@ -11,12 +11,13 @@ const healthy = {
     { shell: "zsh", path: "/home/.zshrc", installed: true },
     { shell: "bash", path: "/home/.bashrc", installed: false },
   ],
+  templates: [],
 } as const;
 
 const marks = (text: string) => text.split("\n").map((line) => line[0]);
 
 test("doctor prints a pass/fail checklist with the fix for each failure", () => {
-  const passing = doctorText({ ...healthy, shells: [...healthy.shells] });
+  const passing = doctorText({ ...healthy, shells: [...healthy.shells], templates: [] });
 
   expect(marks(passing)).toEqual(["✓", "✓", "✓", "✓", "✓", "✓"]);
   expect(passing).toContain("box");
@@ -30,9 +31,19 @@ test("doctor prints a pass/fail checklist with the fix for each failure", () => 
     tailscale: { ready: false, running: true, loggedIn: false, httpsEnabled: false },
     https: { kind: "https-disabled", message: "Enable HTTPS in the admin console" },
     shells: [],
+    templates: [
+      {
+        root: "/code/api",
+        path: ".env",
+        location: "~/code/api/.env",
+        template: ".env.example",
+        missing: ["STRIPE_KEY", "DB_URL"],
+        extra: ["DEBUG"],
+      },
+    ],
   });
 
-  expect(marks(failing)).toEqual(["✗", "!", "!", "✗", "✗", "!"]);
+  expect(marks(failing)).toEqual(["✗", "!", "!", "✗", "✗", "!", "!"]);
 
   for (const fix of [
     "chmod -R go-rwx ~/.envden",
@@ -40,6 +51,7 @@ test("doctor prints a pass/fail checklist with the fix for each failure", () => 
     "not logged in",
     "Enable HTTPS in the admin console",
     "envden shell install",
+    "~/code/api/.env vs .env.example: missing STRIPE_KEY, DB_URL; extra DEBUG",
   ])
     expect(failing).toContain(fix);
 });

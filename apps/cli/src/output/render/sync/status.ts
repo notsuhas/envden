@@ -1,6 +1,7 @@
 import { isAbsolute, join, relative, sep } from "node:path";
 import { homePath } from "../../home-path.ts";
 import { sanitizeConsole } from "../../sanitize.ts";
+import { templateLine } from "../template.ts";
 import { NOT_SET_UP } from "../../../state/configured.ts";
 import type { TFileState } from "../../../status/file-state.ts";
 import type { TStatusReport } from "../../../status/report.ts";
@@ -23,7 +24,9 @@ const groups: [TFileState[], string][] = [
 ];
 
 export function statusText(report: TStatusReport, place: IPlace) {
-  const lines = report.configured ? configuredLines(report, place) : [NOT_SET_UP];
+  const lines = report.configured
+    ? [...configuredLines(report, place), ...templateLines(report, place)]
+    : [NOT_SET_UP];
 
   if (report.update.message) lines.push(report.update.message);
 
@@ -53,6 +56,20 @@ function configuredLines(report: TConfigured, place: IPlace) {
     ];
 
   return [serverLine(report), ...(pending.length ? pending : ["No changes here"])];
+}
+
+function templateLines(report: TConfigured, place: IPlace) {
+  return report.files.flatMap((file) =>
+    file.template
+      ? [
+          templateLine(
+            displayPath(join(file.root, file.path), place),
+            file.template.file,
+            file.template,
+          ),
+        ]
+      : [],
+  );
 }
 
 function serverLine(report: TConfigured) {

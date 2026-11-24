@@ -5,7 +5,9 @@ import { statusText } from "../status.ts";
 const place = { cwd: "/home/me/app", userHome: "/home/me" };
 const update = { available: false, required: false };
 
-function report(files: { root?: string; path?: string; state: string; reason?: string }[]) {
+type TFile = { root?: string; path?: string; state: string; reason?: string; template?: object };
+
+function report(files: TFile[]) {
   return {
     configured: true as const,
     vaultId: "VAULT",
@@ -22,6 +24,13 @@ test("status sums up an in-sync vault in one line", () => {
   expect(synced.split("\n")).toHaveLength(1);
   expect(synced).toContain("1 repo, 1 env file");
   expect(statusText(report([]), place)).toContain("envden track");
+});
+
+test("status adds template key names after the summary", () => {
+  const template = { file: ".env.example", missing: ["STRIPE_KEY"], extra: ["DEBUG"] };
+  const lines = statusText(report([{ state: "in-sync", template }]), place).split("\n");
+
+  expect(lines[1]).toBe(".env vs .env.example: missing STRIPE_KEY; extra DEBUG");
 });
 
 test("status lists each file once per action, with short paths", () => {
