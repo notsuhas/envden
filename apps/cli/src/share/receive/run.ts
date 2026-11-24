@@ -28,6 +28,8 @@ export async function receiveFile(
 
   // Decided before claiming: the link works once, so a refusal afterwards would lose the file.
   if ((await lstat(path).catch(missing)) !== undefined) {
+    if ((await stat(path).catch(missing))?.isDirectory()) throw notAFile();
+
     if (!options.interactive)
       throw new EnvdenError(
         "INVALID_INPUT",
@@ -79,8 +81,7 @@ async function writableTarget(path: string): Promise<string> {
     const target = await linkTarget(path);
     const info = await stat(target).catch(missing);
 
-    if (info && !info.isFile())
-      throw new EnvdenError("INVALID_INPUT", "Save to a file, not a folder");
+    if (info && !info.isFile()) throw notAFile();
 
     await access(dirname(target), constants.W_OK);
 
@@ -89,6 +90,10 @@ async function writableTarget(path: string): Promise<string> {
     if (isEnvdenError(cause)) throw cause;
     throw new EnvdenError("INVALID_INPUT", "Can't write to that folder", { cause });
   }
+}
+
+function notAFile() {
+  return new EnvdenError("INVALID_INPUT", "Save to a file, not a folder");
 }
 
 function missing(cause: unknown): undefined {

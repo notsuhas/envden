@@ -68,6 +68,7 @@ test("an existing file is replaced only after a yes, and a bad destination fails
 
     await mkdir(join(dir, "folder"));
     await Promise.resolve(expect(receive(true, true, "folder")).rejects.toThrow("not a folder"));
+    await Promise.resolve(expect(receive(false, true, "folder")).rejects.toThrow("not a folder"));
     await mkdir(join(dir, "locked"));
     await writeFile(join(dir, "locked", ".env"), "KEEP=1\n");
     await symlink(join(dir, "locked", ".env"), join(dir, "linked.env"));
