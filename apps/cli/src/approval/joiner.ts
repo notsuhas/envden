@@ -10,6 +10,7 @@ import type { TClient } from "../client/request.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";
 import { adoptRejoin, finishRejoinIdentity } from "../admin/rejoin/classify.ts";
 import { cancelRequest, putSlot, requestDeadline } from "./exchange.ts";
+import { requireAddedAt } from "../vault/join/validation.ts";
 import { fetchApproved, pauseBriefly, waitMessage, type TPause } from "./wait.ts";
 import { text, binary } from "../client/encoding.ts";
 import { readHistory } from "../vault/history.ts";
@@ -135,6 +136,7 @@ async function acceptApproval(
     throw new EnvdenError("UNAUTHORIZED", "The approval names another server or vault");
 
   const history = await readHistory(client, vaultId);
+  requireAddedAt(history, identity.record.id, approved.manifestHash);
   if (rejoin) await adoptRejoin(adapters, history);
 
   await acceptJoin(adapters, client, identity, address, pin, history, approved.manifestHash);

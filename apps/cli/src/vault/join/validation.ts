@@ -35,6 +35,21 @@ export function joinMembership(
   return { header, at };
 }
 
+// JoinApproved isn't authenticated, so it must name the header whose list added this device.
+export function requireAddedAt(history: THistory, id: Uint8Array, hash: Uint8Array) {
+  const header = history.headers.find((item) =>
+    p.equal(p.objectHash(p.ManifestHeaderCodec, item, "manifest"), hash),
+  );
+
+  const added = history.entries.find((item) => item.body.seq === header?.body.listSeq)?.body;
+
+  if (header?.body.op !== 2 || added?.kind !== 1 || !p.equal(added.payload.device.id, id))
+    throw new EnvdenError(
+      "INVALID_DATA",
+      "The approval doesn't name the change that added this device",
+    );
+}
+
 export function requireLocalFloor(history: THistory, checkpoint: string | undefined) {
   if (
     checkpoint &&

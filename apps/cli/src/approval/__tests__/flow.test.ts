@@ -4,6 +4,8 @@ import { listDevices } from "../../admin/devices/list.ts";
 import { removeDevice } from "../../admin/devices/remove.ts";
 import { rotateVault } from "../../admin/devices/rotate.ts";
 import { loadState } from "../../state/store/repository.ts";
+import * as p from "@envden/core/protocol";
+import { binary, text } from "../../client/encoding.ts";
 import { wordApproval } from "./flow.ts";
 
 const WORDS = /^[a-z]+ [a-z]+ [a-z]+$/;
@@ -151,6 +153,35 @@ test("an approval whose swap never reached the server resumes on the next approv
 
     await result.finish();
     expect((await loadState(second.home))?.vaultId).toBe(f.result.vaultId);
+  } finally {
+    await f.close();
+  }
+});
+
+test("the joiner refuses an approval naming a header other than the one that added it", async () => {
+  const f = await fixture();
+
+  try {
+    const second = f.home("second");
+    const later = { hash: "" };
+
+    const joinerFetcher: typeof f.fetcher = async (input, init) => {
+      const response = await f.fetcher(input, init);
+      const url = input instanceof Request ? input.url : input.toString();
+      if (!later.hash || !url.endsWith("/v1/join-requests/approved")) return response;
+      const { message } = p.MessageResponseSchema.parse(await response.json());
+      const approved = p.decode(p.JoinApprovedCodec, binary(message));
+      const moved = { ...approved, manifestHash: binary(later.hash) };
+
+      return Response.json({ message: text(p.encode(p.JoinApprovedCodec, moved)) });
+    };
+
+    const result = await wordApproval(f, { joiner: second, joinerFetcher });
+    await rotateVault(f.first, f.now);
+    later.hash = (await loadState(f.first.home))!.checkpoint!;
+
+    await Promise.resolve(expect(result.finish()).rejects.toMatchObject({ code: "INVALID_DATA" }));
+    expect(await loadState(second.home)).toBeUndefined();
   } finally {
     await f.close();
   }

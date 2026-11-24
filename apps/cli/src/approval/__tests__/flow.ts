@@ -20,6 +20,7 @@ interface IApproval {
   joinerSays?: boolean;
   approverSays?: (question: string) => Promise<boolean>;
   approver?: TAdapters;
+  joinerFetcher?: TAdapters["fetcher"];
 }
 
 // Runs both screens of a word approval against the fixture's server, recording what each showed.
@@ -39,7 +40,7 @@ export async function wordApproval(f: TFixture, options: IApproval) {
     identity,
     version: "0.0.0",
     now: f.now,
-    fetcher: f.fetcher,
+    fetcher: options.joinerFetcher ?? f.fetcher,
   });
 
   const requested = requestJoin(options.joiner, client, identity, pin, f.now, {
