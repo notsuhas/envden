@@ -19,7 +19,6 @@ import { statusCommand } from "./commands/sync/status.ts";
 import { diffCommand } from "./commands/sync/diff.ts";
 import { historyCommand } from "./commands/sync/history.ts";
 import { resolveCommand } from "./commands/sync/resolve.ts";
-import { aliasCommand } from "./commands/sync/alias.ts";
 import { serveCommand } from "./commands/server/serve.ts";
 import { updateCommand } from "./commands/maintenance/update.ts";
 import { configCommand } from "./commands/maintenance/config.ts";
@@ -78,13 +77,7 @@ export function createProgram(now: () => number) {
     historyCommand,
   ]);
 
-  addGroup(program, "Files:", [
-    trackCommand,
-    untrackCommand,
-    localOnlyCommand,
-    rmCommand,
-    aliasCommand,
-  ]);
+  addGroup(program, "Files:", [trackCommand, untrackCommand, localOnlyCommand, rmCommand]);
 
   addGroup(program, "Devices and vault:", [
     deviceCommand,

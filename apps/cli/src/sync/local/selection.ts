@@ -29,7 +29,10 @@ export async function selectedRepos(
     }
 
     if (approval === "changed")
-      throw new EnvdenError("CONFLICT", "Approved checkout changed; use envden alias");
+      throw new EnvdenError(
+        "CONFLICT",
+        "Approved checkout changed; run envden untrack, then envden track",
+      );
 
     repos.add(state.aliases[approved.repoId] ?? approved.repoId);
   }

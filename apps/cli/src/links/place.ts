@@ -21,7 +21,10 @@ async function lockedlinkCheckout(
   const approval = checkoutApproval(state, checkout);
 
   if (approval === "changed")
-    throw new EnvdenError("CONFLICT", "Checkout remote changed; use envden alias");
+    throw new EnvdenError(
+      "CONFLICT",
+      "Checkout remote changed; run envden untrack, then envden track",
+    );
 
   if (approval === "ask") {
     if (await autoApprovedWorktree(adapters, state, checkout))

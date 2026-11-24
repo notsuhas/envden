@@ -62,7 +62,6 @@ test("help lists every command and a fresh home fails each gate with its exit co
     "diff",
     "resolve",
     "rm",
-    "alias",
     "device",
     "server",
     "serve",

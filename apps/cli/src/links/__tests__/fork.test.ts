@@ -2,12 +2,19 @@ import { expect, test } from "bun:test";
 import { emptyState } from "../../state/model.ts";
 import { offerForkAlias, shouldAskAlias } from "../fork.ts";
 
-for (const [upstream, exists, expected] of [
-  [undefined, true, false],
-  ["upstream", false, false],
-  ["upstream", true, true],
-] as const)
-  test(`fork alias decision ${upstream} ${exists}`, () => {
+for (const [upstream, exists, aliases, expected] of [
+  [undefined, true, {}, false],
+  ["upstream", false, {}, false],
+  ["upstream", true, {}, true],
+  ["fork", true, {}, false],
+  ["upstream", true, { upstream: "other" }, false],
+  ["upstream", true, { other: "fork" }, false],
+  ["constructor", true, {}, true],
+] satisfies [string | undefined, boolean, Record<string, string>, boolean][])
+  test(`fork alias decision ${upstream} ${exists} ${JSON.stringify(aliases)}`, () => {
+    const state = emptyState("test");
+    Object.assign(state.aliases, aliases);
+
     const checkout = {
       root: "/repo",
       gitDir: "/repo/.git",
@@ -15,9 +22,7 @@ for (const [upstream, exists, expected] of [
       ...(upstream ? { upstreamRepoId: upstream } : {}),
     };
 
-    expect(shouldAskAlias(emptyState("test"), checkout, new Set(exists ? ["upstream"] : []))).toBe(
-      expected,
-    );
+    expect(shouldAskAlias(state, checkout, new Set(exists ? [upstream ?? ""] : []))).toBe(expected);
   });
 
 for (const accepted of [true, false])
