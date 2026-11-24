@@ -9,22 +9,22 @@ test("login finish groups session consumption, device update and charge refund a
   const db = createSqliteStorageAdapter(dir, 0);
   const vault = new Uint8Array([1]);
   const device = new Uint8Array([2]);
-  const key = { kind: "login", device, purpose: "unlock" } as const;
+  const key = { kind: "join-ticket", device, purpose: "recovery" } as const;
 
   try {
-    db.configureVault(vault, { active: true, frozen: false, skRefused: false, unlockPeriod: null });
+    db.configureVault(vault, { active: true, frozen: false, proofRefused: false });
     db.putSession(vault, key, new Uint8Array([9]), 0);
-    const charged = db.charge(vault, { kind: "member", device }, 0);
+    const charged = db.charge(vault, { kind: "join" }, 0);
     if (charged.kind !== "charged") throw new Error("Expected charge");
 
     expect(() =>
       db.transaction(() => {
         db.consumeSession(vault, key, 1);
-        db.putDevice(vault, device, { unlockedUntil: 100, freshUntil: 50, clientVersion: "1.0.0" });
+        db.putDevice(vault, device, { clientVersion: "1.0.0" });
         db.refund(charged.receipt, 1);
-        throw new Error("Login rejected");
+        throw new Error("Commit rejected");
       }),
-    ).toThrow("Login rejected");
+    ).toThrow("Commit rejected");
 
     expect(db.session(vault, key, 1)).toBeDefined();
     expect(db.device(vault, device)).toBeUndefined();
@@ -44,11 +44,11 @@ test("lockout doubles to a 24 hour cap", () => {
 
     for (let strike = 0; strike < 10; strike++) {
       for (let attempt = 0; attempt < 5; attempt++)
-        expect(db.charge(new Uint8Array([1]), { kind: "non-member" }, now).kind).toBe("charged");
+        expect(db.charge(new Uint8Array([1]), { kind: "recovery" }, now).kind).toBe("charged");
 
       const duration = Math.min(86400000, 900000 * 2 ** strike);
 
-      expect(db.charge(new Uint8Array([1]), { kind: "non-member" }, now + 1)).toEqual({
+      expect(db.charge(new Uint8Array([1]), { kind: "recovery" }, now + 1)).toEqual({
         kind: "locked",
         until: now + duration,
       });

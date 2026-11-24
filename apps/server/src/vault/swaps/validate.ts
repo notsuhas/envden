@@ -1,9 +1,8 @@
-import { validateSwap, repairLoginDecision } from "@envden/core/chain";
+import { validateSwap } from "@envden/core/chain";
 import { decode, FilesCodec, base32, serverPin, type ISwap } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../../http/types.ts";
 import { vaultChain } from "../chain.ts";
-import { repairHistory } from "../../repair/close.ts";
 
 export function validateForCommit(options: IAppOptions, auth: IAuth, swap: ISwap) {
   const { storage } = options;
@@ -51,7 +50,6 @@ export function validateForCommit(options: IAppOptions, auth: IAuth, swap: ISwap
           : [],
       ),
     ),
-    repairRegistrationRequired: repairLoginDecision(repairHistory(options, vaultId)) === "register",
     ...(!storage.vault(vaultId)!.active
       ? { destinationPin: serverPin(options.serverKeys.publicKey) }
       : {}),

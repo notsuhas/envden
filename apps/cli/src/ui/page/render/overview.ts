@@ -1,6 +1,4 @@
-import { format } from "date-fns";
 import type { IOverview } from "../../view/model.ts";
-import { unlockText } from "../../view/unlock/text.ts";
 import { el } from "./dom.ts";
 
 const lights: Record<string, string> = { reachable: "good", error: "bad" };
@@ -24,11 +22,6 @@ export function renderOverview(target: HTMLElement, overview: IOverview, conflic
       text(overview.server.address),
     ]),
     cell("Vault", [text(overview.vaultId)]),
-    cell(
-      "Unlock",
-      [text(unlockText(overview.unlock, overview.checkedAt, (ms) => format(ms, "PP p")))],
-      overview.unlock.kind === "locked",
-    ),
     cell("Pending", [text(String(overview.pending))], overview.pending > 0),
     cell("Conflicts", [text(String(conflicts))], conflicts > 0),
   );

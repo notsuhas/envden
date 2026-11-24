@@ -20,9 +20,8 @@ export function verifyAccess(
     !storage.hasVault(request.vaultId) &&
     pathname !== "/v1/vault" &&
     pathname !== "/v1/move/session" &&
-    policy !== "registration" &&
-    policy !== "mailbox" &&
-    policy !== "approver"
+    policy !== "recovery" &&
+    policy !== "join"
   )
     throw new EnvdenError("NOT_FOUND", "Unknown vault");
 
@@ -37,13 +36,13 @@ export function verifyAccess(
 
   const state = storage.device(request.vaultId, request.device);
 
-  if (member && state?.clientVersion !== request.clientVersion)
-    storage.putDevice(request.vaultId, request.device, {
-      unlockedUntil: 0,
-      freshUntil: 0,
-      ...state,
-      clientVersion: request.clientVersion,
-    });
+  // A joiner's own join-request polls aren't confirmation; its first request after them is.
+  if (
+    member &&
+    (state || !pathname.startsWith("/v1/join-requests/")) &&
+    state?.clientVersion !== request.clientVersion
+  )
+    storage.putDevice(request.vaultId, request.device, { clientVersion: request.clientVersion });
 
   verifyVaultMode(options, c.get("auth"), pathname);
 }

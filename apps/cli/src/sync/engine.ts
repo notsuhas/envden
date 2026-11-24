@@ -49,7 +49,6 @@ async function sync(
       },
       history,
       options.fetcher,
-      options.unlock,
     );
 
     if (followed.kind === "moved") {

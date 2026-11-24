@@ -16,7 +16,7 @@ test("a share is version, nonce and AES-256-GCM bound to its ID", () => {
   expect(p.openShare(share, box)).toEqual(plaintext);
 
   // An independent AES-GCM reads it with the documented associated data.
-  const label = new TextEncoder().encode("envden/v1/share");
+  const label = new TextEncoder().encode("envden/v2/share");
   const ad = p.concat(p.u32.write(label.length), label, Uint8Array.of(1), share.id);
   const decipher = createDecipheriv("aes-256-gcm", share.key, box.subarray(1, 13));
   decipher.setAAD(ad);

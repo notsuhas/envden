@@ -4,7 +4,6 @@ import type { IRequest } from "@envden/core/protocol";
 export interface IServerKeys {
   secretKey: Uint8Array;
   publicKey: Uint8Array;
-  opaqueSetup: string;
 }
 
 export interface IAppOptions {
@@ -21,7 +20,6 @@ export interface IAuth {
   request: IRequest;
   member: boolean;
   proof?: Uint8Array;
-  rateReceipt?: string;
 }
 
 export type TServerEnv = { Variables: { auth: IAuth } };

@@ -33,8 +33,8 @@ function repairLines(result: TFinish) {
       return [
         "Server restore finished",
         ...(result.report ? ["", result.report] : []),
-        ...(result.replaceKit
-          ? ["The restored server can't vouch for the current recovery kit; replace it."]
+        ...(result.replaceCode
+          ? ["The restored server can't vouch for the current recovery code; replace it."]
           : []),
       ];
   }

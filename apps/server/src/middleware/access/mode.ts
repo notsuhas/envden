@@ -13,15 +13,12 @@ export function verifyVaultMode(options: IAppOptions, auth: IAuth, pathname: str
 
   if (
     vault?.restored &&
-    !/^\/v1\/(repair\/|swap$|blobs(?:\/|$)|headers$|entries$|head$|files\/|keyrings\/|envelope$|opaque\/)/.test(
+    !/^\/v1\/(repair\/|swap$|blobs(?:\/|$)|headers$|entries$|head$|files\/|keyrings\/|envelope$)/.test(
       pathname,
     )
   )
     throw new EnvdenError("RESTORED_MODE", "Repair required");
 
-  if (
-    vault?.active === false &&
-    !/^\/v1\/(move\/|swap$|blobs\/|opaque\/registration\/)/.test(pathname)
-  )
+  if (vault?.active === false && !/^\/v1\/(move\/|swap$|blobs\/)/.test(pathname))
     throw new EnvdenError("MOVING", "Vault moving");
 }

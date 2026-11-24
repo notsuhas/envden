@@ -59,7 +59,7 @@ test("hello challenge, pin, host, version and signature", () => {
   expect(p.verifyHello(hello, z, "server", z, "1.0.0").ok).toBe(false);
 });
 
-test("setup, repair and SK proofs cannot cross roles", () => {
+test("setup, repair and recovery proofs cannot cross roles", () => {
   const secret = new Uint8Array(20).fill(3),
     setup = p.tokenKey("setup", secret),
     repair = p.tokenKey("repair", secret);
@@ -69,12 +69,12 @@ test("setup, repair and SK proofs cannot cross roles", () => {
   expect(p.verifyTokenProof("setup", setup, request, proof).ok).toBe(true);
   expect(p.verifyTokenProof("repair", repair, request, proof).ok).toBe(false);
 
-  const sk = new Uint8Array(16),
-    signature = p.signSKProof(sk, z, request);
+  const code = new Uint8Array(16),
+    signature = p.signRecoveryProof(code, request);
 
-  expect(p.verifySKProof(p.skPub(sk, z), request, signature).ok).toBe(true);
+  expect(p.verifyRecoveryProof(p.proofPub(code), request, signature).ok).toBe(true);
 
-  expect(p.Verify(p.skPub(sk, z), "request", p.encode(p.RequestCodec, request), signature).ok).toBe(
-    false,
-  );
+  expect(
+    p.Verify(p.proofPub(code), "request", p.encode(p.RequestCodec, request), signature).ok,
+  ).toBe(false);
 });

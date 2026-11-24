@@ -8,7 +8,7 @@ const rng = (n: number) => Uint8Array.from({ length: n }, (_, i) => i);
 
 const key = from(vector.key),
   vaultId = from(vector.vaultId),
-  secret = from(vector.secret),
+  code = from(vector.code),
   keys = p.generateDeviceKeys(rng);
 
 const file = {
@@ -17,15 +17,11 @@ const file = {
   content: new TextEncoder().encode("SECRET=value\n"),
 };
 
-test("deterministic IDs, keys, secret and token text", () => {
+test("deterministic IDs, keys and token text", () => {
   expect(hex(p.deviceId(keys))).toBe(vector.deviceId);
   expect(hex(p.recoveryId(keys))).toBe(vector.recoveryId);
   expect(hex(p.serverPin(keys.objPub))).toBe(vector.serverPin);
   expect(hex(p.fileId(key, file.repoId, file.path))).toBe(vector.fileId);
-  expect(hex(p.skPub(secret, vaultId))).toBe(vector.skPub);
-  expect(p.encodeSecretKey(secret)).toBe(vector.secretText);
-  expect(p.decodeSecretKey(vector.secretText)).toEqual(secret);
-  expect(() => p.decodeSecretKey(vector.secretText.slice(0, -1) + "Z")).toThrow();
 
   expect(p.encodeToken("setup", new Uint8Array(20).fill(7), p.serverPin(keys.objPub))).toBe(
     vector.setupToken,
@@ -51,7 +47,7 @@ test("proof derivation vectors", () => {
     pathAndQuery: "/swap",
     bodyHash: p.sha256(key),
     time: 1n,
-    nonce: secret,
+    nonce: code,
     device: p.deviceId(keys),
     clientVersion: "1.0.0",
   };
@@ -63,7 +59,12 @@ test("proof derivation vectors", () => {
     vector.repairProof,
   );
 
-  expect(hex(p.signSKProof(secret, vaultId, request))).toBe(vector.skProof);
+  expect(hex(p.signRecoveryProof(code, request))).toBe(vector.recoveryProof);
+
+  expect(p.verifyRecoveryProof(p.proofPub(code), request, from(vector.recoveryProof)).ok).toBe(
+    true,
+  );
+
   expect(hex(p.H("repair-id", token))).toBe(vector.repairId);
 
   expect(hex(p.KDF(key, vaultId, "file-key", p.fileId(key, "repo", "folder/.env")))).toBe(

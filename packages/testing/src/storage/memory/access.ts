@@ -11,7 +11,7 @@ export function createAccess(context: IMemoryContext) {
     putSession(vault, key, bytes, now) {
       context.data.sessions.set(sessionKey(vault, key), {
         bytes: bytes.slice(),
-        expires: now + (key.kind === "login" ? 120000 : 600000),
+        expires: now + 600000,
       });
     },
     session(vault, key, now) {
@@ -50,7 +50,7 @@ export function createAccess(context: IMemoryContext) {
 
       if (
         [...data.charges.values()].filter((charge) => charge.key === key).length >=
-        (bucket.kind === "mailbox" ? 20 : 5)
+        (bucket.kind === "join" ? 20 : 5)
       ) {
         const strikes = (prior && now - prior.until < 86400000 ? prior.strikes : 0) + 1;
 
@@ -86,9 +86,5 @@ function expireCharges(context: IMemoryContext, key: string, now: number) {
 }
 
 function rateKey(vault: Uint8Array, bucket: TRateBucket) {
-  if (bucket.kind === "non-member") return `vault:${hex(vault)}`;
-  if (bucket.kind === "member") return `member:${hex(bucket.device)}`;
-  if (bucket.device) return `mailbox-writer:${hex(bucket.device)}`;
-
-  return `mailbox:${hex(vault)}`;
+  return `${bucket.kind}:${hex(vault)}`;
 }

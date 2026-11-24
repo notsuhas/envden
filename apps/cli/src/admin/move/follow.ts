@@ -11,12 +11,7 @@ import { readHistory } from "../../vault/history.ts";
 import { saveState } from "../../state/store/repository.ts";
 import { VERSION, MIN_SERVER } from "../../version.ts";
 
-export async function followServerMove(
-  context: TAdminContext,
-  history: THistory,
-  fetcher: TFetch,
-  unlock?: (client: ReturnType<typeof createClient>, vaultId: Uint8Array) => Promise<void>,
-) {
+export async function followServerMove(context: TAdminContext, history: THistory, fetcher: TFetch) {
   checkFloor(context.local, history);
   const moved = history.entries.findLast((entry) => entry.body.kind === 5);
   if (!moved || moved.body.kind !== 5) return { kind: "unchanged" as const };
@@ -49,13 +44,11 @@ export async function followServerMove(
     files: undefined,
     keyring: undefined,
     envelope: undefined,
-    skPub: undefined,
-    opaqueRecord: undefined,
+    proofPub: undefined,
     approver: undefined,
   };
 
   await client.request("/v1/swap", "POST", p.SwapCodec.write(swap));
-  if (unlock) await unlock(client, context.vaultId);
   const destination = await readHistory(client, context.vaultId);
 
   checkFloor(
@@ -69,7 +62,12 @@ export async function followServerMove(
   if (!p.equal(destination.state.serverPin, target.newPin))
     throw new EnvdenError("INVALID_DATA", "Destination pin does not match the move");
 
-  context.local.server = { address: target.newAddress, pin: text(target.newPin), protocol: 1 };
+  context.local.server = {
+    address: target.newAddress,
+    pin: text(target.newPin),
+    protocol: p.PROTOCOL_VERSION,
+  };
+
   await saveState(context.adapters.home, context.local, context.now);
 
   return { kind: "moved" as const, client };

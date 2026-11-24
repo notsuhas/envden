@@ -14,8 +14,7 @@ test("a closed database leaves only envden.sqlite, with its writes", () => {
     storage.configureVault(vault, {
       active: true,
       frozen: false,
-      skRefused: false,
-      unlockPeriod: null,
+      proofRefused: false,
     });
 
     storage.close();

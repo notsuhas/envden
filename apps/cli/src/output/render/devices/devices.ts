@@ -16,17 +16,14 @@ export function exposureText(exposure: Awaited<ReturnType<typeof exposedNames>>)
   return sanitizeConsole(lines.join("\n"));
 }
 
-export function pairingText(address: string, code: string) {
+export function noRequestText(address: string) {
   return sanitizeConsole(
-    [
-      `On the new device run: envden join ${address}`,
-      `and enter code ${code} (valid 10 minutes). Keep this running.`,
-    ].join("\n"),
+    `No device is waiting to join. On the new device run: envden join ${address}`,
   );
 }
 
-export function pairedText(result: { kind: "paired"; name?: string } | { kind: "declined" }) {
-  if (result.kind === "declined") return "Declined";
+export function approvalText(result: { kind: "approved"; name?: string } | { kind: "declined" }) {
+  if (result.kind === "declined") return "Declined; the join request was cancelled";
 
   return sanitizeConsole(result.name ? `Device ${result.name} added` : "Device added");
 }

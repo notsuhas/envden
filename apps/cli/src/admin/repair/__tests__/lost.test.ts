@@ -8,7 +8,7 @@ import { atomicWrite } from "../../../state/store/files.ts";
 import { loadState, saveState } from "../../../state/store/repository.ts";
 import { linkCheckout } from "../../../links/place.ts";
 import { pushInitialFiles } from "../../../vault/initial/push.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
+import { recoveryJoin } from "../../../vault/recovery/join.ts";
 import { push, pull } from "../../../sync/engine.ts";
 import { uploadRepair } from "../upload.ts";
 import { finishRepair } from "../finish.ts";
@@ -40,10 +40,9 @@ for (const recovered of [true, false])
       await pushInitialFiles(f.first, state, f.now);
       const second = f.home("second");
 
-      await kitJoin(second, {
-        ...f.result.kit,
-        address: f.result.kit.server,
-        password: "old password",
+      await recoveryJoin(second, {
+        address: f.result.address,
+        code: f.result.code,
         name: "second",
         now: f.now,
         fetcher: f.fetcher,
@@ -103,7 +102,6 @@ for (const recovered of [true, false])
 
       const finish = await finishRepair(f.first, {
         token,
-        password: "old password",
         acceptLost: true,
         now: f.now,
         fetcher: f.fetcher,

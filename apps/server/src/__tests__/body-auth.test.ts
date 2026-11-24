@@ -3,10 +3,12 @@ import * as p from "@envden/core/protocol";
 import { fixture, identity } from "./fixture.ts";
 import { text } from "../http/encoding.ts";
 
+// A member-only write: the JSON body is uploaded as a blob whose hash names the path.
+const memberPath = `/v1/blobs/${text(p.H("blob", new TextEncoder().encode('{"period":null}')))}`;
+
 for (const failure of ["signature", "hash", "budget", "setup"] as const)
   test(`${failure} enforces request body authorization`, async () => {
-    const f = fixture(await identity());
-    f.fresh();
+    const f = fixture(identity());
     let consumed = 0;
 
     const bytes =
@@ -14,7 +16,7 @@ for (const failure of ["signature", "hash", "budget", "setup"] as const)
         ? new Uint8Array(1048576)
         : new TextEncoder().encode('{"period":null}');
 
-    const path = failure === "setup" ? "/v1/vault" : "/v1/settings/unlock-period";
+    const path = failure === "setup" ? "/v1/vault" : memberPath;
 
     const signed = f.request(
       path,
@@ -69,8 +71,7 @@ for (const failure of ["signature", "hash", "budget", "setup"] as const)
   });
 
 test("concurrent body reservations return 503 and release after requests finish", async () => {
-  const f = fixture(await identity());
-  f.fresh();
+  const f = fixture(identity());
 
   function hold() {
     let finish = () => {};
@@ -118,10 +119,9 @@ test("concurrent body reservations return 503 and release after requests finish"
     await Promise.all([first.response, second.response]);
 
     try {
-      expect(
-        (await f.request("/v1/settings/unlock-period", { period: null }, { method: "PUT" }).send())
-          .status,
-      ).toBe(200);
+      expect((await f.request(memberPath, { period: null }, { method: "PUT" }).send()).status).toBe(
+        200,
+      );
     } finally {
       f.close();
     }
@@ -130,8 +130,7 @@ test("concurrent body reservations return 503 and release after requests finish"
 
 test("membership revoked during body read cannot upload a blob", async () => {
   const { spyOn } = await import("bun:test");
-  const f = fixture(await identity());
-  f.fresh();
+  const f = fixture(identity());
   const blob = p.randomBytes(32);
   const path = `/v1/blobs/${text(p.H("blob", blob))}`;
 
@@ -171,7 +170,7 @@ test("membership revoked during body read cannot upload a blob", async () => {
 });
 
 test("small declared swaps reserve their length instead of the route cap", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
   const release = f.reserveBody(100663292, "member");
 
   try {

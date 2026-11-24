@@ -15,8 +15,7 @@ export interface ISwap {
   files: IFiles | undefined;
   keyring: Uint8Array | undefined;
   envelope: Uint8Array | undefined;
-  skPub: Uint8Array | undefined;
-  opaqueRecord: Uint8Array | undefined;
+  proofPub: Uint8Array | undefined;
   approver: Uint8Array | undefined;
 }
 
@@ -29,8 +28,7 @@ export const SwapCodec = codec<ISwap>(
       files: opt(FilesCodec).read(r),
       keyring: opt(blob).read(r),
       envelope: opt(blob).read(r),
-      skPub: opt(b32).read(r),
-      opaqueRecord: opt(bytes).read(r),
+      proofPub: opt(b32).read(r),
       approver: opt(bytes).read(r),
     };
   },
@@ -42,8 +40,7 @@ export const SwapCodec = codec<ISwap>(
       opt(FilesCodec).write(v.files),
       opt(blob).write(v.keyring),
       opt(blob).write(v.envelope),
-      opt(b32).write(v.skPub),
-      opt(bytes).write(v.opaqueRecord),
+      opt(b32).write(v.proofPub),
       opt(bytes).write(v.approver),
     ),
 );

@@ -7,10 +7,9 @@ for (const [count, size, expected] of [
   [4, 400000, 1],
 ] as const)
   test(`history limits ${count} rows of ${size} bytes`, async () => {
-    const f = fixture(await identity());
+    const f = fixture(identity());
 
     try {
-      f.fresh();
       let head = f.storage.head(vaultId);
 
       for (let index = 1; index <= count!; index++) {

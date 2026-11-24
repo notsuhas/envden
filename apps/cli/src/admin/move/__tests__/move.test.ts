@@ -1,13 +1,12 @@
 import { tokenKey, decodeToken, isToken } from "@envden/core/protocol";
 import { pull } from "../../../sync/engine.ts";
-import { login } from "../../../session/login.ts";
 import type { TFetch } from "../../../client/fetch.ts";
 import { test, expect, spyOn } from "bun:test";
 import { join } from "node:path";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 import { moveServer } from "../run.ts";
 import { loadState } from "../../../state/store/repository.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
+import { recoveryJoin } from "../../../vault/recovery/join.ts";
 
 for (const crash of [false, true])
   test(`server move${crash ? " resumes after source commit" : " copies to another server"}`, async () => {
@@ -52,7 +51,6 @@ for (const crash of [false, true])
             moveServer(f.first, {
               address,
               token,
-              password: "old password",
               now: f.now,
               fetcher,
             }),
@@ -64,7 +62,6 @@ for (const crash of [false, true])
         await moveServer(f.first, {
           address,
           token,
-          password: "old password",
           now: f.now,
           fetcher,
         });
@@ -74,7 +71,6 @@ for (const crash of [false, true])
           expect(
             moveServer(f.first, {
               abort: true,
-              password: "old password",
               now: f.now,
               fetcher: f.fetcher,
             }),
@@ -85,16 +81,12 @@ for (const crash of [false, true])
           now: f.now,
           fetcher: f.fetcher,
           all: true,
-          unlock: async (client, vault) => {
-            await login(client, vault, "old password");
-          },
         });
 
         expect((await loadState(other.home))?.server?.address).toBe(address);
 
         await moveServer(f.first, {
           resume: true,
-          password: "old password",
           now: f.now,
           fetcher: f.fetcher,
         });
@@ -103,10 +95,9 @@ for (const crash of [false, true])
       expect((await loadState(f.first.home))?.server?.address).toBe(address);
       expect(await Bun.file(join(f.first.home, "state", "move-pin")).exists()).toBe(false);
 
-      await kitJoin(f.home("after-move"), {
-        ...f.result.kit,
+      await recoveryJoin(f.home("after-move"), {
         address,
-        password: "old password",
+        code: f.result.code,
         name: "after-move",
         now: f.now,
         fetcher: f.fetcher,
@@ -137,7 +128,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
     const fetcher: TFetch = async (input, init) => {
       const url = new URL(input instanceof Request ? input.url : String(input));
 
-      if (url.pathname === "/v1/swap" && url.origin === new URL(f.result.kit.server).origin) {
+      if (url.pathname === "/v1/swap" && url.origin === new URL(f.result.address).origin) {
         stopped = true;
         throw new Error("Crash before source commit");
       }
@@ -150,7 +141,6 @@ test("aborting a prepared move discards the inactive destination and permits a f
         moveServer(f.first, {
           address,
           token,
-          password: "old password",
           now: f.now,
           fetcher,
         }),
@@ -161,7 +151,6 @@ test("aborting a prepared move discards the inactive destination and permits a f
 
     await moveServer(f.first, {
       abort: true,
-      password: "old password",
       now: f.now,
       fetcher: f.fetcher,
     });
@@ -174,7 +163,6 @@ test("aborting a prepared move discards the inactive destination and permits a f
     await moveServer(f.first, {
       address,
       token: renewed,
-      password: "old password",
       now: f.now,
       fetcher: f.fetcher,
     });
@@ -188,7 +176,7 @@ test("aborting a prepared move discards the inactive destination and permits a f
   }
 });
 
-test("stale recovery kit refuses move before consuming destination token", async () => {
+test("a stale recovery code refuses the move before consuming the destination token", async () => {
   const f = await fixture();
   const log = spyOn(console, "log").mockImplementation(() => {});
 
@@ -208,7 +196,7 @@ test("stale recovery kit refuses move before consuming destination token", async
 
     f.running.storage.configureVault(vault, {
       ...f.running.storage.vault(vault)!,
-      skRefused: true,
+      proofRefused: true,
     });
 
     const setup = destination.storage.setupToken();
@@ -218,11 +206,10 @@ test("stale recovery kit refuses move before consuming destination token", async
         moveServer(f.first, {
           address: destination.server.url.toString(),
           token,
-          password: "old password",
           now: f.now,
           fetcher: f.fetcher,
         }),
-      ).rejects.toMatchObject({ code: "RECOVERY_KIT_REQUIRED" }),
+      ).rejects.toMatchObject({ code: "RECOVERY_CODE_REQUIRED" }),
     );
 
     expect(destination.storage.setupToken()).toEqual(setup);

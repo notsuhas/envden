@@ -49,8 +49,7 @@ export async function uploadChanges(
     entries: [],
     keyring: undefined,
     envelope: undefined,
-    skPub: undefined,
-    opaqueRecord: undefined,
+    proofPub: undefined,
     approver: undefined,
   };
 

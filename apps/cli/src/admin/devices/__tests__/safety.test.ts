@@ -13,7 +13,7 @@ test("device removal asks about recovery keys before committing", async () => {
     const second = f.joined.second!;
     let asked = false;
 
-    await removeDevice(second, "first", "old password", f.now, f.fetcher, false, async () => {
+    await removeDevice(second, "first", f.now, f.fetcher, false, async () => {
       asked = true;
 
       expect((await listDevices(second, f.now)).some((device) => device.name === "first")).toBe(
@@ -56,52 +56,29 @@ test("exposure downloads identical historical file lists once", async () => {
   }
 });
 
-test("unknown device does not ask for credentials and confirmation precedes removal", async () => {
+test("an unknown device is refused and confirmation precedes removal", async () => {
   const f = await fixture(["second"]);
 
   try {
-    let passwords = 0;
-
     await Promise.resolve(
-      expect(
-        removeDevice(
-          f.first,
-          "missing",
-          async () => {
-            passwords++;
-
-            return "old password";
-          },
-          f.now,
-        ),
-      ).rejects.toMatchObject({ code: "NOT_FOUND" }),
+      expect(removeDevice(f.first, "missing", f.now)).rejects.toMatchObject({ code: "NOT_FOUND" }),
     );
 
-    expect(passwords).toBe(0);
     const second = f.joined.second!;
     let confirmed = false;
 
     await Promise.resolve(
       expect(
-        removeDevice(
-          second,
-          "first",
-          async () => "old password",
-          f.now,
-          f.fetcher,
-          false,
-          undefined,
-          async (exposure) => {
-            confirmed = true;
-            expect(exposure.files).toEqual([]);
+        removeDevice(second, "first", f.now, f.fetcher, false, undefined, async (exposure) => {
+          confirmed = true;
+          expect(exposure.files).toEqual([]);
 
-            expect(
-              (await listDevices(second, f.now)).some((device) => device.name === "first"),
-            ).toBe(true);
+          expect((await listDevices(second, f.now)).some((device) => device.name === "first")).toBe(
+            true,
+          );
 
-            return false;
-          },
-        ),
+          return false;
+        }),
       ).rejects.toMatchObject({ code: "INVALID_INPUT" }),
     );
 
@@ -125,7 +102,7 @@ test("a dropped rotation acknowledgement cannot advance the local checkpoint", a
     };
 
     await Promise.resolve(
-      expect(rotateVault(f.first, "old password", f.now, fetcher)).rejects.toMatchObject({
+      expect(rotateVault(f.first, f.now, fetcher)).rejects.toMatchObject({
         code: "INVALID_DATA",
       }),
     );
@@ -161,7 +138,7 @@ test("checkpoint advances reject a signed header with an invalid operation shape
     const { createClient } = await import("../../../client/request.ts");
 
     const client = createClient({
-      address: f.result.kit.server,
+      address: f.result.address,
       pin: history.state.serverPin,
       vaultId: context.vaultId,
       identity: context.identity,
@@ -183,7 +160,7 @@ test("checkpoint advances reject a signed header with an invalid operation shape
           f.first,
           client,
           context.identity,
-          f.result.kit.server,
+          f.result.address,
           history.state.serverPin,
           history,
           p.objectHash(p.ManifestHeaderCodec, header, "manifest"),

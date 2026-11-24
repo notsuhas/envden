@@ -4,10 +4,9 @@ const SESSION: ISessionLine[] = [
   { kind: "command", text: "envden setup" },
   { kind: "prompt", text: "Device name" },
   { kind: "answer", text: "laptop" },
-  { kind: "prompt", text: "Master password" },
-  { kind: "answer", text: "••••••••••••" },
   { kind: "output", text: "✓ vault created" },
-  { kind: "output", text: "Store this recovery kit like a passport." },
+  { kind: "output", text: "Recovery code: ER1-7KQ2M-X9D4F-…" },
+  { kind: "output", text: "Store this in your password manager." },
 ];
 
 import { TypedSession } from "@/components/landing/ui/typed/session.tsx";

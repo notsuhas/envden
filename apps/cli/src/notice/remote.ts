@@ -14,8 +14,13 @@ import { syncContext, type TSyncContext } from "../sync/remote/context.ts";
 import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName, readableEntries } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
+import { joinRequests } from "../approval/approver.ts";
 
-const remoteNoticeSchema = z.object({ checkedAt: z.number(), repos: z.array(z.string()) });
+const remoteNoticeSchema = z.object({
+  checkedAt: z.number(),
+  repos: z.array(z.string()),
+  waiting: z.number().int().nonnegative(),
+});
 
 type TRemoteNotice = z.infer<typeof remoteNoticeSchema>;
 
@@ -23,11 +28,12 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
   await acceptHead(context, undefined, true);
   const result = await pendingRepos(context);
+  const waiting = (await joinRequests(context.client)).length;
 
   await withStateLock(adapters.home, async () => {
     await writeRemoteNotice(
       adapters.home,
-      { checkedAt: result.checkedAt, repos: result.repos },
+      { checkedAt: result.checkedAt, repos: result.repos, waiting },
       adapters.now,
     );
 
@@ -39,16 +45,17 @@ export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
     );
   });
 
-  return result;
+  return { ...result, waiting };
 }
 
 export async function settleRemoteNotice(context: TSyncContext) {
   const result = await pendingRepos(context);
+  const waiting = (await readRemoteNotice(context.adapters.home))?.waiting ?? 0;
 
   await withStateLock(context.adapters.home, () =>
     writeRemoteNotice(
       context.adapters.home,
-      { checkedAt: result.checkedAt, repos: result.repos },
+      { checkedAt: result.checkedAt, repos: result.repos, waiting },
       context.options.now,
     ),
   );

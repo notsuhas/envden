@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { syncFixture } from "../../../sync/__tests__/flows.ts";
-import { loadState, saveState } from "../../../state/store/repository.ts";
+import { loadState } from "../../../state/store/repository.ts";
 import { atomicWrite } from "../../../state/store/files.ts";
 import { pull } from "../../../sync/engine.ts";
 import { dashboardClient } from "./client.ts";
@@ -93,7 +93,6 @@ test("status names changed keys, never values", async () => {
   expect(status.overview).toMatchObject({
     deviceName: "first",
     pending: 1,
-    unlock: { kind: "until", until: fixture.now() + 2592000000 },
     checkedAt: fixture.now(),
   });
 
@@ -104,16 +103,6 @@ test("status names changed keys, never values", async () => {
     status: "local-changes",
     keys: { kind: "diff", added: ["NEW"], removed: [], changed: [] },
   });
-});
-
-test("the unlock expiry recorded by envden unlock shows once the server agrees", async () => {
-  const state = (await loadState(fixture.third.home))!;
-  const until = fixture.now() + 86400000;
-  state.session = { unlockedUntil: until, freshUntil: fixture.now() };
-  await saveState(fixture.third.home, state, fixture.now);
-
-  const status = (await send(app(fixture.third), "/api/status")).json();
-  expect(status.overview.unlock).toEqual({ kind: "until", until });
 });
 
 test("push and pull call through", async () => {

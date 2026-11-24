@@ -87,7 +87,7 @@ test("serve schedules pruning on the injected scheduler and shutdown cancels eve
 });
 
 test("pruning catches failures without logging the exception", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
 
   const failure = spyOn(f.storage, "vaultIds").mockImplementation(() => {
     throw new Error("private detail");
@@ -106,7 +106,7 @@ test("pruning catches failures without logging the exception", async () => {
 });
 
 test("pruning continues past a failing vault", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
   const pruned: number[] = [];
 
   const ids = spyOn(f.storage, "vaultIds").mockImplementation(() => [

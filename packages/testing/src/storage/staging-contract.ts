@@ -3,7 +3,7 @@ import type { IStorageAdapter } from "@envden/core/adapters";
 
 export function blobStagingContract(db: IStorageAdapter) {
   const b = (value: number) => new Uint8Array([value]);
-  db.configureVault(b(1), { active: true, frozen: false, skRefused: false, unlockPeriod: null });
+  db.configureVault(b(1), { active: true, frozen: false, proofRefused: false });
   db.putBlob(b(1), b(80), b(81), undefined, 10, 1);
   expect(db.hasBlob(b(1), b(80))).toBe(true);
   expect(db.vaultUsage(b(1))).toBe(1);

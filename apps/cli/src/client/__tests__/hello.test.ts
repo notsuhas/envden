@@ -6,6 +6,44 @@ import { createClient } from "../request.ts";
 import { text, binary } from "../encoding.ts";
 import { fixture } from "./fixture.ts";
 
+function greeting(
+  server: { objPub: Uint8Array; objSk: Uint8Array },
+  appVersion: string,
+  protocols: number[],
+): TFetch {
+  return async (input) => {
+    const url = new URL(input instanceof Request ? input.url : input.toString());
+
+    const signed = p.buildHello(
+      {
+        challenge: binary(url.searchParams.get("challenge")!),
+        host: url.hostname,
+        serverSignPub: server.objPub,
+        appVersion,
+        minClient: "0.0.0",
+        protocols,
+      },
+      server.objSk,
+    );
+
+    return Response.json({ hello: text(p.signedCodec(p.ServerHelloCodec).write(signed)) });
+  };
+}
+
+test("a server without this protocol says which side to update", async () => {
+  const { options, server } = await fixture();
+
+  for (const [protocols, code] of [
+    [[1], "SERVER_TOO_OLD"],
+    [[3], "UPDATE_REQUIRED"],
+  ] as const)
+    await Promise.resolve(
+      expect(
+        hello(options.address, options.pin, greeting(server, "1.0.0", [...protocols])),
+      ).rejects.toMatchObject({ code }),
+    );
+});
+
 test("authenticated old server has its own version outcome", async () => {
   const { options, server } = await fixture();
 

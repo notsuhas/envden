@@ -20,7 +20,7 @@ async function lockedcommandNotice(
   cwd?: string,
 ) {
   const state = await loadState(adapters.home);
-  if (!state) return { repos: [], update: await updateStatus(adapters.home) };
+  if (!state) return { repos: [], update: await updateStatus(adapters.home), waiting: false };
 
   if (!refresh) await reportPendingJoins(adapters.home, adapters.now);
   const remote = await readRemoteNotice(adapters.home);
@@ -43,6 +43,7 @@ async function lockedcommandNotice(
       .filter((repo) => repo !== currentRepo)
       .map(sanitizeTerminal),
     update,
+    waiting: !!remote?.waiting,
   };
 }
 
@@ -72,7 +73,7 @@ export async function commandNotice(
       lockedcommandNotice(adapters, now, refresh, cwd),
     );
   } catch {
-    return { repos: [], update: { available: false, required: false } };
+    return { repos: [], update: { available: false, required: false }, waiting: false };
   }
 }
 

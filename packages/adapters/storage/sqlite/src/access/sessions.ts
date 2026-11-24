@@ -14,7 +14,7 @@ export function createSessions(context: TContext) {
       key.device,
       key.purpose,
       bytes,
-      now + (key.kind === "login" ? 120000 : 600000),
+      now + 600000,
     );
   }
 

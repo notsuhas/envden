@@ -35,7 +35,7 @@ async function reportedRepair() {
 
     f.storage.putSession(
       f.vaultId,
-      { kind: "join-ticket", device: f.b.record.id, purpose: "kit" },
+      { kind: "join-ticket", device: f.b.record.id, purpose: "recovery" },
       new Uint8Array([1]),
       f.options.now(),
     );

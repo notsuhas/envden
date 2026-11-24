@@ -4,7 +4,6 @@ import { storageContract, createMemoryStorageAdapter } from "../src/storage/inde
 storageContract("Memory storage", () => {
   const storage = createMemoryStorageAdapter([
     "vaultIds",
-    "capUnlocks",
     "hasBlob",
     "findCommitted",
     "close",
@@ -36,10 +35,11 @@ storageContract("Memory storage", () => {
     "consumeSession",
     "charge",
     "refund",
-    "openMailbox",
-    "mailbox",
-    "writeMailbox",
-    "closeMailbox",
+    "openJoinRequest",
+    "joinRequests",
+    "joinRequest",
+    "writeJoinRequest",
+    "closeJoinRequest",
     "approver",
     "rememberNonce",
   ]);

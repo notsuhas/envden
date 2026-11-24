@@ -8,11 +8,9 @@ export const SETUP_SESSION: ISessionLine[] = [
   { kind: "answer", text: "••••••••••••••••" },
   { kind: "prompt", text: "Device name" },
   { kind: "answer", text: "laptop" },
-  { kind: "prompt", text: "Master password" },
-  { kind: "answer", text: "••••••••••••" },
-  { kind: "prompt", text: "Confirm master password" },
-  { kind: "answer", text: "••••••••••••" },
-  { kind: "output", text: "Store this recovery kit like a passport." },
+  { kind: "output", text: "Recovery code: ER1-7KQ2M-X9D4F-…" },
+  { kind: "prompt", text: "Stored it?" },
+  { kind: "answer", text: "yes" },
   { kind: "prompt", text: "Approve checkouts to track" },
   { kind: "answer", text: "~/code/shop  ~/code/api" },
 ];
@@ -28,23 +26,21 @@ export const DAILY_SESSION: ISessionLine[] = [
 ];
 
 export const APPROVER_SESSION: ISessionLine[] = [
-  { kind: "command", text: "envden device add" },
-  { kind: "prompt", text: "Master password" },
-  { kind: "answer", text: "••••••••••••" },
-  { kind: "output", text: "3-K7QF-2MXP" },
   { kind: "pause", text: "" },
   { kind: "pause", text: "" },
-  { kind: "prompt", text: "Add desktop?" },
+  { kind: "command", text: "envden device approve" },
+  { kind: "pause", text: "" },
+  { kind: "prompt", text: "desktop wants to join. Words: tiger lamp river. Do they match?" },
   { kind: "answer", text: "yes" },
+  { kind: "output", text: "Device desktop added" },
 ];
 
 export const JOINER_SESSION: ISessionLine[] = [
-  { kind: "pause", text: "" },
-  { kind: "pause", text: "" },
-  { kind: "pause", text: "" },
   { kind: "command", text: "envden join <server>" },
-  { kind: "prompt", text: "Pairing code" },
-  { kind: "answer", text: "•••••••••••" },
-  { kind: "output", text: "Waiting for the approving device" },
+  { kind: "output", text: "On a device already in the vault, run: envden device approve" },
   { kind: "pause", text: "" },
+  { kind: "output", text: "Words: tiger lamp river" },
+  { kind: "prompt", text: "Do they match the words on the approving device?" },
+  { kind: "answer", text: "yes" },
+  { kind: "output", text: "Joined as desktop" },
 ];

@@ -4,16 +4,15 @@ import * as questions from "../../../output/prompts/questions.ts";
 import { runRejoin } from "../run.ts";
 import { fixture } from "../../recovery/__tests__/fixture.ts";
 
-test("rejoin --recovery accepts a pasted kit", async () => {
+test("join --recovery asks only for the device name and the recovery code", async () => {
   const f = await fixture();
 
-  const promptInput = spyOn(questions, "input").mockImplementation(
-    async () => f.result.kit.vaultId,
-  );
+  const promptSecret = spyOn(questions, "secret").mockImplementation(async (label, check) => {
+    expect(check?.(f.result.code)).toBeUndefined();
+    expect(check?.("ER1-NOT-A-CODE")).toBeString();
 
-  const promptSecret = spyOn(questions, "secret").mockImplementation(async (label) =>
-    label === "Recovery secret key" ? f.result.kit.secretKey : "old password",
-  );
+    return f.result.code;
+  });
 
   try {
     const adapters = f.home("pasted");
@@ -27,19 +26,11 @@ test("rejoin --recovery accepts a pasted kit", async () => {
 
     const { loadState } = await import("../../../state/store/repository.ts");
     const state = await loadState(adapters.home);
-    const unlockedUntil = f.now() + 2592000000;
 
     expect(state?.deviceName).toBe("pasted");
-    expect(state?.session).toEqual({ unlockedUntil, freshUntil: 0 });
-
-    expect((await loadState(f.first.home))?.session).toEqual({
-      unlockedUntil,
-      freshUntil: f.now() + 600000,
-    });
-
-    expect(promptSecret.mock.calls.some(([label]) => label === "Recovery secret key")).toBe(true);
+    expect(state?.vaultId).toBe(f.result.vaultId);
+    expect(promptSecret.mock.calls.map(([label]) => label)).toEqual(["Recovery code (ER1-…)"]);
   } finally {
-    promptInput.mockRestore();
     promptSecret.mockRestore();
     await f.close();
   }

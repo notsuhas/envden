@@ -7,32 +7,27 @@ const hex = (b: Uint8Array) => Buffer.from(b).toString("hex");
 const rng = (n: number) => Uint8Array.from({ length: n }, (_, i) => i);
 
 const vaultId = from(vector.vaultId),
-  secret = from(vector.secret);
+  code = from(vector.code);
 
-test("envelope fixed salt/nonce and wrong password or secret", async () => {
+test("envelope opens and reseals at a fixed nonce, and only with its code and vault", () => {
   const box = from(vector.envelopeBox),
-    value = await p.openEnvelope(box, "password", secret, vaultId);
+    value = p.openEnvelope(box, code, vaultId);
 
   expect(value.vaultId).toEqual(vaultId);
-  expect(hex(await p.sealEnvelope(value, "password", secret, rng))).toBe(vector.envelopeBox);
+  expect(hex(p.sealEnvelope(value, code, rng))).toBe(vector.envelopeBox);
 
-  await Promise.resolve(
-    expect(p.openEnvelope(box, "wrong", secret, vaultId)).rejects.toMatchObject({
-      name: "EnvdenError",
-      code: "INVALID_DATA",
-      cause: expect.any(Error),
-    }),
-  );
-
-  expect(
-    await p.openEnvelope(box, "password", new Uint8Array(16), vaultId).then(
-      () => false,
-      () => true,
-    ),
-  ).toBe(true);
+  for (const [wrongCode, wrongVault] of [
+    [new Uint8Array(16), vaultId],
+    [code, new Uint8Array(32).fill(4)],
+  ] as const)
+    expect(() => p.openEnvelope(box, wrongCode, wrongVault)).toThrow(
+      expect.objectContaining({ name: "EnvdenError", code: "INVALID_DATA" }),
+    );
 });
 
-test("envelope key derivation vector", async () => {
-  const pw = await p.passwordKey("password", secret);
-  expect(hex(p.KDF(p.concat(pw, secret), vaultId, "envelope-key"))).toBe(vector.envelopeKey);
+test("envelope key derives from the code with the vault ID as salt", () => {
+  expect(hex(p.envelopeKey(code, vaultId))).toBe(vector.envelopeKey);
+
+  expect(hex(p.KDF(code, vaultId, "recovery-envelope-key"))).toBe(vector.envelopeKey);
+  expect(hex(p.envelopeKey(code, new Uint8Array(32)))).not.toBe(vector.envelopeKey);
 });

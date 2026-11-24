@@ -15,7 +15,7 @@ export function operationSwap(
     objPub: recoveryKeys.objPub,
   };
 
-  const nextRecovery = [5, 7, 9].includes(op) ? recovery : state.recovery;
+  const nextRecovery = [5, 7].includes(op) ? recovery : state.recovery;
 
   const devices = [...state.devices.values()].filter(
     (d) => ![4, 5].includes(op) || !p.equal(d.id, f.b.record.id),
@@ -31,17 +31,17 @@ export function operationSwap(
 
   const entries = operationEntries(f, op, state, recovery, change);
 
-  const keyring = op !== 8 ? p.randomBytes(64) : undefined;
-  const envelope = [5, 7, 8, 9].includes(op) ? p.randomBytes(64) : undefined;
+  const keyring = p.randomBytes(64);
+  const envelope = [5, 7].includes(op) ? p.randomBytes(64) : undefined;
 
   const swap = f.next(
     previous,
     {
       op,
-      epoch: op === 8 ? state.epoch : change.epoch,
+      epoch: change.epoch,
       listSeq: entries[0]?.body.seq ?? state.seq,
       listHead: entries[0] ? p.objectHash(p.EntryCodec, entries[0], "entry") : state.head,
-      keyringHash: keyring ? p.H("keyring-blob", keyring) : previous.body.keyringHash,
+      keyringHash: p.H("keyring-blob", keyring),
       envelopeHash: envelope ? p.H("envelope-blob", envelope) : previous.body.envelopeHash,
     },
     entries,
@@ -49,8 +49,7 @@ export function operationSwap(
 
   swap.keyring = keyring;
   swap.envelope = envelope;
-  swap.skPub = [5, 7].includes(op) ? p.generateRecoveryKeys().objPub : undefined;
-  swap.opaqueRecord = [8, 9].includes(op) ? p.randomBytes(192) : undefined;
+  swap.proofPub = [5, 7].includes(op) ? p.generateRecoveryKeys().objPub : undefined;
 
   return swap;
 }
@@ -62,38 +61,32 @@ function operationEntries(
   recovery: p.IRecoveryRecord,
   change: p.IEpochChange,
 ) {
-  let entries: p.ISigned<p.TEntry>[] = [];
+  const payload: p.TEntryPayload =
+    op === 4 || op === 5
+      ? {
+          kind: 2,
+          payload: {
+            device: f.b.record.id,
+            newRecovery: op === 5 ? recovery : undefined,
+            change,
+          },
+        }
+      : op === 6
+        ? { kind: 3, payload: { change } }
+        : { kind: 4, payload: { recovery, change } };
 
-  if (op !== 8) {
-    const payload: p.TEntryPayload =
-      op === 4 || op === 5
-        ? {
-            kind: 2,
-            payload: {
-              device: f.b.record.id,
-              newRecovery: op === 5 ? recovery : undefined,
-              change,
-            },
-          }
-        : op === 6
-          ? { kind: 3, payload: { change } }
-          : { kind: 4, payload: { recovery, change } };
-
-    entries = [
-      p.signObject(
-        p.EntryCodec,
-        {
-          vaultId: f.vaultId,
-          seq: state.seq + 1n,
-          parent: state.head,
-          ...payload,
-          signer: f.a.record.id,
-        },
-        f.a.keys.objSk,
-        "entry",
-      ),
-    ];
-  }
-
-  return entries;
+  return [
+    p.signObject(
+      p.EntryCodec,
+      {
+        vaultId: f.vaultId,
+        seq: state.seq + 1n,
+        parent: state.head,
+        ...payload,
+        signer: f.a.record.id,
+      },
+      f.a.keys.objSk,
+      "entry",
+    ),
+  ];
 }

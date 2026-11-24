@@ -1,25 +1,21 @@
 import type { TAdapters } from "../../adapters.ts";
-import { secret } from "../../output/prompts/questions.ts";
-import { readKit } from "../../vault/recovery/read.ts";
-import { kitJoin } from "../../vault/recovery/kit.ts";
+import { askRecoveryCode } from "../../output/prompts/recovery-code.ts";
+import { recoveryJoin } from "../../vault/recovery/join.ts";
 
-export async function recoveryJoin(
+export async function joinWithRecoveryCode(
   adapters: TAdapters,
   address: string,
   name: string,
-  kitPath: string | undefined,
   now: () => number,
-  askSecret = secret,
+  rejoin = false,
+  askCode = askRecoveryCode,
 ) {
-  const kit = await readKit(kitPath);
-
-  await kitJoin(adapters, {
+  await recoveryJoin(adapters, {
     address,
-    vaultId: kit.vaultId,
-    secretKey: kit.secretKey,
+    code: await askCode(),
     name,
-    password: await askSecret("Master password"),
     now,
     fetcher: adapters.fetcher,
+    ...(rejoin ? { rejoin } : {}),
   });
 }

@@ -11,9 +11,10 @@ import { realHome } from "../../output/home-path.ts";
 export const joinCommand = withPreferences(
   new Command("join")
     .argument("<server>", "Server address, e.g. envden.your-tailnet.ts.net")
-    .description("Join using a pairing code or recovery kit in your own terminal")
-    .option("--recovery", "Paste a recovery secret key and vault ID")
-    .option("--recovery-kit <path>", "Recovery kit path")
+    .description(
+      "Join a vault: approve this device from another one by comparing words, or use the recovery code",
+    )
+    .option("--recovery", "Join with the recovery code, when no other device is available")
     .option("--name <name>", "Device name")
     .option("--yes", "Use default preferences"),
 )

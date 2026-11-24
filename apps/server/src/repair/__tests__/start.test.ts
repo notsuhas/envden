@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { restoreKind } from "../start.ts";
 
-const vault = { active: true, frozen: false, skRefused: false, unlockPeriod: null };
+const vault = { active: true, frozen: false, proofRefused: false };
 
 test.each([
   [vault, "repair"],

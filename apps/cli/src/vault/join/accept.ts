@@ -15,7 +15,6 @@ import { text } from "../../client/encoding.ts";
 import { emptyState } from "../../state/model.ts";
 import type { loadState } from "../../state/store/repository.ts";
 import { saveState } from "../../state/store/repository.ts";
-import { recordUnlockWindow } from "../../session/window.ts";
 
 async function lockedacceptJoin(
   adapters: TAdapters,
@@ -32,11 +31,8 @@ async function lockedacceptJoin(
 
   const dropped = await droppedRejoin(adapters, history, existing?.checkpoint);
 
-  if (existing?.checkpoint && !dropped) {
-    await recordUnlockWindow(client, existing);
-
+  if (existing?.checkpoint && !dropped)
     return advanceCheckpoint(adapters, client, identity, existing, history);
-  }
 
   const wrap = deviceWrap(history.entries, identity.record.id, header.body.listSeq);
 
@@ -73,7 +69,7 @@ async function lockedacceptJoin(
   state.deviceName = committed.name;
   state.verifiedState = at.state;
   state.vaultId = p.base32(history.state.vaultId);
-  state.server = { address, pin: text(pin), protocol: 1 };
+  state.server = { address, pin: text(pin), protocol: p.PROTOCOL_VERSION };
   state.checkpoint = text(manifestHash);
 
   state.headers = history.headers
@@ -86,7 +82,6 @@ async function lockedacceptJoin(
 
   state.keyring = text(box);
   state.files = text(files);
-  await recordUnlockWindow(client, state);
   await adapters.keychain.set(`envden/${adapters.home}/epoch/${header.body.epoch}`, key);
   await adapters.keychain.set(`envden/${adapters.home}/id-key`, ring.idKey);
   await saveState(adapters.home, state, adapters.now);

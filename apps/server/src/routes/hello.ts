@@ -1,5 +1,6 @@
 import { requestRoute } from "./policy.ts";
 import {
+  PROTOCOL_VERSION,
   HelloResponseSchema,
   buildHello,
   signedCodec,
@@ -18,7 +19,7 @@ function hello(options: IAppOptions, challenge: Uint8Array, host: string) {
       serverSignPub: options.serverKeys.publicKey,
       appVersion: options.config.appVersion,
       minClient: options.config.minClient,
-      protocols: [1],
+      protocols: [PROTOCOL_VERSION],
     },
     options.serverKeys.secretKey,
   );

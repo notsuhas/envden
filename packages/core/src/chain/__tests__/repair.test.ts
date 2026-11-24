@@ -15,8 +15,7 @@ import {
 } from "../repair/reports.ts";
 import {
   chooseRecoveryCandidate,
-  repairLoginDecision,
-  refuseSecretKeyProof,
+  refuseRecoveryProof,
   isReusedRepairToken,
 } from "../repair/decisions.ts";
 import { bytes, fixture } from "./fixtures.ts";
@@ -154,18 +153,16 @@ test("candidate chooses newest existing older version and stops at tombstones or
   ).toBe("lost");
 });
 
-test("repair login and SK refusal derive from post-restore operations and envelope match", () => {
+test("recovery proof refusal derives from post-restore operations and envelope match", () => {
   const f = fixture();
 
   for (let op = 1; op <= 13; op++) {
     const headers = [{ ...f.header.body, op }];
-    expect(repairLoginDecision(headers)).toBe([8, 9].includes(op) ? "register" : "login");
-    expect(refuseSecretKeyProof(headers, true)).toBe([5, 7].includes(op));
-    expect(refuseSecretKeyProof(headers, false)).toBe(true);
+    expect(refuseRecoveryProof(headers, true)).toBe([5, 7].includes(op));
+    expect(refuseRecoveryProof(headers, false)).toBe(true);
   }
 
-  expect(repairLoginDecision([])).toBe("login");
-  expect(refuseSecretKeyProof([], true)).toBe(false);
+  expect(refuseRecoveryProof([], true)).toBe(false);
   expect(isReusedRepairToken(bytes(1), new Set([base32(bytes(1))]))).toBe(true);
   expect(isReusedRepairToken(bytes(2), new Set([base32(bytes(1))]))).toBe(false);
 });

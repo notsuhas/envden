@@ -8,7 +8,7 @@ import { initializeSetup, reissueSetup } from "../identity/setup.ts";
 import { localSetupToken } from "../identity/local.ts";
 import { fixture, identity } from "./fixture.ts";
 
-test("server signing key and OPAQUE setup persist privately", async () => {
+test("server signing key persists privately", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-identity-"));
 
   try {
@@ -63,7 +63,7 @@ test("a local host gets a fresh setup token until a vault exists", async () => {
 });
 
 test("setup initialization preserves active hash, replaces explicitly, and stays consumed", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
 
   try {
     const pub = f.options.serverKeys.publicKey;
@@ -83,7 +83,7 @@ test("setup initialization preserves active hash, replaces explicitly, and stays
 
     f.storage.configureVault(
       p.randomBytes(32),
-      { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+      { active: true, frozen: false, proofRefused: false },
       [],
       f.storage.setupToken(),
     );
@@ -96,7 +96,7 @@ test("setup initialization preserves active hash, replaces explicitly, and stays
 });
 
 test("discarding the only move session does not reissue setup on restart", async () => {
-  const f = fixture(await identity());
+  const f = fixture(identity());
 
   try {
     const pub = f.options.serverKeys.publicKey;
@@ -112,7 +112,7 @@ test("discarding the only move session does not reissue setup on restart", async
 
     f.storage.configureVault(
       vault,
-      { active: false, frozen: false, skRefused: false, unlockPeriod: null },
+      { active: false, frozen: false, proofRefused: false },
       [],
       f.storage.setupToken(),
     );

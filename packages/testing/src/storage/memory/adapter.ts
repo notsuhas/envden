@@ -3,7 +3,7 @@ import { VAULT_QUOTA_BYTES, type IStorageAdapter, type IStoredHeader } from "@en
 import { createData, equal, hex } from "./data.ts";
 import type { IMemoryContext } from "./data.ts";
 import { createAccess } from "./access.ts";
-import { createMailboxes } from "./mailboxes.ts";
+import { createJoinRequests } from "./join-requests.ts";
 import { createHistory } from "./history.ts";
 import { createCommit } from "./commit.ts";
 import { vaultUsage } from "./usage.ts";
@@ -32,11 +32,6 @@ export function createMemoryStorageAdapter(
     },
     vaultIds: () =>
       [...context.data.vaults.keys()].map((key) => new Uint8Array(Buffer.from(key, "hex"))),
-    capUnlocks(vault, until) {
-      for (const [key, state] of context.data.devices)
-        if (key.startsWith(`${hex(vault)}:`))
-          state.unlockedUntil = Math.min(state.unlockedUntil, until);
-    },
     findCommitted: (vault, digest) => context.data.digests.has(`${hex(vault)}:${hex(digest)}`),
     hasBlob: (vault, hash) => context.data.blobs.has(`${hex(vault)}:${hex(hash)}`),
     hasVault: (vault) => context.data.vaults.has(hex(vault)),
@@ -59,14 +54,7 @@ export function createMemoryStorageAdapter(
       const data = context.data;
       const prefix = hex(vault);
 
-      for (const map of [
-        data.vaults,
-        data.heads,
-        data.headers,
-        data.entries,
-        data.currentFiles,
-        data.openings,
-      ])
+      for (const map of [data.vaults, data.heads, data.headers, data.entries, data.currentFiles])
         map.delete(prefix);
 
       for (const map of [data.lists, data.states, data.devices, data.blobs, data.approvers])
@@ -141,7 +129,7 @@ export function createMemoryStorageAdapter(
       context.data.setup.set("token", hash.slice());
     },
     ...createAccess(context),
-    ...createMailboxes(context),
+    ...createJoinRequests(context),
     ...createHistory(context),
     commitSwap: (...args) => createCommit(context, methods)(...args),
   };
@@ -173,8 +161,8 @@ function discardIndexes(context: IMemoryContext, prefix: string) {
 
   for (const key of data.digests) if (key.startsWith(`${prefix}:`)) data.digests.delete(key);
 
-  for (const [number, mailbox] of data.mailboxes)
-    if (mailbox.vault === prefix) data.mailboxes.delete(number);
+  for (const [number, request] of data.joinRequests)
+    if (request.claim && hex(request.claim.vault) === prefix) data.joinRequests.delete(number);
 }
 
 function boundedRows<T extends { bytes: Uint8Array }>(

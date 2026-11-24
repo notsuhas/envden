@@ -7,7 +7,7 @@ export function commitVaultSwap(
   auth: IAuth,
   swap: ISwap,
   digest: Uint8Array,
-  mailbox?: number,
+  request?: number,
 ) {
-  return options.storage.transaction(() => commit(options, auth, swap, digest, mailbox));
+  return options.storage.transaction(() => commit(options, auth, swap, digest, request));
 }

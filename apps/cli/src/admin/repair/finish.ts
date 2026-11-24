@@ -23,7 +23,6 @@ async function attemptFinishRepair(
   adapters: TAdapters,
   options: {
     token: string;
-    password: string;
     without?: string[] | undefined;
     acceptLost?: boolean | undefined;
     now: () => number;
@@ -66,7 +65,7 @@ async function attemptFinishRepair(
     history = await readHistory(context.client, context.vaultId);
   }
 
-  await closeRepair(adapters, context, history, status, options);
+  await closeRepair(adapters, context, history, status, options.now);
 
   const result = await resumeClose(adapters, options.token, options.now, options.fetcher);
   if (!result) throw new EnvdenError("INVALID_DATA", "Repair close was not committed");

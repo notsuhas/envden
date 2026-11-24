@@ -5,23 +5,17 @@ import { hello } from "../client/hello.ts";
 import { MIN_SERVER } from "../version.ts";
 import { readToken } from "../output/prompts/token.ts";
 import { withStateLock } from "../state/lock/lock.ts";
-import { parseKit, secretKeyProblem } from "../vault/recovery/input.ts";
-import { writeKit } from "../vault/recovery/output.ts";
-import { printKitSaved } from "../output/render/devices/kit.ts";
-import { reportKit } from "../vault/recovery/pdf/report.ts";
-import type { ISetupKit } from "../vault/recovery/pending-kit.ts";
-import { confirmedPassword } from "./password.ts";
+import { recoveryCodeOutput, requireCodeOutput } from "../vault/recovery/show.ts";
 import { askDeviceName } from "../output/prompts/device-name.ts";
 import { setupCheckouts } from "./scan.ts";
 import { setupPreferences, updatePreferences } from "./preferences.ts";
 import type { TAdapters } from "../adapters.ts";
 import { EnvdenError } from "@envden/core/errors";
 import { pushInitialFiles } from "../vault/initial/push.ts";
-import { setupVault } from "../vault/setup.ts";
-import { optionalRead } from "../state/store/files.ts";
+import { resumeCommittedSetup, setupVault } from "../vault/setup.ts";
 import { loadState, saveState } from "../state/store/repository.ts";
 import { refreshNotice } from "../notice/cache.ts";
-import { secret, input, consent } from "../output/prompts/questions.ts";
+import { input } from "../output/prompts/questions.ts";
 import { hostLocally } from "./host/local.ts";
 import { rehostServer } from "./host/rehost.ts";
 import type { ILocalState } from "../state/model.ts";
@@ -32,7 +26,7 @@ interface ISetupOptions {
   name?: string;
   yes?: boolean;
   hostServer?: boolean;
-  kitOut?: string;
+  recoveryCodeOut?: string;
   telemetry?: "on" | "off";
   updateCheck?: "on" | "off";
   agent?: "on" | "off";
@@ -56,7 +50,7 @@ async function lockedrunSetup(
     state = existing;
 
     await updatePreferences(adapters, options);
-  } else state = await createState(adapters, options, now, existing?.vaultId);
+  } else state = await createState(adapters, options, now);
 
   await setupCheckouts(adapters, state, { ...options, command: "setup", now });
   await pushInitialFiles(adapters, state, now);
@@ -71,12 +65,9 @@ async function lockedrunSetup(
   return state;
 }
 
-async function createState(
-  adapters: TAdapters,
-  options: ISetupOptions,
-  now: () => number,
-  vaultId?: string,
-) {
+async function createState(adapters: TAdapters, options: ISetupOptions, now: () => number) {
+  const resumed = await resumeSetup(adapters, options, now);
+  if (resumed) return resumed;
   const hosted = await hostLocally(adapters, options);
 
   const address = requireServerAddress(
@@ -87,19 +78,18 @@ async function createState(
 
   const token = hosted?.token ?? (await readToken("setup", options.setupToken));
   if (!hosted) await checkServer(address, token, adapters.fetcher);
+  const output = { path: options.recoveryCodeOut };
+  requireCodeOutput(output);
 
   const name = await askDeviceName(options.name, adapters.hostname);
-  const password = await confirmedPassword(secret);
 
   const result = await setupVault(adapters, {
     address,
     token,
     name,
-    password,
     now,
     fetcher: adapters.fetcher,
-    readResumeSecretKey: () => resumeKey(vaultId, options.kitOut),
-    onKit: (kit) => reportSetupKit(adapters, options.kitOut, name, now, kit),
+    onCode: recoveryCodeOutput(output).show,
   });
 
   await setupPreferences(adapters, options);
@@ -109,28 +99,30 @@ async function createState(
   return result.state;
 }
 
+// A creation that committed before its code reached the user resumes without host, address or token.
+async function resumeSetup(adapters: TAdapters, options: ISetupOptions, now: () => number) {
+  if (!(await loadState(adapters.home))?.creationPending) return undefined;
+  const output = { path: options.recoveryCodeOut };
+  requireCodeOutput(output);
+
+  const result = await resumeCommittedSetup(adapters, {
+    now,
+    fetcher: adapters.fetcher,
+    onCode: recoveryCodeOutput(output).show,
+  });
+
+  if (!result) return undefined;
+  await setupPreferences(adapters, options);
+  await saveState(adapters.home, result.state, adapters.now);
+
+  return result.state;
+}
+
 export function runSetup(...args: Parameters<typeof lockedrunSetup>) {
   return withStateLock(args[0].home, () => lockedrunSetup(...args));
 }
 
-async function resumeKey(vaultId: string | undefined, kitOut: string | undefined) {
-  if (!vaultId) return undefined;
-
-  if (kitOut) {
-    const saved = await optionalRead(kitOut);
-
-    return saved === undefined ? undefined : parseKit(saved).secretKey;
-  }
-
-  if (
-    !(await consent("Setup stopped after giving you a recovery kit. Do you still have it?", true))
-  )
-    return undefined;
-
-  return (await secret("Secret key from that kit (EK1-…)", secretKeyProblem)).trim();
-}
-
-// Runs before the name and password questions, so a wrong address or token fails fast.
+// Runs before the name question, so a wrong address or token fails fast.
 async function checkServer(address: string, token: string, fetcher: TFetch) {
   const server = await hello(address, undefined, fetcher, MIN_SERVER).catch((cause: unknown) => {
     if (cause instanceof EnvdenError && ["SERVER_TOO_OLD", "UPDATE_REQUIRED"].includes(cause.code))
@@ -145,18 +137,4 @@ async function checkServer(address: string, token: string, fetcher: TFetch) {
 
   if (!p.equal(server.pin, p.decodeToken("setup", token).serverPin))
     throw new EnvdenError("INVALID_INPUT", "This setup token is for a different server");
-}
-
-// --kit-out is the scripted path, so it writes only the JSON that join --recovery-kit reads.
-async function reportSetupKit(
-  adapters: TAdapters,
-  path: string | undefined,
-  deviceName: string,
-  now: () => number,
-  kit: ISetupKit,
-) {
-  if (!path) return reportKit(kit, { userHome: adapters.userHome, deviceName, now: now() });
-
-  await writeKit(path, kit);
-  printKitSaved(path, "json");
 }

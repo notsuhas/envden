@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { exposureText, pairedText, pairingText } from "../devices.ts";
+import { approvalText, exposureText, noRequestText } from "../devices.ts";
 
 test("removal lists what the device could read", () => {
   expect(exposureText({ files: [], incomplete: false }).split("\n")).toHaveLength(1);
@@ -13,12 +13,9 @@ test("removal lists what the device could read", () => {
   expect(exposed).toContain("incomplete");
 });
 
-test("pairing tells the new device what to run", () => {
-  const pairing = pairingText("https://envden.example", "1-ABCD-EFGH");
-
-  expect(pairing).toContain("envden join https://envden.example");
-  expect(pairing).toContain("1-ABCD-EFGH");
-  expect(pairedText({ kind: "paired", name: "laptop" })).toBe("Device laptop added");
-  expect(pairedText({ kind: "paired" })).toBe("Device added");
-  expect(pairedText({ kind: "declined" })).toBe("Declined");
+test("approval tells the new device what to run and reports the outcome", () => {
+  expect(noRequestText("https://envden.example")).toContain("envden join https://envden.example");
+  expect(approvalText({ kind: "approved", name: "laptop" })).toBe("Device laptop added");
+  expect(approvalText({ kind: "approved" })).toBe("Device added");
+  expect(approvalText({ kind: "declined" })).toStartWith("Declined");
 });

@@ -13,8 +13,6 @@ import { fileStatus, pendingCount } from "./file-status.ts";
 import { keyChanges } from "./key-changes.ts";
 import type { IConflictView, IFileView, TApproval, TDashboardStatus } from "./model.ts";
 import { groupRepos } from "./repos.ts";
-import { probeUnlock } from "./unlock/probe.ts";
-import { deriveUnlock } from "./unlock/state.ts";
 
 type TLink = Awaited<ReturnType<typeof localStatus>>["links"][number];
 
@@ -42,7 +40,6 @@ export async function dashboardStatus(
   const remote = new Set((await readRemoteNotice(adapters.home))?.repos ?? []);
   const approvals = await checkoutApprovals(adapters, state);
   const conflicts = await conflictViews(adapters.home);
-  const probe = await probeUnlock(adapters, now);
   const checkedAt = now();
 
   const facts = { diffs, heldBack, conflicts, remote };
@@ -64,7 +61,6 @@ export async function dashboardStatus(
       vaultId: state.vaultId.slice(0, 8),
       server: { address: state.server.address, reachability: local.server },
       deviceName: state.deviceName,
-      unlock: deriveUnlock(state.session?.unlockedUntil, probe, checkedAt),
       checkedAt,
       pending: pendingCount(rows.map((row) => row.file.status)),
     },

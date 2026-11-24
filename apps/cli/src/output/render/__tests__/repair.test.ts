@@ -17,11 +17,11 @@ test("each repair outcome names who or what it waits for and the next step", () 
   expect(lost).toContain("--accept-lost");
   expect(lost).not.toContain("Waiting");
 
-  const plain = repairText({ kind: "finished", report: undefined, replaceKit: false });
-  const kit = repairText({ kind: "finished", report: "repo/.env: lost", replaceKit: true });
+  const plain = repairText({ kind: "finished", report: undefined, replaceCode: false });
+  const code = repairText({ kind: "finished", report: "repo/.env: lost", replaceCode: true });
 
   expect(plain.split("\n")).toHaveLength(1);
-  expect(kit).toStartWith(plain);
-  expect(kit).toContain("repo/.env: lost");
-  expect(kit).toContain("recovery kit");
+  expect(code).toStartWith(plain);
+  expect(code).toContain("repo/.env: lost");
+  expect(code).toContain("recovery code");
 });

@@ -6,7 +6,7 @@ import { Window } from "@/components/landing/ui/window/window.tsx";
 
 export function RecoveryPreview() {
   return (
-    <Window title="recovery-kit.txt">
+    <Window title="recovery code">
       <div className="relative h-40">
         <DitherCanvas scene={recoveryScene} className="absolute inset-0" />
       </div>

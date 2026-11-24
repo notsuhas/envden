@@ -5,7 +5,7 @@ export function requireJoinTicket(options: IAppOptions, auth: IAuth): void {
   if (
     !options.storage.session(
       auth.request.vaultId,
-      { kind: "join-ticket", device: auth.request.device, purpose: "kit" },
+      { kind: "join-ticket", device: auth.request.device, purpose: "recovery" },
       options.now(),
     )
   )

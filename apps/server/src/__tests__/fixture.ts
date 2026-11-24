@@ -37,14 +37,10 @@ const genesis = p.signObject<p.TEntry>(
 
 export const vaultId = p.objectHash(p.EntryCodec, genesis, "entry");
 
-export async function identity(): Promise<IServerKeys> {
+export function identity(): IServerKeys {
   const keys = p.generateRecoveryKeys();
 
-  return {
-    secretKey: keys.objSk,
-    publicKey: keys.objPub,
-    opaqueSetup: await p.opaqueCreateSetup(),
-  };
+  return { secretKey: keys.objSk, publicKey: keys.objPub };
 }
 
 export function candidate(name = "device") {
@@ -61,11 +57,7 @@ export function candidate(name = "device") {
   return { keys, record };
 }
 
-export function fixture(
-  serverKeys: IServerKeys,
-  registrationRecord?: string,
-  reserveBody = createBodyBudget(),
-) {
+export function fixture(serverKeys: IServerKeys, reserveBody = createBodyBudget()) {
   const dir = mkdtempSync(join(tmpdir(), "envden-server-"));
   const { storage } = createAdapters(dir, 1000000);
   const member = founding;
@@ -82,19 +74,7 @@ export function fixture(
     },
   };
 
-  storage.configureVault(
-    vaultId,
-    { active: true, frozen: false, skRefused: false, unlockPeriod: 2592000000 },
-    registrationRecord
-      ? [
-          {
-            kind: "opaqueRecord",
-            key: new Uint8Array(),
-            bytes: Buffer.from(registrationRecord, "base64url"),
-          },
-        ]
-      : [],
-  );
+  storage.configureVault(vaultId, { active: true, frozen: false, proofRefused: false });
 
   const header = p.signObject(
     p.ManifestHeaderCodec,
@@ -131,21 +111,9 @@ export function fixture(
     time,
   );
 
-  storage.putDevice(vaultId, member.record.id, {
-    unlockedUntil: 0,
-    freshUntil: 0,
-    clientVersion: "1.0.0",
-  });
+  storage.putDevice(vaultId, member.record.id, { clientVersion: "1.0.0" });
 
   const app = createApp(options, reserveBody);
-
-  function fresh() {
-    storage.putDevice(vaultId, member.record.id, {
-      unlockedUntil: time + 10000,
-      freshUntil: time + 10000,
-      clientVersion: "1.0.0",
-    });
-  }
 
   function request(
     path: string,
@@ -205,7 +173,6 @@ export function fixture(
     member,
     joiner,
     request,
-    fresh,
     advance: (ms: number) => {
       time += ms;
     },

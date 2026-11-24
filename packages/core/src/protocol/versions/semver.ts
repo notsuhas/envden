@@ -22,3 +22,6 @@ export function compareSemver(a: string, b: string): number {
 
   return 0;
 }
+
+// The protocol in docs/PROTOCOL.md; ServerHello lists it and clients refuse servers that don't.
+export const PROTOCOL_VERSION = 2;

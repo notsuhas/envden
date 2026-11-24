@@ -49,8 +49,8 @@ export function operationSwap(
       }
     : undefined;
 
-  const keyring = [4, 5, 6, 7, 9].includes(op) ? bytes(24) : undefined;
-  const envelope = [5, 7, 8, 9].includes(op) ? bytes(25) : undefined;
+  const keyring = [4, 5, 6, 7].includes(op) ? bytes(24) : undefined;
+  const envelope = [5, 7].includes(op) ? bytes(25) : undefined;
 
   const header = operationHeader(op, f, prior, nextState, files, keyring, envelope);
 
@@ -61,8 +61,7 @@ export function operationSwap(
     files,
     keyring,
     envelope,
-    skPub: [5, 7].includes(op) ? f.a.record.objPub : undefined,
-    opaqueRecord: [8, 9].includes(op) ? bytes(27, 192) : undefined,
+    proofPub: [5, 7].includes(op) ? f.a.record.objPub : undefined,
     approver: op === 2 ? bytes(28) : undefined,
   };
 

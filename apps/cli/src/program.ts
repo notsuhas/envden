@@ -11,7 +11,6 @@ import { trackCommand } from "./commands/checkouts/track.ts";
 import { localOnlyCommand } from "./commands/checkouts/local-only.ts";
 import { vaultCommand } from "./commands/vault/vault.ts";
 import { Command, type CommandUnknownOpts } from "@commander-js/extra-typings";
-import { unlockCommand } from "./commands/onboarding/unlock.ts";
 import { VERSION } from "./version.ts";
 import { setupCommand } from "./commands/onboarding/setup.ts";
 import { joinCommand } from "./commands/onboarding/join.ts";
@@ -35,6 +34,7 @@ import { receiveCommand } from "./commands/share/receive.ts";
 
 import { createAdapters } from "./adapters.ts";
 import { commandNotice } from "./notice/command.ts";
+import { WAITING_NOTICE } from "./notice/cache.ts";
 
 export function createProgram(now: () => number) {
   const program = new Command()
@@ -83,12 +83,7 @@ export function createProgram(now: () => number) {
 
   addGroup(program, "Share a file once:", [sendCommand, receiveCommand]);
 
-  addGroup(program, "Devices and vault:", [
-    deviceCommand,
-    vaultCommand,
-    serverCommand,
-    unlockCommand,
-  ]);
+  addGroup(program, "Devices and vault:", [deviceCommand, vaultCommand, serverCommand]);
 
   addGroup(program, "Maintenance:", [
     configCommand,
@@ -141,6 +136,7 @@ function reportCommandNotice(notice: Awaited<ReturnType<typeof commandNotice>>) 
   for (const repo of notice.repos) console.error(`envden: ${repo} out of sync`);
   if (notice.update.available) console.error("envden: update available; run envden update");
   if (notice.update.required) console.error("envden: update required; run envden update");
+  if (notice.waiting) console.error(WAITING_NOTICE);
 }
 
 function commandName(command: CommandUnknownOpts): string {

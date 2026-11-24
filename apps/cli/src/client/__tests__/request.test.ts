@@ -6,16 +6,12 @@ import { hello } from "../hello.ts";
 import { text, binary } from "../encoding.ts";
 import { fixture } from "./fixture.ts";
 
-test("request signs the exact body, query and pin; locked retries once", async () => {
+test("request signs the exact body, query and pin, and doesn't retry a refusal", async () => {
   const { options, greeting } = await fixture();
   let attempts = 0;
-  let unlocked = 0;
 
   const client = createClient({
     ...options,
-    unlock: async () => {
-      unlocked++;
-    },
     fetcher: async (url, init) => {
       const welcome = greeting(url);
       if (welcome) return welcome;
@@ -44,8 +40,13 @@ test("request signs the exact body, query and pin; locked retries once", async (
     },
   });
 
+  await Promise.resolve(
+    expect(client.request("/v1/test?q=1", "POST", { message: "test" })).rejects.toMatchObject({
+      code: "LOCKED",
+    }),
+  );
+
   await client.request("/v1/test?q=1", "POST", { message: "test" });
-  expect(unlocked).toBe(1);
   expect(attempts).toBe(2);
 
   expect(client.request("https://other.example/", "GET")).rejects.toMatchObject({
@@ -76,7 +77,7 @@ for (const latest of [undefined, "v1.0.0"])
           serverSignPub: server.objPub,
           appVersion: "1.0.0",
           minClient: "2.0.0",
-          protocols: [1],
+          protocols: [2],
         },
         server.objSk,
       );
@@ -141,8 +142,9 @@ test("wire errors use the shared code schema", async () => {
   expect((await responseError(Response.json({ error: "MADE_UP" }))).code).toBe("INVALID_DATA");
 
   for (const [error, path, command] of [
-    ["LOCKED", "/v1/history", "envden unlock"],
-    ["CONFLICT", "/v1/pairing/mailboxes/4/a", "envden device add"],
+    ["RECOVERY_CODE_REQUIRED", "/v1/move/freeze", "envden vault recovery-code"],
+    ["CONFLICT", "/v1/join-requests/4/offer", "envden join again"],
+    ["UNAUTHORIZED", "/v1/recovery/ticket", "current server address"],
   ] as const)
     expect((await responseError(Response.json({ error }), path)).message).toContain(command);
 });
@@ -206,33 +208,4 @@ test("every signed request installs a bounded timeout signal", async () => {
   } finally {
     timeout.mockRestore();
   }
-});
-
-test("kit replacement refusal never retries unlock", async () => {
-  const { options, greeting } = await fixture();
-  let attempts = 0;
-  let unlocked = 0;
-
-  const client = createClient({
-    ...options,
-    unlock: async () => {
-      unlocked++;
-    },
-    fetcher: async (url) => {
-      const welcome = greeting(url);
-      if (welcome) return welcome;
-      attempts++;
-
-      return Response.json({ error: "RECOVERY_KIT_REQUIRED" }, { status: 409 });
-    },
-  });
-
-  await Promise.resolve(
-    expect(client.request("/v1/move/sk-pub")).rejects.toMatchObject({
-      code: "RECOVERY_KIT_REQUIRED",
-    }),
-  );
-
-  expect(attempts).toBe(1);
-  expect(unlocked).toBe(0);
 });

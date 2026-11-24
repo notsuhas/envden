@@ -53,8 +53,7 @@ test("a member's unreadable file name blocks neither pull nor its removal", asyn
         entries: [],
         keyring: undefined,
         envelope: undefined,
-        skPub: undefined,
-        opaqueRecord: undefined,
+        proofPub: undefined,
         approver: undefined,
       }),
     );
@@ -64,7 +63,6 @@ test("a member's unreadable file name blocks neither pull nor its removal", asyn
     const removed = await removeDevice(
       f.first,
       "second",
-      "old password",
       f.now,
       f.fetcher,
       true,

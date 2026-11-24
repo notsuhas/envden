@@ -1,14 +1,13 @@
 import { EnvdenError } from "@envden/core/errors";
-import { unlockPeriod } from "./unlock-period.ts";
 
 const TOGGLES = ["telemetry", "update-check", "agent-merge", "auto-approve-worktrees"] as const;
-const SETTINGS = [...TOGGLES, "unlock-period", "placement", "env-files"] as const;
+const SETTINGS = [...TOGGLES, "placement", "env-files"] as const;
 
 export type TSetting = (typeof SETTINGS)[number];
 
 const SETTING_NAMES = SETTINGS.join(", ");
 
-// Checks the whole request up front so no password prompt precedes a typo.
+// Checks the whole request up front, before anything is read or written.
 export function settingRequest(key: string | undefined, values: string[] = []) {
   if (key === undefined) return { kind: "list" } as const;
 
@@ -30,12 +29,6 @@ export function settingRequest(key: string | undefined, values: string[] = []) {
   }
 
   if (rest.length) throw new EnvdenError("INVALID_INPUT", `Expected one value for ${key}`);
-
-  if (key === "unlock-period") {
-    unlockPeriod(value);
-
-    return { kind: "unlock-period", value } as const;
-  }
 
   if (key !== "env-files" && value !== "on" && value !== "off")
     throw new EnvdenError("INVALID_INPUT", `Expected on or off for ${key}`);

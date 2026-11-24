@@ -1,4 +1,3 @@
-import { passwordRecord } from "./password.ts";
 import * as p from "@envden/core/protocol";
 import { applyEntry } from "@envden/core/chain";
 import { createApp } from "../app.ts";
@@ -6,7 +5,7 @@ import { fixture, candidate, identity } from "./fixture.ts";
 import { text } from "../http/encoding.ts";
 
 export async function vaultFixture() {
-  const keys = await identity();
+  const keys = identity();
   const f = fixture(keys);
   const a = f.member;
   const b = f.joiner;
@@ -67,7 +66,7 @@ export async function vaultFixture() {
   const keyring = p.randomBytes(64);
   const envelope = p.randomBytes(64);
   const files = { entries: [] };
-  const sk = p.generateRecoveryKeys();
+  const code = p.generateRecoveryCode();
 
   const header = p.signObject(
     p.ManifestHeaderCodec,
@@ -89,8 +88,6 @@ export async function vaultFixture() {
     "manifest",
   );
 
-  const record = await passwordRecord(keys.opaqueSetup, vaultId);
-
   const create: p.ISwap = {
     expectedHead: zero,
     entries: [genesis, epoch],
@@ -98,8 +95,7 @@ export async function vaultFixture() {
     files,
     keyring,
     envelope,
-    skPub: sk.objPub,
-    opaqueRecord: record,
+    proofPub: p.proofPub(code),
     approver: undefined,
   };
 
@@ -107,20 +103,6 @@ export async function vaultFixture() {
   const app = createApp(options);
   const setup = p.tokenKey("setup", p.randomBytes(20));
   f.storage.setSetupToken(setup);
-
-  f.storage.putSession(
-    vaultId,
-    { kind: "login", device: a.record.id, purpose: "registration-record" },
-    record,
-    options.now(),
-  );
-
-  f.storage.putSession(
-    vaultId,
-    { kind: "login", device: a.record.id, purpose: "registration-authority" },
-    setup,
-    options.now(),
-  );
 
   let requestVault = vaultId;
 
@@ -183,8 +165,7 @@ export async function vaultFixture() {
       files: undefined,
       keyring: undefined,
       envelope: undefined,
-      skPub: undefined,
-      opaqueRecord: undefined,
+      proofPub: undefined,
       approver: undefined,
     };
   }
@@ -204,7 +185,7 @@ export async function vaultFixture() {
     app,
     a,
     b,
-    sk,
+    code,
     recovery,
     recoveryKeys,
     vaultId,

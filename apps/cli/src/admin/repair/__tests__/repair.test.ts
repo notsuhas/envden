@@ -1,7 +1,7 @@
 import { checkCrash, checkRestorePoint } from "./crash.ts";
 import * as p from "@envden/core/protocol";
-import { changePassword } from "../../recovery/credentials.ts";
-import { kitRejoin } from "../../rejoin/kit.ts";
+import { replaceCode } from "../../recovery/replace.ts";
+import { recoveryJoin } from "../../../vault/recovery/join.ts";
 import { test, expect, spyOn } from "bun:test";
 import { join } from "node:path";
 import { cp } from "node:fs/promises";
@@ -15,8 +15,8 @@ const fixtureClock = () => 1800000000000;
 
 for (const [mode, crash, drop] of [
   ["rotate", "before-close", true],
-  ["password", "after-close", false],
-  ["password", "adoption", true],
+  ["code", "after-close", false],
+  ["code", "adoption", true],
   ["missing-envelope", "none", true],
   ["missing-envelope", "before-close", false],
   ["missing-envelope", "after-close", true],
@@ -39,9 +39,8 @@ for (const [mode, crash, drop] of [
 
     await point(f.first, current.server.url.toString());
 
-    if (mode === "password")
-      await changePassword(f.first, "old password", "new password", f.result.kit.secretKey, f.now);
-    else await rotateVault(f.first, "old password", f.now);
+    if (mode === "code") await replaceCode(f.first, f.now, async () => {});
+    else await rotateVault(f.first, f.now);
 
     await current.shutdown();
     const log = spyOn(console, "log").mockImplementation(() => {});
@@ -65,15 +64,12 @@ for (const [mode, crash, drop] of [
       if (!drop) await uploadRepair(second, token, f.now);
 
       if (mode === "missing-envelope")
-        current.storage.writeState(p.unbase32(f.result.kit.vaultId), [
+        current.storage.writeState(p.unbase32(f.result.vaultId), [
           { kind: "envelope", key: new Uint8Array() },
         ]);
 
-      const password = mode === "password" ? "new password" : "old password";
-
       const options = {
         token,
-        password,
         ...(drop ? { without: ["second"] } : {}),
         now: f.now,
         fetcher: f.fetcher,
@@ -88,16 +84,24 @@ for (const [mode, crash, drop] of [
       expectFinished(result, mode);
 
       if (drop && mode !== "missing-envelope") {
-        const joined = await kitRejoin(second, {
-          ...f.result.kit,
+        let code = f.result.code;
+
+        // The restored server can't vouch for a code made after the backup, so envden asks for a new one.
+        if (mode === "code")
+          await replaceCode(f.first, f.now, async (shown) => {
+            code = shown;
+          });
+
+        const joined = await recoveryJoin(second, {
           address: current.server.url.toString(),
-          password,
+          code,
           name: "second",
+          rejoin: true,
           now: f.now,
           fetcher: f.fetcher,
         });
 
-        expect(joined.vaultId).toBe(f.result.kit.vaultId);
+        expect(joined.vaultId).toBe(f.result.vaultId);
       }
 
       await Promise.resolve(
@@ -114,5 +118,5 @@ for (const [mode, crash, drop] of [
 function expectFinished(result: Awaited<ReturnType<typeof finishRepair>>, mode: string) {
   expect(result.kind).toBe("finished");
 
-  if (result.kind === "finished") expect(result.replaceKit).toBe(mode === "missing-envelope");
+  if (result.kind === "finished") expect(result.replaceCode).toBe(mode !== "rotate");
 }

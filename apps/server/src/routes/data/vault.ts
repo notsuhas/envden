@@ -17,14 +17,14 @@ export function registerVault(app: Hono<TServerEnv>, options: IAppOptions) {
     .post("/v1/swap", async (c) => {
       const bytes = new Uint8Array(await c.req.arrayBuffer());
       const swap = protocolInput(() => decode(SwapCodec, bytes));
-      const mailbox = c.req.query("mailbox");
+      const request = c.req.query("request");
 
       const result = commitVaultSwap(
         options,
         c.get("auth"),
         swap,
         H("swap", bytes),
-        mailbox === undefined ? undefined : Number(mailbox),
+        request === undefined ? undefined : Number(request),
       );
 
       return c.json(commitResponse(result), result.kind === "head-moved" ? 409 : 200);

@@ -1,49 +1,51 @@
 import { test, expect, spyOn } from "bun:test";
 import { join } from "node:path";
-import { readFile } from "node:fs/promises";
-import * as p from "@envden/core/protocol";
 import * as questions from "../../output/prompts/questions.ts";
 import { fixture } from "../../admin/recovery/__tests__/fixture.ts";
-import { atomicWrite } from "../../state/store/files.ts";
+import { atomicWrite, optionalRead } from "../../state/store/files.ts";
 import { runJoin } from "../join.ts";
 
 const fixtureClock = () => 1800000000000;
 
-test("a fresh pairing ignores the abandoned server pin", async () => {
+test("a fresh join clears an abandoned join request before asking anything", async () => {
   const f = await fixture();
-  const stop = new Error("stop at code entry");
-  const prompt = spyOn(questions, "input").mockRejectedValue(stop);
+  const stop = new Error("stop at the words");
+  const prompt = spyOn(questions, "consent").mockRejectedValue(stop);
+  const log = spyOn(console, "log").mockImplementation(() => {});
 
   try {
     const home = f.home("abandoned");
+    await atomicWrite(join(home.home, "state", "join-request"), "{}", fixtureClock);
+    const joining = runJoin(home, f.result.address, { name: "new name" }, f.now);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(await optionalRead(join(home.home, "state", "join-request"))).toBeUndefined();
 
-    await atomicWrite(
-      join(home.home, "state", "pair-pin"),
-      Buffer.from(p.randomBytes(32)).toString("base64url"),
-      fixtureClock,
-    );
+    const { runDeviceApprove } = await import("../approve.ts");
 
-    await Promise.resolve(
-      expect(runJoin(home, f.result.kit.server, { name: "new name" }, f.now)).rejects.toBe(stop),
-    );
+    const approving = runDeviceApprove(f.first, f.now, undefined, {
+      confirm: async () => false,
+      report: () => {},
+      choose: async () => 1,
+      pause: () => new Promise((resolve) => setTimeout(resolve, 1)),
+    });
 
-    expect(await readFile(join(home.home, "state", "pair-pin"), "utf8")).toBe(
-      f.result.state.server!.pin,
-    );
+    await Promise.resolve(expect(joining).rejects.toBe(stop));
+    await approving.catch(() => {});
   } finally {
     prompt.mockRestore();
+    log.mockRestore();
     await f.close();
   }
 });
 
-test("join --resume without an exchange fails before asking for a name", async () => {
+test("join --resume without a saved join fails before asking for a name", async () => {
   const f = await fixture();
   const name = spyOn(questions, "input").mockRejectedValue(new Error("asked for a name"));
 
   try {
     await Promise.resolve(
       expect(
-        runJoin(f.home("unpaired"), f.result.kit.server, { resume: true }, f.now),
+        runJoin(f.home("unpaired"), f.result.address, { resume: true }, f.now),
       ).rejects.toMatchObject({ code: "NOT_FOUND" }),
     );
   } finally {
@@ -52,29 +54,26 @@ test("join --resume without an exchange fails before asking for a name", async (
   }
 });
 
-test("a kit join without a terminal names itself after the host and numbers a taken name", async () => {
+test("a recovery join without a terminal names itself after the host and numbers a taken name", async () => {
   const { listDevices } = await import("../../admin/devices/list.ts");
   const { readIdentity } = await import("../../identity/stored.ts");
   const { loadState } = await import("../../state/store/repository.ts");
   const f = await fixture();
   const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
-  const input = spyOn(questions, "input").mockResolvedValue(f.result.kit.vaultId);
+  const input = spyOn(questions, "input").mockRejectedValue(new Error("asked for input"));
   const log = spyOn(console, "log").mockImplementation(() => {});
-
-  const secret = spyOn(questions, "secret").mockImplementation(async (label) =>
-    label === "Recovery secret key" ? f.result.kit.secretKey : "old password",
-  );
+  const secret = spyOn(questions, "secret").mockResolvedValue(f.result.code);
 
   try {
     Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: false });
     const home = f.home("second");
     home.hostname = "first.local";
 
-    await runJoin(home, f.result.kit.server, { recovery: true }, f.now);
+    await runJoin(home, f.result.address, { recovery: true }, f.now);
 
     const stored = await home.keychain.get(`envden/${home.home}/device`);
 
-    expect(input.mock.calls.map(([label]) => label)).toEqual(["Vault ID"]);
+    expect(input).not.toHaveBeenCalled();
     expect((await loadState(home.home))?.deviceName).toBe("first-2");
     expect(readIdentity(stored!).record.name).toBe("first-2");
 

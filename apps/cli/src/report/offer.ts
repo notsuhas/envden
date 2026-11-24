@@ -43,7 +43,7 @@ const USERS_TO_FIX: Record<TErrorCode, boolean> = {
   ROLLBACK: false,
   FORK: false,
   NOT_MEMBER: false,
-  RECOVERY_KIT_REQUIRED: false,
+  RECOVERY_CODE_REQUIRED: false,
   SERVER_TOO_OLD: false,
   MOVING: false,
   RESTORED_MODE: false,

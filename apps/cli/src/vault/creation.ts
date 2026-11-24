@@ -2,16 +2,13 @@ import * as p from "@envden/core/protocol";
 import type { TGenesis } from "./genesis.ts";
 import type { TDeviceIdentity } from "../identity/device.ts";
 
-export async function createVaultSwap(
+export function createVaultSwap(
   material: TGenesis,
   identity: TDeviceIdentity,
-  password: string,
-  registrationRecord: string,
+  code: Uint8Array,
   now: number,
 ) {
-  const secret = p.randomBytes(16);
-
-  const envelope = await p.sealEnvelope(
+  const envelope = p.sealEnvelope(
     {
       vaultId: material.vaultId,
       recoveryEncSk: material.recoveryKeys.encSk,
@@ -19,8 +16,7 @@ export async function createVaultSwap(
       checkpoint: new Uint8Array(32),
       sealedAt: BigInt(now),
     },
-    password,
-    secret,
+    code,
   );
 
   const files: p.IFiles = { entries: [] };
@@ -52,13 +48,9 @@ export async function createVaultSwap(
     files,
     keyring: material.keyring,
     envelope,
-    skPub: p.skPub(secret, material.vaultId),
-    opaqueRecord: new Uint8Array(Buffer.from(registrationRecord, "base64url")),
+    proofPub: p.proofPub(code),
     approver: undefined,
   };
 
-  return {
-    swap,
-    kit: { secretKey: p.encodeSecretKey(secret), vaultId: p.base32(material.vaultId) },
-  };
+  return swap;
 }

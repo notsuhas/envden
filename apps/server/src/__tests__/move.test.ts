@@ -51,7 +51,7 @@ for (const lostAfterCommit of [false, true])
 
       o.storage.putSession(
         o.vaultId,
-        { kind: "join-ticket", device: o.b.record.id, purpose: "kit" },
+        { kind: "join-ticket", device: o.b.record.id, purpose: "recovery" },
         new Uint8Array([1]),
         o.options.now(),
       );
@@ -59,22 +59,10 @@ for (const lostAfterCommit of [false, true])
       expect((await o.send(join, o.b)).status).toBe(200);
       expect((await n.request("/v1/move/history", p.SwapCodec.write(join), o.a)).status).toBe(200);
 
-      o.storage.putDevice(o.vaultId, o.b.record.id, {
-        unlockedUntil: o.options.now() + 10000,
-        freshUntil: o.options.now() + 10000,
-        clientVersion: "1.0.0",
-      });
+      o.storage.putDevice(o.vaultId, o.b.record.id, { clientVersion: "1.0.0" });
 
       const owner = lostAfterCommit ? o.a : o.b;
       expect((await o.request("/v1/move/freeze", new Uint8Array(), owner)).status).toBe(200);
-
-      n.storage.writeState(o.vaultId, [
-        {
-          kind: "move-session",
-          key: new TextEncoder().encode("registration"),
-          bytes: p.randomBytes(192),
-        },
-      ]);
 
       const moved = p.signObject(
         p.EntryCodec,
@@ -105,7 +93,7 @@ for (const lostAfterCommit of [false, true])
       expect((await o.request("/v1/move/unfreeze", new Uint8Array(), o.b)).status).toBe(409);
       const originalState = n.storage.state.bind(n.storage);
 
-      for (const missing of ["files", "keyring", "envelope", "skPub"]) {
+      for (const missing of ["files", "keyring", "envelope", "proofPub"]) {
         const read =
           missing === "files"
             ? spyOn(n.storage, "fileList").mockReturnValue(undefined)
@@ -154,19 +142,19 @@ test("discard never resurrects consumed setup tokens", async () => {
   }
 });
 
-test("moves refuse stale SK export and freeze until kit replacement", async () => {
+test("moves refuse stale proof key export and freeze until the code is replaced", async () => {
   const f = await vaultFixture();
 
   try {
     await f.initialize();
-    f.storage.configureVault(f.vaultId, { ...f.storage.vault(f.vaultId)!, skRefused: true });
+    f.storage.configureVault(f.vaultId, { ...f.storage.vault(f.vaultId)!, proofRefused: true });
 
-    expect(await (await f.request("/v1/move/sk-pub")).json()).toEqual({
-      error: "RECOVERY_KIT_REQUIRED",
+    expect(await (await f.request("/v1/move/proof-pub")).json()).toEqual({
+      error: "RECOVERY_CODE_REQUIRED",
     });
 
     expect(await (await f.request("/v1/move/freeze", new Uint8Array())).json()).toEqual({
-      error: "RECOVERY_KIT_REQUIRED",
+      error: "RECOVERY_CODE_REQUIRED",
     });
 
     expect(f.storage.vault(f.vaultId)!.frozen).toBe(false);

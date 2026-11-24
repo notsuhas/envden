@@ -5,7 +5,7 @@ import type { THistory } from "../history.ts";
 
 export async function recoveryEpochKey(
   history: THistory,
-  envelope: Awaited<ReturnType<typeof p.openEnvelope>>,
+  envelope: ReturnType<typeof p.openEnvelope>,
   recoveryKeys: { encSk: Uint8Array },
   vaultId: Uint8Array,
 ) {

@@ -9,5 +9,4 @@ export interface ISwapContext {
   missingBlobs: ReadonlySet<string>;
   destinationPin?: Uint8Array;
   ancestorHeaderHashes: ReadonlySet<string>;
-  repairRegistrationRequired: boolean;
 }

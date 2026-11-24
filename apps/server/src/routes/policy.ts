@@ -1,13 +1,12 @@
 import { EnvdenError } from "@envden/core/errors";
 
-type TPolicy = "data" | "registration" | "kit" | "mailbox" | "approver";
+type TPolicy = "data" | "recovery" | "join" | "approver";
 
 interface IRoute {
   method: string;
   path: RegExp;
   limit: number;
   policy?: TPolicy;
-  charge?: true;
 }
 
 const routes: IRoute[] = [
@@ -19,53 +18,30 @@ const routes: IRoute[] = [
   { method: "GET", path: /^\/v1\/(devices|blobs)$/, limit: 0 },
   { method: "GET", path: /^\/v1\/(files|keyrings|blobs)\/[^/]+$/, limit: 0, policy: "data" },
   { method: "PUT", path: /^\/v1\/blobs\/[^/]+$/, limit: 16777216, policy: "data" },
-  {
-    method: "POST",
-    path: /^\/v1\/opaque\/login\/start$/,
-    limit: 65536,
-    policy: "kit",
-    charge: true,
-  },
-  { method: "POST", path: /^\/v1\/opaque\/login\/finish$/, limit: 65536, policy: "kit" },
-  {
-    method: "POST",
-    path: /^\/v1\/opaque\/registration\/start$/,
-    limit: 65536,
-    policy: "registration",
-    charge: true,
-  },
-  {
-    method: "POST",
-    path: /^\/v1\/opaque\/registration\/finish$/,
-    limit: 65536,
-    policy: "registration",
-  },
-  { method: "POST", path: /^\/v1\/pairing\/mailboxes$/, limit: 65536 },
+  { method: "POST", path: /^\/v1\/recovery\/ticket$/, limit: 65536, policy: "recovery" },
+  { method: "POST", path: /^\/v1\/join-requests$/, limit: 65536, policy: "join" },
+  { method: "GET", path: /^\/v1\/join-requests$/, limit: 0 },
+  { method: "GET", path: /^\/v1\/join-requests\/approved$/, limit: 0, policy: "approver" },
   {
     method: "GET",
-    path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}\/(KE1|KE2|KE3|PairJoiner)$/,
+    path: /^\/v1\/join-requests\/[1-9][0-9]{0,2}\/(offer|reveal)$/,
     limit: 0,
-    policy: "mailbox",
+    policy: "join",
   },
   {
     method: "PUT",
-    path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}\/(KE1|KE2|KE3|PairJoiner)$/,
+    path: /^\/v1\/join-requests\/[1-9][0-9]{0,2}\/(offer|reveal)$/,
     limit: 65536,
-    policy: "mailbox",
+    policy: "join",
   },
-  { method: "DELETE", path: /^\/v1\/pairing\/mailboxes\/[1-9][0-9]{0,2}$/, limit: 0 },
-  { method: "GET", path: /^\/v1\/pairing\/approver$/, limit: 0, policy: "approver" },
-  { method: "GET", path: /^\/v1\/settings\/unlock-period$/, limit: 0 },
-  { method: "GET", path: /^\/v1\/unlock-window$/, limit: 0 },
-  { method: "PUT", path: /^\/v1\/settings\/unlock-period$/, limit: 65536 },
+  { method: "DELETE", path: /^\/v1\/join-requests\/[1-9][0-9]{0,2}$/, limit: 0, policy: "join" },
   {
     method: "POST",
     path: /^\/v1\/move\/(discard|session|freeze|unfreeze)$/,
     limit: 65536,
     policy: "data",
   },
-  { method: "GET", path: /^\/v1\/move\/(sk-pub|period)$/, limit: 0, policy: "data" },
-  { method: "PUT", path: /^\/v1\/move\/period$/, limit: 65536, policy: "data" },
+  { method: "GET", path: /^\/v1\/move\/proof-pub$/, limit: 0, policy: "data" },
   {
     method: "POST",
     path: /^\/v1\/(move|repair)\/(history|chain)$/,
@@ -78,7 +54,6 @@ const routes: IRoute[] = [
     limit: 33554432,
     policy: "data",
   },
-  { method: "POST", path: /^\/v1\/repair\/finish$/, limit: 65536, policy: "data" },
   { method: "PUT", path: /^\/v1\/repair\/report$/, limit: 3200182, policy: "data" },
   { method: "GET", path: /^\/v1\/repair\/(status|reports)$/, limit: 0, policy: "data" },
 ];

@@ -12,7 +12,9 @@ export function setupSummary(state: ILocalState, userHome: string): string[] {
       `Setup complete. Vault on ${server}, this device is ${state.deviceName}, ${tracking}.`,
     ),
     files
-      ? "Add another device with: envden device add"
+      ? sanitizeTerminal(
+          `Add another device: run envden join ${server} on it, then envden device approve here`,
+        )
       : "Track a checkout with: envden track <path>",
   ];
 }

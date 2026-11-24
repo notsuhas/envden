@@ -6,8 +6,7 @@ export function sealRecoveryEnvelope(
   context: TAdminContext,
   history: THistory,
   keys: { encSk: Uint8Array; objSk: Uint8Array },
-  password: string,
-  secret: Uint8Array,
+  code: Uint8Array,
   now: () => number,
 ) {
   return p.sealEnvelope(
@@ -18,7 +17,6 @@ export function sealRecoveryEnvelope(
       checkpoint: p.objectHash(p.ManifestHeaderCodec, history.headers.at(-1)!, "manifest"),
       sealedAt: BigInt(now()),
     },
-    password,
-    secret,
+    code,
   );
 }

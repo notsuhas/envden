@@ -21,7 +21,7 @@ test("unchanged file versions do not pin every historical list", () => {
           header: { seq: BigInt(i), hash: b(i), bytes: b(i) },
           entries: [],
           bodyDigest: b(i),
-          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          vault: { active: true, frozen: false, proofRefused: false },
           files: {
             hash: b(i),
             bytes: b(i),
@@ -61,7 +61,7 @@ test("restored current list stays pinned after a header imported without its bod
         header: { seq: 1n, hash: b(1), bytes: b(1) },
         entries: [],
         bodyDigest: b(1),
-        vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+        vault: { active: true, frozen: false, proofRefused: false },
         files: {
           hash: b(1),
           bytes: b(1),
@@ -125,7 +125,7 @@ test("a list kept for another file's version does not keep pruned blobs", () => 
           header: { seq: BigInt(i), hash: b(i), bytes: b(i) },
           entries: [],
           bodyDigest: b(i),
-          vault: { active: true, frozen: false, skRefused: false, unlockPeriod: null },
+          vault: { active: true, frozen: false, proofRefused: false },
           files: {
             hash: b(i),
             bytes: b(i),

@@ -47,7 +47,7 @@ export async function fixture() {
         serverSignPub: server.objPub,
         appVersion: "1.0.0",
         minClient: "0.0.0",
-        protocols: [1],
+        protocols: [2],
       },
       server.objSk,
     );

@@ -9,14 +9,14 @@ import { createFakeKeychainAdapter } from "@envden/testing/keychain";
 import { createAdapters } from "../../../adapters.ts";
 import { loadState, saveState } from "../../../state/store/repository.ts";
 import { setupVault } from "../../../vault/setup.ts";
-import { kitJoin } from "../../../vault/recovery/kit.ts";
+import { recoveryJoin } from "../../../vault/recovery/join.ts";
 
 type TKeys = Map<string, Uint8Array>;
 
 const start = 1800000000000;
 const bases = new Map<string, ReturnType<typeof build>>();
 
-// Argon2 makes a vault cost about a second, so each set of members is built once and copied per test.
+// Each set of members is built once and copied per test, since a vault takes a server round trip per member.
 export async function fixture(members: readonly string[] = []) {
   const key = members.join(",");
   let base = bases.get(key);
@@ -63,23 +63,27 @@ async function build(members: readonly string[]) {
   process.on("exit", () => rmSync(root, { recursive: true, force: true }));
   const keys = new Map<string, TKeys>([["first", new Map()]]);
 
-  const result = await setupVault(adapters(root, "first", fetcher)(keys.get("first")!, now), {
-    address: running.server.url.toString(),
+  const address = running.server.url.toString();
+  let code = "";
+
+  await setupVault(adapters(root, "first", fetcher)(keys.get("first")!, now), {
+    address,
     token,
     name: "first",
-    password: "old password",
     now,
     fetcher,
+    onCode: async (shown) => {
+      code = shown;
+    },
   });
 
   for (const name of members) {
     keys.set(name, new Map());
 
-    await kitJoin(adapters(root, name, fetcher)(keys.get(name)!, now), {
-      ...result.kit,
-      address: result.kit.server,
+    await recoveryJoin(adapters(root, name, fetcher)(keys.get(name)!, now), {
+      address,
+      code,
       name,
-      password: "old password",
       now,
       fetcher,
     });
@@ -87,7 +91,7 @@ async function build(members: readonly string[]) {
 
   await running.shutdown();
 
-  return { root, keys, kit: result.kit };
+  return { root, keys, code };
 }
 
 async function copy(base: Awaited<ReturnType<typeof build>>) {
@@ -99,7 +103,6 @@ async function copy(base: Awaited<ReturnType<typeof build>>) {
   await cp(base.root, root, { recursive: true });
   const running = await serve({ dataDir: join(root, "server"), port: 0, now });
   const address = running.server.url.toString();
-  const kit = { ...base.kit, server: address };
 
   // Keychain slots are named after the home path.
   const moved = (keys: TKeys) =>
@@ -116,14 +119,14 @@ async function copy(base: Awaited<ReturnType<typeof build>>) {
   }
 
   const first = joined.first!;
-  const result = { kit, state: (await loadState(first.home))! };
+  const state = (await loadState(first.home))!;
+  const result = { code: base.code, address, vaultId: state.vaultId!, state };
 
-  const joinHome = (name: string, kitUsed = kit, password = "old password") =>
-    kitJoin(adapters(root, name, fetcher)(new Map(), now), {
+  const joinHome = (name: string, code = base.code) =>
+    recoveryJoin(adapters(root, name, fetcher)(new Map(), now), {
       address,
+      code,
       name,
-      ...kitUsed,
-      password,
       now,
       fetcher,
     });

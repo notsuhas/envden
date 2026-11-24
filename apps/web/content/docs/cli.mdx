@@ -31,28 +31,32 @@ Read or change settings.
 envden config [options] [key] [values...]
 ```
 
-| Argument      | Description                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| `[key]`       | telemetry, update-check, agent-merge, auto-approve-worktrees, unlock-period, placement or env-files |
-| `[values...]` | New value; placement takes a checkout path and link or copy                                         |
+| Argument      | Description                                                                          |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `[key]`       | telemetry, update-check, agent-merge, auto-approve-worktrees, placement or env-files |
+| `[values...]` | New value; placement takes a checkout path and link or copy                          |
 
 ## envden device
 
-Add, list, rename and remove devices.
+Approve, list, rename and remove devices.
 
 ```sh
 envden device [options] [command]
 ```
 
-Subcommands: [`add`](#envden-device-add), [`ls`](#envden-device-ls), [`rename`](#envden-device-rename), [`rm`](#envden-device-rm).
+Subcommands: [`approve`](#envden-device-approve), [`ls`](#envden-device-ls), [`rename`](#envden-device-rename), [`rm`](#envden-device-rm).
 
-## envden device add
+## envden device approve
 
-Show a pairing code for a new device.
+Let a new device join after checking both screens show the same words.
 
 ```sh
-envden device add [options]
+envden device approve [options] [request]
 ```
+
+| Argument    | Description                                           |
+| ----------- | ----------------------------------------------------- |
+| `[request]` | Join request number, when several devices are waiting |
 
 ## envden device ls
 
@@ -91,10 +95,10 @@ envden device rm [options] <device>
 | ---------- | ----------------- |
 | `<device>` | Device name or ID |
 
-| Option             | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `--kit-out <file>` | Write the new recovery kit as JSON to a private file instead of a PDF |
-| `--new-kit`        | Also replace the recovery kit as part of the removal                  |
+| Option                       | Description                                                           |
+| ---------------------------- | --------------------------------------------------------------------- |
+| `--new-code`                 | Also replace the recovery code as part of the removal                 |
+| `--recovery-code-out <file>` | Write a new recovery code to a new private file instead of showing it |
 
 ## envden diff
 
@@ -142,7 +146,7 @@ envden history [options] [file]
 
 ## envden join
 
-Join using a pairing code or recovery kit in your own terminal.
+Join a vault: approve this device from another one by comparing words, or use the recovery code.
 
 ```sh
 envden join [options] <server>
@@ -154,8 +158,7 @@ envden join [options] <server>
 
 | Option                    | Description                                                       |
 | ------------------------- | ----------------------------------------------------------------- |
-| `--recovery`              | Paste a recovery secret key and vault ID                          |
-| `--recovery-kit <path>`   | Recovery kit path                                                 |
+| `--recovery`              | Join with the recovery code, when no other device is available    |
 | `--name <name>`           | Device name                                                       |
 | `--yes`                   | Use default preferences                                           |
 | `--telemetry <choice>`    | Anonymous telemetry (on, off)                                     |
@@ -348,21 +351,21 @@ Create a vault and configure this device.
 envden setup [options]
 ```
 
-| Option                     | Description                                                              |
-| -------------------------- | ------------------------------------------------------------------------ |
-| `--yes`                    | Take defaults; secrets and checkout approval still require your terminal |
-| `--server <url>`           | Use this server                                                          |
-| `--kit-out <file>`         | Write the recovery kit as JSON to a private file instead of a PDF        |
-| `--name <name>`            | Device name                                                              |
-| `--host-server`            | Run the envden server on this machine; no setup token needed             |
-| `--setup-token <token>`    | Setup token, visible to other processes; use the prompt in a terminal    |
-| `--telemetry <choice>`     | Anonymous telemetry (on, off)                                            |
-| `--update-check <choice>`  | Daily update check (on, off)                                             |
-| `--shell <shell>`          | Shell notice (zsh, bash, fish, powershell, none)                         |
-| `--agent <choice>`         | Install the agent skill (on, off)                                        |
-| `--scan-root <path...>`    | Roots to scan for repos                                                  |
-| `--exclude-root <path...>` | Roots to skip                                                            |
-| `--verbose`                | List each repo and env file the scan skipped                             |
+| Option                       | Description                                                              |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `--yes`                      | Take defaults; secrets and checkout approval still require your terminal |
+| `--server <url>`             | Use this server                                                          |
+| `--recovery-code-out <file>` | Write the recovery code to a new private file instead of showing it      |
+| `--name <name>`              | Device name                                                              |
+| `--host-server`              | Run the envden server on this machine; no setup token needed             |
+| `--setup-token <token>`      | Setup token, visible to other processes; use the prompt in a terminal    |
+| `--telemetry <choice>`       | Anonymous telemetry (on, off)                                            |
+| `--update-check <choice>`    | Daily update check (on, off)                                             |
+| `--shell <shell>`            | Shell notice (zsh, bash, fish, powershell, none)                         |
+| `--agent <choice>`           | Install the agent skill (on, off)                                        |
+| `--scan-root <path...>`      | Roots to scan for repos                                                  |
+| `--exclude-root <path...>`   | Roots to skip                                                            |
+| `--verbose`                  | List each repo and env file the scan skipped                             |
 
 ## envden shell
 
@@ -440,14 +443,6 @@ envden ui [options]
 | `--port <port>` | Port on 127.0.0.1 (default: random)      |
 | `--no-open`     | Print the link without opening a browser |
 
-## envden unlock
-
-Log in with your master password to restart the unlock period.
-
-```sh
-envden unlock [options]
-```
-
 ## envden untrack
 
 Stop tracking a checkout and restore regular env files.
@@ -475,61 +470,25 @@ envden update [options]
 
 ## envden vault
 
-Re-key the vault, replace the recovery kit, or change or reset the password.
+Re-key the vault or replace the recovery code.
 
 ```sh
 envden vault [options] [command]
 ```
 
-Subcommands: [`kit`](#envden-vault-kit), [`password`](#envden-vault-password), [`rotate`](#envden-vault-rotate).
+Subcommands: [`recovery-code`](#envden-vault-recovery-code), [`rotate`](#envden-vault-rotate).
 
-## envden vault kit
+## envden vault recovery-code
 
-Manage the recovery kit.
-
-```sh
-envden vault kit [options] [command]
-```
-
-Subcommands: [`replace`](#envden-vault-kit-replace).
-
-## envden vault kit replace
-
-Replace a lost kit; needs the master password.
+Make a new recovery code; the old one stops working.
 
 ```sh
-envden vault kit replace [options]
+envden vault recovery-code [options]
 ```
 
-| Option             | Description                                                           |
-| ------------------ | --------------------------------------------------------------------- |
-| `--kit-out <file>` | Write the new recovery kit as JSON to a private file instead of a PDF |
-
-## envden vault password
-
-Change or reset the master password.
-
-```sh
-envden vault password [options] [command]
-```
-
-Subcommands: [`change`](#envden-vault-password-change), [`reset`](#envden-vault-password-reset).
-
-## envden vault password change
-
-Change the password; needs the old one and the kit.
-
-```sh
-envden vault password change [options]
-```
-
-## envden vault password reset
-
-Reset a forgotten password with the kit.
-
-```sh
-envden vault password reset [options]
-```
+| Option                       | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `--recovery-code-out <file>` | Write the new code to a new private file instead of showing it |
 
 ## envden vault rotate
 

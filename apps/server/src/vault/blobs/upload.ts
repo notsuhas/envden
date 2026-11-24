@@ -2,7 +2,7 @@ import { membership } from "../chain.ts";
 import { H, equal, TransferResponseSchema } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
 import type { IAppOptions, IAuth } from "../../http/types.ts";
-import { requireGate } from "../../middleware/gates.ts";
+import { requireMember } from "../../middleware/member.ts";
 import { requireRepair } from "../authorization.ts";
 
 function upload(options: IAppOptions, auth: IAuth, hash: Uint8Array, bytes: Uint8Array) {
@@ -18,7 +18,7 @@ function upload(options: IAppOptions, auth: IAuth, hash: Uint8Array, bytes: Uint
 
     if (!owner || !equal(owner, auth.request.device))
       throw new EnvdenError("MOVING", "Vault moving");
-  } else requireGate(options, auth, "unlocked");
+  } else requireMember(auth);
 
   if (bytes.length > 16777216 || !bytes.length || !equal(H("blob", bytes), hash))
     throw new EnvdenError("INVALID_INPUT", "Invalid blob");

@@ -25,14 +25,7 @@ export const str: ICodec<string> = {
 };
 
 export function ctx(label: string): Uint8Array {
-  return str.write("envden/v1/" + label);
-}
-
-export function normPw(password: string): string {
-  const p = password.normalize("NFKC");
-  requireValue(p.length > 0, "Empty password");
-
-  return p;
+  return str.write("envden/v2/" + label);
 }
 
 function decodeString(data: Uint8Array) {

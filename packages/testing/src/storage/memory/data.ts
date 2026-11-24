@@ -3,7 +3,7 @@ import type {
   IStoredHeader,
   IStoredSwap,
   IStoredDevice,
-  IStoredMailbox,
+  IStoredJoinRequest,
 } from "@envden/core/adapters";
 
 export const hex = (bytes: Uint8Array): string => Buffer.from(bytes).toString("hex");
@@ -30,8 +30,8 @@ export function createData() {
     sessions: new Map<string, { bytes: Uint8Array; expires: number }>(),
     nonces: new Map<string, number>(),
     approvers: new Map<string, { bytes: Uint8Array; expires: number }>(),
-    mailboxes: new Map<number, { vault: string; box: IStoredMailbox }>(),
-    openings: new Map<string, number[]>(),
+    joinRequests: new Map<number, IStoredJoinRequest>(),
+    joinOpenings: [] as number[],
     buckets: new Map<string, { until: number; strikes: number }>(),
     charges: new Map<string, { key: string; at: number }>(),
     receipt: 0,

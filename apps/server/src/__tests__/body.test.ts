@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readBody } from "../middleware/body.ts";
 
-for (const path of ["/v1/opaque/login/start", "/v1/pairing/mailboxes", "/v1/vault"])
+for (const path of ["/v1/recovery/ticket", "/v1/join-requests", "/v1/vault"])
   test(`stream cap cancels oversized ${path}`, async () => {
     let cancelled = false;
 
@@ -31,7 +31,7 @@ for (const path of ["/v1/opaque/login/start", "/v1/pairing/mailboxes", "/v1/vaul
   });
 
 test("content length is checked before reading", async () => {
-  const request = new Request("http://server/v1/opaque/login/start", {
+  const request = new Request("http://server/v1/recovery/ticket", {
     method: "POST",
     headers: { "Content-Length": "65537" },
     body: "small",
@@ -121,7 +121,7 @@ test("read routes reject bodies even when the final segment looks like an upload
 
 test("public hello rejects a declared read body", async () => {
   const { fixture, identity } = await import("./fixture.ts");
-  const f = fixture(await identity());
+  const f = fixture(identity());
 
   try {
     const response = await f.app.request("/v1/hello", { headers: { "Content-Length": "1" } });

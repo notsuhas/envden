@@ -1,14 +1,11 @@
-import { milliseconds } from "date-fns";
 import { requireRepair } from "./repair.ts";
 import type { TAuthorization } from "@envden/core/chain";
 import { equal, type ISwap } from "@envden/core/protocol";
 import { EnvdenError } from "@envden/core/errors";
-import type { IStoredSwap } from "@envden/core/adapters";
+import type { IStoredJoinRequest, IStoredSwap } from "@envden/core/adapters";
 import type { IAppOptions, IAuth } from "../../http/types.ts";
-import { requireGate } from "../../middleware/gates.ts";
-import { hasProof } from "../../auth/token.ts";
+import { requireMember } from "../../middleware/member.ts";
 import { requireJoinTicket } from "../../auth/ticket.ts";
-import { requireMailboxGrant } from "../../pairing/grant.ts";
 
 export function authorizeOperation(
   options: IAppOptions,
@@ -16,37 +13,29 @@ export function authorizeOperation(
   swap: ISwap,
   required: TAuthorization,
   stored: IStoredSwap,
-  mailbox?: number,
+  request?: number,
 ) {
   const { storage } = options;
   const { vaultId, device } = auth.request;
   const vault = storage.vault(vaultId)!;
 
   switch (required) {
-    case "unlocked":
-      requireGate(options, auth, "unlocked");
+    case "member":
+      requireMember(auth);
       break;
-    case "fresh":
-      requireGate(options, auth, "fresh");
-      break;
-    case "fresh-or-repair-token":
+    case "member-or-repair-token":
       if (vault.restored) requireRepair(options, auth);
-      else requireGate(options, auth, "fresh");
+      else requireMember(auth);
 
       break;
     case "repair-token":
       requireRepair(options, auth);
       break;
-    case "sk-proof":
-      if (!auth.member || !hasProof(options, auth, "sk"))
-        throw new EnvdenError("UNAUTHORIZED", "Secret key proof required");
-
-      break;
     case "join-ticket":
       authorizeTicket(options, auth, swap, stored);
       break;
-    case "mailbox-grant":
-      authorizeMailbox(options, auth, swap, stored, mailbox);
+    case "join-grant":
+      authorizeJoinGrant(options, auth, swap, stored, request);
       break;
     case "move-session": {
       const owner = storage.state(vaultId, "move-session", new Uint8Array());
@@ -64,66 +53,50 @@ export function authorizeOperation(
   }
 }
 
-function authorizeMailbox(
+function authorizeJoinGrant(
   options: IAppOptions,
   auth: IAuth,
   swap: ISwap,
   stored: IStoredSwap,
-  mailbox: number | undefined,
+  number: number | undefined,
 ) {
-  const { storage } = options;
-  const { vaultId, device } = auth.request;
   const entry = swap.entries[0]?.body;
 
-  if (mailbox === undefined || entry?.kind !== 1 || !equal(entry.signer, device))
-    throw new EnvdenError("UNAUTHORIZED", "Mailbox required");
+  const request =
+    number === undefined ? undefined : options.storage.joinRequest(number, options.now());
 
-  requireMailboxGrant(options, auth, mailbox);
+  if (entry?.kind !== 1 || !request || !holdsGrant(auth, request, entry.signer))
+    throw new EnvdenError("UNAUTHORIZED", "Join request grant required");
 
-  const bound = storage.state(
-    vaultId,
-    "mailbox-joiner",
-    new Uint8Array([mailbox >> 8, mailbox & 255]),
-  );
+  if (!equal(request.joiner, entry.payload.device.id))
+    throw new EnvdenError("UNAUTHORIZED", "Join request device mismatch");
 
-  if (!bound || !equal(bound, entry.payload.device.id))
-    throw new EnvdenError("UNAUTHORIZED", "Mailbox joiner mismatch");
-
-  stored.closeMailbox = mailbox;
+  stored.closeJoinRequest = request.number;
   stored.approver = { device: entry.payload.device.id, bytes: swap.approver! };
+}
 
-  stored.devices = [
-    {
-      id: entry.payload.device.id,
-      state: {
-        unlockedUntil: storage.device(vaultId, device)!.unlockedUntil,
-        freshUntil: 0,
-        clientVersion: "",
-      },
-    },
-  ];
+// Only the member that claimed the request, in its own vault, may approve once the joiner revealed.
+function holdsGrant(auth: IAuth, request: IStoredJoinRequest, signer: Uint8Array) {
+  const { vaultId, device } = auth.request;
+  const claim = request.claim;
+
+  return (
+    auth.member &&
+    !!claim &&
+    !!request.slots.reveal &&
+    equal(signer, device) &&
+    equal(claim.vault, vaultId) &&
+    equal(claim.device, device)
+  );
 }
 
 function authorizeTicket(options: IAppOptions, auth: IAuth, swap: ISwap, stored: IStoredSwap) {
-  const { storage, now } = options;
-  const { device, vaultId } = auth.request;
-  const vault = storage.vault(vaultId)!;
+  const { device } = auth.request;
   const entry = swap.entries[0]?.body;
   requireJoinTicket(options, auth);
 
   if (entry?.kind !== 1 || !equal(entry.payload.device.id, device))
     throw new EnvdenError("UNAUTHORIZED", "Ticket device mismatch");
 
-  stored.consumeSessions = [{ kind: "join-ticket", device, purpose: "kit" }];
-
-  stored.devices = [
-    {
-      id: device,
-      state: {
-        unlockedUntil: now() + (vault.unlockPeriod ?? milliseconds({ days: 30 })),
-        freshUntil: 0,
-        clientVersion: auth.request.clientVersion,
-      },
-    },
-  ];
+  stored.consumeSessions = [{ kind: "join-ticket", device, purpose: "recovery" }];
 }

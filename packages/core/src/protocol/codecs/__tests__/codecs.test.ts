@@ -72,8 +72,9 @@ test("every structured codec is exact and validates nested records", () => {
   round(p.WrapCodec, wrap);
   round(p.EpochChangeCodec, change);
   round(p.ManifestHeaderCodec, manifest);
-  round(p.PairJoinerCodec, { device });
-  round(p.PairApproverCodec, { vaultId: z, serverPin: z, manifestHash: z });
+  round(p.JoinOfferCodec, { vaultId: z, nonce: z });
+  round(p.JoinRevealCodec, { device, nonce: z });
+  round(p.JoinApprovedCodec, { vaultId: z, serverPin: z, manifestHash: z });
   round(p.RepairReportCodec, { vaultId: z, repairId: z, head: z, blobs: [z], signer: id });
 
   round(p.EnvelopeCodec, {
@@ -99,8 +100,7 @@ test("every structured codec is exact and validates nested records", () => {
     files: undefined,
     keyring: undefined,
     envelope: undefined,
-    skPub: undefined,
-    opaqueRecord: undefined,
+    proofPub: undefined,
     approver: undefined,
   });
 });

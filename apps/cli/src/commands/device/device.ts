@@ -1,12 +1,12 @@
 import { Command } from "@commander-js/extra-typings";
-import { deviceAddCommand } from "./add.ts";
+import { deviceApproveCommand } from "./approve.ts";
 import { deviceLsCommand } from "./ls.ts";
 import { deviceRenameCommand } from "./rename.ts";
 import { deviceRmCommand } from "./rm.ts";
 
 export const deviceCommand = new Command("device")
-  .description("Add, list, rename and remove devices")
-  .addCommand(deviceAddCommand)
+  .description("Approve, list, rename and remove devices")
+  .addCommand(deviceApproveCommand)
   .addCommand(deviceLsCommand)
   .addCommand(deviceRenameCommand)
   .addCommand(deviceRmCommand);

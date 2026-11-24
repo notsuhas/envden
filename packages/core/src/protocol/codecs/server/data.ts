@@ -1,6 +1,5 @@
 import { ErrorCodeSchema } from "../../../errors/error-code.ts";
 import { z } from "zod";
-import { LoginFinishSchema, RegistrationFinishSchema } from "./http.ts";
 
 const binary = (bytes: number) =>
   z
@@ -37,31 +36,8 @@ export const TransferResponseSchema = z
   .object({ kind: z.enum(["moving", "frozen", "unfrozen", "uploaded", "stored", "updated"]) })
   .strict();
 
-export const RepairFinishSchema = z.discriminatedUnion("kind", [
-  LoginFinishSchema.extend({
-    kind: z.literal("login"),
-    purpose: z.literal("unlock"),
-    swap: object,
-  }),
-  RegistrationFinishSchema.extend({ kind: z.literal("registration"), swap: object }),
-]);
-
 export const ErrorResponseSchema = z
   .object({ error: ErrorCodeSchema, hint: z.string().optional() })
   .strict();
 
-export const UnlockWindowSchema = z
-  .object({
-    unlockedUntil: z.number().int().nonnegative().nullable(),
-    freshUntil: z.number().int().nonnegative(),
-  })
-  .strict();
-
-export const LoginFinishResponseSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("ticket") }).strict(),
-  z.object({ kind: z.literal("staged") }).strict(),
-  UnlockWindowSchema.extend({ kind: z.literal("unlocked") }),
-]);
-
-export const RegistrationResponseSchema = z.object({ kind: z.literal("registered") }).strict();
-export const MailboxClosedSchema = z.object({ kind: z.literal("closed") }).strict();
+export const JoinClosedSchema = z.object({ kind: z.literal("closed") }).strict();

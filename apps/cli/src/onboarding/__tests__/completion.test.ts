@@ -150,11 +150,13 @@ test("interactive setup hosts a server and takes its setup token without asking"
   const questions = await import("../../output/prompts/questions.ts");
   const f = await fixture();
   const descriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  const output = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
   const consent = spyOn(questions, "consent").mockResolvedValue(true);
-  const secret = spyOn(questions, "secret").mockRejectedValue(new Error("stop after hosting"));
+  const secret = spyOn(questions, "secret").mockRejectedValue(new Error("asked for the token"));
 
   try {
     Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+    Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
     const adapters = f.home("host-setup");
     adapters.network.checkHttpsCertificate = async () => ({ kind: "ready" });
     adapters.network.expose = async () => "https://server.invalid";
@@ -167,12 +169,14 @@ test("interactive setup hosts a server and takes its setup token without asking"
     };
 
     await Promise.resolve(
-      expect(runSetup(adapters, { name: "laptop" }, f.now)).rejects.toThrow("stop after hosting"),
+      expect(runSetup(adapters, { name: "laptop" }, f.now)).rejects.toMatchObject({
+        code: "SERVER_UNREACHABLE",
+      }),
     );
 
     expect(consent.mock.calls[0]?.[0]).toContain("Host the server on this machine?");
     expect(hosted).toBe(1);
-    expect(secret.mock.calls[0]?.[0]).toBe("Master password");
+    expect(secret).not.toHaveBeenCalled();
   } finally {
     consent.mockRestore();
     secret.mockRestore();
@@ -180,11 +184,14 @@ test("interactive setup hosts a server and takes its setup token without asking"
     if (descriptor) Object.defineProperty(process.stdin, "isTTY", descriptor);
     else Reflect.deleteProperty(process.stdin, "isTTY");
 
+    if (output) Object.defineProperty(process.stdout, "isTTY", output);
+    else Reflect.deleteProperty(process.stdout, "isTTY");
+
     await f.close();
   }
 });
 
-test("setup checks the address and token against the server before the name and password", async () => {
+test("setup checks the address and token against the server before the name", async () => {
   const { spyOn } = await import("bun:test");
   const p = await import("@envden/core/protocol");
   const questions = await import("../../output/prompts/questions.ts");
@@ -213,6 +220,47 @@ test("setup checks the address and token against the server before the name and 
 
     expect(input).not.toHaveBeenCalled();
     expect(secret).not.toHaveBeenCalled();
+  } finally {
+    input.mockRestore();
+    secret.mockRestore();
+    await f.close();
+  }
+});
+
+test("rerunning setup after a committed creation delivers a code without host, address or token", async () => {
+  const { spyOn } = await import("bun:test");
+  const { join } = await import("node:path");
+  const { readFile } = await import("node:fs/promises");
+  const p = await import("@envden/core/protocol");
+  const questions = await import("../../output/prompts/questions.ts");
+  const { loadState, saveState } = await import("../../state/store/repository.ts");
+  const f = await fixture();
+  const asked = new Error("asked a question");
+  const input = spyOn(questions, "input").mockRejectedValue(asked);
+  const secret = spyOn(questions, "secret").mockRejectedValue(asked);
+
+  try {
+    const state = (await loadState(f.first.home))!;
+    await saveState(f.first.home, { ...state, creationPending: "committed" }, f.now);
+    const path = join(f.root, "code.txt");
+
+    await runSetup(
+      f.first,
+      {
+        recoveryCodeOut: path,
+        scanRoot: [],
+        telemetry: "off",
+        updateCheck: "off",
+        shell: "none",
+        agent: "off",
+      },
+      f.now,
+    );
+
+    expect(input).not.toHaveBeenCalled();
+    expect(secret).not.toHaveBeenCalled();
+    expect((await loadState(f.first.home))?.creationPending).toBeUndefined();
+    expect(p.decodeRecoveryCode(await readFile(path, "utf8"))).toHaveLength(16);
   } finally {
     input.mockRestore();
     secret.mockRestore();

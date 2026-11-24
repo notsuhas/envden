@@ -68,21 +68,9 @@ _Avoid_: account, workspace, project
 The self-hosted service holding the authoritative ciphertext for vaults. Runs on dedicated infra (e.g. a home-lab container) or on one of the user's devices. One server per vault.
 _Avoid_: cloud, backend, hub
 
-**Master password**:
-The one password the user remembers for a vault. Needed to join without another device, to recover, and when an unlock expires.
-_Avoid_: passphrase, PIN
-
-**Secret key**:
-A random key generated at vault creation, printed in the recovery kit and never stored on any device. Combined with the master password so a stolen server can't brute-force the password alone.
-_Avoid_: recovery key, account key
-
-**Recovery kit**:
-The PDF holding the vault ID, secret key and server, meant to be printed or stored offline. With the master password it opens the vault, so the password is never written on it.
-_Avoid_: backup codes, emergency sheet
-
-**Unlock**:
-A device's permission, granted by entering the master password, to pull and push until its chosen expiry (e.g. 30 days, never). Enforced by an honest server.
-_Avoid_: login, session
+**Recovery code**:
+A random 128-bit code shown once at vault creation (`ER1-…`), kept by the user in a password manager. The only way back in when every device is lost; a device that's still in the vault can replace it.
+_Avoid_: master password, secret key, recovery kit, backup codes
 
 **Device list**:
 The signed, hash-chained record of which devices belong to a vault. Each device verifies its own copy; the server only stores it.
@@ -92,12 +80,16 @@ _Avoid_: membership, roster, device registry
 One generation of the vault's encryption key. Removing a device starts a new epoch for new writes; old data keeps its epoch.
 _Avoid_: key version, rotation
 
-**Pairing code**:
-A short, one-time, user-typed code (e.g. `3-K7QF-2MXP`: a public mailbox number and a secret part) that an existing device shows so a new device can join.
-_Avoid_: pairing link, invite, token
+**Word approval**:
+How a device already in the vault lets a new one join: both screens show the same three words, and the user confirms on both.
+_Avoid_: pairing code, PIN, invite
+
+**Join request**:
+A new device's pending request to join, opened on the server and waiting for a device in the vault to approve it. Expires after 10 minutes.
+_Avoid_: mailbox, invite
 
 **Join**:
-A new device becoming part of a vault, either with a pairing code from an existing device or with the master password and recovery kit.
+A new device becoming part of a vault, by word approval from another device or with the recovery code.
 _Avoid_: login, register, enroll
 
 **Share**:

@@ -9,7 +9,6 @@ interface IVaultRow {
   frozen: number;
   moved: Uint8Array | null;
   refused: number;
-  period: number | null;
   repair: Uint8Array | null;
   restored: Uint8Array | null;
   progress: Uint8Array | null;
@@ -32,8 +31,7 @@ export function createVaults(
     return {
       active: !!row.active,
       frozen: !!row.frozen,
-      skRefused: !!row.refused,
-      unlockPeriod: row.period,
+      proofRefused: !!row.refused,
       ...(row.moved ? { serverMoved: row.moved } : {}),
       ...(row.repair && row.restored
         ? {
@@ -51,13 +49,12 @@ export function createVaults(
     requireVaultId(vault);
 
     run(
-      `INSERT INTO vaults(id,active,frozen,moved,refused,period,repair,restored,progress) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,frozen=excluded.frozen,moved=excluded.moved,refused=excluded.refused,period=excluded.period,repair=excluded.repair,restored=excluded.restored,progress=excluded.progress`,
+      `INSERT INTO vaults(id,active,frozen,moved,refused,repair,restored,progress) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET active=excluded.active,frozen=excluded.frozen,moved=excluded.moved,refused=excluded.refused,repair=excluded.repair,restored=excluded.restored,progress=excluded.progress`,
       vault,
       +state.active,
       +state.frozen,
       state.serverMoved ?? null,
-      +state.skRefused,
-      state.unlockPeriod,
+      +state.proofRefused,
       state.restored?.repairTokenHash ?? null,
       state.restored?.restoredHead ?? null,
       state.restored?.finishProgress ?? null,
@@ -101,10 +98,10 @@ export function createVaults(
         "blob_usage",
         "sessions",
         "approvers",
-        "mailboxes",
-        "openings",
       ])
         run(`DELETE FROM ${table} WHERE vault=?`, vault);
+
+      run("DELETE FROM join_requests WHERE claim_vault=?", vault);
 
       run("DELETE FROM vaults WHERE id=?", vault);
     }).immediate();
@@ -119,13 +116,8 @@ export function createVaults(
       .map((row) => row.id);
   }
 
-  function capUnlocks(vault: Uint8Array, until: number): void {
-    run("UPDATE devices SET unlocked=MIN(unlocked,?) WHERE vault=?", until, vault);
-  }
-
   return {
     vaultIds,
-    capUnlocks,
     hasVault,
     vault: readVault,
     configureVault,

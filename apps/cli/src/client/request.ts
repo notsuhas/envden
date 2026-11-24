@@ -23,25 +23,19 @@ export interface IClientOptions {
   now: () => number;
   fetcher: TFetch;
   proof?: (request: p.IRequest) => Uint8Array;
-  unlock?: () => Promise<void>;
   backoff?: (ms: number) => Promise<void>;
 }
 
 type TRpc = ReturnType<typeof hc<AppType>>;
 
 export interface IClient {
-  request: (path: string, method?: string, body?: unknown, retry?: boolean) => Promise<Response>;
+  request: (path: string, method?: string, body?: unknown) => Promise<Response>;
   rpc: TRpc;
   forVault: (vaultId: Uint8Array) => IClient;
 }
 
 export function createClient(options: IClientOptions): IClient {
-  async function signedRequest(
-    path: string,
-    method = "GET",
-    body?: unknown,
-    retry = true,
-  ): Promise<Response> {
+  async function signedRequest(path: string, method = "GET", body?: unknown): Promise<Response> {
     const serialized = serializeRequestBody(body);
 
     const url = new URL(path, options.address);
@@ -88,25 +82,15 @@ export function createClient(options: IClientOptions): IClient {
 
     await checkServerMinimum(response, options);
 
-    if (!response.ok) {
-      const error = await responseError(response, url.pathname);
-
-      if (error.code === "LOCKED" && retry && options.unlock) {
-        await options.unlock();
-
-        return signedRequest(path, method, body, false);
-      }
-
-      throw error;
-    }
+    if (!response.ok) throw await responseError(response, url.pathname);
 
     await authenticatedRequestSucceeded();
 
     return response;
   }
 
-  const request: IClient["request"] = (path, method, body, retry) =>
-    retryBusy(() => signedRequest(path, method, body, retry), options.backoff);
+  const request: IClient["request"] = (path, method, body) =>
+    retryBusy(() => signedRequest(path, method, body), options.backoff);
 
   const rpc = hc<AppType>(options.address, {
     fetch: async (input: string | Request | URL, init?: RequestInit) => {

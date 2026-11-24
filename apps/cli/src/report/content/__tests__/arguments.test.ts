@@ -15,8 +15,8 @@ test.each([
     ["--repair-token=[redacted]", "--json"],
   ],
   [
-    ["vault", "--recovery-kit", "/k", "--kit-out", "/o"],
-    ["vault", "--recovery-kit", "[redacted]", "--kit-out", "/o"],
+    ["vault", "recovery-code", "--recovery-code-out", "/o"],
+    ["vault", "recovery-code", "--recovery-code-out", "/o"],
   ],
   [
     ["unlock", "--password", "p", "x"],

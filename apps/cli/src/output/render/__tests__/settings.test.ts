@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { parseConfig } from "../../../settings/config.ts";
-import { configText, settingText, unlockPeriodText } from "../settings.ts";
+import { configText, settingText } from "../settings.ts";
 
 test("settings print as words, not JSON", () => {
   const config = parseConfig({ placement: { "/repo": "copy" } });
@@ -20,11 +20,3 @@ test("settings print as words, not JSON", () => {
   expect(overridden).toStartWith("update-check: off");
   expect(overridden).toContain("environment");
 });
-
-for (const [period, expected] of [
-  [604800000, "unlock-period: 7d"],
-  [null, "unlock-period: never"],
-] as const)
-  test(`unlock period ${period} reads as ${expected}`, () => {
-    expect(unlockPeriodText(period)).toBe(expected);
-  });

@@ -102,12 +102,9 @@ for (const [keep, take, choice] of [
     expect(resolutionChoice(keep, take)).toBe(choice);
   });
 
-test("replacement commands offer private kit files", () => {
-  for (const path of [
-    ["vault", "kit", "replace"],
-    ["device", "rm"],
-  ])
-    expect(help(...path)).toContain("--kit-out");
+test("commands that make a recovery code offer a private file for scripts", () => {
+  for (const path of [["setup"], ["vault", "recovery-code"], ["device", "rm"]])
+    expect(help(...path)).toContain("--recovery-code-out");
 });
 
 test("human status keeps notice lines and diagnostics survive unreadable state", async () => {

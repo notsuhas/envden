@@ -24,7 +24,7 @@ function store(
     if (!membership(options.storage, vault, auth.request.device))
       throw new EnvdenError("NOT_MEMBER", "Membership required");
 
-    if (kind === "skPub") throw new EnvdenError("INVALID_INPUT", "Invalid repair material");
+    if (kind === "proofPub") throw new EnvdenError("INVALID_INPUT", "Invalid repair material");
   }
 
   if (kind === "files")
@@ -34,7 +34,7 @@ function store(
 
   options.storage.writeState(auth.request.vaultId, [
     {
-      kind: kind === "keyring" ? "keyring" : kind === "envelope" ? "envelope" : "skPub",
+      kind: kind === "keyring" ? "keyring" : kind === "envelope" ? "envelope" : "proofPub",
       key: kind === "keyring" ? hash : new Uint8Array(),
       bytes,
     },
@@ -50,17 +50,17 @@ function validateMaterial(
   hash: Uint8Array,
   bytes: Uint8Array,
 ) {
-  if (bytes.length > 16777216 || !["keyring", "envelope", "skPub"].includes(kind))
+  if (bytes.length > 16777216 || !["keyring", "envelope", "proofPub"].includes(kind))
     throw new EnvdenError("INVALID_INPUT", "Invalid material");
 
   if (
-    kind === "skPub"
+    kind === "proofPub"
       ? bytes.length !== 32
       : !equal(H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes), hash)
   )
     throw new EnvdenError("INVALID_DATA", "Material hash mismatch");
 
-  if (kind !== "skPub" && !referenced(options, vault, kind, hash))
+  if (kind !== "proofPub" && !referenced(options, vault, kind, hash))
     throw new EnvdenError("INVALID_DATA", "Unreferenced material");
 }
 

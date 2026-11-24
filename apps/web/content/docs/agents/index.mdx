@@ -21,11 +21,11 @@ envden doctor --json
 envden update --check
 ```
 
-Setup choices have flags. If a non-interactive run is missing a choice, envden lists the flags it needs. `--yes` takes defaults; it doesn't supply passwords or approve checkouts.
+Setup choices have flags. If a non-interactive run is missing a choice, envden lists the flags it needs. `--yes` takes defaults; it doesn't show a recovery code or approve checkouts.
 
 ## Keep access decisions in your terminal
 
-Enter master passwords, pairing codes and recovery secrets yourself. Approve each new checkout yourself. Worktrees an agent creates from an approved clone are approved on their first `envden pull` or `push`, so the agent can work in them without asking you. If you turn that off with `envden config auto-approve-worktrees off`, only you can turn it back on, from your terminal. The skill tells the agent to hand these steps back to you.
+Handle the recovery code and compare join words yourself. Approve each new checkout yourself. Worktrees an agent creates from an approved clone are approved on their first `envden pull` or `push`, so the agent can work in them without asking you. If you turn that off with `envden config auto-approve-worktrees off`, only you can turn it back on, from your terminal. The skill tells the agent to hand these steps back to you.
 
 A non-interactive push requires `--yes`. Conflicts still need resolution. Agents may check for updates, but the skill asks them to get your permission before installing one.
 

@@ -2,8 +2,7 @@ export interface IStoredVault {
   active: boolean;
   frozen: boolean;
   serverMoved?: Uint8Array;
-  skRefused: boolean;
-  unlockPeriod: number | null;
+  proofRefused: boolean;
   restored?: {
     repairTokenHash: Uint8Array;
     restoredHead: Uint8Array;
@@ -21,23 +20,17 @@ export interface IStoredHeader extends IStoredObject {
 }
 
 export interface IStoredDevice {
-  unlockedUntil: number;
-  freshUntil: number;
   clientVersion: string;
-  mailboxGrant?: Uint8Array;
 }
 
 export type TStateKind =
   | "keyring"
   | "envelope"
-  | "skPub"
-  | "opaqueRecord"
+  | "proofPub"
   | "repair-report"
   | "move-session"
   | "setup-issued"
-  | "server-identity"
-  | "pairing-index"
-  | "mailbox-joiner";
+  | "server-identity";
 
 export interface IStateWrite {
   kind: TStateKind;
@@ -45,12 +38,10 @@ export interface IStateWrite {
   bytes?: Uint8Array;
 }
 
-export type TSessionKind = "login" | "join-ticket";
-
 export interface ISessionKey {
-  kind: TSessionKind;
+  kind: "join-ticket";
   device: Uint8Array;
-  purpose: string;
+  purpose: "recovery";
 }
 
 export interface IFileVersion {
@@ -71,7 +62,7 @@ export interface IStoredSwap {
   devices?: { id: Uint8Array; state: IStoredDevice }[];
   approver?: { device: Uint8Array; bytes: Uint8Array };
   consumeSessions?: ISessionKey[];
-  closeMailbox?: number;
+  closeJoinRequest?: number;
   setupTokenHash?: Uint8Array;
   clearRepairReports?: boolean;
 }
@@ -86,19 +77,24 @@ export interface IHistoryPolicy {
   minVersions: number;
 }
 
-export interface IStoredMailbox {
-  number: number;
+export interface IJoinClaim {
+  vault: Uint8Array;
   device: Uint8Array;
-  expiresAt: number;
-  slots: Partial<Record<TMailboxSlot, Uint8Array>>;
 }
 
-export type TMailboxSlot = "KE1" | "KE2" | "KE3" | "PairJoiner";
+export interface IStoredJoinRequest {
+  number: number;
+  joiner: Uint8Array;
+  record: Uint8Array;
+  commit: Uint8Array;
+  expiresAt: number;
+  claim?: IJoinClaim;
+  slots: Partial<Record<TJoinSlot, Uint8Array>>;
+}
 
-export type TRateBucket =
-  | { kind: "member"; device: Uint8Array }
-  | { kind: "non-member" }
-  | { kind: "mailbox"; device?: Uint8Array };
+export type TJoinSlot = "offer" | "reveal";
+
+export type TRateBucket = { kind: "recovery" | "join" };
 
 export type TRateCharge = { kind: "charged"; receipt: string } | { kind: "locked"; until: number };
 
@@ -108,7 +104,6 @@ interface IVaultStorage {
   close(): void;
   transaction<T>(run: () => T): T;
   vaultIds(): Uint8Array[];
-  capUnlocks(vaultId: Uint8Array, until: number): void;
   hasVault(vaultId: Uint8Array): boolean;
   vault(vaultId: Uint8Array): IStoredVault | undefined;
   configureVault(
@@ -184,17 +179,24 @@ interface ISessionStorage {
   refund(receipt: string, now: number): boolean;
 }
 
-interface IPairingStorage {
-  openMailbox(vaultId: Uint8Array, device: Uint8Array, now: number): IStoredMailbox | undefined;
-  mailbox(vaultId: Uint8Array, number: number, now: number): IStoredMailbox | undefined;
-  writeMailbox(
-    vaultId: Uint8Array,
+// Join requests are server-wide: the joiner doesn't know the vault until one claims it.
+interface IJoinStorage {
+  openJoinRequest(
+    joiner: Uint8Array,
+    record: Uint8Array,
+    commit: Uint8Array,
+    now: number,
+  ): IStoredJoinRequest | undefined;
+  joinRequests(now: number): IStoredJoinRequest[];
+  joinRequest(number: number, now: number): IStoredJoinRequest | undefined;
+  writeJoinRequest(
     number: number,
-    slot: TMailboxSlot,
+    slot: TJoinSlot,
     bytes: Uint8Array,
     now: number,
+    claim?: IJoinClaim,
   ): "written" | "identical" | "closed" | "out-of-order";
-  closeMailbox(vaultId: Uint8Array, number: number): void;
+  closeJoinRequest(number: number): void;
   approver(vaultId: Uint8Array, device: Uint8Array, now: number): Uint8Array | undefined;
 }
 
@@ -209,5 +211,5 @@ export interface IStorageAdapter
     IVaultStateStorage,
     IBlobStorage,
     ISessionStorage,
-    IPairingStorage,
+    IJoinStorage,
     INonceStorage {}
