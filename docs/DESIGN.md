@@ -30,7 +30,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
 
 | Kind | Question | v1 | Later |
 |---|---|---|---|
-| Network | How devices reach the server | Tailscale | NetBird, ZeroTier, LAN |
+| Network | How devices reach the server, and how a share reaches the internet | Tailscale | NetBird, ZeroTier, LAN |
 | Repo | Which repo is this checkout? | Git | Jujutsu, Mercurial, plain folders |
 | Storage | Where the server keeps ciphertext | Local disk (SQLite + files) | S3, R2, MinIO |
 | Keychain | Where a device keeps its keys | Private files (`0600` in a `0700` folder) | 1Password CLI |
@@ -178,6 +178,17 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 - Conflicts go to a conflict file with git-style markers labelled `this device` and `server (from <device>)`. When only some keys conflict, the markers wrap just those keys and the rest is merged; otherwise they wrap both whole files. A deletion side gets no markers. Pull prints one line per conflict with the checkout path. `envden resolve` takes `--keep-mine`, `--take-server` or the edited file, and refuses an edit while markers remain.
 - **Second device's first run** (join flow): for each file that differs locally, choose keep mine / take server / merge. Never a silent overwrite.
 - Push reports each held-back path, its reason and the next action. Status computes held-back paths from current local approvals, rules, conflicts and placement state. JSON carries the same reports. Backup reports name the checkout path and saved path. Missing unpublished link content is a reported per-file failure. Status and diff output never show values, only key names and change markers.
+
+## Shares
+
+- `envden send [file]` hands one file to someone who may have no envden and no tailnet. The envden server isn't involved and stays private. `envden receive <link>` is the terminal path for people who do have envden.
+- **Only while sending.** The sender's own CLI serves the share from a listener on `127.0.0.1` that answers nothing but `/s/<id>`, and the network adapter publishes that one path on the internet (Tailscale Funnel on port 10000). The funnel runs in the foreground as a child of `send`, so it ends with the command: on the first claim, at the end of `--ttl` (10 minutes by default, at most 60), on Ctrl-C, or on any error. Only a `kill -9` of envden leaves the child running, and the link then reaches a closed port until that process ends.
+- **What becomes public.** The node's `ts.net` name, which is already in certificate transparency logs once HTTPS certificates are on, and one unguessable path for the life of one share. If anything already serves port 10000, private or public, `send` refuses: a foreground funnel there would hide that service for the whole share, and Tailscale makes a port either wholly private or wholly public, so publishing beside it is not an option. Funnel needs the `funnel` node attribute; without it `send` stops and shows the policy line to add.
+- **No dead links.** A node's first public DNS record can take up to 10 minutes. `send` shows a spinner until the zone's own nameservers answer for the name, asking them directly so a "no such name" cached by a public resolver can't hold the link back. If DNS can't be asked from this network, it prints the link with a warning instead.
+- **The link is the credential.** Whoever opens the whole link first gets the file, and the sender only learns that it was claimed. The key travels in the fragment, so neither Tailscale nor the listener sees it. Viewing the page never consumes the share; only pressing Open does, so chat previews and link scanners that fetch pages don't burn it.
+- **The page** is one HTML document with its script and style inline, pinned by CSP hashes under `default-src 'none'`, sent with `no-referrer`, `no-store` and `noindex`. It decrypts with WebCrypto, shows the file read-only with Copy and Download, and clears the fragment from the address bar once the file arrives.
+- `receive` asks before replacing a file, and refuses without a terminal, before it claims: the link works once, so refusing afterwards would lose the file. It writes through symlinks with mode `0600`.
+- Telemetry gets the command and its outcome only. Bug reports mask everything after `#` in arguments, and errors never carry the link, key or contents.
 
 ## Out-of-sync notice
 
@@ -367,6 +378,10 @@ Replaces accepting any pattern Bun.Glob takes. The Go and Rust ports can't repro
 
 The quota is checked before a swap writes keyring state, so it limits file content, not keys. Every keyring write is a security operation: removing a device, rotating keys, replacing the recovery kit, resetting the password. A full vault must still let a user remove a stolen device. Rejected: counting keyring growth against the quota, which the Rust port review flagged as a bug; it would lock a full vault out of key rotation.
 
+### One-off shares use a temporary public link from the sender
+
+Replaces the plan in issue #9: `send` and `receive` through the server's pairing mailbox, for people on the same tailnet only. The usual case is handing a file to someone with no envden and no access to the tailnet, which a mailbox on a private server can't reach. Making the server public was rejected, since it holds every vault's ciphertext and OPAQUE records. Instead the sender's CLI serves the one encrypted file itself and publishes just that path through Tailscale Funnel while the command runs. The costs: the node's name resolves publicly, and Funnel needs a node attribute. AES-256-GCM is used instead of XChaCha20-Poly1305 because the page decrypts with WebCrypto and loads no library. A Node or Bun one-liner for terminal recipients was rejected because decrypting takes more than one line anyone would audit; the page is the zero-install path.
+
 ## Not in v1
 
-Team sharing, network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).
+Shared or team vaults (one-off shares are under Shares), network adapters other than Tailscale, runtime-loaded plugins, importers, a server-hosted web UI (`envden ui` is local to one device).

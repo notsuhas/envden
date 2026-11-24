@@ -4,6 +4,9 @@ const PASSWORD_FLAG = /^--?[\w-]*pass/i;
 
 const MASK = "[redacted]";
 
+// A share link carries its key after #.
+const FRAGMENT = /#.*/s;
+
 export function maskArguments(args: readonly string[]): string[] {
   const masked: string[] = [];
 
@@ -19,7 +22,7 @@ export function maskArguments(args: readonly string[]): string[] {
 
     if (SECRET_FLAGS.has(flag!) && value !== undefined) masked.push(`${flag}=${MASK}`);
     else if (SECRET_FLAGS.has(args[index - 1] ?? "")) masked.push(MASK);
-    else masked.push(arg);
+    else masked.push(arg.replace(FRAGMENT, "#[redacted]"));
   }
 
   return masked;

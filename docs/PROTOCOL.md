@@ -9,6 +9,7 @@ The exact cryptographic protocol behind `DESIGN.md` § Crypto. Code in `packages
 | Hash | SHA-256 | `@noble/hashes` |
 | MAC, KDF | HMAC-SHA-256, HKDF-SHA-256 (RFC 5869) | `@noble/hashes` |
 | Symmetric encryption | XChaCha20-Poly1305 (draft-irtf-cfrg-xchacha), 24-byte nonce | `@noble/ciphers` |
+| Share encryption (§ 16) | AES-256-GCM, 12-byte nonce, 16-byte tag, so a browser can open it with WebCrypto | `@noble/ciphers` to seal and open; WebCrypto on the share page |
 | Signatures | Ed25519 (RFC 8032), cofactored verification with canonical encodings (`zip215: false`) | `@noble/curves` |
 | Key agreement | X25519 | `@noble/curves` |
 | Key wrapping | HPKE base mode (RFC 9180): DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305 | `@hpke/core`, with `DhkemX25519HkdfSha256` imported from `@hpke/dhkem-x25519` (not the WebCrypto one in `@hpke/core`) and `Chacha20Poly1305` from `@hpke/chacha20poly1305` |
@@ -631,6 +632,7 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
   - pairing-code normalization and the pairing identifiers
 - **Encryption**:
   - file, keyring and envelope blobs at fixed nonces
+  - a share opened by an independent AES-GCM and by the page's WebCrypto code, and refused under another ID, key or version, or with any flipped byte
   - HPKE wraps at a fixed ephemeral key
   - a low-order point
 - **Signatures**: every type label, including cross-type rejection (for example, a manifest signature presented as an entry signature), and rejection of a noncanonical R and of S ≥ L.
@@ -715,3 +717,14 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
 GitHub Releases holds the stable platform binaries and their `SHA256SUMS` file. The CLI resolves the newest stable tag through GitHub's public release redirect, with the REST API as a fallback. Script installs download this platform's build and the checksums from that same tag, verify SHA-256, refuse a version that is not strictly newer, and replace the binary atomically. Versions use strict `X.Y.Z` comparison. Package-manager installs delegate to the manager.
 
 Daily checks cache their result in `~/.envden/state`. A failed lookup never blocks a command. Update integrity rests on GitHub and TLS. The server's signed `minClient` and the 426 verification rules in § 10 still enforce compatibility.
+
+## 16. Shares
+
+A share hands one file to one person who may have no envden and no tailnet (DESIGN § Shares). It has nothing to do with a vault: no vault key, device key or server is involved.
+
+- **Secrets.** The sender draws a 16-byte share ID and a 32-byte key from the CSPRNG for each share. Both travel as unpadded base64url; decoders reject padding, other alphabets and nonzero trailing bits.
+- **Link.** `https://<node>:10000/s/<id>#<key>`. The key sits in the fragment, which browsers never send in a request, so neither Tailscale nor the sender's listener sees it.
+- **Box.** `u8 1 ‖ random nonce(12) ‖ AES-256-GCM(key, nonce, plaintext, AD)` with `AD = ctx("share") ‖ u8 1 ‖ b16 id`. The plaintext is the file's bytes, at most 1 MiB. Binding the ID means a box served under another share's link doesn't open, and the version byte appears in both the box and the AD. AES-GCM replaces XChaCha20-Poly1305 here only because WebCrypto has no XChaCha20.
+- **Claim.** `GET /s/<id>` returns the page and never consumes the share. `POST /s/<id>/claim` returns the box once: `200` with the bytes, then `410` to anyone after. A claim after the share's lifetime gets `404`. The sender closes the link after the first `200`.
+- **What travels.** Tailscale terminates TLS on the sender's own device, so a Funnel relay sees only TLS traffic. No request carries the key, and the box is AES-GCM ciphertext even inside TLS.
+

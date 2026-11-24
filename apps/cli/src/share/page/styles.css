@@ -1,0 +1,105 @@
+:root {
+  color-scheme: light dark;
+  --ink: rgba(28, 27, 24, 1);
+  --muted: rgba(28, 27, 24, 0.62);
+  --ground: rgba(250, 249, 246, 1);
+  --line: rgba(28, 27, 24, 0.16);
+  --accent: rgba(176, 112, 10, 1);
+  --on-accent: rgba(255, 255, 255, 1);
+  --alarm: rgba(190, 60, 30, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: rgba(237, 233, 224, 1);
+    --muted: rgba(237, 233, 224, 0.62);
+    --ground: rgba(12, 12, 11, 1);
+    --line: rgba(237, 233, 224, 0.18);
+    --accent: rgba(247, 190, 84, 1);
+    --on-accent: rgba(22, 16, 4, 1);
+    --alarm: rgba(235, 104, 65, 1);
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font:
+    16px/1.5 ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+
+main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem;
+}
+
+.wordmark {
+  margin: 0 0 2rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.error {
+  color: var(--alarm);
+}
+
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 16rem;
+  margin: 1rem 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font:
+    14px/1.45 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    Consolas,
+    monospace;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.note {
+  margin-top: 2.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}

@@ -74,6 +74,8 @@ envden push           # send your changes
 envden ui             # the same in a local browser dashboard
 ```
 
+Need to hand an env file to someone outside your tailnet? `envden send` prints a one-time link that opens in any browser, no envden needed.
+
 Every command and flag is in the [CLI reference](https://envden.theclau.de/docs/cli).
 
 ## How it works
