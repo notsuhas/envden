@@ -4,6 +4,7 @@ import { EnvdenError } from "@envden/core/errors";
 import { parseSha256Sums } from "@envden/core/release";
 import type { TFetch } from "../../client/fetch.ts";
 import { latestRelease, releaseAssetUrl } from "../github.ts";
+import { extractBinary, RELEASE_SIZE_LIMIT } from "./archive.ts";
 
 export async function downloadUpdate(
   fetcher: TFetch,
@@ -15,7 +16,7 @@ export async function downloadUpdate(
 
   if (compareSemver(latest, running) <= 0) return { kind: "current" as const };
 
-  const name = `envden-${platform}`;
+  const name = `envden-${platform}.tar.gz`;
 
   const sums = await fetcher(releaseAssetUrl(latest, "SHA256SUMS"), {
     redirect: "follow",
@@ -33,10 +34,23 @@ export async function downloadUpdate(
   });
 
   if (!response.ok) throw new EnvdenError("INVALID_DATA", "Build download failed");
-  const bytes = new Uint8Array(await response.arrayBuffer());
+  const archive = await readLimited(response, RELEASE_SIZE_LIMIT);
 
-  if (Buffer.from(sha256(bytes)).toString("hex") !== hash)
+  if (Buffer.from(sha256(archive)).toString("hex") !== hash)
     throw new EnvdenError("INVALID_DATA", "Build checksum mismatch");
 
-  return bytes;
+  return extractBinary(archive);
+}
+
+async function readLimited(response: Response, limit: number) {
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  for await (const chunk of response.body ?? []) {
+    total += chunk.byteLength;
+    if (total > limit) throw new EnvdenError("INVALID_DATA", "Release archive is too large");
+    chunks.push(chunk);
+  }
+
+  return Buffer.concat(chunks);
 }

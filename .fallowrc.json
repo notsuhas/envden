@@ -54,7 +54,7 @@
   },
   "ignoreBinaries": ["tailscale"],
   "supportEntry": [
-    "apps/cli/scripts/{build-all,cli-reference,e2e,smoke,targets}.ts",
+    "apps/cli/scripts/{build-all,cli-reference,e2e,package,smoke,targets}.ts",
     "scripts/ci/changes.ts",
     "scripts/release/{checksums,homebrew-formula,publish-channels}.ts",
     "scripts/release/publication/run.ts",

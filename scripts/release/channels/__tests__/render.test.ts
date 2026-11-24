@@ -15,7 +15,7 @@ describe("SHA256SUMS", () => {
 
   test.each([
     ["missing", fixture.split("\n").slice(1).join("\n"), "missing"],
-    ["unknown", fixture.replace("envden-darwin-x64", "envden-other"), "envden-other"],
+    ["unknown", fixture.replace("envden-darwin-x64.tar.gz", "envden-other"), "envden-other"],
   ])("rejects %s", (_name, contents, message) => {
     expect(() => parseChecksums(contents!)).toThrow(message);
   });

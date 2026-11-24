@@ -2,7 +2,7 @@ FROM --platform=$BUILDPLATFORM alpine:3.22@sha256:49340b346798875b5592e5d420241f
 ARG TARGETARCH
 COPY --from=release-artifacts / /release/
 RUN case "$TARGETARCH" in amd64) target=x64 ;; arm64) target=arm64 ;; *) exit 1 ;; esac; \
-    cp /release/envden-linux-$target-musl /envden && chmod 755 /envden
+    tar -xzf /release/envden-linux-$target-musl.tar.gz -C / envden && chmod 755 /envden
 
 FROM tailscale/tailscale:v1.90.9@sha256:9975353aae933e8fbd1a81226d092a9225b9a0f98b173d365a9d525eca1cc298 AS tailscale
 FROM alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f

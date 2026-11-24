@@ -27,7 +27,7 @@ bin=${ENVDEN_INSTALL_DIR:-"$HOME/.local/bin"}
 home=${ENVDEN_HOME:-"$HOME/.envden"}
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT HUP INT TERM
-asset=envden-$platform
+asset=envden-$platform.tar.gz
 progress=--silent
 if [ -t 1 ]; then progress=--progress-bar; fi
 curl --fail "$progress" --show-error --location --connect-timeout 15 --retry 3 --proto '=https' --proto-redir '=https' --tlsv1.2 "$base/$asset" -o "$work/$asset"
@@ -37,9 +37,12 @@ expected=$(awk -v name="$asset" '$2 == name {print $1}' "$work/SHA256SUMS")
 case "$expected" in *[!0-9a-f]*) exit 1 ;; esac
 if command -v sha256sum >/dev/null 2>&1; then actual=$(sha256sum "$work/$asset"); else actual=$(shasum -a 256 "$work/$asset"); fi
 [ "${actual%% *}" = "$expected" ] || { echo 'Checksum mismatch' >&2; exit 1; }
+mkdir "$work/unpacked"
+tar -xzf "$work/$asset" -C "$work/unpacked" envden
+[ -f "$work/unpacked/envden" ] && [ ! -h "$work/unpacked/envden" ] || { echo 'Release archive has no envden binary' >&2; exit 1; }
 mkdir -p "$bin" "$home"
 staged=$(mktemp "$bin/.envden-install.XXXXXX")
-cp "$work/$asset" "$staged"
+cp "$work/unpacked/envden" "$staged"
 chmod 755 "$staged"
 mv -f "$staged" "$bin/envden"
 printf 'script' > "$home/install-method"

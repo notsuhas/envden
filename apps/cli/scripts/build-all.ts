@@ -1,11 +1,16 @@
 import { spawnTrusted } from "@envden/core/process";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { targets, assetName } from "./targets.ts";
+import { targets, binaryName } from "./targets.ts";
 
 const root = join(import.meta.dir, "..");
 const selected = process.argv.slice(2);
 const platforms = selected.length ? selected : targets;
+const { packageManager } = await Bun.file(join(root, "../../package.json")).json();
+
+// The embedded Bun runtime is most of the binary and grows between releases, so builds use the pinned one.
+if (packageManager !== `bun@${Bun.version}`)
+  throw new Error(`Release builds need ${packageManager}, not bun@${Bun.version}`);
 
 await mkdir(join(root, "dist"), { recursive: true });
 
@@ -23,7 +28,7 @@ for (const platform of platforms) {
       `--target=bun-${platform}`,
       join(root, "src/main.ts"),
       "--outfile",
-      join(root, "dist", assetName(platform)),
+      join(root, "dist", binaryName(platform)),
     ],
     { stdout: "inherit", stderr: "inherit" },
   );

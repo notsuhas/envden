@@ -712,6 +712,6 @@ Shipped as JSON in `packages/core/src/protocol/__tests__/vectors/`, and run in C
 
 ## 15. Releases
 
-GitHub Releases holds the stable platform binaries and their `SHA256SUMS` file. The CLI resolves the newest stable tag through GitHub's public release redirect, with the REST API as a fallback. Script installs download this platform's build and the checksums from that same tag, verify SHA-256, refuse a version that is not strictly newer, and replace the binary atomically. Versions use strict `X.Y.Z` comparison. Package-manager installs delegate to the manager.
+GitHub Releases holds a stable `.tar.gz` archive per platform and their `SHA256SUMS` file. The CLI resolves the newest stable tag through GitHub's public release redirect, with the REST API as a fallback. Script installs download this platform's archive and the checksums from that same tag, verify the archive's SHA-256, take the `envden` binary from it, refuse a version that is not strictly newer, and replace the binary atomically. Versions use strict `X.Y.Z` comparison. Package-manager installs delegate to the manager.
 
 Daily checks cache their result in `~/.envden/state`. A failed lookup never blocks a command. Update integrity rests on GitHub and TLS. The server's signed `minClient` and the 426 verification rules in § 10 still enforce compatibility.

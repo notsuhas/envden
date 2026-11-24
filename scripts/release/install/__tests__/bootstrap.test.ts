@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { writeReleaseArchive } from "../../../../apps/cli/scripts/archive.ts";
 
 const installer = resolve(import.meta.dir, "../../../../packaging/install/install.sh");
 
@@ -25,10 +26,21 @@ test.each([true, false])("shell installer checksum accepted: %s", async (valid) 
   const home = join(root, "state");
   const log = join(root, "curl.log");
   const binary = "test binary\n";
-  const hash = new Bun.CryptoHasher("sha256").update(binary).digest("hex");
+  const archive = join(root, "envden-linux-x64.tar.gz");
 
   try {
     await mkdir(mocks);
+    await writeFile(join(root, "binary"), binary);
+
+    await writeReleaseArchive(
+      join(root, "binary"),
+      resolve(installer, "../../../LICENSE"),
+      archive,
+    );
+
+    const hash = new Bun.CryptoHasher("sha256")
+      .update(await Bun.file(archive).bytes())
+      .digest("hex");
 
     await writeFile(
       join(mocks, "uname"),
@@ -47,8 +59,8 @@ case "$1" in https:*) url=$1;; -o) shift; output=$1;; esac
 shift
 done
 case "$url" in
-*/SHA256SUMS) printf '%s  envden-linux-x64\\n' '${valid ? hash : "0".repeat(64)}' > "$output";;
-*) printf 'test binary\\n' > "$output";;
+*/SHA256SUMS) printf '%s  envden-linux-x64.tar.gz\\n' '${valid ? hash : "0".repeat(64)}' > "$output";;
+*/envden-linux-x64.tar.gz) cp "$ARCHIVE" "$output";;
 esac
 `,
       { mode: 0o755 },
@@ -67,6 +79,7 @@ esac
           ENVDEN_INSTALL_DIR: bin,
           ENVDEN_HOME: home,
           CURL_LOG: log,
+          ARCHIVE: archive,
         },
       },
     );

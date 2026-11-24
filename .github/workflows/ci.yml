@@ -111,6 +111,7 @@ jobs:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bun apps/cli/scripts/build-all.ts linux-x64-musl
+      - run: bun apps/cli/scripts/package.ts linux-x64-musl
       - name: Smoke musl on Alpine
         run: |
           docker run --rm -v "$PWD/apps/cli/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'apk add --no-cache libstdc++=14.2.0-r6; for args in "--version" "--help" "doctor --json"; do /dist/envden-linux-x64-musl $args; done'

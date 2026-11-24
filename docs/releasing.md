@@ -1,10 +1,10 @@
 # Release runbook
 
-A stable `vX.Y.Z` tag matching the CLI and server starts the release workflow. It builds and smoke-tests six binaries (macOS and Linux, arm64 and x64, with glibc and musl builds for Linux), stages a multi-architecture GHCR image, uploads `SHA256SUMS`, then publishes the GitHub release. Homebrew uses the release environment's `ENVDEN_HOMEBREW_TAP_KEY` deploy key. `ENVDEN_GHCR_NAMESPACE` selects the image namespace.
+A stable `vX.Y.Z` tag matching the CLI and server starts the release workflow. It builds six binaries (macOS and Linux, arm64 and x64, with glibc and musl builds for Linux) with the Bun version in `packageManager`, packs each into a `.tar.gz` and smoke-tests the binary unpacked from it, stages a multi-architecture GHCR image, uploads `SHA256SUMS`, then publishes the GitHub release. Homebrew uses the release environment's `ENVDEN_HOMEBREW_TAP_KEY` deploy key. `ENVDEN_GHCR_NAMESPACE` selects the image namespace.
 
 Only the highest stable release moves GitHub Latest, Docker latest/major/minor tags and the Homebrew formula. Backports retain exact image tags. Published releases are immutable. Retries compare rebuilt checksums with the published release and fail if they differ, except for signed macOS binaries (see [macOS signing](#macos-signing)). Downstream jobs read published checksums and the published image digest.
 
-After a partial failure, use "Re-run failed jobs" on the original run. Do not delete and re-push a tag or rebuild published binaries with "Re-run all jobs". Two consecutive local builds to the same output path matched, but byte identity across runners or toolchain changes is not guaranteed. If rebuilt hashes differ, re-run only failed jobs from the original run, or release a new version for changed binaries. A draft left by an interrupted upload is completed and published on retry.
+After a partial failure, use "Re-run failed jobs" on the original run. Do not delete and re-push a tag or rebuild published binaries with "Re-run all jobs". Archives use fixed modes, owner and timestamps, so the same binary always packs to the same bytes. Two consecutive local builds to the same output path matched, but byte identity across runners or toolchain changes is not guaranteed. If rebuilt hashes differ, re-run only failed jobs from the original run, or release a new version for changed binaries. A draft left by an interrupted upload is completed and published on retry.
 
 ## Version bumps
 
@@ -12,7 +12,7 @@ Add a changeset (`bunx changeset`) with each user-facing change. To cut a releas
 
 ## macOS signing
 
-When `MACOS_CERTIFICATE_P12` is set, the macOS build jobs sign each darwin binary with a Developer ID certificate under the hardened runtime, notarize it and smoke the signed binary before hashing and upload. When it is empty, they log a notice and ship the ad-hoc signed binary as before. Every signed release keeps the identifier `dev.envden.cli` and team ID, so macOS treats each version as the same app.
+When `MACOS_CERTIFICATE_P12` is set, the macOS build jobs sign each darwin binary with a Developer ID certificate under the hardened runtime, notarize it and smoke the signed binary from its archive before hashing and upload. When it is empty, they log a notice and ship the ad-hoc signed binary as before. Every signed release keeps the identifier `dev.envden.cli` and team ID, so macOS treats each version as the same app.
 
 A bare CLI binary can't have its notarization ticket stapled, so Gatekeeper checks it online the first time a downloaded copy runs. Homebrew, the install script and self-update download without the quarantine flag and never trigger that check.
 
@@ -58,13 +58,13 @@ GHCR visibility could not be checked with the available token, which lacks `read
 
 ## Installers and containers
 
-The install script and self-updates check `SHA256SUMS` from the same GitHub release over HTTPS. Integrity rests on GitHub and TLS.
+The install script and self-updates check the archive against `SHA256SUMS` from the same GitHub release over HTTPS, then take only the `envden` binary from it. Integrity rests on GitHub and TLS.
 
 The install script accepts `ENVDEN_VERSION=latest` or a stable `vX.Y.Z` tag without leading zeros, `ENVDEN_INSTALL_DIR` for binaries, and `ENVDEN_HOME` for state.
 
 The container runs envden and userspace Tailscale as uid/gid 10001. Compose drops capabilities and uses a read-only root, writable state volumes and temporary sockets. Health requires both the hello endpoint and a Running Tailscale backend. `TS_AUTHKEY` is required only when Tailscale needs login; enable HTTPS certificates and Serve in the tailnet. Update with `docker compose pull && docker compose up -d`.
 
-Docker builds require musl binaries through `--build-context release-artifacts=./release`. CI builds and smokes an x64 musl binary and builds the hardened image without pushing, exercising the pinned apk revisions before tag time.
+Docker builds require the musl archives through `--build-context release-artifacts=./release`. CI builds and smokes an x64 musl binary and builds the hardened image without pushing, exercising the pinned apk revisions before tag time.
 
 ## Validation limits
 
