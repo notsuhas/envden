@@ -15,10 +15,12 @@ import { acceptHead } from "../sync/remote/accept.ts";
 import { entryName, readableEntries } from "../sync/remote/content.ts";
 import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { joinRequests } from "../approval/approver.ts";
+import { changedFile, changedFileSchema, type TChangedFile } from "./changes/details.ts";
 
 const remoteNoticeSchema = z.object({
   checkedAt: z.number(),
   repos: z.array(z.string()),
+  files: z.array(changedFileSchema),
   waiting: z.number().int().nonnegative(),
 });
 
@@ -26,16 +28,12 @@ type TRemoteNotice = z.infer<typeof remoteNoticeSchema>;
 
 export async function remoteNotice(adapters: TAdapters, options: ISyncOptions) {
   const context = await syncContext(adapters, options);
-  await acceptHead(context, undefined, true);
-  const result = await pendingRepos(context);
+  const { fileLists } = await acceptHead(context, undefined, true);
+  const result = await pendingRepos(context, fileLists);
   const waiting = (await joinRequests(context.client)).length;
 
   await withStateLock(adapters.home, async () => {
-    await writeRemoteNotice(
-      adapters.home,
-      { checkedAt: result.checkedAt, repos: result.repos, waiting },
-      adapters.now,
-    );
+    await writeRemoteNotice(adapters.home, { ...result, waiting }, adapters.now);
 
     await addPendingJoins(
       adapters.home,
@@ -53,15 +51,11 @@ export async function settleRemoteNotice(context: TSyncContext) {
   const waiting = (await readRemoteNotice(context.adapters.home))?.waiting ?? 0;
 
   await withStateLock(context.adapters.home, () =>
-    writeRemoteNotice(
-      context.adapters.home,
-      { checkedAt: result.checkedAt, repos: result.repos, waiting },
-      context.options.now,
-    ),
+    writeRemoteNotice(context.adapters.home, { ...result, waiting }, context.options.now),
   );
 }
 
-async function pendingRepos(context: TSyncContext) {
+async function pendingRepos(context: TSyncContext, known?: ReadonlyMap<string, p.IFiles>) {
   const applied = await appliedFiles(context.adapters.home);
   const rules = (await readConfig(context.adapters.home))["env-files"];
 
@@ -69,10 +63,11 @@ async function pendingRepos(context: TSyncContext) {
     context.state.approved.map((item) => context.state.aliases[item.repoId] ?? item.repoId),
   );
 
-  const files: { repoId: string; path: string }[] = [];
+  const files: TChangedFile[] = [];
 
   for (const entry of readableEntries(context)) {
-    if (applied[p.base32(entry.fileId)] === text(p.FileEntryCodec.write(entry))) continue;
+    const previous = applied[p.base32(entry.fileId)];
+    if (previous === text(p.FileEntryCodec.write(entry))) continue;
     const name = entryName(context, entry);
 
     if (
@@ -80,7 +75,7 @@ async function pendingRepos(context: TSyncContext) {
       acceptsEnvPath(name.path, rules) &&
       receivesFile(context.state, name)
     )
-      files.push({ repoId: name.repoId, path: name.path });
+      files.push(await changedFile(context, entry, name, previous, known));
   }
 
   const repos = [...new Set(files.map((file) => file.repoId))];

@@ -7,6 +7,7 @@ export interface ISyncOptions {
   cwd?: string;
   all?: boolean;
   yes?: boolean;
+  fastForwardOnly?: boolean;
   interactive?: boolean;
   confirm?: (keys: string[]) => Promise<boolean>;
   report?: (message: string) => void;

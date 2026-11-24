@@ -21,6 +21,7 @@ const configSchema = z.strictObject({
   "update-check": z.boolean().default(true),
   "agent-merge": z.boolean().default(false),
   "auto-approve-worktrees": z.boolean().default(true),
+  "auto-pull": z.boolean().default(false),
 });
 
 // Agents must not be able to widen what they can do without the user.

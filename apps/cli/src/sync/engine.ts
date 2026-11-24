@@ -56,12 +56,7 @@ async function sync(
       history = await readHistory(context.client, context.vaultId, context.state);
     }
 
-    await adoptWorktreeAt(
-      adapters,
-      context.state,
-      options.cwd ?? process.cwd(),
-      options.report ?? (() => {}),
-    );
+    await adoptCurrentWorktree(adapters, context.state, options);
 
     const repos = await selectedRepos(adapters, context.state, options, context.skippedRoots);
 
@@ -117,6 +112,22 @@ export function firstSync(
   return sync(adapters, options, false, choose);
 }
 
+// Auto-pull never approves a checkout, so it skips adopting the worktree it runs in.
+async function adoptCurrentWorktree(
+  adapters: TAdapters,
+  state: Awaited<ReturnType<typeof syncContext>>["state"],
+  options: ISyncOptions,
+) {
+  if (options.fastForwardOnly) return;
+
+  await adoptWorktreeAt(
+    adapters,
+    state,
+    options.cwd ?? process.cwd(),
+    options.report ?? (() => {}),
+  );
+}
+
 function reportRepairs(
   context: Awaited<ReturnType<typeof syncContext>>,
   repairs: Parameters<typeof entryName>[1][],
@@ -163,7 +174,12 @@ async function syncAttempt(
   await persistCheckpoint(context);
 
   if (!pushing)
-    return { kind: "pulled" as const, changed: result.changed, conflicts: result.conflicts };
+    return {
+      kind: "pulled" as const,
+      changed: result.changed,
+      conflicts: result.conflicts,
+      placed: result.placed,
+    };
 
   const conflicts = Math.max(result.conflicts, (await conflictRecords(adapters.home)).length);
 

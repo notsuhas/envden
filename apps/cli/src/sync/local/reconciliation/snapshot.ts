@@ -39,6 +39,7 @@ export async function fileSnapshot(
 
   return {
     target,
+    status,
     tracked,
     useStore,
     bytes,

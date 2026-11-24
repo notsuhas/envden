@@ -80,7 +80,7 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
     localFileIds: new Set(checkpoint.files.entries.map((item) => p.base32(item.fileId))),
   });
 
-  if (result.kind === "unchanged") return { repairs: [], noFastForward: pending };
+  if (result.kind === "unchanged") return { repairs: [], noFastForward: pending, fileLists };
 
   if (result.kind === "rollback")
     throw new EnvdenError("ROLLBACK", "Server rolled back; run envden server repair");
@@ -97,6 +97,8 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   }
 
   if (result.kind !== "accepted") throw new EnvdenError("INVALID_DATA", "Invalid manifest history");
+  // Keeps the outgoing list so later lookups can still find which header introduced a version.
+  fileLists.set(text(checkpoint.header.body.filesHash), checkpoint.files);
   context.checkpoint = result.checkpoint;
   const bySeq = new Map(context.headers.map((header) => [header.body.seq, header]));
   for (const header of result.headers) bySeq.set(header.body.seq, header);
@@ -123,7 +125,7 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
       );
   }
 
-  if (readOnly) return { repairs: result.repairs, noFastForward: pending };
+  if (readOnly) return { repairs: result.repairs, noFastForward: pending, fileLists };
 
   for (const [hash, files] of fileLists)
     await atomicWrite(
@@ -135,7 +137,7 @@ export async function acceptHead(context: TSyncContext, history?: THistory, read
   for (const id of result.noFastForward) pending.add(id);
   await savePendingRepairs(adapters.home, pending, context.options.now);
 
-  return { repairs: result.repairs, noFastForward: pending };
+  return { repairs: result.repairs, noFastForward: pending, fileLists };
 }
 
 async function currentHead(context: TSyncContext, history?: THistory) {

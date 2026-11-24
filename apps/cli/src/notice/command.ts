@@ -12,6 +12,7 @@ import type { TFetch } from "../client/fetch.ts";
 import { loadState } from "../state/store/repository.ts";
 import { refreshNotice, noticeStatus } from "./cache.ts";
 import { readRemoteNotice, remoteNotice } from "./remote.ts";
+import { autoPull } from "./changes/auto-pull.ts";
 
 async function lockedcommandNotice(
   adapters: TAdapters,
@@ -65,6 +66,7 @@ export async function commandNotice(
     if (!localOnly) {
       const state = await loadState(adapters.home);
       if (state) await refreshedRemote(adapters, state, now, fetchNotice, !refresh);
+      if (state && refresh) await autoPull(adapters, state, fetcher).catch(ignoreFailure);
     }
 
     if (!refresh && !localOnly) await runUpdateCheck(adapters, now, false, fetcher);
@@ -108,3 +110,6 @@ function currentRepoId(state: NonNullable<Awaited<ReturnType<typeof loadState>>>
 
   return currentRepo;
 }
+
+// A failed auto-pull leaves the files untouched, so the warning stays.
+function ignoreFailure() {}

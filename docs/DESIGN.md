@@ -187,7 +187,9 @@ Corrupt per-file sync records are moved to a named backup and hold the file in c
 
 ## Out-of-sync notice
 
-- A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git and never writes to checkouts.
+- A line in the shell rc (zsh, bash, fish, PowerShell), added with consent. On shell start and `cd`, it prefix-matches the current folder against a cached list of approved checkouts and prints from a cache file. Only when the cache is older than 60 seconds does it start a detached refresh. It never runs git, and the hook itself never writes to checkouts.
+- A file newer on the server gets its own line naming the file, the device that pushed it and the changed keys: `envden: api/.env 2 keys changed on throwbook (STRIPE_KEY, DB_URL); run envden pull`, at most three names and a count. The detached refresh (and any command's server check) works out the names by decrypting the new version and the last one this device applied, so the prompt only reads the cache. The cache holds names and counts, never values. Local edits not yet pushed still show as `envden: <repo> out of sync`.
+- **Auto-pull** (`envden config auto-pull on`, off by default) lets the detached refresh run an ordinary pull that writes only clean fast-forwards: the server has a newer live version of a file this device already synced, and every local copy still holds its last-synced bytes. A local edit or deleted copy, a server deletion, a detached link, an open conflict, an unfinished sync or anything needing a merge is left alone, keeps its warning and gets no conflict record; so is a file new to this device. Every write is reported: the refresh appends `envden: pulled api/.env (2 keys)` to a file the next prompt in any shell prints once and deletes.
 - The binary is compiled with `.env` and `bunfig.toml` autoload disabled, and the hook calls it as `env -u BUN_OPTIONS -u BUN_BE_BUN /absolute/path/envden` (those variables bypass the compile flags).
 - Every `envden` command also reports other out-of-sync repos. `envden status --json` for tools.
 - The cache also names keys a tracked env file lacks compared with its template sibling (`.env` against `.env.example`, then `.sample`, `.template`, `.defaults`): `envden: api/.env missing STRIPE_KEY, DB_URL (from .env.example)`, at most three names and a count. Extra keys appear only in `status` and `doctor`.
@@ -254,6 +256,12 @@ The runtime also grows between Bun releases: a hello-world binary is 63.9 MB on 
 ### Template checks compare key names only, locally
 
 A tracked env file is compared with its template sibling by key name, using the merge parser with duplicates allowed. A key commented out in the template is optional, so it is neither missing nor extra. No template, or one the parser can't read, means no report. Values never leave the comparison, including in `--json`. Missing keys reach the shell line because they break the app; extra keys are often deliberate local settings, so they stay in `status` and `doctor` to keep the shell quiet. Nothing is sent to the server.
+
+### The shell line names keys; auto-pull is opt-in and fast-forward only
+
+Replaces a repo-level `out of sync` line for server changes, which didn't say what changed or who changed it, so people put off pulling. The names come from the 60-second background refresh rather than the prompt, which only prints a file, so the prompt stays as fast as before. Values never reach the cache.
+
+Writing to checkouts from the shell stays off by default: a file changing under a running process or an open editor should be the user's choice. Turned on, auto-pull reuses pull with one extra rule, applied per file under the sync lock after reading fresh bytes: write only when nothing local would be lost. Anything else stays a warning rather than becoming a conflict, since nobody is at the terminal to resolve it. The notice uses ASCII and the `envden:` prefix like the other shell lines, because the hook strips everything outside printable ASCII before printing.
 
 ### macOS and Linux only; no Windows or npm
 

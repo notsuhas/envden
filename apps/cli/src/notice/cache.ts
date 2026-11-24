@@ -7,6 +7,7 @@ import { atomicWrite, optionalRead } from "../state/store/files.ts";
 import { basePath, readBytes, same } from "../sync/local/files.ts";
 import { templateChecks } from "../templates/checks.ts";
 import { templateNoticeLines } from "../templates/notice.ts";
+import { changedFileLine } from "./changes/lines.ts";
 
 export const WAITING_NOTICE = "envden: a device is waiting to join; run envden device approve";
 
@@ -57,12 +58,12 @@ async function lockedrefreshNotice(
 
   const local = await noticeStatus(home, state);
   const remote = await readRemoteNotice(home);
-  const repos = [...new Set([...local.map((item) => item.repoId), ...(remote?.repos ?? [])])];
 
   const lines = [
-    ...repos.map((repoId) => `envden: ${sanitizeTerminal(repoId)} out of sync`),
-    ...templateNoticeLines(await templateChecks(state)).map(sanitizeTerminal),
-  ];
+    ...local.map((item) => `envden: ${item.repoId} out of sync`),
+    ...(remote?.files ?? []).map(changedFileLine),
+    ...templateNoticeLines(await templateChecks(state)),
+  ].map(sanitizeTerminal);
 
   if (remote?.waiting) lines.push(WAITING_NOTICE);
 

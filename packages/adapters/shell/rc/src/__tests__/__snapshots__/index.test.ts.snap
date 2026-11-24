@@ -12,6 +12,14 @@ _envden_inside() {
   done
   return 1
 }
+_envden_pulled() {
+  local saved_status=$? pulled='/home/test/.envden/state/notice-pulled'
+  if [ -f "$pulled" ] && mv -f -- "$pulled" "$pulled.$$" 2>/dev/null; then
+    LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$pulled.$$"
+    rm -f -- "$pulled.$$"
+  fi
+  return "$saved_status"
+}
 _envden_notice() {
   local saved_status=$?
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
@@ -57,6 +65,8 @@ _envden_notice() {
 autoload -Uz add-zsh-hook
 add-zsh-hook -d chpwd _envden_notice
 add-zsh-hook chpwd _envden_notice
+add-zsh-hook -d precmd _envden_pulled
+add-zsh-hook precmd _envden_pulled
 _envden_notice
 # <<< envden <<<
 "
@@ -74,8 +84,17 @@ _envden_inside() {
   done
   return 1
 }
+_envden_pulled() {
+  local saved_status=$? pulled='/home/test/.envden/state/notice-pulled'
+  if [ -f "$pulled" ] && mv -f -- "$pulled" "$pulled.$$" 2>/dev/null; then
+    LC_ALL=C tr -cd '\\11\\12\\40-\\176' < "$pulled.$$"
+    rm -f -- "$pulled.$$"
+  fi
+  return "$saved_status"
+}
 _envden_notice() {
   local saved_status=$?
+  _envden_pulled
   [ "\${_envden_last_pwd-}" != "$PWD" ] || return "$saved_status"
   _envden_last_pwd="$PWD"
   local physical="$(pwd -P)"
@@ -137,6 +156,15 @@ function _envden_inside
     test -n "$directory"; or set directory /
   end
   return 1
+end
+function _envden_pulled --on-event fish_prompt
+  set -l saved_status $status
+  set -l pulled '/home/test/.envden/state/notice-pulled'
+  if test -f $pulled; and mv -f -- $pulled $pulled.$fish_pid 2>/dev/null
+    env LC_ALL=C tr -cd '\\11\\12\\40-\\176' < $pulled.$fish_pid
+    rm -f -- $pulled.$fish_pid
+  end
+  return $saved_status
 end
 function _envden_notice --on-variable PWD
   set -l saved_status $status
@@ -215,6 +243,12 @@ function global:prompt {
   $insensitive = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts-insensitive' -ErrorAction SilentlyContinue)
   $cache = '/home/test/.envden/state/notice'
   $approved = @(Get-Content -LiteralPath '/home/test/.envden/state/approved-checkouts' -ErrorAction SilentlyContinue | Where-Object { $_ -and (($physical.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar).StartsWith($_.TrimEnd('/','\\') + [IO.Path]::DirectorySeparatorChar, $(if ($insensitive -ccontains $_) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) }).Count -gt 0
+  $pulled = '/home/test/.envden/state/notice-pulled'
+  $taken = "$pulled.$PID"
+  if (Test-Path -LiteralPath $pulled) {
+    try { Move-Item -LiteralPath $pulled -Destination $taken -Force -ErrorAction Stop } catch { $taken = $null }
+    if ($taken) { Get-Content -LiteralPath $taken | ForEach-Object { $_ -replace '[^\\x20-\\x7E]', '' } | Out-Host; Remove-Item -LiteralPath $taken -Force -ErrorAction SilentlyContinue }
+  }
   $changed = $global:EnvdenLastDirectory -cne $PWD.Path
   $global:EnvdenLastDirectory = $PWD.Path
   if ($changed) {

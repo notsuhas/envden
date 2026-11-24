@@ -10,6 +10,7 @@ test("settings print as words, not JSON", () => {
     "update-check: on",
     "agent-merge: off",
     "auto-approve-worktrees: on",
+    "auto-pull: off",
     "placement:",
     "  /repo: copy",
     "env-files: default",

@@ -8,7 +8,7 @@ import { readConfig, setConfig } from "../../settings/config.ts";
 export const configCommand = new Command("config")
   .argument(
     "[key]",
-    "telemetry, update-check, agent-merge, auto-approve-worktrees, placement or env-files",
+    "telemetry, update-check, agent-merge, auto-approve-worktrees, auto-pull, placement or env-files",
   )
   .argument("[values...]", "New value; placement takes a checkout path and link or copy")
   .description("Read or change settings")
