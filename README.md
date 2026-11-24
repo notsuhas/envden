@@ -26,18 +26,8 @@ Docs: [envden.theclau.de/docs](https://envden.theclau.de/docs)
 # macOS and Linux
 curl -fsSL https://envden.theclau.de/install.sh | sh
 
-# Windows (PowerShell)
-irm https://envden.theclau.de/install.ps1 | iex
-
 # Homebrew
 brew install notsuhas/tap/envden
-
-# npm
-npm i -g envden
-
-# Scoop
-scoop bucket add notsuhas https://github.com/notsuhas/scoop-bucket
-scoop install notsuhas/envden
 ```
 
 The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
