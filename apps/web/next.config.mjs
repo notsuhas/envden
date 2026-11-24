@@ -10,7 +10,6 @@ const config = {
   outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
   outputFileTracingIncludes: {
     "/install.sh": ["../../packaging/install/install.sh"],
-    "/install.ps1": ["../../packaging/install/install.ps1"],
   },
   // page views reach PostHog through the site itself, so the CSP stays 'self'
   skipTrailingSlashRedirect: true,

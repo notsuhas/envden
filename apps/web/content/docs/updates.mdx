@@ -10,7 +10,7 @@ envden update --check
 envden update
 ```
 
-`--check` reports release state without installing. `update` uses the recorded install method. Package-manager installations delegate to Homebrew, npm, Scoop or winget. Script installations download a newer binary, verify its hash against `SHA256SUMS` from the same release tag, then replace it atomically.
+`--check` reports release state without installing. `update` uses the recorded install method. Homebrew installations run `brew upgrade`. Script installations download a newer binary, verify its hash against `SHA256SUMS` from the same release tag, then replace it atomically.
 
 After installation, envden refreshes the shell notice and agent skill. It also restarts an installed laptop server service.
 

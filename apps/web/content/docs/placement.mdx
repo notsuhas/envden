@@ -41,7 +41,7 @@ Approved clones and worktrees of the same repo share that store file. In a monor
 
 Repo identity comes from the `origin` remote, or the only remote if there is no `origin`. envden asks when the choice is ambiguous. Your global `url.<base>.insteadOf` rewrites apply, SSH host aliases are resolved, and ports are ignored, so SSH and HTTPS clones of one repo share files. The Repo ID is encrypted before upload.
 
-Store directories use `0700` permissions and files use `0600`, with ACLs on Windows. Before placement, envden checks git's ignore rules and adds a missing exclusion to the checkout's git exclude file. It refuses tracked files.
+Store directories use `0700` permissions and files use `0600`. Before placement, envden checks git's ignore rules and adds a missing exclusion to the checkout's git exclude file. It refuses tracked files.
 
 ## Copy mode
 

@@ -15,7 +15,7 @@ const CONTEXT: Record<string, string> = {
   how: "plaintext → ciphertext → plaintext",
   agents: "1 repo / n worktrees",
   features: "~/.envden/store",
-  install: "macOS / Linux / Windows",
+  install: "macOS / Linux",
 };
 
 export function Section(props: ISection) {

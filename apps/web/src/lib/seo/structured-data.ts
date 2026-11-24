@@ -8,7 +8,7 @@ export function softwareApplication() {
     description: SITE_TAGLINE,
     url: SITE_URL,
     applicationCategory: "DeveloperApplication",
-    operatingSystem: "macOS, Linux, Windows",
+    operatingSystem: "macOS, Linux",
     softwareVersion: ENVDEN_VERSION,
     license: `${GITHUB_URL}/blob/main/LICENSE`,
     codeRepository: GITHUB_URL,
