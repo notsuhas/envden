@@ -233,25 +233,33 @@ test("unchanged member versions do not write device state", async () => {
   }
 });
 
-test("fetching a join approval doesn't confirm the device, its next request does", async () => {
-  const f = fixture(keys);
-  const put = spyOn(f.storage, "putDevice");
+for (const [path, confirmed, recorded] of [
+  ["/v1/join-requests/approved", false, false],
+  ["/v1/join-requests/1/offer", false, false],
+  ["/v1/head", false, true],
+  ["/v1/join-requests/approved", true, true],
+] as const)
+  test(`${path} ${recorded ? "records" : "doesn't record"} a ${confirmed ? "confirmed" : "new"} device's version`, async () => {
+    const f = fixture(keys);
+    const put = spyOn(f.storage, "putDevice");
+    const device = confirmed ? undefined : spyOn(f.storage, "device").mockReturnValue(undefined);
 
-  const newer = (r: p.IRequest) => {
-    r.clientVersion = "1.1.0";
-  };
+    try {
+      await f
+        .request(path, undefined, {
+          mutate: (r) => {
+            r.clientVersion = "1.1.0";
+          },
+        })
+        .send();
 
-  try {
-    await f.request("/v1/join-requests/approved", undefined, { mutate: newer }).send();
-    expect(put).not.toHaveBeenCalled();
-
-    await f.request("/v1/head", undefined, { mutate: newer }).send();
-    expect(put).toHaveBeenCalled();
-  } finally {
-    put.mockRestore();
-    f.close();
-  }
-});
+      expect(put.mock.calls.length > 0).toBe(recorded);
+    } finally {
+      put.mockRestore();
+      device?.mockRestore();
+      f.close();
+    }
+  });
 
 test("rejected unknown devices do not record nonces", async () => {
   const f = fixture(keys);

@@ -36,10 +36,10 @@ export function verifyAccess(
 
   const state = storage.device(request.vaultId, request.device);
 
-  // Fetching JoinApproved, even too late, isn't confirmation; the joiner's next request is.
+  // A joiner's own join-request polls aren't confirmation; its first request after them is.
   if (
     member &&
-    pathname !== "/v1/join-requests/approved" &&
+    (state || !pathname.startsWith("/v1/join-requests/")) &&
     state?.clientVersion !== request.clientVersion
   )
     storage.putDevice(request.vaultId, request.device, { clientVersion: request.clientVersion });

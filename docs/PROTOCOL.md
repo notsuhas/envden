@@ -372,7 +372,7 @@ The server stores `H("setup-token", secret)`, `H("repair-token", secret)` and `p
 
 **Versions.** `appVersion`, `minClient` and `clientVersion` are `X.Y.Z`, digits only, with no leading zeros except the single digit `0`. `protocols` lists the protocol versions the server speaks, sorted; this document is `[2]`. A client refuses a server that doesn't list its version: "update the server" when every listed version is lower, "update envden" otherwise.
 - The server rejects a request whose `clientVersion` is below `minClient` with `426`. The 426 body is unsigned, so the client runs hello again and trusts only the signed `minClient`. If that's above the latest GitHub release (§ 15), it reports "the server requires a version that doesn't exist" instead of "update envden".
-- The server records each device's last `clientVersion`.
+- The server records each device's last `clientVersion`. A newly approved device's own join-request polls don't count, so `device ls` shows it confirmed only once it has fetched `JoinApproved` and made its next request (§ 12).
 - The client refuses a server whose `appVersion` is below the client's built-in `minServer`.
 - **Protocol version.** The client uses the highest version both sides speak, and stores the highest it has used per vault. It never goes below that.
 - Version checks aren't a security boundary. A client that lies about its version only hurts its own user.
