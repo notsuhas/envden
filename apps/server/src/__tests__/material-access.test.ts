@@ -41,12 +41,14 @@ test("restored reads require membership as well as the repair token", async () =
   expect((await restored.request("/v1/head", undefined, restored.a, proof)).status).toBe(200);
 });
 
-for (const kind of ["keyring", "envelope", "skPub"])
+for (const kind of ["keyring", "envelope", "proofPub"])
   test(`repair rejects unnamed ${kind}`, async () => {
     const bytes = p.randomBytes(32);
 
     const hash =
-      kind === "skPub" ? bytes : p.H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes);
+      kind === "proofPub"
+        ? bytes
+        : p.H(kind === "keyring" ? "keyring-blob" : "envelope-blob", bytes);
 
     const response = await restored.request(
       `/v1/repair/material/${kind}/${text(hash)}`,

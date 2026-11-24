@@ -16,9 +16,9 @@ test.each([
 });
 
 test("only envden errors keep their message", () => {
-  expect(errorBody(new EnvdenError("LOCKED", "Unlock expired"))).toEqual({
+  expect(errorBody(new EnvdenError("LOCKED", "Vault keys unavailable"))).toEqual({
     error: "LOCKED",
-    message: "Unlock expired",
+    message: "Vault keys unavailable",
   });
 
   expect(errorBody(new Error("ENOENT /home/me/.envden/store/secret"))).toEqual({

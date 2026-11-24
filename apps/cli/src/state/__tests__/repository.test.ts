@@ -41,16 +41,26 @@ test("atomic writes replace a symlink without touching its target", async () => 
   }
 });
 
-test("state loading rejects an incomplete record", async () => {
-  const home = await mkdtemp(join(tmpdir(), "envden-invalid-state-"));
+for (const [record, message] of [
+  ["{}", "Unreadable local state"],
+  ['{"format":1}', "from envden 0.3"],
+] as const)
+  test(`state loading rejects ${record}`, async () => {
+    const home = await mkdtemp(join(tmpdir(), "envden-invalid-state-"));
 
-  try {
-    await atomicWrite(join(home, "state", "device.json"), "{}", fixtureClock);
-    await Promise.resolve(expect(loadState(home)).rejects.toMatchObject({ code: "INVALID_DATA" }));
-  } finally {
-    await rm(home, { recursive: true, force: true });
-  }
-});
+    try {
+      await atomicWrite(join(home, "state", "device.json"), record, fixtureClock);
+
+      await Promise.resolve(
+        expect(loadState(home)).rejects.toMatchObject({
+          code: "INVALID_DATA",
+          message: expect.stringContaining(message),
+        }),
+      );
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });
 
 test("headers live in immutable objects outside device.json", async () => {
   const home = await mkdtemp(join(tmpdir(), "envden-headers-"));

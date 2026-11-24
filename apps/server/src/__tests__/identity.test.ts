@@ -8,7 +8,7 @@ import { initializeSetup, reissueSetup } from "../identity/setup.ts";
 import { localSetupToken } from "../identity/local.ts";
 import { fixture, identity } from "./fixture.ts";
 
-test("server signing key and OPAQUE setup persist privately", async () => {
+test("server signing key persists privately", async () => {
   const dir = mkdtempSync(join(tmpdir(), "envden-identity-"));
 
   try {

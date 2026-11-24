@@ -225,7 +225,7 @@ test("unchanged member versions do not write device state", async () => {
   const put = spyOn(f.storage, "putDevice");
 
   try {
-    await f.request("/v1/settings/unlock-period").send();
+    await f.request("/v1/head").send();
     expect(put).not.toHaveBeenCalled();
   } finally {
     put.mockRestore();
