@@ -116,3 +116,42 @@ test("a removed device rejoins by word approval with a new identity", async () =
     await f.close();
   }
 });
+
+test("an approval whose swap never reached the server resumes on the next approve", async () => {
+  const { runDeviceApprove } = await import("../../onboarding/approve.ts");
+  const f = await fixture();
+
+  try {
+    const second = f.home("second");
+    let dropped = false;
+
+    const approver = {
+      ...f.first,
+      fetcher: (async (input, init) => {
+        if (
+          !dropped &&
+          (input instanceof Request ? input.url : input.toString()).includes("/v1/swap?")
+        ) {
+          dropped = true;
+          throw new Error("connection lost");
+        }
+
+        return f.fetcher(input, init);
+      }) as typeof f.fetcher,
+    };
+
+    const result = await wordApproval(f, { joiner: second, approver });
+    expect(result.approval.status).toBe("rejected");
+
+    await runDeviceApprove(f.first, f.now, undefined, {
+      confirm: async () => false,
+      report: () => {},
+      choose: async () => 0,
+    });
+
+    await result.finish();
+    expect((await loadState(second.home))?.vaultId).toBe(f.result.vaultId);
+  } finally {
+    await f.close();
+  }
+});

@@ -50,7 +50,8 @@ export async function approveJoin(
   const nonce = p.randomBytes(32);
   const offer = p.encode(p.JoinOfferCodec, { vaultId, nonce });
   await putSlot(client, request.number, "offer", text(offer));
-  let committed = false;
+  // Once the swap is saved, the open request is what lets a rerun resubmit it.
+  const saved = { value: false };
 
   try {
     interaction.report("Waiting for the new device to show its words");
@@ -83,12 +84,11 @@ export async function approveJoin(
     const question = `${proposed.name} wants to join. Words: ${words}. Do they match the other screen?`;
     if (!(await interaction.confirm(question))) return { kind: "declined" as const };
 
-    const name = await commitApproval(approver, request.number, reveal.device, expiresAt);
-    committed = true;
+    const name = await commitApproval(approver, request.number, reveal.device, expiresAt, saved);
 
     return { kind: "approved" as const, name };
   } finally {
-    if (!committed) await cancelRequest(client, request.number);
+    if (!saved.value) await cancelRequest(client, request.number);
   }
 }
 
@@ -98,6 +98,7 @@ function commitApproval(
   number: number,
   device: p.IDeviceRecord,
   expiresAt: number,
+  saved: { value: boolean },
 ) {
   const { adapters, client, identity, pin, vaultId, now } = approver;
 
@@ -134,6 +135,7 @@ function commitApproval(
       });
 
       await saveApproval(adapters, number, p.encode(p.SwapCodec, swap));
+      saved.value = true;
       await submitApproval(adapters, client, vaultId);
 
       return committed.name;
