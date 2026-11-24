@@ -250,6 +250,8 @@ Each vault has exactly one authoritative server at a time; devices push and pull
 
 Go with Tailscale's `tsnet` was the obvious choice, but the maintainer can't read Go and needs to audit the code. So envden is a TypeScript monorepo on Bun, which compiles the CLI to one binary per platform. Instead of embedding Tailscale, the server listens on localhost and sits behind `tailscale serve`. Tailscale identity is at most a coarse gate; device-signed requests are the real authentication. NetBird, ZeroTier or a device-token network adapter can be added without touching sync or crypto, because the network only gates access to ciphertext.
 
+Go and Rust ports were tried on side branches and removed, along with the parity harness that compared them. Nobody could review them, and a crypto port that isn't reviewed puts the zero-knowledge claim at risk. A smaller native binary, if people ask for one, will be a new port that gets a proper review, not a revival of those branches. The old trees are kept as the `archive/port-go` and `archive/port-rust` tags.
+
 ### Built-in adapters; crypto, sync and merge are not pluggable
 
 Adapters are compiled into the binary and added by fork or PR. Runtime-loaded plugins are deferred because a plugin in a secrets tool can read every plaintext env file. Encryption, the sync protocol and merging are not adapters, since a swappable crypto layer is how secrets tools get broken.
