@@ -5,24 +5,24 @@ class Envden < Formula
   license "MIT"
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-arm64"
+      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-arm64.tar.gz"
       sha256 "{{SHA256_DARWIN_ARM64}}"
     else
-      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-x64"
+      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-darwin-x64.tar.gz"
       sha256 "{{SHA256_DARWIN_X64}}"
     end
   end
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-arm64"
+      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-arm64.tar.gz"
       sha256 "{{SHA256_LINUX_ARM64}}"
     else
-      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-x64"
+      url "https://github.com/notsuhas/envden/releases/download/v#{version}/envden-linux-x64.tar.gz"
       sha256 "{{SHA256_LINUX_X64}}"
     end
   end
   def install
-    bin.install Dir["envden-*"].first => "envden"
+    bin.install "envden"
   end
   test do
     system bin/"envden", "--version"

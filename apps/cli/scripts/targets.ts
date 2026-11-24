@@ -7,6 +7,10 @@ export const targets = [
   "linux-arm64-musl",
 ];
 
-export function assetName(platform: string) {
+export function binaryName(platform: string) {
   return `envden-${platform}`;
+}
+
+export function assetName(platform: string) {
+  return `${binaryName(platform)}.tar.gz`;
 }

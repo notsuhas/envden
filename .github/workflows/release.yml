@@ -108,17 +108,22 @@ jobs:
           if [ -f "$RUNNER_TEMP/keychains-before" ]; then xargs security list-keychains -d user -s < "$RUNNER_TEMP/keychains-before"; fi
           if [ -n "$SIGNING_KEYCHAIN" ]; then security delete-keychain "$SIGNING_KEYCHAIN" || true; fi
           rm -f "$RUNNER_TEMP/certificate.p12" "$RUNNER_TEMP/notary-key.p8"
-      - if: ${{ !contains(matrix.targets, 'musl') }}
-        run: bun apps/cli/scripts/smoke.ts apps/cli/dist/${{ matrix.smoke }}
-      - name: Smoke musl on Alpine
+      - run: bun apps/cli/scripts/package.ts ${{ matrix.targets }}
+      - name: Smoke the binary from the archive
+        if: ${{ !contains(matrix.targets, 'musl') }}
+        run: |
+          mkdir "$RUNNER_TEMP/unpacked"
+          tar -xzf "$BINARY.tar.gz" -C "$RUNNER_TEMP/unpacked" envden
+          bun apps/cli/scripts/smoke.ts "$RUNNER_TEMP/unpacked/envden"
+      - name: Smoke the binary from the archive on Alpine
         if: contains(matrix.targets, 'musl')
         run: |
-          docker run --rm -v "$PWD/apps/cli/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'apk add --no-cache libstdc++=14.2.0-r6; for args in "--version" "--help" "doctor --json"; do /dist/${{ matrix.smoke }} $args; done'
+          docker run --rm -v "$PWD/apps/cli/dist:/dist:ro" -e ENVDEN_HOME=/tmp/envden -e ENVDEN_NO_UPDATE_CHECK=1 -e ENVDEN_TELEMETRY=0 alpine:3.22@sha256:49340b346798875b5592e5d420241f2f9cfba5f47e62ebb1446a1b34734e898f sh -ec 'apk add --no-cache libstdc++=14.2.0-r6; tar -xzf /dist/${{ matrix.smoke }}.tar.gz -C /usr/local/bin envden; for args in "--version" "--help" "doctor --json"; do envden $args; done'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           overwrite: true
-          name: binaries-${{ matrix.targets }}
-          path: apps/cli/dist/envden-*
+          name: archives-${{ matrix.targets }}
+          path: apps/cli/dist/envden-*.tar.gz
           if-no-files-found: error
   image:
     if: github.event_name == 'push'
@@ -144,7 +149,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: binaries-linux-*-musl
+          pattern: archives-linux-*-musl
           merge-multiple: true
           path: release
       - id: image
@@ -173,10 +178,10 @@ jobs:
       - run: bun install --frozen-lockfile
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: binaries-*
+          pattern: archives-*
           merge-multiple: true
           path: release
-      - name: Hash release builds
+      - name: Hash release archives
         run: bun --tsconfig-override scripts/tsconfig.json scripts/release/checksums.ts release
       - name: Check current release
         id: current

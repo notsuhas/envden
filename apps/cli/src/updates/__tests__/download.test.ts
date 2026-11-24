@@ -4,9 +4,11 @@ import { downloadUpdate } from "../self/download.ts";
 import { RELEASE_REPOSITORY } from "../github.ts";
 import type { TFetch } from "../../client/fetch.ts";
 
+const binary = new TextEncoder().encode("binary");
+const bytes = await new Bun.Archive({ envden: binary }, { compress: "gzip" }).bytes();
+
 for (const scenario of ["valid", "mismatch", "missing", "equal", "older"]) {
   test(`download update: ${scenario}`, async () => {
-    const bytes = new TextEncoder().encode("binary");
     const calls: string[] = [];
 
     const fetcher: TFetch = async (input) => {
@@ -23,7 +25,7 @@ for (const scenario of ["valid", "mismatch", "missing", "equal", "older"]) {
 
       if (url.endsWith("SHA256SUMS"))
         return new Response(
-          `${Buffer.from(sha256(bytes)).toString("hex")}  envden-${scenario === "missing" ? "darwin-arm64" : "linux-x64"}`,
+          `${Buffer.from(sha256(bytes)).toString("hex")}  envden-${scenario === "missing" ? "darwin-arm64" : "linux-x64"}.tar.gz`,
         );
 
       return new Response(scenario === "mismatch" ? "wrong" : bytes);
@@ -36,10 +38,10 @@ for (const scenario of ["valid", "mismatch", "missing", "equal", "older"]) {
     );
 
     if (scenario === "valid") {
-      expect(await action).toEqual(bytes);
+      expect(await action).toEqual(binary);
 
       expect(calls.slice(1)).toEqual(
-        ["SHA256SUMS", "envden-linux-x64"].map(
+        ["SHA256SUMS", "envden-linux-x64.tar.gz"].map(
           (name) => `https://github.com/${RELEASE_REPOSITORY}/releases/download/v1.0.0/${name}`,
         ),
       );
@@ -63,8 +65,6 @@ test("large downloads use an injectable total deadline longer than thirty second
     () => new AbortController().signal,
   );
 
-  const bytes = new TextEncoder().encode("binary");
-
   try {
     await downloadUpdate(
       async (input) => {
@@ -72,7 +72,9 @@ test("large downloads use an injectable total deadline longer than thirty second
         if (url.endsWith("latest")) return Response.json({ tag_name: "v99.0.0" });
 
         if (url.endsWith("SHA256SUMS"))
-          return new Response(`${Buffer.from(sha256(bytes)).toString("hex")}  envden-linux-x64`);
+          return new Response(
+            `${Buffer.from(sha256(bytes)).toString("hex")}  envden-linux-x64.tar.gz`,
+          );
 
         return new Response(bytes);
       },

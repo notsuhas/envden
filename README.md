@@ -30,7 +30,7 @@ curl -fsSL https://envden.theclau.de/install.sh | sh
 brew install notsuhas/tap/envden
 ```
 
-The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Binaries and checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
+The server is the same binary (`envden serve`), or the image `ghcr.io/notsuhas/envden:0`. Archives of the binary and their checksums are on the [releases page](https://github.com/notsuhas/envden/releases).
 
 ## Quick start
 

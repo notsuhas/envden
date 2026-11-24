@@ -17,8 +17,12 @@ test("published assets allow identical retries and reject rebuilds", () => {
 });
 
 test("signed macOS rebuilds skip only the darwin comparison", () => {
-  const resigned = sums.replace(/^[a-f0-9]{64}(?=  envden-darwin-arm64$)/m, "f".repeat(64));
-  const relinked = sums.replace(/^[a-f0-9]{64}(?=  envden-linux-x64$)/m, "f".repeat(64));
+  const resigned = sums.replace(
+    /^[a-f0-9]{64}(?=  envden-darwin-arm64\.tar\.gz$)/m,
+    "f".repeat(64),
+  );
+
+  const relinked = sums.replace(/^[a-f0-9]{64}(?=  envden-linux-x64\.tar\.gz$)/m, "f".repeat(64));
 
   expect(resigned).not.toBe(sums);
   expect(() => verifyReleaseChecksums(sums, resigned, false)).toThrow("Re-run only failed jobs");

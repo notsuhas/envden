@@ -23,7 +23,7 @@ Developers keep env files (gitignored, often with comments) in many repos and wo
   - CLI: `commander` with `@commander-js/extra-typings`, prompts from `@clack/prompts`, keys in owner-only files behind the keychain adapter, git via the `git` command.
   - Server: Hono on `Bun.serve`. Request signing, rate limits and the setup token are Hono middleware; the CLI uses Hono's typed client; tests call `app.request()` with no open port. SQLite via `bun:sqlite`.
   - Site: Next.js, Fumadocs, Tailwind, Motion for landing-page animations, hosted on Vercel.
-  - Releases: GitHub Actions builds every platform binary and the Docker image, uploads the binaries and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
+  - Releases: GitHub Actions builds every platform binary and the Docker image, uploads one `.tar.gz` archive per platform and their `SHA256SUMS` file (PROTOCOL § 15); channels under Distribution.
 - **Crypto libraries**: `@noble/ciphers`, `@noble/curves`, `@noble/hashes`; Argon2id from `hash-wasm` (Bun's `node:crypto` Argon2 throws "not supported"); OPAQUE from `@serenity-kit/opaque`; HPKE from `@hpke/core` (+ `dhkem-x25519`, `chacha20poly1305`). All pinned exactly, RFC test vectors in CI. No hand-rolled primitives. The envden protocol that composes them (device list, manifest, wraps, pairing channel) is ours: specified in `PROTOCOL.md` with test vectors, and reviewed separately before release.
 
 ## Adapters
@@ -224,7 +224,7 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 - **Forced updates come from your server.** Updating the server can raise `minClient`. Older clients then get a clear "update envden" error on their next sync and nothing else breaks: placed files are links into the local store and keep working. `envden serve --min-client <version>` raises it further by hand.
 - **Old server.** A client that needs a newer server says so and prints the update command for that server: `docker compose pull && docker compose up -d`, or `envden update` on a laptop server.
 - **New formats are gated.** A new entry kind or format is only written once the server's `minClient` guarantees every syncing device can read it. A client says "update required" only for data whose signature it verified; anything else is reported as invalid.
-- **`envden update`** uses the install method recorded by the installer: `brew upgrade`, or, for the script install, a download checked against the hash in `SHA256SUMS` from the same release tag, a successful no-op if it isn't newer, and swapped in atomically. It then refreshes the shell line, the agent skill and, on a laptop server, restarts the service. `envden update --check` only reports and runs even when automatic checks are disabled. Downloads allow up to 30 minutes; the new binary must run before replacement. A failed post-install restores the old binary.
+- **`envden update`** uses the install method recorded by the installer: `brew upgrade`, or, for the script install, an archive download checked against the hash in `SHA256SUMS` from the same release tag, a successful no-op if it isn't newer, and swapped in atomically. The binary is read from the archive in memory; any file, link or directory other than the `envden` file and `LICENSE`, including paths with `..`, fails the update, and neither the archive nor its contents may pass 256 MiB. It then refreshes the shell line, the agent skill and, on a laptop server, restarts the service. `envden update --check` only reports and runs even when automatic checks are disabled. Downloads allow up to 30 minutes; the new binary must run before replacement. A failed post-install restores the old binary.
 - **Update check.** Once a day the CLI resolves the latest stable GitHub release and caches the result in `~/.envden/state` (PROTOCOL § 15). Setup asks once, default on; `envden config update-check off` and `ENVDEN_NO_UPDATE_CHECK=1` turn it off. Failed lookups only appear in status and doctor output. The shell line shows "update available" at most once a day and "update required" when the server refuses sync, until a successful authenticated request clears it. A minimum above the latest release is reported without a persistent update notice.
 - **Security releases.** A server can raise its signed `minClient` to require clients to update before syncing. Update downloads rely on GitHub and TLS for integrity.
 - **Data migrations.** Server database migrations save a `pre-<version>` backup before changing an existing database. Backups expire after 30 days, since they hold the OPAQUE record. The server refuses incompatible database formats. The CLI's local state must match the current strict format; it has no migration or automatic backup mechanism and rejects other formats as "Unreadable local state".
@@ -242,13 +242,19 @@ Setup, server move and repair completion require a terminal for secret prompts; 
 
 ## Distribution and site
 
-- macOS and Linux only (see [Decisions](#macos-and-linux-only-no-windows-or-npm)). `curl | sh`, Homebrew, and the release binaries (arm64 and x64; glibc and musl on Linux). The release workflow publishes the Homebrew formula. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
+- macOS and Linux only (see [Decisions](#macos-and-linux-only-no-windows-or-npm)). `curl | sh`, Homebrew, and the release archives (arm64 and x64; glibc and musl on Linux), each a `.tar.gz` holding the `envden` binary and `LICENSE` (see [Decisions](#release-assets-are-gzipped-archives-built-with-the-pinned-bun)). The release workflow publishes the Homebrew formula. Server image on GHCR, tagged by exact version, minor (`:1.4`) and major (`:1`); docs pin the major. MIT license. Self-host only.
 - The static site CSP permits inline Next.js bootstrap scripts and component styles; scripts, search, fonts and images otherwise use the same origin.
 - Site `envden.theclau.de` for now, from one `SITE_URL` constant. LLM-friendly docs: `llms.txt`, `llms-full.txt`, raw markdown per page, comparison pages (vs Infisical, dotenv-vault, DotVeil), agent setup page.
 
 ## Decisions
 
 When a decision changes, rewrite its entry here and say what it replaced.
+
+### Release assets are gzipped archives built with the pinned Bun
+
+Replaces raw binaries as release assets. A compiled binary is about 67 MB, of which envden's own code is under 3 MB; the rest is the Bun runtime. gzip cuts the darwin-arm64 download to about 26 MB. xz would reach about 17 MB, but Bun can't read it, so self-update would need another dependency or the system `xz`, which minimal Linux images often lack. gzip unpacks with the stock `tar` on macOS, GNU and BusyBox, and Homebrew unpacks it natively. Archives use fixed modes, owner and timestamps so a rebuild hashes the same. Bun's own `Bun.Archive` can't set the executable bit or report links, so node-tar writes and reads them.
+
+The runtime also grows between Bun releases: a hello-world binary is 63.9 MB on 1.4.0 and 87.4 MB on 1.4.5. Release builds refuse to run on any Bun other than the `packageManager` version, which CI installs, so a Bun upgrade is a deliberate change that checks the size.
 
 ### Template checks compare key names only, locally
 

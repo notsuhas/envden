@@ -39,8 +39,8 @@ for (const valid of [true, false])
       hookSnippet: () => "",
     });
 
-    const build = new TextEncoder().encode("new binary");
-    const asset = `envden-${currentReleasePlatform()}`;
+    const build = await new Bun.Archive({ envden: "new binary" }, { compress: "gzip" }).bytes();
+    const asset = `envden-${currentReleasePlatform()}.tar.gz`;
 
     try {
       await atomicWrite(join(adapters.home, "install-method"), "script", fixtureClock);
